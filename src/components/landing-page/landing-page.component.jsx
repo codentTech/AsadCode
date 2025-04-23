@@ -39,7 +39,7 @@ function LandingPage() {
             </div>
 
             {/* Sidebar - hidden on small screens */}
-            <div className="hidden xl:block">
+            <div className="hidden sm:block">
               <PremiumSidebar />
             </div>
           </div>

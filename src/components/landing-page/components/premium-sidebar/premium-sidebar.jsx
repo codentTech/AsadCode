@@ -1,6 +1,6 @@
 const PremiumSidebar = () => {
     return (
-      <div className="h-full min-h-[50rem] bg-gray-100 p-5 rounded-2xl max-w-sm shadow-xl">
+      <div className="h-full max-h-[50rem] bg-gray-100 p-5 rounded-2xl max-w-sm shadow-xl">
         {/* Trending Topics */}
         <div className="mb-8">
           <h3 className="text-base font-semibold text-gray-900 mb-3 pl-2">🔥 Trending Topics</h3>

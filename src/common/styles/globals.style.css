@@ -100,23 +100,28 @@
   }
 
   /* typography  */
-  .h1 {
+  h1 {
     @apply font-dm text-2xl font-bold not-italic leading-9 text-text-black;
   }
-  .h2 {
+  h2 {
     @apply font-dm text-[22px] font-bold not-italic leading-[33px] text-text-black;
   }
-  .h3 {
+  h3 {
     @apply font-dm text-[20px] font-bold not-italic leading-[30px] text-text-black;
   }
-  .h4 {
-    @apply font-dm text-xs font-medium not-italic leading-[18px] text-text-dark-gray;
+  h4 {
+    @apply font-dm text-[18px] font-medium not-italic leading-[18px] text-text-dark-gray;
   }
+  h5 {
+    @apply font-dm text-[16px] font-normal not-italic leading-[18px] text-secondary-black;
+  }
+
+  .primary-text {
+    @apply text-xs text-gray-800
+  }
+
   .span-link {
     @apply cursor-pointer pl-[3px] text-xs font-medium not-italic leading-[18px] text-blue-800 underline;
-  }
-  .h5 {
-    @apply font-dm text-xs font-normal not-italic leading-[18px] text-secondary-black;
   }
   .admin-top-heading {
     @apply flex items-center font-dm text-[22px] font-medium capitalize not-italic leading-[33px] text-text-dark-gray;
@@ -415,34 +420,13 @@
   border-bottom: 2px solid #047857;
 }
 
-/*
-  background: #e4e4e4;
-  border-radius: 3px !important;
-}
-.MuiPaginationItem-textPrimary > .Mui-selected {
-  background: #1d4ed8 !important;
-}
-/*
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}*/
 
 body {
   background: #f0f2f5
 } 
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
   height: 4px;
 }
 

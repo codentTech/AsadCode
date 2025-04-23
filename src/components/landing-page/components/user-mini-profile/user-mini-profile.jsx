@@ -2,7 +2,7 @@ import React from "react";
 
 const UserMiniProfile = () => {
   return (
-    <div className="sidebar w-full max-w-[20rem] h-full min-h-[35rem] bg-white shadow-lg p-5 flex flex-col items-center font-[Poppins] rounded-xl">
+    <div className="sidebar w-full max-w-[20rem] h-full max-h-[35rem] bg-white shadow-lg p-5 flex flex-col items-center font-[Poppins] rounded-xl">
       {/* User Mini Profile */}
       <div className="user-profile text-center mb-6">
         <img

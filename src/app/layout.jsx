@@ -11,7 +11,6 @@ import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import store from "@/provider/store";
 
-
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   "&.notistack-MuiContent-success": {
     backgroundColor: "rgb(222 255 228)",
@@ -29,10 +28,9 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
  * @returns page component with html wrapped around it
  */
 export default function RootLayout({ children }) {
-
   return (
     <html lang="en">
-        <head>
+      <head>
         {/* Font Awesome 4 CDN */}
         <link
           rel="stylesheet"
