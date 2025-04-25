@@ -3,22 +3,16 @@ import React, { useState } from "react";
 function useChatList() {
   const [selectedChat, setSelectedChat] = useState("Sam Waters");
   const [activeCategory, setActiveCategory] = useState("Skincare");
-  const [activeFilter, setActiveFilter] = useState(["Saved"]);
+  const [activeFilter, setActiveFilter] = useState("Saved");
   const [searchText, setSearchText] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
+  const [openFilterModal, setOpenFilterModal] = useState(false);
 
   const avatar =
     "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
 
   const categories = ["Skincare", "Makeup", "Fashion", "Nutrition", "Fitness"];
-  const filterOptions = [
-    "Saved",
-    " Best Match",
-    "Follower Count",
-    "Highest Rated",
-    "Engagement Rate",
-    "Trash",
-  ];
+  const filterOptions = ["Saved", "Rejected", "Trash"];
 
   const options = [
     { label: "Option One", value: "1" },
@@ -102,6 +96,8 @@ function useChatList() {
     handleChange,
     activeFilter,
     setActiveFilter,
+    openFilterModal,
+    setOpenFilterModal,
   };
 }
 

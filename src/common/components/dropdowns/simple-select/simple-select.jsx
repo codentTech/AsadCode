@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import useSimpleSelect from "./use-simple-select";
 import CustomInput from "../../custom-input/custom-input.component";
+import FieldLabel from "../../field-label/field-label.component";
 
 function Icon({ isOpen }) {
   return (
@@ -21,6 +22,7 @@ function Icon({ isOpen }) {
 }
 
 export default function SimpleSelect({
+  label,
   placeHolder,
   options,
   isMulti,
@@ -50,11 +52,12 @@ export default function SimpleSelect({
   });
 
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`relative w-full flex flex-col gap-2 ${className}`}>
+      {label && <FieldLabel label={label} />}
       <div
         ref={inputRef}
         onClick={handleInputClick}
-        className="flex justify-between items-center px-3 py-2 rounded-md border border-gray-300 bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
+        className="flex justify-between items-center px-3 py-[9px] rounded-md border border-text-dark-gray  bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
       >
         <div className="truncate">{getDisplay()}</div>
         <Icon isOpen={showMenu} />

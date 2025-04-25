@@ -222,9 +222,7 @@ function Profile({ isCreaterInbox, activeTab }) {
       {/* Demographics section */}
       {[3, 5].includes(activeTab) && !isCreaterInbox && (
         <div className="overflow-y-auto p-3">
-          <h4 className="font-bold text-sm text-primary mb-4">
-            Audience Demographics
-          </h4>
+          <h5 className="font-bold mb-4">Audience Demographics</h5>
 
           {/* Gender Chart */}
           <div className="bg-white rounded-lg mb-4">
@@ -385,13 +383,13 @@ function Profile({ isCreaterInbox, activeTab }) {
       )}
 
       {[5].includes(activeTab) && isCreaterInbox && (
-        <div className="overflow-y-auto space-y-4 px-4 bg-white rounded-xl shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-800">Reviews</h3>
+        <div className="overflow-y-auto space-y-2 px-2 bg-white">
+          <h3 className="text-lg font-semibold text-gray-800 mt-2">Reviews</h3>
 
           {reviews.map((review, index) => (
             <div
               key={index}
-              className="border border-gray-100 rounded-lg p-4 hover:shadow-md transition"
+              className="border border-gray-100 rounded-lg p-4 shadow-lg transition"
             >
               <div className="flex items-center gap-4 mb-2">
                 <img
@@ -414,7 +412,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-4 h-4 ${
+                    className={`w-3 h-3 ${
                       i < review.rating ? "text-yellow-400" : "text-gray-300"
                     }`}
                     fill="currentColor"
@@ -426,7 +424,7 @@ function Profile({ isCreaterInbox, activeTab }) {
               </div>
 
               {/* Review Message */}
-              <p className="text-sm text-gray-700">{review.message}</p>
+              <p className="text-xs text-gray-700">{review.message}</p>
             </div>
           ))}
         </div>
