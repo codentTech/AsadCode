@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const Footer = () => {
   return (
@@ -24,40 +24,112 @@ const Footer = () => {
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">Company</h3>
+          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">
+            Company
+          </h3>
           <ul className="space-y-2 text-sm text-gray-600">
-            <li><a href="#" className="hover:text-blue-600 transition">About Us</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Blog</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Careers</a></li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                About Us
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Blog
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Careers
+              </a>
+            </li>
           </ul>
         </div>
 
         <div>
-          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">Resources</h3>
+          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">
+            Resources
+          </h3>
           <ul className="space-y-2 text-sm text-gray-600">
-            <li><a href="#" className="hover:text-blue-600 transition">Help Center</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Documentation</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Case Studies</a></li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Help Center
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Documentation
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Case Studies
+              </a>
+            </li>
           </ul>
         </div>
 
         <div>
-          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">Legal</h3>
+          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">
+            Legal
+          </h3>
           <ul className="space-y-2 text-sm text-gray-600">
-            <li><a href="#" className="hover:text-blue-600 transition">Terms & Conditions</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-blue-600 transition">Cookie Policy</a></li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Terms & Conditions
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-blue-600 transition">
+                Cookie Policy
+              </a>
+            </li>
           </ul>
         </div>
 
         {/* Social Media Icons */}
         <div className="text-center lg:text-left">
-          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">Connect With Us</h3>
+          <h3 className="text-base font-semibold uppercase text-gray-800 mb-3">
+            Connect With Us
+          </h3>
           <ul className="flex justify-center lg:justify-start gap-6 mt-2">
-            <li><a href="#" className="text-gray-600 hover:text-blue-600 text-xl transition"><i className="fa fa-facebook"></i></a></li>
-            <li><a href="#" className="text-gray-600 hover:text-blue-600 text-xl transition"><i className="fa fa-twitter"></i></a></li>
-            <li><a href="#" className="text-gray-600 hover:text-blue-600 text-xl transition"><i className="fa fa-instagram"></i></a></li>
-            <li><a href="#" className="text-gray-600 hover:text-blue-600 text-xl transition"><i className="fa fa-linkedin"></i></a></li>
+            <li>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-blue-600 text-xl transition"
+              >
+                <i className="fa fa-facebook"></i>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-blue-600 text-xl transition"
+              >
+                <i className="fa fa-twitter"></i>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-blue-600 text-xl transition"
+              >
+                <i className="fa fa-instagram"></i>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="text-gray-600 hover:text-blue-600 text-xl transition"
+              >
+                <i className="fa fa-linkedin"></i>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
@@ -65,7 +137,10 @@ const Footer = () => {
       {/* Bottom */}
       <div className="mt-12 pt-6 border-t border-gray-200 text-sm text-gray-500 font-medium">
         <p>
-          &copy; 2025 YourBrand. All Rights Reserved. | <a href="#" className="text-blue-600 hover:text-blue-700 transition">Sitemap</a>
+          &copy; 2025 YourBrand. All Rights Reserved. |{" "}
+          <a href="#" className="text-blue-600 hover:text-blue-700 transition">
+            Sitemap
+          </a>
         </p>
       </div>
     </footer>

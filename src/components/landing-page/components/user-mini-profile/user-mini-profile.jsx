@@ -24,18 +24,15 @@ const UserMiniProfile = () => {
             },
             {
               label: "Active Collaborations",
-              icon:
-                "M17 20h5v-2a3 3 0 00-3-3h-2.28M9 20H4v-2a3 3 0 013-3h2.28M16 4a4 4 0 11-8 0 4 4 0 018 0zM20 8a4 4 0 11-8 0 4 4 0 018 0z",
+              icon: "M17 20h5v-2a3 3 0 00-3-3h-2.28M9 20H4v-2a3 3 0 013-3h2.28M16 4a4 4 0 11-8 0 4 4 0 018 0zM20 8a4 4 0 11-8 0 4 4 0 018 0z",
             },
             {
               label: "Payments",
-              icon:
-                "M17 9V7a4 4 0 00-8 0v2a4 4 0 008 0zM5 13h14a2 2 0 012 2v4H3v-4a2 2 0 012-2z",
+              icon: "M17 9V7a4 4 0 00-8 0v2a4 4 0 008 0zM5 13h14a2 2 0 012 2v4H3v-4a2 2 0 012-2z",
             },
             {
               label: "Creator Academy",
-              icon:
-                "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422A12.083 12.083 0 0112 21.6a12.083 12.083 0 01-6.16-10.978L12 14z",
+              icon: "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422A12.083 12.083 0 0112 21.6a12.083 12.083 0 01-6.16-10.978L12 14z",
             },
             {
               label: "Analytics",
@@ -43,8 +40,7 @@ const UserMiniProfile = () => {
             },
             {
               label: "Explore",
-              icon:
-                "M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z",
+              icon: "M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z",
             },
           ].map(({ label, icon }) => (
             <li key={label}>

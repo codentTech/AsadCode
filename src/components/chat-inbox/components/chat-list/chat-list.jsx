@@ -1,111 +1,124 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import SearchIcon from "@mui/icons-material/Search";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SearchIcon from "@/common/icons/search-icon";
 import { Avatar } from "@mui/material";
-import { useState } from "react";
+import useChatList from "./use-chat-list";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import DoneOutlinedIcon from "@mui/icons-material/DoneOutlined";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 
-export default function ChatList() {
-  const [selectedChat, setSelectedChat] = useState("Sam Waters");
-  const [activeCategory, setActiveCategory] = useState("Skincare");
-
-  const avatar =
-    "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
-
-  const categories = ["Skincare", "Makeup", "Fashion", "Nutrition", "Fitness"];
-
-  const chats = [
-    {
-      name: "Sam Waters",
-      message: "Hey, it was great meeting you at event last night!",
-      time: "2:32 PM",
-      avatar,
-      rating: 4.5,
-      unread: false,
-      selected: true,
-      online: true,
-    },
-    {
-      name: "Alex Wong",
-      message: "Your latest video is great girl!",
-      time: "10:15 AM",
-      avatar,
-      unread: false,
-      online: true,
-    },
-    {
-      name: "Emily Davis",
-      message: "Quick question about tonight's event ex I vicevara?",
-      time: "Yesterday",
-      avatar,
-      unread: true,
-      online: false,
-    },
-    {
-      name: "Sarah Kim",
-      message: "Hey girl, anytips for for pitching to L'Oreal?",
-      time: "April 21",
-      avatar,
-      unread: false,
-      online: false,
-    },
-    {
-      name: "kylie anderson",
-      message: "Hey girl, anytips for for pitching to L'Oreal?",
-      time: "April 21",
-      avatar,
-      unread: false,
-      online: false,
-    },
-    {
-      name: "Kim stone",
-      message: "Hey girl, anytips for for pitching to L'Oreal?",
-      time: "April 21",
-      avatar,
-      unread: false,
-      online: false,
-    },
-  ];
+export default function ChatList({ isCreaterInbox, activeTab }) {
+  const {
+    categories,
+    filterOptions,
+    chats,
+    selectedChat,
+    setSelectedChat,
+    activeCategory,
+    setActiveCategory,
+    options,
+    handleChange,
+    activeFilter,
+    setActiveFilter,
+  } = useChatList();
 
   return (
     <div className="w-1/4 border-r flex flex-col overflow-hidden bg-white">
+      {/* Categories - cleaner layout */}
+      {![1, 2, 3].includes(activeTab) && (
+        <div className="p-2 border-b bg-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <CustomButton
+                text={category}
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-1 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                  activeCategory === category
+                    ? "bg-secondary-light-blue text-primary"
+                    : "bg-gray-200 text-gray-700 border border-gray-800 hover:border-primary hover:text-primary"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {[3, 5].includes(activeTab) && !isCreaterInbox && (
+        <div className="p-2 border-b bg-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((filter) => (
+              <CustomButton
+                text={filter}
+                key={filter}
+                onClick={() =>
+                  setActiveFilter((prev) =>
+                    prev.includes(filter)
+                      ? prev.filter((f) => f !== filter)
+                      : [...prev, filter]
+                  )
+                }
+                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                  activeFilter.includes(filter)
+                    ? "bg-secondary-light-blue text-primary"
+                    : "bg-gray-200 text-gray-700 border border-gray-300 hover:border-primary hover:text-primary"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {[3, 4, 5].includes(activeTab) && !isCreaterInbox && (
+        <div className="w-full pt-2 px-[14px]">
+          <CustomButton
+            startIcon={<FilterListAltIcon />}
+            text="Apply more filters"
+            className="w-full btn-outline"
+          />
+        </div>
+      )}
+
+      {[1, 2, 3].includes(activeTab) && !isCreaterInbox && (
+        <div>
+          <div className="p-[14px]">
+            <SimpleSelect
+              placeHolder="Select an option"
+              options={options}
+              isSearchable={true}
+              isMulti={false}
+              onChange={handleChange}
+            />
+          </div>
+          <hr />
+        </div>
+      )}
+
       {/* Search - more prominent */}
       <div className="p-4 border-b">
         <div className="relative">
-          <input
+          <CustomInput
             type="text"
+            name="search"
             placeholder="Search conversations..."
-            className="w-full py-2 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-sm"
+            startIcon={<SearchIcon />}
+            className="!h-9"
           />
-          <SearchIcon className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
-        </div>
-      </div>
-
-      {/* Categories - cleaner layout */}
-      <div className="p-4 border-b bg-gray-50">
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <CustomButton
-              text={category}
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                activeCategory === category
-                  ? "bg-indigo-100 text-indigo-800 border border-indigo-200"
-                  : "bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
-              }`}
-            />
-          ))}
         </div>
       </div>
 
       {/* Chat list - enhanced with status indicators and better spacing */}
-      <div className="overflow-y-auto flex-1">
+      <div className="overflow-y-auto flex-1 py-2">
         {chats.map((chat) => (
           <div
             key={chat.name}
             className={`flex items-center p-3 cursor-pointer transition-all ${
               chat.name === selectedChat
-                ? "bg-indigo-50 border-l-4 border-indigo-500"
-                : "hover:bg-gray-50 border-l-4 border-transparent"
+                ? "bg-secondary-light-blue border-l-4 border-primary"
+                : chat.unread
+                  ? "bg-secondary-light-blue"
+                  : "hover:bg-gray-50 border-l-4 border-transparent"
             }`}
             onClick={() => setSelectedChat(chat.name)}
           >
@@ -114,7 +127,7 @@ export default function ChatList() {
                 src={chat.avatar}
                 alt={chat.name}
                 className={`h-10 w-10 ${
-                  chat.name === selectedChat ? "ring-2 ring-indigo-500" : ""
+                  chat.name === selectedChat ? "ring-2 ring-primary" : ""
                 }`}
               >
                 {chat.name.charAt(0)}
@@ -128,7 +141,7 @@ export default function ChatList() {
                 <span
                   className={`${
                     chat.name === selectedChat
-                      ? "font-bold text-indigo-700"
+                      ? "font-bold text-primary-700"
                       : "font-medium text-gray-800"
                   } text-sm truncate max-w-[120px]`}
                 >
@@ -144,10 +157,21 @@ export default function ChatList() {
                     chat.unread ? "font-semibold" : "text-gray-500"
                   }`}
                 >
+                  {chat.me && (
+                    <>
+                      {chat.online && !chat.unread ? (
+                        <DoneAllIcon sx={{ fontSize: 15 }} color="primary" />
+                      ) : chat.online && chat.unread ? (
+                        <DoneAllIcon sx={{ fontSize: 15 }} />
+                      ) : (
+                        <DoneOutlinedIcon sx={{ fontSize: 15 }} />
+                      )}{" "}
+                    </>
+                  )}
                   {chat.message}
                 </p>
                 {chat.unread && (
-                  <span className="ml-1 flex-shrink-0 h-2 w-2 bg-indigo-600 rounded-full"></span>
+                  <span className="ml-1 flex-shrink-0 h-2 w-2 bg-primary rounded-full"></span>
                 )}
               </div>
             </div>

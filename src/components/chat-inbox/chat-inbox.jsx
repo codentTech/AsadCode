@@ -1,8 +1,7 @@
-import { useState } from "react";
+import useChatInbox from "./use-chat-inbox";
 import ChatList from "./components/chat-list/chat-list";
 import Inbox from "./components/inbox/inbox";
 import Profile from "./components/profile/profile";
-import useChatInbox from "./chat-inbox";
 
 export default function ChatInbox() {
   const {
@@ -12,6 +11,7 @@ export default function ChatInbox() {
     setActiveSection,
     mainTabs,
     sections,
+    isCreaterInbox,
   } = useChatInbox();
 
   return (
@@ -24,17 +24,17 @@ export default function ChatInbox() {
               <nav className="hidden md:flex">
                 {mainTabs.map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-5 py-2 mx-1 text-sm font-medium transition-all relative ${
-                      activeTab === tab
-                        ? "text-indigo-600"
-                        : "text-gray-600 hover:text-indigo-500"
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 py-2 mx-1 text-sm font-bold transition-all relative ${
+                      activeTab === tab.id
+                        ? "text-primary"
+                        : "text-gray-600 hover:text-primary"
                     }`}
                   >
-                    {tab}
-                    {activeTab === tab && (
-                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600"></span>
+                    {tab.label}
+                    {activeTab === tab.id && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></span>
                     )}
                   </button>
                 ))}
@@ -43,33 +43,35 @@ export default function ChatInbox() {
           </div>
 
           {/* Section tabs - more spaced and visually distinct */}
-          <div className="bg-gray-50 py-2 px-6 border-b">
-            <div className="container mx-auto flex flex-wrap gap-2 justify-start">
-              {sections.map((section) => (
-                <button
-                  key={section}
-                  onClick={() => setActiveSection(section)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-sm transition-all ${
-                    activeSection === section
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
-                  }`}
-                >
-                  {section}
-                </button>
-              ))}
+          {![1, 2, 3].includes(activeTab) && (
+            <div className="bg-gray-50 py-2 px-6 border-b">
+              <div className="container mx-auto flex flex-wrap gap-2 justify-start">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-sm transition-all ${
+                      activeSection === section.id
+                        ? "bg-primary text-white shadow-sm"
+                        : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex flex-1 overflow-hidden">
             {/* Chat list */}
-            <ChatList />
+            <ChatList isCreaterInbox={isCreaterInbox} activeTab={activeTab} />
 
             {/* Chat area */}
             <Inbox />
 
             {/* Right sidebar - Profile and connections */}
-            <Profile />
+            <Profile isCreaterInbox={isCreaterInbox} activeTab={activeTab} />
           </div>
         </main>
       </div>

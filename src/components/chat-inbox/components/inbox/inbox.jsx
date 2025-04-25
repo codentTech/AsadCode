@@ -1,8 +1,3 @@
-import {
-  InfoOutlined as InfoOutlinedIcon,
-  Phone as PhoneIcon,
-  Videocam as VideocamIcon,
-} from "@mui/icons-material";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -57,13 +52,14 @@ function Inbox() {
             <div className="flex items-center">
               <div className="text-yellow-500 text-xs mr-1">★★★★½</div>
               <span className="text-xs text-gray-500">4.5</span>
+              <div className="ml-1 text-xs text-gray-500"> (245 Reviews)</div>
             </div>
           </div>
         </div>
         <div className="flex items-center space-x-1">
           <IconButton
             size="small"
-            className="text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
+            className="text-gray-600 hover:text-primary hover:bg-indigo-50"
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
@@ -85,7 +81,9 @@ function Inbox() {
                   morning run video soon!
                 </p>
               </div>
-              <span className="text-xs text-gray-500 ml-2 mt-1">2:32 PM</span>
+              <span className="text-xs text-gray-500 ml-2 mt-1">
+                2025-04-23 10:18 AM
+              </span>
             </div>
           </div>
 
@@ -99,7 +97,9 @@ function Inbox() {
                   I think a lot of my followers would follow you and vice versa!
                 </p>
               </div>
-              <span className="text-xs text-gray-500 ml-2 mt-1">2:33 PM</span>
+              <span className="text-xs text-gray-500 ml-2 mt-1">
+                2025-04-23 10:19 AM
+              </span>
             </div>
           </div>
 
@@ -113,7 +113,9 @@ function Inbox() {
                 </p>
               </div>
               <div className="flex justify-end">
-                <span className="text-xs text-gray-500 mr-2 mt-1">2:35 PM</span>
+                <span className="text-xs text-gray-500 mr-2 mt-1">
+                  2025-04-23 10:20 AM
+                </span>
               </div>
             </div>
           </div>
@@ -145,13 +147,13 @@ function Inbox() {
           <div className="flex px-2">
             <IconButton
               size="small"
-              className="text-gray-500 hover:text-indigo-500"
+              className="text-gray-500 hover:text-primary"
             >
               <AttachFileIcon fontSize="small" />
             </IconButton>
             <IconButton
               size="small"
-              className="text-gray-500 hover:text-indigo-500"
+              className="text-gray-500 hover:text-primary"
             >
               <EmojiEmotionsIcon fontSize="small" />
             </IconButton>
@@ -168,7 +170,7 @@ function Inbox() {
             <button
               className={`h-8 w-8 rounded-full flex items-center justify-center ${
                 message.trim()
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm"
+                  ? "bg-primary text-white shadow-sm"
                   : "bg-gray-200 text-gray-400"
               }`}
               onClick={handleSendMessage}

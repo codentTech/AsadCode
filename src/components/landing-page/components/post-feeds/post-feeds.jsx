@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { faImage, faVideo, faLink, faChartBar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faImage,
+  faVideo,
+  faLink,
+  faChartBar,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 
 const PostFeed = () => {
   const [postText, setPostText] = useState("");
@@ -30,22 +34,21 @@ const PostFeed = () => {
               rows={3}
             />
           </div>
-      
-          <div className="flex justify-around text-blue-600 text-sm font-medium">
-  <button className="flex items-center gap-2 hover:text-blue-800 transition">
-    <FontAwesomeIcon icon={faImage} /> Photo
-  </button>
-  <button className="flex items-center gap-2 hover:text-blue-800 transition">
-    <FontAwesomeIcon icon={faVideo} /> Video
-  </button>
-  <button className="flex items-center gap-2 hover:text-blue-800 transition">
-    <FontAwesomeIcon icon={faLink} /> Link
-  </button>
-  <button className="flex items-center gap-2 hover:text-blue-800 transition">
-    <FontAwesomeIcon icon={faChartBar} /> Poll
-  </button>
-</div>
 
+          <div className="flex justify-around text-blue-600 text-sm font-medium">
+            <button className="flex items-center gap-2 hover:text-blue-800 transition">
+              <FontAwesomeIcon icon={faImage} /> Photo
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-800 transition">
+              <FontAwesomeIcon icon={faVideo} /> Video
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-800 transition">
+              <FontAwesomeIcon icon={faLink} /> Link
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-800 transition">
+              <FontAwesomeIcon icon={faChartBar} /> Poll
+            </button>
+          </div>
 
           <button
             onClick={addPost}

@@ -28,7 +28,10 @@ const ModernStories = () => {
         onScroll={handleScroll}
       >
         {stories.map((story, idx) => (
-          <div key={idx} className="flex-none w-20 text-center cursor-pointer relative">
+          <div
+            key={idx}
+            className="flex-none w-20 text-center cursor-pointer relative"
+          >
             {story.isPlaceholder ? (
               <>
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white text-2xl font-bold border-2 border-purple-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl">

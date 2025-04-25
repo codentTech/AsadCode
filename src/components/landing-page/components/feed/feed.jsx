@@ -4,7 +4,8 @@ const initialPosts = [
   {
     user: "Tesla Inc.",
     avatar: "https://logo.clearbit.com/tesla.com",
-    content: "Excited to announce our latest innovation in AI and automation! ⚡🚗",
+    content:
+      "Excited to announce our latest innovation in AI and automation! ⚡🚗",
     image:
       "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
     likes: 1340,
@@ -17,7 +18,8 @@ const initialPosts = [
     avatar: "https://randomuser.me/api/portraits/women/65.jpg",
     content:
       "Just wrapped up a brand deal with a tech startup — big things coming! 💼💡",
-    image: "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
+    image:
+      "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
     likes: 940,
     comments: 88,
     shares: 40,
@@ -28,7 +30,8 @@ const initialPosts = [
     avatar: "https://logo.clearbit.com/spacex.com",
     content:
       "Falcon 9 successfully launched Starlink satellites into orbit today 🚀🌍",
-    image: "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
+    image:
+      "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
     likes: 2200,
     comments: 310,
     shares: 480,
@@ -37,9 +40,9 @@ const initialPosts = [
   {
     user: "Leo Martins",
     avatar: "https://randomuser.me/api/portraits/men/46.jpg",
-    content:
-      "Can’t believe my last reel hit 100k views — thank you all! 🙌📲",
-    image: "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
+    content: "Can’t believe my last reel hit 100k views — thank you all! 🙌📲",
+    image:
+      "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
     likes: 1120,
     comments: 97,
     shares: 53,
@@ -50,7 +53,8 @@ const initialPosts = [
     avatar: "https://logo.clearbit.com/openai.com",
     content:
       "GPT-5 is under research! We’re excited about the next evolution of AI 💡🤖",
-    image: "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
+    image:
+      "https://cdn.pixabay.com/photo/2019/04/25/11/45/elder-4154624_640.jpg",
     likes: 5000,
     comments: 720,
     shares: 900,
@@ -124,12 +128,11 @@ const UltraPostFeed = () => {
           <p className="mb-3 text-gray-800 text-sm">{post.content}</p>
 
           <div className="rounded-lg overflow-hidden">
-          <img
-  src={post.image}
-  alt="Post"
-  className="w-full max-h-[500px] object-cover rounded-xl border border-gray-200"
-/>
-
+            <img
+              src={post.image}
+              alt="Post"
+              className="w-full max-h-[500px] object-cover rounded-xl border border-gray-200"
+            />
           </div>
 
           <div className="flex justify-around text-gray-600 text-sm mt-4 border-t pt-4">

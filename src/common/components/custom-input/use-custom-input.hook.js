@@ -12,7 +12,7 @@ export default function useCustomInput(onChange, type, endIcon) {
   };
 
   const borderSuccessStyle = {
-    border: "1px solid blue",
+    border: "1px solid gray",
   };
 
   const passwordMouseDownHandler = (event) => {

@@ -41,7 +41,9 @@ export default function Header() {
             key={label}
             className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer font-semibold text-sm hover:bg-gray-100 text-transparent bg-gradient-to-r from-[#2a398d] to-[#00abef] bg-clip-text"
           >
-            <i className={`fa fa-${icon} text-transparent bg-gradient-to-r from-[#2a398d] to-[#00abef] bg-clip-text`}></i>
+            <i
+              className={`fa fa-${icon} text-transparent bg-gradient-to-r from-[#2a398d] to-[#00abef] bg-clip-text`}
+            ></i>
             {label}
           </div>
         ))}
@@ -50,7 +52,11 @@ export default function Header() {
       {/* Right Icons */}
       <div className="flex items-center gap-4 relative">
         {["envelope", "bell", "cog"].map((icon, idx) => {
-          const dropdownId = ["messagesDropdown", "notificationsDropdown", "settingsDropdown"][idx];
+          const dropdownId = [
+            "messagesDropdown",
+            "notificationsDropdown",
+            "settingsDropdown",
+          ][idx];
           return (
             <div key={icon} className="relative">
               <div
@@ -66,8 +72,8 @@ export default function Header() {
                   {dropdownId.includes("messages")
                     ? "Messages"
                     : dropdownId.includes("notifications")
-                    ? "Notifications"
-                    : "Settings"}
+                      ? "Notifications"
+                      : "Settings"}
                 </div>
                 {dropdownId === "messagesDropdown" && (
                   <>

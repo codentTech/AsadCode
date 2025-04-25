@@ -1,12 +1,22 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import {
-  Message as MessageIcon,
-  MoreHoriz as MoreHorizIcon,
-  Refresh as RefreshIcon,
-} from "@mui/icons-material";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
-function Profile() {
+function Profile({ isCreaterInbox, activeTab }) {
   const avatar =
     "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
 
@@ -31,6 +41,75 @@ function Profile() {
     },
   ];
 
+  const privateNotes = [
+    {
+      text: "Mention the brand in the first 5 seconds",
+      timestamp: "2025-04-23 10:12 AM",
+    },
+    { text: "Use trending audio", timestamp: "2025-04-23 10:15 AM" },
+    {
+      text: "Tag the brand and use hashtag #SpringLaunch",
+      timestamp: "2025-04-23 10:18 AM",
+    },
+  ];
+
+  // Demographics data for charts
+  const genderData = [
+    { name: "Female", value: 73 },
+    { name: "Male", value: 27 },
+  ];
+
+  const ageData = [
+    { name: "0-18", value: 15 },
+    { name: "18-25", value: 30 },
+    { name: "25-32", value: 40 },
+    { name: "32-40", value: 10 },
+    { name: "40+", value: 5 },
+  ];
+
+  const locationData = [
+    { name: "US", value: 35 },
+    { name: "Canada", value: 28 },
+    { name: "UK", value: 22 },
+    { name: "Other", value: 15 },
+  ];
+
+  const GENDER_COLORS = ["#4F46E5", "#36CFC9"]; // Vibrant blue & mint
+
+  const AGE_COLORS = [
+    "#FF6F91", // Coral pink
+    "#FF9671", // Peach
+    "#4F46E5", // Blue
+    "#F9F871", // Lemon
+    "#D65DB1", // Purple pink
+  ];
+
+  const LOCATION_COLORS = [
+    "#845EC2", // Bright purple
+    "#00C9A7", // Aqua green
+    "#4F46E5", // Blue
+    "#FF6F91", // Coral pink
+  ];
+
+  const reviews = [
+    {
+      avatar: "https://i.pravatar.cc/40?img=1",
+      name: "Jane Doe",
+      rating: 4,
+      date: "2025-04-22",
+      message:
+        "Amazing collaboration! Delivered on time and exceeded expectations.",
+    },
+    {
+      avatar: "https://i.pravatar.cc/40?img=2",
+      name: "John Smith",
+      rating: 5,
+      date: "2025-04-21",
+      message:
+        "Professional, creative, and very communicative. Highly recommend!",
+    },
+  ];
+
   return (
     <div className="w-1/4 border-l bg-white flex flex-col">
       {/* Selected user profile - modern and clean design */}
@@ -39,7 +118,7 @@ function Profile() {
           <Avatar
             src={avatar}
             alt="Sam Waters"
-            className="h-20 w-20 border-4 border-white shadow-md"
+            className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
             S
           </Avatar>
@@ -50,77 +129,308 @@ function Profile() {
         <p className="primary-text text-center">
           Fitness and lifestyle creator based in Los Angeles
         </p>
-        <div className="w-full">
-          <div className="grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="font-bold text-gray-800">458</div>
-              <div className="primary-text">Posts</div>
-            </div>
-            <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="font-bold text-gray-800">24.5K</div>
-              <div className="primary-text">Followers</div>
-            </div>
-            <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="font-bold text-gray-800">1.2K</div>
-              <div className="primary-text">Following</div>
+        {![1, 2].includes(activeTab) && (
+          <div className="w-full">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="font-bold text-gray-800">458</div>
+                <div className="primary-text">Posts</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="font-bold text-gray-800">24.5K</div>
+                <div className="primary-text">Followers</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="font-bold text-gray-800">1.2K</div>
+                <div className="primary-text">Following</div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex gap-2 mt-1 w-full">
-          <CustomButton
-            className="flex-1 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-            text="Follow"
-          />
-        </div>
+        )}
+        {[3].includes(activeTab) && !isCreaterInbox ? (
+          <div className="flex gap-2 mt-1 w-full">
+            <CustomButton
+              className="flex-1 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              text="Accepts"
+            />
+            <CustomButton
+              className="flex-1 py-1.5 bg-danger text-white rounded-lg text-sm font-medium hover:bg-danger-loght transition-colors"
+              text="Reject"
+            />
+          </div>
+        ) : (
+          [3].includes(activeTab) &&
+          isCreaterInbox && (
+            <CustomButton
+              className="w-full btn-outline"
+              text="Withdraw application"
+            />
+          )
+        )}
       </div>
 
       {/* Suggested connections - modern card design */}
-      <div className="p-4 overflow-y-auto flex-1">
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="font-bold text-sm text-gray-700">
-            Suggested Connections
-          </h4>
-          <IconButton
-            size="small"
-            className="text-gray-400 hover:text-indigo-600"
-          >
-            <RefreshIcon fontSize="small" className="h-4 w-4" />
-          </IconButton>
-        </div>
-        <div className="space-y-3">
-          {suggestedConnections.map((connection) => (
-            <div
-              key={connection.name}
-              className="flex items-center p-2 rounded-lg hover:bg-gray-50 border border-gray-100 shadow-sm"
+      {![1, 2, 3, 5].includes(activeTab) && (
+        <div className="p-4 overflow-y-auto flex-1">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-bold text-sm text-gray-700">
+              Suggested Connections
+            </h4>
+            <IconButton
+              size="small"
+              className="text-gray-400 hover:text-primary"
             >
-              <Avatar
-                src={connection.avatar}
-                alt={connection.name}
-                className="h-10 w-10"
+              <RefreshIcon fontSize="small" className="h-4 w-4" />
+            </IconButton>
+          </div>
+          <div className="space-y-3">
+            {suggestedConnections.map((connection) => (
+              <div
+                key={connection.name}
+                className="flex items-center p-2 rounded-lg hover:bg-gray-50 border border-gray-100 shadow-sm"
               >
-                {connection.name.charAt(0)}
-              </Avatar>
-              <div className="ml-3 flex-1 min-w-0">
-                <div className="font-medium text-sm text-gray-800 truncate">
-                  {connection.name}
+                <Avatar
+                  src={connection.avatar}
+                  alt={connection.name}
+                  className="h-10 w-10"
+                >
+                  {connection.name.charAt(0)}
+                </Avatar>
+                <div className="ml-3 flex-1 min-w-0">
+                  <div className="font-medium text-sm text-gray-800 truncate">
+                    {connection.name}
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-yellow-500 text-xs mr-1">★★★★</div>
+                    <span className="text-xs text-gray-500">
+                      {connection.rating}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <div className="text-yellow-500 text-xs mr-1">★★★★</div>
+                <button className="ml-2 text-xs bg-indigo-50 text-primary hover:bg-indigo-100 px-2 py-1 rounded-full font-medium">
+                  Connect
+                </button>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 text-center text-primary text-sm font-medium hover:text-indigo-800 py-2 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition-colors">
+            View More
+          </button>
+        </div>
+      )}
+
+      {/* Demographics section */}
+      {[3, 5].includes(activeTab) && !isCreaterInbox && (
+        <div className="overflow-y-auto p-3">
+          <h4 className="font-bold text-sm text-primary mb-4">
+            Audience Demographics
+          </h4>
+
+          {/* Gender Chart */}
+          <div className="bg-white rounded-lg mb-4">
+            <h5 className="text-xs font-medium text-gray-600">
+              Gender Distribution
+            </h5>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={genderData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {genderData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Age Chart */}
+          <div className="bg-white p-3 rounded-lg mb-4">
+            <h5 className="text-xs font-medium text-gray-600 mb-2">
+              Age Distribution
+            </h5>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={ageData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} unit="%" />
+                <Tooltip formatter={(value) => `${value}%`} />
+                <Bar dataKey="value" fill="#8884d8">
+                  {ageData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={AGE_COLORS[index % AGE_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Location Chart */}
+          <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+            <h5 className="text-xs font-medium text-gray-600 mb-2">
+              Location Distribution
+            </h5>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={locationData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10 }} unit="%" />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  tick={{ fontSize: 10 }}
+                  width={40}
+                />
+                <Tooltip formatter={(value) => `${value}%`} />
+                <Bar dataKey="value" fill="#8884d8">
+                  {locationData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={LOCATION_COLORS[index % LOCATION_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {[1, 2].includes(activeTab) && (
+        <div className="flex flex-col gap-6 p-3 bg-gray-50 rounded-lg shadow-sm overflow-y-auto">
+          {/* Contract Info */}
+          <div className="bg-white rounded-lg p-4 shadow border">
+            <h4 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+              Contract Agreement
+            </h4>
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-500">🎥</span>
+                <span>1 Instagram video</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-pink-500">📸</span>
+                <span>2 Instagram stories</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">📅</span>
+                <span>
+                  Deadline: <span className="font-semibold">20 May 2025</span>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-600">💰</span>
+                <span>
+                  Price: <span className="font-semibold">$600</span>
+                </span>
+              </li>
+              {activeTab === 2 && (
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-600">✔️</span>
+                  <span>
+                    Payment status:{" "}
+                    <span className="font-semibold">Completed</span>
+                  </span>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow border">
+            <h4 className="text-base font-medium text-gray-800 mb-2">Review</h4>
+            <ul className="space-y-3 text-sm text-gray-700 mb-4">
+              I had an amazing experience with this company! The customer
+              service was top-notch, and the product exceeded my expectations. I
+              highly recommend them to anyone looking for quality products and
+              excellent service
+            </ul>
+            <CustomInput placeholder="leave a review" />
+          </div>
+
+          {/* Private Notes Section */}
+          <div className="bg-white rounded-lg p-4 shadow border">
+            <h4 className="text-base font-medium text-gray-800 mb-2">
+              Private Notes
+            </h4>
+            <ul className="space-y-3 text-sm text-gray-700 mb-4">
+              {privateNotes.map((note, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-gray-500 mt-1">📝</span>
+                  <div className="flex flex-col">
+                    <span>{note.text}</span>
+                    <span className="text-xs text-gray-400 mt-1">
+                      {note.timestamp}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {!isCreaterInbox && <TextArea label="Add a new note..." />}
+          </div>
+        </div>
+      )}
+
+      {[5].includes(activeTab) && isCreaterInbox && (
+        <div className="overflow-y-auto space-y-4 px-4 bg-white rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-800">Reviews</h3>
+
+          {reviews.map((review, index) => (
+            <div
+              key={index}
+              className="border border-gray-100 rounded-lg p-4 hover:shadow-md transition"
+            >
+              <div className="flex items-center gap-4 mb-2">
+                <img
+                  src={review.avatar}
+                  alt={review.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800">
+                    {review.name}
+                  </span>
                   <span className="text-xs text-gray-500">
-                    {connection.rating}
+                    {new Date(review.date).toLocaleDateString()}
                   </span>
                 </div>
               </div>
-              <button className="ml-2 text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded-full font-medium">
-                Connect
-              </button>
+
+              {/* Rating */}
+              <div className="flex items-center gap-1 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <svg
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < review.rating ? "text-yellow-400" : "text-gray-300"
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.972a1 1 0 00.95.69h4.184c.969 0 1.371 1.24.588 1.81l-3.39 2.462a1 1 0 00-.364 1.118l1.286 3.972c.3.921-.755 1.688-1.54 1.118l-3.39-2.462a1 1 0 00-1.175 0l-3.39 2.462c-.784.57-1.838-.197-1.539-1.118l1.285-3.972a1 1 0 00-.364-1.118L2.05 9.4c-.783-.57-.38-1.81.588-1.81h4.184a1 1 0 00.95-.69l1.286-3.972z" />
+                  </svg>
+                ))}
+              </div>
+
+              {/* Review Message */}
+              <p className="text-sm text-gray-700">{review.message}</p>
             </div>
           ))}
         </div>
-        <button className="w-full mt-4 text-center text-indigo-600 text-sm font-medium hover:text-indigo-800 py-2 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition-colors">
-          View More
-        </button>
-      </div>
+      )}
     </div>
   );
 }

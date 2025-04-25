@@ -82,6 +82,7 @@ export default function CustomInput({
           {...(onKeyDown && { onKeyDown })}
           name={name}
           onFocus={onFocus}
+          autoFocus="true"
           type={showPassword ? "text" : type}
           placeholder={placeholder}
           className={`text-sm font-normal not-italic leading-[18px] text-text-ultra-light-gray 
@@ -114,7 +115,7 @@ export default function CustomInput({
           {...(onChange && { onChange: inputChangeHandler })}
           readOnly={readOnly}
           {...(onBlur && { onBlur })}
-          style={errors[name] ? borderErrorStyle : borderSuccessStyle}
+          style={errors && errors[name] ? borderErrorStyle : borderSuccessStyle}
         />
 
         {errors && errors[name] && (

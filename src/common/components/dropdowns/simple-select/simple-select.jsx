@@ -1,7 +1,8 @@
 import PropTypes from "prop-types";
 import useSimpleSelect from "./use-simple-select";
+import CustomInput from "../../custom-input/custom-input.component";
 
-function Icon() {
+function Icon({ isOpen }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -9,9 +10,10 @@ function Icon() {
       height="8"
       viewBox="0 0 13 8"
       fill="none"
+      className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
     >
       <path
-        d="M0.765588 0.745658C0.694086 0.819407 0.637362 0.906987 0.598661 1.00339C0.559959 1.09979 0.540039 1.20312 0.540039 1.30748C0.540039 1.41183 0.559959 1.51516 0.598661 1.61156C0.637362 1.70796 0.694086 1.79554 0.765588 1.86929L5.98929 7.2671C6.06072 7.34094 6.14553 7.39951 6.23889 7.43947C6.33225 7.47943 6.43233 7.5 6.53339 7.5C6.63445 7.5 6.73453 7.47943 6.82789 7.43947C6.92125 7.39951 7.00606 7.34094 7.07749 7.2671L12.3012 1.86929C12.3755 1.79622 12.435 1.70852 12.476 1.61135C12.517 1.51419 12.5388 1.40953 12.54 1.30355C12.5412 1.19756 12.5219 1.0924 12.4831 0.994253C12.4444 0.896107 12.387 0.806968 12.3143 0.732087C12.2417 0.657206 12.1552 0.5981 12.0601 0.558253C11.965 0.518406 11.8631 0.498624 11.7605 0.500074C11.6578 0.501524 11.5565 0.524176 11.4625 0.566694C11.3685 0.609213 11.2836 0.670739 11.213 0.747644L6.53339 5.58364L1.85378 0.747644C1.78248 0.673682 1.69777 0.614955 1.60448 0.574823C1.51118 0.53469 1.41115 0.513939 1.31008 0.513754C1.20902 0.51357 1.10891 0.533957 1.01548 0.573749C0.922054 0.613541 0.837138 0.671957 0.765588 0.745658Z"
+        d="M0.77 0.75a1.03 1.03 0 0 0 0 1.12l5.22 5.4c.14.15.33.23.53.23s.39-.08.53-.23l5.22-5.4a1.02 1.02 0 0 0 0-1.12 1 1 0 0 0-1.5 0L6.53 5.58 2.01 0.75a1 1 0 0 0-1.24 0Z"
         fill="#7E7D7D"
       />
     </svg>
@@ -25,7 +27,7 @@ export default function SimpleSelect({
   isSearchable,
   onChange,
   defaultValue,
-  className,
+  className = "",
 }) {
   const {
     inputRef,
@@ -48,51 +50,50 @@ export default function SimpleSelect({
   });
 
   return (
-    <div className={`relative rounded-[5px] text-left ${className}`}>
+    <div className={`relative w-full ${className}`}>
       <div
         ref={inputRef}
         onClick={handleInputClick}
-        className="flex select-none items-center gap-2 whitespace-nowrap"
+        className="flex justify-between items-center px-3 py-2 rounded-md border border-gray-300 bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
       >
-        <div className="dropdown-selected-value !text-sm !leading-[18px] !text-[#46474f]">
-          {getDisplay()}
-        </div>
-        <div className="dropdown-tools">
-          <div className="dropdown-tool">
-            <Icon />
-          </div>
-        </div>
+        <div className="truncate">{getDisplay()}</div>
+        <Icon isOpen={showMenu} />
       </div>
+
       {showMenu && (
-        <div className="absolute z-[99] max-h-[150px] w-full translate-y-1 overflow-auto rounded-[5px] border border-solid border-[#ccc] bg-white">
+        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
           {isSearchable && (
-            <div className="bg-[#eee] p-[5px] ">
-              <input
-                className="box-border w-full rounded-[5px] border border-solid border-[#ccc] p-[5px] outline-none"
+            <div className="p-2 border-b border-gray-100">
+              <CustomInput
+                ref={searchRef}
                 onChange={onSearch}
                 value={searchValue}
-                ref={searchRef}
                 defaultValue={defaultValue}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault(); // Prevent form submission
-                  }
-                }}
+                placeholder="Search..."
+                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none"
               />
             </div>
           )}
-          {getOptions() &&
-            getOptions()?.map((option) => (
+
+          {getOptions()?.length > 0 ? (
+            getOptions().map((option) => (
               <div
-                onClick={() => onItemClick(option)}
                 key={option.value}
-                className={`cursor-pointer whitespace-nowrap p-[5px] text-black selection:bg-[#0d6efd] hover:bg-[#9fc3f870] ${
-                  isSelected(option) && "selected"
+                onClick={() => onItemClick(option)}
+                className={`cursor-pointer px-3 py-2 text-sm hover:bg-secondary-light-blue ${
+                  isSelected(option)
+                    ? "bg-secondary-light-blue font-medium"
+                    : ""
                 }`}
               >
                 {option.label}
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="px-3 py-2 text-sm text-gray-400">
+              No options found
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -102,7 +103,12 @@ export default function SimpleSelect({
 SimpleSelect.propTypes = {
   placeHolder: PropTypes.string,
   className: PropTypes.string,
-  options: PropTypes.string,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    })
+  ).isRequired,
   isMulti: PropTypes.bool,
   isSearchable: PropTypes.bool,
   onChange: PropTypes.func,
