@@ -78,23 +78,13 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </div>
-              {[5].includes(activeTab) && !isCreaterInbox && (
+              {[4, 5].includes(activeTab) && !isCreaterInbox && (
                 <CustomButton
                   onClick={handleOpenQuickHire}
                   text="Quick Hire"
                   className="mr-4 h-8 btn-primary"
                 />
               )}
-            </div>
-          )}
-
-          {[3].includes(activeTab) && !isCreaterInbox && (
-            <div className="flex justify-end bg-gray-50 border-b py-2 px-2">
-              <CustomButton
-                onClick={handleOpenQuickHire}
-                text="Quick Hire"
-                className="mr-4 h-8 btn-primary"
-              />
             </div>
           )}
 
