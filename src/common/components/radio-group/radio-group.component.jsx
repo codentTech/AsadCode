@@ -1,15 +1,11 @@
-'use client';
+"use client";
 
-import {
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup
-} from '@mui/material';
-import PropTypes from 'prop-types';
+import { FormControl, FormLabel, Radio, RadioGroup } from "@mui/material";
+import PropTypes from "prop-types";
 
-// need to update
+/**
+ * CustomRadioGroup renders a styled radio button group with support for inline layout, form registration, and change handling.
+ */
 export default function CustomRadioGroup({
   radioOptions,
   name,
@@ -17,39 +13,35 @@ export default function CustomRadioGroup({
   label = null,
   defaultValue = null,
   inlineRadioButtons = false,
-  onChange
+  onChange,
 }) {
-  const handleRadioChange = (e) => {
-    const selectedValue = e.target.value;
-    if (onChange) {
-      onChange(selectedValue);
-    }
-  };
   return (
-    <FormControl>
-      <FormLabel id="radio-buttons-group">{label}</FormLabel>
-      <RadioGroup
-        aria-labelledby="radio-buttons-group"
-        {...(register && register(`${name}`))}
-        name={name}
-        defaultValue={defaultValue}
-        {...(defaultValue && { defaultValue })}
-        row={inlineRadioButtons}
-        onChange={handleRadioChange}
+    <FormControl className="w-full">
+      {label && (
+        <FormLabel className="text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </FormLabel>
+      )}
+      <div
+        className={`flex gap-4 ${inlineRadioButtons ? "flex-row" : "flex-col"}`}
       >
         {radioOptions?.map((option) => (
-          <FormControlLabel
-            {...(register && register(`${name}`))}
+          <label
             key={option.value}
-            value={option.value}
-            control={<Radio />}
-            label={option.label}
-          />
+            className="flex items-center text-xs gap-1 cursor-pointer"
+          >
+            <input
+              type="radio"
+              value={defaultValue || option.value}
+              {...(register && register(name))}
+              className="w-4 h-4 accent-blue-600"
+              name={name}
+              onChange={(e) => onChange?.(e.target.value)}
+            />
+            {option.label}
+          </label>
         ))}
-        {/* <FormControlLabel value="female" control={<Radio />} label="Female" />
-        <FormControlLabel value="male" control={<Radio />} label="Male" />
-        <FormControlLabel value="other" control={<Radio />} label="Other" /> */}
-      </RadioGroup>
+      </div>
     </FormControl>
   );
 }
@@ -58,7 +50,7 @@ CustomRadioGroup.propTypes = {
   radioOptions: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
-      value: PropTypes.string.isRequired
+      value: PropTypes.string.isRequired,
     })
   ),
   label: PropTypes.string,
@@ -67,5 +59,5 @@ CustomRadioGroup.propTypes = {
   name: PropTypes.string,
   register: PropTypes.func,
   inlineRadioButtons: PropTypes.bool,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
 };

@@ -10,10 +10,11 @@ function QuickHire({ openQuickHire, handleCloseQuickHire }) {
   return (
     <Modal
       show={openQuickHire}
-      title="Quick Hire"
+      title={selectedOption === "private" ? "Create a campaign" : "Quick Hire"}
       onClose={handleCloseQuickHire}
+      size={selectedOption === "private" ? "md" : "sm"}
     >
-      {openQuickHire && selectedOption === "public" ? (
+      {selectedOption === "public" ? (
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Select a campaign to hire:</p>
           {publicCampaigns.map((campaign) => (
@@ -38,7 +39,7 @@ function QuickHire({ openQuickHire, handleCloseQuickHire }) {
             </div>
           ))}
         </div>
-      ) : openQuickHire && selectedOption === "private" ? (
+      ) : selectedOption === "private" ? (
         <PrivateCampaignForm onClose={handleCloseQuickHire} />
       ) : (
         <div className="space-y-2">

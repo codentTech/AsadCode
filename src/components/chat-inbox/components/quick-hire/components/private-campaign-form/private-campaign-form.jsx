@@ -26,7 +26,7 @@ export function PrivateCampaignForm({ onClose }) {
   } = usePrivateCampaignForm();
 
   return (
-    <Modal title="Create a campaign" show={true} onClose={onClose}>
+    <div>
       <div className="w-full grid grid-cols-2 md:grid-cols-2 gap-4">
         <CustomInput
           label="Campaign Title"
@@ -132,6 +132,6 @@ export function PrivateCampaignForm({ onClose }) {
           className="btn-primary"
         />
       </div>
-    </Modal>
+    </div>
   );
 }
