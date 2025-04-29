@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-filename-extension */
 /* eslint-disable react/function-component-definition */
+import CrossIcon from "@/common/icons/cross.icon";
 import React, { useEffect, useRef, useState } from "react";
 
 const CloseIcon = () => {
@@ -66,14 +67,14 @@ function useSimpleSelect({
           {selectedValue.map((option) => (
             <div
               key={option.value}
-              className="flex items-center rounded-sm bg-[#ddd] px-1 py-0.5"
+              className="flex items-center rounded-sm bg-gray-200 px-1"
             >
               {option.label}
               <span
                 onClick={(e) => onTagRemove(e, option)}
-                className="flex items-center"
+                className="flex items-center ml-1"
               >
-                <CloseIcon />
+                <CrossIcon size="small" />
               </span>
             </div>
           ))}
