@@ -64,7 +64,7 @@ export default function SimpleSelect({
       </div>
 
       {showMenu && (
-        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 top-10 w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
           {isSearchable && (
             <div className="p-2 border-b border-gray-100">
               <CustomInput

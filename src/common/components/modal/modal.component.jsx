@@ -9,6 +9,7 @@ export default function Modal({
   children,
   onClose,
   size,
+  height,
 }) {
   const { open, register, handleSubmit, setValue, errors, handleClose } =
     useModal(show);
@@ -23,7 +24,7 @@ export default function Modal({
         sx: {
           maxWidth: size === "lg" ? "800px" : size === "md" ? "600px" : "420px",
           width: "100%",
-          height: "90vh",
+          height: height ? "90vh" : "auto",
           display: "flex",
           flexDirection: "column",
         },
