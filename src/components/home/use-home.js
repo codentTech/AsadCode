@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   checkExpiryDateOfToken,
-  isLoginVerified
-} from '@/common/utils/access-token.util';
-import { getUser, removeUser } from '@/common/utils/users.util';
+  isLoginVerified,
+} from "@/common/utils/access-token.util";
+import { getUser, removeUser } from "@/common/utils/users.util";
 
 /**
- * Does all the functionality used in landing page and return it as an object
+ * Does all the functionality used in home page and return it as an object
  * @returns object
  */
-export default function useLandingPage() {
+export default function useHome() {
   const router = useRouter();
   const user = getUser();
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export default function useLandingPage() {
   useEffect(() => {
     if (checkExpiryDateOfToken() !== true) {
       removeUser();
-      router.push('/');
+      router.push("/");
     }
   }, []);
 
@@ -40,6 +40,6 @@ export default function useLandingPage() {
     router,
     loader,
     loginVerified,
-    setLoginVerified
+    setLoginVerified,
   };
 }

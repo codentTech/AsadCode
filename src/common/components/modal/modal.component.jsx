@@ -3,7 +3,13 @@ import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import PropTypes from "prop-types";
 import useModal from "./use-modal.hook";
 
-export default function Modal({ show = false, title, children, onClose }) {
+export default function Modal({
+  show = false,
+  title,
+  children,
+  onClose,
+  size,
+}) {
   const { open, register, handleSubmit, setValue, errors, handleClose } =
     useModal(show);
 
@@ -15,9 +21,9 @@ export default function Modal({ show = false, title, children, onClose }) {
       PaperProps={{
         className: "rounded-2xl",
         sx: {
-          maxWidth: "600px",
+          maxWidth: size === "lg" ? "800px" : size === "md" ? "600px" : "420px",
           width: "100%",
-          maxHeight: "90vh",
+          height: "90vh",
           display: "flex",
           flexDirection: "column",
         },

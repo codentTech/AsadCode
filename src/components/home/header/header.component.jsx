@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Header() {
+  const router = useRouter();
   const [dropdown, setDropdown] = useState({});
 
   const toggleDropdown = (id) => {
+    if (id === "messagesDropdown") router.push("chat-inbox");
     setDropdown((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -32,13 +35,14 @@ export default function Header() {
       {/* Center Navigation */}
       <div className="flex items-center gap-5">
         {[
-          { icon: "home", label: "Home" },
-          { icon: "handshake-o", label: "Campaigns" },
-          { icon: "users", label: "My Network" },
-          { icon: "briefcase", label: "My Portfolio" },
-        ].map(({ icon, label }) => (
+          { icon: "home", label: "Home", route: "" },
+          { icon: "handshake-o", label: "Campaigns", route: "create-campaign" },
+          { icon: "users", label: "My Network", route: "" },
+          { icon: "briefcase", label: "My Portfolio", route: "" },
+        ].map(({ icon, label, route }) => (
           <div
             key={label}
+            onClick={() => (route ? router.push(route) : null)}
             className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer font-semibold text-sm hover:bg-gray-100 text-transparent bg-gradient-to-r from-[#2a398d] to-[#00abef] bg-clip-text"
           >
             <i
@@ -57,6 +61,7 @@ export default function Header() {
             "notificationsDropdown",
             "settingsDropdown",
           ][idx];
+
           return (
             <div key={icon} className="relative">
               <div
@@ -75,7 +80,7 @@ export default function Header() {
                       ? "Notifications"
                       : "Settings"}
                 </div>
-                {dropdownId === "messagesDropdown" && (
+                {/* {dropdownId === "messagesDropdown" && (
                   <>
                     <DropdownItem
                       unread
@@ -97,7 +102,7 @@ export default function Header() {
                       img="https://randomuser.me/api/portraits/women/3.jpg"
                     />
                   </>
-                )}
+                )} */}
                 {dropdownId === "notificationsDropdown" && (
                   <>
                     <DropdownItem

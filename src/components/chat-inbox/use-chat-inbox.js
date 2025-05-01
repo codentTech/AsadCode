@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function useChatInbox() {
   const [activeTab, setActiveTab] = useState(1);
   const [activeSection, setActiveSection] = useState(1);
   const [isCreaterInbox, setIsCreaterInbox] = useState(false);
   const [openQuickHire, setOpenQuickHire] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    checked ? setIsCreaterInbox(true) : setIsCreaterInbox(false);
+  }, [checked]);
+
+  const handleSwitchChange = (e) => {
+    setChecked(e.target.checked);
+  };
 
   const handleOpenQuickHire = () => {
     setOpenQuickHire(true);
@@ -13,19 +21,7 @@ export default function useChatInbox() {
 
   const handleCloseQuickHire = () => {
     setOpenQuickHire(false);
-    setSelectedOption(null);
   };
-
-  const handleOptionSelect = (option) => {
-    setSelectedOption(option);
-  };
-
-  // Mock campaigns for the demo
-  const publicCampaigns = [
-    { id: 1, title: "Summer Collection Launch", status: "Open" },
-    { id: 2, title: "New Product Teaser", status: "Open" },
-    { id: 3, title: "Holiday Special", status: "Open" },
-  ];
 
   const mainTabs = [
     { id: 1, label: "Active Campaigns" },
@@ -54,8 +50,7 @@ export default function useChatInbox() {
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
-    handleOptionSelect,
-    publicCampaigns,
-    selectedOption,
+    checked,
+    handleSwitchChange,
   };
 }

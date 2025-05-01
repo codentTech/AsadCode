@@ -9,7 +9,7 @@ export default function TextArea({
   register = null,
   label = null,
   className = "",
-  minRows = 4,
+  minRows = 2,
   maxRows = 10,
   value = null,
   disabled = false,

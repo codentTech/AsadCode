@@ -1,9 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import ChatList from "./components/chat-list/chat-list";
 import Inbox from "./components/inbox/inbox";
 import Profile from "./components/profile/profile";
-import useChatInbox from "./use-chat-inbox";
 import QuickHire from "./components/quick-hire/quick-hire";
+import useChatInbox from "./use-chat-inbox";
 
 export default function ChatInbox() {
   const {
@@ -14,13 +15,11 @@ export default function ChatInbox() {
     mainTabs,
     sections,
     isCreaterInbox,
-    creators,
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
-    handleOptionSelect,
-    publicCampaigns,
-    selectedOption,
+    checked,
+    handleSwitchChange,
   } = useChatInbox();
 
   return (
@@ -28,7 +27,7 @@ export default function ChatInbox() {
       <div className="container mx-auto max-w-7xl h-screen rounded-xl overflow-hidden shadow-xl border border-gray-200 bg-white">
         <main className="h-full flex flex-col">
           {/* Top navigation - streamlined and modern */}
-          <div className="bg-white border-b">
+          <div className="flex justify-between items-center bg-white border-b">
             <div className="py-3 flex items-center justify-between">
               <nav className="hidden md:flex">
                 {mainTabs.map((tab) => (
@@ -48,6 +47,16 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </nav>
+            </div>
+            <div className="mr-3">
+              <CustomSwitch
+                label="Enable Feature"
+                name="featureToggle"
+                checked={checked}
+                labelRight={true}
+                rightLabelText="Creater"
+                onChange={handleSwitchChange}
+              />
             </div>
           </div>
 
@@ -69,23 +78,13 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </div>
-              {[5].includes(activeTab) && !isCreaterInbox && (
+              {[4, 5].includes(activeTab) && !isCreaterInbox && (
                 <CustomButton
                   onClick={handleOpenQuickHire}
                   text="Quick Hire"
                   className="mr-4 h-8 btn-primary"
                 />
               )}
-            </div>
-          )}
-
-          {[3].includes(activeTab) && !isCreaterInbox && (
-            <div className="flex justify-end bg-gray-50 border-b py-2 px-2">
-              <CustomButton
-                onClick={handleOpenQuickHire}
-                text="Quick Hire"
-                className="mr-4 h-8 btn-primary"
-              />
             </div>
           )}
 

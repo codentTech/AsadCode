@@ -1,3 +1,4 @@
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import React from "react";
 
 const Footer = () => {
@@ -5,7 +6,7 @@ const Footer = () => {
     <footer className="bg-white text-gray-800 pt-16 pb-10 shadow-inner border-t border-gray-200 text-center font-inter">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 text-left">
         {/* Logo & CTA */}
-        <div className="flex flex-col items-center lg:items-start col-span-1">
+        <div className="flex flex-col items-center lg:items-start col-span-1 -mt-3">
           <img
             src="https://yourdemolink.net/social/wp-content/uploads/2025/04/IMG_2972.png"
             alt="Your Logo"
@@ -14,12 +15,7 @@ const Footer = () => {
           <p className="mb-4 text-sm text-gray-600">
             Join our exclusive community and stay ahead with updates.
           </p>
-          <a
-            href="#"
-            className="inline-block mt-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:bg-blue-700 hover:-translate-y-0.5 transform transition"
-          >
-            Get Started
-          </a>
+          <CustomButton text="Get Started"></CustomButton>
         </div>
 
         {/* Quick Links */}
