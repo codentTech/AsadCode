@@ -23,7 +23,7 @@ export default function ChatInbox() {
   } = useChatInbox();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-200 to-white">
       <div className="container mx-auto max-w-7xl h-screen rounded-xl overflow-hidden shadow-xl border border-gray-200 bg-white">
         <main className="h-full flex flex-col">
           {/* Top navigation - streamlined and modern */}
