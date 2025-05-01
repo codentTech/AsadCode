@@ -1,20 +1,20 @@
 "use client";
 
 import Loadar from "@/common/components/loadar/loadar.component";
-import Footer from "./components/footer/footer.component";
-import Header from "./components/header/header.component";
-import useLandingPage from "./use-landing-page.hook";
-import UserMiniProfile from "./components/user-mini-profile/user-mini-profile";
-import ModernStories from "./components/modern-stories/modern-stories";
-import PremiumSidebar from "./components/premium-sidebar/premium-sidebar";
-import PostFeed from "./components/post-feeds/post-feeds";
-import UltraPostFeed from "./components/feed/feed";
+import Footer from "../home/footer/footer.component";
+import Header from "../home/header/header.component";
+import UserMiniProfile from "../home/user-mini-profile/user-mini-profile";
+import ModernStories from "../home/modern-stories/modern-stories";
+import PremiumSidebar from "../home/premium-sidebar/premium-sidebar";
+import PostFeed from "../home/post-feeds/post-feeds";
+import UltraPostFeed from "../home/feed/feed";
+import useHome from "./use-home";
 
 /**
- * Landing page component
+ * Home page component
  */
-function LandingPage() {
-  const { loader } = useLandingPage();
+function Home() {
+  const { loader } = useHome();
 
   if (loader) {
     return <Loadar />;
@@ -26,7 +26,10 @@ function LandingPage() {
 
       <div className="container mx-auto px-4">
         <main className="flex-1">
-          <div className="home-wrapper flex flex-col lg:flex-row gap-4 py-[5.7rem]" data-auto-select="true">
+          <div
+            className="home-wrapper flex flex-col lg:flex-row gap-4 py-[5.7rem]"
+            data-auto-select="true"
+          >
             {/* Sidebar - hidden on small screens */}
             <div className="hidden lg:block">
               <UserMiniProfile />
@@ -51,4 +54,4 @@ function LandingPage() {
   );
 }
 
-export default LandingPage;
+export default Home;
