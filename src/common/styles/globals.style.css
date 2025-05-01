@@ -57,7 +57,7 @@
     @apply flex h-[36px]  flex-row items-center justify-center rounded-md text-xs font-medium capitalize not-italic leading-4 text-white;
   }
   .btn-outline {
-    @apply flex h-[36px] w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-xs font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
+    @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
   }
   .btn-primary {
     @apply min-w-[106px] bg-primary hover:bg-secondary-blue focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
@@ -759,4 +759,36 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .tox-silver-sink,
 .tox-silver-sink .tox-notifications-container {
   display: none !important;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes rotate-y {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(10deg); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.rotate-y-12 {
+  transform: rotateY(12deg);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
 }

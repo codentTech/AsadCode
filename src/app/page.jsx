@@ -2,8 +2,7 @@
 
 import { checkExpiryDateOfToken } from "@/common/utils/access-token.util";
 import { removeUser } from "@/common/utils/users.util";
-import ChatInbox from "@/components/chat-inbox/chat-inbox";
-import LandingPage from "@/components/landing-page/landing-page.component";
+import LandinPage from "@/components/landing-page/landing-page";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -20,5 +19,5 @@ export default function Home() {
     }
   }, []);
 
-  return <LandingPage />;
+  return <LandinPage />;
 }

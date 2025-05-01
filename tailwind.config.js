@@ -110,7 +110,7 @@ module.exports = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--gradient-stops))",
         "hero-pattern": "url('/assets/images/sidebar/sidebarellipses.png')",
-        "landing-hero-bg": "url('/assets/images/landing/hero-bg.png')",
+        "landing-hero-bg": "url('/assets/images/landing/hero-bg.jpeg')",
         "landing-hero-circle": "url('/assets/images/landing/hero-circle.png')",
         "howitworks-bg":
           "url('/assets/images/landing/howitworks/howitwork-bg.png')",
