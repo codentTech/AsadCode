@@ -2,7 +2,7 @@
 
 import Auth from "@/auth/auth.component";
 import AUTH from "@/common/constants/auth.constant";
-import CampaignCreationWizard from "@/components/create-campaign/create-campaign";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 
 export default function Page() {
   return (

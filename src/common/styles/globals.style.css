@@ -435,12 +435,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #7f56d9; /* Purple scroll thumb */
+  background: #4F46E5; /* Purple scroll thumb */
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a00e0; /* Darker on hover */
+  background: #4F46E5; /* Darker on hover */
 }
 
 .form-stepper-body {
