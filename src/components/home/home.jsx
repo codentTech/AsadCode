@@ -13,7 +13,7 @@ import useHome from "./use-home";
 /**
  * Home page component
  */
-function Home() {
+function HomePage() {
   const { loader } = useHome();
 
   if (loader) {
@@ -54,4 +54,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default HomePage;
