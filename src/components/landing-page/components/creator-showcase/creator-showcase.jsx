@@ -49,7 +49,7 @@ function Showcase({ isCreatorMode }) {
           {categories.map((category, idx) => (
             <div
               key={idx}
-              className="bg-white p-6 rounded-xl shadow-xl hover:shadow-2xl overflow-hidden group"
+              className="bg-white p-2 rounded-xl shadow-xl hover:shadow-2xl overflow-hidden group"
             >
               <div className="rounded-xl overflow-hidden mb-6 h-64">
                 <img
@@ -61,9 +61,9 @@ function Showcase({ isCreatorMode }) {
                 />
               </div>
               <div className="px-2">
-                <h3 className="text-xl font-bold mb-3 text-indigo-600">
+                <h4 className="font-bold mb-3 text-primary">
                   {category.title}
-                </h3>
+                </h4>
                 <p className="text-gray-600 mb-4">{category.description}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-500">
