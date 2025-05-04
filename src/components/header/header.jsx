@@ -1,4 +1,3 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { Close, Menu } from "@mui/icons-material";
 import useHeader from "./use-header";
 
@@ -29,7 +28,6 @@ function Header() {
           <p className="text-gray-700 hover:text-indigo-600 font-medium transition">
             About
           </p>
-          <CustomButton text="Login" />
         </div>
 
         {/* Mobile Menu Button */}
@@ -68,7 +66,6 @@ function Header() {
           <p className="text-gray-700 hover:text-indigo-600 font-medium transition text-left">
             About
           </p>
-          <CustomButton text="Login" />
         </div>
       </div>
     </nav>
