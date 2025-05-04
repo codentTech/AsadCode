@@ -19,14 +19,14 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
             <div className="relative z-10">
               {/* Animated underline for heading */}
-              <div
+              {/* <div
                 className="relative mb-4 cursor-pointer"
                 onClick={() => setIsCreatorMode(!isCreatorMode)}
               >
                 <span className="inline-block px-4 py-1 bg-indigo-100 text-indigo-800 text-sm font-medium rounded-md">
                   {isCreatorMode ? "Creator" : "Brand"} Collaboration Platform
                 </span>
-              </div>
+              </div> */}
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 mb-3">
                 “The ultimate{" "}
@@ -49,17 +49,8 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20"></div>
                   <div className="absolute top-0 right-0 w-1/4 h-full bg-white/20 skew-x-12 transform -translate-x-32 group-hover:translate-x-96 transition-transform duration-1000"></div>
                   <span className="relative flex items-center justify-center text-white font-semibold text-lg">
-                    Get Started{" "}
-                    <ArrowForward className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
-                </button>
-
-                {/* Secondary CTA with hover effect */}
-                <button className="group relative px-8 py-4 rounded-full transition duration-300">
-                  <div className="absolute inset-0 border-2 border-indigo-600 rounded-full group-hover:border-indigo-700"></div>
-                  <div className="absolute inset-0 bg-indigo-100 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center justify-center text-indigo-700 font-semibold text-lg group-hover:text-indigo-800">
                     Join Waitlist
+                    <ArrowForward className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
                 </button>
               </div>
@@ -156,36 +147,7 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
       </div>
 
       {/* Highlight Stats */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-8 md:py-3 transform skew-y-1">
-        <div className="container mx-auto px-4 md:px-8 transform -skew-y-1">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-center">
-            <div className="p-4 transform transition-transform hover:scale-105">
-              <p className="text-3xl md:text-4xl font-bold text-white mb-2">
-                5,000+
-              </p>
-              <p className="text-indigo-100 font-medium">Verified Creators</p>
-            </div>
-            <div className="p-4 transform transition-transform hover:scale-105">
-              <p className="text-3xl md:text-4xl font-bold text-white mb-2">
-                97%
-              </p>
-              <p className="text-indigo-100 font-medium">Campaign Success</p>
-            </div>
-            <div className="p-4 transform transition-transform hover:scale-105">
-              <p className="text-3xl md:text-4xl font-bold text-white mb-2">
-                45%
-              </p>
-              <p className="text-indigo-100 font-medium">Higher ROI</p>
-            </div>
-            <div className="p-4 transform transition-transform hover:scale-105">
-              <p className="text-3xl md:text-4xl font-bold text-white mb-2">
-                3,200+
-              </p>
-              <p className="text-indigo-100 font-medium">Happy Brands</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-8 md:py-3 transform skew-y-1"></div>
     </section>
   );
 }
