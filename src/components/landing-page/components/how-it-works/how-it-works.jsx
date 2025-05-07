@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 
 function HowCleerCutWorks({ isCreatorMode }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [disableAutoRotate, setDisableAutoRotate] = useState(false);
 
   // Auto-rotate through steps every 5 seconds
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setActiveStep((prev) => (prev + 1) % steps.length);
-  //   }, 5000);
+  useEffect(() => {
+    if (!disableAutoRotate) {
+      console.log(disableAutoRotate);
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length);
+      }, 5000);
 
-  //   return () => clearInterval(interval);
-  // }, []);
+      return () => clearInterval(interval);
+    }
+  }, [disableAutoRotate]);
 
   const steps = [
     {
@@ -83,6 +87,8 @@ function HowCleerCutWorks({ isCreatorMode }) {
                     <div
                       key={idx}
                       onClick={() => setActiveStep(idx)}
+                      onMouseEnter={() => setDisableAutoRotate(true)}
+                      onMouseLeave={() => setDisableAutoRotate(false)}
                       className={`p-4 rounded-lg cursor-pointer transition-all duration-300 flex gap-4 items-start ${
                         activeStep === idx
                           ? "bg-white shadow-lg border-l-4 border-primary"
