@@ -2,11 +2,10 @@ import Header from "@/components/header/header";
 import { useState } from "react";
 import Footer from "../home/footer/footer.component";
 import CallToAction from "./components/call-to-action/call-to-action";
-import Showcase from "./components/creator-showcase/creator-showcase";
 import Features from "./components/features/features";
 import Hero from "./components/hero/hero";
 import HowCleerCutWorks from "./components/how-it-works/how-it-works";
-import Testimonials from "./components/testimonials/testimonials";
+import WhyChooseCleercut from "./components/why-choose-cleercut/why-choose-cleercut";
 
 export default function LandinPage() {
   const [isCreatorMode, setIsCreatorMode] = useState(false);
@@ -19,17 +18,15 @@ export default function LandinPage() {
       {/* Hero Section */}
       <Hero isCreatorMode={isCreatorMode} setIsCreatorMode={setIsCreatorMode} />
 
-      {/* Creator Showcase Section */}
-      <Showcase isCreatorMode={isCreatorMode} />
-
       {/* How It Works Section */}
       <HowCleerCutWorks isCreatorMode={isCreatorMode} />
 
       {/* Features Section */}
       <Features isCreatorMode={isCreatorMode} />
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
 
-      {/* Testimonial Section */}
-      <Testimonials />
+      <WhyChooseCleercut />
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
 
       {/* CTA Section */}
       <CallToAction />

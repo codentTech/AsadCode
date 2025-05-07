@@ -1,19 +1,31 @@
-import {
-  CampaignOutlined,
-  Search,
-  Handshake,
-  AttachMoney,
-} from "@mui/icons-material";
+import { CheckCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function HowCleerCutWorks({ isCreatorMode }) {
+  const [activeStep, setActiveStep] = useState(0);
+  const [disableAutoRotate, setDisableAutoRotate] = useState(false);
+
+  // Auto-rotate through steps every 5 seconds
+  useEffect(() => {
+    if (!disableAutoRotate) {
+      console.log(disableAutoRotate);
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [disableAutoRotate]);
+
   const steps = [
     {
       title: isCreatorMode ? "Set Up Your Portfolio" : "Create a Campaign",
       description: isCreatorMode
         ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
         : "Create a campaign, set your budget, and define your goals in 5 quick steps.",
-      image:
-        "/assets/images/landing/create campaign on iphone perfected (1).png",
+      image: isCreatorMode
+        ? "/assets/images/landing/portfolio Photoshopped.png"
+        : "/assets/images/landing/create campaign on iphone perfected (1).png",
     },
     {
       title: isCreatorMode
@@ -21,17 +33,27 @@ function HowCleerCutWorks({ isCreatorMode }) {
         : "Find Top Creators",
       description: isCreatorMode
         ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
-        : "Invite creators to apply and sort through applications easily with advanced filters for niche, audience, engagement and more.",
-      image: "/assets/images/landing/Discover Perfect.png",
+        : "Invite creators to apply or sort through applications easily with advanced filters for niche, audience, engagement and more.",
+      image: isCreatorMode
+        ? "/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"
+        : "/assets/images/landing/Discover Perfect.png",
+    },
+    {
+      title: isCreatorMode ? null : "Analyze Your Best Options",
+      description:
+        "Preview creator's rates, past work, audience demographics, and reviews from previous collabs - in one powerful page.",
+      image: "/assets/images/landing/portfolio Photoshopped.png",
     },
     {
       title: isCreatorMode
-        ? " Collaborate better with Smart Campaign management"
+        ? "Collaborate with Smart Campaign Management"
         : "Collaborate Seamlessly",
       description: isCreatorMode
         ? "Manage deadlines, track payments, and move all your communication to one organized place"
-        : "Streamline partnerships with the Smart Inbox, track deliverables, and manage your budget with ease.",
-      image: "/assets/images/landing/inbox on macbook office perfect (1).png",
+        : "Keep all communication organized with the Smart Inbox, track deliverables, and manage your budget with ease.",
+      image: isCreatorMode
+        ? "/assets/images/landing/Creator inbox Completed.png"
+        : "/assets/images/landing/inbox on macbook office perfect (1).png",
     },
     {
       title: isCreatorMode
@@ -40,46 +62,104 @@ function HowCleerCutWorks({ isCreatorMode }) {
       description: isCreatorMode
         ? "CleerCut holds payments in escrow — no more endless revisions, ghosting or chasing down payments"
         : "Secure payments via escrow, auto-generate contracts, and streamlined dispute management.",
-      image: "/assets/images/landing/reports on mac Perfect (1).png",
+      image: isCreatorMode
+        ? "/assets/images/landing/hero-bg-3.jpeg"
+        : "/assets/images/landing/reports on mac Perfect (1).png",
     },
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-tr from-blue-600/40 to-transparent">
-      <div className="container mx-auto px-4 md:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
-            {isCreatorMode
-              ? "Our Creators Make The Difference"
-              : "Brands Empowering Creators"}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-indigo-600 rounded-full"></div>
+    <section className="py-24 bg-gradient-to-tr from-blue-300/30 to-transparent overflow-hidden">
+      <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
+        <div className="text-center mb-12">
+          <h2 className="text-xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
+            Collaborate in {isCreatorMode ? 4 : 5} easy steps
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {isCreatorMode
-              ? "Connect with content creators who bring your brand vision to life"
-              : "Discover forward-thinking brands ready to collaborate with top creators"}
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {steps.map((step, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-2 rounded-xl shadow-xl hover:shadow-2xl overflow-hidden group"
-            >
-              <div className="rounded-xl overflow-hidden mb-6 h-48">
-                <img
-                  src={step.image}
-                  alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title}`}
-                  className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="px-2">
-                <h4 className="font-bold mb-3 text-primary">{step.title}</h4>
-                <p className="text-gray-600 mb-4">{step.description}</p>
-              </div>
+        <div className="lg:flex items-center gap-12">
+          {/* Left side: Step navigation */}
+          <div className="lg:w-2/5">
+            <div className="space-y-4 mb-8 lg:mb-0">
+              {steps.map(
+                (step, idx) =>
+                  step.title && (
+                    <div
+                      key={idx}
+                      onClick={() => setActiveStep(idx)}
+                      onMouseEnter={() => setDisableAutoRotate(true)}
+                      onMouseLeave={() => setDisableAutoRotate(false)}
+                      className={`p-4 rounded-lg cursor-pointer transition-all duration-300 flex gap-4 items-start ${
+                        activeStep === idx
+                          ? "bg-white shadow-lg border-l-4 border-primary"
+                          : "hover:bg-white/50"
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          activeStep === idx
+                            ? "bg-primary text-white"
+                            : "bg-primary text-white"
+                        }`}
+                      >
+                        {activeStep === idx ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          <span className="font-bold">{idx + 1}</span>
+                        )}
+                      </div>
+                      <div>
+                        <h4
+                          className={`font-bold mb-1 ${activeStep === idx ? "text-blue-600" : "text-gray-800"}`}
+                        >
+                          {step.title}
+                        </h4>
+                        {activeStep === idx && (
+                          <p className="text-gray-600 text-sm">
+                            {step.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )
+              )}
             </div>
-          ))}
+          </div>
+
+          {/* Right side: Image showcase */}
+          <div className="lg:w-3/5 relative">
+            <div className="bg-white p-4 rounded-2xl shadow-xl overflow-hidden aspect-[4/3]">
+              {steps.map((step, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 transition-opacity duration-500 ${
+                    activeStep === idx
+                      ? "opacity-100"
+                      : "opacity-0 pointer-events-none"
+                  }`}
+                >
+                  <img
+                    src={step.image}
+                    alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title}`}
+                    className={`w-full h-full ${[1, 3, 4].includes(idx) && !isCreatorMode ? "object-cover" : "object-contain"}  rounded-lg`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation dots for mobile */}
+            <div className="flex justify-center gap-2 mt-4 lg:hidden">
+              {steps.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveStep(idx)}
+                  className={`w-3 h-3 rounded-full ${
+                    activeStep === idx ? "bg-blue-500" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
