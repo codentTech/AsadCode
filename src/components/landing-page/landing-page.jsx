@@ -17,7 +17,6 @@ export default function LandinPage() {
   }, [checked]);
 
   const handleSwitchChange = (e) => {
-    console.log(e.target.checked);
     setChecked(e.target.checked);
   };
 
