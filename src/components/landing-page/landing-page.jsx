@@ -8,7 +8,7 @@ import HowCleerCutWorks from "./components/how-it-works/how-it-works";
 import WhyChooseCleercut from "./components/why-choose-cleercut/why-choose-cleercut";
 
 export default function LandinPage() {
-  const [isCreatorMode, setIsCreatorMode] = useState(true);
+  const [isCreatorMode, setIsCreatorMode] = useState(false);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans">
