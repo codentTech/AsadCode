@@ -9,16 +9,14 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 import Modal from "@/common/components/modal/modal.component";
 import { RefreshRounded } from "@mui/icons-material";
+import Niche from "@/components/niche/niche";
 
 export default function ChatList({ isCreaterInbox, activeTab }) {
   const {
-    categories,
     filterOptions,
     chats,
     selectedChat,
     setSelectedChat,
-    activeCategory,
-    setActiveCategory,
     options,
     handleChange,
     activeFilter,
@@ -169,20 +167,7 @@ export default function ChatList({ isCreaterInbox, activeTab }) {
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">
                   Categories
                 </h4>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <CustomButton
-                      key={category}
-                      text={category}
-                      onClick={() => setActiveCategory(category)}
-                      className={`px-1 rounded-md text-xs font-medium border transition-all ${
-                        activeCategory === category
-                          ? "bg-blue-100 text-blue-700 border-blue-300"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
-                      }`}
-                    />
-                  ))}
-                </div>
+                <Niche />
               </div>
             )}
 

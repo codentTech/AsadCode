@@ -1,6 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Niche from "@/components/niche/niche";
 import React from "react";
 
 function CampaignTypeNiche({
@@ -15,27 +16,6 @@ function CampaignTypeNiche({
     { label: "Giveaway", value: "Giveaway" },
     { label: "Gifting Only", value: "Gifting Only" },
     { label: "Other", value: "Other" },
-  ];
-
-  const nicheOptions = [
-    "Beauty",
-    "Skincare",
-    "Fitness",
-    "Nutrition",
-    "Fashion",
-    "Travel",
-    "Lifestyle",
-    "Tech",
-    "Gaming",
-    "Food",
-    "Parenting",
-    "Pets",
-    "Home Decor",
-    "DIY",
-    "Education",
-    "Finance",
-    "Business",
-    "Health",
   ];
 
   return (
@@ -75,18 +55,7 @@ function CampaignTypeNiche({
             Select Niche(s)
           </h4>
           <div className="flex flex-wrap gap-2">
-            {nicheOptions.map((niche) => (
-              <CustomButton
-                key={niche}
-                text={niche}
-                onClick={() => handleCheckboxToggle(category)}
-                className={`px-1 text-xs font-medium rounded-lg transition-all ${
-                  campaignData.niches.includes(niche)
-                    ? "bg-primary text-blue-700 border-blue-300"
-                    : "bg-gray-200 text-gray-700 border-gray-300 hover:bg-primary hover:text-white"
-                }`}
-              />
-            ))}
+            <Niche />
           </div>
         </div>
       </div>
