@@ -1,5 +1,6 @@
 import { Close, Menu } from "@mui/icons-material";
 import useHeader from "./use-header";
+import Image from "next/image";
 
 function Header() {
   const { scrolled, mobileMenuOpen, setMobileMenuOpen } = useHeader();
@@ -11,7 +12,12 @@ function Header() {
     >
       <div className="container mx-auto px-4 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-indigo-600">{`{ CleerCut }`}</span>
+          <Image
+            src="/assets/images/Website Logo.png"
+            alt="logo"
+            width={60}
+            height={60}
+          />
         </div>
 
         {/* Desktop Navigation */}

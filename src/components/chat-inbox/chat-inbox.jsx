@@ -68,7 +68,7 @@ export default function ChatInbox() {
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-sm transition-all ${
+                    className={`px-4 py-1.5 rounded-lg text-xs font-sm ${
                       activeSection === section.id
                         ? "bg-primary text-white shadow-sm"
                         : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
