@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 function useChatList() {
   const [selectedChat, setSelectedChat] = useState("Sam Waters");
-  const [activeCategory, setActiveCategory] = useState("Skincare");
   const [activeFilter, setActiveFilter] = useState("Saved");
   const [searchText, setSearchText] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
@@ -11,7 +10,6 @@ function useChatList() {
   const avatar =
     "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
 
-  const categories = ["Skincare", "Makeup", "Fashion", "Nutrition", "Fitness"];
   const filterOptions = ["Saved", "Rejected", "Trash"];
 
   const options = [
@@ -81,17 +79,13 @@ function useChatList() {
 
   const handleChange = (selected) => {
     setSelectedOption(selected);
-    console.log("Selected Option:", selected);
   };
 
   return {
-    categories,
     filterOptions,
     chats,
     selectedChat,
     setSelectedChat,
-    activeCategory,
-    setActiveCategory,
     options,
     handleChange,
     activeFilter,
