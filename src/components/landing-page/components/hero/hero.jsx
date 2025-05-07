@@ -1,6 +1,7 @@
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { JoinFullOutlined } from "@mui/icons-material";
 
-function Hero({ isCreatorMode }) {
+function Hero({ isCreatorMode, setIsCreatorMode }) {
   return (
     <section className="relative pt-20 overflow-hidden bg-white">
       {/* Abstract background elements */}
@@ -17,6 +18,12 @@ function Hero({ isCreatorMode }) {
           {/* Content Area */}
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
+            <div className="w-[150px] mb-2">
+              <CustomButton
+                text={isCreatorMode ? "Creator Mode" : "Brand Mode"}
+                onClick={() => setIsCreatorMode(!isCreatorMode)}
+              />
+            </div>
             <div className="relative z-10">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 mb-3">
                 “The ultimate{" "}
