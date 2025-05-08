@@ -1,19 +1,8 @@
-import {
-  DangerousOutlined,
-  ErrorOutline,
-  ExpandCircleDown,
-} from "@mui/icons-material";
-import {
-  AlertCircle,
-  AlertOctagonIcon,
-  CheckCheckIcon,
-  CheckCircle,
-  XCircleIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { ErrorOutline } from "@mui/icons-material";
+import { CheckCircle, XCircleIcon } from "lucide-react";
 
-export default function WhyChooseCleercut() {
-  const features = [
+export default function WhyChooseCleercut({ isCreatorMode }) {
+  const brandFeatures = [
     {
       name: "3 Commission-Free Collaborations",
       cleercut: true,
@@ -100,6 +89,89 @@ export default function WhyChooseCleercut() {
     },
   ];
 
+  const creatorFeatures = [
+    {
+      name: "3 Commission-Free Collaborations",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Try the platform before committing",
+      competitorNote: "No commission free options",
+    },
+    {
+      name: "4.5% Commission",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Transparent, lower fees",
+      competitorNote: "10–30% on other platforms + agencies",
+    },
+    {
+      name: "All-in-One Dashboard",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Messaging, contracts, payments in one spot",
+      competitorNote: "Scattered across multiple tools and platforms",
+    },
+    {
+      name: "Smart Inbox",
+      cleercut: true,
+      competitor: "warning",
+      cleerCutNote:
+        "Messages grouped by pending, active, and completed campaigns",
+      competitorNote: "Chaotic email threads or basic inboxes",
+    },
+    {
+      name: "Escrow Secured Payments",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Guaranteed payment on completed work",
+      competitorNote: "No safeguards - risk of ghosting after creating content",
+    },
+    {
+      name: "Advanced Campaign Filters",
+      cleercut: true,
+      competitor: "warning",
+      cleerCutNote: "Sort by rate, niche and audience fit",
+      competitorNote: "Basic or no targeting options",
+    },
+    {
+      name: "Saved Pitch Templates",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Customize and reuse your best pitches for faster outreach",
+      competitorNote: "Manual retyping or cold emails",
+    },
+    {
+      name: "Finance Dashboard",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "See upcoming and completed payments in one view",
+      competitorNote: "No centralized income tracking",
+    },
+    {
+      name: "Verified Brand Profiles",
+      cleercut: true,
+      competitor: "warning",
+      cleerCutNote: "Brands verified via domain authentication",
+      competitorNote: "Often self-submitted, unverifiable",
+    },
+    {
+      name: "Dispute Management Support",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "CleerCut mediates with contract review",
+      competitorNote: "Creator-neglected",
+    },
+    {
+      name: "Dual-Rated Reviews",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "Both brands and creators reviewed",
+      competitorNote: "Creator-only reviews, no accountability for brands",
+    },
+  ];
+
+  const currentFeatures = isCreatorMode ? creatorFeatures : brandFeatures;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       {/* Why Choose CleerCut Section */}
@@ -139,7 +211,7 @@ export default function WhyChooseCleercut() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {features.map((feature, index) => (
+                    {currentFeatures.map((feature, index) => (
                       <tr
                         key={index}
                         className={index % 2 === 0 ? "bg-blue-50" : "bg-white"}

@@ -18,9 +18,11 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
           {/* Content Area */}
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
-            <div className="w-[150px] mb-2">
+            <div className="w-[180px] mb-2">
               <CustomButton
-                text={isCreatorMode ? "Creator Mode" : "Brand Mode"}
+                text={
+                  isCreatorMode ? "Creator Mode Toggle" : "Brand Mode Toggle"
+                }
                 onClick={() => setIsCreatorMode(!isCreatorMode)}
               />
             </div>
@@ -140,7 +142,7 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 )}
 
                 {isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute top-20 -right-20 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                  <div className="text-white rounded-lg bg-primary absolute top-20 -right-16 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
                     <div className="relative p-4 shadow-lg">
                       <div className="flex items-center space-x-2">
                         <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
@@ -155,7 +157,7 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 )}
 
                 {isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute top-60 -right-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500 ">
+                  <div className="text-white rounded-lg bg-primary absolute top-60 -right-16 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500 ">
                     <div className="relative rounded-lg p-4 shadow-lg">
                       <div className="flex items-center space-x-2">
                         <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
