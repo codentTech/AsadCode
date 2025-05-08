@@ -25,7 +25,7 @@ export default function LandinPage() {
       <Features isCreatorMode={isCreatorMode} />
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
 
-      <WhyChooseCleercut />
+      <WhyChooseCleercut isCreatorMode={isCreatorMode} />
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
 
       {/* CTA Section */}
