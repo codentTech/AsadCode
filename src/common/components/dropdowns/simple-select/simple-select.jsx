@@ -64,7 +64,9 @@ export default function SimpleSelect({
       </div>
 
       {showMenu && (
-        <div className="absolute z-50 mt-1 top-10 w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+        <div
+          className={`absolute z-50 mt-1 ${isMulti ? "top-16" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+        >
           {isSearchable && (
             <div className="p-2 border-b border-gray-100">
               <CustomInput
@@ -72,7 +74,7 @@ export default function SimpleSelect({
                 onChange={onSearch}
                 value={searchValue}
                 defaultValue={defaultValue}
-                placeholder="Search..."
+                placeholder="Type to search"
                 className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none"
               />
             </div>

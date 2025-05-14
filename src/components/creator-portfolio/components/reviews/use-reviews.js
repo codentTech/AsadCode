@@ -1,7 +1,7 @@
 import { avatar } from "@/common/constants/auth.constant";
 import { useState } from "react";
 
-const reviews = [
+export const reviews = [
   {
     id: 1,
     brand: "FashionBrand",

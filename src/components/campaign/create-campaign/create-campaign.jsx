@@ -187,7 +187,7 @@ export default function CampaignCreationWizard() {
 
   return (
     <Modal title="Create Campaign" show={true} size="lg" height="fixed">
-      <div className="max-w-3xl mx-auto bg-white overflow-hidden">
+      <div className="h-full w-full max-w-3xl mx-auto bg-white overflow-hidden">
         <CustomStepper
           steps={steps}
           activeStep={currentStep}

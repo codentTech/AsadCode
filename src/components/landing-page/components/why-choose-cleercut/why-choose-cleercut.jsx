@@ -1,16 +1,5 @@
-import {
-  DangerousOutlined,
-  ErrorOutline,
-  ExpandCircleDown,
-} from "@mui/icons-material";
-import {
-  AlertCircle,
-  AlertOctagonIcon,
-  CheckCheckIcon,
-  CheckCircle,
-  XCircleIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { ErrorOutline } from "@mui/icons-material";
+import { CheckCircle, XCircleIcon } from "lucide-react";
 
 export default function WhyChooseCleercut() {
   const features = [
@@ -106,7 +95,7 @@ export default function WhyChooseCleercut() {
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
+            <h2 className="text-xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
               Why Choose CleerCut?{" "}
             </h2>
           </div>

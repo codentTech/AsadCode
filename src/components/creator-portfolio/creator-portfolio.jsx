@@ -7,7 +7,7 @@ import Reviews from "./components/reviews/reviews";
 export default function CreatorPortfolio() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="container flex flex-col gap-4 mx-auto px-4 py-8 max-w-6xl">
+      <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%]">
         {/* Profile Overview Section */}
         <ProfileOverview />
 
