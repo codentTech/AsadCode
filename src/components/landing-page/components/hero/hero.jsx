@@ -22,9 +22,11 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
           {/* Content Area */}
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
-            <div className="w-[150px] mb-2">
+            <div className="w-[180px] mb-2">
               <CustomButton
-                text={isCreatorMode ? "Creator Mode" : "Brand Mode"}
+                text={
+                  isCreatorMode ? "Creator Mode Toggle" : "Brand Mode Toggle"
+                }
                 onClick={() => setIsCreatorMode(!isCreatorMode)}
               />
             </div>
