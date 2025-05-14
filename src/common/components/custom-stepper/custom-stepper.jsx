@@ -104,10 +104,10 @@ const CustomStepper = ({
 
   // Render horizontal stepper
   const renderHorizontalStepper = () => (
-    <div className="p-3 bg-gray-50 border rounded-lg">
+    <div className="p-3 bg-blue-50 border border-solid border-gray-50 rounded-lg">
       <div className="relative flex justify-between items-center">
         {/* Connecting Line - Background */}
-        <div className="absolute top-[14px] left-0 w-full h-0.5 bg-gray-200 z-0" />
+        <div className="absolute top-[14px] left-0 w-full h-0.5 bg-primary z-0" />
 
         {steps.map((step, index) => (
           <div
@@ -210,7 +210,7 @@ const CustomStepper = ({
   );
 
   return (
-    <div>
+    <div className="flex flex-col justify-center">
       {orientation === "vertical"
         ? renderVerticalStepper()
         : renderHorizontalStepper()}
@@ -218,7 +218,7 @@ const CustomStepper = ({
       {children}
 
       {/* Navigation */}
-      <div className="p-4 bg-gray-50 border-t flex justify-between">
+      <div className="w-[95%] absolute bottom-0 p-4 border-t flex justify-between">
         <CustomButton
           text="Previous"
           onClick={prevStep}

@@ -1,5 +1,5 @@
 import { CheckCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function HowCleerCutWorks({ isCreatorMode }) {
   const [activeStep, setActiveStep] = useState(0);
@@ -7,14 +7,13 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
   // Auto-rotate through steps every 5 seconds
   useEffect(() => {
-    if (!disableAutoRotate) {
-      console.log(disableAutoRotate);
-      const interval = setInterval(() => {
-        setActiveStep((prev) => (prev + 1) % steps.length);
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
+    // if (!disableAutoRotate) {
+    //   console.log(disableAutoRotate);
+    //   const interval = setInterval(() => {
+    //     setActiveStep((prev) => (prev + 1) % steps.length);
+    //   }, 5000);
+    //   return () => clearInterval(interval);
+    // }
   }, [disableAutoRotate]);
 
   const steps = [
@@ -77,7 +76,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
           </h2>
         </div>
 
-        <div className="lg:flex items-center gap-12">
+        <div className="lg:flex items-start gap-12">
           {/* Left side: Step navigation */}
           <div className="lg:w-2/5">
             <div className="space-y-4 mb-8 lg:mb-0">
@@ -127,8 +126,8 @@ function HowCleerCutWorks({ isCreatorMode }) {
           </div>
 
           {/* Right side: Image showcase */}
-          <div className="lg:w-3/5 relative">
-            <div className="bg-white p-4 rounded-2xl shadow-xl overflow-hidden aspect-[4/3]">
+          <div className="lg:w-3/4 relative">
+            <div className="bg-white p-4 rounded-2xl shadow-xl h-auto min-h-96">
               {steps.map((step, idx) => (
                 <div
                   key={idx}
@@ -138,25 +137,59 @@ function HowCleerCutWorks({ isCreatorMode }) {
                       : "opacity-0 pointer-events-none"
                   }`}
                 >
-                  <img
-                    src={step.image}
-                    alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title}`}
-                    className={`w-full h-full ${[1, 3, 4].includes(idx) && !isCreatorMode ? "object-cover" : "object-contain"}  rounded-lg`}
-                  />
-                </div>
-              ))}
-            </div>
+                  <div className="h-full flex items-center justify-center">
+                    <img
+                      src={step.image}
+                      alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
+                      className={`max-w-full max-h-96 ${
+                        [1, 3, 4].includes(idx) && !isCreatorMode
+                          ? "object-contain"
+                          : "object-contain"
+                      } rounded-lg mx-auto`}
+                    />
 
-            {/* Navigation dots for mobile */}
-            <div className="flex justify-center gap-2 mt-4 lg:hidden">
-              {steps.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveStep(idx)}
-                  className={`w-3 h-3 rounded-full ${
-                    activeStep === idx ? "bg-blue-500" : "bg-gray-300"
-                  }`}
-                />
+                    {isCreatorMode && step.image.includes("hero-bg-3") && (
+                      <React.Fragment>
+                        <div className="w-40 absolute top-24 right-2 md:right-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                          <div className="relative bg-primary rounded-lg py-1 px-2 shadow-lg">
+                            <div className="flex items-center">
+                              <div>
+                                <span className="text-[10px] text-white">
+                                  Campaign marked complete
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-36 absolute top-44 left-2 md:left-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                          <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
+                            <div className="flex items-center">
+                              <div>
+                                <span className="text-[10px] text-black">
+                                  $550 payment received
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-52 absolute top-56 right-2 lg:right-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                          <div className="relative bg-primary rounded-lg py-1 px-2 shadow-lg">
+                            <div className="flex items-center">
+                              <div>
+                                <span className="text-[10px] text-white">
+                                  You received a new rating ⭐️⭐️⭐️⭐️⭐ It
+                                  was pleasure working with ..
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

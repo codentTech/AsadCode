@@ -30,7 +30,7 @@ function ProfileOverview() {
     <section className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row justify-between">
         {/* Left Side - Profile Info */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div className="flex flex-col lg:flex-row items-center md:items-start gap-6">
           {/* Profile Image */}
           <div className="relative">
             <img
@@ -77,7 +77,6 @@ function ProfileOverview() {
             </div>
 
             {/* Niche Tags */}
-
             <Niche />
           </div>
         </div>
@@ -112,7 +111,7 @@ function ProfileOverview() {
               startIcon={<Heart className="w-4 h-4" />}
             />
 
-            <div className="flex gap-2 w-full">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <CustomButton
                 text="Message"
                 className="btn-outline"

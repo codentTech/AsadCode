@@ -22,7 +22,14 @@ export default function Modal({
       PaperProps={{
         className: "rounded-2xl",
         sx: {
-          maxWidth: size === "lg" ? "800px" : size === "md" ? "600px" : "420px",
+          maxWidth:
+            size === "xl"
+              ? "1300px"
+              : size === "lg"
+                ? "800px"
+                : size === "md"
+                  ? "600px"
+                  : "420px",
           width: "100%",
           height: height ? "90vh" : "auto",
           display: "flex",
@@ -35,15 +42,18 @@ export default function Modal({
         <DialogTitle className="px-0 py-0 font-dm text-xl font-bold leading-8 text-white">
           {title}
         </DialogTitle>
-        <div className="hover:cursor-pointer" onClick={onClose}>
-          <CancelOutlined sx={{ color: "white" }} />
-        </div>
+        {onClose && (
+          <div className="hover:cursor-pointer" onClick={onClose}>
+            <CancelOutlined sx={{ color: "white" }} />
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <DialogContent
         dividers
         sx={{
+          position: "relative",
           overflowY: "auto",
           flex: 1,
           px: 2,
