@@ -1,7 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { JoinFullOutlined } from "@mui/icons-material";
+import useHero from "./use-hero";
+import Modal from "@/common/components/modal/modal.component";
+import JoinCleerCut from "../join-cleercut/join-cleercut";
 
 function Hero({ isCreatorMode, setIsCreatorMode }) {
+  const { isOpen, setIsOpen, closeModal } = useHero();
   return (
     <section className="relative pt-20 overflow-hidden bg-white">
       {/* Abstract background elements */}
@@ -42,7 +46,10 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
 
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 {/* Primary CTA with animation */}
-                <button className="group relative px-8 py-4 overflow-hidden rounded-full transition duration-300">
+                <button
+                  onClick={() => setIsOpen(true)}
+                  className="group relative px-8 py-4 overflow-hidden rounded-full transition duration-300"
+                >
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600 to-indigo-800 transition-all duration-300 group-hover:scale-105"></div>
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-700 to-indigo-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20"></div>
@@ -81,12 +88,14 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 </div>
 
                 {/* Floating UI elements with independent animations */}
-                <div className="absolute top-10 -left-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                <div
+                  className={`${isCreatorMode ? "w-52" : "w-36"} absolute top-[1rem] left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                >
+                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
+                    <div className="flex items-center">
+                      {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
                       <div>
-                        <span className="text-xs text-black font-bold">
+                        <span className="text-[10px] text-black">
                           {isCreatorMode
                             ? "Meyers Nutrition has sent you an offer"
                             : "Auto generating contract"}
@@ -97,12 +106,12 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 </div>
 
                 {isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute top-40 -left-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative p-4 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
+                  <div className="text-center w-48 text-white rounded-lg left-5 bg-primary absolute top-40 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                    <div className="relative shadow-lg py-1 px-2">
+                      <div className="flex items-center">
+                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
                         <div>
-                          <span className="text-xs font-bold">
+                          <span className="text-[10px] text-white">
                             Content draft submitted for review
                           </span>
                         </div>
@@ -111,12 +120,14 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                   </div>
                 )}
 
-                <div className="absolute bottom-10 -left-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                <div
+                  className={`${isCreatorMode ? "w-28 top-52 lg:top-72" : "w-36 top-36"} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                >
+                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
                     <div className="flex items-center space-x-2">
-                      <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                      {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
                       <div>
-                        <span className="text-xs text-black font-bold">
+                        <span className="text-[10px] text-black">
                           {isCreatorMode
                             ? "No revisions needed"
                             : "1st draft received for review"}
@@ -127,12 +138,12 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 </div>
 
                 {isCreatorMode && (
-                  <div className="absolute top-40 -right-16 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                  <div className="w-44 absolute top-32 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
+                      <div className="flex items-center">
+                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
                         <div>
-                          <span className="text-xs text-black font-bold">
+                          <span className="text-[10px] text-black">
                             Campaign marked complete
                           </span>
                         </div>
@@ -142,12 +153,12 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 )}
 
                 {isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute top-20 -right-16 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative p-4 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
+                  <div className="w-32 text-white rounded-lg bg-primary absolute top-20 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                    <div className="relative py-1 px-2 shadow-lg">
+                      <div className="flex items-center">
+                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
                         <div>
-                          <span className="text-xs font-bold">
+                          <span className="text-[10px]">
                             $550 payment received
                           </span>
                         </div>
@@ -156,37 +167,22 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                   </div>
                 )}
 
-                {isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute top-60 -right-16 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500 ">
-                    <div className="relative rounded-lg p-4 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
-                        <div>
-                          <span className="text-xs font-bold">
-                            You received a rating on your <br /> recent
-                            campaign: ⭐️⭐️⭐️⭐️⭐
-                          </span>
-                        </div>
+                <div
+                  className={`${isCreatorMode ? "top-60" : "top-30 lg:top-60"} w-44 text-white rounded-lg bg-primary absolute right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                >
+                  <div className="relative rounded-lg px-2 py-1 shadow-lg">
+                    <div className="flex items-center space-x-2">
+                      {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
+                      <div>
+                        <span className="text-[10px]">
+                          {isCreatorMode
+                            ? "You received a rating on your recent campaign ⭐️⭐️⭐️⭐️⭐"
+                            : "payment released to creator"}
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Stats card animation */}
-                {!isCreatorMode && (
-                  <div className="text-white rounded-lg bg-primary absolute -bottom-8 right-10 transform -rotate-3 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative p-3 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold">
-                            payment released to creator
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -195,6 +191,14 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
 
       {/* Highlight Stats */}
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-8 md:py-3 transform skew-y-1"></div>
+
+      <Modal
+        title="Join CleerCut Early Access"
+        show={isOpen}
+        onClose={closeModal}
+      >
+        <JoinCleerCut closeModal={closeModal} />
+      </Modal>
     </section>
   );
 }

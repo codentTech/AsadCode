@@ -1,8 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { JoinFullOutlined } from "@mui/icons-material";
 import React from "react";
+import useCallToAction from "./use-call-to-action";
+import Modal from "@/common/components/modal/modal.component";
+import JoinCleerCut from "../join-cleercut/join-cleercut";
 
 function CallToAction() {
+  const { isOpen, setIsOpen, closeModal } = useCallToAction();
   return (
     <section className="py-16 bg-primary">
       <div className="container mx-auto px-4 md:px-8">
@@ -17,10 +21,22 @@ function CallToAction() {
             </p>
           </div>
           <div className="mt-3 w-auto">
-            <CustomButton text="Join" startIcon={<JoinFullOutlined />} />
+            <CustomButton
+              text="Join"
+              startIcon={<JoinFullOutlined />}
+              onClick={() => setIsOpen(true)}
+            />
           </div>
         </div>
       </div>
+
+      <Modal
+        title="Join CleerCut Early Access"
+        show={isOpen}
+        onClose={closeModal}
+      >
+        <JoinCleerCut closeModal={closeModal} />
+      </Modal>
     </section>
   );
 }

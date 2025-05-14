@@ -1,64 +1,23 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import userService from './user.service';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import userService from "./user.service";
 
 const generalState = {
   isLoading: false,
   isSuccess: false,
   isError: false,
-  message: '',
-  data: null
+  message: "",
+  data: null,
 };
 
 const initialState = {
-  addPhoneAndGenerateOtp: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  getAllBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  createBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  getSingleBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  updateBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  deleteBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
-  blockOrUnBlockBusinessOwner: {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    message: '',
-    data: null
-  },
+  addUserToWaitlist: { ...generalState },
+  addPhoneAndGenerateOtp: { ...generalState },
+  getAllBusinessOwner: { ...generalState },
+  createBusinessOwner: { ...generalState },
+  getSingleBusinessOwner: { ...generalState },
+  updateBusinessOwner: { ...generalState },
+  deleteBusinessOwner: { ...generalState },
+  blockOrUnBlockBusinessOwner: { ...generalState },
   generateOtp: { ...generalState },
   verifyOtp: { ...generalState },
   user: { ...generalState },
@@ -70,11 +29,27 @@ const initialState = {
   twoFactorAuth: { ...generalState },
   checkEmailExists: { ...generalState },
   checkUsernameExists: { ...generalState },
-  updateEmail: { ...generalState }
+  updateEmail: { ...generalState },
 };
 
+export const addUserToWaitlist = createAsyncThunk(
+  "user/addUserToWaitlist",
+  async ({ payload, callBackSuccess }, thunkAPI) => {
+    try {
+      const response = await userService.addUserToWaitlist(payload);
+      if (response.data) {
+        return response;
+      }
+      callBackSuccess && callBackSuccess(response.data);
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
 export const twoFactorAuth = createAsyncThunk(
-  'user/twoFactorAuth',
+  "user/twoFactorAuth",
   async ({ payload, callBackSuccess }, thunkAPI) => {
     try {
       const response = await userService.twoFactorAuth(payload);
@@ -90,7 +65,7 @@ export const twoFactorAuth = createAsyncThunk(
 );
 
 export const addPhoneAndGenerateOtp = createAsyncThunk(
-  'user/addPhoneAndGenerateOtp',
+  "user/addPhoneAndGenerateOtp",
   async ({ payload, successCallBack }, thunkAPI) => {
     try {
       const response = await userService.addPhoneAndGenerateOtp(payload);
@@ -106,7 +81,7 @@ export const addPhoneAndGenerateOtp = createAsyncThunk(
 );
 
 export const generateOtp = createAsyncThunk(
-  'user/generateOtp',
+  "user/generateOtp",
   async ({ payload, callBackMessage, successCallBack }, thunkAPI) => {
     try {
       const response = await userService.generateOtp();
@@ -122,7 +97,7 @@ export const generateOtp = createAsyncThunk(
 );
 
 export const verifyOtp = createAsyncThunk(
-  'user/verifyOtp',
+  "user/verifyOtp",
   async ({ payload, successCallBack, callBackMessage }, thunkAPI) => {
     try {
       const response = await userService.verifyOtp(payload);
@@ -138,7 +113,7 @@ export const verifyOtp = createAsyncThunk(
 );
 
 export const getCurrentUser = createAsyncThunk(
-  'user/getCurrentUser',
+  "user/getCurrentUser",
   async ({ successCallBack }, thunkAPI) => {
     try {
       const response = await userService.getCurrentUser();
@@ -154,7 +129,7 @@ export const getCurrentUser = createAsyncThunk(
 );
 
 export const regenerateEmailLink = createAsyncThunk(
-  'user/regenerateEmailLink',
+  "user/regenerateEmailLink",
   async ({ payload, successCallBack }, thunkAPI) => {
     try {
       const response = await userService.regenerateEmailLink(payload);
@@ -170,7 +145,7 @@ export const regenerateEmailLink = createAsyncThunk(
 );
 
 export const changePasswordFromLink = createAsyncThunk(
-  'user/changePasswordFromLink',
+  "user/changePasswordFromLink",
   async ({ payload, successCallBack, callBackMessage }, thunkAPI) => {
     try {
       const response = await userService.changePasswordFromLink(payload);
@@ -186,7 +161,7 @@ export const changePasswordFromLink = createAsyncThunk(
 );
 
 export const changePassword = createAsyncThunk(
-  'user/changePassword',
+  "user/changePassword",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await userService.changePassword(payload);
@@ -201,7 +176,7 @@ export const changePassword = createAsyncThunk(
 );
 
 export const generateForgetPasswordLink = createAsyncThunk(
-  'user/generateForgetPasswordLink',
+  "user/generateForgetPasswordLink",
   async ({ payload, successCallBack }, thunkAPI) => {
     try {
       const response = await userService.generateForgetPasswordLink(payload);
@@ -217,12 +192,12 @@ export const generateForgetPasswordLink = createAsyncThunk(
 );
 
 export const verifyEmail = createAsyncThunk(
-  'user/verifyEmail',
+  "user/verifyEmail",
   async ({ payload, successCallBack, errorCallBack }, thunkAPI) => {
     try {
       const response = await userService.verifyEmail(payload);
       if (response.Succeeded) {
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem("user", JSON.stringify(response.data));
         successCallBack(response.data);
         return response.data;
       } else {
@@ -236,7 +211,7 @@ export const verifyEmail = createAsyncThunk(
 );
 
 export const getAllBusinessOwner = createAsyncThunk(
-  '/business-owner/getAllBusinessOwner',
+  "/business-owner/getAllBusinessOwner",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await userService.getAllBusinessOwner(payload);
@@ -250,7 +225,7 @@ export const getAllBusinessOwner = createAsyncThunk(
   }
 );
 export const createBusinessOwner = createAsyncThunk(
-  '/business-owner/createBusinessOwner',
+  "/business-owner/createBusinessOwner",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await userService.createBusinessOwner(payload);
@@ -265,7 +240,7 @@ export const createBusinessOwner = createAsyncThunk(
 );
 
 export const getSingleBusinessOwner = createAsyncThunk(
-  '/business-owner/getSingleBusinessOwner',
+  "/business-owner/getSingleBusinessOwner",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await userService.getSingleBusinessOwner(payload);
@@ -280,7 +255,7 @@ export const getSingleBusinessOwner = createAsyncThunk(
 );
 
 export const updateBusinessOwner = createAsyncThunk(
-  '/business-owner/updateBusinessOwner',
+  "/business-owner/updateBusinessOwner",
   async ({ payload, id, successCallback }, thunkAPI) => {
     try {
       const response = await userService.updateBusinessOwner(payload, id);
@@ -297,7 +272,7 @@ export const updateBusinessOwner = createAsyncThunk(
   }
 );
 export const blockOrUnBlockBusinessOwner = createAsyncThunk(
-  '/business-owner/blockOrUnBlockBusinessOwner',
+  "/business-owner/blockOrUnBlockBusinessOwner",
   async ({ payload: { id, data }, successCallback }, thunkAPI) => {
     try {
       const response = await userService.blockOrUnBlockBusinessOwner(data, id);
@@ -315,7 +290,7 @@ export const blockOrUnBlockBusinessOwner = createAsyncThunk(
 );
 
 export const deleteBusinessOwner = createAsyncThunk(
-  '/business-owner/deleteBusinessOwner',
+  "/business-owner/deleteBusinessOwner",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await userService.deleteBusinessOwner(payload);
@@ -330,7 +305,7 @@ export const deleteBusinessOwner = createAsyncThunk(
 );
 
 export const checkEmailExists = createAsyncThunk(
-  '/business-owner/checkEmailExists',
+  "/business-owner/checkEmailExists",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await userService.checkEmailExists(payload);
@@ -345,7 +320,7 @@ export const checkEmailExists = createAsyncThunk(
 );
 
 export const checkUsernameExists = createAsyncThunk(
-  '/business-owner/checkUsernameExists',
+  "/business-owner/checkUsernameExists",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await userService.checkUsernameExists(payload);
@@ -360,7 +335,7 @@ export const checkUsernameExists = createAsyncThunk(
 );
 
 export const updateEmail = createAsyncThunk(
-  '/user/updateEmail',
+  "/user/updateEmail",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await userService.updateEmail(payload);
@@ -375,14 +350,32 @@ export const updateEmail = createAsyncThunk(
 );
 
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(addUserToWaitlist.pending, (state) => {
+        state.addUserToWaitlist.isLoading = true;
+        state.addUserToWaitlist.message = "";
+        state.addUserToWaitlist.isError = false;
+        state.addUserToWaitlist.isSuccess = false;
+        state.addUserToWaitlist.data = null;
+      })
+      .addCase(addUserToWaitlist.fulfilled, (state, action) => {
+        state.addUserToWaitlist.isLoading = false;
+        state.addUserToWaitlist.isSuccess = true;
+        state.addUserToWaitlist.data = action.payload;
+      })
+      .addCase(addUserToWaitlist.rejected, (state, action) => {
+        state.addUserToWaitlist.message = action.payload.message;
+        state.addUserToWaitlist.isLoading = false;
+        state.addUserToWaitlist.isError = true;
+        state.addUserToWaitlist.data = null;
+      })
       .addCase(blockOrUnBlockBusinessOwner.pending, (state) => {
         state.blockOrUnBlockBusinessOwner.isLoading = true;
-        state.blockOrUnBlockBusinessOwner.message = '';
+        state.blockOrUnBlockBusinessOwner.message = "";
         state.blockOrUnBlockBusinessOwner.isError = false;
         state.blockOrUnBlockBusinessOwner.isSuccess = false;
         state.blockOrUnBlockBusinessOwner.data = null;
@@ -400,7 +393,7 @@ const userSlice = createSlice({
       })
       .addCase(checkEmailExists.pending, (state) => {
         state.checkEmailExists.isLoading = true;
-        state.checkEmailExists.message = '';
+        state.checkEmailExists.message = "";
         state.checkEmailExists.isError = false;
         state.checkEmailExists.isSuccess = false;
         state.checkEmailExists.data = null;
@@ -418,7 +411,7 @@ const userSlice = createSlice({
       })
       .addCase(checkUsernameExists.pending, (state) => {
         state.checkUsernameExists.isLoading = true;
-        state.checkUsernameExists.message = '';
+        state.checkUsernameExists.message = "";
         state.checkUsernameExists.isError = false;
         state.checkUsernameExists.isSuccess = false;
         state.checkUsernameExists.data = null;
@@ -436,7 +429,7 @@ const userSlice = createSlice({
       })
       .addCase(deleteBusinessOwner.pending, (state) => {
         state.deleteBusinessOwner.isLoading = true;
-        state.deleteBusinessOwner.message = '';
+        state.deleteBusinessOwner.message = "";
         state.deleteBusinessOwner.isError = false;
         state.deleteBusinessOwner.isSuccess = false;
         state.deleteBusinessOwner.data = null;
@@ -454,7 +447,7 @@ const userSlice = createSlice({
       })
       .addCase(getSingleBusinessOwner.pending, (state) => {
         state.getSingleBusinessOwner.isLoading = true;
-        state.getSingleBusinessOwner.message = '';
+        state.getSingleBusinessOwner.message = "";
         state.getSingleBusinessOwner.isError = false;
         state.getSingleBusinessOwner.isSuccess = false;
         state.getSingleBusinessOwner.data = null;
@@ -472,7 +465,7 @@ const userSlice = createSlice({
       })
       .addCase(createBusinessOwner.pending, (state) => {
         state.createBusinessOwner.isLoading = true;
-        state.createBusinessOwner.message = '';
+        state.createBusinessOwner.message = "";
         state.createBusinessOwner.isError = false;
         state.createBusinessOwner.isSuccess = false;
         state.createBusinessOwner.data = null;
@@ -490,7 +483,7 @@ const userSlice = createSlice({
       })
       .addCase(updateBusinessOwner.pending, (state) => {
         state.updateBusinessOwner.isLoading = true;
-        state.updateBusinessOwner.message = '';
+        state.updateBusinessOwner.message = "";
         state.updateBusinessOwner.isError = false;
         state.updateBusinessOwner.isSuccess = false;
         state.updateBusinessOwner.data = null;
@@ -508,7 +501,7 @@ const userSlice = createSlice({
       })
       .addCase(getAllBusinessOwner.pending, (state) => {
         state.getAllBusinessOwner.isLoading = true;
-        state.getAllBusinessOwner.message = '';
+        state.getAllBusinessOwner.message = "";
         state.getAllBusinessOwner.isError = false;
         state.getAllBusinessOwner.isSuccess = false;
         state.getAllBusinessOwner.data = null;
@@ -526,7 +519,7 @@ const userSlice = createSlice({
       })
       .addCase(addPhoneAndGenerateOtp.pending, (state) => {
         state.addPhoneAndGenerateOtp.isLoading = true;
-        state.addPhoneAndGenerateOtp.message = '';
+        state.addPhoneAndGenerateOtp.message = "";
         state.addPhoneAndGenerateOtp.isError = false;
         state.addPhoneAndGenerateOtp.isSuccess = false;
         state.addPhoneAndGenerateOtp.data = null;
@@ -544,7 +537,7 @@ const userSlice = createSlice({
       })
       .addCase(generateOtp.pending, (state) => {
         state.generateOtp.isLoading = true;
-        state.generateOtp.message = '';
+        state.generateOtp.message = "";
         state.generateOtp.isError = false;
         state.generateOtp.isSuccess = false;
         state.generateOtp.data = null;
@@ -562,7 +555,7 @@ const userSlice = createSlice({
       })
       .addCase(verifyOtp.pending, (state) => {
         state.verifyOtp.isLoading = true;
-        state.verifyOtp.message = '';
+        state.verifyOtp.message = "";
         state.verifyOtp.isError = false;
         state.verifyOtp.isSuccess = false;
         state.verifyOtp.data = null;
@@ -580,7 +573,7 @@ const userSlice = createSlice({
       })
       .addCase(getCurrentUser.pending, (state) => {
         state.user.isLoading = true;
-        state.user.message = '';
+        state.user.message = "";
         state.user.isError = false;
         state.user.isSuccess = false;
         state.user.data = null;
@@ -598,7 +591,7 @@ const userSlice = createSlice({
       })
       .addCase(generateForgetPasswordLink.pending, (state) => {
         state.generateForgetPasswordLink.isLoading = true;
-        state.generateForgetPasswordLink.message = '';
+        state.generateForgetPasswordLink.message = "";
         state.generateForgetPasswordLink.isError = false;
         state.generateForgetPasswordLink.isSuccess = false;
         state.generateForgetPasswordLink.data = null;
@@ -616,7 +609,7 @@ const userSlice = createSlice({
       })
       .addCase(regenerateEmailLink.pending, (state) => {
         state.regenerateEmailLink.isLoading = true;
-        state.regenerateEmailLink.message = '';
+        state.regenerateEmailLink.message = "";
         state.regenerateEmailLink.isError = false;
         state.regenerateEmailLink.isSuccess = false;
         state.regenerateEmailLink.data = null;
@@ -634,7 +627,7 @@ const userSlice = createSlice({
       })
       .addCase(changePasswordFromLink.pending, (state) => {
         state.changePasswordFromLink.isLoading = true;
-        state.changePasswordFromLink.message = '';
+        state.changePasswordFromLink.message = "";
         state.changePasswordFromLink.isError = false;
         state.changePasswordFromLink.isSuccess = false;
         state.changePasswordFromLink.data = null;
@@ -652,7 +645,7 @@ const userSlice = createSlice({
       })
       .addCase(changePassword.pending, (state) => {
         state.changePassword.isLoading = true;
-        state.changePassword.message = '';
+        state.changePassword.message = "";
         state.changePassword.isError = false;
         state.changePassword.isSuccess = false;
         state.changePassword.data = null;
@@ -670,7 +663,7 @@ const userSlice = createSlice({
       })
       .addCase(verifyEmail.pending, (state) => {
         state.verifyEmail.isLoading = true;
-        state.verifyEmail.message = '';
+        state.verifyEmail.message = "";
         state.verifyEmail.isError = false;
         state.verifyEmail.isSuccess = false;
         state.verifyEmail.data = null;
@@ -688,7 +681,7 @@ const userSlice = createSlice({
       })
       .addCase(twoFactorAuth.pending, (state) => {
         state.twoFactorAuth.isLoading = true;
-        state.twoFactorAuth.message = '';
+        state.twoFactorAuth.message = "";
         state.twoFactorAuth.isError = false;
         state.twoFactorAuth.isSuccess = false;
         state.twoFactorAuth.data = null;
@@ -706,7 +699,7 @@ const userSlice = createSlice({
       })
       .addCase(updateEmail.pending, (state) => {
         state.updateEmail.isLoading = true;
-        state.updateEmail.message = '';
+        state.updateEmail.message = "";
         state.updateEmail.isError = false;
         state.updateEmail.isSuccess = false;
         state.updateEmail.data = null;
@@ -722,7 +715,7 @@ const userSlice = createSlice({
         state.updateEmail.isError = true;
         state.updateEmail.data = null;
       });
-  }
+  },
 });
 
 export default userSlice.reducer;
