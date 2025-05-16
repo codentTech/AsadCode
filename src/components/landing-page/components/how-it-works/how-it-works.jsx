@@ -21,7 +21,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
       title: isCreatorMode ? "Set Up Your Portfolio" : "Create a Campaign",
       description: isCreatorMode
         ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
-        : "Create a campaign, set your budget, and define your goals in 5 quick steps.",
+        : "Set deliverables, and budget in minutes.",
       image: isCreatorMode
         ? "/assets/images/landing/portfolio Photoshopped.png"
         : "/assets/images/landing/create campaign on iphone perfected (1).png",
@@ -29,27 +29,27 @@ function HowCleerCutWorks({ isCreatorMode }) {
     {
       title: isCreatorMode
         ? "Discover Campaigns you Love"
-        : "Find Top Creators",
+        : "Discover the Right Creators",
       description: isCreatorMode
         ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
-        : "Invite creators to apply or sort through applications easily with advanced filters for niche, audience, engagement and more.",
+        : "Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics",
       image: isCreatorMode
         ? "/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"
         : "/assets/images/landing/Discover Perfect.png",
     },
     {
-      title: isCreatorMode ? null : "Analyze Your Best Options",
+      title: isCreatorMode ? null : "Review & Compare",
       description:
-        "Preview creator's rates, past work, audience demographics, and reviews from previous collabs - in one powerful page.",
+        "Instantly view creator profiles, rates, content samples, audience data, and verified brand reviews — all in one place.",
       image: "/assets/images/landing/portfolio Photoshopped.png",
     },
     {
       title: isCreatorMode
         ? "Collaborate with Smart Campaign Management"
-        : "Collaborate Seamlessly",
+        : "Collaborate Inside the Smart Inbox",
       description: isCreatorMode
-        ? "Manage deadlines, track payments, and move all your communication to one organized place"
-        : "Keep all communication organized with the Smart Inbox, track deliverables, and manage your budget with ease.",
+        ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized inbox. With your new Smart Inbox, keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
+        : "Message creators, assign deliverables, track revisions, and manage deadlines — all within a single, campaign-organized thread. You can also sort through message requests from creators who cold-pitch you directly, making it easy to spot high-potential inbound talent.",
       image: isCreatorMode
         ? "/assets/images/landing/Creator inbox Completed.png"
         : "/assets/images/landing/inbox on macbook office perfect (1).png",
@@ -57,10 +57,10 @@ function HowCleerCutWorks({ isCreatorMode }) {
     {
       title: isCreatorMode
         ? "Get Paid with Peace of Mind"
-        : "Payment & Contracts Simplified",
+        : "Finalize, Protect, and Pay",
       description: isCreatorMode
-        ? "CleerCut holds payments in escrow — no more endless revisions, ghosting or chasing down payments"
-        : "Secure payments via escrow, auto-generate contracts, and streamlined dispute management.",
+        ? "CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps."
+        : "Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.",
       image: isCreatorMode
         ? "/assets/images/landing/hero-bg-3.jpeg"
         : "/assets/images/landing/reports on mac Perfect (1).png",
