@@ -4,7 +4,7 @@ import useHero from "./use-hero";
 import Modal from "@/common/components/modal/modal.component";
 import JoinCleerCut from "../join-cleercut/join-cleercut";
 
-function Hero({ isCreatorMode, setIsCreatorMode }) {
+function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
   return (
     <section className="relative pt-20 overflow-hidden bg-white">
@@ -21,34 +21,32 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
         <div className="flex flex-col md:flex-row items-center md:space-x-12 lg:space-x-20">
           {/* Content Area */}
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
-            <div className="w-[180px] mb-2">
-              <CustomButton
-                text={
-                  isCreatorMode ? "Creator Mode Toggle" : "Brand Mode Toggle"
-                }
-                onClick={() => setIsCreatorMode(!isCreatorMode)}
-              />
-            </div>
             <div className="relative z-10">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 mb-3">
-                “The ultimate{" "}
+                The ultimate{" "}
                 <span className="text-primary">all-in-one platform</span>{" "}
                 {isCreatorMode
-                  ? "to land more collaborations with trusted brands”"
-                  : "to collaborate with trusted creators”"}
+                  ? "to land more collaborations with trusted brands"
+                  : "to collaborate with trusted creators"}
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-lg">
+              <p className="text-lg text-gray-600 mb-3">
                 {isCreatorMode
-                  ? "Showcase your value, quick-apply to land collaborations faster, and get paid securely — all in one place."
-                  : "Discover vetted creators, manage smarter campaigns and track everything – all in one place."}
+                  ? "Showcase your value, quick-apply to collaborations, and get paid securely - 0% commission. Just the standard 2.9% payment processing fee"
+                  : "Discover verified creators, generate contracts in seconds, protect your budget with escrow, and manage campaigns from outreach to deliverables — all in one streamlined workspace."}
               </p>
+
+              {!isCreatorMode && (
+                <p className="text-sm text-gray-600 mb-4">
+                  <span className="font-bold">Try 3 Campaigns Free</span> → No
+                  Fees → No Setup Calls → No Credit Card Required.
+                </p>
+              )}
 
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 {/* Primary CTA with animation */}
                 <button
                   onClick={() => setIsOpen(true)}
-                  className="group relative px-8 py-4 overflow-hidden rounded-full transition duration-300"
+                  className="group relative px-8 py-2 overflow-hidden rounded-lg transition duration-300"
                 >
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600 to-indigo-800 transition-all duration-300 group-hover:scale-105"></div>
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-700 to-indigo-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -106,12 +104,61 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 </div>
 
                 {isCreatorMode && (
-                  <div className="text-center w-48 text-white rounded-lg left-5 bg-primary absolute top-40 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                  <div className="text-center w-40 text-white rounded-lg left-5 bg-primary absolute top-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
                     <div className="relative shadow-lg py-1 px-2">
                       <div className="flex items-center">
                         {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
                         <div>
                           <span className="text-[10px] text-white">
+                            Campaign marked: Complete
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!isCreatorMode && (
+                  <div
+                    className={`${isCreatorMode ? "w-28 top-52 lg:top-72" : "w-36 top-36"} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                  >
+                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
+                      <div className="flex items-center space-x-2">
+                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
+                        <div>
+                          <span className="text-[10px] text-black">
+                            {isCreatorMode
+                              ? "No revisions needed"
+                              : "1st draft received for review"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isCreatorMode && (
+                  <div className="w-44 absolute top-56 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
+                      <div className="flex items-center">
+                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
+                        <div>
+                          <span className="text-[10px] text-black">
+                            $550 payment received
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isCreatorMode && (
+                  <div className="w-48 text-white rounded-lg bg-primary absolute top-24 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
+                    <div className="relative py-1 px-2 shadow-lg">
+                      <div className="flex items-center">
+                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
+                        <div>
+                          <span className="text-[10px]">
                             Content draft submitted for review
                           </span>
                         </div>
@@ -121,54 +168,7 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
                 )}
 
                 <div
-                  className={`${isCreatorMode ? "w-28 top-52 lg:top-72" : "w-36 top-36"} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
-                >
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                    <div className="flex items-center space-x-2">
-                      {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
-                      <div>
-                        <span className="text-[10px] text-black">
-                          {isCreatorMode
-                            ? "No revisions needed"
-                            : "1st draft received for review"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {isCreatorMode && (
-                  <div className="w-44 absolute top-32 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                      <div className="flex items-center">
-                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px] text-black">
-                            Campaign marked complete
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isCreatorMode && (
-                  <div className="w-32 text-white rounded-lg bg-primary absolute top-20 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative py-1 px-2 shadow-lg">
-                      <div className="flex items-center">
-                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px]">
-                            $550 payment received
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div
-                  className={`${isCreatorMode ? "top-60" : "top-30 lg:top-60"} w-44 text-white rounded-lg bg-primary absolute right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                  className={`${isCreatorMode ? "top-72 right-16 lg:top-64 lg:right-56" : "top-30 lg:top-60 right-16"} w-44 text-white rounded-lg bg-primary absolute  transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
                 >
                   <div className="relative rounded-lg px-2 py-1 shadow-lg">
                     <div className="flex items-center space-x-2">

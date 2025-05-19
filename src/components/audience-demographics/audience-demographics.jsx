@@ -168,7 +168,7 @@ function AudienceDemographics({
                 layout="horizontal"
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ fontSize: "12px", paddingTop: "12px" }}
+                wrapperStyle={{ fontSize: "12px", padding: "1px" }}
                 iconType="circle"
                 iconSize={10}
               />

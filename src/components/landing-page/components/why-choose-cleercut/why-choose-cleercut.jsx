@@ -11,6 +11,22 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       competitorNote: "No commission free options",
     },
     {
+      name: "Transparent Pricing",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote:
+        "9.9%(<5k) / 7.9%(<10k) / 5.9%(>10k) service fee by spend tier",
+      competitorNote: "15–30% commission or inflated subscription fees",
+    },
+    {
+      name: "Flat Monthly Plans (no service fee)",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote:
+        "$525/month (up to $10K spend) $699/month (up to $20K spend)",
+      competitorNote: "$2,000–$5,000+/month (annual contracts required)",
+    },
+    {
       name: "8.5% Commission",
       cleercut: true,
       competitor: false,
@@ -91,11 +107,11 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
 
   const creatorFeatures = [
     {
-      name: "3 Commission-Free Collaborations",
+      name: "0% Commission",
       cleercut: true,
       competitor: false,
-      cleerCutNote: "Try the platform before committing",
-      competitorNote: "No commission free options",
+      cleerCutNote: "Only the 2.9% payment processing fee deducted",
+      competitorNote: "10–30% commission on other platforms + agencies",
     },
     {
       name: "4.5% Commission",
@@ -216,7 +232,7 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
                         key={index}
                         className={index % 2 === 0 ? "bg-blue-50" : "bg-white"}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {feature.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

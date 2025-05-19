@@ -1,25 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { avatar } from "@/common/constants/auth.constant";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
-import {
-  PieChart,
-  Pie,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
 
-function Profile({ isCreaterInbox, activeTab }) {
-  const avatar =
-    "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
-
+function Profile({ isCreatorMode, activeTab }) {
   const suggestedConnections = [
     {
       name: "Michelle Clarke",
@@ -51,44 +38,6 @@ function Profile({ isCreaterInbox, activeTab }) {
       text: "Tag the brand and use hashtag #SpringLaunch",
       timestamp: "2025-04-23 10:18 AM",
     },
-  ];
-
-  // Demographics data for charts
-  const genderData = [
-    { name: "Female", value: 73 },
-    { name: "Male", value: 27 },
-  ];
-
-  const ageData = [
-    { name: "0-18", value: 15 },
-    { name: "18-25", value: 30 },
-    { name: "25-32", value: 40 },
-    { name: "32-40", value: 10 },
-    { name: "40+", value: 5 },
-  ];
-
-  const locationData = [
-    { name: "US", value: 35 },
-    { name: "Canada", value: 28 },
-    { name: "UK", value: 22 },
-    { name: "Other", value: 15 },
-  ];
-
-  const GENDER_COLORS = ["#4F46E5", "#36CFC9"]; // Vibrant blue & mint
-
-  const AGE_COLORS = [
-    "#FF6F91", // Coral pink
-    "#FF9671", // Peach
-    "#4F46E5", // Blue
-    "#F9F871", // Lemon
-    "#D65DB1", // Purple pink
-  ];
-
-  const LOCATION_COLORS = [
-    "#845EC2", // Bright purple
-    "#00C9A7", // Aqua green
-    "#4F46E5", // Blue
-    "#FF6F91", // Coral pink
   ];
 
   const reviews = [
@@ -147,7 +96,7 @@ function Profile({ isCreaterInbox, activeTab }) {
             </div>
           </div>
         )}
-        {[3].includes(activeTab) && !isCreaterInbox ? (
+        {[3].includes(activeTab) && !isCreatorMode ? (
           <div className="flex gap-2 mt-1 w-full">
             <CustomButton
               className="flex-1 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
@@ -160,7 +109,7 @@ function Profile({ isCreaterInbox, activeTab }) {
           </div>
         ) : (
           [3].includes(activeTab) &&
-          isCreaterInbox && (
+          isCreatorMode && (
             <CustomButton
               className="w-full btn-outline"
               text="Withdraw application"
@@ -220,91 +169,9 @@ function Profile({ isCreaterInbox, activeTab }) {
       )}
 
       {/* Demographics section */}
-      {[3, 5].includes(activeTab) && !isCreaterInbox && (
+      {[3, 5].includes(activeTab) && !isCreatorMode && (
         <div className="overflow-y-auto p-3">
-          <h5 className="font-bold mb-4">Audience Demographics</h5>
-
-          {/* Gender Chart */}
-          <div className="bg-white rounded-lg mb-4">
-            <h5 className="text-xs font-medium text-gray-600">
-              Gender Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={genderData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {genderData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={GENDER_COLORS[index % GENDER_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Age Chart */}
-          <div className="bg-white p-3 rounded-lg mb-4">
-            <h5 className="text-xs font-medium text-gray-600 mb-2">
-              Age Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={ageData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} unit="%" />
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Bar dataKey="value" fill="#8884d8">
-                  {ageData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={AGE_COLORS[index % AGE_COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Location Chart */}
-          <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-            <h5 className="text-xs font-medium text-gray-600 mb-2">
-              Location Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={locationData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10 }} unit="%" />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tick={{ fontSize: 10 }}
-                  width={40}
-                />
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Bar dataKey="value" fill="#8884d8">
-                  {locationData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={LOCATION_COLORS[index % LOCATION_COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <AudienceDemographics className="grid grid-cols-1" />
         </div>
       )}
 
@@ -377,12 +244,12 @@ function Profile({ isCreaterInbox, activeTab }) {
                 </li>
               ))}
             </ul>
-            {!isCreaterInbox && <TextArea label="Add a new note..." />}
+            {!isCreatorMode && <TextArea label="Add a new note..." />}
           </div>
         </div>
       )}
 
-      {[5].includes(activeTab) && isCreaterInbox && (
+      {[5].includes(activeTab) && isCreatorMode && (
         <div className="overflow-y-auto space-y-2 px-2 bg-white">
           <h3 className="text-lg font-semibold text-gray-800 mt-2">Reviews</h3>
 
