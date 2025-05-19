@@ -1,12 +1,15 @@
 import { CancelOutlined } from "@mui/icons-material";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import PropTypes from "prop-types";
-import useModal from "./use-modal.hook";
 
-export default function Modal({ show = false, title, children, onClose }) {
-  const { open, register, handleSubmit, setValue, errors, handleClose } =
-    useModal(show);
-
+export default function Modal({
+  show = false,
+  title,
+  children,
+  onClose,
+  size,
+  height,
+}) {
   return (
     <Dialog
       open={show}
@@ -15,9 +18,16 @@ export default function Modal({ show = false, title, children, onClose }) {
       PaperProps={{
         className: "rounded-2xl",
         sx: {
-          maxWidth: "600px",
+          maxWidth:
+            size === "xl"
+              ? "1300px"
+              : size === "lg"
+                ? "800px"
+                : size === "md"
+                  ? "600px"
+                  : "420px",
           width: "100%",
-          maxHeight: "90vh",
+          height: height ? "90vh" : "auto",
           display: "flex",
           flexDirection: "column",
         },
@@ -28,15 +38,18 @@ export default function Modal({ show = false, title, children, onClose }) {
         <DialogTitle className="px-0 py-0 font-dm text-xl font-bold leading-8 text-white">
           {title}
         </DialogTitle>
-        <div className="hover:cursor-pointer" onClick={onClose}>
-          <CancelOutlined sx={{ color: "white" }} />
-        </div>
+        {onClose && (
+          <div className="hover:cursor-pointer" onClick={onClose}>
+            <CancelOutlined sx={{ color: "white" }} />
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <DialogContent
         dividers
         sx={{
+          position: "relative",
           overflowY: "auto",
           flex: 1,
           px: 2,

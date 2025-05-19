@@ -1,24 +1,22 @@
-import React from 'react';
-import { BeatLoader } from 'react-spinners';
+import React from "react";
+import { BounceLoader } from "react-spinners";
 
 const override = {
-  display: 'block',
-  margin: '3px 0 0 10px',
-  borderColor: 'white'
+  display: "block",
+  margin: "0px 0 0 0px",
+  borderColor: "white",
 };
 
 function Loader({ loading }) {
   return (
-    <>
-      <BeatLoader
-        color="white"
-        loading={loading}
-        cssOverride={override}
-        size={12}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      />
-    </>
+    <BounceLoader
+      color="white"
+      loading={loading}
+      cssOverride={override}
+      size={18}
+      aria-label="Loading Spinner"
+      data-testid="loader"
+    />
   );
 }
 

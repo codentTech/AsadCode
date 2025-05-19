@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
 
 export default function useChatInbox() {
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+
   const [activeTab, setActiveTab] = useState(1);
   const [activeSection, setActiveSection] = useState(1);
-  const [isCreaterInbox, setIsCreaterInbox] = useState(false);
   const [openQuickHire, setOpenQuickHire] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
 
   const handleOpenQuickHire = () => {
     setOpenQuickHire(true);
@@ -13,49 +14,34 @@ export default function useChatInbox() {
 
   const handleCloseQuickHire = () => {
     setOpenQuickHire(false);
-    setSelectedOption(null);
   };
-
-  const handleOptionSelect = (option) => {
-    setSelectedOption(option);
-  };
-
-  // Mock campaigns for the demo
-  const publicCampaigns = [
-    { id: 1, title: "Summer Collection Launch", status: "Open" },
-    { id: 2, title: "New Product Teaser", status: "Open" },
-    { id: 3, title: "Holiday Special", status: "Open" },
-  ];
 
   const mainTabs = [
-    { id: 1, label: "Active Campaigns" },
-    { id: 2, label: "Completed Campaigns" },
-    { id: 3, label: "Applications" },
-    { id: 4, label: "My Network" },
-    { id: 5, label: "Message Requests" },
+    { id: 1, label: 'Active Campaigns' },
+    { id: 2, label: 'Completed Campaigns' },
+    { id: 3, label: 'Applications' },
+    { id: 4, label: 'My Network' },
+    { id: 5, label: 'Message Requests' },
   ];
 
   const sections = [
-    { id: 1, label: "Creators" },
-    { id: 2, label: "Brands" },
-    { id: 3, label: "Groups" },
-    { id: 4, label: "Events" },
-    { id: 5, label: "Other" },
+    { id: 1, label: 'Creators' },
+    { id: 2, label: 'Brands' },
+    { id: 3, label: 'Groups' },
+    { id: 4, label: 'Events' },
+    { id: 5, label: 'Other' },
   ];
 
   return {
+    isCreatorMode,
     activeTab,
     setActiveTab,
     activeSection,
     setActiveSection,
     mainTabs,
     sections,
-    isCreaterInbox,
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
-    handleOptionSelect,
-    publicCampaigns,
-    selectedOption,
   };
 }

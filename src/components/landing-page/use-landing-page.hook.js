@@ -1,45 +1,14 @@
-'use client';
+import { setIsCreatorModeMode } from '@/provider/features/auth/auth.slice';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import {
-  checkExpiryDateOfToken,
-  isLoginVerified
-} from '@/common/utils/access-token.util';
-import { getUser, removeUser } from '@/common/utils/users.util';
+function useLandingPageHook() {
+  const dispatch = useDispatch();
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
-/**
- * Does all the functionality used in landing page and return it as an object
- * @returns object
- */
-export default function useLandingPage() {
-  const router = useRouter();
-  const user = getUser();
-  const [open, setOpen] = useState(false);
-  const [auth, setAuth] = useState(false);
-  const [loginVerified, setLoginVerified] = useState(false);
-  const [loader, setLoader] = useState(true);
-
-  useEffect(() => {
-    setLoginVerified(isLoginVerified(user));
-    setLoader(false);
-  }, []);
-
-  useEffect(() => {
-    if (checkExpiryDateOfToken() !== true) {
-      removeUser();
-      router.push('/');
-    }
-  }, []);
-
-  return {
-    open,
-    setOpen,
-    auth,
-    setAuth,
-    router,
-    loader,
-    loginVerified,
-    setLoginVerified
+  const handleSelectMode = (isCreator) => {
+    dispatch(setIsCreatorModeMode(isCreator));
   };
+  return { isCreatorMode, handleSelectMode };
 }
+
+export default useLandingPageHook;

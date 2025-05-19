@@ -1,46 +1,76 @@
-import { Checkbox } from "@mui/material";
 import PropTypes from "prop-types";
 import FieldError from "../field-error/field-error.component";
 import FieldLabel from "../field-label/field-label.component";
+import { useEffect } from "react";
 
-export default function CustomCheckbox({
+export default function CustomCheckboxGroup({
   label = null,
-  defaultChecked = false,
-  checked = null,
+  options = [],
+  values = [],
   onChange = null,
-  className = "",
-  size = null,
-  disabled = false,
-  errors = null,
-  register = null,
   name = null,
+  register = null,
+  errors = null,
+  setValue = null,
+  watch = null,
   isRequired = false,
-  inlineLabel = true,
+  inlineLabel = false,
   labelClassName = "",
 }) {
+  const selectedValues = watch ? watch(name) || [] : values;
+
+  const handleCheckboxChange = (value) => {
+    const currentSelection = [...(selectedValues || [])];
+    const updatedSelection = currentSelection.includes(value)
+      ? currentSelection.filter((v) => v !== value)
+      : [...currentSelection, value];
+
+    if (setValue) {
+      setValue(name, updatedSelection);
+    }
+
+    if (onChange) {
+      onChange(updatedSelection);
+    }
+  };
+
+  // Ensure controlled state is updated
+  useEffect(() => {
+    if (setValue && !selectedValues) {
+      setValue(name, []);
+    }
+  }, [setValue, name, selectedValues]);
+
   return (
-    <div className="">
-      <div
-        className={`${inlineLabel ? "flex w-full flex-row items-center" : ""}`}
-      >
-        <Checkbox
-          {...(register && register(`${name}`))}
-          name={name}
-          defaultChecked={defaultChecked}
-          {...(checked && { checked })}
-          {...(onChange && { onChange })}
-          className={`${className}`}
-          disabled={disabled}
-          {...(size && { size })}
+    <div className="flex flex-col gap-1">
+      {label && (
+        <FieldLabel
+          label={label}
+          isRequired={isRequired}
+          className={labelClassName}
         />
-        {label && (
-          <FieldLabel
-            label={label}
-            isRequired={isRequired}
-            className={labelClassName}
-          />
-        )}
+      )}
+
+      <div
+        className={`flex flex-wrap gap-3 flex-row ${
+          inlineLabel ? "flex-col" : "flex-row"
+        }`}
+      >
+        {options.map((option) => (
+          <label key={option.value} className="flex items-center text-xs gap-2">
+            <input
+              type="checkbox"
+              value={option.value}
+              checked={selectedValues?.includes(option.value)}
+              onChange={() => handleCheckboxChange(option.value)}
+              className="h-3.5 w-3.5 accent-primary cursor-pointer"
+              {...(register && register(name))}
+            />
+            {option.label}
+          </label>
+        ))}
       </div>
+
       {errors && errors[name] && (
         <FieldError className="mt-1" error={errors[name].message} />
       )}
@@ -48,19 +78,21 @@ export default function CustomCheckbox({
   );
 }
 
-CustomCheckbox.propTypes = {
+CustomCheckboxGroup.propTypes = {
   label: PropTypes.string,
-  defaultChecked: PropTypes.bool,
-  // value: PropTypes.string.isRequried,
-  checked: PropTypes.bool,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      value: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  values: PropTypes.array,
   onChange: PropTypes.func,
-  className: PropTypes.string,
-  disabled: PropTypes.bool,
-  size: PropTypes.string,
-  // eslint-disable-next-line react/forbid-prop-types
-  errors: PropTypes.object,
+  name: PropTypes.string.isRequired,
   register: PropTypes.func,
-  name: PropTypes.string,
+  errors: PropTypes.object,
+  setValue: PropTypes.func,
+  watch: PropTypes.func,
   isRequired: PropTypes.bool,
   inlineLabel: PropTypes.bool,
   labelClassName: PropTypes.string,

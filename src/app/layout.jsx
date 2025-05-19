@@ -3,13 +3,14 @@
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
+import { persistor, store } from "@/provider/store";
 
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
-import store from "@/provider/store";
+import { PersistGate } from "redux-persist/integration/react";
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   "&.notistack-MuiContent-success": {
@@ -48,7 +49,12 @@ export default function RootLayout({ children }) {
               error: StyledMaterialDesignContent,
             }}
           >
-            <Provider store={store}>{children}</Provider>
+            {/* <Provider store={store}>{children}</Provider> */}
+            <Provider store={store}>
+              <PersistGate loading={null} persistor={persistor}>
+                {children}
+              </PersistGate>
+            </Provider>
           </SnackbarProvider>
         </StyledEngineProvider>
       </body>

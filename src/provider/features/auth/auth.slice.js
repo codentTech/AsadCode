@@ -1,52 +1,31 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getUser, removeUser } from '@/common/utils/users.util';
-import authService from './auth.service';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { getUser, removeUser } from "@/common/utils/users.util";
+import authService from "./auth.service";
+
+const generalState = {
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+  message: "",
+  data: null,
+};
 
 // Get user from localStorage
 const user = getUser();
 const initialState = {
+  isCreatorMode: null,
   sidebarToggleItem: false,
   logoutLoader: false,
-  login: {
-    data: user || null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  },
-  signUp: {
-    data: null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  },
-  logout: {
-    data: null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  },
-  loginAndSignUpWithOAuth: {
-    data: null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  },
-  loginAndSignUpWithLinkedin: {
-    data: null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  }
+  login: generalState,
+  signUp: generalState,
+  logout: generalState,
+  loginAndSignUpWithOAuth: generalState,
+  loginAndSignUpWithLinkedin: generalState,
 };
 
 // Login user
 export const login = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async ({ payload, successCallBack, callBackMessage }, thunkAPI) => {
     try {
       const response = await authService.login(payload);
@@ -62,7 +41,7 @@ export const login = createAsyncThunk(
 );
 // signUp user
 export const signUp = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async ({ payload, successCallBack, callBackMessage }, thunkAPI) => {
     try {
       const response = await authService.signUp(payload);
@@ -79,13 +58,13 @@ export const signUp = createAsyncThunk(
 );
 
 export const loginAndSignUpWithOAuth = createAsyncThunk(
-  'auth/loginAndSignUpWithOAuth',
+  "auth/loginAndSignUpWithOAuth",
   async ({ loginType, email, accessToken, successCallBack }, thunkAPI) => {
     try {
       const response = await authService.loginAndSignUpWithOAuth({
         loginType,
         email,
-        accessToken
+        accessToken,
       });
 
       if (response.Succeeded) {
@@ -100,7 +79,7 @@ export const loginAndSignUpWithOAuth = createAsyncThunk(
 );
 
 export const loginAndSignUpWithLinkedin = createAsyncThunk(
-  'auth/loginAndSignUpWithLinkedin',
+  "auth/loginAndSignUpWithLinkedin",
   async ({ payload, successCallBack }, thunkAPI) => {
     try {
       const response = await authService.loginAndSignUpWithLinkedin(payload);
@@ -115,24 +94,30 @@ export const loginAndSignUpWithLinkedin = createAsyncThunk(
   }
 );
 
-export const logout = createAsyncThunk('auth/logout', async (payload, thunkAPI) => {
-  try {
-    const response = await authService.logout();
-    removeUser();
-    if (response.Succeeded) {
-      return response;
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.logout();
+      removeUser();
+      if (response.Succeeded) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      removeUser();
+      return thunkAPI.rejectWithValue({ payload: error });
     }
-    return thunkAPI.rejectWithValue(response);
-  } catch (error) {
-    removeUser();
-    return thunkAPI.rejectWithValue({ payload: error });
   }
-});
+);
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
+    setIsCreatorModeMode: (state, action) => {
+      state.isCreatorMode = action.payload;
+    },
     setSidebarToggleItem: (state, action) => {
       state.sidebarToggleItem = action.payload;
     },
@@ -140,48 +125,18 @@ export const authSlice = createSlice({
       state.logoutLoader = action.payload;
     },
     reset: (state) => {
-      state.login = {
-        data: user || null,
-        isError: false,
-        isSuccess: false,
-        isLoading: false,
-        message: ''
-      };
-      state.logout = {
-        data: null,
-        isError: false,
-        isSuccess: false,
-        isLoading: false,
-        message: ''
-      };
-      state.register = {
-        data: null,
-        isError: false,
-        isSuccess: false,
-        isLoading: false,
-        message: ''
-      };
-      state.loginAndSignUpWithOAuth = {
-        data: null,
-        isError: false,
-        isSuccess: false,
-        isLoading: false,
-        message: ''
-      };
-      state.loginAndSignUpWithLinkedin = {
-        data: null,
-        isError: false,
-        isSuccess: false,
-        isLoading: false,
-        message: ''
-      };
-    }
+      state.login = generalState;
+      state.logout = generalState;
+      state.register = generalState;
+      state.loginAndSignUpWithOAuth = generalState;
+      state.loginAndSignUpWithLinkedin = generalState;
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(login.pending, (state) => {
         state.login.isLoading = true;
-        state.login.message = '';
+        state.login.message = "";
         state.login.isError = false;
         state.login.isSuccess = false;
         state.login.data = null;
@@ -210,14 +165,14 @@ export const authSlice = createSlice({
       })
       .addCase(signUp.pending, (state) => {
         state.signUp.isLoading = true;
-        state.signUp.message = '';
+        state.signUp.message = "";
         state.signUp.isError = false;
         state.signUp.isSuccess = false;
         state.signUp.data = null;
       })
       .addCase(logout.pending, (state) => {
         state.logout.isLoading = true;
-        state.logout.message = '';
+        state.logout.message = "";
         state.logout.isError = false;
         state.logout.isSuccess = false;
         state.logout.data = null;
@@ -235,7 +190,7 @@ export const authSlice = createSlice({
       })
       .addCase(loginAndSignUpWithOAuth.pending, (state) => {
         state.loginAndSignUpWithOAuth.isLoading = true;
-        state.loginAndSignUpWithOAuth.message = '';
+        state.loginAndSignUpWithOAuth.message = "";
         state.loginAndSignUpWithOAuth.isError = false;
         state.loginAndSignUpWithOAuth.isSuccess = false;
         state.loginAndSignUpWithOAuth.data = null;
@@ -253,7 +208,7 @@ export const authSlice = createSlice({
       })
       .addCase(loginAndSignUpWithLinkedin.pending, (state) => {
         state.loginAndSignUpWithLinkedin.isLoading = true;
-        state.loginAndSignUpWithLinkedin.message = '';
+        state.loginAndSignUpWithLinkedin.message = "";
         state.loginAndSignUpWithLinkedin.isError = false;
         state.loginAndSignUpWithLinkedin.isSuccess = false;
         state.loginAndSignUpWithLinkedin.data = null;
@@ -269,9 +224,14 @@ export const authSlice = createSlice({
         state.loginAndSignUpWithLinkedin.isError = true;
         state.loginAndSignUpWithLinkedin.data = null;
       });
-  }
+  },
 });
 
-export const { reset, setSidebarToggleItem, setLogoutLoader } = authSlice.actions;
+export const {
+  reset,
+  setIsCreatorModeMode,
+  setSidebarToggleItem,
+  setLogoutLoader,
+} = authSlice.actions;
 
 export default authSlice.reducer;

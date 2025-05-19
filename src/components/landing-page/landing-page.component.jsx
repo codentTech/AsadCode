@@ -1,54 +1,60 @@
-"use client";
+import CustomButton from '@/common/components/custom-button/custom-button.component';
+import Modal from '@/common/components/modal/modal.component';
+import Header from '@/components/header/header';
+import Footer from '../home/footer/footer.component';
+import CallToAction from './components/call-to-action/call-to-action';
+import Features from './components/features/features';
+import Hero from './components/hero/hero';
+import HowCleerCutWorks from './components/how-it-works/how-it-works';
+import WhyChooseCleercut from './components/why-choose-cleercut/why-choose-cleercut';
+import useLandingPageHook from './use-landing-page.hook';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
-import Loadar from "@/common/components/loadar/loadar.component";
-import Footer from "./components/footer/footer.component";
-import Header from "./components/header/header.component";
-import useLandingPage from "./use-landing-page.hook";
-import UserMiniProfile from "./components/user-mini-profile/user-mini-profile";
-import ModernStories from "./components/modern-stories/modern-stories";
-import PremiumSidebar from "./components/premium-sidebar/premium-sidebar";
-import PostFeed from "./components/post-feeds/post-feeds";
-import UltraPostFeed from "./components/feed/feed";
-
-/**
- * Landing page component
- */
-function LandingPage() {
-  const { loader } = useLandingPage();
-
-  if (loader) {
-    return <Loadar />;
-  }
+export default function LandinPage() {
+  const { isCreatorMode, handleSelectMode } = useLandingPageHook();
 
   return (
-    <div className="min-h-screen">
-      <Header />
+    <div className="relative min-h-screen bg-white text-gray-800 font-sans">
+      {isCreatorMode || isCreatorMode === false ? (
+        <>
+          {/* Navigation */}
+          <Header />
 
-      <div className="container mx-auto px-4">
-        <main className="flex-1">
-          <div className="home-wrapper flex flex-col lg:flex-row gap-4 py-[5.7rem]" data-auto-select="true">
-            {/* Sidebar - hidden on small screens */}
-            <div className="hidden lg:block">
-              <UserMiniProfile />
-            </div>
+          {/* Hero Section */}
+          <Hero isCreatorMode={isCreatorMode} />
 
-            <div className="w-full max-w-[40rem] gap-4 flex flex-col">
-              <ModernStories />
-              <PostFeed />
-              <UltraPostFeed />
-            </div>
+          {/* How It Works Section */}
+          <HowCleerCutWorks isCreatorMode={isCreatorMode} />
 
-            {/* Sidebar - hidden on small screens */}
-            <div className="hidden sm:block">
-              <PremiumSidebar />
-            </div>
+          {/* Features Section */}
+          <Features isCreatorMode={isCreatorMode} />
+          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
+
+          <WhyChooseCleercut isCreatorMode={isCreatorMode} />
+          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
+
+          {/* CTA Section */}
+          <CallToAction />
+
+          <Footer />
+        </>
+      ) : (
+        <Modal show={true} title="Are you a creator or a brand ?">
+          <div className="flex flex-col gap-3">
+            <CustomButton
+              text="I am a creator"
+              className="btn-outline"
+              startIcon={<Sparkles />}
+              onClick={() => handleSelectMode(true)}
+            />
+            <CustomButton
+              text="I am a brand"
+              startIcon={<TrendingUp />}
+              onClick={() => handleSelectMode(false)}
+            />
           </div>
-        </main>
-      </div>
-
-      <Footer />
+        </Modal>
+      )}
     </div>
   );
 }
-
-export default LandingPage;
