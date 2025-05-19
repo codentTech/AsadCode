@@ -63,7 +63,7 @@ export default function NotFound() {
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Page Not Found</h2>
 
         <p className="text-lg text-gray-600 mb-8">
-          Oops! The page you're looking for seems to have wandered off into the digital unknown.
+          {"Oops! The page you're looking for seems to have wandered off into the digital unknown."}
         </p>
 
         {/* Return home button with hover effect */}
