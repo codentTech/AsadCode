@@ -2,10 +2,9 @@
 
 import { checkExpiryDateOfToken } from "@/common/utils/access-token.util";
 import { removeUser } from "@/common/utils/users.util";
-import LandinPage from "@/components/landing-page/landing-page";
+import LandinPage from "@/components/landing-page/landing-page.component";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import HomePage from "../components/home/home";
 
 /**
  * @returns lazy loaded component for home page

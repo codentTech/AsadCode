@@ -11,7 +11,7 @@ import Modal from "@/common/components/modal/modal.component";
 import { RefreshRounded } from "@mui/icons-material";
 import Niche from "@/components/niche/niche";
 
-export default function ChatList({ isCreaterInbox, activeTab }) {
+export default function ChatList({ isCreatorMode, activeTab }) {
   const {
     filterOptions,
     chats,
@@ -27,7 +27,7 @@ export default function ChatList({ isCreaterInbox, activeTab }) {
 
   return (
     <div className="w-1/4 border-r flex flex-col overflow-hidden bg-white">
-      {[3, 5].includes(activeTab) && !isCreaterInbox && (
+      {[3, 5].includes(activeTab) && !isCreatorMode && (
         <div className="bg-white border-b px-4">
           <div className="flex space-x-4 overflow-x-auto">
             {filterOptions.map((option) => (
@@ -47,7 +47,7 @@ export default function ChatList({ isCreaterInbox, activeTab }) {
         </div>
       )}
 
-      {[1, 2, 3].includes(activeTab) && !isCreaterInbox && (
+      {[1, 2, 3].includes(activeTab) && !isCreatorMode && (
         <div>
           <div className="p-2">
             <SimpleSelect
@@ -73,7 +73,7 @@ export default function ChatList({ isCreaterInbox, activeTab }) {
             className="!h-[36px]"
           />
         </div>
-        {[3, 4, 5].includes(activeTab) && !isCreaterInbox && (
+        {[3, 4, 5].includes(activeTab) && !isCreatorMode && (
           <CustomButton
             startIcon={<FilterListAltIcon />}
             text="Filters"

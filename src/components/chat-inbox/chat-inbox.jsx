@@ -1,5 +1,4 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import ChatList from "./components/chat-list/chat-list";
 import Inbox from "./components/inbox/inbox";
 import Profile from "./components/profile/profile";
@@ -8,18 +7,16 @@ import useChatInbox from "./use-chat-inbox";
 
 export default function ChatInbox() {
   const {
+    isCreatorMode,
     activeTab,
     setActiveTab,
     activeSection,
     setActiveSection,
     mainTabs,
     sections,
-    isCreaterInbox,
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
-    checked,
-    handleSwitchChange,
   } = useChatInbox();
 
   return (
@@ -48,16 +45,6 @@ export default function ChatInbox() {
                 ))}
               </nav>
             </div>
-            <div className="mr-3">
-              <CustomSwitch
-                label="Enable Feature"
-                name="featureToggle"
-                checked={checked}
-                labelRight={true}
-                rightLabelText="Creater"
-                onChange={handleSwitchChange}
-              />
-            </div>
           </div>
 
           {![1, 2, 3].includes(activeTab) && (
@@ -78,7 +65,7 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </div>
-              {[4, 5].includes(activeTab) && !isCreaterInbox && (
+              {[4, 5].includes(activeTab) && !isCreatorMode && (
                 <CustomButton
                   onClick={handleOpenQuickHire}
                   text="Quick Hire"
@@ -97,13 +84,13 @@ export default function ChatInbox() {
 
           <div className="flex flex-1 overflow-hidden">
             {/* Chat list */}
-            <ChatList isCreaterInbox={isCreaterInbox} activeTab={activeTab} />
+            <ChatList isCreatorMode={isCreatorMode} activeTab={activeTab} />
 
             {/* Chat area */}
             <Inbox />
 
             {/* Right sidebar - Profile and connections */}
-            <Profile isCreaterInbox={isCreaterInbox} activeTab={activeTab} />
+            <Profile isCreatorMode={isCreatorMode} activeTab={activeTab} />
           </div>
         </main>
       </div>

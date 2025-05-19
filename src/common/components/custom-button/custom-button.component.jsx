@@ -37,7 +37,7 @@ export default function CustomButton({
       disabled={disabled}
       endIcon={endIcon}
       startIcon={startIcon}
-      className={`btn font-dm  ${className}`}
+      className={`btn font-dm normal-case ${className}`}
     >
       {text}
     </Button>

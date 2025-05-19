@@ -1,7 +1,6 @@
 import { CancelOutlined } from "@mui/icons-material";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import PropTypes from "prop-types";
-import useModal from "./use-modal.hook";
 
 export default function Modal({
   show = false,
@@ -11,9 +10,6 @@ export default function Modal({
   size,
   height,
 }) {
-  const { open, register, handleSubmit, setValue, errors, handleClose } =
-    useModal(show);
-
   return (
     <Dialog
       open={show}
