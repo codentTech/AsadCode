@@ -3,7 +3,7 @@ import useHeader from "./use-header";
 import Image from "next/image";
 
 function Header() {
-  const { scrolled, mobileMenuOpen, setMobileMenuOpen } = useHeader();
+  const { router, scrolled, mobileMenuOpen, setMobileMenuOpen } = useHeader();
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -22,16 +22,28 @@ function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <p className="text-gray-700 hover:text-indigo-600 font-medium transition">
+          <p
+            onClick={() => router.push("/")}
+            className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          >
             Features
           </p>
-          <p className="text-gray-700 hover:text-indigo-600 font-medium transition">
+          <p
+            onClick={() => router.push("/solution")}
+            className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          >
             Solutions
           </p>
-          <p className="text-gray-700 hover:text-indigo-600 font-medium transition">
+          <p
+            onClick={() => router.push("/pricing")}
+            className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          >
             Pricing
           </p>
-          <p className="text-gray-700 hover:text-indigo-600 font-medium transition">
+          <p
+            onClick={() => router.push("/about-us")}
+            className="text-gray-700 hover:text-indigo-600 font-medium transition"
+          >
             About
           </p>
         </div>

@@ -5,51 +5,17 @@ import PricingOptions from "./components/pricing-options/pricing-options.compone
 import usePricingHook from "./use-pricing.hook";
 
 export default function PricingPage() {
-  const {
-    activeTab,
-    setActiveTab,
-    handleTabChange,
-    animateTable,
-    setAnimateTable,
-  } = usePricingHook();
+  const { isCreatorMode, animateTable } = usePricingHook();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
       <div className="container mx-auto px-4 py-12">
-        {/* Mode Toggle */}
-        <div className="flex justify-center mt-8 mb-10">
-          <div className="bg-white p-1 rounded-lg shadow-md inline-flex">
-            <button
-              onClick={() => handleTabChange("creator")}
-              className={`px-6 py-3 rounded-md text-sm font-medium transition-all ${
-                activeTab === "creator"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-transparent text-indigo-600 hover:bg-indigo-50"
-              }`}
-            >
-              <Sparkles className="h-4 w-4 inline-block mr-2" />
-              For Creators
-            </button>
-            <button
-              onClick={() => handleTabChange("brand")}
-              className={`px-6 py-3 rounded-md text-sm font-medium transition-all ${
-                activeTab === "brand"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-transparent text-indigo-600 hover:bg-indigo-50"
-              }`}
-            >
-              <TrendingUp className="h-4 w-4 inline-block mr-2" />
-              For Brands
-            </button>
-          </div>
-        </div>
-
         {/* Banner Section */}
         <div className="p-8 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-t-xl shadow-lg mb-1 transform transition-all duration-500">
           <div className="flex items-center space-x-4">
             <PieChart className="h-12 w-12 flex-shrink-0" />
             <div className="text-indigo-100">
-              {activeTab === "creator" ? (
+              {isCreatorMode ? (
                 <div>
                   <p>
                     Unlike most platforms that take 15–30% or inflate your rate,
@@ -67,7 +33,7 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
-        {activeTab === "brand" && <PricingOptions />}
+        {!isCreatorMode && <PricingOptions />}
 
         <div
           className={`transition-all duration-500 transform ${animateTable ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
@@ -75,7 +41,7 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-center py-6 text-indigo-900">
             How CleerCut Compares to Other Platforms
           </h2>
-          {activeTab === "creator" ? <CreatorPricing /> : <BrandPricing />}
+          {isCreatorMode ? <CreatorPricing /> : <BrandPricing />}
         </div>
       </div>
     </div>

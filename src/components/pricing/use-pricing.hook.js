@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 function usePricingHook() {
-  const [activeTab, setActiveTab] = useState("creator");
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
   const [animateTable, setAnimateTable] = useState(false);
-
-  // Toggle between creator and brand modes
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    // Reset and trigger animation for table transitions
-    setAnimateTable(false);
-    setTimeout(() => setAnimateTable(true), 50);
-  };
 
   // Trigger initial animation
   useEffect(() => {
@@ -19,11 +12,8 @@ function usePricingHook() {
   }, []);
 
   return {
-    activeTab,
-    setActiveTab,
-    handleTabChange,
+    isCreatorMode,
     animateTable,
-    setAnimateTable,
   };
 }
 

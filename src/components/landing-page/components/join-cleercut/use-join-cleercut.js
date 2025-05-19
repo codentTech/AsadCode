@@ -36,7 +36,6 @@ function useJoinCleercut() {
     response && setLoading(false);
     if (response.payload?.success) {
       setIsSubmitted(true);
-      console.log(response);
     }
   };
 

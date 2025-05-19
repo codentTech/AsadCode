@@ -7,13 +7,12 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
   // Auto-rotate through steps every 5 seconds
   useEffect(() => {
-    // if (!disableAutoRotate) {
-    //   console.log(disableAutoRotate);
-    //   const interval = setInterval(() => {
-    //     setActiveStep((prev) => (prev + 1) % steps.length);
-    //   }, 5000);
-    //   return () => clearInterval(interval);
-    // }
+    if (!disableAutoRotate) {
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
   }, [disableAutoRotate]);
 
   const steps = [

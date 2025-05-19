@@ -4,7 +4,7 @@ import useHero from "./use-hero";
 import Modal from "@/common/components/modal/modal.component";
 import JoinCleerCut from "../join-cleercut/join-cleercut";
 
-function Hero({ isCreatorMode, setIsCreatorMode }) {
+function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
   return (
     <section className="relative pt-20 overflow-hidden bg-white">
@@ -21,15 +21,6 @@ function Hero({ isCreatorMode, setIsCreatorMode }) {
         <div className="flex flex-col md:flex-row items-center md:space-x-12 lg:space-x-20">
           {/* Content Area */}
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-3xl blur-2xl opacity-30 transform rotate-3"></div>
-            <div className="w-[180px] mb-2">
-              <CustomButton
-                text={
-                  isCreatorMode ? "Creator Mode Toggle" : "Brand Mode Toggle"
-                }
-                onClick={() => setIsCreatorMode(!isCreatorMode)}
-              />
-            </div>
             <div className="relative z-10">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 mb-3">
                 The ultimate{" "}
