@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import "@/common/styles/dashboard/dashboard.style.css";
-import "@/common/styles/globals.style.css";
-import "@/common/styles/home.style.scss";
-import { persistor, store } from "@/provider/store";
+import '@/common/styles/dashboard/dashboard.style.css';
+import '@/common/styles/globals.style.css';
+import '@/common/styles/home.style.scss';
+import { persistor, store } from '@/provider/store';
 
-import styled from "@emotion/styled";
-import { StyledEngineProvider } from "@mui/material";
-import { MaterialDesignContent, SnackbarProvider } from "notistack";
-import PropTypes from "prop-types";
-import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
+import styled from '@emotion/styled';
+import { StyledEngineProvider } from '@mui/material';
+import { MaterialDesignContent, SnackbarProvider } from 'notistack';
+import PropTypes from 'prop-types';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
-  "&.notistack-MuiContent-success": {
-    backgroundColor: "rgb(222 255 228)",
-    color: "green",
+  '&.notistack-MuiContent-success': {
+    backgroundColor: 'rgb(222 255 228)',
+    color: 'green',
   },
-  "&.notistack-MuiContent-error": {
-    backgroundColor: "rgb(255 222 222)",
-    color: "red",
+  '&.notistack-MuiContent-error': {
+    backgroundColor: 'rgb(255 222 222)',
+    color: 'red',
   },
 }));
 
@@ -33,6 +33,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         {/* Font Awesome 4 CDN */}
+        <title>Cleer Cut</title>
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
@@ -41,7 +42,7 @@ export default function RootLayout({ children }) {
       <body>
         <StyledEngineProvider injectFirst>
           <SnackbarProvider
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             autoHideDuration={3000}
             maxSnack={2}
             Components={{
