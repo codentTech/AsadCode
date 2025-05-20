@@ -2,7 +2,6 @@
 
 import CustomButton from '@/common/components/custom-button/custom-button.component';
 import useBackgroundEffect from '@/common/hooks/use-background-effect.hook';
-import { Sparkles, TrendingUp } from 'lucide-react';
 
 export default function CreatorBrandPrompt({ handleSelectMode }) {
   const { position } = useBackgroundEffect();
@@ -49,16 +48,15 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
           <div className="h-1 w-24 bg-indigo-400 rounded-full mx-2" />
           <div className="h-1 w-16 bg-indigo-600 rounded-full mx-2" />
         </div>
-        <div className="flex gap-3">
+        <div className="w-auto flex items-center justify-center gap-3">
           <CustomButton
             text="I am a creator"
-            className="w-full whitespace-nowrap btn-outline"
-            startIcon={<Sparkles />}
+            className="w-full max-w-[250px] whitespace-nowrap btn-outline py-6 text-2xl font-bold"
             onClick={() => handleSelectMode(true)}
           />
           <CustomButton
             text="I am a brand"
-            startIcon={<TrendingUp />}
+            className="w-full max-w-[250px] btn-primary py-6 text-2xl font-bold"
             onClick={() => handleSelectMode(false)}
           />
         </div>
