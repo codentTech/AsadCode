@@ -1,9 +1,10 @@
 'use client';
 
+import CustomButton from '@/common/components/custom-button/custom-button.component';
 import useBackgroundEffect from '@/common/hooks/use-background-effect.hook';
-import Link from 'next/link';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
-export default function NotFound() {
+export default function CreatorBrandPrompt({ handleSelectMode }) {
   const { position } = useBackgroundEffect();
 
   return (
@@ -36,30 +37,31 @@ export default function NotFound() {
         />
       </div>
 
-      <div className="relative z-10 max-w-2xl text-center">
+      <div className="relative z-10 max-w-6xl text-center">
         {/* 404 Error Title */}
-        <h1 className="text-9xl font-bold text-indigo-600 mb-2">404</h1>
+        <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-indigo-600 mb-2">
+          Are you a creator or a brand?
+        </h1>
 
         {/* Decorative element */}
         <div className="flex justify-center mb-6">
-          <div className="h-1 w-16 bg-indigo-400 rounded-full mx-2" />
-          <div className="h-1 w-24 bg-indigo-600 rounded-full mx-2" />
-          <div className="h-1 w-16 bg-indigo-400 rounded-full mx-2" />
+          <div className="h-1 w-16 bg-indigo-600 rounded-full mx-2" />
+          <div className="h-1 w-24 bg-indigo-400 rounded-full mx-2" />
+          <div className="h-1 w-16 bg-indigo-600 rounded-full mx-2" />
         </div>
-
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Page Not Found</h2>
-
-        <p className="text-lg text-gray-600 mb-8">
-          {"Oops! The page you're looking for seems to have wandered off into the digital unknown."}
-        </p>
-
-        {/* Return home button with hover effect */}
-        <Link
-          href="/"
-          className="inline-block px-8 py-4 text-lg font-medium text-white bg-indigo-600 rounded-lg shadow-lg transition-all duration-300 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-1"
-        >
-          Return Home
-        </Link>
+        <div className="flex gap-3">
+          <CustomButton
+            text="I am a creator"
+            className="w-full whitespace-nowrap btn-outline"
+            startIcon={<Sparkles />}
+            onClick={() => handleSelectMode(true)}
+          />
+          <CustomButton
+            text="I am a brand"
+            startIcon={<TrendingUp />}
+            onClick={() => handleSelectMode(false)}
+          />
+        </div>
       </div>
     </div>
   );
