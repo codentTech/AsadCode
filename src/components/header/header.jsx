@@ -33,7 +33,10 @@ function Header() {
             Pricing
           </p>
           <p
-            onClick={() => router.push('/about-us')}
+            onClick={() => {
+              console.log('clicked');
+              router.push('/about-us');
+            }}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             About
@@ -58,16 +61,22 @@ function Header() {
         }`}
       >
         <div className="flex flex-col px-6 py-6 space-y-4">
-          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left">
+          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer">
             Features
           </p>
-          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left">
+          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer">
             Solutions
           </p>
-          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left">
+          <p
+            onClick={() => router.push('/pricing')}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
             Pricing
           </p>
-          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left">
+          <p
+            onClick={() => router.push('/about-us')}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
             About
           </p>
         </div>

@@ -5,11 +5,11 @@ export default function AboutUsPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <header className="bg-gradient-to-br from-primary to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-white text-5xl sm:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">
+        <div className="max-w-7xl mx-auto py-6 md:py-24 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-white text-3xl md:text-6xl text-center font-extrabold leading-tight mb-4 drop-shadow-lg">
             About CleerCut
           </h1>
-          <p className="text-xl sm:text-2xl text-indigo-100 max-w-7xl mx-auto font-light">
+          <p className="text-sm md:text-lg xl:text-xl text-indigo-100 max-w-4xl xl:max-w-7xl mx-auto font-light text-left lg:text-center">
             The first all-in-one platform designed to simplify and safeguard influencer
             collaborations — from first message to final payment.
           </p>
@@ -18,14 +18,16 @@ export default function AboutUsPage() {
 
       {/* Our Story Section */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-primary mb-4">Our Story</h2>
-          <p className="text-lg text-gray-600 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h2 className="text-3xl md:text-6xl font-bold text-primary mb-4 text-center">
+            Our Story
+          </h2>
+          <p className="text-sm md:text-lg xl:text-xl text-gray-600 max-w-4xl xl:max-w-7xl mx-auto text-left lg:text-center">
             We created CleerCut because influencer marketing is broken. Brands waste hours chasing
             down creators, managing scattered spreadsheets, and hoping for results. Creators are
             often left in the dark, unpaid, or ghosted without accountability.
           </p>
-          <p className="mt-6 text-lg text-gray-600 max-w-7xl mx-auto">
+          <p className="mt-6 text-sm md:text-lg xl:text-xl text-gray-600 max-w-4xl xl:max-w-7xl mx-auto text-left lg:text-center">
             CleerCut fixes that. Whether you’re a brand running 15 campaigns or a creator landing
             your first paid deal, we bring clarity, structure, and trust to collaborations.
           </p>
@@ -34,10 +36,10 @@ export default function AboutUsPage() {
         <div className="h-px w-full bg-indigo-100 mb-8" />
 
         {/* Mission and Vision */}
-        <div className="bg-gray-50 rounded-xl p-8 md:p-12 shadow-md">
+        <div className="bg-gray-50 rounded-xl p-1 md:p-12 shadow-md">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-extrabold text-primary">Who We Are</h2>
-            <p className="text-gray-600 mt-3 text-lg max-w-7xl mx-auto">
+            <h2 className="text-3xl md:text-6xl font-extrabold text-primary">Who We Are</h2>
+            <p className="text-sm md:text-lg xl:text-xl text-gray-600 mt-3 max-w-7xl mx-auto">
               We're redefining influencer marketing to be fair, efficient, and empowering for both
               creators and brands.
             </p>
@@ -45,7 +47,7 @@ export default function AboutUsPage() {
 
           <div className="flex flex-col md:flex-row gap-10">
             {/* Our Mission */}
-            <div className="md:w-1/2">
+            <div className="md:w-1/2 text-sm">
               <div className="flex items-center mb-5">
                 <div className="bg-indigo-100 p-2 rounded-full">
                   <Target className="w-6 h-6 text-indigo-600" />
@@ -76,7 +78,7 @@ export default function AboutUsPage() {
             </div>
 
             {/* Our Values */}
-            <div className="md:w-1/2 md:border-l border-indigo-200 md:pl-6">
+            <div className="md:w-1/2 md:border-l text-sm border-indigo-200 md:pl-6">
               <div className="flex items-center mb-5">
                 <div className="bg-indigo-100 p-2 rounded-full">
                   <Heart className="w-6 h-6 text-indigo-600" />
