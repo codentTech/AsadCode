@@ -2,7 +2,6 @@
 
 import CustomButton from '@/common/components/custom-button/custom-button.component';
 import useBackgroundEffect from '@/common/hooks/use-background-effect.hook';
-import { Sparkles, TrendingUp } from 'lucide-react';
 
 export default function CreatorBrandPrompt({ handleSelectMode }) {
   const { position } = useBackgroundEffect();
@@ -39,7 +38,7 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
 
       <div className="relative z-10 max-w-6xl text-center">
         {/* 404 Error Title */}
-        <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-indigo-600 mb-2">
+        <h1 className="text-xl md:text-4xl lg:text-6xl font-bold text-indigo-600 mb-2">
           Are you a creator or a brand?
         </h1>
 
@@ -52,12 +51,12 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
         <div className="w-auto flex items-center justify-center gap-3">
           <CustomButton
             text="I am a creator"
-            className="w-full max-w-[250px] whitespace-nowrap btn-outline py-6 text-2xl font-bold"
+            className="w-full max-w-[250px] whitespace-nowrap btn-outline py-6 text-sm md:text-2xl font-bold"
             onClick={() => handleSelectMode(true)}
           />
           <CustomButton
             text="I am a brand"
-            className="w-full max-w-[250px] btn-primary py-6 text-2xl font-bold"
+            className="w-full max-w-[250px] btn-primary py-6 text-sm md:text-2xl font-bold"
             onClick={() => handleSelectMode(false)}
           />
         </div>
