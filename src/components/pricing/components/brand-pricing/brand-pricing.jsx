@@ -54,60 +54,62 @@ export default function BrandPricing() {
   ];
 
   return (
-    <div className="overflow-x-auto bg-white rounded-xl shadow-xl text-sm md:text-lg">
-      <table className="min-w-full">
-        <thead>
-          <tr className="bg-indigo-50">
-            <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
-              Platform
-            </th>
-            <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
-              Monthly Price (Estimated)
-            </th>
-            <th className="py-6 px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
-              Annual Contract Required
-            </th>
-            <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
-              Details
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {brandData.map((platform, index) => (
-            <tr
-              key={platform.platform}
-              className={`${platform.isBest ? 'bg-indigo-50' : index % 2 === 0 ? 'bg-white' : 'bg-indigo-50/30'} 
-                  hover:bg-indigo-100/50 transition-colors duration-150`}
-            >
-              <td className="py-4 px-2 lg:px-6 text-left border-b border-indigo-100">
-                <div className="flex font-medium text-gray-600">
-                  {platform.platform}
-                  {platform.isBest && (
-                    <span className="ml-2 whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                      <Check className="w-3 h-3 mr-1" /> Best Value
-                    </span>
-                  )}
-                </div>
-              </td>
-              <td
-                className={`py-4 px-2 lg:px-6 text-left border-b border-indigo-100 ${platform.isBest ? 'font-bold text-indigo-800' : 'text-gray-600'}`}
-              >
-                {platform.price}
-              </td>
-              <td
-                className={`py-4 px-2 lg:px-6 text-left border-b border-indigo-100 ${
-                  platform.contract === 'No' ? 'text-green-600' : 'text-red-600'
-                } ${platform.isBest ? 'font-bold' : ''}`}
-              >
-                {platform.contract}
-              </td>
-              <td className="py-4 px-6 text-left text-gray-700 border-b border-indigo-100">
-                {platform.details}
-              </td>
+    <div className="overflow-hidden bg-white rounded-xl shadow-xl text-sm md:text-lg">
+      <div className="overflow-x-auto w-full">
+        <table className="min-w-[750px] w-full">
+          <thead>
+            <tr className="bg-indigo-50">
+              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+                Platform
+              </th>
+              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+                Monthly Price (Estimated)
+              </th>
+              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+                Annual Contract Required
+              </th>
+              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+                Details
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {brandData.map((platform, index) => (
+              <tr
+                key={platform.platform}
+                className={`${platform.isBest ? 'bg-indigo-50' : index % 2 === 0 ? 'bg-white' : 'bg-indigo-50/30'} 
+                  hover:bg-indigo-100/50 transition-colors duration-150`}
+              >
+                <td className="py-4 px-2 lg:px-6 text-left border-b border-indigo-100">
+                  <div className="flex font-medium text-gray-600">
+                    {platform.platform}
+                    {platform.isBest && (
+                      <span className="ml-2 whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        <Check className="w-3 h-3 mr-1" /> Best Value
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td
+                  className={`py-4 px-2 lg:px-6 text-left border-b border-indigo-100 ${platform.isBest ? 'font-bold text-indigo-800' : 'text-gray-600'}`}
+                >
+                  {platform.price}
+                </td>
+                <td
+                  className={`py-4 px-2 lg:px-6 text-left border-b border-indigo-100 ${
+                    platform.contract === 'No' ? 'text-green-600' : 'text-red-600'
+                  } ${platform.isBest ? 'font-bold' : ''}`}
+                >
+                  {platform.contract}
+                </td>
+                <td className="py-4 px-2 lg:px-6 text-left text-gray-700 border-b border-indigo-100">
+                  {platform.details}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

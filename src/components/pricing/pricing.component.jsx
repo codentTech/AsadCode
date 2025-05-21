@@ -11,7 +11,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
       <div className="container mx-auto px-4 py-12">
         {/* Banner Section */}
-        <div className="p-8 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-t-xl shadow-lg mb-1 transform transition-all duration-500">
+        <div className="px-2 py-4 md:p-8 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-t-xl shadow-lg mb-1 transform transition-all duration-500">
           <div className="flex items-center space-x-4">
             <PieChart className="h-12 w-12 hidden md:block flex-shrink-0" />
             <div className="text-sm md:text-lg xl:text-xl text-indigo-100">
