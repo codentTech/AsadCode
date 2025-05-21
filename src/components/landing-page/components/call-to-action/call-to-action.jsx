@@ -10,7 +10,7 @@ function CallToAction() {
   return (
     <section className="py-16 bg-primary">
       <div className="flex items-center justify-center px-4 md:px-8">
-        <div className="w-full md:max-w-6xl flex flex-col md:flex-row items-center justify-between bg-white rounded-lg p-4 md:p-12 shadow-xl">
+        <div className="w-full md:max-w-[1200px] flex flex-col md:flex-row items-center justify-between bg-white rounded-lg p-4 md:p-12 shadow-xl">
           <div className="w-full">
             <h2 className="text-sm md:text-lg xl:text-xl font-bold mb-1 text-gray-900">
               Ready to elevate your brand? Start your journey with CleerCut today.
