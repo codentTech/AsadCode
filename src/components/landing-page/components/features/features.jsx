@@ -113,8 +113,8 @@ function Features({ isCreatorMode }) {
 
   return (
     <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 md:px-8">
-        <div className="text-center mb-12">
+      <div className="container mx-auto">
+        <div className="text-center mb-6">
           <h2 className="text-xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
             CleerCut Features For {isCreatorMode ? 'Creators' : 'Brands'}
           </h2>
@@ -124,7 +124,7 @@ function Features({ isCreatorMode }) {
           {sortedFeatures.map((feature, idx) => (
             <React.Fragment key={idx}>
               {feature.title && (
-                <div className="group bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0 border border-gray-100">
+                <div className="px-4 md:px-8 group bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0 border border-gray-100">
                   <div className="flex gap-4 items-start mb-4">
                     <div
                       className={`w-14 h-14 flex items-center justify-center ${feature.color} rounded-lg p-3 group-hover:scale-110 transition-transform duration-300`}
