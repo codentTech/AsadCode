@@ -65,7 +65,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
   return (
     <section className="py-24 bg-gradient-to-tr from-blue-300/30 to-transparent overflow-hidden">
       <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-6">
           <h2 className="text-xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
             Collaborate in {isCreatorMode ? 4 : 5} easy steps
           </h2>
