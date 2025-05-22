@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { Check, Sparkles, Zap, Award, TrendingUp } from 'lucide-react';
-import CustomButton from '@/common/components/custom-button/custom-button.component';
-import { ArrowForward } from '@mui/icons-material';
+import { useState } from "react";
+import { Check, Sparkles, Zap, Award, TrendingUp } from "lucide-react";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { ArrowForward } from "@mui/icons-material";
 
 export default function PricingOptions() {
   const [hoverPay, setHoverPay] = useState(false);
   const [hoverFlat, setHoverFlat] = useState(false);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 py-6 to-slate-50 flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center">
       <div className="max-w-5xl w-full mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-900 mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-primary mb-2 tracking-tight">
             <span className="relative inline-block">
               <span className="relative z-10">Pricing Options</span>
             </span>
           </h1>
-          <p className="text-sm md:text-lg xl:text-xl text-indigo-700 max-w-2xl mx-auto">
+          <p className="text-sm md:text-lg xl:text-xl text-primary max-w-2xl mx-auto">
             Choose the plan that works best for your business needs
           </p>
         </div>
@@ -27,22 +27,22 @@ export default function PricingOptions() {
           {/* Pay-As-You-Go Card */}
           <div
             className={`relative overflow-hidden rounded-2xl shadow-xl transition-all duration-500 ${
-              hoverPay ? 'transform scale-105 shadow-2xl' : ''
+              hoverPay ? "transform scale-105 shadow-2xl" : ""
             }`}
             onMouseEnter={() => setHoverPay(true)}
             onMouseLeave={() => setHoverPay(false)}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-indigo-700 opacity-10"></div>
-            <div className="bg-white p-5 md:p-10 h-full relative z-10 flex flex-col">
+            <div className="bg-white p-5 lg:p-10 h-full relative z-10 flex flex-col">
               <div className="flex items-center mb-6">
                 <Zap className="h-8 w-8 mr-3 text-indigo-600" />
-                <h2 className="text-lg xl:text-xl font-bold text-indigo-900">Pay-As-You-Go</h2>
+                <h2 className="text-lg xl:text-xl font-bold text-primary">Pay-As-You-Go</h2>
               </div>
 
               <div className="text-sm space-y-3 mb-8 flex-grow">
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-indigo-500" />
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <p className="ml-3 text-md text-gray-600">
                     <span className="font-semibold">9.9% service fee</span> on monthly spend up to
@@ -52,7 +52,7 @@ export default function PricingOptions() {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-indigo-500" />
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <p className="ml-3 text-md text-gray-600">
                     <span className="font-semibold">7.9% service fee</span> on spend between
@@ -62,7 +62,7 @@ export default function PricingOptions() {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-indigo-500" />
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <p className="ml-3 text-md text-gray-600">
                     <span className="font-semibold">5.9% service fee</span> on spend over $10,000
@@ -71,7 +71,7 @@ export default function PricingOptions() {
               </div>
 
               <div className="py-4 px-5 bg-indigo-50 rounded-xl">
-                <p className="text-indigo-900 font-medium">
+                <p className="text-primary font-medium">
                   No monthly commitment. Ideal for flexible or smaller campaigns.
                 </p>
               </div>
@@ -85,41 +85,43 @@ export default function PricingOptions() {
           {/* Flat-Rate Card */}
           <div
             className={`relative overflow-hidden rounded-2xl shadow-xl transition-all duration-500 ${
-              hoverFlat ? 'transform scale-105 shadow-2xl' : ''
+              hoverFlat ? "transform scale-105 shadow-2xl" : ""
             }`}
             onMouseEnter={() => setHoverFlat(true)}
             onMouseLeave={() => setHoverFlat(false)}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-700 opacity-10"></div>
-            <div className="bg-white p-5 md:p-10 h-full relative z-10 flex flex-col">
+            <div className="bg-white p-5 lg:p-10 h-full relative z-10 flex flex-col">
               <div className="flex items-center mb-6">
                 <Award className="h-8 w-8 mr-3 text-indigo-600" />
-                <h2 className="text-lg xl:text-xl font-bold text-indigo-900">Flat-Rate Plans</h2>
+                <h2 className="text-lg xl:text-xl font-bold text-primary">Flat-Rate Plans</h2>
               </div>
 
               <div className="text-sm space-y-4 mb-8 flex-grow">
                 <div>
                   <div className="flex items-center mb-2">
-                    <TrendingUp className="h-5 w-5 mr-2 text-indigo-500" />
+                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
                     <h3 className="text-lg font-bold text-indigo-800">Growth Plan – $525/month</h3>
                   </div>
 
                   <div className="ml-7 space-y-1">
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mt-1">
-                        <Check className="h-5 w-5 text-indigo-500" />
+                        <Check className="h-5 w-5 text-primary" />
                       </div>
                       <p className="ml-3 text-md text-gray-600">
-                        Covers up to $10,000 in monthly spend
+                        <span className="font-semibold">$0 commission</span> on monthly spend of up
+                        to $10,000
                       </p>
                     </div>
 
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mt-1">
-                        <Check className="h-5 w-5 text-indigo-500" />
+                        <Check className="h-5 w-5 text-primary" />
                       </div>
                       <p className="ml-3 text-md text-gray-600">
-                        Best for brands running consistent campaigns
+                        <span className="font-semibold">Best for brands</span> running consistent
+                        campaigns
                       </p>
                     </div>
                   </div>
@@ -127,7 +129,7 @@ export default function PricingOptions() {
 
                 <div>
                   <div className="flex items-center mb-2">
-                    <Sparkles className="h-5 w-5 mr-2 text-indigo-500" />
+                    <Sparkles className="h-5 w-5 mr-2 text-primary" />
                     <h3 className="text-lg font-bold text-indigo-800">
                       Enterprise Plan – $699/month
                     </h3>
@@ -136,17 +138,21 @@ export default function PricingOptions() {
                   <div className="ml-7 space-y-1">
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mt-1">
-                        <Check className="h-5 w-5 text-indigo-500" />
+                        <Check className="h-5 w-5 text-primary" />
                       </div>
-                      <p className="ml-3 text-gray-600">Covers up to $20,000 in monthly spend</p>
+                      <p className="ml-3 text-gray-600">
+                        <span className="font-semibold">$0 commission</span> on monthly spend of up
+                        to $20,000
+                      </p>
                     </div>
 
                     <div className="flex items-start">
                       <div className="flex-shrink-0 mt-1">
-                        <Check className="h-5 w-5 text-indigo-500" />
+                        <Check className="h-5 w-5 text-primary" />
                       </div>
                       <p className="ml-3 text-gray-600">
-                        Ideal for high-volume teams seeking predictable costs
+                        <span className="font-semibold"> Ideal for </span>high-volume teams seeking
+                        predictable costs
                       </p>
                     </div>
                   </div>
@@ -154,7 +160,7 @@ export default function PricingOptions() {
               </div>
 
               <div className="py-4 px-5 bg-indigo-50 rounded-xl">
-                <p className="text-indigo-900 font-medium">
+                <p className="text-primary font-medium">
                   3% service fee applies to spend exceeding plan limits.
                 </p>
               </div>
@@ -166,10 +172,10 @@ export default function PricingOptions() {
 
             {/* Floating animations */}
             <div
-              className={`absolute -top-20 -right-20 w-40 h-40 bg-purple-600 rounded-full opacity-10 transition-all duration-700 ${hoverFlat ? 'scale-150' : 'scale-100'}`}
+              className={`absolute -top-20 -right-20 w-40 h-40 bg-purple-600 rounded-full opacity-10 transition-all duration-700 ${hoverFlat ? "scale-150" : "scale-100"}`}
             ></div>
             <div
-              className={`absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500 rounded-full opacity-10 transition-all duration-700 ${hoverFlat ? 'scale-150' : 'scale-100'}`}
+              className={`absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500 rounded-full opacity-10 transition-all duration-700 ${hoverFlat ? "scale-150" : "scale-100"}`}
             ></div>
           </div>
         </div>
