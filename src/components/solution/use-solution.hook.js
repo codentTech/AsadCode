@@ -59,8 +59,7 @@ function useSolution() {
     },
     {
       title: "5. Find the Right Creators in Minutes",
-      description:
-        "Stop guessing who's a fit. CleerCut profiles show everything up front:",
+      description: "Stop guessing who's a fit. CleerCut profiles show everything up front:",
       points: [
         "Verified audience and platform data",
         "Niche and engagement breakdowns",
@@ -126,7 +125,7 @@ function useSolution() {
     {
       title: "3. Say Goodbye to 30% Manager Cuts",
       description:
-        "Most managers and agencies take 15–30% of your earnings just to handle communication. CleerCut only charges the standard 2.9% payment processing fee, and gives you full control of:",
+        "Most managers and agencies take 15–30% of your earnings just to handle communication. CleerCut only charges the standard 3.2% payment processing fee, and gives you full control of:",
       points: ["Your rates", "Your deliverables", "Your income tracking"],
       icon: <DollarSign className="text-indigo-600" size={24} />,
     },
@@ -134,11 +133,7 @@ function useSolution() {
       title: "4. Keep Every Conversation in One Place",
       description:
         "Stay organized with CleerCut's Smart Inbox, built for creators managing multiple opportunities. Track:",
-      points: [
-        "Cold outreach",
-        "Campaign applications",
-        "Active brand communication",
-      ],
+      points: ["Cold outreach", "Campaign applications", "Active brand communication"],
       icon: <MessageSquare className="text-indigo-600" size={24} />,
     },
     {

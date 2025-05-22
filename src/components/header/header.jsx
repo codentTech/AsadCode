@@ -1,6 +1,7 @@
 import { Close, Menu } from "@mui/icons-material";
 import useHeader from "./use-header";
 import Image from "next/image";
+import Link from "next/link";
 
 function Header() {
   const { router, scrolled, mobileMenuOpen, setMobileMenuOpen } = useHeader();
@@ -17,12 +18,12 @@ function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <p
-            onClick={() => router.push("/")}
+          <Link
+            href="#features"
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Features
-          </p>
+          </Link>
           <p
             onClick={() => router.push("/solution")}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
@@ -64,9 +65,12 @@ function Header() {
         }`}
       >
         <div className="flex flex-col px-6 py-6 space-y-4">
-          <p className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer">
+          <Link
+            href="#features"
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
             Features
-          </p>
+          </Link>
           <p
             onClick={() => router.push("/solution")}
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"

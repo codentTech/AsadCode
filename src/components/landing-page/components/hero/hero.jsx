@@ -1,8 +1,7 @@
-import CustomButton from '@/common/components/custom-button/custom-button.component';
-import { JoinFullOutlined } from '@mui/icons-material';
-import useHero from './use-hero';
-import Modal from '@/common/components/modal/modal.component';
-import JoinCleerCut from '../join-cleercut/join-cleercut';
+import Modal from "@/common/components/modal/modal.component";
+import { JoinFullOutlined } from "@mui/icons-material";
+import JoinCleerCut from "../join-cleercut/join-cleercut";
+import useHero from "./use-hero";
 
 function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
@@ -23,15 +22,15 @@ function Hero({ isCreatorMode }) {
           <div className="w-full md:w-1/2 mb-16 md:mb-0 relative">
             <div className="relative z-10">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 mb-3">
-                The ultimate <span className="text-primary">all-in-one platform</span>{' '}
+                The ultimate <span className="text-primary">all-in-one platform</span>{" "}
                 {isCreatorMode
-                  ? 'to land more collaborations with trusted brands'
-                  : 'to collaborate with trusted creators'}
+                  ? "to land more collaborations with trusted brands"
+                  : "to collaborate with trusted creators"}
               </h1>
               <p className="text-lg text-gray-600 mb-3">
                 {isCreatorMode
-                  ? 'Showcase your value, quick-apply to collaborations, and get paid securely - 0% commission. Just the standard 2.9% payment processing fee'
-                  : 'Discover verified creators, generate contracts in seconds, protect your budget with escrow, and manage campaigns from outreach to deliverables — all in one streamlined workspace.'}
+                  ? "Showcase your value, quick-apply to collaborations, and get paid securely - 0% commission. Just the standard 3.2% payment processing fee"
+                  : "Discover verified creators, generate contracts in seconds, protect your budget with escrow, and manage campaigns from outreach to deliverables — all in one streamlined workspace."}
               </p>
 
               {!isCreatorMode && (
@@ -72,8 +71,8 @@ function Hero({ isCreatorMode }) {
                   <img
                     src={
                       isCreatorMode
-                        ? '/assets/images/landing/hero-bg-2.jpeg'
-                        : '/assets/images/landing/hero-bg.jpeg'
+                        ? "/assets/images/landing/hero-bg-2.jpeg"
+                        : "/assets/images/landing/hero-bg.jpeg"
                     }
                     alt="Brand collaboration"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -86,7 +85,7 @@ function Hero({ isCreatorMode }) {
 
                 {/* Floating UI elements with independent animations */}
                 <div
-                  className={`${isCreatorMode ? 'w-52' : 'w-36'} absolute top-[1rem] left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                  className={`${isCreatorMode ? "w-52" : "w-36"} absolute top-[1rem] left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
                 >
                   <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
                     <div className="flex items-center">
@@ -94,8 +93,8 @@ function Hero({ isCreatorMode }) {
                       <div>
                         <span className="text-[10px] text-black">
                           {isCreatorMode
-                            ? 'Meyers Nutrition has sent you an offer'
-                            : 'Auto generating contract'}
+                            ? "Meyers Nutrition has sent you an offer"
+                            : "Auto generating contract"}
                         </span>
                       </div>
                     </div>
@@ -117,7 +116,7 @@ function Hero({ isCreatorMode }) {
 
                 {!isCreatorMode && (
                   <div
-                    className={`${isCreatorMode ? 'w-28 top-52 lg:top-72' : 'w-36 top-36'} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                    className={`${isCreatorMode ? "w-28 top-52 lg:top-72" : "w-36 top-36"} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
                   >
                     <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
                       <div className="flex items-center space-x-2">
@@ -125,8 +124,8 @@ function Hero({ isCreatorMode }) {
                         <div>
                           <span className="text-[10px] text-black">
                             {isCreatorMode
-                              ? 'No revisions needed'
-                              : '1st draft received for review'}
+                              ? "No revisions needed"
+                              : "1st draft received for review"}
                           </span>
                         </div>
                       </div>
@@ -161,7 +160,7 @@ function Hero({ isCreatorMode }) {
                 )}
 
                 <div
-                  className={`${isCreatorMode ? 'top-60 right-16 lg:top-64 lg:right-56' : 'top-30 lg:top-60 right-16'} w-44 text-white rounded-lg bg-primary absolute  transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
+                  className={`${isCreatorMode ? "top-60 right-16 lg:top-64 lg:right-56" : "top-30 lg:top-60 right-16"} w-44 text-white rounded-lg bg-primary absolute  transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
                 >
                   <div className="relative rounded-lg px-2 py-1 shadow-lg">
                     <div className="flex items-center space-x-2">
@@ -169,8 +168,8 @@ function Hero({ isCreatorMode }) {
                       <div>
                         <span className="text-[10px]">
                           {isCreatorMode
-                            ? 'You received a rating on your recent campaign ⭐️⭐️⭐️⭐️⭐'
-                            : 'payment released to creator'}
+                            ? "You received a rating on your recent campaign ⭐️⭐️⭐️⭐️⭐"
+                            : "payment released to creator"}
                         </span>
                       </div>
                     </div>
