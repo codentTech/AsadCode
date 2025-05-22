@@ -422,8 +422,13 @@
 
 
 body {
-  background: #f0f2f5
+  background: #ffffff
 } 
+
+html {
+  scroll-behavior: smooth;
+}
+
 
 ::-webkit-scrollbar {
   width: 4px;

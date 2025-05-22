@@ -1,5 +1,5 @@
-import { CheckCircle } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { CheckCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 function HowCleerCutWorks({ isCreatorMode }) {
   const [activeStep, setActiveStep] = useState(0);
@@ -17,50 +17,50 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
   const steps = [
     {
-      title: isCreatorMode ? 'Set Up Your Portfolio' : 'Create a Campaign',
+      title: isCreatorMode ? "Set Up Your Portfolio" : "Create a Campaign",
       description: isCreatorMode
-        ? 'Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed.'
-        : 'Set deliverables, and budget in minutes.',
+        ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
+        : "Set deliverables, and budget in minutes.",
       image: isCreatorMode
-        ? '/assets/images/landing/portfolio Photoshopped.png'
-        : '/assets/images/landing/create campaign on iphone perfected (1).png',
+        ? "/assets/images/landing/portfolio Photoshopped.png"
+        : "/assets/images/landing/create campaign on iphone perfected (1).png",
     },
     {
-      title: isCreatorMode ? 'Discover Campaigns you Love' : 'Discover the Right Creators',
+      title: isCreatorMode ? "Discover Campaigns you Love" : "Discover the Right Creators",
       description: isCreatorMode
-        ? 'Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails'
-        : 'Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics',
+        ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
+        : "Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics",
       image: isCreatorMode
-        ? '/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png'
-        : '/assets/images/landing/Discover Perfect.png',
+        ? "/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"
+        : "/assets/images/landing/Discover Perfect.png",
     },
     {
-      title: isCreatorMode ? null : 'Review & Compare',
+      title: isCreatorMode ? null : "Review & Compare",
       description:
-        'Instantly view creator profiles, rates, content samples, audience data, and verified brand reviews — all in one place.',
-      image: '/assets/images/landing/portfolio Photoshopped.png',
+        "Instantly view creator profiles, rates, content samples, audience data, and verified brand reviews — all in one place.",
+      image: "/assets/images/landing/portfolio Photoshopped.png",
     },
     {
       title: isCreatorMode
-        ? 'Collaborate with Smart Campaign Management'
-        : 'Collaborate Inside the Smart Inbox',
+        ? "Collaborate with Smart Campaign Management"
+        : "Collaborate Inside the Smart Inbox",
       description: isCreatorMode
-        ? 'Negotiate deals, track deliverables, and manage deadlines — all in one organized inbox. With your new Smart Inbox, keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate.'
-        : 'Message creators, assign deliverables, track revisions, and manage deadlines — all within a single, campaign-organized thread. You can also sort through message requests from creators who cold-pitch you directly, making it easy to spot high-potential inbound talent.',
+        ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized inbox. With your new Smart Inbox, keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
+        : "Message creators, assign deliverables, track revisions, and manage deadlines — all within a single, campaign-organized thread. You can also sort through message requests from creators who cold-pitch you directly, making it easy to spot high-potential inbound talent.",
       image: isCreatorMode
-        ? '/assets/images/landing/Creator inbox Completed.png'
-        : '/assets/images/landing/inbox on macbook office perfect (1).png',
+        ? "/assets/images/landing/Creator inbox Completed.png"
+        : "/assets/images/landing/inbox on macbook office perfected.png",
     },
     {
-      title: isCreatorMode ? 'Get Paid with Peace of Mind' : 'Finalize, Protect, and Pay',
+      title: isCreatorMode ? "Get Paid with Peace of Mind" : "Finalize, Protect, and Pay",
       description: isCreatorMode
-        ? 'CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps.'
-        : 'Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.',
+        ? "CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps."
+        : "Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.",
       image: isCreatorMode
-        ? '/assets/images/landing/hero-bg-3.jpeg'
-        : '/assets/images/landing/reports on mac Perfect (1).png',
+        ? "/assets/images/landing/hero-bg-3.jpeg"
+        : "/assets/images/landing/reports on mac Perfected.png",
     },
-  ];
+  ].filter((s) => s.title);
 
   return (
     <section className="py-24 bg-gradient-to-tr from-blue-300/30 to-transparent overflow-hidden">
@@ -85,13 +85,13 @@ function HowCleerCutWorks({ isCreatorMode }) {
                       onMouseLeave={() => setDisableAutoRotate(false)}
                       className={`p-4 rounded-lg cursor-pointer transition-all duration-300 flex gap-4 items-start ${
                         activeStep === idx
-                          ? 'bg-white shadow-lg border-l-4 border-primary'
-                          : 'hover:bg-white/50'
+                          ? "bg-white shadow-lg border-l-4 border-primary"
+                          : "hover:bg-white/50"
                       }`}
                     >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                          activeStep === idx ? 'bg-primary text-white' : 'bg-primary text-white'
+                          activeStep === idx ? "bg-primary text-white" : "bg-primary text-white"
                         }`}
                       >
                         {activeStep === idx ? (
@@ -102,7 +102,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
                       </div>
                       <div>
                         <h4
-                          className={`font-bold mb-1 ${activeStep === idx ? 'text-blue-600' : 'text-gray-800'}`}
+                          className={`font-bold mb-1 ${activeStep === idx ? "text-blue-600" : "text-gray-800"}`}
                         >
                           {step.title}
                         </h4>
@@ -123,21 +123,21 @@ function HowCleerCutWorks({ isCreatorMode }) {
                 <div
                   key={idx}
                   className={`absolute inset-0 transition-opacity duration-500 ${
-                    activeStep === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                    activeStep === idx ? "opacity-100" : "opacity-0 pointer-events-none"
                   }`}
                 >
                   <div className="h-full flex items-center justify-center">
                     <img
                       src={step.image}
-                      alt={`${isCreatorMode ? 'Creator' : 'Brand'} - ${step.title || 'Step'}`}
+                      alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
                       className={`max-w-full max-h-96 ${
                         [1, 3, 4].includes(idx) && !isCreatorMode
-                          ? 'object-contain'
-                          : 'object-contain'
+                          ? "object-contain"
+                          : "object-contain"
                       } rounded-lg mx-auto`}
                     />
 
-                    {isCreatorMode && step.image.includes('hero-bg-3') && (
+                    {isCreatorMode && step.image.includes("hero-bg-3") && (
                       <React.Fragment>
                         <div className="w-40 absolute top-24 right-2 md:right-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
                           <div className="relative bg-primary rounded-lg py-1 px-2 shadow-lg">
