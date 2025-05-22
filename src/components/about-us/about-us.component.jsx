@@ -1,15 +1,15 @@
-import { CheckCircle, Heart, Target } from 'lucide-react';
+import { CheckCircle, Heart, Target } from "lucide-react";
 
 export default function AboutUsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <header className="bg-gradient-to-br from-primary to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto py-6 md:py-24 px-4 sm:px-6 lg:px-8">
+      <header className="bg-gradient-to-br from-primary to-primary text-white">
+        <div className="max-w-7xl mx-auto py-4 md:py-8 px-4 sm:px-6 lg:px-8">
           <h1 className="text-white text-3xl md:text-6xl text-center font-extrabold leading-tight mb-4 drop-shadow-lg">
             About CleerCut
           </h1>
-          <p className="text-sm md:text-lg xl:text-xl text-indigo-100 max-w-4xl xl:max-w-7xl mx-auto font-light text-left lg:text-center">
+          <p className="text-sm md:text-lg xl:text-xl text-white max-w-4xl xl:max-w-7xl mx-auto font-light text-left lg:text-center">
             The first all-in-one platform designed to simplify and safeguard influencer
             collaborations — from first message to final payment.
           </p>
@@ -88,20 +88,20 @@ export default function AboutUsPage() {
               <ul className="space-y-3">
                 {[
                   {
-                    title: 'Collaboration should be simple:',
-                    desc: 'No more email chains, chasing people down for updates, or messy spreadsheets.',
+                    title: "Collaboration should be simple:",
+                    desc: "No more email chains, chasing people down for updates, or messy spreadsheets.",
                   },
                   {
-                    title: 'Trust should be built-in:',
-                    desc: 'Verified profiles, escrow payments, and mutual reviews protect both sides.',
+                    title: "Trust should be built-in:",
+                    desc: "Verified profiles, escrow payments, and mutual reviews protect both sides.",
                   },
                   {
-                    title: 'Creators are professionals:',
-                    desc: 'Media kits, contracts, and performance data should be easy to manage.',
+                    title: "Creators are professionals:",
+                    desc: "Media kits, contracts, and performance data should be easy to manage.",
                   },
                   {
-                    title: 'Brands deserve results:',
-                    desc: 'Brands should know exactly who they’re working with — and what they’re getting.',
+                    title: "Brands deserve results:",
+                    desc: "Brands should know exactly who they’re working with — and what they’re getting.",
                   },
                 ].map((value, idx) => (
                   <li className="ml-2 flex items-start" key={idx}>

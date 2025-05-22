@@ -1,12 +1,12 @@
-import Header from '@/components/header/header';
-import Footer from '../home/footer/footer.component';
-import CallToAction from './components/call-to-action/call-to-action';
-import CreatorBrandPrompt from './components/creator-brand-prompt/prompt.component';
-import Features from './components/features/features';
-import Hero from './components/hero/hero';
-import HowCleerCutWorks from './components/how-it-works/how-it-works';
-import WhyChooseCleercut from './components/why-choose-cleercut/why-choose-cleercut';
-import useLandingPageHook from './use-landing-page.hook';
+import Header from "@/components/header/header";
+import Footer from "../home/footer/footer.component";
+import CallToAction from "./components/call-to-action/call-to-action";
+import CreatorBrandPrompt from "./components/creator-brand-prompt/prompt.component";
+import Features from "./components/features/features";
+import Hero from "./components/hero/hero";
+import HowCleerCutWorks from "./components/how-it-works/how-it-works";
+import WhyChooseCleercut from "./components/why-choose-cleercut/why-choose-cleercut";
+import useLandingPageHook from "./use-landing-page.hook";
 
 export default function LandinPage() {
   const { isCreatorMode, handleSelectMode } = useLandingPageHook();
@@ -16,7 +16,6 @@ export default function LandinPage() {
       {isCreatorMode || isCreatorMode === false ? (
         <>
           {/* Navigation */}
-          <Header />
 
           {/* Hero Section */}
           <Hero isCreatorMode={isCreatorMode} />
@@ -33,8 +32,6 @@ export default function LandinPage() {
 
           {/* CTA Section */}
           <CallToAction />
-
-          <Footer />
         </>
       ) : (
         <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
