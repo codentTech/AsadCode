@@ -34,8 +34,7 @@ export default function PricingOptions() {
           >
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-indigo-700 opacity-10"></div>
             <div className="bg-white p-5 lg:p-10 h-full relative z-10 flex flex-col">
-              <div className="flex items-center mb-6">
-                <Zap className="h-8 w-8 mr-3 text-indigo-600" />
+              <div className="flex items-center mb-4">
                 <h2 className="text-lg xl:text-xl font-bold text-primary">Pay-As-You-Go</h2>
               </div>
 
@@ -77,7 +76,7 @@ export default function PricingOptions() {
               </div>
 
               <div className="mt-8">
-                <CustomButton text="Get Started" endIcon={<ArrowForward />} />
+                <CustomButton text="Get Started" />
               </div>
             </div>
           </div>
@@ -92,8 +91,7 @@ export default function PricingOptions() {
           >
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-700 opacity-10"></div>
             <div className="bg-white p-5 lg:p-10 h-full relative z-10 flex flex-col">
-              <div className="flex items-center mb-6">
-                <Award className="h-8 w-8 mr-3 text-indigo-600" />
+              <div className="flex items-center mb-4">
                 <h2 className="text-lg xl:text-xl font-bold text-primary">Flat-Rate Plans</h2>
               </div>
 
@@ -166,7 +164,7 @@ export default function PricingOptions() {
               </div>
 
               <div className="w-full mt-8">
-                <CustomButton text="Choose Plan" endIcon={<ArrowForward />} />
+                <CustomButton text="Choose Plan" />
               </div>
             </div>
 

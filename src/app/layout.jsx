@@ -6,12 +6,12 @@ import "@/common/styles/home.style.scss";
 import Header from "@/components/header/header";
 import Footer from "@/components/home/footer/footer.component";
 import { persistor, store } from "@/provider/store";
-
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
-import { Provider } from "react-redux";
+import React from "react";
+import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
@@ -25,6 +25,24 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   },
 }));
 
+function LayoutWrapper({ children }) {
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+
+  return (
+    <>
+      {isCreatorMode || isCreatorMode === false ? (
+        <React.Fragment>
+          <Header />
+          <div className="pt-20">{children}</div>
+          <Footer />
+        </React.Fragment>
+      ) : (
+        <React.Fragment>{children}</React.Fragment>
+      )}
+    </>
+  );
+}
+
 /**
  * It is a root wrapper for all pages
  * @param {children} props
@@ -34,7 +52,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Font Awesome 4 CDN */}
         <title>Cleercut</title>
         <link
           rel="stylesheet"
@@ -52,12 +69,9 @@ export default function RootLayout({ children }) {
               error: StyledMaterialDesignContent,
             }}
           >
-            {/* <Provider store={store}>{children}</Provider> */}
             <Provider store={store}>
               <PersistGate loading={null} persistor={persistor}>
-                <Header />
-                <div className="pt-20">{children}</div>
-                <Footer />
+                <LayoutWrapper>{children}</LayoutWrapper>
               </PersistGate>
             </Provider>
           </SnackbarProvider>

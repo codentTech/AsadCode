@@ -127,9 +127,15 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-6 md:mb-0">
             <div className="flex flex-col items-center lg:items-start col-span-1">
-              <img src="/assets/images/horizontal-logo.png" alt="Your Logo" className="h-[90px]" />
+              <Link href="/">
+                <img
+                  src="/assets/images/horizontal-logo.png"
+                  alt="Your Logo"
+                  className="h-[90px]"
+                />
+              </Link>
               <p className="mb-4 text-sm text-gray-600">
-                Join our exclusive community and stay ahead with updates.
+                Email us at <span className="text-primary">partnerships@cleercut.com</span>
               </p>
               <CustomButton text="Get Started" onClick={() => setIsOpen(true)}></CustomButton>
             </div>
@@ -250,28 +256,28 @@ const Footer = () => {
             <Link
               href="https://www.tiktok.com/@cleercut_?_t=ZT-8wYDbw8X7Cl&_r=1"
               target="_blank"
-              className="text-primary hover:text-indigo-800 transition-colors"
+              className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <Twitter />
             </Link>
             <Link
               href="https://www.linkedin.com/in/cleer-cut-578618362?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
               target="_blank"
-              className="text-primary hover:text-indigo-800 transition-colors"
+              className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <LinkedIn />
             </Link>
             <Link
               href="https://www.facebook.com/profile.php?id=61576240868963&mibextid=wwXIfr"
               target="_blank"
-              className="text-primary hover:text-indigo-800 transition-colors"
+              className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <Facebook />
             </Link>
             <Link
-              href="https://www.instagram.com/darren_jamess?igsh=NTc4MTIwNjQ2YQ%3D%3D&utm_source=qr"
+              href="https://www.instagram.com/cleercut?igsh=NTc4MTIwNjQ2YQ%3D%3D&utm_source=qr"
               target="_blank"
-              className="text-primary hover:text-indigo-800 transition-colors"
+              className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <Instagram />
             </Link>

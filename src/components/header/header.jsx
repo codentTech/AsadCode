@@ -19,6 +19,12 @@ function Header() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <Link
+            href="/"
+            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
+          >
+            Home
+          </Link>
+          <Link
             href="#features"
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
@@ -65,6 +71,12 @@ function Header() {
         }`}
       >
         <div className="flex flex-col px-6 py-6 space-y-4">
+          <Link
+            href="/"
+            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
+          >
+            Home
+          </Link>
           <Link
             href="#features"
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
