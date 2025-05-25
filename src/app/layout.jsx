@@ -8,6 +8,7 @@ import Footer from "@/components/home/footer/footer.component";
 import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
+import { usePathname } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
@@ -26,16 +27,23 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
 }));
 
 function LayoutWrapper({ children }) {
+  const pathname = usePathname();
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+
+  const layoutNotToShow = ["/dashboard"];
 
   return (
     <>
       {isCreatorMode || isCreatorMode === false ? (
-        <React.Fragment>
-          <Header />
-          <div className="pt-20">{children}</div>
-          <Footer />
-        </React.Fragment>
+        !layoutNotToShow.includes(pathname) ? (
+          <React.Fragment>
+            <Header />
+            <div className="pt-20">{children}</div>
+            <Footer />
+          </React.Fragment>
+        ) : (
+          <React.Fragment>{children}</React.Fragment>
+        )
       ) : (
         <React.Fragment>{children}</React.Fragment>
       )}
