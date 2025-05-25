@@ -6,7 +6,7 @@ import useHero from "./use-hero";
 function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
   return (
-    <section className="relative pt-20 overflow-hidden bg-white">
+    <section className="relative pt-8 overflow-hidden bg-white">
       {/* Abstract background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-indigo-50 via-white to-indigo-50 opacity-70"></div>
