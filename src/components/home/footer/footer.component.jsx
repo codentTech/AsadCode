@@ -135,7 +135,7 @@ const Footer = () => {
                 />
               </Link>
               <p className="mb-4 text-sm text-gray-600">
-                Join our exclusive community and stay ahead with updates.
+                Email us at <span className="text-primary">partnerships@cleercut.com</span>
               </p>
               <CustomButton text="Get Started" onClick={() => setIsOpen(true)}></CustomButton>
             </div>
