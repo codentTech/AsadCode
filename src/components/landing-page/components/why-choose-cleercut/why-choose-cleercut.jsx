@@ -25,13 +25,6 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       competitorNote: "$2,000–$5,000+/month (annual contracts required)",
     },
     {
-      name: "8.5% Commission",
-      cleercut: true,
-      competitor: false,
-      cleerCutNote: "Transparent, lower fees",
-      competitorNote: "15–30% commission or high monthly subscription",
-    },
-    {
       name: "All-in-One: CRM, Contracts & Payments",
       cleercut: true,
       competitor: false,
@@ -110,13 +103,6 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       competitor: false,
       cleerCutNote: "Only the 3.2% payment processing fee deducted",
       competitorNote: "10–30% commission on other platforms + agencies",
-    },
-    {
-      name: "4.5% Commission",
-      cleercut: true,
-      competitor: false,
-      cleerCutNote: "Transparent, lower fees",
-      competitorNote: "10–30% on other platforms + agencies",
     },
     {
       name: "All-in-One Dashboard",
