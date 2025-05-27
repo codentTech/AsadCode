@@ -8,9 +8,11 @@ import Footer from "@/components/home/footer/footer.component";
 import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
+import { Loader } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
@@ -26,16 +28,63 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
 }));
 
 function LayoutWrapper({ children }) {
+  const pathname = usePathname();
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+
+  const layoutNotToShow = ["/dashboard"];
+
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleStart = () => setLoading(true);
+    const handleComplete = () => setLoading(false);
+
+    // Next.js App Router doesn’t expose router events like Pages Router
+    // but we can use the usePathname hook to detect route changes
+
+    setLoading(true); // start loading on path change
+    // Delay hiding loading state a bit for smoothness
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
 
   return (
     <>
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.9)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div className="loader">
+            <Loader />
+          </div>
+        </div>
+      )}
       {isCreatorMode || isCreatorMode === false ? (
-        <React.Fragment>
-          <Header />
-          <div className="pt-20">{children}</div>
-          <Footer />
-        </React.Fragment>
+        !layoutNotToShow.includes(pathname) ? (
+          <React.Fragment>
+            <Header />
+            <div className="pt-20">{children}</div>
+            <Footer />
+          </React.Fragment>
+        ) : (
+          <React.Fragment>{children}</React.Fragment>
+        )
       ) : (
         <React.Fragment>{children}</React.Fragment>
       )}
