@@ -5,6 +5,7 @@ import Link from "next/link";
 
 function Header() {
   const { router, scrolled, mobileMenuOpen, setMobileMenuOpen } = useHeader();
+
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -20,37 +21,39 @@ function Header() {
         <div className="hidden md:flex items-center space-x-8">
           <Link
             href="/"
+            prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Home
           </Link>
           <Link
-            href="#features"
+            href="/#features"
+            prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Features
           </Link>
-          <p
-            onClick={() => router.push("/solution")}
+          <Link
+            href="/solution"
+            prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Solutions
-          </p>
-          <p
-            onClick={() => router.push("/pricing")}
+          </Link>
+          <Link
+            href="/pricing"
+            prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Pricing
-          </p>
-          <p
-            onClick={() => {
-              console.log("clicked");
-              router.push("/about-us");
-            }}
+          </Link>
+          <Link
+            href="/about-us"
+            prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             About
-          </p>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
