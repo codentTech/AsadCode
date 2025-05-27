@@ -1,38 +1,20 @@
 "use client";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
+import { SplittedDate } from "@/common/utils/formate-date";
 import { Download, Eye, Filter, Mail, Trash2, UserCheck } from "lucide-react";
-import { useState } from "react";
 import useWaitingList from "./use-waiting-list.hook";
 
-const WaitingList = ({ users }) => {
-  const { loading, waitingList, error, refetch } = useWaitingList();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  console.log(waitingList);
-  // Filter users based on search term
-  const filteredUsers = users.filter((user) =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-  };
-
-  // Define table columns
-  const columns = [
-    {
-      key: "email",
-      title: "Email",
-    },
-    {
-      key: "joinedDate",
-      title: "Joined Date",
-    },
-    {
-      key: "status",
-      title: "Status",
-    },
-  ];
+const WaitingList = () => {
+  const {
+    searchTerm,
+    filteredUsers,
+    columns,
+    selectedUsers,
+    handleSearchChange,
+    handleExport,
+    handleSelectionChange,
+    handleActionClick,
+  } = useWaitingList();
 
   // Define actions
   const actions = [
@@ -55,7 +37,7 @@ const WaitingList = ({ users }) => {
 
   // Custom cell renderers
   const customCellRenderer = {
-    email: (value, row) => (
+    email: (value) => (
       <div className="flex items-center">
         <div className="flex-shrink-0 h-10 w-10">
           <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -63,13 +45,11 @@ const WaitingList = ({ users }) => {
           </div>
         </div>
         <div className="ml-4">
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-600">{value}</div>
         </div>
       </div>
     ),
-    joinedDate: (value) => (
-      <span className="text-sm text-gray-500">{new Date(value).toLocaleDateString()}</span>
-    ),
+    created_at: (value) => <span className="text-sm text-gray-600">{SplittedDate(value)}</span>,
     status: (value) => {
       const getStatusColor = (status) => {
         switch (status) {
@@ -114,50 +94,6 @@ const WaitingList = ({ users }) => {
         </span>
       );
     },
-  };
-
-  // Handle action clicks
-  const handleActionClick = (actionKey, row) => {
-    switch (actionKey) {
-      case "view":
-        console.log("View user:", row);
-        // alert(`Viewing details for ${row.email}`);
-        break;
-      case "approve":
-        console.log("Approve user:", row);
-        // alert(`Approved user ${row.email}`);
-        break;
-      case "delete":
-        console.log("Delete user:", row);
-        if (confirm(`Are you sure you want to delete ${row.email}?`)) {
-          // alert(`Deleted user ${row.email}`);
-        }
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Handle selection change
-  const handleSelectionChange = (selectedIds) => {
-    setSelectedUsers(selectedIds);
-  };
-
-  const handleExport = () => {
-    const csvContent = [
-      ["Email", "Joined Date", "Status", "Priority"],
-      ...filteredUsers.map((user) => [user.email, user.joinedDate, user.status, user.priority]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "waitlist-users.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
   };
 
   return (

@@ -3,6 +3,7 @@
 import SearchIcon from "@/common/icons/search-icon";
 import PropTypes from "prop-types";
 import React from "react";
+import ActionDropdownPortal from "../action-portal/action-portal.component";
 import CustomInput from "../custom-input/custom-input.component";
 import { useCustomDataTable } from "./use-custom-data-table.hook";
 
@@ -157,7 +158,7 @@ const CustomDataTable = ({
         <table className={`w-full ${tableClassName}`}>
           {/* Header */}
           {showHeader && (
-            <thead className={`bg-gray-50 border-b ${headerClassName}`}>
+            <thead className={`z-10 bg-gray-50 border-b ${headerClassName}`}>
               <tr>
                 {/* Selection checkbox */}
                 {selectable && (
@@ -267,6 +268,7 @@ const CustomDataTable = ({
                       <td className="px-4 py-3 relative">
                         <button
                           onClick={() => handleActionRowToggle(row.id)}
+                          ref={actionRef}
                           className="p-2 rounded hover:bg-gray-100"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -275,10 +277,7 @@ const CustomDataTable = ({
                         </button>
 
                         {activeActionRow === row.id && (
-                          <div
-                            ref={actionRef}
-                            className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10"
-                          >
+                          <ActionDropdownPortal targetRef={actionRef}>
                             {actions.map((action) => (
                               <button
                                 key={action.key}
@@ -289,7 +288,7 @@ const CustomDataTable = ({
                                 {action.label}
                               </button>
                             ))}
-                          </div>
+                          </ActionDropdownPortal>
                         )}
                       </td>
                     )}
@@ -303,7 +302,7 @@ const CustomDataTable = ({
 
       {/* Pagination */}
       {paginated && totalRecordsCount > 0 && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex items-center justify-between">
+        <div className="z-10 px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex items-center justify-between">
           <div className="flex items-center text-sm text-gray-700">
             <span>Show</span>
             <select

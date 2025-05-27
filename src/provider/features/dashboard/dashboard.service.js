@@ -7,7 +7,7 @@ const getDashboardStats = async () => {
 
 const fetchAllUserWaitinglist = async () => {
   const response = await api().get("/user/waitlist");
-  return response;
+  return response.data;
 };
 
 const dashboardService = {

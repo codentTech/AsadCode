@@ -18,7 +18,7 @@ export const getDashboardStats = createAsyncThunk(
   async ({ errorCallBack, successCallBack }, thunkAPI) => {
     try {
       const response = await dashboardService.getDashboardStats();
-      if (response.Succeeded) {
+      if (response.success) {
         successCallBack(response.data);
         return response.data;
       }
@@ -32,16 +32,17 @@ export const getDashboardStats = createAsyncThunk(
 
 export const fetchAllUserWaitinglist = createAsyncThunk(
   "dashboard/waiting-list",
-  async ({ errorCallBack }, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
       const response = await dashboardService.fetchAllUserWaitinglist();
+
       if (response.success) {
-        return response.data;
+        return response;
       }
-      errorCallBack();
+
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(error);
     }
   }
 );
@@ -92,7 +93,12 @@ export const dashboardSlice = createSlice({
         state.fetchAllUserWaitinglist.isSuccess = true;
         state.fetchAllUserWaitinglist.data = action.payload;
       })
-      .addCase(fetchAllUserWaitinglist.rejected, (state, action) => {});
+      .addCase(fetchAllUserWaitinglist.rejected, (state, action) => {
+        state.fetchAllUserWaitinglist.message = action.payload.message;
+        state.fetchAllUserWaitinglist.isLoading = false;
+        state.fetchAllUserWaitinglist.isError = true;
+        state.fetchAllUserWaitinglist.data = null;
+      });
   },
 });
 
