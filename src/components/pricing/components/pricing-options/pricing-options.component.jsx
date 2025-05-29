@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { Check } from "lucide-react";
 import { useState } from "react";
 
 const payAsYouGoFeatures = [
@@ -67,10 +68,9 @@ export default function PricingOptions() {
 
               <div className="text-xs md:text-sm space-y-3 mb-4 flex-grow">
                 {payAsYouGoFeatures.map((item, i) => (
-                  <div key={i} className="relative flex items-start">
-                    <span className="absolute left-0 top-1.5 h-2 w-2 bg-indigo-500 rounded-full"></span>
-
-                    <p className="pl-4 text-gray-600">{item.title}</p>
+                  <div key={i} className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mt-1" />
+                    <p className="ml-3 text-gray-600">{item.title}</p>
                   </div>
                 ))}
               </div>
@@ -81,10 +81,9 @@ export default function PricingOptions() {
 
               <div className="text-xs md:text-sm space-y-3 mb-8">
                 {unlimitedPlanFeatures.map((item, i) => (
-                  <div key={i} className="relative flex items-start">
-                    <span className="absolute left-0 top-1.5 h-2 w-2 bg-indigo-500 rounded-full"></span>
-
-                    <p className="pl-4 text-gray-600">{item.title}</p>
+                  <div key={i} className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mt-1" />
+                    <p className="ml-3 text-gray-600">{item.title}</p>
                   </div>
                 ))}
               </div>
@@ -120,10 +119,9 @@ export default function PricingOptions() {
                     <h3 className="text-[16px] font-bold text-gray-600 mb-2">{plan.name}</h3>
                     <div className="ml-2 space-y-1">
                       {plan.features.map((feature, j) => (
-                        <div key={j} className="relative flex items-start">
-                          <span className="absolute left-0 top-1.5 h-2 w-2 bg-indigo-500 rounded-full"></span>
-
-                          <p className="pl-4 text-gray-600">{feature}</p>
+                        <div key={j} className="flex items-start">
+                          <Check className="h-5 w-5 text-primary mt-1" />
+                          <p className="ml-3 text-gray-600">{feature}</p>
                         </div>
                       ))}
                     </div>
