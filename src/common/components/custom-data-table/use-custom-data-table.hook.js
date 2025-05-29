@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 
 export const useCustomDataTable = ({
+  actions = [],
   data = [],
   columns = [],
   initialSortConfig = { key: null, direction: "asc" },
@@ -22,7 +23,9 @@ export const useCustomDataTable = ({
   const [activeActionRow, setActiveActionRow] = useState(null);
   const [internalCurrentPage, setInternalCurrentPage] = useState(currentPage);
   const [internalPageSize, setInternalPageSize] = useState(pageSize);
-  const actionRef = useRef(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [activeActionRowId, setActiveActionRowId] = useState(null);
+  const actionButtonRefs = useRef({});
 
   // Update internal state when external props change
   useEffect(() => {
@@ -33,16 +36,67 @@ export const useCustomDataTable = ({
     setInternalPageSize(pageSize);
   }, [pageSize]);
 
-  // Close action dropdown when clicking outside
+  // Handle action dropdown positioning and toggle
+  const handleActionRowToggle = (rowId, event) => {
+    if (activeActionRowId === rowId) {
+      setActiveActionRowId(null);
+      return;
+    }
+
+    const button = event.currentTarget;
+    const buttonRect = button.getBoundingClientRect();
+    const tableContainer = button.closest(".overflow-x-auto");
+    const tableRect = tableContainer.getBoundingClientRect();
+
+    // Calculate position relative to the table container
+    const relativeTop = buttonRect.top - tableRect.top;
+    const relativeLeft = buttonRect.left - tableRect.left;
+
+    // Dropdown dimensions (approximate)
+    const dropdownWidth = 200;
+    const dropdownHeight = actions.length * 40; // approximate height per action
+
+    // Calculate optimal position
+    let top = relativeTop + buttonRect.height + 4; // 4px offset
+    let left = relativeLeft - dropdownWidth + buttonRect.width;
+
+    // Check if dropdown would go outside table bounds
+    const tableWidth = tableRect.width;
+    const tableHeight = tableRect.height;
+
+    // Adjust horizontal position if dropdown would overflow
+    if (left < 0) {
+      left = relativeLeft; // Align to left of button
+    }
+    if (left + dropdownWidth > tableWidth) {
+      left = tableWidth - dropdownWidth - 10; // 10px margin from edge
+    }
+
+    // Adjust vertical position if dropdown would overflow
+    if (top + dropdownHeight > tableHeight) {
+      top = relativeTop - dropdownHeight - 4; // Show above button
+    }
+
+    // Ensure dropdown doesn't go above table
+    if (top < 0) {
+      top = 4; // Small margin from top
+    }
+
+    setDropdownPosition({ top, left });
+    setActiveActionRowId(rowId);
+  };
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (actionRef.current && !actionRef.current.contains(event.target)) {
-        setActiveActionRow(null);
+      if (activeActionRowId && !event.target.closest(".action-dropdown-container")) {
+        setActiveActionRowId(null);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [activeActionRowId]);
 
   // Handle sorting
   const handleSort = (columnKey) => {
@@ -162,6 +216,11 @@ export const useCustomDataTable = ({
     }
   };
 
+  const handleActionClick = (actionKey, row, onActionClick) => {
+    onActionClick?.(actionKey, row);
+    setActiveActionRow(null);
+  };
+
   // Selection state calculations
   const currentPageIds = paginatedData.map((row) => row.id);
   const selectedCurrentPageIds = selectedIds.filter((id) => currentPageIds.includes(id));
@@ -169,16 +228,6 @@ export const useCustomDataTable = ({
     currentPageIds.length > 0 && selectedCurrentPageIds.length === currentPageIds.length;
   const isIndeterminate =
     selectedCurrentPageIds.length > 0 && selectedCurrentPageIds.length < currentPageIds.length;
-
-  // Action handlers
-  const handleActionRowToggle = (rowId) => {
-    setActiveActionRow(activeActionRow === rowId ? null : rowId);
-  };
-
-  const handleActionClick = (actionKey, row, onActionClick) => {
-    onActionClick?.(actionKey, row);
-    setActiveActionRow(null);
-  };
 
   return {
     // Data
@@ -205,8 +254,12 @@ export const useCustomDataTable = ({
     handleRowSelect,
 
     // Actions
+    actionButtonRefs,
+    dropdownPosition,
+    setDropdownPosition,
+    activeActionRowId,
+    setActiveActionRowId,
     activeActionRow,
-    actionRef,
     handleActionRowToggle,
     handleActionClick,
 

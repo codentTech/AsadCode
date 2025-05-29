@@ -27,7 +27,6 @@ export const formatDate = (dateString) => {
 };
 
 export const SplittedDate = (date) => {
-  console.log(date);
   if (!date) return "Invalid date";
   return date.split("T")[0];
 };
