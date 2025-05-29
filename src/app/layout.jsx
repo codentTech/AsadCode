@@ -31,7 +31,7 @@ function LayoutWrapper({ children }) {
   const pathname = usePathname();
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
-  const layoutNotToShow = ["/dashboard"];
+  const layoutNotToShow = ["/dashboard", "/login"];
 
   const router = useRouter();
 
