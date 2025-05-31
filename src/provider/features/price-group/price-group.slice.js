@@ -1,22 +1,22 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import priceGroupService from './price-group.service';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import priceGroupService from "./price-group.service";
 
 const initialState = {
-  create: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
-  update: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
+  create: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
+  update: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
   getSingle: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
-  getAll: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
-  delete: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' }
+  getAll: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
+  delete: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
 };
 
 export const createPriceGroup = createAsyncThunk(
-  'priceGroup/create',
+  "priceGroup/create",
   async ({ payload, successCallBack = null }, thunkAPI) => {
     try {
       const response = await priceGroupService.createPriceGroup(payload);
@@ -34,7 +34,7 @@ export const createPriceGroup = createAsyncThunk(
 );
 
 export const getSinglePriceGroup = createAsyncThunk(
-  'priceGroup/get',
+  "priceGroup/get",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await priceGroupService.getSinglePriceGroup(payload);
@@ -48,23 +48,20 @@ export const getSinglePriceGroup = createAsyncThunk(
   }
 );
 
-export const getAllPriceGroup = createAsyncThunk(
-  'priceGroup/getAll',
-  async (payload, thunkAPI) => {
-    try {
-      const response = await priceGroupService.getAllPriceGroup();
-      if (response.Succeeded) {
-        return response.data;
-      }
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+export const getAllPriceGroup = createAsyncThunk("priceGroup/getAll", async (payload, thunkAPI) => {
+  try {
+    const response = await priceGroupService.getAllPriceGroup();
+    if (response.Succeeded) {
+      return response.data;
     }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    return thunkAPI.rejectWithValue({ payload: error });
   }
-);
+});
 
 export const updatePriceGroup = createAsyncThunk(
-  'priceGroup/update',
+  "priceGroup/update",
   async ({ payload: { id, data } }, thunkAPI) => {
     try {
       const response = await priceGroupService.updatePriceGroup(id, data);
@@ -79,7 +76,7 @@ export const updatePriceGroup = createAsyncThunk(
 );
 
 export const deletePriceGroup = createAsyncThunk(
-  'priceGroup/delete',
+  "priceGroup/delete",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await priceGroupService.deletePriceGroup(payload);
@@ -94,14 +91,14 @@ export const deletePriceGroup = createAsyncThunk(
 );
 
 export const priceGroupSlice = createSlice({
-  name: 'priceGroup',
+  name: "priceGroup",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(createPriceGroup.pending, (state) => {
         state.create.isLoading = true;
-        state.create.message = '';
+        state.create.message = "";
         state.create.isError = false;
         state.create.isSuccess = false;
         state.create.data = null;
@@ -119,7 +116,7 @@ export const priceGroupSlice = createSlice({
       })
       .addCase(updatePriceGroup.pending, (state) => {
         state.update.isLoading = true;
-        state.update.message = '';
+        state.update.message = "";
         state.update.isError = false;
         state.update.isSuccess = false;
         state.update.data = null;
@@ -137,7 +134,7 @@ export const priceGroupSlice = createSlice({
       })
       .addCase(getSinglePriceGroup.pending, (state) => {
         state.getSingle.isLoading = true;
-        state.getSingle.message = '';
+        state.getSingle.message = "";
         state.getSingle.isError = false;
         state.getSingle.isSuccess = false;
         state.getSingle.data = null;
@@ -155,7 +152,7 @@ export const priceGroupSlice = createSlice({
       })
       .addCase(getAllPriceGroup.pending, (state) => {
         state.getAll.isLoading = true;
-        state.getAll.message = '';
+        state.getAll.message = "";
         state.getAll.isError = false;
         state.getAll.isSuccess = false;
         state.getAll.data = null;
@@ -166,7 +163,6 @@ export const priceGroupSlice = createSlice({
         state.getAll.data = action.payload;
       })
       .addCase(getAllPriceGroup.rejected, (state, action) => {
-        console.log(action);
         state.getAll.message = action.payload.message;
         state.getAll.isLoading = false;
         state.getAll.isError = true;
@@ -174,7 +170,7 @@ export const priceGroupSlice = createSlice({
       })
       .addCase(deletePriceGroup.pending, (state) => {
         state.delete.isLoading = true;
-        state.delete.message = '';
+        state.delete.message = "";
         state.delete.isError = false;
         state.delete.isSuccess = false;
         state.delete.data = null;
@@ -190,7 +186,7 @@ export const priceGroupSlice = createSlice({
         state.delete.isError = true;
         state.delete.data = null;
       });
-  }
+  },
 });
 
 export default priceGroupSlice.reducer;

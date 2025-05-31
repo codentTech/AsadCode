@@ -1,24 +1,22 @@
-import { enqueueSnackbar } from 'notistack';
-import striptags from 'striptags';
+import { enqueueSnackbar } from "notistack";
+import striptags from "striptags";
 import {
   invoiceAmountWithOutVAT,
   invoiceAmountWithVAT,
   lineItemNetAmount,
-  plusVat
-} from '../product-calculations/amount-calculations';
-import calculateProductTotalPrice from '../product-calculations/calculate-product-total';
+  plusVat,
+} from "../product-calculations/amount-calculations";
+import calculateProductTotalPrice from "../product-calculations/calculate-product-total";
 
 const handleDownloadXml = ({ data, module }) => {
   let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <${module}>`; // Initialize the XML content with a root <$> element.
 
-  console.log(data);
-
   data?.forEach((item, index) => {
     if (index !== 0) {
       // Add a separator before each module except the first one
       xmlContent +=
-        '\n<separator>\n\n--------------------------------------------------------------------------------------------------\n\n</separator>\n\n';
+        "\n<separator>\n\n--------------------------------------------------------------------------------------------------\n\n</separator>\n\n";
     }
 
     // Remove html tags from texts
@@ -28,16 +26,14 @@ const handleDownloadXml = ({ data, module }) => {
     );
     const cleanedDisclaimer = striptags(
       (item[`${module}Disclaimer`] &&
-        item[`${module}Disclaimer`]?.disclaimerDescription.replace(/&nbsp;/g, '')) ||
-        (item.disclaimer && item.disclaimer.description.replace(/&nbsp;/g, ''))
+        item[`${module}Disclaimer`]?.disclaimerDescription.replace(/&nbsp;/g, "")) ||
+        (item.disclaimer && item.disclaimer.description.replace(/&nbsp;/g, ""))
     );
     const cleanedTermsAndCondition = striptags(
-      (item?.termsAndConditions && item?.termsAndConditions.replace(/&nbsp;/g, '')) ||
-        (item.disclaimer && item.disclaimer.replace(/&nbsp;/g, ''))
+      (item?.termsAndConditions && item?.termsAndConditions.replace(/&nbsp;/g, "")) ||
+        (item.disclaimer && item.disclaimer.replace(/&nbsp;/g, ""))
     );
-    const cleanedCopyright = striptags(
-      item?.copyRight && item?.copyRight.replace(/&nbsp;/g, '')
-    );
+    const cleanedCopyright = striptags(item?.copyRight && item?.copyRight.replace(/&nbsp;/g, ""));
 
     // VAT calculation
     const vat = plusVat(item[`${module}Products`]);
@@ -65,7 +61,7 @@ const handleDownloadXml = ({ data, module }) => {
               item?.customer && item?.customer.mendateReferance
             }</mendateReferance>
             <mandateGenerateDate>${
-              item?.customer && item?.customer.mandateGenerateDate?.split('T')[0]
+              item?.customer && item?.customer.mandateGenerateDate?.split("T")[0]
             }</mandateGenerateDate>
             <country>${
               (item.customerContactPerson && item.customerContactPerson.country) ||
@@ -82,9 +78,7 @@ const handleDownloadXml = ({ data, module }) => {
             <addressSupplement>${
               item?.customer && item?.customer.addressSupplement
             }</addressSupplement>
-            <addressSupplement>${
-              item?.customer && item?.customer.streetNo
-            }</addressSupplement>
+            <addressSupplement>${item?.customer && item?.customer.streetNo}</addressSupplement>
             <accountOwnerName>${
               item?.customer && item?.customer.accountOwnerName
             }</accountOwnerName>
@@ -92,15 +86,14 @@ const handleDownloadXml = ({ data, module }) => {
             <status>${item && item?.status}</status>
             <contactPersonName>${
               item.customerContactPerson &&
-              `${item.customerContactPerson.firstName ?? ''} ${
-                item.customerContactPerson.lastName ?? ''
+              `${item.customerContactPerson.firstName ?? ""} ${
+                item.customerContactPerson.lastName ?? ""
               }`
             }</contactPersonName>
             <mobile>${item?.customer && item?.customer.companyMobile}</mobile>
             <email>${item?.customer && item?.customer.companyEmail}</email>
             <addressLabel>${
-              (item?.customerCompanyAddress &&
-                item?.customerCompanyAddress.addressLabel) ||
+              (item?.customerCompanyAddress && item?.customerCompanyAddress.addressLabel) ||
               (item?.customer && item?.customer.address)
             }</addressLabel>
             <streatNo>${
@@ -122,8 +115,7 @@ const handleDownloadXml = ({ data, module }) => {
             <footer>
               <disclaimerTitle>
               ${
-                (item[`${module}Disclaimer`] &&
-                  item[`${module}Disclaimer`].disclaimerTitle) ||
+                (item[`${module}Disclaimer`] && item[`${module}Disclaimer`].disclaimerTitle) ||
                 (item.disclaimer && item.disclaimer.title)
               }
               </disclaimerTitle>
@@ -137,26 +129,18 @@ const handleDownloadXml = ({ data, module }) => {
           ${item[`${module}Products`]?.map((product, index) => {
             return `<Product-${index + 1}>
             <productName>${
-              product?.productName ||
-              (product?.product && product?.product?.productName) ||
-              0
+              product?.productName || (product?.product && product?.product?.productName) || 0
             }</productName>
             <description>${
-              product?.description ||
-              (product?.product && product?.product?.description) ||
-              0
+              product?.description || (product?.product && product?.product?.description) || 0
             }</description>
             <quantity>${
               product?.quantity || (product?.product && product?.product?.quantity) || 0
             }</quantity>
             <positionNo>${
-              product?.positionNo ||
-              (product?.product && product?.product?.positionNo) ||
-              0
+              product?.positionNo || (product?.product && product?.product?.positionNo) || 0
             }</positionNo>
-            <unit>${
-              product?.unit || (product?.product && product?.product?.unit) || 0
-            }</unit>
+            <unit>${product?.unit || (product?.product && product?.product?.unit) || 0}</unit>
             <price>${
               product?.netPrice || (product?.product && product?.product?.netPrice) || 0
             }</price>
@@ -169,17 +153,15 @@ const handleDownloadXml = ({ data, module }) => {
               (product && product?.lineItemDiscount) ||
               (product?.discountGroups &&
                 product?.discountGroups[0]?.ProductDiscountGroup.discount) ||
-              (product?.discountGroups &&
-                product?.discountGroups[0]?.ProductDiscountGroup.disco) ||
-              (product?.discountGroups &&
-                product?.discountGroups[0]?.ProductDiscountGroup.dis) ||
+              (product?.discountGroups && product?.discountGroups[0]?.ProductDiscountGroup.disco) ||
+              (product?.discountGroups && product?.discountGroups[0]?.ProductDiscountGroup.dis) ||
               0
             }</discount>
             <total>${calculateProductTotalPrice({
               discount: product.lineItemDiscount,
               discountGroups: product.discountGroups,
               quantity: product.quantity || 0,
-              netPrice: product.netPrice || 0
+              netPrice: product.netPrice || 0,
             })}</total>
             </Product-${index + 1}>`;
           })}
@@ -194,16 +176,16 @@ const handleDownloadXml = ({ data, module }) => {
 </${module}>`; // Close the root <offers> element
 
   // Create a Blob from the XML content
-  const blob = new Blob([xmlContent], { type: 'application/xml' });
-  enqueueSnackbar('XML file downloaded successfully!', {
-    variant: 'success'
+  const blob = new Blob([xmlContent], { type: "application/xml" });
+  enqueueSnackbar("XML file downloaded successfully!", {
+    variant: "success",
   });
 
   // Create a URL for the Blob
   const blobUrl = URL.createObjectURL(blob);
 
   // Create a link to download the Blob
-  const downloadLink = document.createElement('a');
+  const downloadLink = document.createElement("a");
   downloadLink.href = blobUrl;
   downloadLink.download = `${module}.xml`;
 
