@@ -236,10 +236,10 @@
     @apply font-dm  text-[20px] font-medium not-italic leading-[30px] text-[#494949];
   }
   .form-body {
-    @apply flex flex-col items-center px-6 pb-0 pt-8;
+    @apply flex flex-col items-center px-6 pb-0 pt-6;
   }
   .form-body {
-    @apply flex flex-col items-center px-6 pb-0 pt-[42.1px];
+    @apply flex flex-col items-center px-6 pb-0 pt-6;
   }
   .form-fields {
     @apply flex flex-col gap-4;
