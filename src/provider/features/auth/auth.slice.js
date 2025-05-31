@@ -29,7 +29,7 @@ export const login = createAsyncThunk(
   async ({ payload, successCallBack, callBackMessage }, thunkAPI) => {
     try {
       const response = await authService.login(payload);
-      if (response.Succeeded) {
+      if (response.success) {
         successCallBack(response.data);
         return response.data;
       }
@@ -94,22 +94,19 @@ export const loginAndSignUpWithLinkedin = createAsyncThunk(
   }
 );
 
-export const logout = createAsyncThunk(
-  "auth/logout",
-  async (payload, thunkAPI) => {
-    try {
-      const response = await authService.logout();
-      removeUser();
-      if (response.Succeeded) {
-        return response;
-      }
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      removeUser();
-      return thunkAPI.rejectWithValue({ payload: error });
+export const logout = createAsyncThunk("auth/logout", async (payload, thunkAPI) => {
+  try {
+    const response = await authService.logout();
+    removeUser();
+    if (response.Succeeded) {
+      return response;
     }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    removeUser();
+    return thunkAPI.rejectWithValue({ payload: error });
   }
-);
+});
 
 export const authSlice = createSlice({
   name: "auth",
@@ -227,11 +224,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const {
-  reset,
-  setIsCreatorModeMode,
-  setSidebarToggleItem,
-  setLogoutLoader,
-} = authSlice.actions;
+export const { reset, setIsCreatorModeMode, setSidebarToggleItem, setLogoutLoader } =
+  authSlice.actions;
 
 export default authSlice.reducer;
