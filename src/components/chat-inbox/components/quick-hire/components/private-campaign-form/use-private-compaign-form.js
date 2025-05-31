@@ -20,7 +20,6 @@ function usePrivateCampaignForm() {
 
   const handleSubmit = () => {
     // Process the campaign data
-    console.log("Creating private campaign:", campaignData);
     onClose();
   };
 
@@ -53,7 +52,6 @@ function usePrivateCampaignForm() {
   };
 
   const handleRemoveDeliverable = (index) => {
-    console.log(index);
     const newDeliverables = [...campaignData.deliverables];
     newDeliverables.splice(index, 1);
     setDeliverables(newDeliverables);

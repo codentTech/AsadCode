@@ -15,14 +15,9 @@ function useWaitingList() {
   const fetchUserWaitinglist = async () => {
     try {
       setLoading(true);
-      const response = await dispatch(
-        fetchAllUserWaitinglist({
-          errorCallBack: () => setError("Something went wrong"),
-        })
-      );
-      console.log(response);
-      if (response.data) {
-        setWaitingList(response.data);
+      const response = await dispatch(fetchAllUserWaitinglist());
+      if (response.payload) {
+        setWaitingList(response.payload.userWaitlist);
       }
     } catch (err) {
       setError("Failed to fetch waiting list");

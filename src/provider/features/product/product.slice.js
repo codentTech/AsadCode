@@ -1,70 +1,70 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import productService from './product.service';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import productService from "./product.service";
 
 const initialState = {
-  create: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
-  update: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
+  create: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
+  update: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
   getSingle: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: true,
-    message: ''
+    message: "",
   },
   getProductNumber: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   getAllProduct: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: true,
-    message: ''
+    message: "",
   },
-  delete: { data: null, isError: false, isSuccess: false, isLoading: false, message: '' },
+  delete: { data: null, isError: false, isSuccess: false, isLoading: false, message: "" },
   productForModules: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   duplicate: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   productNumber: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   productSkuNumber: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   productGtin: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
-  }
+    message: "",
+  },
 };
 
 export const createProduct = createAsyncThunk(
-  'product/create',
+  "product/create",
   async ({ payload, successCallback }, thunkAPI) => {
     try {
       const response = await productService.createProduct(payload);
@@ -81,23 +81,20 @@ export const createProduct = createAsyncThunk(
   }
 );
 
-export const getSingleProduct = createAsyncThunk(
-  'product/get',
-  async ({ payload }, thunkAPI) => {
-    try {
-      const response = await productService.getSingleProduct(payload);
-      if (response.Succeeded) {
-        return response.data;
-      }
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+export const getSingleProduct = createAsyncThunk("product/get", async ({ payload }, thunkAPI) => {
+  try {
+    const response = await productService.getSingleProduct(payload);
+    if (response.Succeeded) {
+      return response.data;
     }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error);
   }
-);
+});
 
 export const getAllProduct = createAsyncThunk(
-  'product/getAllProduct',
+  "product/getAllProduct",
   async ({ payload }, thunkAPI) => {
     try {
       const response = await productService.getAllProduct(payload);
@@ -112,7 +109,7 @@ export const getAllProduct = createAsyncThunk(
   }
 );
 export const getProductNumber = createAsyncThunk(
-  'product/getProductNumber',
+  "product/getProductNumber",
   async (_, thunkAPI) => {
     try {
       const response = await productService.getProductNumber();
@@ -128,7 +125,7 @@ export const getProductNumber = createAsyncThunk(
 );
 
 export const updateProduct = createAsyncThunk(
-  'product/update',
+  "product/update",
   async ({ payload: { id, data }, successCallback }, thunkAPI) => {
     try {
       const response = await productService.updateProduct(id, data);
@@ -145,23 +142,20 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
-export const deleteProduct = createAsyncThunk(
-  'product/delete',
-  async ({ payload }, thunkAPI) => {
-    try {
-      const response = await productService.deleteProduct(payload);
-      if (response.Succeeded) {
-        return response.data;
-      }
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+export const deleteProduct = createAsyncThunk("product/delete", async ({ payload }, thunkAPI) => {
+  try {
+    const response = await productService.deleteProduct(payload);
+    if (response.Succeeded) {
+      return response.data;
     }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error);
   }
-);
+});
 
 export const productForModules = createAsyncThunk(
-  'product/productForModules',
+  "product/productForModules",
   async ({ payload, module, id }, thunkAPI) => {
     try {
       const response = await productService.productForModules(payload, module, id);
@@ -176,7 +170,7 @@ export const productForModules = createAsyncThunk(
 );
 
 export const productDuplicate = createAsyncThunk(
-  '/product/duplicate',
+  "/product/duplicate",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await productService.productDuplicate(payload);
@@ -190,7 +184,7 @@ export const productDuplicate = createAsyncThunk(
   }
 );
 export const productNumberUnique = createAsyncThunk(
-  '/product/productNumberUnique',
+  "/product/productNumberUnique",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await productService.productNumberUnique(payload);
@@ -204,7 +198,7 @@ export const productNumberUnique = createAsyncThunk(
   }
 );
 export const productSkuNumberUnique = createAsyncThunk(
-  '/product/productSkuNumberUnique',
+  "/product/productSkuNumberUnique",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await productService.productSkuNumberUnique(payload);
@@ -218,7 +212,7 @@ export const productSkuNumberUnique = createAsyncThunk(
   }
 );
 export const productGtinUnique = createAsyncThunk(
-  '/product/productGtinUnique',
+  "/product/productGtinUnique",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await productService.productGtinUnique(payload);
@@ -233,14 +227,14 @@ export const productGtinUnique = createAsyncThunk(
 );
 
 export const productSlice = createSlice({
-  name: 'product',
+  name: "product",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(createProduct.pending, (state) => {
         state.create.isLoading = true;
-        state.create.message = '';
+        state.create.message = "";
         state.create.isError = false;
         state.create.isSuccess = false;
         state.create.data = null;
@@ -258,7 +252,7 @@ export const productSlice = createSlice({
       })
       .addCase(getProductNumber.pending, (state) => {
         state.getProductNumber.isLoading = true;
-        state.getProductNumber.message = '';
+        state.getProductNumber.message = "";
         state.getProductNumber.isError = false;
         state.getProductNumber.isSuccess = false;
         state.getProductNumber.data = null;
@@ -269,7 +263,6 @@ export const productSlice = createSlice({
         state.getProductNumber.data = action.payload;
       })
       .addCase(getProductNumber.rejected, (state, action) => {
-        console.log(action);
         state.getProductNumber.message = action.payload.message;
         state.getProductNumber.isLoading = false;
         state.getProductNumber.isError = true;
@@ -277,7 +270,7 @@ export const productSlice = createSlice({
       })
       .addCase(productGtinUnique.pending, (state) => {
         state.productGtin.isLoading = true;
-        state.productGtin.message = '';
+        state.productGtin.message = "";
         state.productGtin.isError = false;
         state.productGtin.isSuccess = false;
         state.productGtin.data = null;
@@ -295,7 +288,7 @@ export const productSlice = createSlice({
       })
       .addCase(productSkuNumberUnique.pending, (state) => {
         state.productSkuNumber.isLoading = true;
-        state.productSkuNumber.message = '';
+        state.productSkuNumber.message = "";
         state.productSkuNumber.isError = false;
         state.productSkuNumber.isSuccess = false;
         state.productSkuNumber.data = null;
@@ -313,7 +306,7 @@ export const productSlice = createSlice({
       })
       .addCase(productNumberUnique.pending, (state) => {
         state.productNumber.isLoading = true;
-        state.productNumber.message = '';
+        state.productNumber.message = "";
         state.productNumber.isError = false;
         state.productNumber.isSuccess = false;
         state.productNumber.data = null;
@@ -331,7 +324,7 @@ export const productSlice = createSlice({
       })
       .addCase(productDuplicate.pending, (state) => {
         state.duplicate.isLoading = true;
-        state.duplicate.message = '';
+        state.duplicate.message = "";
         state.duplicate.isError = false;
         state.duplicate.isSuccess = false;
         state.duplicate.data = null;
@@ -349,7 +342,7 @@ export const productSlice = createSlice({
       })
       .addCase(updateProduct.pending, (state) => {
         state.update.isLoading = true;
-        state.update.message = '';
+        state.update.message = "";
         state.update.isError = false;
         state.update.isSuccess = false;
         state.update.data = null;
@@ -367,7 +360,7 @@ export const productSlice = createSlice({
       })
       .addCase(getSingleProduct.pending, (state) => {
         state.getSingle.isLoading = true;
-        state.getSingle.message = '';
+        state.getSingle.message = "";
         state.getSingle.isError = false;
         state.getSingle.isSuccess = false;
         state.getSingle.data = null;
@@ -385,7 +378,7 @@ export const productSlice = createSlice({
       })
       .addCase(getAllProduct.pending, (state) => {
         state.getAllProduct.isLoading = true;
-        state.getAllProduct.message = '';
+        state.getAllProduct.message = "";
         state.getAllProduct.isError = false;
         state.getAllProduct.isSuccess = false;
         state.getAllProduct.data = null;
@@ -403,7 +396,7 @@ export const productSlice = createSlice({
       })
       .addCase(deleteProduct.pending, (state) => {
         state.delete.isLoading = true;
-        state.delete.message = '';
+        state.delete.message = "";
         state.delete.isError = false;
         state.delete.isSuccess = false;
         state.delete.data = null;
@@ -421,7 +414,7 @@ export const productSlice = createSlice({
       })
       .addCase(productForModules.pending, (state) => {
         state.productForModules.isLoading = true;
-        state.productForModules.message = '';
+        state.productForModules.message = "";
         state.productForModules.isError = false;
         state.productForModules.isSuccess = false;
         state.productForModules.data = null;
@@ -437,7 +430,7 @@ export const productSlice = createSlice({
         state.productForModules.isError = true;
         state.productForModules.data = null;
       });
-  }
+  },
 });
 
 export default productSlice.reducer;

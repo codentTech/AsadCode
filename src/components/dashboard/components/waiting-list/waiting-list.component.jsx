@@ -1,16 +1,16 @@
 "use client";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
+import { formatDateBySplit } from "@/common/utils/formate-date";
 import { Download, Eye, Filter, Mail, Trash2, UserCheck } from "lucide-react";
 import { useState } from "react";
 import useWaitingList from "./use-waiting-list.hook";
 
-const WaitingList = ({ users }) => {
-  const { loading, waitingList, error, refetch } = useWaitingList();
+const WaitingList = () => {
+  const { loading, waitingList } = useWaitingList();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  console.log(waitingList);
   // Filter users based on search term
-  const filteredUsers = users.filter((user) =>
+  const filteredUsers = waitingList.filter((user) =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -25,12 +25,8 @@ const WaitingList = ({ users }) => {
       title: "Email",
     },
     {
-      key: "joinedDate",
+      key: "created_at",
       title: "Joined Date",
-    },
-    {
-      key: "status",
-      title: "Status",
     },
   ];
 
@@ -67,31 +63,31 @@ const WaitingList = ({ users }) => {
         </div>
       </div>
     ),
-    joinedDate: (value) => (
-      <span className="text-sm text-gray-500">{new Date(value).toLocaleDateString()}</span>
+    created_at: (value) => (
+      <span className="text-sm text-gray-500">{formatDateBySplit(value)}</span>
     ),
-    status: (value) => {
-      const getStatusColor = (status) => {
-        switch (status) {
-          case "pending":
-            return "bg-yellow-100 text-yellow-800";
-          case "approved":
-            return "bg-green-100 text-green-800";
-          case "reviewed":
-            return "bg-blue-100 text-blue-800";
-          default:
-            return "bg-gray-100 text-gray-800";
-        }
-      };
+    // status: (value) => {
+    //   const getStatusColor = (status) => {
+    //     switch (status) {
+    //       case "pending":
+    //         return "bg-yellow-100 text-yellow-800";
+    //       case "approved":
+    //         return "bg-green-100 text-green-800";
+    //       case "reviewed":
+    //         return "bg-blue-100 text-blue-800";
+    //       default:
+    //         return "bg-gray-100 text-gray-800";
+    //     }
+    //   };
 
-      return (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(value)}`}
-        >
-          {value}
-        </span>
-      );
-    },
+    //   return (
+    //     <span
+    //       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(value)}`}
+    //     >
+    //       {value}
+    //     </span>
+    //   );
+    // },
     priority: (value) => {
       const getPriorityColor = (priority) => {
         switch (priority) {
@@ -120,15 +116,12 @@ const WaitingList = ({ users }) => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        console.log("View user:", row);
         // alert(`Viewing details for ${row.email}`);
         break;
       case "approve":
-        console.log("Approve user:", row);
         // alert(`Approved user ${row.email}`);
         break;
       case "delete":
-        console.log("Delete user:", row);
         if (confirm(`Are you sure you want to delete ${row.email}?`)) {
           // alert(`Deleted user ${row.email}`);
         }
@@ -145,8 +138,8 @@ const WaitingList = ({ users }) => {
 
   const handleExport = () => {
     const csvContent = [
-      ["Email", "Joined Date", "Status", "Priority"],
-      ...filteredUsers.map((user) => [user.email, user.joinedDate, user.status, user.priority]),
+      ["Email", "Joined Date"],
+      ...filteredUsers.map((user) => [user.email, user.joinedDate]),
     ]
       .map((row) => row.join(","))
       .join("\n");

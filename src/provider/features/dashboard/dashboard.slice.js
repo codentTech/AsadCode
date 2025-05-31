@@ -32,13 +32,12 @@ export const getDashboardStats = createAsyncThunk(
 
 export const fetchAllUserWaitinglist = createAsyncThunk(
   "dashboard/waiting-list",
-  async ({ errorCallBack }, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
       const response = await dashboardService.fetchAllUserWaitinglist();
       if (response.success) {
         return response.data;
       }
-      errorCallBack();
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue({ payload: error });
