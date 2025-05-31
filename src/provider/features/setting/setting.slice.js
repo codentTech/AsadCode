@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import settinService from './setting.service';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import settinService from "./setting.service";
 
 const initialState = {
   createGeneralSetting: {
@@ -7,154 +7,151 @@ const initialState = {
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   generalSettingCurrentBusiness: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   getSingleGeneralSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateGeneralSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createOfferDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateOfferDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createCreditNoteDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateCreditNoteDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createOrderDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateOrderDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createDeliveryNotesDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateDeliveryNotesDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createInvoiceDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateInvoiceDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createProductDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateProductDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   getDocumentSetting: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   getCancellation: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   createInvoiceCancellation: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
+    message: "",
   },
   updateInvoiceCancellation: {
     data: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
-    message: ''
-  }
+    message: "",
+  },
 };
 
 export const createGeneralSetting = createAsyncThunk(
-  '/createGeneralSetting',
+  "/createGeneralSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createGeneralSetting(payload);
       if (response.Succeeded) {
         if (response.data[0]) {
-          localStorage.setItem(
-            'defaultNumberOfRecords',
-            payload.noRecordToDisplayInTable
-          );
+          localStorage.setItem("defaultNumberOfRecords", payload.noRecordToDisplayInTable);
         }
         return response.data;
       }
@@ -166,15 +163,12 @@ export const createGeneralSetting = createAsyncThunk(
 );
 
 export const generalSettingCurrentBusiness = createAsyncThunk(
-  '/generalSettingCurrentBusiness',
+  "/generalSettingCurrentBusiness",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.generalSettingCurrentBusiness();
       if (response.Succeeded) {
-        localStorage.setItem(
-          'defaultNumberOfRecords',
-          response.data.noRecordToDisplayInTable
-        );
+        localStorage.setItem("defaultNumberOfRecords", response.data.noRecordToDisplayInTable);
         return response.data;
       }
       return thunkAPI.rejectWithValue(response);
@@ -185,7 +179,7 @@ export const generalSettingCurrentBusiness = createAsyncThunk(
 );
 
 export const getSingleGeneralSetting = createAsyncThunk(
-  '/getSingleGeneralSetting',
+  "/getSingleGeneralSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.getSingleGeneralSetting(payload);
@@ -200,12 +194,12 @@ export const getSingleGeneralSetting = createAsyncThunk(
 );
 
 export const updateGeneralSetting = createAsyncThunk(
-  '/updateGeneralSetting',
+  "/updateGeneralSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateGeneralSetting(payload, id);
       if (response.Succeeded) {
-        localStorage.setItem('defaultNumberOfRecords', payload.noRecordToDisplayInTable);
+        localStorage.setItem("defaultNumberOfRecords", payload.noRecordToDisplayInTable);
         return response.data;
       }
       return thunkAPI.rejectWithValue(response);
@@ -216,7 +210,7 @@ export const updateGeneralSetting = createAsyncThunk(
 );
 
 export const createOfferDocumentSetting = createAsyncThunk(
-  '/createOfferDocumentSetting',
+  "/createOfferDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createOfferDocumentSetting(payload);
@@ -231,7 +225,7 @@ export const createOfferDocumentSetting = createAsyncThunk(
 );
 
 export const updateOfferDocumentSetting = createAsyncThunk(
-  '/updateOfferDocumentSetting',
+  "/updateOfferDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateOfferDocumentSetting(payload, id);
@@ -246,7 +240,7 @@ export const updateOfferDocumentSetting = createAsyncThunk(
 );
 
 export const createCreditNoteDocumentSetting = createAsyncThunk(
-  '/createCreditNoteDocumentSetting',
+  "/createCreditNoteDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createCreditNoteDocumentSetting(payload);
@@ -261,7 +255,7 @@ export const createCreditNoteDocumentSetting = createAsyncThunk(
 );
 
 export const updateCreditNoteDocumentSetting = createAsyncThunk(
-  '/updateCreditNoteDocumentSetting',
+  "/updateCreditNoteDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateCreditNoteDocumentSetting(payload, id);
@@ -276,7 +270,7 @@ export const updateCreditNoteDocumentSetting = createAsyncThunk(
 );
 
 export const createOrderDocumentSetting = createAsyncThunk(
-  '/createOrderDocumentSetting',
+  "/createOrderDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createOrderDocumentSetting(payload);
@@ -291,7 +285,7 @@ export const createOrderDocumentSetting = createAsyncThunk(
 );
 
 export const updateOrderDocumentSetting = createAsyncThunk(
-  '/updateOrderDocumentSetting',
+  "/updateOrderDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateOrderrDocumentSetting(payload, id);
@@ -306,7 +300,7 @@ export const updateOrderDocumentSetting = createAsyncThunk(
 );
 
 export const createDeliveryNotesDocumentSetting = createAsyncThunk(
-  '/createDeliveryNotesDocumentSetting',
+  "/createDeliveryNotesDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createDeliveryNotesDocumentSetting(payload);
@@ -321,13 +315,10 @@ export const createDeliveryNotesDocumentSetting = createAsyncThunk(
 );
 
 export const updateDeliveryNotesDocumentSetting = createAsyncThunk(
-  '/updateDeliveryNotesDocumentSetting',
+  "/updateDeliveryNotesDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
-      const response = await settinService.updateDeliveryNotesDocumentSetting(
-        payload,
-        id
-      );
+      const response = await settinService.updateDeliveryNotesDocumentSetting(payload, id);
       if (response.Succeeded) {
         return response.data;
       }
@@ -339,7 +330,7 @@ export const updateDeliveryNotesDocumentSetting = createAsyncThunk(
 );
 
 export const createInvoiceDocumentSetting = createAsyncThunk(
-  '/createInvoiceDocumentSetting',
+  "/createInvoiceDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createInvoiceDocumentSetting(payload);
@@ -354,7 +345,7 @@ export const createInvoiceDocumentSetting = createAsyncThunk(
 );
 
 export const updateInvoiceDocumentSetting = createAsyncThunk(
-  '/updateInvoiceDocumentSetting',
+  "/updateInvoiceDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateInvoiceDocumentSetting(payload, id);
@@ -369,7 +360,7 @@ export const updateInvoiceDocumentSetting = createAsyncThunk(
 );
 
 export const createProductDocumentSetting = createAsyncThunk(
-  '/createProductDocumentSetting',
+  "/createProductDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createProductDocumentSetting(payload);
@@ -384,7 +375,7 @@ export const createProductDocumentSetting = createAsyncThunk(
 );
 
 export const updateProductDocumentSetting = createAsyncThunk(
-  '/updateProductDocumentSetting',
+  "/updateProductDocumentSetting",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateProductDocumentSetting(payload, id);
@@ -399,7 +390,7 @@ export const updateProductDocumentSetting = createAsyncThunk(
 );
 
 export const getDocumentSetting = createAsyncThunk(
-  '/getDocumentSetting',
+  "/getDocumentSetting",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.getDocumentSetting(payload);
@@ -414,7 +405,7 @@ export const getDocumentSetting = createAsyncThunk(
 );
 
 export const getCancellation = createAsyncThunk(
-  '/get/cancellation',
+  "/get/cancellation",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.getCancellation(payload);
@@ -429,7 +420,7 @@ export const getCancellation = createAsyncThunk(
 );
 
 export const createInvoiceCancellation = createAsyncThunk(
-  '/create/cancellation',
+  "/create/cancellation",
   async ({ payload, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.createInvoiceCancellation(payload);
@@ -444,7 +435,7 @@ export const createInvoiceCancellation = createAsyncThunk(
 );
 
 export const updateInvoiceCancellation = createAsyncThunk(
-  '/update/cancellation',
+  "/update/cancellation",
   async ({ payload, id, callBackMessage }, thunkAPI) => {
     try {
       const response = await settinService.updateInvoiceCancellation(payload, id);
@@ -459,14 +450,14 @@ export const updateInvoiceCancellation = createAsyncThunk(
 );
 
 export const settingSlice = createSlice({
-  name: 'setting',
+  name: "setting",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(createGeneralSetting.pending, (state) => {
         state.createGeneralSetting.isLoading = true;
-        state.createGeneralSetting.message = '';
+        state.createGeneralSetting.message = "";
         state.createGeneralSetting.isError = false;
         state.createGeneralSetting.isSuccess = false;
         state.createGeneralSetting.data = null;
@@ -484,7 +475,7 @@ export const settingSlice = createSlice({
       })
       .addCase(generalSettingCurrentBusiness.pending, (state) => {
         state.generalSettingCurrentBusiness.isLoading = true;
-        state.generalSettingCurrentBusiness.message = '';
+        state.generalSettingCurrentBusiness.message = "";
         state.generalSettingCurrentBusiness.isError = false;
         state.generalSettingCurrentBusiness.isSuccess = false;
         state.generalSettingCurrentBusiness.data = null;
@@ -502,7 +493,7 @@ export const settingSlice = createSlice({
       })
       .addCase(getSingleGeneralSetting.pending, (state) => {
         state.getSingleGeneralSetting.isLoading = true;
-        state.getSingleGeneralSetting.message = '';
+        state.getSingleGeneralSetting.message = "";
         state.getSingleGeneralSetting.isError = false;
         state.getSingleGeneralSetting.isSuccess = false;
         state.getSingleGeneralSetting.data = null;
@@ -520,7 +511,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateGeneralSetting.pending, (state) => {
         state.updateGeneralSetting.isLoading = true;
-        state.updateGeneralSetting.message = '';
+        state.updateGeneralSetting.message = "";
         state.updateGeneralSetting.isError = false;
         state.updateGeneralSetting.isSuccess = false;
         state.updateGeneralSetting.data = null;
@@ -538,7 +529,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createOfferDocumentSetting.pending, (state) => {
         state.createOfferDocumentSetting.isLoading = true;
-        state.createOfferDocumentSetting.message = '';
+        state.createOfferDocumentSetting.message = "";
         state.createOfferDocumentSetting.isError = false;
         state.createOfferDocumentSetting.isSuccess = false;
         state.createOfferDocumentSetting.data = null;
@@ -556,7 +547,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateOfferDocumentSetting.pending, (state) => {
         state.updateOfferDocumentSetting.isLoading = true;
-        state.updateOfferDocumentSetting.message = '';
+        state.updateOfferDocumentSetting.message = "";
         state.updateOfferDocumentSetting.isError = false;
         state.updateOfferDocumentSetting.isSuccess = false;
         state.updateOfferDocumentSetting.data = null;
@@ -574,7 +565,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createCreditNoteDocumentSetting.pending, (state) => {
         state.createCreditNoteDocumentSetting.isLoading = true;
-        state.createCreditNoteDocumentSetting.message = '';
+        state.createCreditNoteDocumentSetting.message = "";
         state.createCreditNoteDocumentSetting.isError = false;
         state.createCreditNoteDocumentSetting.isSuccess = false;
         state.createCreditNoteDocumentSetting.data = null;
@@ -585,7 +576,6 @@ export const settingSlice = createSlice({
         state.createCreditNoteDocumentSetting.data = action.payload;
       })
       .addCase(createCreditNoteDocumentSetting.rejected, (state, action) => {
-        console.log(action);
         state.createCreditNoteDocumentSetting.message = action?.payload?.message;
         state.createCreditNoteDocumentSetting.isLoading = false;
         state.createCreditNoteDocumentSetting.isError = true;
@@ -593,7 +583,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateCreditNoteDocumentSetting.pending, (state) => {
         state.updateCreditNoteDocumentSetting.isLoading = true;
-        state.updateCreditNoteDocumentSetting.message = '';
+        state.updateCreditNoteDocumentSetting.message = "";
         state.updateCreditNoteDocumentSetting.isError = false;
         state.updateCreditNoteDocumentSetting.isSuccess = false;
         state.updateCreditNoteDocumentSetting.data = null;
@@ -604,7 +594,6 @@ export const settingSlice = createSlice({
         state.updateCreditNoteDocumentSetting.data = action.payload;
       })
       .addCase(updateCreditNoteDocumentSetting.rejected, (state, action) => {
-        console.log(action);
         state.updateCreditNoteDocumentSetting.message = action?.payload?.message;
         state.updateCreditNoteDocumentSetting.isLoading = false;
         state.updateCreditNoteDocumentSetting.isError = true;
@@ -612,7 +601,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createOrderDocumentSetting.pending, (state) => {
         state.createOrderDocumentSetting.isLoading = true;
-        state.createOrderDocumentSetting.message = '';
+        state.createOrderDocumentSetting.message = "";
         state.createOrderDocumentSetting.isError = false;
         state.createOrderDocumentSetting.isSuccess = false;
         state.createOrderDocumentSetting.data = null;
@@ -630,7 +619,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateOrderDocumentSetting.pending, (state) => {
         state.updateOrderDocumentSetting.isLoading = true;
-        state.updateOrderDocumentSetting.message = '';
+        state.updateOrderDocumentSetting.message = "";
         state.updateOrderDocumentSetting.isError = false;
         state.updateOrderDocumentSetting.isSuccess = false;
         state.updateOrderDocumentSetting.data = null;
@@ -648,7 +637,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createDeliveryNotesDocumentSetting.pending, (state) => {
         state.createDeliveryNotesDocumentSetting.isLoading = true;
-        state.createDeliveryNotesDocumentSetting.message = '';
+        state.createDeliveryNotesDocumentSetting.message = "";
         state.createDeliveryNotesDocumentSetting.isError = false;
         state.createDeliveryNotesDocumentSetting.isSuccess = false;
         state.createDeliveryNotesDocumentSetting.data = null;
@@ -666,7 +655,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateDeliveryNotesDocumentSetting.pending, (state) => {
         state.updateDeliveryNotesDocumentSetting.isLoading = true;
-        state.updateDeliveryNotesDocumentSetting.message = '';
+        state.updateDeliveryNotesDocumentSetting.message = "";
         state.updateDeliveryNotesDocumentSetting.isError = false;
         state.updateDeliveryNotesDocumentSetting.isSuccess = false;
         state.updateDeliveryNotesDocumentSetting.data = null;
@@ -684,7 +673,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createInvoiceDocumentSetting.pending, (state) => {
         state.createInvoiceDocumentSetting.isLoading = true;
-        state.createInvoiceDocumentSetting.message = '';
+        state.createInvoiceDocumentSetting.message = "";
         state.createInvoiceDocumentSetting.isError = false;
         state.createInvoiceDocumentSetting.isSuccess = false;
         state.createInvoiceDocumentSetting.data = null;
@@ -702,7 +691,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateInvoiceDocumentSetting.pending, (state) => {
         state.updateInvoiceDocumentSetting.isLoading = true;
-        state.updateInvoiceDocumentSetting.message = '';
+        state.updateInvoiceDocumentSetting.message = "";
         state.updateInvoiceDocumentSetting.isError = false;
         state.updateInvoiceDocumentSetting.isSuccess = false;
         state.updateInvoiceDocumentSetting.data = null;
@@ -720,7 +709,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createProductDocumentSetting.pending, (state) => {
         state.createProductDocumentSetting.isLoading = true;
-        state.createProductDocumentSetting.message = '';
+        state.createProductDocumentSetting.message = "";
         state.createProductDocumentSetting.isError = false;
         state.createProductDocumentSetting.isSuccess = false;
         state.createProductDocumentSetting.data = null;
@@ -738,7 +727,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateProductDocumentSetting.pending, (state) => {
         state.updateProductDocumentSetting.isLoading = true;
-        state.updateProductDocumentSetting.message = '';
+        state.updateProductDocumentSetting.message = "";
         state.updateProductDocumentSetting.isError = false;
         state.updateProductDocumentSetting.isSuccess = false;
         state.updateProductDocumentSetting.data = null;
@@ -756,7 +745,7 @@ export const settingSlice = createSlice({
       })
       .addCase(getDocumentSetting.pending, (state) => {
         state.getDocumentSetting.isLoading = true;
-        state.getDocumentSetting.message = '';
+        state.getDocumentSetting.message = "";
         state.getDocumentSetting.isError = false;
         state.getDocumentSetting.isSuccess = false;
         state.getDocumentSetting.data = null;
@@ -774,7 +763,7 @@ export const settingSlice = createSlice({
       })
       .addCase(getCancellation.pending, (state) => {
         state.getCancellation.isLoading = true;
-        state.getCancellation.message = '';
+        state.getCancellation.message = "";
         state.getCancellation.isError = false;
         state.getCancellation.isSuccess = false;
         state.getCancellation.data = null;
@@ -792,7 +781,7 @@ export const settingSlice = createSlice({
       })
       .addCase(createInvoiceCancellation.pending, (state) => {
         state.createInvoiceCancellation.isLoading = true;
-        state.createInvoiceCancellation.message = '';
+        state.createInvoiceCancellation.message = "";
         state.createInvoiceCancellation.isError = false;
         state.createInvoiceCancellation.isSuccess = false;
         state.createInvoiceCancellation.data = null;
@@ -810,7 +799,7 @@ export const settingSlice = createSlice({
       })
       .addCase(updateInvoiceCancellation.pending, (state) => {
         state.updateInvoiceCancellation.isLoading = true;
-        state.updateInvoiceCancellation.message = '';
+        state.updateInvoiceCancellation.message = "";
         state.updateInvoiceCancellation.isError = false;
         state.updateInvoiceCancellation.isSuccess = false;
         state.updateInvoiceCancellation.data = null;
@@ -826,7 +815,7 @@ export const settingSlice = createSlice({
         state.updateInvoiceCancellation.isError = true;
         state.updateInvoiceCancellation.data = null;
       });
-  }
+  },
 });
 
 export default settingSlice.reducer;

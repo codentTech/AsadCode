@@ -18,7 +18,6 @@ const DynamicPagination = ({ itemsPerPage, data, setData }) => {
 
   const displayData = data.slice(startIndex, endIndex);
   //   setData(displayData)
-  console.log(displayData);
 
   const handlePagination = (pageNumber) => {
     // Check if the requested page number is within the valid range
@@ -52,9 +51,7 @@ const DynamicPagination = ({ itemsPerPage, data, setData }) => {
               onClick={() => handlePagination(index + 1)}
               //   style={{ fontWeight: currentPage === index + 1 ? 'bold' : 'normal' }}
               className={`flex flex-row items-center justify-center px-2.5 py-1 ${
-                currentPage === index + 1
-                  ? "bg-primary text-white"
-                  : "bg-[#E4E4E4]"
+                currentPage === index + 1 ? "bg-primary text-white" : "bg-[#E4E4E4]"
               }`}
             >
               {index + 1}
