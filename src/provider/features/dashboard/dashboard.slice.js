@@ -1,18 +1,20 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import dashboardService from './dashboard.service';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import dashboardService from "./dashboard.service";
 
+const generalState = {
+  data: null,
+  isError: false,
+  isSuccess: false,
+  isLoading: false,
+  message: "",
+};
 const initialState = {
-  getDashboardStats: {
-    data: null,
-    isError: false,
-    isSuccess: false,
-    isLoading: false,
-    message: ''
-  }
+  getDashboardStats: { ...generalState },
+  fetchAllUserWaitinglist: { ...generalState },
 };
 
 export const getDashboardStats = createAsyncThunk(
-  'dashboard/get-stats',
+  "dashboard/get-stats",
   async ({ errorCallBack, successCallBack }, thunkAPI) => {
     try {
       const response = await dashboardService.getDashboardStats();
@@ -28,8 +30,23 @@ export const getDashboardStats = createAsyncThunk(
   }
 );
 
+export const fetchAllUserWaitinglist = createAsyncThunk(
+  "dashboard/waiting-list",
+  async (_, thunkAPI) => {
+    try {
+      const response = await dashboardService.fetchAllUserWaitinglist();
+      if (response.success) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
 export const dashboardSlice = createSlice({
-  name: 'dashboard',
+  name: "dashboard",
   initialState,
   reducers: {
     reset: (state) => {
@@ -38,15 +55,15 @@ export const dashboardSlice = createSlice({
         isError: false,
         isSuccess: false,
         isLoading: false,
-        message: ''
+        message: "",
       };
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getDashboardStats.pending, (state) => {
         state.getDashboardStats.isLoading = true;
-        state.getDashboardStats.message = '';
+        state.getDashboardStats.message = "";
         state.getDashboardStats.isError = false;
         state.getDashboardStats.isSuccess = false;
         state.getDashboardStats.data = null;
@@ -61,8 +78,21 @@ export const dashboardSlice = createSlice({
         state.getDashboardStats.isLoading = false;
         state.getDashboardStats.isError = true;
         state.getDashboardStats.data = null;
-      });
-  }
+      })
+      .addCase(fetchAllUserWaitinglist.pending, (state) => {
+        state.fetchAllUserWaitinglist.isLoading = true;
+        state.fetchAllUserWaitinglist.message = "";
+        state.fetchAllUserWaitinglist.isError = false;
+        state.fetchAllUserWaitinglist.isSuccess = false;
+        state.fetchAllUserWaitinglist.data = null;
+      })
+      .addCase(fetchAllUserWaitinglist.fulfilled, (state, action) => {
+        state.fetchAllUserWaitinglist.isLoading = false;
+        state.fetchAllUserWaitinglist.isSuccess = true;
+        state.fetchAllUserWaitinglist.data = action.payload;
+      })
+      .addCase(fetchAllUserWaitinglist.rejected, (state, action) => {});
+  },
 });
 
 export default dashboardSlice.reducer;

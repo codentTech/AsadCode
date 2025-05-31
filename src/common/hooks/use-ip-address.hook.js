@@ -1,11 +1,11 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 function useIPAddress() {
-  const [ipResponse, setIpResponse] = useState('');
+  const [ipResponse, setIpResponse] = useState("");
   useEffect(() => {
     axios
-      .get('https://api.ipify.org/?format=json')
+      .get("https://api.ipify.org/?format=json")
       .then((res) => {
         axios
           .get(`https://ipapi.co/${res.data.ip}/json/`)
@@ -13,13 +13,9 @@ function useIPAddress() {
             const { data } = res;
             setIpResponse(data);
           })
-          .catch((err) => {
-            console.log('Error while geting Info:', err);
-          });
+          .catch((err) => {});
       })
-      .catch((err) => {
-        console.log('Error while geting IP:', err);
-      });
+      .catch((err) => {});
   }, []);
 
   return { ipResponse };
