@@ -1,34 +1,20 @@
 "use client";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
-import { formatDateBySplit } from "@/common/utils/formate-date";
+import { SplittedDate } from "@/common/utils/formate-date";
 import { Download, Eye, Filter, Mail, Trash2, UserCheck } from "lucide-react";
-import { useState } from "react";
 import useWaitingList from "./use-waiting-list.hook";
 
 const WaitingList = () => {
-  const { loading, waitingList } = useWaitingList();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  // Filter users based on search term
-  const filteredUsers = waitingList.filter((user) =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-  };
-
-  // Define table columns
-  const columns = [
-    {
-      key: "email",
-      title: "Email",
-    },
-    {
-      key: "created_at",
-      title: "Joined Date",
-    },
-  ];
+  const {
+    searchTerm,
+    filteredUsers,
+    columns,
+    selectedUsers,
+    handleSearchChange,
+    handleExport,
+    handleSelectionChange,
+    handleActionClick,
+  } = useWaitingList();
 
   // Define actions
   const actions = [
@@ -51,7 +37,7 @@ const WaitingList = () => {
 
   // Custom cell renderers
   const customCellRenderer = {
-    email: (value, row) => (
+    email: (value) => (
       <div className="flex items-center">
         <div className="flex-shrink-0 h-10 w-10">
           <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -59,35 +45,33 @@ const WaitingList = () => {
           </div>
         </div>
         <div className="ml-4">
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-600">{value}</div>
         </div>
       </div>
     ),
-    created_at: (value) => (
-      <span className="text-sm text-gray-500">{formatDateBySplit(value)}</span>
-    ),
-    // status: (value) => {
-    //   const getStatusColor = (status) => {
-    //     switch (status) {
-    //       case "pending":
-    //         return "bg-yellow-100 text-yellow-800";
-    //       case "approved":
-    //         return "bg-green-100 text-green-800";
-    //       case "reviewed":
-    //         return "bg-blue-100 text-blue-800";
-    //       default:
-    //         return "bg-gray-100 text-gray-800";
-    //     }
-    //   };
+    created_at: (value) => <span className="text-sm text-gray-600">{SplittedDate(value)}</span>,
+    status: (value) => {
+      const getStatusColor = (status) => {
+        switch (status) {
+          case "pending":
+            return "bg-yellow-100 text-yellow-800";
+          case "approved":
+            return "bg-green-100 text-green-800";
+          case "reviewed":
+            return "bg-blue-100 text-blue-800";
+          default:
+            return "bg-gray-100 text-gray-800";
+        }
+      };
 
-    //   return (
-    //     <span
-    //       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(value)}`}
-    //     >
-    //       {value}
-    //     </span>
-    //   );
-    // },
+      return (
+        <span
+          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(value)}`}
+        >
+          {value}
+        </span>
+      );
+    },
     priority: (value) => {
       const getPriorityColor = (priority) => {
         switch (priority) {
@@ -110,47 +94,6 @@ const WaitingList = () => {
         </span>
       );
     },
-  };
-
-  // Handle action clicks
-  const handleActionClick = (actionKey, row) => {
-    switch (actionKey) {
-      case "view":
-        // alert(`Viewing details for ${row.email}`);
-        break;
-      case "approve":
-        // alert(`Approved user ${row.email}`);
-        break;
-      case "delete":
-        if (confirm(`Are you sure you want to delete ${row.email}?`)) {
-          // alert(`Deleted user ${row.email}`);
-        }
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Handle selection change
-  const handleSelectionChange = (selectedIds) => {
-    setSelectedUsers(selectedIds);
-  };
-
-  const handleExport = () => {
-    const csvContent = [
-      ["Email", "Joined Date"],
-      ...filteredUsers.map((user) => [user.email, user.joinedDate]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "waitlist-users.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
   };
 
   return (
