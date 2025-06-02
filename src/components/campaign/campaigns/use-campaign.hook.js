@@ -265,8 +265,7 @@ function useCampaign() {
   // State for shortlists
   const [shortlists, setShortlists] = useState(mockShortlists);
   const [selectedShortlist, setSelectedShortlist] = useState(null);
-  const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] =
-    useState(false);
+  const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] = useState(false);
   const [newShortlistName, setNewShortlistName] = useState("");
 
   // State for creator preview
@@ -277,8 +276,7 @@ function useCampaign() {
   const [sortOption, setSortOption] = useState("followers");
 
   // State for shortlist save modal
-  const [saveToShortlistDialogOpen, setSaveToShortlistDialogOpen] =
-    useState(false);
+  const [saveToShortlistDialogOpen, setSaveToShortlistDialogOpen] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
 
   // State for message dialog
@@ -349,9 +347,7 @@ function useCampaign() {
       if (shortlist.id === selectedShortlist.id) {
         return {
           ...shortlist,
-          creators: shortlist.creators.filter(
-            (creator) => creator.id !== creatorId
-          ),
+          creators: shortlist.creators.filter((creator) => creator.id !== creatorId),
         };
       }
       return shortlist;
@@ -360,9 +356,7 @@ function useCampaign() {
     setShortlists(updatedShortlists);
 
     // Update selected shortlist reference
-    const updatedSelectedShortlist = updatedShortlists.find(
-      (s) => s.id === selectedShortlist.id
-    );
+    const updatedSelectedShortlist = updatedShortlists.find((s) => s.id === selectedShortlist.id);
     setSelectedShortlist(updatedSelectedShortlist);
   };
 
@@ -375,7 +369,6 @@ function useCampaign() {
   // Handle sending a message
   const handleSendMessage = () => {
     // Message sending logic would go here
-    console.log(`Message to ${creatorToMessage?.name}: ${messageText}`);
     setMessageText("");
     setMessageDialogOpen(false);
   };
@@ -403,9 +396,7 @@ function useCampaign() {
   // Update the selected shortlist when shortlists change
   useEffect(() => {
     if (selectedShortlist) {
-      const updatedShortlist = shortlists.find(
-        (s) => s.id === selectedShortlist.id
-      );
+      const updatedShortlist = shortlists.find((s) => s.id === selectedShortlist.id);
       setSelectedShortlist(updatedShortlist);
     }
   }, [shortlists]);

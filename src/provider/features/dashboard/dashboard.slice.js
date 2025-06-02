@@ -39,7 +39,6 @@ export const fetchAllUserWaitinglist = createAsyncThunk(
       if (response.success) {
         return response;
       }
-
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(error);

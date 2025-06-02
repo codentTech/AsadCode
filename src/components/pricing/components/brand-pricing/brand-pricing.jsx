@@ -54,21 +54,21 @@ export default function BrandPricing() {
   ];
 
   return (
-    <div className="overflow-hidden bg-white rounded-xl shadow-xl text-sm md:text-lg">
+    <div className="overflow-hidden bg-white rounded-xl shadow-xl">
       <div className="overflow-x-auto w-full">
         <table className="min-w-[750px] w-full">
           <thead>
             <tr className="bg-indigo-50">
-              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+              <th className="py-6 px-2 lg:px-6 text-left text-sm font-semibold text-indigo-900 border-b border-indigo-100">
                 Platform
               </th>
-              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+              <th className="py-6 px-2 lg:px-6 text-left text-sm font-semibold text-indigo-900 border-b border-indigo-100">
                 Monthly Price (Estimated)
               </th>
-              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
-                Annual Contract Required
+              <th className="py-6 px-2 lg:px-6 text-left text-sm font-semibold text-indigo-900 border-b border-indigo-100">
+                Annual Contract (Required)
               </th>
-              <th className="py-6 px-2 lg:px-6 text-left text-md font-semibold text-indigo-900 border-b border-indigo-100">
+              <th className="py-6 px-2 lg:px-6 text-left text-sm font-semibold text-indigo-900 border-b border-indigo-100">
                 Details
               </th>
             </tr>

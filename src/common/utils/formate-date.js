@@ -26,7 +26,7 @@ export const formatDate = (dateString) => {
   return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
 };
 
-export const SplittedDate = (date) => {
+export const formatDateBySplit = (date) => {
   if (!date) return "Invalid date";
   return date.split("T")[0];
 };
