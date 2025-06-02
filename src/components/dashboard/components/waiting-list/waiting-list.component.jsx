@@ -1,6 +1,6 @@
 "use client";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
-import { SplittedDate } from "@/common/utils/formate-date";
+import { formatDateBySplit } from "@/common/utils/formate-date";
 import { Download, Eye, Filter, Mail, Trash2, UserCheck } from "lucide-react";
 import useWaitingList from "./use-waiting-list.hook";
 
@@ -49,7 +49,9 @@ const WaitingList = () => {
         </div>
       </div>
     ),
-    created_at: (value) => <span className="text-sm text-gray-600">{SplittedDate(value)}</span>,
+    created_at: (value) => (
+      <span className="text-sm text-gray-600">{formatDateBySplit(value)}</span>
+    ),
     status: (value) => {
       const getStatusColor = (status) => {
         switch (status) {
