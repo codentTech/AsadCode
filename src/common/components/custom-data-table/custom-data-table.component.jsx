@@ -1,6 +1,7 @@
 "use client";
 
 import SearchIcon from "@/common/icons/search-icon";
+import ThreedotIcon from "@/common/icons/threedot.icon";
 import PropTypes from "prop-types";
 import React from "react";
 import CustomInput from "../custom-input/custom-input.component";
@@ -72,11 +73,17 @@ const CustomDataTable = ({
     isIndeterminate,
     handleSelectAll,
     handleRowSelect,
+    dropdownPosition,
+    setDropdownPosition,
+    activeActionRowId,
+    setActiveActionRowId,
     activeActionRow,
     actionRef,
     handleActionRowToggle,
     handleActionClick,
+    actionButtonRefs,
   } = useCustomDataTable({
+    actions,
     data,
     columns,
     initialSortConfig,
@@ -153,11 +160,11 @@ const CustomDataTable = ({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto" style={{ height }}>
+      <div className="overflow-x-auto relative" style={{ height }}>
         <table className={`w-full ${tableClassName}`}>
           {/* Header */}
           {showHeader && (
-            <thead className={`bg-gray-50 border-b ${headerClassName}`}>
+            <thead className={`z-10 bg-gray-50 border-b ${headerClassName}`}>
               <tr>
                 {/* Selection checkbox */}
                 {selectable && (
@@ -266,31 +273,14 @@ const CustomDataTable = ({
                     {actions.length > 0 && (
                       <td className="px-4 py-3 relative">
                         <button
-                          onClick={() => handleActionRowToggle(row.id)}
-                          className="p-2 rounded hover:bg-gray-100"
+                          onClick={(e) => handleActionRowToggle(row.id, e)}
+                          ref={(el) => {
+                            if (el) actionButtonRefs.current[row.id] = el;
+                          }}
+                          className="p-2 rounded hover:bg-gray-100 transition-colors duration-150"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                          </svg>
+                          <ThreedotIcon />
                         </button>
-
-                        {activeActionRow === row.id && (
-                          <div
-                            ref={actionRef}
-                            className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10"
-                          >
-                            {actions.map((action) => (
-                              <button
-                                key={action.key}
-                                onClick={() => handleActionClick(action.key, row, onActionClick)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-md last:rounded-b-md"
-                              >
-                                {action.icon && <span className="mr-2">{action.icon}</span>}
-                                {action.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </td>
                     )}
                   </tr>
@@ -299,11 +289,41 @@ const CustomDataTable = ({
             )}
           </tbody>
         </table>
+
+        {/* Action Dropdown */}
+        {activeActionRowId && (
+          <div
+            className="action-dropdown-container absolute z-50"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+          >
+            <div className="bg-white rounded-md shadow-lg border border-gray-200 py-1 min-w-[180px]">
+              {actions.map((action, index) => (
+                <button
+                  key={action.key}
+                  onClick={() => {
+                    const row = paginatedData.find((r) => r.id === activeActionRowId);
+                    handleActionClick(action.key, row, onActionClick);
+                    setActiveActionRowId(null);
+                  }}
+                  className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 ${
+                    index === 0 ? "rounded-t-md" : ""
+                  } ${index === actions.length - 1 ? "rounded-b-md" : ""}`}
+                >
+                  {action.icon && <span className="mr-2 flex-shrink-0">{action.icon}</span>}
+                  <span className="truncate">{action.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pagination */}
       {paginated && totalRecordsCount > 0 && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex items-center justify-between">
+        <div className="z-10 px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex items-center justify-between">
           <div className="flex items-center text-sm text-gray-700">
             <span>Show</span>
             <select
