@@ -5,6 +5,7 @@ import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
+import React from "react";
 
 function Profile({ isCreatorMode, activeTab }) {
   const suggestedConnections = [
@@ -46,16 +47,14 @@ function Profile({ isCreatorMode, activeTab }) {
       name: "Jane Doe",
       rating: 4,
       date: "2025-04-22",
-      message:
-        "Amazing collaboration! Delivered on time and exceeded expectations.",
+      message: "Amazing collaboration! Delivered on time and exceeded expectations.",
     },
     {
       avatar: "https://i.pravatar.cc/40?img=2",
       name: "John Smith",
       rating: 5,
       date: "2025-04-21",
-      message:
-        "Professional, creative, and very communicative. Highly recommend!",
+      message: "Professional, creative, and very communicative. Highly recommend!",
     },
   ];
 
@@ -110,10 +109,7 @@ function Profile({ isCreatorMode, activeTab }) {
         ) : (
           [3].includes(activeTab) &&
           isCreatorMode && (
-            <CustomButton
-              className="w-full btn-outline"
-              text="Withdraw application"
-            />
+            <CustomButton className="w-full btn-outline" text="Withdraw application" />
           )
         )}
       </div>
@@ -122,13 +118,8 @@ function Profile({ isCreatorMode, activeTab }) {
       {![1, 2, 3, 5].includes(activeTab) && (
         <div className="p-4 overflow-y-auto flex-1">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-bold text-sm text-gray-700">
-              Suggested Connections
-            </h4>
-            <IconButton
-              size="small"
-              className="text-gray-400 hover:text-primary"
-            >
+            <h4 className="font-bold text-sm text-gray-700">Suggested Connections</h4>
+            <IconButton size="small" className="text-gray-400 hover:text-primary">
               <RefreshIcon fontSize="small" className="h-4 w-4" />
             </IconButton>
           </div>
@@ -138,11 +129,7 @@ function Profile({ isCreatorMode, activeTab }) {
                 key={connection.name}
                 className="flex items-center p-2 rounded-lg hover:bg-gray-50 border border-gray-100 shadow-sm"
               >
-                <Avatar
-                  src={connection.avatar}
-                  alt={connection.name}
-                  className="h-10 w-10"
-                >
+                <Avatar src={connection.avatar} alt={connection.name} className="h-10 w-10">
                   {connection.name.charAt(0)}
                 </Avatar>
                 <div className="ml-3 flex-1 min-w-0">
@@ -151,9 +138,7 @@ function Profile({ isCreatorMode, activeTab }) {
                   </div>
                   <div className="flex items-center">
                     <div className="text-yellow-500 text-xs mr-1">★★★★</div>
-                    <span className="text-xs text-gray-500">
-                      {connection.rating}
-                    </span>
+                    <span className="text-xs text-gray-500">{connection.rating}</span>
                   </div>
                 </div>
                 <button className="ml-2 text-xs bg-indigo-50 text-primary hover:bg-indigo-100 px-2 py-1 rounded-full font-medium">
@@ -207,8 +192,7 @@ function Profile({ isCreatorMode, activeTab }) {
                 <li className="flex items-start gap-2">
                   <span className="text-yellow-600">✔️</span>
                   <span>
-                    Payment status:{" "}
-                    <span className="font-semibold">Completed</span>
+                    Payment status: <span className="font-semibold">Completed</span>
                   </span>
                 </li>
               )}
@@ -216,35 +200,37 @@ function Profile({ isCreatorMode, activeTab }) {
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow border">
-            <h4 className="text-base font-medium text-gray-800 mb-2">Review</h4>
-            <ul className="space-y-3 text-sm text-gray-700 mb-4">
-              I had an amazing experience with this company! The customer
-              service was top-notch, and the product exceeded my expectations. I
-              highly recommend them to anyone looking for quality products and
-              excellent service
-            </ul>
-            <CustomInput placeholder="leave a review" />
+            <h4 className="text-base font-medium text-gray-800 mb-2">Leave a review</h4>
+            <TextArea placeholder="leave a review" />
+            <div className="flex gap-4">
+              <CustomButton text="Cancel" className="btn-cancel" />
+              <CustomButton text="Save" />
+            </div>
           </div>
 
           {/* Private Notes Section */}
-          <div className="bg-white rounded-lg p-4 shadow border">
-            <h4 className="text-base font-medium text-gray-800 mb-2">
-              Private Notes
-            </h4>
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h4 className="text-base font-medium text-gray-800 mb-2">Private Notes</h4>
             <ul className="space-y-3 text-sm text-gray-700 mb-4">
               {privateNotes.map((note, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <span className="text-gray-500 mt-1">📝</span>
                   <div className="flex flex-col">
                     <span>{note.text}</span>
-                    <span className="text-xs text-gray-400 mt-1">
-                      {note.timestamp}
-                    </span>
+                    <span className="text-xs text-gray-400 mt-1">{note.timestamp}</span>
                   </div>
                 </li>
               ))}
             </ul>
-            {!isCreatorMode && <TextArea label="Add a new note..." />}
+            {!isCreatorMode && (
+              <React.Fragment>
+                <TextArea label="Add a new note..." />
+                <div className="flex gap-4">
+                  <CustomButton text="Cancel" className="btn-cancel" />
+                  <CustomButton text="Save" />
+                </div>
+              </React.Fragment>
+            )}
           </div>
         </div>
       )}
@@ -254,10 +240,7 @@ function Profile({ isCreatorMode, activeTab }) {
           <h3 className="text-lg font-semibold text-gray-800 mt-2">Reviews</h3>
 
           {reviews.map((review, index) => (
-            <div
-              key={index}
-              className="border border-gray-100 rounded-lg p-4 shadow-lg transition"
-            >
+            <div key={index} className="border border-gray-100 rounded-lg p-4 shadow-lg transition">
               <div className="flex items-center gap-4 mb-2">
                 <img
                   src={review.avatar}
@@ -265,9 +248,7 @@ function Profile({ isCreatorMode, activeTab }) {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-800">
-                    {review.name}
-                  </span>
+                  <span className="font-semibold text-gray-800">{review.name}</span>
                   <span className="text-xs text-gray-500">
                     {new Date(review.date).toLocaleDateString()}
                   </span>
@@ -279,9 +260,7 @@ function Profile({ isCreatorMode, activeTab }) {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-3 h-3 ${
-                      i < review.rating ? "text-yellow-400" : "text-gray-300"
-                    }`}
+                    className={`w-3 h-3 ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >

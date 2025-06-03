@@ -60,7 +60,7 @@
     @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
   }
   .btn-primary {
-    @apply min-w-[106px] bg-primary hover:bg-secondary-blue focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+    @apply min-w-[106px] text-sm bg-primary hover:bg-secondary-blue focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
   .btn-danger {
     @apply min-w-[106px] bg-danger hover:bg-red-700 focus:bg-red-700 disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
@@ -69,13 +69,13 @@
     @apply inline-block w-fit rounded-[10px] border-2 border-primary-purple bg-primary-blue py-4 font-dm text-lg font-semibold leading-6 text-white xs:px-5 lg:px-12;
   }
   .btn-cancel {
-    @apply min-w-[106px] bg-[#DBE1E7] text-text-dark-gray;
+    @apply text-sm min-w-[106px] bg-[#DBE1E7] text-text-dark-gray;
   }
   .btn-white-cancel {
     @apply btn-cancel rounded-md border-[1.5px] border-solid border-text-ultra-light-gray bg-white text-text-light-gray;
   }
   .btn-secondary {
-    @apply bg-secondary-green hover:bg-secondary-medium-green focus:bg-secondary-dark-green disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+    @apply bg-gray-100 text-gray-600 border-solid border-text-ultra-light-gray disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
   .btn-secondary-outline {
     @apply rounded-md border border-solid border-secondary-green bg-white text-sm font-bold not-italic leading-[21px] text-secondary-green hover:bg-secondary-medium-green hover:text-white focus:bg-secondary-dark-green focus:text-white disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;

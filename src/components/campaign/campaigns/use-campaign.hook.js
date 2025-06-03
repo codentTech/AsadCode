@@ -167,6 +167,9 @@ const mockNicheCategories = [
     name: "Top in Skincare",
     creators: [
       mockCreators[0],
+      mockCreators[2],
+      mockCreators[3],
+      mockCreators[5],
       mockCreators[10],
       mockCreators[6],
       mockCreators[4],
@@ -447,6 +450,7 @@ function useCampaign() {
     mainTabs,
     mockNicheCategories,
     sortOptions,
+    handleRemoveFromShortlist,
   };
 }
 
