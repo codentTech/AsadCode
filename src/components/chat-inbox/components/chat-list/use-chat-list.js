@@ -3,8 +3,6 @@ import React, { useState } from "react";
 function useChatList() {
   const [selectedChat, setSelectedChat] = useState("Sam Waters");
   const [activeFilter, setActiveFilter] = useState("Saved");
-  const [searchText, setSearchText] = useState("");
-  const [selectedOption, setSelectedOption] = useState(null);
   const [openFilterModal, setOpenFilterModal] = useState(false);
 
   const avatar =
@@ -77,17 +75,12 @@ function useChatList() {
     },
   ];
 
-  const handleChange = (selected) => {
-    setSelectedOption(selected);
-  };
-
   return {
     filterOptions,
     chats,
     selectedChat,
     setSelectedChat,
     options,
-    handleChange,
     activeFilter,
     setActiveFilter,
     openFilterModal,

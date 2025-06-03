@@ -2,13 +2,11 @@
 
 "use client";
 
-import { IconButton, Input, InputAdornment } from "@mui/material";
-import PropTypes from "prop-types";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useCallback } from "react";
-import useCustomInput from "./use-custom-input.hook";
 import FieldError from "@/common/components/field-error/field-error.component";
+import { Input, InputAdornment } from "@mui/material";
+import PropTypes from "prop-types";
 import FieldLabel from "../field-label/field-label.component";
+import useCustomInput from "./use-custom-input.hook";
 
 /**
  * @param type - The type of input
@@ -67,13 +65,7 @@ export default function CustomInput({
           : "flex w-full flex-col gap-[8px] text-xs font-medium capitalize not-italic leading-6 text-text-black"
       }`}
     >
-      {label && (
-        <FieldLabel
-          label={label}
-          isRequired={isRequired}
-          className={labelClassName}
-        />
-      )}
+      {label && <FieldLabel label={label} isRequired={isRequired} className={labelClassName} />}
 
       <div className={`relative w-full ${disabled ? "bg-[#BBBBBB26]" : ""}`}>
         <Input
@@ -101,15 +93,11 @@ export default function CustomInput({
           disabled={disabled}
           variant="outlined"
           startAdornment={
-            startIcon ? (
-              <InputAdornment position="start">{startIcon}</InputAdornment>
-            ) : null
+            startIcon ? <InputAdornment position="start">{startIcon}</InputAdornment> : null
           }
           endAdornment={
             getInputEndAdornment() ? (
-              <InputAdornment position="end">
-                {getInputEndAdornment()}
-              </InputAdornment>
+              <InputAdornment position="end">{getInputEndAdornment()}</InputAdornment>
             ) : null
           }
           {...(onChange && { onChange: inputChangeHandler })}
@@ -119,10 +107,7 @@ export default function CustomInput({
         />
 
         {errors && errors[name] && (
-          <FieldError
-            className="mt-1 normal-case"
-            error={errors[name].message}
-          />
+          <FieldError className="mt-1 normal-case" error={errors[name].message} />
         )}
       </div>
     </div>

@@ -1,18 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { avatar } from "@/common/constants/auth.constant";
-import TiktokIcon from "@/common/icons/tiktok";
+import FacebookIcon from "@/common/icons/facebook";
+import InstagramIcon from "@/common/icons/instagram";
+import TikTokIcon from "@/common/icons/tiktok";
+import YoutubeIcon from "@/common/icons/youtube";
 import Niche from "@/components/niche/niche";
-import {
-  BookmarkPlus,
-  Edit2,
-  Heart,
-  Instagram,
-  MapPin,
-  MessageCircle,
-  Share2,
-  Star,
-  Youtube,
-} from "lucide-react";
+import { BookmarkPlus, Edit2, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
 
 function ProfileOverview() {
   const creator = {
@@ -59,15 +52,10 @@ function ProfileOverview() {
 
             {/* Social Media */}
             <div className="flex space-x-3 justify-center md:justify-start mb-3">
-              <div className="p-2 bg-pink-100 rounded-full">
-                <Instagram className="w-5 h-5 text-pink-600" />
-              </div>
-              <div className="p-2 bg-red-100 rounded-full">
-                <Youtube className="w-5 h-5 text-red-600" />
-              </div>
-              <div className="p-2 bg-black rounded-full">
-                <TiktokIcon />
-              </div>
+              <InstagramIcon />
+              <YoutubeIcon />
+              <FacebookIcon />
+              <TikTokIcon />
             </div>
 
             {/* Location */}
@@ -106,10 +94,7 @@ function ProfileOverview() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-2 w-full md:w-auto">
-            <CustomButton
-              text="Follow"
-              startIcon={<Heart className="w-4 h-4" />}
-            />
+            <CustomButton text="Follow" startIcon={<Heart className="w-4 h-4" />} />
 
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <CustomButton
@@ -117,10 +102,7 @@ function ProfileOverview() {
                 className="btn-outline"
                 startIcon={<MessageCircle className="w-4 h-4" />}
               />
-              <CustomButton
-                text="Shortlist"
-                startIcon={<BookmarkPlus className="w-4 h-4" />}
-              />
+              <CustomButton text="Shortlist" startIcon={<BookmarkPlus className="w-4 h-4" />} />
 
               <CustomButton
                 text="share"
