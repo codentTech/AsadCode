@@ -16,21 +16,6 @@ module.exports = {
       custom1138: "1138px",
       semixl: "1200px",
     },
-    // colors: {
-    //   primary: '#1D4ED8',
-    //   'secondary-blue': '#1E40AF',
-    //   'secondary-green': '#047857',
-    //   'secondary-black': '#2C2E3E',
-    //   'secondary-white': '#FEFEFE',
-    //   'secondary-gray': '#FBFBFB',
-    //   'text-black': '#2C2E3E',
-    //   'text-dark-gray': '#46474F',
-    //   'text-medium-gray': '#585858',
-    //   'text-light-gray': '#7E7D7D',
-    //   'text-ultra-light-gray': '#BBBBBB',
-    //   danger: '#EF2020',
-    //   success: '#10FF61'
-    // },
     fontFamily: {
       dm: ["DM Sans", "sans-serif"],
       roboto: ["Roboto", "sans-serif"],
@@ -107,18 +92,19 @@ module.exports = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--gradient-stops))",
+        "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--gradient-stops))",
         "hero-pattern": "url('/assets/images/sidebar/sidebarellipses.png')",
         "landing-hero-bg": "url('/assets/images/landing/hero-bg.jpeg')",
         "landing-hero-circle": "url('/assets/images/landing/hero-circle.png')",
-        "howitworks-bg":
-          "url('/assets/images/landing/howitworks/howitwork-bg.png')",
+        "howitworks-bg": "url('/assets/images/landing/howitworks/howitwork-bg.png')",
         "form-wrapper": "url('/assets/images/bg.png')",
         checked: "url('/assets/icons/check.svg')",
         unchecked: "url('/assets/unchecked.png')",
         tick: "url('/assets/icons/tick_icon.svg')",
         dateicon: "url('/assets/images/icons/date-icon.png')",
+      },
+      animation: {
+        "spin-slow": "spin 3s linear infinite",
       },
     },
   },

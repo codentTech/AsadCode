@@ -40,9 +40,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
               </span>
             </div>
 
-            <p className="text-sm">
-              {previewCreator.followers.toLocaleString()} followers
-            </p>
+            <p className="text-sm">{previewCreator.followers.toLocaleString()} followers</p>
           </div>
         </div>
 
@@ -61,6 +59,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
         </div>
 
         <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
           <AudienceDemographics className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2" />
         </div>
         <h3 className="text-lg font-bold mt-6 mb-3">Recent Reviews</h3>
@@ -92,9 +91,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                   <Star
                     key={i}
                     className={`w-4 h-4 ${
-                      i < review.rating
-                        ? "fill-current text-yellow-400"
-                        : "text-gray-300"
+                      i < review.rating ? "fill-current text-yellow-400" : "text-gray-300"
                     }`}
                   />
                 ))}
@@ -104,11 +101,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
         </div>
       </div>
       <div className="bg-gray-100 rounded-lg sticky w-full bottom-0 p-4 border-t flex justify-between">
-        <CustomButton
-          text="Close"
-          className="btn-cancel"
-          onClick={() => setIsPreviewOpen(false)}
-        />
+        <CustomButton text="Close" className="btn-cancel" onClick={() => setIsPreviewOpen(false)} />
 
         <CustomButton
           text="View Full Profile"

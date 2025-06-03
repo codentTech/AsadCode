@@ -1,9 +1,9 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import DeleteIconRed from "@/common/icons/deletered.icon";
-import { ArrowForward, EmailOutlined } from "@mui/icons-material";
+import InstagramIcon from "@/common/icons/instagram";
+import TiktokIcon from "@/common/icons/tiktok";
+import YoutubeIcon from "@/common/icons/youtube";
+import { Bookmark, ChevronRight, Mail, SquarePlus, Trash2 } from "lucide-react";
 import useDiscoverDreatorsHook from "./use-discover-creators.hook";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import YouTubeIcon from "@mui/icons-material/YouTube";
 
 function DiscoverCreators({
   sortOptions,
@@ -13,25 +13,24 @@ function DiscoverCreators({
   handleSaveToShortlist,
   handleMessageCreator,
   getSortedCreators,
+  handleRemoveFromShortlist,
 }) {
-  const { router } = useDiscoverDreatorsHook();
+  const { scrollRefs, overflowStates } = useDiscoverDreatorsHook({ mockNicheCategories });
 
   // Social media icons mapping
   const PlatformIcons = {
     instagram: <InstagramIcon />,
-    youtube: <YouTubeIcon />,
-    tiktok: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-      </svg>
-    ),
+    youtube: <YoutubeIcon />,
+    tiktok: <TiktokIcon />,
   };
+
+  const handleSeeMoreClick = (categoryId) => {
+    const el = scrollRefs.current[categoryId];
+    if (el) {
+      el.scrollBy({ left: 300, behavior: "smooth" }); // You can adjust 300 to scroll more/less
+    }
+  };
+
   return (
     <div className="flex-1 p-3 overflow-y-auto">
       {selectedShortlist ? (
@@ -49,12 +48,11 @@ function DiscoverCreators({
           {getSortedCreators().length === 0 ? (
             <div className="text-center py-10">
               <div className="text-gray-500">
-                No creators in this shortlist yet. Browse the Discover+ feed to
-                add creators.
+                No creators in this shortlist yet. Browse the Discover+ feed to add creators.
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="px-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {getSortedCreators().map((creator) => (
                 <div
                   key={creator.id}
@@ -69,12 +67,8 @@ function DiscoverCreators({
                         className="w-16 h-16 rounded-full mb-3 object-cover"
                       />
 
-                      <h4 className="text-base font-medium text-gray-800">
-                        {creator.name}
-                      </h4>
-                      <p className="text-sm text-gray-500 text-center">
-                        {creator.location}
-                      </p>
+                      <h4 className="text-base font-medium text-gray-800">{creator.name}</h4>
+                      <p className="text-sm text-gray-500 text-center">{creator.location}</p>
 
                       <div className="flex items-center mt-1 text-yellow-400 text-sm">
                         {"★".repeat(Math.floor(creator.rating))}
@@ -87,32 +81,36 @@ function DiscoverCreators({
 
                       <div className="flex justify-center space-x-2 mt-2 text-gray-600 text-md">
                         {creator.platforms.map((platform) => (
-                          <span key={platform}>
-                            {PlatformIcons[platform] || platform}
-                          </span>
+                          <span key={platform}>{PlatformIcons[platform] || platform}</span>
                         ))}
                       </div>
 
-                      <div className="flex justify-center items-center gap-2 mt-3 w-full">
+                      <div className="flex justify-center mt-3 w-full">
                         <div
-                          onClick={() => handleRemoveFromShortlist(creator.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromShortlist(creator.id);
+                          }}
+                          className="px-1 rounded-full text-blue-600 hover:bg-blue-50 transition"
+                          title="Save"
                         >
-                          <DeleteIconRed />
+                          <Trash2 color="#f20707" />
                         </div>
-                        <button
+                        <div
                           className="px-1 rounded-full text-green-600 hover:bg-green-50 transition"
                           title="Add"
                         >
-                          ➕
-                        </button>
+                          <SquarePlus color="#666666" />
+                        </div>
                         <div
-                          className="ml-1"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleMessageCreator(creator);
                           }}
+                          className="px-1 rounded-full text-purple-600 hover:bg-purple-50 transition"
+                          title="Message"
                         >
-                          <EmailOutlined sx={{ color: "gray" }} />
+                          <Mail color="#666666" />
                         </div>
                       </div>
                     </div>
@@ -129,19 +127,30 @@ function DiscoverCreators({
             <div key={category.id} className="mb-5">
               <div className="flex justify-between items-center mb-3">
                 <h4>{category.name}</h4>
-                <div className="text-primary text-sm hover:underline font-medium flex items-center gap-1">
-                  See More
-                  <span>
-                    <ArrowForward sx={{ size: "10px" }} />
-                  </span>
-                </div>
+
+                {overflowStates[category.id] && (
+                  <div
+                    onClick={() => handleSeeMoreClick(category.id)}
+                    className="text-primary text-sm font-medium flex items-center gap-1 cursor-pointer"
+                  >
+                    See More
+                    <span>
+                      <ChevronRight size="15px" />
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex overflow-x-auto space-x-4 pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+              <div
+                ref={(el) => {
+                  scrollRefs.current[category.id] = el;
+                }}
+                className="flex overflow-x-auto space-x-4 pb-4 mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scroll-smooth snap-x"
+              >
                 {category.creators.map((creator) => (
                   <div
                     key={creator.id}
-                    className="flex-shrink-0 w-52 rounded-xl shadow hover:shadow-lg transition-shadow cursor-pointer bg-white border border-gray-100"
+                    className="flex-shrink-0 snap-start w-52 rounded-xl shadow hover:shadow-lg transition-shadow cursor-pointer bg-gray-100 border border-gray-100"
                     onClick={() => handleCreatorPreview(creator)}
                   >
                     <div className="p-4">
@@ -151,31 +160,22 @@ function DiscoverCreators({
                           alt={creator.name}
                           className="w-16 h-16 rounded-full mb-3 object-cover"
                         />
-
                         <h4>{creator.name}</h4>
-                        <p className="text-sm text-gray-500 text-center">
-                          {creator.location}
-                        </p>
-
+                        <p className="text-sm text-gray-500 text-center">{creator.location}</p>
                         <div className="flex items-center mt-1 text-yellow-400 text-sm">
                           {"★".repeat(Math.floor(creator.rating))}
                           {"☆".repeat(5 - Math.floor(creator.rating))}
                         </div>
-
                         <p className="text-sm text-gray-500 mt-1">
                           {creator.followers.toLocaleString()} followers
                         </p>
-
                         <div className="flex justify-center space-x-2 mt-2 text-gray-600 text-md">
                           {creator.platforms.map((platform) => (
-                            <span key={platform}>
-                              {PlatformIcons[platform] || platform}
-                            </span>
+                            <span key={platform}>{PlatformIcons[platform] || platform}</span>
                           ))}
                         </div>
-
                         <div className="flex justify-center mt-3 w-full">
-                          <button
+                          <div
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSaveToShortlist(creator);
@@ -183,17 +183,15 @@ function DiscoverCreators({
                             className="px-1 rounded-full text-blue-600 hover:bg-blue-50 transition"
                             title="Save"
                           >
-                            🔖
-                          </button>
-
-                          <button
+                            <Bookmark color="#666666" />
+                          </div>
+                          <div
                             className="px-1 rounded-full text-green-600 hover:bg-green-50 transition"
                             title="Add"
                           >
-                            ➕
-                          </button>
-
-                          <button
+                            <SquarePlus color="#666666" />
+                          </div>
+                          <div
                             onClick={(e) => {
                               e.stopPropagation();
                               handleMessageCreator(creator);
@@ -201,8 +199,8 @@ function DiscoverCreators({
                             className="px-1 rounded-full text-purple-600 hover:bg-purple-50 transition"
                             title="Message"
                           >
-                            ✉️
-                          </button>
+                            <Mail color="#666666" />
+                          </div>
                         </div>
                       </div>
                     </div>
