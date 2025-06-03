@@ -12,19 +12,13 @@ export default function ReadMore({
 
   return (
     <div>
-      <p
-        className={`${
-          firstStyling ||
-          "font-dm text-sm font-normal leading-5 text-text-dark-gray"
-        }`}
-      >
+      <p className={`${firstStyling || "font-dm text-xs font-normal leading-5 text-gray-600"}`}>
         {isReadMore ? text.slice(0, size) : text}{" "}
         {size < maxLength && (
           <span
             onClick={() => setIsReadMore(!isReadMore)}
             className={`cursor-pointer ${
-              secondStyling ||
-              "font-dm text-base font-medium leading-5 text-text-dark-gray"
+              secondStyling || "text-primary font-dm text-xs font-medium leading-5 "
             }`}
           >
             {isReadMore ? "Read more..." : " Show less"}
