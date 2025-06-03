@@ -16,12 +16,8 @@ function AudienceAnalytics() {
 
       {/* Total Followers */}
       <div className="mb-8 text-center">
-        <p className="text-sm font-medium text-gray-700 mb-1">
-          Combined Audience
-        </p>
-        <p className="text-4xl font-bold text-indigo-600">
-          {audienceData.totalFollowers}
-        </p>
+        <p className="text-sm font-medium text-gray-700 mb-1">Combined Audience</p>
+        <p className="text-4xl font-bold text-indigo-600">{audienceData.totalFollowers}</p>
       </div>
 
       {/* Platform Breakdown */}
@@ -29,21 +25,22 @@ function AudienceAnalytics() {
         {audienceData.platforms.map((platform, index) => (
           <div key={index} className="bg-indigo-50 rounded-lg p-4 text-center">
             <p className="font-medium text-gray-700">{platform.name}</p>
-            <p className="text-2xl font-bold text-indigo-600 my-1">
-              {platform.followers}
-            </p>
+            <p className="text-2xl font-bold text-indigo-600 my-1">{platform.followers}</p>
             <div className="flex items-center justify-center text-sm">
               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-              <span className="text-green-500">
-                {platform.engagement} engagement
-              </span>
+              <span className="text-green-500">{platform.engagement} engagement</span>
             </div>
           </div>
         ))}
       </div>
 
       {/* Demographics */}
-      <AudienceDemographics />
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
+        <div className="px-20">
+          <AudienceDemographics />
+        </div>
+      </div>
 
       <div className="mt-4 text-center text-xs text-gray-500">
         Data sourced from creator's connected social media accounts

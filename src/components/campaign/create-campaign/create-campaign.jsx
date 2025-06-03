@@ -8,7 +8,7 @@ import Logistics from "./components/logistics/logistics";
 import Preview from "./components/preview/preview";
 import Modal from "@/common/components/modal/modal.component";
 
-export default function CampaignCreationWizard() {
+export default function CampaignCreationWizard({ open, close }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -65,11 +65,7 @@ export default function CampaignCreationWizard() {
     const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      if (
-        name === "campaignType" ||
-        name === "niche" ||
-        name === "requiredPlatform"
-      ) {
+      if (name === "campaignType" || name === "niche" || name === "requiredPlatform") {
         // Handle multi-select options
         const fieldNameMap = {
           campaignType: "campaignTypes",
@@ -154,12 +150,7 @@ export default function CampaignCreationWizard() {
           />
         );
       case 2:
-        return (
-          <Compensation
-            campaignData={campaignData}
-            handleChange={handleChange}
-          />
-        );
+        return <Compensation campaignData={campaignData} handleChange={handleChange} />;
       case 3:
         return (
           <Logistics
@@ -177,16 +168,14 @@ export default function CampaignCreationWizard() {
           />
         );
       case 5:
-        return (
-          <Preview campaignData={campaignData} handleChange={handleChange} />
-        );
+        return <Preview campaignData={campaignData} handleChange={handleChange} />;
       default:
         return null;
     }
   };
 
   return (
-    <Modal title="Create Campaign" show={true} size="lg" height="fixed">
+    <Modal title="Create Campaign" show={open} onClose={close} size="lg" height="fixed">
       <div className="h-full w-full max-w-3xl mx-auto bg-white overflow-hidden">
         <CustomStepper
           steps={steps}

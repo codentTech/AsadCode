@@ -10,6 +10,7 @@ import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 import Modal from "@/common/components/modal/modal.component";
 import { RefreshRounded } from "@mui/icons-material";
 import Niche from "@/components/niche/niche";
+import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 
 export default function ChatList({ isCreatorMode, activeTab }) {
   const {
@@ -17,13 +18,13 @@ export default function ChatList({ isCreatorMode, activeTab }) {
     chats,
     selectedChat,
     setSelectedChat,
-    options,
-    handleChange,
     activeFilter,
     setActiveFilter,
     openFilterModal,
     setOpenFilterModal,
   } = useChatList();
+
+  const { options, handleChange } = useCampaignList();
 
   return (
     <div className="w-1/4 border-r flex flex-col overflow-hidden bg-white">
@@ -101,9 +102,7 @@ export default function ChatList({ isCreatorMode, activeTab }) {
               <Avatar
                 src={chat.avatar}
                 alt={chat.name}
-                className={`h-10 w-10 ${
-                  chat.name === selectedChat ? "ring-2 ring-primary" : ""
-                }`}
+                className={`h-10 w-10 ${chat.name === selectedChat ? "ring-2 ring-primary" : ""}`}
               >
                 {chat.name.charAt(0)}
               </Avatar>
@@ -122,9 +121,7 @@ export default function ChatList({ isCreatorMode, activeTab }) {
                 >
                   {chat.name}
                 </span>
-                <span className="text-xs text-gray-500 flex-shrink-0">
-                  {chat.time}
-                </span>
+                <span className="text-xs text-gray-500 flex-shrink-0">{chat.time}</span>
               </div>
               <div className="flex items-center">
                 <p
@@ -164,18 +161,14 @@ export default function ChatList({ isCreatorMode, activeTab }) {
             {/* Category Filters */}
             {![1, 2].includes(activeTab) && (
               <div className="p-2 bg-gray-50 rounded-lg border">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                  Categories
-                </h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Categories</h4>
                 <Niche />
               </div>
             )}
 
             {/* Rating Slider */}
             <div className="bg-white border rounded-lg p-2 shadow-sm">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                Minimum Rating
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">Minimum Rating</h4>
               <input
                 type="range"
                 min="1"
@@ -192,9 +185,7 @@ export default function ChatList({ isCreatorMode, activeTab }) {
 
             {/* Number of Ratings Slider */}
             <div className="bg-white border rounded-lg p-2 shadow-sm">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                Number of Ratings
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">Number of Ratings</h4>
               <input
                 type="range"
                 min="0"
@@ -211,44 +202,25 @@ export default function ChatList({ isCreatorMode, activeTab }) {
 
             {/* Country Filters */}
             <div className="bg-white border rounded-lg p-2 shadow-sm">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                Countries
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">Countries</h4>
               <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
-                {["United States", "Canada", "United Kingdom", "Australia"].map(
-                  (country, idx) => (
-                    <label
-                      key={country}
-                      className="flex items-center space-x-2"
-                    >
-                      <input
-                        type="checkbox"
-                        className="accent-blue-600"
-                        defaultChecked={idx < 2}
-                      />
-                      <span>{country}</span>
-                    </label>
-                  )
-                )}
+                {["United States", "Canada", "United Kingdom", "Australia"].map((country, idx) => (
+                  <label key={country} className="flex items-center space-x-2">
+                    <input type="checkbox" className="accent-blue-600" defaultChecked={idx < 2} />
+                    <span>{country}</span>
+                  </label>
+                ))}
               </div>
-              <button className="mt-2 text-blue-600 text-sm hover:underline">
-                + Show more
-              </button>
+              <button className="mt-2 text-blue-600 text-sm hover:underline">+ Show more</button>
             </div>
 
             {/* Platform Filters */}
             <div className="bg-white border rounded-lg p-2 shadow-sm">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                Social Platforms
-              </h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">Social Platforms</h4>
               <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
                 {["Instagram", "TikTok", "YouTube"].map((platform, idx) => (
                   <label key={platform} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      className="accent-blue-600"
-                      defaultChecked={idx < 2}
-                    />
+                    <input type="checkbox" className="accent-blue-600" defaultChecked={idx < 2} />
                     <span>{platform}</span>
                   </label>
                 ))}
@@ -257,15 +229,8 @@ export default function ChatList({ isCreatorMode, activeTab }) {
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-2">
-              <CustomButton
-                text="Apply Filters"
-                className="w-full btn-primary"
-              />
-              <CustomButton
-                text="Reset"
-                className="btn-outline"
-                startIcon={<RefreshRounded />}
-              />
+              <CustomButton text="Apply Filters" className="w-full btn-primary" />
+              <CustomButton text="Reset" className="btn-outline" startIcon={<RefreshRounded />} />
             </div>
           </div>
         </Modal>

@@ -9,7 +9,7 @@ import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { Loader } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -31,16 +31,11 @@ function LayoutWrapper({ children }) {
   const pathname = usePathname();
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
-  const layoutNotToShow = ["/dashboard", "/login"];
-
-  const router = useRouter();
+  const layoutNotToShow = ["/dashboard", "/login", "/campaign", "/chat-inbox"];
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const handleStart = () => setLoading(true);
-    const handleComplete = () => setLoading(false);
-
     // Next.js App Router doesn’t expose router events like Pages Router
     // but we can use the usePathname hook to detect route changes
 
@@ -56,23 +51,8 @@ function LayoutWrapper({ children }) {
   return (
     <>
       {loading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(255,255,255,0.9)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-          }}
-        >
-          <div className="loader">
-            <Loader />
-          </div>
+        <div className="fixed inset-0 w-screen h-screen bg-white/90 flex justify-center items-center z-[9999]">
+          <Loader className="animate-spin" />
         </div>
       )}
       {isCreatorMode || isCreatorMode === false ? (
