@@ -30,11 +30,11 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
 
           <div className="text-right">
             <div className="flex items-center justify-end text-yellow-500">
-              <Star className="w-3 h-3 fill-current" />
-              <Star className="w-3 h-3 fill-current" />
-              <Star className="w-3 h-3 fill-current" />
-              <Star className="w-3 h-3 fill-current" />
-              <Star className="w-3 h-3 fill-current" />
+              <Star className="w-4 h-4 fill-current" />
+              <Star className="w-4 h-4 fill-current" />
+              <Star className="w-4 h-4 fill-current" />
+              <Star className="w-4 h-4 fill-current" />
+              <Star className="w-4 h-4 fill-current" />
               <span className="text-sm m-1 text-gray-700">
                 {previewCreator.rating} ({previewCreator.reviewCount})
               </span>
