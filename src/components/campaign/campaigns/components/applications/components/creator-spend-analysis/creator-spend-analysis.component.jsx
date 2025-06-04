@@ -142,7 +142,7 @@ const CreatorSpendAnalysis = () => {
                   <CustomButton text="Save" className="w-full btn-primary !h-6 !pt-1" />
                   <CustomButton
                     text="Message"
-                    className="w-full btn-outline !h-6 !pt-1"
+                    className="w-full btn-outline !h-6"
                     onClick={() => setMessageDialogOpen(true)}
                   />
                 </div>
@@ -167,7 +167,7 @@ const CreatorSpendAnalysis = () => {
             <p className="text-sm text-gray-600">Similar niches and high engagement rates</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {creators.map((creator) => (
               <div
                 key={`rec-${creator.id}`}
@@ -250,10 +250,7 @@ const CreatorSpendAnalysis = () => {
                       </div>
 
                       <div className="flex">
-                        <CustomButton
-                          text="Invite to apply"
-                          className="w-full btn-primary !h-6 !pt-1"
-                        />
+                        <CustomButton text="Invite to apply" className="w-full btn-primary !h-6" />
                       </div>
                     </div>
                   </div>
