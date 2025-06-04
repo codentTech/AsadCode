@@ -142,7 +142,7 @@ const CreatorSpendAnalysis = () => {
                   <CustomButton text="Save" className="w-full btn-primary !h-6 !pt-1" />
                   <CustomButton
                     text="Message"
-                    className="w-full btn-outline !h-6 !pt-1"
+                    className="w-full btn-outline !h-6"
                     onClick={() => setMessageDialogOpen(true)}
                   />
                 </div>
@@ -250,10 +250,7 @@ const CreatorSpendAnalysis = () => {
                       </div>
 
                       <div className="flex">
-                        <CustomButton
-                          text="Invite to apply"
-                          className="w-full btn-primary !h-6 !pt-1"
-                        />
+                        <CustomButton text="Invite to apply" className="w-full btn-primary !h-6" />
                       </div>
                     </div>
                   </div>
