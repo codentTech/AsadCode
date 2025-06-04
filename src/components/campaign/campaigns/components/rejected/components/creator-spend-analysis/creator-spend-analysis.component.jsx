@@ -144,7 +144,7 @@ const CreatorSpendAnalysis = () => {
                     text="Reinstate to Applications"
                     className="w-full btn-primary !h-6 !pt-1"
                   />
-                  <CustomButton text="View Notes" className="w-full btn-outline !h-6 !pt-1" />
+                  <CustomButton text="View Notes" className="w-full btn-outline !h-6" />
                 </div>
               </div>
             </div>
