@@ -1,7 +1,4 @@
-import { useState } from "react";
-
 export const useCreatorSpendAnalysis = () => {
-  const [open, setOpen] = useState(false);
   const creators = [
     {
       id: 1,
@@ -122,23 +119,9 @@ export const useCreatorSpendAnalysis = () => {
     return colors[platform] || "text-gray-600";
   };
 
-  const getSuccessRateColor = (rate) => {
-    if (rate >= 95) return "text-green-600 bg-green-50";
-    if (rate >= 90) return "text-blue-600 bg-blue-50";
-    return "text-orange-600 bg-orange-50";
-  };
-
-  const handleOpenModal = () => setOpen(true);
-
-  const handleCloseModal = () => setOpen(false);
-
   return {
-    open,
     creators,
     formatFollowers,
     getPlatformColor,
-    getSuccessRateColor,
-    handleOpenModal,
-    handleCloseModal,
   };
 };

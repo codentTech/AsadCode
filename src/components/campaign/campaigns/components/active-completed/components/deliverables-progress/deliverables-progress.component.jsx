@@ -5,12 +5,10 @@ import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
 import {
-  Award,
   Calendar,
   CheckCircle2,
   DollarSign,
   Download,
-  Edit2,
   Edit3,
   MapPin,
   MessageSquare,
@@ -19,8 +17,8 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
-import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import React from "react";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
   const {
