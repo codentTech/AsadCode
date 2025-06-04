@@ -59,23 +59,21 @@ function DiscoverCreators({
                   className="w-full rounded-xl shadow hover:shadow-lg transition-shadow cursor-pointer bg-white border border-gray-100"
                   onClick={() => handleCreatorPreview(creator)}
                 >
-                  <div className="p-4">
+                  <div className="p-4 bg-gray-100 border border-gray-100">
                     <div className="flex flex-col items-center">
                       <img
                         src={creator.profileImage}
                         alt={creator.name}
-                        className="w-16 h-16 rounded-full mb-3 object-cover"
+                        className="w-24 h-24 rounded-full mb-3 object-cover"
                       />
-
-                      <h4 className="text-base font-medium text-gray-800">{creator.name}</h4>
-                      <p className="text-sm text-gray-500 text-center">{creator.location}</p>
-
-                      <div className="flex items-center mt-1 text-yellow-400 text-sm">
+                      <h4 className="text-gray-600 font-bold text-base">{creator.name}</h4>
+                      <p className="text-sm text-gray-600 text-center">{creator.location}</p>
+                      <div className="flex w-h h-4 items-center mt-1 text-yellow-400 text-lg">
                         {"★".repeat(Math.floor(creator.rating))}
                         {"☆".repeat(5 - Math.floor(creator.rating))}
                       </div>
 
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         {creator.followers.toLocaleString()} followers
                       </p>
 
@@ -124,7 +122,7 @@ function DiscoverCreators({
         <div>
           <h1 className="text-primary text-bold mb-3">Discover Creators</h1>
           {mockNicheCategories.map((category) => (
-            <div key={category.id} className="mb-5">
+            <div key={category.id} className="w-full mb-4 cursor-pointer">
               <div className="flex justify-between items-center mb-3">
                 <h4>{category.name}</h4>
 
@@ -145,7 +143,7 @@ function DiscoverCreators({
                 ref={(el) => {
                   scrollRefs.current[category.id] = el;
                 }}
-                className="flex overflow-x-auto space-x-4 pb-4 mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scroll-smooth snap-x"
+                className="flex overflow-x-auto space-x-4 pb-4 mx-2 px-2 mb-4 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scroll-smooth snap-x"
               >
                 {category.creators.map((creator) => (
                   <div
@@ -158,15 +156,15 @@ function DiscoverCreators({
                         <img
                           src={creator.profileImage}
                           alt={creator.name}
-                          className="w-16 h-16 rounded-full mb-3 object-cover"
+                          className="w-24 h-24 rounded-full mb-3 object-cover"
                         />
-                        <h4>{creator.name}</h4>
-                        <p className="text-sm text-gray-500 text-center">{creator.location}</p>
-                        <div className="flex items-center mt-1 text-yellow-400 text-sm">
+                        <h4 className="text-gray-600 font-bold text-base">{creator.name}</h4>
+                        <p className="text-sm text-gray-600 text-center">{creator.location}</p>
+                        <div className="flex w-h h-4 items-center mt-1 text-yellow-400 text-lg">
                           {"★".repeat(Math.floor(creator.rating))}
                           {"☆".repeat(5 - Math.floor(creator.rating))}
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           {creator.followers.toLocaleString()} followers
                         </p>
                         <div className="flex justify-center space-x-2 mt-2 text-gray-600 text-md">
