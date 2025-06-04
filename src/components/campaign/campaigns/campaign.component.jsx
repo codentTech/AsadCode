@@ -72,8 +72,11 @@ export default function Campaign() {
           <ActiveCompleted />
         ) : activeTab === 3 ? (
           <ActiveCompleted isCompleted={true} />
-        ) : activeTab === 4 ? null : activeTab === 5 ? null : ( // <Applications />
-          // <Rejected />
+        ) : activeTab === 4 ? (
+          <Applications />
+        ) : activeTab === 5 ? (
+          <Rejected />
+        ) : (
           <div className="flex w-full h-[calc(100vh-48px)]">
             {/* Left Column - Shortlists Sidebar */}
             <ShortlistSidebar
