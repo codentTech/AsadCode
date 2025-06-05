@@ -169,21 +169,17 @@ function Profile({ isCreatorMode, activeTab }) {
             </h4>
             <ul className="space-y-3 text-sm text-gray-700">
               <li className="flex items-start gap-2">
-                <span className="text-blue-500">🎥</span>
                 <span>1 Instagram video</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-pink-500">📸</span>
                 <span>2 Instagram stories</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-600">📅</span>
                 <span>
                   Deadline: <span className="font-semibold">20 May 2025</span>
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-yellow-600">💰</span>
                 <span>
                   Price: <span className="font-semibold">$600</span>
                 </span>

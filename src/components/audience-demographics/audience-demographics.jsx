@@ -116,7 +116,7 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
           </span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
-          <PieChart margin={{ top: 5, right: 10, left: 10, bottom: -20 }}>
+          <PieChart margin={{ top: 0, right: 10, left: 10, bottom: -20 }}>
             <Pie
               data={genderData}
               cx="50%"
@@ -141,7 +141,7 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
               layout="horizontal"
               verticalAlign="bottom"
               align="center"
-              wrapperStyle={{ fontSize: "12px", padding: "1px" }}
+              wrapperStyle={{ fontSize: "12px", padding: "1px", paddingBottom: "10px" }}
               iconType="circle"
               iconSize={10}
             />
