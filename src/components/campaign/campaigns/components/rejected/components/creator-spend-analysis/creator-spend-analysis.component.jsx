@@ -1,12 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import { avatar } from "@/common/constants/auth.constant";
+import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import InstagramIcon from "@/common/icons/instagram";
 import SearchIcon from "@/common/icons/search-icon";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import { Star, Users } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 const CreatorSpendAnalysis = () => {
   const { creators, formatFollowers, getPlatformColor } = useCreatorSpendAnalysis();
@@ -27,6 +28,7 @@ const CreatorSpendAnalysis = () => {
   return (
     <div className="flex-1 flex flex-col h-screen bg-white pb-20">
       {/* Compact Header */}
+      {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -38,11 +40,10 @@ const CreatorSpendAnalysis = () => {
 
           <div className="flex justify-between items-center">
             <div className="flex-1 max-w-sm">
-              <CustomInput
-                name="search"
-                placeholder="Search creators..."
-                startIcon={<SearchIcon className="text-gray-400" />}
-                className="!h-9 !rounded-lg !border-gray-300"
+              <SimpleSelect
+                placeHolder="Select an option"
+                options={sortOptions}
+                className="w-full max-w-[400px]"
               />
             </div>
             <span className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-sm font-medium">

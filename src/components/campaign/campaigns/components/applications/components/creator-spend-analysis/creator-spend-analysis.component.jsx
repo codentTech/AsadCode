@@ -2,13 +2,14 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { avatar } from "@/common/constants/auth.constant";
+import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import InstagramIcon from "@/common/icons/instagram";
 import SearchIcon from "@/common/icons/search-icon";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import { Star, Users } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 const CreatorSpendAnalysis = () => {
   const { creators, formatFollowers, getPlatformColor, messageDialogOpen, setMessageDialogOpen } =
@@ -41,11 +42,10 @@ const CreatorSpendAnalysis = () => {
 
           <div className="flex justify-between items-center">
             <div className="flex-1 max-w-sm">
-              <CustomInput
-                name="search"
-                placeholder="Search creators..."
-                startIcon={<SearchIcon className="text-gray-400" />}
-                className="!h-9 !rounded-lg !border-gray-300"
+              <SimpleSelect
+                placeHolder="Select an option"
+                options={sortOptions}
+                className="w-full max-w-[400px]"
               />
             </div>
             <span className="px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 text-sm font-medium">
@@ -120,7 +120,7 @@ const CreatorSpendAnalysis = () => {
                   {Object.entries(creator.platforms).map(([platform, data]) => (
                     <div
                       key={platform}
-                      className="flex items-center justify-between p-2 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between pr-2 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <div className={`${getPlatformColor(platform)} p-1 rounded-md`}>
@@ -139,10 +139,10 @@ const CreatorSpendAnalysis = () => {
 
                 {/* Compact Action Buttons */}
                 <div className="flex gap-2">
-                  <CustomButton text="Save" className="w-full btn-primary !h-6 !pt-1" />
+                  <CustomButton text="Save" className="w-full btn-primary !h-7" />
                   <CustomButton
                     text="Message"
-                    className="w-full btn-outline !h-6"
+                    className="w-full btn-outline !h-7"
                     onClick={() => setMessageDialogOpen(true)}
                   />
                 </div>
@@ -232,7 +232,7 @@ const CreatorSpendAnalysis = () => {
                           .map(([platform, data]) => (
                             <div
                               key={platform}
-                              className="flex items-center justify-between p-2 rounded-lg bg-gray-100"
+                              className="flex items-center justify-between pr-2 rounded-lg bg-gray-100"
                             >
                               <div className="flex items-center gap-1.5">
                                 <div className={`${getPlatformColor(platform)} p-1 rounded`}>
@@ -250,7 +250,7 @@ const CreatorSpendAnalysis = () => {
                       </div>
 
                       <div className="flex">
-                        <CustomButton text="Invite to apply" className="w-full btn-primary !h-6" />
+                        <CustomButton text="Invite to apply" className="w-full btn-primary !h-7" />
                       </div>
                     </div>
                   </div>

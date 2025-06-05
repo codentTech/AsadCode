@@ -37,9 +37,7 @@ function AudienceAnalytics() {
       {/* Demographics */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
-        <div className="px-20">
-          <AudienceDemographics />
-        </div>
+        <AudienceDemographics />
       </div>
 
       <div className="mt-4 text-center text-xs text-gray-500">
