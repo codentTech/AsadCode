@@ -112,6 +112,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                     />
                     <CustomButton
                       text="Payment Summary"
+                      className="btn-primary w-full whitespace-nowrap"
                       startIcon={<Receipt className="w-4 h-4" />}
                       onClick={handleProcessPayments}
                     />
@@ -191,24 +192,20 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               </h4>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500">🎥</span>
                   <span>1 Instagram video</span>
                   {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-pink-500">📸</span>
                   <span>2 Instagram stories</span>
                   {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-600">📅</span>
                   <span>
                     {isCompleted ? "Completed:" : "Deadline:"}
                     <span className="font-semibold ml-1">20 May 2025</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-yellow-600">💰</span>
                   <span>
                     Final Payment: <span className="font-semibold">$600</span>
                     {isCompleted && (

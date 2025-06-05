@@ -30,16 +30,14 @@ export default function CampaignOverview({ isCompleted = false }) {
       {/* Budget Summary */}
       <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
         <div className="flex flex-col justify-between">
-          <h5 className="font-bold text-primary text-sm">
-            {isCompleted ? "Total Spent" : "Budget Spent"}
-          </h5>
-          <h6 className="text-primary text-sm">$5,600</h6>
+          <h5 className="text-primary text-sm">{isCompleted ? "Total Spent" : "Budget Spent"}</h5>
+          <h6 className="text-primary text-sm font-bold">$5,600</h6>
         </div>
         <div className="flex flex-col justify-between">
-          <h5 className="font-bold text-green-600 text-sm">
+          <h5 className="text-green-600 text-sm">
             {isCompleted ? "Budget Saved" : "Budget Remaining"}
           </h5>
-          <h6 className="text-green-600 text-sm">{isCompleted ? "$1,400" : "15,300"}</h6>
+          <h6 className="text-green-600 text-sm font-bold">{isCompleted ? "$1,400" : "$15,300"}</h6>
         </div>
       </div>
 
@@ -129,9 +127,7 @@ export default function CampaignOverview({ isCompleted = false }) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
-        <div className="px-5">
-          <AudienceDemographics className="flex flex-col" />
-        </div>
+        <AudienceDemographics className="flex flex-col" />
       </div>
     </div>
   );

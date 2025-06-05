@@ -1,55 +1,16 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
+import ReadMore from "@/common/components/readmore/readmore.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
-import { Avatar } from "@mui/material";
-import {
-  Award,
-  AwardIcon,
-  Calendar,
-  CheckCircle2,
-  DollarSign,
-  Download,
-  Edit2,
-  Edit3,
-  MapPin,
-  MessageSquare,
-  Receipt,
-  RotateCcw,
-  Star,
-  TrendingUp,
-} from "lucide-react";
-import useDeliverablesProgress from "./use-deliverables-progress.hook";
-import React from "react";
-import ReadMore from "@/common/components/readmore/readmore.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import { Avatar } from "@mui/material";
+import { CheckCircle2, MapPin, Star } from "lucide-react";
+import CampaignHistory from "../campaign-history/campaign-history.component";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
-  const {
-    getStatusColor,
-    getStatusIcon,
-    project,
-    privateNotes,
-    editingItem,
-    editForm,
-    setEditForm,
-    handleEdit,
-    handleSave,
-    handleCancel,
-    toggleDeliverable,
-    toggleTimelineStep,
-    messageDialogOpen,
-    setMessageDialogOpen,
-  } = useDeliverablesProgress();
-
-  const handleExportReport = () => {
-    // console.log("Exporting campaign report...");
-  };
-
-  const handleProcessPayments = () => {
-    // console.log("Processing final payments...");
-  };
+  const { messageDialogOpen, setMessageDialogOpen } = useDeliverablesProgress();
 
   return (
     <div className="w-1/4 bg-white flex flex-col border h-screen pb-20">
@@ -117,42 +78,22 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
           <AudienceDemographics className="flex flex-col" />
         </div>
 
-        <div className="flex flex-col">
-          {/* Private Notes Section */}
-          <div className="bg-white rounded-lg p-4 shadow mt-4">
-            <h4 className="text-lg font-semibold text-gray-800 mb-2">
-              {isCompleted ? "Campaign Notes" : "Private Notes"}
-            </h4>
-            <ul className="space-y-3 text-sm text-gray-700 mb-4">
-              {privateNotes.map((note, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-gray-500 mt-1">📝</span>
-                  <div className="flex flex-col">
-                    <span>{note.text}</span>
-                    <span className="text-xs text-gray-400 mt-1">{note.timestamp}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <React.Fragment>
-              <TextArea label="Add a new note..." />
-              <div className="flex justify-end gap-4">
-                <CustomButton text="Cancel" className="btn-cancel" />
-                <CustomButton text="Save" className="btn-primary" />
-              </div>
-            </React.Fragment>
-          </div>
-        </div>
-
         {/* Action Buttons */}
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            <CustomButton text="Message" className="btn-primary" />
+            <CustomButton
+              text="Message"
+              onClick={() => setMessageDialogOpen(true)}
+              className="btn-primary"
+            />
             <CustomButton text="Save for latter" className="btn-outline" />
             <CustomButton text="Reject" className="btn-danger" />
           </div>
         </div>
+        <hr />
+
+        <CampaignHistory />
       </div>
 
       {/* Message Creator Dialog */}

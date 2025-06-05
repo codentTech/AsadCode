@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import { avatar } from "@/common/constants/auth.constant";
+import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import SearchIcon from "@/common/icons/search-icon";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import { Instagram, MapPin, Star, Twitter, Users, Youtube } from "lucide-react";
@@ -8,6 +8,7 @@ import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 import InstagramIcon from "@/common/icons/instagram";
 import YoutubeIcon from "@/common/icons/youtube";
 import TwitterIcon from "@/common/icons/twitter";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const {
@@ -36,22 +37,31 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   return (
     <div className="flex-1 flex flex-col h-screen bg-white pb-20">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex justify-between space-x-4">
-          <div className="w-full max-w-[300px] flex-1 relative">
-            <CustomInput
-              name="search"
-              placeholder="Search"
-              startIcon={<SearchIcon />}
-              className="!h-[36px]"
-            />
+
+      {/* Compact Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Creator Analysis</h1>
+              <p className="text-xs text-gray-500">Discover top creators for your campaigns</p>
+            </div>
           </div>
 
-          {!isCompleted && (
-            <div className="w-full max-w-[200px]">
-              <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
+          <div className="flex justify-between items-center">
+            <div className="flex-1 max-w-sm">
+              <SimpleSelect
+                placeHolder="Select an option"
+                options={sortOptions}
+                className="w-full max-w-[400px]"
+              />
             </div>
-          )}
+            {!isCompleted && (
+              <div className="w-full max-w-[200px]">
+                <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -79,8 +89,9 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                     <div className="w-full">
                       <div className="flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-gray-900">{creator.name}</h3>
-                        <div className="text-sm bg-gray-100 rounded-lg p-2 text-gray-600">
-                          <span className="font-medium">Total Spent:</span> ${creator.totalSpent}
+                        <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                          Creator Fee:
+                          <span className="font-bold text-primary"> ${creator.totalSpent}</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
