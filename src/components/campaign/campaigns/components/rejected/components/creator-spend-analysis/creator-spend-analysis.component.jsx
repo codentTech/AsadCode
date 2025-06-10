@@ -1,13 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import InstagramIcon from "@/common/icons/instagram";
-import SearchIcon from "@/common/icons/search-icon";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import { Star, Users } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 const CreatorSpendAnalysis = () => {
   const { creators, formatFollowers, getPlatformColor } = useCreatorSpendAnalysis();
@@ -27,7 +25,6 @@ const CreatorSpendAnalysis = () => {
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-white pb-20">
-      {/* Compact Header */}
       {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
@@ -122,17 +119,17 @@ const CreatorSpendAnalysis = () => {
                   {Object.entries(creator.platforms).map(([platform, data]) => (
                     <div
                       key={platform}
-                      className="flex items-center justify-between p-2 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                        <div className={`${getPlatformColor(platform)} rounded-md`}>
                           {getPlatformIcon(platform)}
                         </div>
                         <span className="text-xs font-medium text-gray-700 capitalize">
                           {platform}
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-gray-900">
+                      <span className="text-xs font-bold text-gray-900 pr-1">
                         {formatFollowers(data.followers)}
                       </span>
                     </div>
@@ -140,12 +137,12 @@ const CreatorSpendAnalysis = () => {
                 </div>
 
                 {/* Compact Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex flex-col 2xl:flex-row gap-2">
                   <CustomButton
                     text="Reinstate to Applications"
-                    className="w-full btn-primary !h-6 !pt-1"
+                    className="w-full btn-primary !h-7"
                   />
-                  <CustomButton text="View Notes" className="w-full btn-outline !h-6" />
+                  <CustomButton text="View Notes" className="w-full btn-outline !h-7" />
                 </div>
               </div>
             </div>

@@ -1,18 +1,12 @@
-import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
-import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
-import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
+import ActiveCampaign from "./creator/active/active.component";
+import CompletedCampaign from "./creator/completed/completed.component";
 
 function ActiveCompleted({ isCompleted }) {
   return (
-    <div className="relative flex flex-1 overflow-hidden pb-20">
-      {/* Chat list */}
-      <CampaignOverview isCompleted={isCompleted} />
+    <div>
+      {isCompleted ? <CompletedCampaign /> : <ActiveCampaign />}
 
-      {/* Chat area */}
-      <CreatorSpendAnalysis isCompleted={isCompleted} />
-
-      {/* Right sidebar - Profile and connections */}
-      <DeliverablesProgress isCreatorMode={false} isCompleted={isCompleted} />
+      {/* <Brand isCompleted={isCompleted} /> */}
     </div>
   );
 }

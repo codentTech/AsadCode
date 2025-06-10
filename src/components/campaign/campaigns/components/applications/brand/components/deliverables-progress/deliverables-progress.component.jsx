@@ -60,28 +60,28 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
       {/* Scrollable Content */}
       <div className="flex flex-col overflow-y-auto p-4 gap-4">
         <div className="bg-white rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-800 pb-2">Application Message</h4>
+          <h4 className="text-lg font-semibold text-gray-900 pb-2">Application Message</h4>
           <div className="bg-gray-100 p-3 rounded-lg">
             <ReadMore text="I absolutely love your brand aesthetic and have been following you for years! I specialize in lifestyle content and have worked with similar brands. My audience is primarily 18-35 females who are interested in fashion and beauty. I would love to create authentic content that showcases your products in real-life scenarios." />
           </div>
         </div>
         {/* Past Campaign History */}
         <div className="">
-          <h3 className="text-lg font-semibold text-gray-800 pb-2">Campaign History</h3>
+          <h3 className="text-lg font-semibold text-gray-900 pb-2">Campaign History</h3>
           <div className="bg-gray-100 rounded-lg p-3">
             <span className="text-sm">3 completed campaigns</span>
             <p className="text-sm text-gray-600">First time working with your brand</p>
           </div>
         </div>
         <div className="">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
           <AudienceDemographics className="flex flex-col" />
         </div>
 
         {/* Action Buttons */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Actions</h3>
+          <div className="grid 2xl:grid-cols-2 grid-cols-1 gap-2">
             <CustomButton
               text="Message"
               onClick={() => setMessageDialogOpen(true)}

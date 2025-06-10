@@ -4,8 +4,8 @@ import CampaignDashboard from "./creator/creator-discover.component";
 function Discover() {
   return (
     <div>
-      <BrandDiscover />
-      {/* <CampaignDashboard /> */}
+      {/* <BrandDiscover /> */}
+      <CampaignDashboard />
     </div>
   );
 }
