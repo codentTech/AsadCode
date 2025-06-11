@@ -1,5 +1,6 @@
 import ActiveCompleted from "./components/active-completed/active-completed.component";
-import Applications from "./components/applications/applications.component";
+import CampaignApplication from "./components/applications/applications.component";
+import Applications from "./components/applications/brand/applications.component";
 import Discover from "./components/discover/discover.component";
 import Rejected from "./components/rejected/rejected";
 import useCampaign from "./use-campaign.hook";
@@ -8,8 +9,8 @@ export default function Campaign() {
   const { activeTab, setActiveTab, mainTabs } = useCampaign();
 
   return (
-    <div className="max-h-screen bg-gradient-to-br from-blue-200 to-white">
-      <div className="h-screen overflow-hidden shadow-xl border border-gray-200 bg-white">
+    <div className="max-h-screen">
+      <div className="h-screen overflow-hidden shadow-xl border border-gray-200">
         {/* Top navigation - streamlined and modern */}
         <div className="py-3 flex items-center bg-white border-b">
           <nav className="hidden md:flex">
@@ -35,7 +36,7 @@ export default function Campaign() {
         ) : activeTab === 3 ? (
           <ActiveCompleted isCompleted={true} />
         ) : activeTab === 4 ? (
-          <Applications />
+          <CampaignApplication />
         ) : activeTab === 5 ? (
           <Rejected />
         ) : (

@@ -104,7 +104,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               {isCompleted ? (
                 <>
                   {/* Primary Actions - Completed State */}
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col 2xl:flex-row gap-3">
                     <CustomButton
                       text="Export Report"
                       startIcon={<Download className="w-4 h-4" />}
@@ -136,7 +136,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               ) : (
                 <>
                   {/* Primary Actions - Active State */}
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col 2xl:flex-row gap-3">
                     <CustomButton
                       text="Mark Complete"
                       startIcon={<CheckCircle2 className="w-4 h-4" />}
@@ -155,7 +155,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                     </div>
                     <div className="space-y-2">
                       {/* Communication Actions */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-2">
                         <CustomButton
                           text="Send Message"
                           startIcon={<MessageSquare className="w-4 h-4" />}
@@ -257,26 +257,31 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                     key={deliverable.id}
                     className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <button
-                          onClick={
-                            !isCompleted ? () => toggleDeliverable(deliverable.id) : undefined
-                          }
-                          className={`mt-1 rounded-full flex items-center justify-center ${
-                            deliverable.completed || isCompleted
-                              ? "bg-primary border-primary text-white"
-                              : "border-gray-300 hover:border-gray-400"
-                          } ${isCompleted ? "cursor-default" : "cursor-pointer"}`}
-                        >
-                          <CheckCircle2 className="w-5 h-5" />
-                        </button>
+                    <div className="flex flex-col lg:flex-row gap-4 w-full">
+                      {/* Checkbox + Content */}
+                      <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        {/* Check Button */}
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={
+                              !isCompleted ? () => toggleDeliverable(deliverable.id) : undefined
+                            }
+                            className={`rounded-full flex items-center justify-center ${
+                              deliverable.completed || isCompleted
+                                ? "bg-primary border-primary text-white"
+                                : "border border-gray-300 hover:border-gray-400"
+                            } ${isCompleted ? "cursor-default" : "cursor-pointer"}`}
+                          >
+                            <CheckCircle2 className="w-5 h-5" />
+                          </button>
+                        </div>
 
-                        <div className="flex-1">
+                        {/* Editable or View Mode Content */}
+                        <div className="flex-1 w-full">
                           {editingItem?.type === "deliverable" &&
                           editingItem?.id === deliverable.id &&
                           !isCompleted ? (
-                            <div className="space-y-3">
+                            <div className="space-y-3 w-full">
                               <CustomInput
                                 type="text"
                                 value={editForm.title}
@@ -284,13 +289,15 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                                   setEditForm({ ...editForm, title: e.target.value })
                                 }
                               />
-                              <div className="flex space-x-3">
+
+                              <div className="flex flex-col sm:flex-row gap-3 w-full">
                                 <CustomInput
                                   type="date"
                                   value={editForm.deadline}
                                   onChange={(e) =>
                                     setEditForm({ ...editForm, deadline: e.target.value })
                                   }
+                                  className="w-full"
                                 />
                                 <CustomInput
                                   type="number"
@@ -299,19 +306,21 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                                     setEditForm({ ...editForm, amount: Number(e.target.value) })
                                   }
                                   placeholder="Amount"
+                                  className="w-full"
                                 />
                               </div>
-                              <div className="flex w-[60%] space-x-2">
-                                <CustomButton text="Save" onClick={handleSave} />
+
+                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-[60%]">
+                                <CustomButton text="Save" onClick={handleSave} className="w-full" />
                                 <CustomButton
-                                  text="cancel"
-                                  className="btn-cancel"
+                                  text="Cancel"
+                                  className="btn-cancel w-full"
                                   onClick={handleCancel}
                                 />
                               </div>
                             </div>
                           ) : (
-                            <div>
+                            <div className="space-y-2">
                               <h3
                                 className={`text-sm ${
                                   deliverable.completed || isCompleted
@@ -321,18 +330,20 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                               >
                                 {deliverable.title}
                               </h3>
-                              <div className="flex items-center space-x-4 mt-2">
-                                <div className="flex items-center space-x-1 text-xs text-gray-600">
+
+                              <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                                <div className="flex items-center gap-1">
                                   <Calendar className="w-4 h-4" />
                                   <span>{deliverable.deadline}</span>
                                 </div>
-                                <div className="flex items-center text-xs text-gray-600">
+
+                                <div className="flex items-center gap-1">
                                   <DollarSign className="w-4 h-4" />
                                   <span>{deliverable.amount}</span>
                                 </div>
 
                                 <div
-                                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${
+                                  className={`flex items-center gap-1 px-2 py-1 rounded-full ${
                                     isCompleted
                                       ? "bg-green-100 text-green-800"
                                       : getStatusColor(deliverable.status)
@@ -355,12 +366,12 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                         </div>
                       </div>
 
-                      {(!editingItem || editingItem.id !== deliverable.id) && !isCompleted && (
-                        <div className="flex items-center">
+                      {/* Edit Button */}
+                      {!isCompleted && editingItem?.id !== deliverable.id && (
+                        <div className="self-start">
                           <CustomButton
                             onClick={() => handleEdit("deliverable", deliverable)}
                             className="text-gray-400 hover:text-gray-600"
-                            text="Edit"
                             endIcon={<Edit3 className="w-4 h-4" />}
                           />
                         </div>
