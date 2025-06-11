@@ -111,12 +111,8 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               </div>
             </div>
             <div>
-              <div>
-                <h3 className="text-sm font-bold mb-4">Audience Demographics</h3>
-                <div className="px-10">
-                  <AudienceDemographics className="flex flex-col" />
-                </div>
-              </div>
+              <h3 className="text-sm font-bold mb-4">Audience Demographics</h3>
+              <AudienceDemographics className="flex flex-col" />
             </div>
           </div>
         </div>
@@ -136,7 +132,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
             ))}
           </ul>
         </div>
-        <div className="flex justify-between mt-3 m-4 gap-3">
+        <div className="flex flex-col 2xl:flex-row justify-between mt-3 m-4 gap-3">
           <CustomButton text="Reinstate to Applications" className="btn-primary" />
           <CustomButton text="Move to saved shortlists" className="btn-outline" />
         </div>

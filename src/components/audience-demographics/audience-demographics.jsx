@@ -3,13 +3,13 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Legend,
 } from "recharts";
 import useAudienceDemographics from "./use-audience-demographics";
 
@@ -72,9 +72,6 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Age Distribution</h5>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            Last 30 days
-          </span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
           <BarChart data={ageData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -111,9 +108,6 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Gender Distribution</h5>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            Last 30 days
-          </span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
           <PieChart margin={{ top: 0, right: 10, left: 10, bottom: -20 }}>
@@ -153,9 +147,6 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Location Distribution</h5>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            Last 30 days
-          </span>
         </div>
         <ResponsiveContainer width="100%" height={150}>
           <BarChart

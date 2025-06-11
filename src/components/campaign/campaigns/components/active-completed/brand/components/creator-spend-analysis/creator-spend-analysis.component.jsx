@@ -1,14 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import SearchIcon from "@/common/icons/search-icon";
-import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { Instagram, MapPin, Star, Twitter, Users, Youtube } from "lucide-react";
-import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import InstagramIcon from "@/common/icons/instagram";
-import YoutubeIcon from "@/common/icons/youtube";
-import TwitterIcon from "@/common/icons/twitter";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import { avatar, sortOptions } from "@/common/constants/auth.constant";
+import InstagramIcon from "@/common/icons/instagram";
+import TwitterIcon from "@/common/icons/twitter";
+import YoutubeIcon from "@/common/icons/youtube";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import { MapPin, Star, Users } from "lucide-react";
+import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const {

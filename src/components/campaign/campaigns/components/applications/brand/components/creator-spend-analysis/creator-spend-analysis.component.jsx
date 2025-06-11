@@ -1,32 +1,17 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import InstagramIcon from "@/common/icons/instagram";
-import SearchIcon from "@/common/icons/search-icon";
-import TwitterIcon from "@/common/icons/twitter";
-import YoutubeIcon from "@/common/icons/youtube";
-import { Star, Users } from "lucide-react";
+import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import { Star } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 const CreatorSpendAnalysis = () => {
   const { creators, formatFollowers, getPlatformColor, messageDialogOpen, setMessageDialogOpen } =
     useCreatorSpendAnalysis();
 
-  const getPlatformIcon = (platform) => {
-    switch (platform) {
-      case "instagram":
-        return <InstagramIcon className="w-4 h-4" />;
-      case "youtube":
-        return <YoutubeIcon className="w-4 h-4" />;
-      case "twitter":
-        return <TwitterIcon className="w-4 h-4" />;
-      default:
-        return <Users className="w-4 h-4" />;
-    }
-  };
+  const { getPlatformIcon } = useGetplatform();
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100 pb-20">
@@ -57,7 +42,7 @@ const CreatorSpendAnalysis = () => {
 
       <div className="flex-1 overflow-y-auto p-4">
         {/* Main Creator Grid - 3 columns on large screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
           {creators.map((creator) => (
             <div
               key={creator.id}
@@ -120,17 +105,17 @@ const CreatorSpendAnalysis = () => {
                   {Object.entries(creator.platforms).map(([platform, data]) => (
                     <div
                       key={platform}
-                      className="flex items-center justify-between pr-2 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                        <div className={`${getPlatformColor(platform)} rounded-md`}>
                           {getPlatformIcon(platform)}
                         </div>
                         <span className="text-xs font-medium text-gray-700 capitalize">
                           {platform}
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-gray-900">
+                      <span className="text-xs font-bold text-gray-900 pr-1">
                         {formatFollowers(data.followers)}
                       </span>
                     </div>
@@ -167,7 +152,7 @@ const CreatorSpendAnalysis = () => {
             <p className="text-sm text-gray-600">Similar niches and high engagement rates</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
             {creators.map((creator) => (
               <div
                 key={`rec-${creator.id}`}
@@ -226,27 +211,25 @@ const CreatorSpendAnalysis = () => {
                       </div>
 
                       {/* Platform Stats Grid */}
-                      <div className="flex flex-col gap-2 mb-3">
-                        {Object.entries(creator.platforms)
-                          .slice(0, 4)
-                          .map(([platform, data]) => (
-                            <div
-                              key={platform}
-                              className="flex items-center justify-between pr-2 rounded-lg bg-gray-100"
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <div className={`${getPlatformColor(platform)} p-1 rounded`}>
-                                  {getPlatformIcon(platform)}
-                                </div>
-                                <span className="text-xs font-medium text-gray-600 capitalize">
-                                  {platform}
-                                </span>
+                      <div className="space-y-2 mb-4">
+                        {Object.entries(creator.platforms).map(([platform, data]) => (
+                          <div
+                            key={platform}
+                            className="flex items-center justify-between px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`${getPlatformColor(platform)} rounded-md`}>
+                                {getPlatformIcon(platform)}
                               </div>
-                              <span className="text-xs font-bold text-gray-900">
-                                {formatFollowers(data.followers)}
+                              <span className="text-xs font-medium text-gray-700 capitalize">
+                                {platform}
                               </span>
                             </div>
-                          ))}
+                            <span className="text-xs font-bold text-gray-900 pr-1">
+                              {formatFollowers(data.followers)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
 
                       <div className="flex">

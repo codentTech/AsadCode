@@ -13,7 +13,7 @@ module.exports = {
       md: "768px",
       lg: "992px",
       xl: "1440px",
-      custom1138: "1138px",
+      "2xl": "1536px",
       semixl: "1200px",
     },
     fontFamily: {
