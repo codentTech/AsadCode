@@ -1,22 +1,11 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import useCampaignList from "@/common/hooks/use-campaign-list.hook";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
-import { CheckCircle, Download, TrendingUp } from "lucide-react";
 
 export default function CampaignOverview({ isCompleted = false }) {
   const { options, handleChange } = useCampaignList();
 
-  const handleExportData = () => {
-    // console.log("Exporting completed campaigns data...");
-  };
-
-  const handleViewAnalytics = () => {
-    // console.log("Opening analytics dashboard...");
-  };
-
   return (
-    <div className="w-1/6 border-r flex flex-col bg-white p-4 gap-4 pb-20">
+    <div className="w-1/5 border-r flex flex-col bg-white p-4 gap-4 pb-20">
       <SimpleSelect
         placeHolder={isCompleted ? "Filter completed campaigns" : "Select a campaign"}
         options={options}
