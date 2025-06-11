@@ -14,20 +14,24 @@ const getDaysUntilDeadline = (deadline) => {
 };
 
 const CampaignList = ({ campaigns, selectedCampaign, setSelectedCampaign }) => {
+  console.log(selectedCampaign);
   return (
-    <div className="bg-white w-1/4">
+    <div className="bg-white w-1/5">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-900">Campaigns by Deadline</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Campaigns by Deadline</h2>
       </div>
       <div className="divide-y divide-gray-200">
         {campaigns.map((campaign, index) => {
+          console.log(campaign);
           const daysLeft = getDaysUntilDeadline(campaign.deadline);
           return (
             <div
               key={campaign.id}
               onClick={() => setSelectedCampaign(index)}
-              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedCampaign === index ? "bg-indigo-50 border-r-2 border-indigo-500" : ""
+              className={`py-2 px-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                selectedCampaign + 1 === campaign.id
+                  ? "bg-gray-100 border-l-4 border-l-primary"
+                  : ""
               }`}
             >
               <div className="flex items-center justify-between mb-2">

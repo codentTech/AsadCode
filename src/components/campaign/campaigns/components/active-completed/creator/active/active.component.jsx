@@ -17,6 +17,7 @@ const ActiveCampaign = () => {
       deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
       payment: "$1,200",
       productImage: "🧴",
+      completionRate: 65,
       progress: [
         { task: "Content recorded", completed: true },
         { task: "1st draft sent", completed: true },
@@ -33,6 +34,7 @@ const ActiveCampaign = () => {
       deliverables: ["2 TikTok videos", "1 Instagram Story"],
       payment: "Gifted + $800",
       productImage: "🏋️",
+      completionRate: 65,
       progress: [
         { task: "Content recorded", completed: false },
         { task: "1st draft sent", completed: false },
@@ -49,6 +51,7 @@ const ActiveCampaign = () => {
       deliverables: ["1 Instagram post", "1 Instagram Story"],
       payment: "$950",
       productImage: "📱",
+      completionRate: 65,
       progress: [
         { task: "Content recorded", completed: true },
         { task: "1st draft sent", completed: false },

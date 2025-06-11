@@ -125,7 +125,7 @@ const CompletedCampaign = () => {
   return (
     <div className="relative flex flex-1 overflow-hidden">
       {/* Left Column - Completed Campaign List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-1/5 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Completed Campaigns</h2>
           <div className="relative">
@@ -146,7 +146,7 @@ const CompletedCampaign = () => {
               onClick={() => setSelectedCampaign(campaign)}
               className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
                 selectedCampaign?.id === campaign.id
-                  ? "bg-indigo-50 border-l-4 border-l-indigo-600"
+                  ? "bg-gray-100 border-l-4 border-l-primary"
                   : ""
               }`}
             >
@@ -164,16 +164,6 @@ const CompletedCampaign = () => {
                       Completed {new Date(campaign.completedDate).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(campaign.paymentStatus)}`}
-                    >
-                      {campaign.paymentStatus}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      ${campaign.totalEarned}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -182,100 +172,86 @@ const CompletedCampaign = () => {
       </div>
 
       {/* Center Column - Campaign Details */}
-      <div className="flex-1 flex flex-col h-screen bg-gray-100">
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-          <div className="p-3">
-            <div className="flex items-center gap-4 mb-4">
+      <div className="flex-1 flex flex-col h-screen">
+        <div className="p-4">
+          <div className="flex justify-between mb-4">
+            <div className="flex gap-4">
               <img
                 src={avatar}
                 alt={selectedCampaign?.brand.name}
                 className="w-24 h-24 rounded-lg object-cover"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{selectedCampaign?.brand.name}</h1>
-                <p className="text-lg text-gray-600">{selectedCampaign?.title}</p>
+                <h1 className="text-xl font-semibold text-gray-900 leading-tight">
+                  {selectedCampaign?.brand.name}
+                </h1>
+                <p className="text-sm text-gray-600">{selectedCampaign?.title}</p>
               </div>
             </div>
+            {/* Total Earned */}
+            <div className="bg-gray-50 border border-green-200 p-3 rounded-lg">
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">Total Earned</h4>
+              <p className="text-2xl font-bold text-green-600">${selectedCampaign?.totalEarned}</p>
+            </div>
+          </div>
 
-            <div className="flex items-center gap-3">
-              {selectedCampaign?.platforms.map((platform) => (
-                <div key={platform} className={`p-2 ${getPlatformColor(platform)} rounded-md`}>
-                  {getPlatformIcon(platform)}
+          {/* Compact Platform Stats */}
+          <div className="flex justify-between my-4">
+            <div className="flex gap-4">
+              {selectedCampaign.platforms.map((platform) => (
+                <div
+                  key={platform}
+                  className="flex items-center justify-between px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2 pr-1">
+                    <div className="rounded-md">{getPlatformIcon(platform)}</div>
+                    <span className="text-xs font-medium text-gray-600 capitalize">{platform}</span>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-3 pb-20">
-          {/* Campaign Summary */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-md p-4">
-            <div className="flex justify-between gap-2">
-              {/* Left Side */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Campaign Summary</h3>
-
-                <div className="space-y-3">
-                  {/* Deliverables */}
-                  <div className="bg-gray-100 rounded-lg p-3">
-                    <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-2">
-                      Deliverables
-                    </h5>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCampaign?.deliverables.map((item, index) => (
-                        <span
-                          key={index}
-                          className="bg-white border text-xs text-gray-700 px-2 py-1 rounded-lg flex items-center gap-1"
-                        >
-                          <div className="w-1 h-1 bg-primary rounded-full" />
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Date & Payment */}
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-1">Completion Date</h4>
-                      <p className="text-xs text-gray-600">
-                        {new Date(selectedCampaign?.completedDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Payment Status</h4>
-                      <span
-                        className={`inline-block px-5 py-1 rounded-lg text-xs font-medium ${getPaymentStatusColor(selectedCampaign?.paymentStatus)}`}
-                      >
-                        {selectedCampaign?.paymentStatus}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Total Earned */}
-                  <div className="bg-gray-50 border border-green-200 p-3 rounded-lg">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Total Earned</h4>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${selectedCampaign?.totalEarned}
-                    </p>
-                  </div>
+            <div className="flex gap-5 bg-gray-100 rounded-lg p-2 my-1">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1 items-center">
+                  <Calendar className="w-4 h-4" />
+                  <h3 className="text-sm font-medium text-gray-900">Due Date:</h3>
                 </div>
+                <p className="text-sm text-gray-600">
+                  {new Date(selectedCampaign?.completedDate).toLocaleDateString()}
+                </p>
               </div>
-
-              {/* Right Side - Product Image + CTA */}
-              <div className="flex flex-col items-center justify-center text-center">
-                <img
-                  src={avatar}
-                  alt="Campaign product"
-                  className="w-36 h-36 rounded-xl object-cover shadow-sm mb-4"
-                />
-                <CustomButton text="Message Brand" />
+              <div className="flex gap-2">
+                <div className="flex items-center">
+                  {/* <DollarSign className="w-4 h-4" /> */}
+                  <h3 className="text-sm font-medium text-gray-900">Payment Status:</h3>
+                </div>
+                <span
+                  className={`inline-block px-5 py-1 rounded-lg text-xs font-medium ${getPaymentStatusColor(selectedCampaign?.paymentStatus)}`}
+                >
+                  {selectedCampaign?.paymentStatus}
+                </span>
               </div>
             </div>
           </div>
 
+          <div className="bg-gray-100 rounded-lg p-3">
+            <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-2">
+              Deliverables
+            </h5>
+            <div className="flex flex-wrap gap-2">
+              {selectedCampaign?.deliverables.map((item, index) => (
+                <span
+                  key={index}
+                  className="bg-white border text-xs text-gray-700 px-2 py-1 rounded-lg flex items-center gap-1"
+                >
+                  <div className="w-1 h-1 bg-primary rounded-full" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
           {/* Brand Review */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4">
+          <div className="bg-white  py-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Brand Review</h3>
 
             {selectedCampaign?.hasReview ? (
@@ -340,7 +316,7 @@ const CompletedCampaign = () => {
       </div>
 
       {/* Right Column - Finance Dashboard */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+      <div className="w-1/4 bg-white border-l border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
           <div className="bg-green-50 p-4 rounded-lg">
@@ -350,26 +326,6 @@ const CompletedCampaign = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {/* Upcoming Payments */}
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
-              Upcoming Payments
-            </h3>
-            <div className="space-y-3">
-              {upcomingPayments.map((payment, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-gray-900 truncate">{payment.campaign}</p>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-lg font-semibold text-gray-900">${payment.amount}</span>
-                    <span className="text-xs text-gray-600">
-                      {new Date(payment.date).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Payment History */}
           <div className="p-4">
             <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
@@ -394,7 +350,7 @@ const CompletedCampaign = () => {
                   </div>
 
                   {expandedMonths[month] && (
-                    <div className="h-20 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <div className="h-40 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                       {data.payments.map((payment, index) => (
                         <div key={index} className="bg-gray-50 p-2 rounded text-sm">
                           <p className="font-medium text-gray-900 truncate">{payment.campaign}</p>
@@ -406,6 +362,25 @@ const CompletedCampaign = () => {
                       ))}
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Upcoming Payments */}
+          <div className="p-4 border-t border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+              Upcoming Payments
+            </h3>
+            <div className="space-y-3">
+              {upcomingPayments.map((payment, index) => (
+                <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-900 truncate">{payment.campaign}</p>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-lg font-semibold text-gray-900">${payment.amount}</span>
+                    <span className="text-xs text-gray-600">
+                      {new Date(payment.date).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

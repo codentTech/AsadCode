@@ -23,7 +23,7 @@ function CampaignFilters() {
   const recentOptions = [{ label: "Recently Posted", value: "Recently Posted" }];
 
   return (
-    <div className="w-1/4 bg-white col-span-3 border-r p-6">
+    <div className="w-1/5 bg-white col-span-3 border-r p-6">
       <div className="flex items-center gap-2 mb-6">
         <Filter className="w-5 h-5 text-gray-600" />
         <h2 className="text-lg font-semibold text-gray-900">Campaign Filters</h2>
