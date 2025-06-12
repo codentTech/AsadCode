@@ -31,52 +31,66 @@ function CampaignFeed({ filteredCampaigns }) {
         {filteredCampaigns.map((campaign) => (
           <div
             key={campaign.id}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow transition-all duration-200"
+            className="bg-white rounded-2xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-200"
           >
             <div className="p-4">
-              <div className="flex items-start sm:items-center gap-4">
+              <div className="flex items-start gap-4">
                 <div className="relative shrink-0">
-                  <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-4xl border border-gray-200">
+                  <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-4xl border border-gray-200">
                     {campaign.brandLogo}
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-900 text-sm truncate">{campaign.brandName}</h3>
-                  <p className="flex items-center gap-1 text-xs text-gray-600 mt-0.5">
-                    <span>{campaign.location}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>2h ago</span>
-                  </p>
-                  <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                    {campaign.title}
-                  </h4>
+                <div className="w-full flex justify-between">
+                  <div className="flex flex-col">
+                    <h3 className="font-bold text-gray-900 text-sm truncate">
+                      {campaign.brandName}
+                    </h3>
+                    <p className="flex items-center gap-1 text-xs text-gray-600 mt-0.5">
+                      <span>{campaign.location}</span>
+                      <span className="text-gray-300">•</span>
+                      <span>2h ago</span>
+                    </p>
+                    <h4 className="text-xs text-gray-600 line-clamp-2">{campaign.title}</h4>
+                  </div>
+
+                  <div className="flex flex-col gap-2 px-4 text-xs">
+                    <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                      <span className="font-bold">Campaign Type</span> - {campaign.type}
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full font-medium ${
+                        campaign.compensation === "Paid"
+                          ? "bg-green-50 text-green-700"
+                          : campaign.compensation === "Gifted"
+                            ? "bg-purple-50 text-purple-700"
+                            : "bg-orange-50 text-orange-700"
+                      }`}
+                    >
+                      {" "}
+                      <div
+                        className={`w-1.5 h-1.5 ${
+                          campaign.compensation === "Paid"
+                            ? " bg-green-700"
+                            : campaign.compensation === "Gifted"
+                              ? " bg-purple-700"
+                              : " bg-orange-700"
+                        } rounded-full`}
+                      />
+                      <span className="font-bold">Componsation Type</span> -
+                      {campaign.compensation === "Paid" && <DollarSign className="w-3 h-3" />}
+                      {campaign.compensation === "Gifted" && <Gift className="w-3 h-3" />}
+                      {campaign.compensation === "Commission" && <Percent className="w-3 h-3" />}
+                      {campaign.compensation}
+                    </span>
+                    <span className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
+                      <div className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
+                      <span className="font-bold">Niche Type</span> - #{campaign.niche}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 px-4 pb-3 text-xs">
-              <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                {campaign.type}
-              </span>
-              <span
-                className={`flex items-center gap-1 px-2 py-1 rounded-full font-medium ${
-                  campaign.compensation === "Paid"
-                    ? "bg-green-50 text-green-700"
-                    : campaign.compensation === "Gifted"
-                      ? "bg-purple-50 text-purple-700"
-                      : "bg-orange-50 text-orange-700"
-                }`}
-              >
-                {campaign.compensation === "Paid" && <DollarSign className="w-3 h-3" />}
-                {campaign.compensation === "Gifted" && <Gift className="w-3 h-3" />}
-                {campaign.compensation === "Commission" && <Percent className="w-3 h-3" />}
-                {campaign.compensation}
-              </span>
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
-                #{campaign.niche}
-              </span>
             </div>
 
             <div className="px-4 pb-3">
@@ -90,7 +104,7 @@ function CampaignFeed({ filteredCampaigns }) {
                       key={index}
                       className="bg-white border text-xs text-gray-700 px-2 py-1 rounded-lg flex items-center gap-1"
                     >
-                      <div className="w-1 h-1 bg-primary rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                       {item}
                     </span>
                   ))}
@@ -106,7 +120,7 @@ function CampaignFeed({ filteredCampaigns }) {
               />
               <CustomButton
                 text="Apply"
-                className="btn-primary w-full"
+                className="btn-secondary w-full"
                 onClick={() => handleOpenApplication(campaign)}
               />
             </div>

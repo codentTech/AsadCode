@@ -5,7 +5,9 @@ import CampaignDashboard from "./creator/creator-discover.component";
 function Discover() {
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
-  return <div>{isCreatorMode ? <CampaignDashboard /> : <BrandDiscover />}</div>;
+  return (
+    <div className="bg-gray-100">{isCreatorMode ? <CampaignDashboard /> : <BrandDiscover />}</div>
+  );
 }
 
 export default Discover;

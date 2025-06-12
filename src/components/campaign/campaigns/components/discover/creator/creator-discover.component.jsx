@@ -49,7 +49,7 @@ const CampaignDashboard = () => {
   ];
 
   return (
-    <div className="relative flex flex-1 overflow-hidden pb-20">
+    <div className="mx-auto max-w-7xl relative flex flex-1 overflow-hidden pb-20">
       {/* Left Column - Campaign Filters */}
       <CampaignFilters />
 
