@@ -1,39 +1,19 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
-import { useState } from "react";
+import { notificationsMockData } from "@/common/constants/notifications.data.constant";
+import React, { useState } from "react";
+import Header from "./components/header/header.component";
+import Notifications from "./components/notifications/notifications.component";
 import Sidebar from "./components/sidebar/sidebar.component";
 import StatsCards from "./components/stats-cards/stats-cards.component";
 import WaitingList from "./components/waiting-list/waiting-list.component";
 
-// Header Component
-const Header = ({ onMenuClick }) => {
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center space-x-4">
-          <button onClick={onMenuClick} className="lg:hidden text-gray-600 hover:text-gray-900">
-            <Menu size={24} />
-          </button>
-          <h2 className="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative">
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              3
-            </span>
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-};
-
 // Main Dashboard Component
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentBar, setCurrentBar] = useState("User Waitlist");
+
+  console.log(currentBar);
 
   // Mock data for waiting list
   const waitingListUsers = [
@@ -116,23 +96,44 @@ const AdminDashboard = () => {
     },
   ];
 
+  const [notifications, setNotifications] = useState(notificationsMockData);
+
+  const unreadCount = notifications["brand"].filter((n) => n.unread).length;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        setCurrentBar={setCurrentBar}
+        currentBar={currentBar}
+      />
 
       {/* Main Content */}
       <div className="lg:ml-64">
         {/* Header */}
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header
+          onMenuClick={() => setSidebarOpen(true)}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          setCurrentBar={setCurrentBar}
+        />
 
         {/* Dashboard Content */}
         <main className="p-6">
-          {/* Stats Cards */}
-          <StatsCards users={waitingListUsers} />
+          {currentBar === "Notifications" ? (
+            <Notifications notifications={notifications} setNotifications={setNotifications} />
+          ) : (
+            <React.Fragment>
+              {/* Stats Cards */}
+              <StatsCards users={waitingListUsers} />
 
-          {/* Waitlist Table */}
-          <WaitingList users={waitingListUsers} />
+              {/* Waitlist Table */}
+              <WaitingList users={waitingListUsers} />
+            </React.Fragment>
+          )}
         </main>
       </div>
     </div>
