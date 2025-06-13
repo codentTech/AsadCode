@@ -125,11 +125,7 @@ const CustomStepper = ({
                     : "bg-white border-gray-300 text-gray-400"
               }`}
             >
-              {index < activeStep ? (
-                <CheckIcon className="h-4 w-4" />
-              ) : (
-                index + 1
-              )}
+              {index < activeStep ? <CheckIcon className="h-4 w-4" /> : index + 1}
             </div>
 
             {/* Label */}
@@ -175,11 +171,7 @@ const CustomStepper = ({
                     : "bg-white border-gray-300 text-gray-400"
               }`}
             >
-              {index < activeStep ? (
-                <CheckIcon className="h-4 w-4" />
-              ) : (
-                index + 1
-              )}
+              {index < activeStep ? <CheckIcon className="h-4 w-4" /> : index + 1}
             </div>
 
             {/* Label and Description */}
@@ -197,9 +189,7 @@ const CustomStepper = ({
                   {step}
                 </span>
                 {step.description && (
-                  <p className="text-xs text-gray-500 mt-1 max-w-[250px]">
-                    {step}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1 max-w-[250px]">{step}</p>
                 )}
               </div>
             )}
@@ -211,14 +201,12 @@ const CustomStepper = ({
 
   return (
     <div className="flex flex-col justify-center">
-      {orientation === "vertical"
-        ? renderVerticalStepper()
-        : renderHorizontalStepper()}
+      {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
 
       {children}
 
       {/* Navigation */}
-      <div className="w-[95%] absolute bottom-0 p-4 border-t flex justify-between">
+      <div className="w-[95%] bg-white absolute bottom-0 p-4 border-t flex justify-between">
         <CustomButton
           text="Previous"
           onClick={prevStep}
@@ -231,11 +219,7 @@ const CustomStepper = ({
           text={activeStep < steps.length - 1 ? "Next" : "Save"}
           onClick={activeStep < steps.length - 1 ? nextStep : editCampaign}
           className="btn-primary"
-          endIcon={
-            activeStep < steps.length - 1 ? (
-              <ArrowForward className="h-4 w-4 ml-1" />
-            ) : null
-          }
+          endIcon={activeStep < steps.length - 1 ? <ArrowForward className="h-4 w-4 ml-1" /> : null}
         />
       </div>
     </div>

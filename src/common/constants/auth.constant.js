@@ -18,3 +18,6 @@ export const sortOptions = [
   { value: "reviews", label: "Most Reviewed" },
   { value: "engagement", label: "Engagement Rate" },
 ];
+
+export const product =
+  "https://img.freepik.com/free-psd/protein-powder-container-bottle_191095-25606.jpg?semt=ais_hybrid&w=740";
