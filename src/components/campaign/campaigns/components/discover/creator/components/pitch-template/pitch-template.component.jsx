@@ -6,6 +6,7 @@ import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { Copy, Trash2 } from "lucide-react";
 import usePitchTemplate from "./use-pitch-template.hook";
+import { AddCircle } from "@mui/icons-material";
 
 function PitchTemplate() {
   const {
@@ -24,33 +25,35 @@ function PitchTemplate() {
   } = usePitchTemplate();
 
   return (
-    <div className="w-1/4 border-l">
-      <div className="bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">My Pitches</h2>
+    <div className="w-1/4 bg-white col-span-3 border-x p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-gray-900">My Pitches</h2>
+        <button className="bg-gray-200 p-2 rounded-full" onClick={() => setShowNewPitchForm(true)}>
+          <AddCircle className="text-primary" />
+        </button>
+      </div>
 
-        <div className="space-y-3 mb-6 h-[calc(100vh-30vh)] overflow-y-auto">
-          {pitchTemplates.map((pitch) => (
-            <div
-              key={pitch.id}
-              className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
+      <div className="space-y-3 mb-6 h-[calc(100vh-30vh)] overflow-y-auto">
+        {pitchTemplates.map((pitch) => (
+          <div
+            key={pitch.id}
+            className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
+          >
+            <button
+              onClick={() => setShowPitchPopup(pitch)}
+              className="flex-1 text-left text-sm font-medium text-gray-900 hover:text-blue-600"
             >
-              <button
-                onClick={() => setShowPitchPopup(pitch)}
-                className="flex-1 text-left text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                {pitch.name}
-              </button>
-              <button
-                onClick={() => copyPitchTemplate(pitch.content)}
-                className="p-1 text-gray-600 hover:text-blue-600"
-                title="Copy pitch"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <CustomButton text="Create New Pitch" onClick={() => setShowNewPitchForm(true)} />
+              {pitch.name}
+            </button>
+            <button
+              onClick={() => copyPitchTemplate(pitch.content)}
+              className="p-1 text-gray-600 hover:text-blue-600"
+              title="Copy pitch"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Pitch View Modal */}
