@@ -1,21 +1,31 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import React from "react";
 
-function AudienceRequirementsExperience({
-  campaignData,
-  setCampaignData,
-  handleChange,
-}) {
+function AudienceRequirementsExperience({ campaignData, setCampaignData, handleChange }) {
+  const socialMediaPlatformOptions = [
+    { label: "Instagram", value: "Instagram" },
+    { label: "Facebook", value: "Facebook" },
+    { label: "YouTube", value: "YouTube" },
+    { label: "TikTok", value: "TikTok" },
+    { label: "Twitter (X)", value: "Twitter" },
+    { label: "LinkedIn", value: "LinkedIn" },
+    { label: "Snapchat", value: "Snapchat" },
+    { label: "Pinterest", value: "Pinterest" },
+    { label: "Other", value: "Other" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <CustomInput
           label="Minimum Combined Followers"
           type="number"
+          isRequired={true}
           name="minCombinedFollowers"
           value={campaignData.minCombinedFollowers}
           onChange={handleChange}
-          placeholder="10000"
+          placeholder="2000"
         />
       </div>
 
@@ -108,6 +118,16 @@ function AudienceRequirementsExperience({
             placeholder="Min followers"
           />
         </div>
+      </div>
+
+      <div className="w-full max-w-[235px]">
+        <SimpleSelect
+          label="Required platforms"
+          placeHolder="Select an option"
+          options={socialMediaPlatformOptions}
+          isMulti={true}
+          isSearchable={true}
+        />
       </div>
     </div>
   );
