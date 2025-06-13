@@ -11,14 +11,7 @@ const CloseIcon = () => {
   );
 };
 
-function useSimpleSelect({
-  placeHolder,
-  options,
-  isMulti,
-  isSearchable,
-  onChange,
-  defaultValue,
-}) {
+function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange, defaultValue }) {
   const [showMenu, setShowMenu] = useState(false);
   const [selectedValue, setSelectedValue] = useState(isMulti ? [] : null);
   const [searchValue, setSearchValue] = useState("");
@@ -51,8 +44,7 @@ function useSimpleSelect({
   const getDisplay = () => {
     if (defaultValue) {
       // If defaultValue is provided, find the corresponding option and return its label
-      const defaultOption =
-        options && options.find((option) => option.value === defaultValue);
+      const defaultOption = options && options.find((option) => option.value === defaultValue);
       return defaultOption ? defaultOption.label : placeHolder || "";
     }
 
@@ -65,15 +57,9 @@ function useSimpleSelect({
         // eslint-disable-next-line react/jsx-filename-extension
         <div className="flex flex-wrap gap-[5px]">
           {selectedValue.map((option) => (
-            <div
-              key={option.value}
-              className="flex items-center rounded-sm bg-gray-200 px-1"
-            >
+            <div key={option.value} className="flex gap-3 items-center rounded-lg bg-gray-100 px-2">
               {option.label}
-              <span
-                onClick={(e) => onTagRemove(e, option)}
-                className="flex items-center ml-1"
-              >
+              <span onClick={(e) => onTagRemove(e, option)} className="flex items-center ml-1">
                 <CrossIcon size="small" />
               </span>
             </div>
@@ -135,9 +121,7 @@ function useSimpleSelect({
     return (
       options &&
       options.filter(
-        (option) =>
-          option &&
-          option.label.toLowerCase().indexOf(searchValue.toLowerCase()) >= 0
+        (option) => option && option.label.toLowerCase().indexOf(searchValue.toLowerCase()) >= 0
       )
     );
   };

@@ -65,7 +65,7 @@ export default function SimpleSelect({
 
       {showMenu && (
         <div
-          className={`absolute z-50 mt-1 ${isMulti ? "top-16" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+          className={`absolute z-50 mt-1 ${isSearchable && isMulti ? "top-16" : isSearchable ? "top-10" : "top-16"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
         >
           {isSearchable && (
             <div className="p-2 border-b border-gray-100">
@@ -86,18 +86,14 @@ export default function SimpleSelect({
                 key={option.value}
                 onClick={() => onItemClick(option)}
                 className={`cursor-pointer px-3 py-2 text-sm hover:bg-secondary-light-blue ${
-                  isSelected(option)
-                    ? "bg-secondary-light-blue font-medium"
-                    : ""
+                  isSelected(option) ? "bg-secondary-light-blue font-medium" : ""
                 }`}
               >
                 {option.label}
               </div>
             ))
           ) : (
-            <div className="px-3 py-2 text-sm text-gray-400">
-              No options found
-            </div>
+            <div className="px-3 py-2 text-sm text-gray-400">No options found</div>
           )}
         </div>
       )}
