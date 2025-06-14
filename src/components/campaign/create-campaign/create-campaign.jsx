@@ -10,7 +10,7 @@ export default function CampaignCreationWizard({ open, close }) {
 
   return (
     <Modal title="Create Campaign" show={open} onClose={close} size="lg" height="fixed">
-      <div className="h-full w-full max-w-3xl mx-auto bg-white overflow-hidden">
+      <div className="h-full w-full max-w-3xl mx-auto bg-white flex flex-col">
         <CustomStepper
           steps={steps}
           activeStep={currentStep}
@@ -21,7 +21,7 @@ export default function CampaignCreationWizard({ open, close }) {
         >
           <div className="p-4">
             <h3 className="mb-2">{steps[currentStep]}</h3>
-            {renderStep()}
+            <div className="flex-1 overflow-y-auto">{renderStep()}</div>
           </div>
         </CustomStepper>
       </div>
