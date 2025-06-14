@@ -200,18 +200,19 @@ const CustomStepper = ({
   );
 
   return (
-    <div className="flex flex-col justify-center">
+    <div className="flex flex-col h-full">
       {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
 
-      <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto">{children}</div>
 
-      {/* Navigation */}
+      {/* Sticky navigation at bottom */}
       <div className="sticky bottom-0 bg-white p-4 border-t flex justify-between mt-auto shadow-lg">
         <CustomButton
           text="Previous"
           onClick={prevStep}
           disabled={activeStep === 0}
-          className={`flex items-center py-2 px-4 rounded-md btn-outline`}
+          className="flex items-center py-2 px-4 rounded-md btn-outline"
           startIcon={<ArrowBack className="h-4 w-4 mr-1" />}
         />
 
