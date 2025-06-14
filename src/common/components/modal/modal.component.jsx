@@ -17,7 +17,7 @@ export default function Modal({ show = false, title, children, onClose, size, he
           height: height ? "90vh" : "auto",
           display: "flex",
           flexDirection: "column",
-          maxHeight: "90vh", // Add this
+          maxHeight: "90vh",
         },
       }}
     >
