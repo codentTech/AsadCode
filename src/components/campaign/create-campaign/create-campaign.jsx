@@ -21,7 +21,7 @@ export default function CampaignCreationWizard({ open, close }) {
         >
           <div className="p-4">
             <h3 className="mb-2">{steps[currentStep]}</h3>
-            <div className="flex-1 overflow-y-auto">{renderStep()}</div>
+            <div>{renderStep()}</div>
           </div>
         </CustomStepper>
       </div>

@@ -1,5 +1,4 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Niche from "@/components/niche/niche";
 import { X } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +17,7 @@ function CampaignTypeNiche({ campaignData, handleChange, handleCheckboxToggle })
   const deliverableOptions = ["Feed Post", "Story: 3+ Frames", "Reel"];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Campaign Title and Type */}
       <div className="flex w-1/2 flex-col md:flex-row md:items-end gap-4">
         <CustomInput
