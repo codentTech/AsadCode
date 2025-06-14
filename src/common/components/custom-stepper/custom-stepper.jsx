@@ -203,10 +203,10 @@ const CustomStepper = ({
     <div className="flex flex-col justify-center">
       {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
 
-      {children}
+      <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
 
       {/* Navigation */}
-      <div className="w-[95%] bg-white absolute bottom-0 p-4 border-t flex justify-between">
+      <div className="sticky bottom-0 bg-white p-4 border-t flex justify-between mt-auto shadow-lg">
         <CustomButton
           text="Previous"
           onClick={prevStep}
