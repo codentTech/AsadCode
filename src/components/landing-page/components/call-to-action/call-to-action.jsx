@@ -1,9 +1,9 @@
-import CustomButton from '@/common/components/custom-button/custom-button.component';
-import { JoinFullOutlined } from '@mui/icons-material';
-import React from 'react';
-import useCallToAction from './use-call-to-action';
-import Modal from '@/common/components/modal/modal.component';
-import JoinCleerCut from '../join-cleercut/join-cleercut';
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { JoinFullOutlined } from "@mui/icons-material";
+import React from "react";
+import useCallToAction from "./use-call-to-action";
+import Modal from "@/common/components/modal/modal.component";
+import JoinCleerCut from "../join-cleercut/join-cleercut";
 
 function CallToAction() {
   const { isOpen, setIsOpen, closeModal } = useCallToAction();
@@ -29,7 +29,7 @@ function CallToAction() {
         </div>
       </div>
 
-      <Modal title="Join CleerCut Early Access" show={isOpen} onClose={closeModal}>
+      <Modal title="Join CleerCut" show={isOpen} onClose={closeModal}>
         <JoinCleerCut closeModal={closeModal} />
       </Modal>
     </section>

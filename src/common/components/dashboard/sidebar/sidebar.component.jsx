@@ -1,252 +1,118 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
+import { X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import PropTypes from "prop-types";
-import { useDispatch, useSelector } from "react-redux";
-import CategoriesIcon from "@/common/icons/sidebar/administrations/categories.icon";
-import CustomerIcon from "@/common/icons/sidebar/administrations/customer.icon";
-import ProductIcon from "@/common/icons/sidebar/administrations/products.icon";
-import DashboardIcon from "@/common/icons/sidebar/dashboard.icon";
-import DeliveryNotesIcon from "@/common/icons/sidebar/documents/delivery-notes.icon";
-import InvoiceIcon from "@/common/icons/sidebar/documents/invoice.icon";
-import OfferIcon from "@/common/icons/sidebar/documents/offer.icon";
-import OrderIcon from "@/common/icons/sidebar/documents/order.icon";
-import ExpendituresIcon from "@/common/icons/sidebar/expenses/expenditures.icon";
-import GeneralIcon from "@/common/icons/sidebar/settings/general.icon";
-import DocumentSettingIcon from "@/common/icons/sidebar/settings/settings.icon";
-import { setSidebarToggleItem } from "@/provider/features/auth/auth.slice";
-import CreditNotesIcon from "@/common/icons/sidebar/documents/credit-notes.icon";
-import creditNotesConfig from "@/provider/features/credit-note/credit-note.config";
+import useSidebar from "./use-sidebar";
 
-const sidebarLinks = [
-  {
-    label: "Dashboard",
-    icon: <DashboardIcon className="" />,
-    href: "/dashboard",
-  },
-  {
-    label: "Documents",
-    icon: null,
-    subLinks: [
-      { label: "Offer", icon: <OfferIcon />, href: "/offer/view" },
-      { label: "Order", icon: <OrderIcon />, href: "/order/view" },
-      {
-        label: "Delivery Notes",
-        icon: <DeliveryNotesIcon />,
-        href: "/delivery-notes/view",
-      },
-      { label: "Invoice", icon: <InvoiceIcon />, href: "/invoices/view" },
-      {
-        label: "Credits Notes",
-        icon: <CreditNotesIcon />,
-        href: creditNotesConfig.viewPageUrl,
-      },
-      // {
-      //   label: 'Recurring Invoices',
-      //   icon: <RecurringInvoiceIcon />,
-      //   href: '#'
-      // },
-      // { label: 'Purchase Order', icon: <PurchaseOrderIcon />, href: '#' },
-      // { label: 'Inquiries', icon: <InquiriesIcon />, href: '#' },
-      // { label: 'Correspondence', icon: <CorrespondenceIcon />, href: '#' }
-    ],
-  },
-  {
-    label: "Administrations",
-    icon: null,
-    subLinks: [
-      { label: "Customer", icon: <CustomerIcon />, href: "/customer" },
-      { label: "Products", icon: <ProductIcon />, href: "/product" },
-      {
-        label: "Categories",
-        icon: <CategoriesIcon />,
-        href: "/category/create",
-      },
-      // { label: 'Business Owner', icon: <EmployeesIcon />, href: '#' },
-      // { label: 'Users & Roles', icon: <UserRolesIcon />, href: '#' }
-    ],
-  },
-  // {
-  //   label: 'Employee Management',
-  //   icon: null,
-  //   subLinks: [{ label: 'Employees', icon: <EmployeesIcon />, href: '#' }]
-  // },
-  {
-    label: "Expenses",
-    icon: null,
-    subLinks: [
-      {
-        label: "Expenditures",
-        icon: <ExpendituresIcon />,
-        href: "/expenditure",
-      },
-    ],
-  },
-  // {
-  //   label: 'Cloud',
-  //   icon: null,
-  //   subLinks: [{ label: 'Repository', icon: <DatabaseIcon />, href: '/repository' }]
-  // },
-  {
-    label: "Setting",
-    icon: null,
-    subLinks: [
-      {
-        label: "General Setting",
-        icon: <GeneralIcon />,
-        href: "/setting/general-setting",
-      },
-      {
-        label: "Profile Setting",
-        icon: <GeneralIcon />,
-        href: "/setting/profile-setting",
-      },
-      {
-        label: "Account Setting",
-        icon: <ProductIcon />,
-        href: "/setting/account-setting",
-      },
-      {
-        label: "Document Setting",
-        icon: <DocumentSettingIcon />,
-        href: "/setting/document-setting",
-      },
-    ],
-  },
-];
+function Sidebar({ isOpen, onClose }) {
+  const { expandedSections, navItems, activeItem, handleItemClick } = useSidebar();
 
-export default function Sidebar({ toggle, setToggle }) {
-  const router = usePathname();
-  const dispatch = useDispatch();
-  const settingRoute = router.includes("setting");
-  const routerPath = router.split("/")[settingRoute ? 2 : 1];
-  const { sidebarToggleItem } = useSelector((state) => state?.auth);
-  const handleChange = (panel) => (event, sidebarToggleItem) => {
-    dispatch(setSidebarToggleItem(sidebarToggleItem ? panel : false));
+  const renderNavItem = (item, depth = 0, parentPath = "") => {
+    const { label, icon: Icon, children, href } = item;
+    const currentPath = parentPath ? `${parentPath}.${label}` : label;
+    const isExpanded = expandedSections[currentPath];
+    const hasChildren = children && children.length > 0;
+
+    // For leaf items (final level with href)
+    // if (href) {
+    //   return (
+    //     <button
+    //       key={href}
+    //       // onClick={() => handleItemClick(href, label)}
+    //       className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
+    //         activeItem === item?.label
+    //           ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
+    //           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+    //       }`}
+    //       style={{ marginLeft: `${depth * 12}px` }}
+    //     >
+    //       <div className="flex items-center space-x-3">
+    //         {Icon && (
+    //           <Icon
+    //             size={20}
+    //             className="text-gray-500 group-hover:text-indigo-600 transition-colors"
+    //           />
+    //         )}
+    //         <span className="font-medium text-sm">{label}</span>
+    //       </div>
+    //     </button>
+    //   );
+    // }
+
+    return (
+      <div key={currentPath} className="space-y-2">
+        {/* Section header */}
+        <button
+          onClick={() => handleItemClick({ hasChildren, currentPath, href, label })}
+          className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors group ${
+            activeItem === item?.label
+              ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            {Icon && (
+              <Icon
+                size={20}
+                className="text-gray-500 group-hover:text-indigo-600 transition-colors"
+              />
+            )}
+            <span className="font-medium text-sm">{label}</span>
+          </div>
+          {hasChildren && (
+            <div
+              className={`transform transition-transform duration-200 ${
+                isExpanded ? "rotate-90" : ""
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M6 12l4-4-4-4v8z" />
+              </svg>
+            </div>
+          )}
+        </button>
+
+        {/* Render children */}
+        {isExpanded && hasChildren && (
+          <div className={`${depth > 0 ? "ml-2" : ""} pl-2 border-l-2 border-gray-200 space-y-1`}>
+            {children.map((child) => renderNavItem(child, depth + 1, currentPath))}
+          </div>
+        )}
+      </div>
+    );
   };
 
-  const [currentPath, setCurrentPath] = useState(routerPath);
-
-  useEffect(() => {
-    setCurrentPath(routerPath);
-  }, [routerPath]);
-
-  const isActive = (href) => href.includes(currentPath);
-
-  const activeLinks = sidebarLinks
-    .map((link) => {
-      if (link.subLinks) {
-        const activeSubLinks = link.subLinks.filter((subLink) => {
-          return isActive(subLink.href);
-        });
-        return { ...link, subLinks: activeSubLinks };
-      }
-      return link;
-    })
-    .filter((link) => link.subLinks && link.subLinks.length > 0);
-
-  useEffect(() => {
-    dispatch(setSidebarToggleItem(activeLinks[0]?.label));
-  }, []);
-
   return (
-    <div
-      className={`${
-        toggle ? "open" : ""
-      } offcanva fixed z-[9999] h-screen w-[273px] bg-primary-blue bg-hero-pattern bg-right-top bg-no-repeat`}
-    >
-      <div className="absolute right-1 top-1 z-[9999] rounded-[4px] border-[1px] border-x-secondary-light-blue xs:block semixl:hidden">
-        <ChevronLeftIcon
-          className="text-white"
-          onClick={() => setToggle(!toggle)}
-        />
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6">
+          <Link href="/" className="flex items-center cursor-pointer">
+            <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
+          </Link>
+          <button onClick={onClose} className="lg:hidden text-black hover:text-indigo-200">
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
+        </nav>
       </div>
-      <div className="p-6">
-        <Link className="block" href="/dashboard">
-          <img
-            className="mx-auto block"
-            src="/assets/images/sidebar/quickStepLogo.svg"
-            alt="logo"
-          />
-        </Link>
-      </div>
-      <div className="multistep-wrapper flex flex-col gap-6 bg-primary-blue pl-6 pr-5">
-        {sidebarLinks.map((navLink) => {
-          if (navLink.subLinks) {
-            return (
-              <Accordion
-                expanded={sidebarToggleItem === navLink.label}
-                onChange={handleChange(navLink.label)}
-                key={navLink.label}
-                className="!before:none !m-0 !bg-primary-blue !shadow-none"
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1a-content"
-                  id="panel1a-header"
-                  className="!m-0 !h-fit !min-h-fit bg-primary-blue !px-0 !py-0"
-                >
-                  <div className="flex items-center gap-2">
-                    {/* <ArrowIcon className="arrow-cotrol" /> */}
-                    <span className="font-dm text-base leading-6 text-white">
-                      {navLink.label}
-                    </span>
-                  </div>
-                </AccordionSummary>
-                <AccordionDetails className="bg-primary-blue !px-0 !py-0">
-                  <ul className="mt-2 flex flex-col gap-2">
-                    {navLink.subLinks.map((subLink) => {
-                      return (
-                        <Link
-                          key={subLink.label}
-                          href={subLink.href}
-                          className={`nav-link ${
-                            subLink.href.includes(routerPath)
-                              ? "nav-link-select"
-                              : ""
-                          } cursor-pointer rounded-md px-6 py-2`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {subLink.icon}
-                            <span className="font-dm text-base leading-6 text-white">
-                              {subLink.label}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </ul>
-                </AccordionDetails>
-              </Accordion>
-            );
-          } else {
-            return (
-              <Link
-                key={navLink.label}
-                href={navLink.href}
-                className="mt-7 flex items-center gap-2 px-4 py-2"
-              >
-                {navLink.icon}
-                <span className="font-dm text-sm text-white">
-                  {navLink.label}
-                </span>
-              </Link>
-            );
-          }
-        })}
-      </div>
-    </div>
+    </>
   );
 }
 
-Sidebar.propTypes = {
-  toggle: PropTypes.bool.isRequired,
-  setToggle: PropTypes.func.isRequired,
-};
+export default Sidebar;

@@ -184,7 +184,7 @@ function Hero({ isCreatorMode }) {
       {/* Highlight Stats */}
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-8 md:py-3 transform skew-y-1"></div>
 
-      <Modal title="Join CleerCut Early Access" show={isOpen} onClose={closeModal}>
+      <Modal title="Join CleerCut" show={isOpen} onClose={closeModal}>
         <JoinCleerCut closeModal={closeModal} />
       </Modal>
     </section>

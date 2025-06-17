@@ -14,7 +14,7 @@ const generalState = {
 const user = getUser();
 const initialState = {
   isCreatorMode: null,
-  sidebarToggleItem: false,
+  sidebarToggleItem: null,
   logoutLoader: false,
   login: generalState,
   signUp: generalState,

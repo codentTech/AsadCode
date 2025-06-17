@@ -172,7 +172,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <Modal title="Join CleerCut Early Access" show={isOpen} onClose={closeModal}>
+      <Modal title="Join CleerCut" show={isOpen} onClose={closeModal}>
         <JoinCleerCut closeModal={closeModal} />
       </Modal>
     </footer>

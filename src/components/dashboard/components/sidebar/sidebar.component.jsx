@@ -3,10 +3,12 @@
 import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import useSidebar from "./use-sidebar";
+import useSidebar from "../../../../common/components/dashboard/sidebar/use-sidebar";
 
-function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
-  const { expandedSections, activeItem, navItems, toggleSection, handleItemClick } = useSidebar();
+function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
+  const { expandedSections, activeItem, navItems, toggleSection, handleItemClick } = useSidebar({
+    menuItems,
+  });
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
     const { label, icon: Icon, children, href } = item;
@@ -100,7 +102,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
-          <div className="px-4 space-y-2">{navItems.map((item) => renderNavItem(item))}</div>
+          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>
     </>

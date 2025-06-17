@@ -4,7 +4,9 @@ module.exports = {
     "./src/auth/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/common/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/common/layouts/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     screens: {

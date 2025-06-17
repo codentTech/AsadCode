@@ -3,8 +3,6 @@
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
-import Header from "@/components/header/header";
-import Footer from "@/components/home/footer/footer.component";
 import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
@@ -13,7 +11,7 @@ import { usePathname } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { Provider, useSelector } from "react-redux";
+import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
@@ -29,9 +27,6 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
 
 function LayoutWrapper({ children }) {
   const pathname = usePathname();
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-
-  const layoutNotToShow = ["/dashboard", "/login", "/campaign", "/chat-inbox"];
 
   const [loading, setLoading] = useState(false);
 
@@ -49,26 +44,15 @@ function LayoutWrapper({ children }) {
   }, [pathname]);
 
   return (
-    <>
+    <React.Fragment>
       {loading && (
         <div className="fixed inset-0 w-screen h-screen bg-white/90 flex justify-center items-center z-[9999]">
           <Loader className="animate-spin" />
         </div>
       )}
-      {isCreatorMode || isCreatorMode === false ? (
-        !layoutNotToShow.includes(pathname) ? (
-          <React.Fragment>
-            <Header />
-            <div className="pt-20">{children}</div>
-            <Footer />
-          </React.Fragment>
-        ) : (
-          <React.Fragment>{children}</React.Fragment>
-        )
-      ) : (
-        <React.Fragment>{children}</React.Fragment>
-      )}
-    </>
+
+      <React.Fragment>{children}</React.Fragment>
+    </React.Fragment>
   );
 }
 

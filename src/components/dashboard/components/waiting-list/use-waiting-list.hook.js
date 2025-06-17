@@ -12,10 +12,6 @@ const columns = [
     key: "created_at",
     title: "Joined Date",
   },
-  // {
-  //   key: "status",
-  //   title: "Status",
-  // },
 ];
 
 function useWaitingList() {

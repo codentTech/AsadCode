@@ -1,4 +1,9 @@
-function useNotifications({ setNotifications }) {
+import { notificationsMockData } from "@/common/constants/notifications.data.constant";
+import { useState } from "react";
+
+function useNotifications() {
+  const [notifications, setNotifications] = useState(notificationsMockData);
+
   const markAsRead = (id) => {
     setNotifications((prev) => ({
       ...prev,
@@ -14,7 +19,7 @@ function useNotifications({ setNotifications }) {
       ["brand"]: prev["brand"].filter((notif) => notif.id !== id),
     }));
   };
-  return { markAsRead, removeNotification };
+  return { notifications, markAsRead, removeNotification };
 }
 
 export default useNotifications;

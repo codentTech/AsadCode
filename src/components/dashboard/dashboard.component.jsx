@@ -1,20 +1,10 @@
 "use client";
 
-import { notificationsMockData } from "@/common/constants/notifications.data.constant";
-import React, { useState } from "react";
-import Header from "./components/header/header.component";
-import Notifications from "./components/notifications/notifications.component";
-import Sidebar from "./components/sidebar/sidebar.component";
+import SidebarLayout from "@/common/layouts/sidebar.layout";
 import StatsCards from "./components/stats-cards/stats-cards.component";
 import WaitingList from "./components/waiting-list/waiting-list.component";
 
-// Main Dashboard Component
 const AdminDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentBar, setCurrentBar] = useState("User Waitlist");
-
-  console.log(currentBar);
-
   // Mock data for waiting list
   const waitingListUsers = [
     {
@@ -96,47 +86,16 @@ const AdminDashboard = () => {
     },
   ];
 
-  const [notifications, setNotifications] = useState(notificationsMockData);
-
-  const unreadCount = notifications["brand"].filter((n) => n.unread).length;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
+    <SidebarLayout showDashboardHeader={true}>
+      {/* Dashboard Content */}
 
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        setCurrentBar={setCurrentBar}
-        currentBar={currentBar}
-      />
+      {/* Stats Cards */}
+      <StatsCards users={waitingListUsers} />
 
-      {/* Main Content */}
-      <div className="lg:ml-64">
-        {/* Header */}
-        <Header
-          onMenuClick={() => setSidebarOpen(true)}
-          notifications={notifications}
-          unreadCount={unreadCount}
-          setCurrentBar={setCurrentBar}
-        />
-
-        {/* Dashboard Content */}
-        <main className="p-6">
-          {currentBar === "Notifications" ? (
-            <Notifications notifications={notifications} setNotifications={setNotifications} />
-          ) : (
-            <React.Fragment>
-              {/* Stats Cards */}
-              <StatsCards users={waitingListUsers} />
-
-              {/* Waitlist Table */}
-              <WaitingList users={waitingListUsers} />
-            </React.Fragment>
-          )}
-        </main>
-      </div>
-    </div>
+      {/* Waitlist Table */}
+      <WaitingList users={waitingListUsers} />
+    </SidebarLayout>
   );
 };
 
