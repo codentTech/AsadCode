@@ -1,5 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import FacebookIcon from "@/common/icons/facebook";
+import InstagramIcon from "@/common/icons/instagram";
+import TikTokIcon from "@/common/icons/tiktok";
+import TwitterIcon from "@/common/icons/twitter";
+import YoutubeIcon from "@/common/icons/youtube";
 import {
   ArrowLeft,
   Calendar,
@@ -47,14 +52,11 @@ const IdealCreator = ({ onNext, onBack }) => {
   ];
 
   const platforms = [
-    { id: "instagram", label: "Instagram", icon: "📸" },
-    { id: "tiktok", label: "TikTok", icon: "🎵" },
-    { id: "youtube", label: "YouTube", icon: "📹" },
-    { id: "twitter", label: "Twitter", icon: "🐦" },
-    { id: "facebook", label: "Facebook", icon: "📘" },
-    { id: "linkedin", label: "LinkedIn", icon: "💼" },
-    { id: "snapchat", label: "Snapchat", icon: "👻" },
-    { id: "pinterest", label: "Pinterest", icon: "📌" },
+    { id: "instagram", label: "Instagram", icon: InstagramIcon },
+    { id: "tiktok", label: "TikTok", icon: TikTokIcon },
+    { id: "youtube", label: "YouTube", icon: YoutubeIcon },
+    { id: "twitter", label: "Twitter", icon: TwitterIcon },
+    { id: "facebook", label: "Facebook", icon: FacebookIcon },
   ];
 
   const followerRanges = [
@@ -117,7 +119,7 @@ const IdealCreator = ({ onNext, onBack }) => {
           {/* Follower Count & Gender */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Minimum Followers */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Hash className="h-5 w-5 text-indigo-600 mr-2" />
                 Minimum Followers <span className="text-red-500">*</span>
@@ -128,7 +130,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                     key={range.value}
                     onClick={() => setMinFollowers(range.value)}
                     className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                      p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                       ${
                         minFollowers === range.value
                           ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -143,7 +145,7 @@ const IdealCreator = ({ onNext, onBack }) => {
             </div>
 
             {/* Gender */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <UserCheck className="h-5 w-5 text-indigo-600 mr-2" />
                 Gender
@@ -156,7 +158,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                       key={gender.id}
                       onClick={() => toggleSelection(gender.id, selectedGender, setSelectedGender)}
                       className={`
-                        flex items-center p-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                        flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -174,7 +176,7 @@ const IdealCreator = ({ onNext, onBack }) => {
           </div>
 
           {/* Location */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <MapPin className="h-5 w-5 text-indigo-600 mr-2" />
               Location
@@ -193,7 +195,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                         toggleSelection(country.id, selectedCountries, setSelectedCountries)
                       }
                       className={`
-                        p-3 rounded-lg border-2 text-sm font-medium transition-all duration-200 text-center
+                      p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -225,7 +227,7 @@ const IdealCreator = ({ onNext, onBack }) => {
           {/* Age Range & Platforms */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Age Range */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
                 Age Range
@@ -240,7 +242,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                         toggleSelection(age.id, selectedAgeRanges, setSelectedAgeRanges)
                       }
                       className={`
-                        p-3 rounded-lg border-2 text-sm font-medium transition-all duration-200 text-center
+                        p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -257,7 +259,7 @@ const IdealCreator = ({ onNext, onBack }) => {
             </div>
 
             {/* Platforms */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Globe className="h-5 w-5 text-indigo-600 mr-2" />
                 Primary Platforms
@@ -272,7 +274,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                         toggleSelection(platform.id, selectedPlatforms, setSelectedPlatforms)
                       }
                       className={`
-                        flex items-center p-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                        flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -280,7 +282,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                         }
                       `}
                     >
-                      <span className="text-lg mr-3">{platform.icon}</span>
+                      <span className="text-lg mr-3">{<platform.icon />}</span>
                       <span className="text-xs">{platform.label}</span>
                       {isSelected && <CheckCircle className="h-4 w-4 ml-auto text-indigo-500" />}
                     </button>

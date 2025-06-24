@@ -43,7 +43,7 @@ const EmailVerification = ({ onNext, onBack }) => {
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl px-8 py-10 space-y-6">
           {/* Icon and Info */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-2">
             <div className="flex items-center justify-center">
               <div className="w-20 h-20 flex items-center justify-center rounded-full bg-primary/90">
                 <Mail className="w-10 h-10 text-white" />

@@ -58,7 +58,7 @@ const BrandProfile = ({ onNext, onBack }) => {
           {/* Left Column */}
           <div className="space-y-8">
             {/* Brand Information */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Brand Information <span className="text-red-500">*</span>
               </h3>
@@ -82,7 +82,7 @@ const BrandProfile = ({ onNext, onBack }) => {
             </div>
 
             {/* Brand Logo */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Brand Logo <span className="text-red-500">*</span>
               </h3>
@@ -121,7 +121,7 @@ const BrandProfile = ({ onNext, onBack }) => {
             </div>
 
             {/* Location */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 HQ Location <span className="text-red-500">*</span>
               </h3>
@@ -141,8 +141,8 @@ const BrandProfile = ({ onNext, onBack }) => {
           {/* Right Column */}
           <div className="space-y-8">
             {/* Live Preview */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
+              <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
                 <div className="flex items-center text-xs text-gray-500">
                   <Eye className="h-3 w-3 mr-1" />
@@ -186,11 +186,11 @@ const BrandProfile = ({ onNext, onBack }) => {
             </div>
 
             {/* Company Description */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Company Description <span className="text-red-500">*</span>
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-xs text-gray-600 mb-2">
                 Tell creators about your brand and what makes you unique
               </p>
 
@@ -208,7 +208,7 @@ const BrandProfile = ({ onNext, onBack }) => {
             </div>
 
             {/* Profile Completion Status */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-3">Profile Setup Progress</h4>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                 <div
@@ -216,7 +216,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                   style={{ width: `${brandLogo && description.length > 50 ? "100%" : "50%"}` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-600">
                 {brandLogo && description.length > 50
                   ? "✅ Your brand profile looks great!"
                   : "Add logo and description to complete"}

@@ -2,7 +2,7 @@
 
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
@@ -13,14 +13,13 @@ import CampaignPreferences from "./creator/campaign-preferences/campaign-prefere
 import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 
 export default function SignUp() {
-  const isCreatorMode = false;
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
   const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAccountType, setSelectedAccountType] = useState("");
 
   const nextStep = () => {
-    console.log(currentStep);
     setCurrentStep((prev) => prev + 1);
   };
 
@@ -32,7 +31,7 @@ export default function SignUp() {
 
   const handleSelectMode = (type) => {
     setSelectedAccountType(type);
-    dispatch(setIsCreatorModeMode(selectedAccountType === "brand"));
+    dispatch(setIsCreatorModeMode(type === "creator"));
   };
 
   const renderStep = () => {

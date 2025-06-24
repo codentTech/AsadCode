@@ -161,7 +161,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
           {/* Left Column */}
           <div className="space-y-8">
             {/* Filming Preference */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Filming Requirements <span className="text-red-500">*</span>
               </h3>
@@ -174,7 +174,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                       key={option.id}
                       onClick={() => setFilmingPreference(option.id)}
                       className={`
-                        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+                        p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50"
@@ -192,8 +192,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{option.label}</h4>
-                          <p className="text-sm text-gray-600">{option.desc}</p>
+                          <h4 className="text-sm font-bold text-gray-900">{option.label}</h4>
+                          <p className="text-xs text-gray-600">{option.desc}</p>
                         </div>
                         {isSelected && <CheckCircle className="h-5 w-5 text-indigo-500" />}
                       </div>
@@ -204,7 +204,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
             </div>
 
             {/* Campaign Types */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Campaign Types <span className="text-red-500">*</span>
               </h3>
@@ -219,7 +219,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                         toggleSelection(type.id, selectedCampaignTypes, setSelectedCampaignTypes)
                       }
                       className={`
-                        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+                        p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50"
@@ -238,13 +238,13 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                             <Icon className="h-4 w-4" />
                           </div>
                           <div>
-                            <h4 className="font-medium text-gray-900">{type.label}</h4>
-                            <p className="text-sm text-gray-600">{type.desc}</p>
+                            <h4 className="text-sm font-bold text-gray-900">{type.label}</h4>
+                            <p className="text-xs text-gray-600">{type.desc}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium text-indigo-600">{type.avgCost}</div>
-                          <div className="text-xs text-gray-500">{type.popularity}% use</div>
+                          <div className="text-xs font-medium text-primary">{type.avgCost}</div>
+                          <div className="text-xs text-gray-600">{type.popularity}% use</div>
                           {isSelected && (
                             <CheckCircle className="h-4 w-4 text-indigo-500 ml-auto mt-1" />
                           )}
@@ -257,7 +257,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
             </div>
 
             {/* Geographic Focus */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Focus</h3>
               <div className="grid grid-cols-1 gap-3">
                 {geographicFocus.map((geo) => {
@@ -270,7 +270,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                         toggleSelection(geo.id, selectedGeographicFocus, setSelectedGeographicFocus)
                       }
                       className={`
-                        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+                        p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50"
@@ -294,8 +294,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{geo.label}</h4>
-                          <p className="text-sm text-gray-600">{geo.desc}</p>
+                          <h4 className="text-sm font-bold text-gray-900">{geo.label}</h4>
+                          <p className="text-xs text-gray-600">{geo.desc}</p>
                         </div>
                         {isSelected && <CheckCircle className="h-5 w-5 text-indigo-500" />}
                       </div>
@@ -309,7 +309,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
           {/* Right Column */}
           <div className="space-y-8">
             {/* Target Niches */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Target Niches</h3>
               <div className="grid grid-cols-2 gap-3">
                 {niches.map((niche) => {
@@ -319,7 +319,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                       key={niche.name}
                       onClick={() => toggleSelection(niche.name, selectedNiches, setSelectedNiches)}
                       className={`
-                        p-3 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                        p-2 rounded-lg border-2 text-sm font-medium transition-all duration-200
                         ${
                           isSelected
                             ? `border-indigo-500 ${niche.color}`
@@ -327,21 +327,20 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                         }
                       `}
                     >
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="text-base">{niche.icon}</span>
+                      <div className="flex items-center justify-center text-xs space-x-2">
                         <span>{niche.name}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-600 mt-3">
+              <p className="text-xs font-bold text-gray-600 mt-3">
                 Selected: {selectedNiches.length} niche{selectedNiches.length !== 1 ? "s" : ""}
               </p>
             </div>
 
             {/* Creator Sizes */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferred Creator Size</h3>
               <div className="space-y-4">
                 {creatorSizes.map((size) => {
@@ -354,7 +353,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                         toggleSelection(size.id, selectedCreatorSizes, setSelectedCreatorSizes)
                       }
                       className={`
-                        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+                        p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
                         ${
                           isSelected
                             ? "border-indigo-500 bg-indigo-50"
@@ -373,13 +372,13 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                             <Icon className="h-4 w-4" />
                           </div>
                           <div>
-                            <h4 className="font-medium text-gray-900">{size.label}</h4>
-                            <p className="text-sm text-gray-600 mb-2">{size.desc}</p>
+                            <h4 className="text-sm font-bol text-gray-900">{size.label}</h4>
+                            <p className="text-xs text-gray-600 mb-2">{size.desc}</p>
                             <div className="flex flex-wrap gap-1">
                               {size.benefits.map((benefit, index) => (
                                 <span
                                   key={index}
-                                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg"
                                 >
                                   {benefit}
                                 </span>
@@ -402,13 +401,13 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               <h4 className="font-semibold text-gray-900 mb-3">Setup Progress</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Filming Requirements</span>
+                  <span className="text-sm text-gray-600">Filming Requirements</span>
                   <span className={filmingPreference ? "text-green-600" : "text-gray-400"}>
                     {filmingPreference ? "✓ Complete" : "Pending"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Campaign Types</span>
+                  <span className="text-sm text-gray-600">Campaign Types</span>
                   <span
                     className={
                       selectedCampaignTypes.length > 0 ? "text-green-600" : "text-gray-400"
@@ -438,9 +437,9 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               </div>
 
               {filmingPreference && selectedCampaignTypes.length > 0 && (
-                <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-700 font-medium">
-                    🎯 Ready to find creators that match your preferences!
+                <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+                  <p className="text-sm text-gray-600 font-medium">
+                    Ready to find creators that match your preferences!
                   </p>
                 </div>
               )}

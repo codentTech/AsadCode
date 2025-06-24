@@ -198,7 +198,6 @@ const Register = ({ onNext, onBack }) => {
                 name="city"
                 placeholder="Enter your city"
                 isRequired={true}
-                icon={MapPin}
               />
             </div>
 

@@ -181,79 +181,37 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                         Object.values(creator.platforms).reduce((sum, p) => sum + p.followers, 0)
                       )}
                     </div>
-                    <span
-                      className={`text-xs ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1 text-gray-600`}
-                    >
-                      <span className="font-bold">Deadline:</span> {creator.deadline}
-                    </span>
+                    {isCompleted && (
+                      <span
+                        className={`text-xs ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1 text-gray-600`}
+                      >
+                        <span className="font-bold">Deadline:</span> {creator.deadline}
+                      </span>
+                    )}
                   </div>
 
                   {/* Enhanced Platform Stats Grid */}
                   {!isCompleted ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                      {Object.entries(creator.platforms).map(([platform, data]) => {
-                        const trendData = getTrendingData();
-                        return (
-                          <div
-                            key={platform}
-                            className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all duration-200 hover:border-gray-300"
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-2">
-                                <span
-                                  className={`${getPlatformColor(platform)} p-2 rounded-lg bg-white shadow-sm`}
-                                >
-                                  {getPlatformIcon(platform)}
-                                </span>
-                                <span className="text-sm font-semibold text-gray-700 capitalize">
-                                  {platform}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                {getTrendingIcon(trendData.trend)}
-                                <span
-                                  className={`text-xs font-medium ${getTrendingColor(trendData.trend)}`}
-                                >
-                                  {trendData.percentage}%
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500">Followers</span>
-                                <span className="text-lg font-bold text-gray-900">
-                                  {formatFollowers(data.followers)}
-                                </span>
-                              </div>
-
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full transition-all duration-300 ${
-                                    platform === "instagram"
-                                      ? "bg-gradient-to-r from-pink-500 to-purple-500"
-                                      : platform === "youtube"
-                                        ? "bg-gradient-to-r from-red-500 to-red-600"
-                                        : platform === "twitter"
-                                          ? "bg-gradient-to-r from-blue-500 to-blue-600"
-                                          : "bg-gradient-to-r from-gray-500 to-gray-600"
-                                  }`}
-                                  style={{
-                                    width: `${Math.min((data.followers / 300000) * 100, 100)}%`,
-                                  }}
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Engagement</span>
-                                <span className="font-medium text-gray-700">
-                                  {(Math.random() * 5 + 2).toFixed(1)}%
-                                </span>
-                              </div>
-                            </div>
+                      {Object.entries(creator.platforms).map(([platform, data]) => (
+                        <div
+                          key={platform}
+                          className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3
+                                    hover:bg-gray-100/80 transition-colors duration-200"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                              {getPlatformIcon(platform)}
+                            </span>
+                            <span className="text-xs capitalize font-semibold text-gray-700">
+                              {platform}
+                            </span>
                           </div>
-                        );
-                      })}
+                          <div className="text-sm font-bold text-gray-900">
+                            {formatFollowers(data.followers)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">

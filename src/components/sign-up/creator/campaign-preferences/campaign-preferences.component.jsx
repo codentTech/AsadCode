@@ -89,7 +89,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
 
         <div className="space-y-8">
           {/* Campaign Types */}
-          <div className="bg-white rounded-2xl shadow-lg p-2 md:p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-4">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Campaign Types</h3>
             <div className="grid md:grid-cols-2 gap-4">
               {campaignTypes.map((type) => {
@@ -99,7 +99,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                     key={type.id}
                     onClick={() => toggleCampaignType(type.id)}
                     className={`
-                      p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md
+                      p-2 text-xs rounded-lg border-2 cursor-pointer transition-all duration-300 hover:shadow-md
                       ${
                         selectedCampaignTypes.includes(type.id)
                           ? "border-indigo-500 bg-indigo-50"
@@ -121,13 +121,13 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-gray-900">{type.label}</h4>
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="text-sm font-bold text-gray-900">{type.label}</h4>
                           {selectedCampaignTypes.includes(type.id) && (
                             <CheckCircle className="h-5 w-5 text-indigo-500" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">{type.desc}</p>
+                        <p className="text-xs text-gray-600">{type.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -139,7 +139,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
           {/* Language & Location */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Languages */}
-            <div className="bg-white rounded-2xl shadow-lg p-2 md:p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Languages</h3>
               <div className="grid grid-cols-2 gap-3">
                 {languages.map((language) => (
@@ -147,11 +147,11 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                     key={language}
                     onClick={() => toggleLanguage(language)}
                     className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                      p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                       ${
                         selectedLanguages.includes(language)
                           ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                          : "border-gray-200 text-gray-700 hover:border-indigo-200"
+                          : "border-gray-200 text-gray-600 hover:border-indigo-200"
                       }
                     `}
                   >
@@ -162,9 +162,9 @@ const CampaignPreferences = ({ onNext, onBack }) => {
             </div>
 
             {/* In-Person Opportunities */}
-            <div className="bg-white rounded-2xl shadow-lg p-2 md:p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-xl font-semibold text-gray-900 mb-1">In-Person Opportunities</h3>
-              <p className="text-gray-600 mb-2">
+              <p className="text-xs text-gray-600 mb-4">
                 Are you open to in-person opportunities in your city?
               </p>
               <div className="space-y-3">
@@ -177,7 +177,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                     onChange={(e) => setInPersonOpportunities(e.target.value)}
                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   />
-                  <span className="text-gray-700 font-medium">Yes, I'm interested</span>
+                  <span className="text-gray-600 font-medium">Yes, I'm interested</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
@@ -188,18 +188,20 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                     onChange={(e) => setInPersonOpportunities(e.target.value)}
                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   />
-                  <span className="text-gray-700 font-medium">No, I'm not interested</span>
+                  <span className="text-gray-600 font-medium">No, I'm not interested</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Shipping Address */}
-          <div className="bg-white rounded-2xl shadow-lg p-2 md:p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-4">
             <h3 className="text-xl font-semibold text-gray-900 mb-1">
               Shipping Address (Optional)
             </h3>
-            <p className="text-gray-600 mb-4">Only visible when a brand is sending you a product</p>
+            <p className="text-xs text-gray-600 mb-4">
+              Only visible when a brand is sending you a product
+            </p>
             <div className="grid md:grid-cols-2 gap-6">
               <CustomInput
                 label="Street Address"

@@ -78,7 +78,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
           {/* Left Column */}
           <div className="space-y-8">
             {/* Profile Photo */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Profile Photo <span className="text-red-500">*</span>
               </h3>
@@ -94,7 +94,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
             </div>
 
             {/* Bio */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <TextArea
                 label="Bio (Optional)"
                 placeholder="Tell brands about yourself and your content style..."
@@ -106,7 +106,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
             </div>
 
             {/* Social Platforms */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Link Other Platforms <span className="text-red-500">*</span>
               </h3>
@@ -136,7 +136,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
           {/* Right Column */}
           <div className="space-y-8">
             {/* Categories */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Creator Categories <span className="text-red-500">*</span>
               </h3>
@@ -149,7 +149,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       !selectedCategories.includes(category) && selectedCategories.length >= 5
                     }
                     className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200
+                      p-2 rounded-lg border-2 text-xs font-medium transition-all duration-200
                       ${
                         selectedCategories.includes(category)
                           ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -167,14 +167,13 @@ const ProfileSetup = ({ onNext, onBack }) => {
             </div>
 
             {/* Keywords */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Keyword Tags (Optional)</h3>
 
               <div className="flex gap-2">
                 <CustomInput
                   type="text"
                   placeholder="e.g. Luxury Hotels"
-                  className="flex-1 p-2 border border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                   onKeyPress={(e) => {
                     if (e.key === "Enter" && e.target.value.trim()) {
                       addKeywordTag(e.target.value);
@@ -187,7 +186,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 {keywordTags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-700"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
                   >
                     {tag}
                     <button
@@ -202,7 +201,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
             </div>
 
             {/* Rates */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Content Rates (Optional)</h3>
               <div className="space-y-3 text-sm">
                 {[
@@ -216,15 +215,15 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
+                    className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                   >
-                    <span className="text-gray-600">{item}</span>
+                    <span className="text-xs text-gray-600">{item}</span>
                     <div className="flex items-center space-x-2">
                       <DollarSign className="h-4 w-4 text-gray-400" />
                       <CustomInput
                         type="number"
                         placeholder="0"
-                        className="!w-20 !border !border-gray-600"
+                        className="!w-20 !border !h-7 !border-gray-600"
                       />
                     </div>
                   </div>

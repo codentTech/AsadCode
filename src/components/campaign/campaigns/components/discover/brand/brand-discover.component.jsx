@@ -39,7 +39,7 @@ function BrandDiscover() {
     handleSendMessage,
   } = useDiscover();
   return (
-    <div className="flex w-full h-[calc(100vh-48px)]">
+    <div className="flex bg-white w-full h-[calc(100vh-48px)]">
       {/* Left Column - Shortlists Sidebar */}
       <ShortlistSidebar
         shortlists={shortlists}
