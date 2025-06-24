@@ -1,28 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
-import { avatar } from "@/common/constants/auth.constant";
-import { Avatar } from "@mui/material";
-import {
-  Award,
-  Calendar,
-  CheckCircle2,
-  DollarSign,
-  Download,
-  Edit2,
-  Edit3,
-  MapPin,
-  MessageSquare,
-  Receipt,
-  RotateCcw,
-  Star,
-  TrendingUp,
-} from "lucide-react";
-import useDeliverablesProgress from "./use-deliverables-progress.hook";
-import React from "react";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import ReadMore from "@/common/components/readmore/readmore.component";
+import { avatar } from "@/common/constants/auth.constant";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import { Avatar } from "@mui/material";
+import { CheckCircle2, MapPin, Star } from "lucide-react";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
   const {
@@ -51,7 +33,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
   };
 
   return (
-    <div className="w-1/4 bg-white flex flex-col border h-screen pb-20">
+    <div className="w-1/5 bg-white flex flex-col border h-screen pb-20">
       {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">
@@ -132,7 +114,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
             ))}
           </ul>
         </div>
-        <div className="flex flex-col 2xl:flex-row justify-between mt-3 m-4 gap-3">
+        <div className="flex flex-col justify-between mt-3 m-4 gap-3">
           <CustomButton text="Reinstate to Applications" className="btn-primary" />
           <CustomButton text="Move to saved shortlists" className="btn-outline" />
         </div>

@@ -85,16 +85,11 @@ function Sidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
-      )}
-
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        } lg:translate-x-0 h-screen flex flex-col`} // Add h-screen and flex-col
       >
         {/* Header */}
         <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6">
@@ -108,6 +103,8 @@ function Sidebar({ isOpen, onClose }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
+          {" "}
+          {/* Ensure this has flex-1 and overflow-y-auto */}
           <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>

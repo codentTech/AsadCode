@@ -14,7 +14,8 @@ const generalState = {
 const user = getUser();
 const initialState = {
   isCreatorMode: null,
-  sidebarToggleItem: null,
+  sidebarActiveItem: null,
+  sidebarSections: null,
   logoutLoader: false,
   login: generalState,
   signUp: generalState,
@@ -115,8 +116,11 @@ export const authSlice = createSlice({
     setIsCreatorModeMode: (state, action) => {
       state.isCreatorMode = action.payload;
     },
-    setSidebarToggleItem: (state, action) => {
-      state.sidebarToggleItem = action.payload;
+    setSidebarActiveItem: (state, action) => {
+      state.sidebarActiveItem = action.payload;
+    },
+    expandedSidebarSections: (state, action) => {
+      state.sidebarSections = action.payload;
     },
     setLogoutLoader: (state, action) => {
       state.logoutLoader = action.payload;
@@ -224,7 +228,12 @@ export const authSlice = createSlice({
   },
 });
 
-export const { reset, setIsCreatorModeMode, setSidebarToggleItem, setLogoutLoader } =
-  authSlice.actions;
+export const {
+  reset,
+  setIsCreatorModeMode,
+  setSidebarActiveItem,
+  setLogoutLoader,
+  expandedSidebarSections,
+} = authSlice.actions;
 
 export default authSlice.reducer;

@@ -1,8 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
-import { CheckCircle, Download, TrendingUp } from "lucide-react";
+import { Download, TrendingUp } from "lucide-react";
 
 export default function CampaignOverview({ isCompleted = false }) {
   const { options, handleChange } = useCampaignList();
@@ -45,28 +46,6 @@ export default function CampaignOverview({ isCompleted = false }) {
         <>
           <hr />
 
-          {/* Completion Stats */}
-          <div className="bg-green-50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-bold text-green-800">Campaign Status</h5>
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Campaigns Completed:</span>
-                <span className="font-medium text-green-800">8/8</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Success Rate:</span>
-                <span className="font-medium text-green-800">95%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Avg. Delivery Time:</span>
-                <span className="font-medium text-green-800">3.2 days</span>
-              </div>
-            </div>
-          </div>
-
           {/* Performance Metrics */}
           <div className="bg-blue-50 rounded-lg p-4">
             <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
@@ -86,48 +65,42 @@ export default function CampaignOverview({ isCompleted = false }) {
             </div>
           </div>
 
-          {/* ROI Summary */}
-          <div className="bg-purple-50 rounded-lg p-4">
-            <h5 className="font-bold text-purple-800 mb-3">ROI Analysis</h5>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Estimated Conversions:</span>
-                <span className="font-medium text-purple-800">156</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Revenue Generated:</span>
-                <span className="font-medium text-purple-800">$8,900</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">ROI:</span>
-                <span className="font-medium text-purple-800">+59%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-2">
-            <CustomButton
-              text="Export Campaign Data"
-              startIcon={<Download className="w-4 h-4" />}
-              onClick={handleExportData}
-              className="w-full btn-secondary"
+          <div className="flex flex-col gap-3">
+            <CustomInput label="Total Views (Combined of all creators)" />
+            <CustomInput
+              label="
+Total Engagements (likes, comments, shares)"
             />
-            <CustomButton
-              text="View Full Analytics"
-              startIcon={<TrendingUp className="w-4 h-4" />}
-              onClick={handleViewAnalytics}
-              className="w-full btn-secondary"
-            />
+            <CustomInput label="Average Engagement Rate (%) " />
+            <CustomInput label="Cost Per Engagement" />
+            <CustomButton text="Submit" className="btn-primary mt-2" />
           </div>
         </>
       )}
 
       <hr />
 
-      <div>
+      <div className="mb-1">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
         <AudienceDemographics className="flex flex-col" />
+      </div>
+
+      <hr />
+
+      {/* Action Buttons */}
+      <div className="space-y-2 mt-1">
+        <CustomButton
+          text="Export Campaign Data"
+          startIcon={<Download className="w-4 h-4" />}
+          onClick={handleExportData}
+          className="w-full btn-secondary"
+        />
+        <CustomButton
+          text="View Full Analytics"
+          startIcon={<TrendingUp className="w-4 h-4" />}
+          onClick={handleViewAnalytics}
+          className="w-full btn-secondary"
+        />
       </div>
     </div>
   );

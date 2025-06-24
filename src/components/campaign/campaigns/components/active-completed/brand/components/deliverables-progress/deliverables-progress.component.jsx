@@ -4,23 +4,13 @@ import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
-import {
-  Calendar,
-  CheckCircle2,
-  DollarSign,
-  Download,
-  Edit3,
-  MapPin,
-  MessageSquare,
-  Receipt,
-  RotateCcw,
-  Star,
-  TrendingUp,
-} from "lucide-react";
+import { Calendar, CheckCircle2, DollarSign, Edit3, MapPin, Star } from "lucide-react";
 import React from "react";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
+import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
+  const { getPlatformColor, getPlatformIcon } = useGetplatform();
   const {
     getStatusColor,
     getStatusIcon,
@@ -46,8 +36,20 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
     // console.log("Processing final payments...");
   };
 
+  const platforms = {
+    instagram: { followers: 285000, verified: true },
+    youtube: { followers: 95000, verified: true },
+    twitter: { followers: 42000, verified: false },
+  };
+
+  const formatFollowers = (count) => {
+    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
+    return count.toString();
+  };
+
   return (
-    <div className="w-1/4 bg-white flex flex-col border h-screen pb-20">
+    <div className="w-1/5 bg-white flex flex-col border h-screen pb-20">
       {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">
@@ -65,7 +67,9 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
             </span>
           )}
         </div>
-        <h3>Sam Waters</h3>
+        <h3>
+          Sam Waters <span className="text-xs font-bold text-gray-600">(27 Years)</span>
+        </h3>
 
         <div className="flex items-center">
           {[...Array(5)].map((_, i) => (
@@ -75,18 +79,43 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                 i < Math.floor(4) ? "text-yellow-400 fill-current" : "text-gray-300"
               }`}
             />
-          ))}
+          ))}{" "}
+          <span className="text-sm text-gray-500 ml-1">(245 reviews)</span>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <MapPin className="w-4 h-4" />
           <span>Los Angeles, CA</span>
         </div>
-        <p className="primary-text text-center">
-          Fitness and lifestyle creator based in Los Angeles
-        </p>
+
         {isCompleted && (
-          <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            Campaign Completed
+          <div className="flex gap-3">
+            <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              Campaign Completed
+            </div>
+            <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              Review Submitted
+            </div>
+          </div>
+        )}
+        {isCompleted && (
+          <div className="w-full flex flex-col gap-3 mt-2">
+            {Object.entries(platforms).map(([platform, data]) => (
+              <div
+                key={platform}
+                className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3
+                                    hover:bg-gray-100/80 transition-colors duration-200"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                    {getPlatformIcon(platform)}
+                  </span>
+                  <span className="text-xs capitalize font-semibold text-gray-700">{platform}</span>
+                </div>
+                <div className="text-sm font-bold text-gray-900">
+                  {formatFollowers(data.followers)}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -105,15 +134,10 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                 <>
                   {/* Primary Actions - Completed State */}
                   <div className="flex flex-col 2xl:flex-row gap-3">
-                    <CustomButton
-                      text="Export Report"
-                      startIcon={<Download className="w-4 h-4" />}
-                      onClick={handleExportReport}
-                    />
+                    <CustomButton text="Export Report" onClick={handleExportReport} />
                     <CustomButton
                       text="Payment Summary"
                       className="btn-primary w-full whitespace-nowrap"
-                      startIcon={<Receipt className="w-4 h-4" />}
                       onClick={handleProcessPayments}
                     />
                   </div>
@@ -124,12 +148,8 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                       <h4 className="text-sm font-semibold text-gray-700">Additional Reports</h4>
                       <div className="h-px bg-gradient-to-r from-gray-300 to-transparent flex-1 ml-3" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <CustomButton
-                        text="Performance Report"
-                        startIcon={<TrendingUp className="w-4 h-4" />}
-                        className="w-full btn-secondary"
-                      />
+                    <div className="w-full">
+                      <CustomButton text="Performance Report" className="w-full btn-secondary" />
                     </div>
                   </div>
                 </>
@@ -137,14 +157,8 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                 <>
                   {/* Primary Actions - Active State */}
                   <div className="flex flex-col 2xl:flex-row gap-3">
-                    <CustomButton
-                      text="Mark Complete"
-                      startIcon={<CheckCircle2 className="w-4 h-4" />}
-                    />
-                    <CustomButton
-                      text="Release Payment"
-                      startIcon={<DollarSign className="w-4 h-4" />}
-                    />
+                    <CustomButton text="Mark Complete" />
+                    <CustomButton text="Release Payment" />
                   </div>
 
                   {/* Secondary Actions Group */}
@@ -158,23 +172,14 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-2">
                         <CustomButton
                           text="Send Message"
-                          startIcon={<MessageSquare className="w-4 h-4" />}
                           className="w-full btn-secondary"
                           onClick={() => setMessageDialogOpen(true)}
                         />
-                        <CustomButton
-                          text="Request Revision"
-                          startIcon={<RotateCcw className="w-4 h-4" />}
-                          className="w-full btn-secondary"
-                        />
+                        <CustomButton text="Request Revision" className="w-full btn-secondary" />
                       </div>
 
                       {/* Payment Action */}
-                      <CustomButton
-                        text="Edit Payment Details"
-                        startIcon={<Edit3 className="w-4 h-4" />}
-                        className="w-full btn-secondary"
-                      />
+                      <CustomButton text="Edit Payment Details" className="w-full btn-secondary" />
                     </div>
                   </div>
                 </>
@@ -190,7 +195,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               <h4 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
                 Contract Agreement
               </h4>
-              <ul className="space-y-3 text-sm text-gray-700">
+              <ul className="space-y-3 text-xs text-gray-600">
                 <li className="flex items-start gap-2">
                   <span>1 Instagram video</span>
                   {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
@@ -233,7 +238,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                   >
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <div className="text-sm w-full flex justify-between">
+                  <div className="text-xs w-full flex justify-between">
                     <span
                       className={`${step.completed || isCompleted ? "text-primary" : "text-gray-600"}`}
                     >
@@ -311,18 +316,22 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                               </div>
 
                               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-[60%]">
-                                <CustomButton text="Save" onClick={handleSave} className="w-full" />
                                 <CustomButton
                                   text="Cancel"
                                   className="btn-cancel w-full"
                                   onClick={handleCancel}
+                                />
+                                <CustomButton
+                                  text="Save"
+                                  onClick={handleSave}
+                                  className="btn-primary w-full"
                                 />
                               </div>
                             </div>
                           ) : (
                             <div className="space-y-2">
                               <h3
-                                className={`text-sm ${
+                                className={`text-xs ${
                                   deliverable.completed || isCompleted
                                     ? "text-gray-500"
                                     : "text-gray-600"
@@ -333,17 +342,17 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
 
                               <div className="flex flex-wrap gap-4 text-xs text-gray-600">
                                 <div className="flex items-center gap-1">
-                                  <Calendar className="w-4 h-4" />
+                                  <Calendar className="w-3 h-3" />
                                   <span>{deliverable.deadline}</span>
                                 </div>
 
-                                <div className="flex items-center gap-1">
-                                  <DollarSign className="w-4 h-4" />
+                                <div className="flex items-center text-xs">
+                                  <DollarSign className="w-3 h-3" />
                                   <span>{deliverable.amount}</span>
                                 </div>
 
                                 <div
-                                  className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                                  className={`flex items-center text-xs gap-1 px-2 py-1 rounded-full ${
                                     isCompleted
                                       ? "bg-green-100 text-green-800"
                                       : getStatusColor(deliverable.status)
@@ -391,9 +400,9 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               </h3>
               <div className="bg-white border rounded-lg p-4">
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs">
                     <span>Completed:</span>
-                    <span className="font-medium">
+                    <span className="text-xs font-medium">
                       {isCompleted
                         ? `${project.deliverables.length}/${project.deliverables.length}`
                         : `${project.deliverables.filter((d) => d.completed).length}/${project.deliverables.length}`}
@@ -409,7 +418,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                       }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs">
                     <span>{isCompleted ? "Total Paid:" : "Amount Earned:"}</span>
                     <span className="font-medium text-primary">
                       $
@@ -421,7 +430,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                     </span>
                   </div>
                   {isCompleted && (
-                    <div className="flex justify-between text-sm pt-2 border-t">
+                    <div className="flex justify-between text-xs pt-2 border-t">
                       <span className="text-green-600 font-medium">Campaign Status:</span>
                       <span className="font-medium text-green-600">Successfully Completed</span>
                     </div>

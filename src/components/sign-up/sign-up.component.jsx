@@ -1,146 +1,78 @@
 "use client";
 
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import Loader from "@/common/components/loader/loader.component";
-import Link from "next/link";
-import useSignUp from "./use-sign-up.hook";
+import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
+import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
+import BrandProfile from "./brand/profile-setup/profile-setup.component";
+import AccountType from "./components/account-type/account-type.component";
+import EmailVerification from "./components/email-verification/email-verification";
+import Register from "./components/sign-up/sign-up.component";
+import CampaignPreferences from "./creator/campaign-preferences/campaign-preferences.component";
+import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 
-function SignUp() {
-  const {
-    firstName,
-    lastName,
-    handleSubmit,
-    onSubmit,
-    register,
-    errors,
-    isChecked,
-    loading,
-    setIsChecked,
-    email,
-    password,
-  } = useSignUp();
+export default function SignUp() {
+  const isCreatorMode = false;
 
-  return (
-    <div className="form-wrapper">
-      <div className="form-container mb-0 pb-0">
-        <div className="form-card pt-[42.1px]">
-          <div className="flex flex-col items-center px-6 py-0">
-            <h1 className="form-header-h1">Sign up</h1>
-            <p className="form-header-p mt-2">
-              Welcome. Please enter your details{" "}
-            </p>
-          </div>
-          <div className="form-body pt-[20px]">
-            <form className=" w-full" onSubmit={handleSubmit(onSubmit)}>
-              <div className="form-fields">
-                <CustomInput
-                  label="First Name"
-                  name="firstName"
-                  register={register}
-                  errors={errors}
-                  placeholder="Enter first name"
-                  isRequired={true}
-                />
-                <CustomInput
-                  label="Last Name"
-                  name="lastName"
-                  register={register}
-                  errors={errors}
-                  placeholder="Enter last name"
-                  isRequired={true}
-                />
-                <CustomInput
-                  label="Email/Username"
-                  name="email"
-                  register={register}
-                  errors={errors}
-                  placeholder="Enter Email or Username"
-                  isRequired={true}
-                />
+  const dispatch = useDispatch();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedAccountType, setSelectedAccountType] = useState("");
 
-                <CustomInput
-                  label="Password"
-                  name="password"
-                  type="password"
-                  register={register}
-                  errors={errors}
-                  placeholder="*******"
-                  isRequired={true}
-                />
-              </div>
+  const nextStep = () => {
+    console.log(currentStep);
+    setCurrentStep((prev) => prev + 1);
+  };
 
-              <div className="mt-4 flex gap-[6.5px]">
-                {isChecked ? (
-                  <img
-                    src="/assets/icons/check.svg"
-                    alt=""
-                    className="cursor-pointer"
-                    onClick={() => setIsChecked(!isChecked)}
-                  />
-                ) : (
-                  <img
-                    src="/assets/icons/uncheck.svg"
-                    alt=""
-                    className="cursor-pointer"
-                    onClick={() => setIsChecked(!isChecked)}
-                  />
-                )}
+  const prevStep = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
 
-                <Link
-                  href="/terms-and-conditions"
-                  className="text-[12px] not-italic leading-[18px] underline hover:no-underline"
-                >
-                  Terms & Conditions
-                </Link>
-              </div>
+  const completeOnboarding = () => {};
 
-              <div className="form-btn-c mt-8">
-                <CustomButton
-                  type="submit"
-                  className="btn-primary h-[50px] w-full rounded-xl px-[30px] py-3 text-base font-semibold leading-6"
-                  text={!loading && "Sign up"}
-                  startIcon={<Loader loading={loading} />}
-                  disabled={
-                    !firstName ||
-                    !lastName ||
-                    !email ||
-                    !password ||
-                    !isChecked ||
-                    loading
-                  }
-                />
-              </div>
-              <div className="form-or-content mt-[24px]">
-                <div className="form-or-content-line" />
-                <span className="form-or-content-span eading-[18px]">Or</span>
-                <div className="form-or-content-line" />
-              </div>
-              <div className="login-with-provider m-0 mt-[24px]">
-                <button
-                  // onClick={() => signInWithGoogle(signUpWithOAuth)}
-                  className="login-provider-btn"
-                  type="button"
-                >
-                  <img
-                    src="/assets/images/google-icon.svg"
-                    alt="login with Google"
-                    className="h-6 w-6"
-                  />
-                </button>
-              </div>
-              <div className="form_links mt-[32px] text-center text-xs font-normal leading-[18px]">
-                <label className="login">Already have an account?</label>
-                <Link href="/login" className="span-link">
-                  Login
-                </Link>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const handleSelectMode = (type) => {
+    setSelectedAccountType(type);
+    dispatch(setIsCreatorModeMode(selectedAccountType === "brand"));
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <AccountType
+            selectedType={selectedAccountType}
+            handleSelectMode={handleSelectMode}
+            onNext={nextStep}
+          />
+        );
+      case 2:
+        return <Register onNext={nextStep} onBack={prevStep} />;
+      case 3:
+        return <EmailVerification onNext={nextStep} onBack={prevStep} />;
+      case 4:
+        return isCreatorMode ? (
+          <ProfileSetup onNext={nextStep} onBack={prevStep} />
+        ) : (
+          <BrandProfile onNext={nextStep} onBack={prevStep} />
+        );
+      case 5:
+        return isCreatorMode ? (
+          <CampaignPreferences onNext={completeOnboarding} onBack={prevStep} />
+        ) : (
+          <BrandCampaignPreferences onNext={nextStep} onBack={prevStep} />
+        );
+      case 6:
+        return !isCreatorMode && <IdealCreator onNext={completeOnboarding} onBack={prevStep} />;
+      default:
+        return (
+          <AccountType
+            selectedType={selectedAccountType}
+            handleSelectMode={handleSelectMode}
+            onNext={nextStep}
+          />
+        );
+    }
+  };
+
+  return <div className="min-h-screen">{renderStep()}</div>;
 }
-
-export default SignUp;

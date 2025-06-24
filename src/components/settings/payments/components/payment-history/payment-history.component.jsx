@@ -283,11 +283,10 @@ const PaymentHistoryPage = () => {
     <SidebarLayout>
       <div className="max-w-8xl mx-auto min-h-screen">
         {/* Header */}
-        <div className="bg-primary p-6 rounded-lg text-white mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">Payment History</h1>
-          <p className="">Track all your processed and pending payouts</p>
+        <div className="bg-primary p-4 rounded-lg text-white mb-4">
+          <h1 className="text-xl font-bold text-white">Payout History</h1>
+          <p className="text-sm mt-1">Track all your processed and pending payouts</p>
         </div>
-
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg border p-4">
@@ -342,7 +341,6 @@ const PaymentHistoryPage = () => {
             </div>
           </div>
         </div>
-
         {/* Filters */}
         <div className="bg-white rounded-lg border p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -355,7 +353,6 @@ const PaymentHistoryPage = () => {
             />
           </div>
         </div>
-
         {/* Payment History Table using CustomDataTable */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Header */}

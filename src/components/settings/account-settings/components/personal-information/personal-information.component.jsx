@@ -60,9 +60,10 @@ export default function PersonalInformationPage() {
     <SidebarLayout>
       <div className="min-h-screen">
         {/* Header */}
-        <div className="bg-primary p-6 rounded-lg text-white mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold mb-2 text-white">Personal Information</h1>
-          <p className="text-sm sm:text-base ">
+        <div className="bg-primary p-4 rounded-lg text-white mb-4">
+          <h1 className="text-xl font-bold text-white">Personal Information</h1>
+          <p className="text-sm mt-1">
+            {" "}
             Manage your name, business details, email, and contact information
           </p>
         </div>

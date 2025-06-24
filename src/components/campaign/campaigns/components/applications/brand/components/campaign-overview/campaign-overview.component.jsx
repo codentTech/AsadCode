@@ -1,20 +1,16 @@
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import useCampaignList from "@/common/hooks/use-campaign-list.hook";
-import useCampaignOverview from "./use-campaign-overview.hook";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
-import { RefreshRounded } from "@mui/icons-material";
-import Niche from "@/components/niche/niche";
-import Modal from "@/common/components/modal/modal.component";
-import { ChevronDown, ChevronUp, Filter } from "lucide-react";
-import { useState } from "react";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Modal from "@/common/components/modal/modal.component";
+import useCampaignList from "@/common/hooks/use-campaign-list.hook";
+import Niche from "@/components/niche/niche";
+import { RefreshRounded } from "@mui/icons-material";
+import { ChevronDown, ChevronUp, Filter } from "lucide-react";
+import useCampaignOverview from "./use-campaign-overview.hook";
 
 export default function CampaignOverview() {
   const { options, handleChange } = useCampaignList();
   const { openFilterModal, setOpenFilterModal } = useCampaignOverview();
-
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   return (
     <div className="w-1/5 border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4 pb-20">

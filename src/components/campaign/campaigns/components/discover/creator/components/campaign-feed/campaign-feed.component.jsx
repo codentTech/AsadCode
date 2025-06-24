@@ -3,8 +3,8 @@ import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { product } from "@/common/constants/auth.constant";
 import Niche from "@/components/niche/niche";
-import { useCampaignFeed } from "./use-campaign-feed.hook";
 import { Globe } from "lucide-react";
+import { useCampaignFeed } from "./use-campaign-feed.hook";
 
 function CampaignFeed() {
   const {
@@ -22,7 +22,7 @@ function CampaignFeed() {
   } = useCampaignFeed();
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-70px)] bg-white">
+    <div className="flex-1 flex flex-col h-[calc(100vh-70px)] bg-gray-100">
       {/* Sticky Niche */}
       <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-200">
         <Niche />
@@ -43,90 +43,86 @@ function CampaignFeed() {
                   </div>
                 </div>
 
-                <div className="w-full flex justify-between">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-bold text-gray-900 text-sm truncate">
-                      {campaign.brandName}
-                    </h3>
-                    <h4 className="text-xs text-gray-600 line-clamp-2">
-                      <span className="font-bold">Campaign</span> - {campaign.title}
-                    </h4>
-                    <p className="flex items-center gap-1 text-xs text-gray-600 mt-0.5">
-                      <span className="text-gray-600">
-                        <Globe className="h-3 w-3" />
+                <div className="flex flex-col gap-1">
+                  <h3 className="font-bold text-gray-900 text-sm truncate">{campaign.brandName}</h3>
+                  <h4 className="text-xs text-gray-600 line-clamp-2">
+                    <span className="font-bold">Campaign</span> - {campaign.title}
+                  </h4>
+                  <p className="flex items-center gap-1 text-xs text-gray-600 mt-0.5">
+                    <span className="text-gray-600">
+                      <Globe className="h-3 w-3" />
+                    </span>
+                    <span>2h ago</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-between gap-10">
+                <div>
+                  <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1.5">
+                    Requirement
+                  </h5>
+                  <div className="w-full flex flex-col text-xs">
+                    {[
+                      {
+                        label: "Campaign Type",
+                        value: campaign.type,
+                      },
+                      {
+                        label: "Compensation Type",
+                        value: campaign.compensation,
+                      },
+                      {
+                        label: "Compensation Amount",
+                        value: campaign.compensationAmount,
+                      },
+                      {
+                        label: "Niche Type",
+                        value: `#${campaign.niche}`,
+                      },
+                      {
+                        label: "Location",
+                        value: campaign.location,
+                      },
+                      {
+                        label: "Language",
+                        value: campaign.language,
+                      },
+                      {
+                        label: "Follower Minimum",
+                        value: campaign.followerMin,
+                      },
+                    ].map((item, index) => (
+                      <span
+                        key={index}
+                        className={`flex items-center gap-2 ${item.bg} text-gray-600 px-2 py-1 rounded-full font-medium`}
+                      >
+                        <span className="font-bold">{item.label}</span> - {item.value}
                       </span>
-                      <span>2h ago</span>
-                    </p>
+                    ))}
                   </div>
                 </div>
+
                 <img
                   src={product}
                   alt="Campaign Product"
-                  className="w-20 h-20 rounded-lg object-cover border border-gray-200 shadow-sm"
+                  className="w-48 h-48 rounded-lg object-cover border border-gray-200 shadow-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs">
-                {[
-                  {
-                    label: "Campaign Type",
-                    value: campaign.type,
-                    bg: "bg-blue-100",
-                  },
-                  {
-                    label: "Compensation Type",
-                    value: campaign.compensation,
-                    bg: "bg-gray-100",
-                  },
-                  {
-                    label: "Compensation Amount",
-                    value: campaign.compensationAmount,
-                    bg: "bg-gray-100",
-                  },
-                  {
-                    label: "Niche Type",
-                    value: `#${campaign.niche}`,
-                    bg: "bg-blue-100",
-                  },
-                  {
-                    label: "Location",
-                    value: campaign.location,
-                    bg: "bg-blue-100",
-                  },
-                  {
-                    label: "Language",
-                    value: campaign.language,
-                    bg: "bg-gray-100",
-                  },
-                  {
-                    label: "Follower Minimum",
-                    value: campaign.followerMin,
-                    bg: "bg-gray-100",
-                  },
-                ].map((item, index) => (
-                  <span
-                    key={index}
-                    className={`flex items-center gap-1 ${item.bg} text-gray-600 px-2 py-1 rounded-full font-medium`}
-                  >
-                    <div className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
-                    <span className="font-bold">{item.label}</span> - {item.value}
-                  </span>
-                ))}
-              </div>
-
-              <div className="bg-gray-100 rounded-lg p-3">
+              <div className="rounded-lg mb-2">
                 <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-2">
                   Deliverables
                 </h5>
                 <div className="flex flex-wrap gap-2">
-                  {campaign.deliverables.map((item, index) => (
-                    <span
-                      key={index}
-                      className="bg-white border text-xs text-gray-700 px-2 py-1 rounded-lg flex items-center gap-1"
+                  {campaign.deliverables.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs hover:bg-indigo-100"
                     >
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                       {item}
-                    </span>
+                    </button>
                   ))}
                 </div>
               </div>

@@ -56,9 +56,9 @@ export default function SecuritySettings() {
   return (
     <SidebarLayout>
       {/* Header */}
-      <div className="bg-primary p-6 rounded-lg text-white mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Security Settings</h1>
-        <p className="text-sm sm:text-base">Manage your password and account security</p>
+      <div className="bg-primary p-4 rounded-lg text-white mb-4">
+        <h1 className="text-xl font-bold text-white">Security Settings</h1>
+        <p className="text-sm mt-1">Manage your password and account security</p>
       </div>
 
       {/* Password Change Section */}

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Eye, X, Calendar, Package, DollarSign, Gift, Percent } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { Calendar, DollarSign, Eye, Gift, Package, Percent, X } from "lucide-react";
+import { useState } from "react";
 
 const CreatorApplications = () => {
   const [activeTab, setActiveTab] = useState("pending");
@@ -372,12 +372,15 @@ const CreatorApplications = () => {
                   {/* Card Footer */}
                   <div className="p-4 border-t border-gray-100">
                     <div className="flex flex-col space-y-2">
-                      <CustomButton text="View Campaign" startIcon={<Eye className="w-3 h-3" />} />
+                      <CustomButton
+                        text="View Campaign"
+                        className="btn-outline"
+                        startIcon={<Eye className="w-3 h-3" />}
+                      />
 
                       {application.status === "Pending" && (
                         <CustomButton
                           text="Withdraw"
-                          className="btn-danger"
                           startIcon={<X className="w-3 h-3" />}
                           onClick={() => handleWithdrawApplication(application.id)}
                         />

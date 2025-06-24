@@ -2,6 +2,7 @@ import { useState } from "react";
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 
 function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
   const [countrySearch, setCountrySearch] = useState("");
@@ -182,10 +183,10 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
 
       {/* Country Selection */}
       <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Creator Country</label>
         <div className="relative">
           <CustomInput
-            placeholder="Type to search countries..."
+            label="Creator Country"
+            placeholder="Type to search countries"
             value={countrySearch}
             onChange={(e) => setCountrySearch(e.target.value)}
             className="mb-2"
@@ -218,12 +219,10 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
 
       {/* City Selection */}
       <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Creator City (Optional)
-        </label>
         <div className="relative">
           <CustomInput
-            placeholder="Type to search cities..."
+            label="Creator City (Optional)"
+            placeholder="Type to search cities"
             value={citySearch}
             onChange={(e) => setCitySearch(e.target.value)}
             className="mb-2"
@@ -286,33 +285,21 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
 
       {/* Gender Selection */}
       <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Creator Gender (Optional)
-        </label>
-        <select
-          name="creatorGender"
-          value={campaignData.creatorGender || ""}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Select gender preference...</option>
-          {genderOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <SimpleSelect
+          label="Creator Gender (Optional)"
+          placeHolder="Select gender preference"
+          options={genderOptions}
+          onChange={() => {}}
+        />
         <RequirementToggle field="gender" label="Gender" />
       </div>
 
       {/* Language Selection */}
       <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Creator Language (Optional)
-        </label>
         <div className="relative">
           <CustomInput
-            placeholder="Type to search languages..."
+            label="Creator Language (Optional)"
+            placeholder="Type to search languages"
             value={languageSearch}
             onChange={(e) => setLanguageSearch(e.target.value)}
             className="mb-2"

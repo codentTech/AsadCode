@@ -57,7 +57,7 @@ export default function SimpleSelect({
       <div
         ref={inputRef}
         onClick={handleInputClick}
-        className="flex justify-between items-center px-3 py-[9px] rounded-md border border-text-dark-gray  bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
+        className="flex justify-between items-center px-3 py-[9px] rounded-md border border-[#7e7d7d]  bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
       >
         <div className="truncate">{getDisplay()}</div>
         <Icon isOpen={showMenu} />
@@ -65,7 +65,7 @@ export default function SimpleSelect({
 
       {showMenu && (
         <div
-          className={`absolute z-50 mt-1 ${isSearchable && isMulti ? "top-16" : isSearchable ? "top-10" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+          className={`absolute z-50 mt-1 ${isSearchable && isMulti ? "top-16" : isSearchable ? "top-10" : label ? "top-16" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
         >
           {isSearchable && (
             <div className="p-2 border-b border-gray-100">

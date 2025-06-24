@@ -6,14 +6,14 @@ import Link from "next/link";
 import useSidebar from "../../../../common/components/dashboard/sidebar/use-sidebar";
 
 function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
-  const { expandedSections, activeItem, navItems, toggleSection, handleItemClick } = useSidebar({
-    menuItems,
-  });
+  const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
     const { label, icon: Icon, children, href } = item;
     const currentPath = parentPath ? `${parentPath}.${label}` : label;
-    const isExpanded = expandedSections[currentPath];
+
+    // Add null safety check for expandedSections
+    const isExpanded = expandedSections?.[currentPath] || false;
     const hasChildren = children && children.length > 0;
 
     // For leaf items (final level with href)
@@ -21,9 +21,9 @@ function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
       return (
         <button
           key={href}
-          onClick={() => handleItemClick(href, label)}
+          onClick={() => handleItemClick({ href, label, currentPath, hasChildren: false })}
           className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
-            activeItem === href
+            activeItem === label
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           }`}
@@ -38,7 +38,13 @@ function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
       <div key={currentPath} className="space-y-2">
         {/* Section header */}
         <button
-          onClick={() => (hasChildren ? toggleSection(currentPath) : setCurrentBar(item?.label))}
+          onClick={() => {
+            if (hasChildren) {
+              handleItemClick({ hasChildren: true, currentPath, label });
+            } else {
+              setCurrentBar?.(label);
+            }
+          }}
           className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors group ${
             depth === 0 && currentBar === item?.label
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"

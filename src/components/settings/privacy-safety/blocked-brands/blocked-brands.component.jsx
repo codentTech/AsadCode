@@ -19,6 +19,8 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SidebarLayout from "@/common/layouts/sidebar.layout";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import { useSelector } from "react-redux";
+import Modal from "@/common/components/modal/modal.component";
 
 const BlockedBrandsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,6 +29,8 @@ const BlockedBrandsPage = () => {
   const [newBrandReason, setNewBrandReason] = useState("");
   const [selectedBlocks, setSelectedBlocks] = useState([]);
   const [filterReason, setFilterReason] = useState("all");
+
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
   // Sample blocked brands data
   const [blockedBrands, setBlockedBrands] = useState([
@@ -267,14 +271,13 @@ const BlockedBrandsPage = () => {
     <SidebarLayout>
       <div className="max-w-8xl mx-auto min-h-screen">
         {/* Header */}
-        <div className="bg-primary p-6 rounded-lg text-white mb-6">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Shield className="h-6 w-6 text-gray-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-white">Blocked Brands</h1>
-          </div>
-          <p className="">Manage brands that are blocked from contacting or hiring you</p>
+        <div className="bg-primary p-4 rounded-lg text-white mb-4">
+          <h1 className="text-xl font-bold text-white">
+            {isCreatorMode ? "Blocked Brands" : "Blocked Creators"}
+          </h1>
+          <p className="text-sm mt-1">
+            {`Manage ${isCreatorMode ? "brands" : "creators"} that are blocked from contacting or hiring you`}
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -339,7 +342,9 @@ const BlockedBrandsPage = () => {
           {/* Header Actions */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Blocked Brands List</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Blocked {isCreatorMode ? "Brands" : "Creators"} List
+              </h3>
               <div className="flex space-x-3">
                 <div className="w-full min-w-[230px]">
                   <SimpleSelect
@@ -380,70 +385,48 @@ const BlockedBrandsPage = () => {
             actions={actions}
             onActionClick={handleActionClick}
             customCellRenderer={customCellRenderer}
-            emptyMessage="No blocked brands found. Brands you block will appear here."
-            searchPlaceholder="Search blocked brands..."
+            emptyMessage={`No blocked ${isCreatorMode ? "brands" : "creators"} found. ${isCreatorMode ? "Brands" : "Creators"} you block will appear here.`}
+            searchPlaceholder={`Search blocked ${isCreatorMode ? "brands" : "creators"}`}
           />
         </div>
 
-        {/* Add Brand Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Block New Brand</h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+        <Modal
+          show={showAddModal}
+          title={`Block New ${isCreatorMode ? "Brands" : "Creators"}`}
+          onClose={() => setShowAddModal(false)}
+        >
+          <div className="space-y-4">
+            <CustomInput
+              label="Brand Name"
+              value={newBrandName}
+              onChange={(e) => setNewBrandName(e.target.value)}
+              placeholder="Enter brand name to block"
+              required
+            />
 
-              <div className="space-y-4">
-                <CustomInput
-                  label="Brand Name"
-                  value={newBrandName}
-                  onChange={(e) => setNewBrandName(e.target.value)}
-                  placeholder="Enter brand name to block"
-                  required
-                />
+            <SimpleSelect
+              label="Reason for Blocking"
+              placeHolder="Select an option"
+              options={reasonOptions}
+              onChange={(value) => setNewBrandReason(value)}
+            />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason for Blocking
-                  </label>
-                  <select
-                    value={newBrandReason}
-                    onChange={(e) => setNewBrandReason(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                  >
-                    <option value="">Select a reason</option>
-                    {reasonOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <CustomButton
-                    text="Cancel"
-                    className="btn-secondary flex-1"
-                    onClick={() => setShowAddModal(false)}
-                  />
-                  <CustomButton
-                    text="Block Brand"
-                    className="btn-primary flex-1"
-                    icon={Ban}
-                    onClick={handleAddBrand}
-                    disabled={!newBrandName.trim()}
-                  />
-                </div>
-              </div>
+            <div className="flex space-x-3 pt-4">
+              <CustomButton
+                text="Cancel"
+                className="btn-secondary flex-1"
+                onClick={() => setShowAddModal(false)}
+              />
+              <CustomButton
+                text="Block Brand"
+                className="btn-primary flex-1"
+                icon={Ban}
+                onClick={handleAddBrand}
+                disabled={!newBrandName.trim()}
+              />
             </div>
           </div>
-        )}
+        </Modal>
 
         {/* Info Section */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -454,10 +437,16 @@ const BlockedBrandsPage = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">How Blocking Works</h3>
               <div className="text-sm text-blue-700 mt-1 space-y-1">
-                <p>• Blocked brands cannot send you campaign invitations or direct messages</p>
+                <p>
+                  • Blocked {isCreatorMode ? "brands" : "creators"} cannot send you campaign
+                  invitations or direct messages
+                </p>
                 <p>• Your profile will not appear in their search results</p>
-                <p>• Existing contracts with blocked brands remain valid until completion</p>
-                <p>• You can unblock brands at any time</p>
+                <p>
+                  • Existing contracts with blocked {isCreatorMode ? "brands" : "creators"} remain
+                  valid until completion
+                </p>
+                <p>• You can unblock {isCreatorMode ? "brands" : "creators"} at any time</p>
               </div>
             </div>
           </div>

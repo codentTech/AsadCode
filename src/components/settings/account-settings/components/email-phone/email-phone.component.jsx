@@ -228,9 +228,9 @@ export default function ContactMethodsPage() {
   return (
     <SidebarLayout>
       {/* Header */}
-      <div className="bg-primary p-6 rounded-lg text-white mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Email & Phone Numbers</h1>
-        <p className="text-sm sm:text-base">Add or remove contact methods for your account</p>
+      <div className="bg-primary p-4 rounded-lg text-white mb-4">
+        <h1 className="text-xl font-bold text-white">Email & Phone Numbers</h1>
+        <p className="text-sm mt-1">Add or remove contact methods for your account </p>
       </div>
 
       <div className="space-y-4">

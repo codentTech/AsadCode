@@ -50,7 +50,6 @@ function LayoutWrapper({ children }) {
           <Loader className="animate-spin" />
         </div>
       )}
-
       <React.Fragment>{children}</React.Fragment>
     </React.Fragment>
   );

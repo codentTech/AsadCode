@@ -21,6 +21,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 96,
       avgDeliveryTime: "2.3 days",
       specialty: "Fashion & Lifestyle",
+      deadline: "On time",
     },
     {
       id: 2,
@@ -40,6 +41,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 94,
       avgDeliveryTime: "1.8 days",
       specialty: "Tech Reviews",
+      deadline: "On time",
     },
     {
       id: 3,
@@ -59,6 +61,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 98,
       avgDeliveryTime: "2.1 days",
       specialty: "Beauty & Wellness",
+      deadline: "Cancelled",
     },
     {
       id: 4,
@@ -78,6 +81,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 89,
       avgDeliveryTime: "3.2 days",
       specialty: "Travel & Food",
+      deadline: "On time",
     },
     {
       id: 5,
@@ -97,6 +101,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 97,
       avgDeliveryTime: "1.9 days",
       specialty: "Fitness & Health",
+      deadline: "On time",
     },
     {
       id: 6,
@@ -116,6 +121,7 @@ export const useCreatorSpendAnalysis = () => {
       successRate: 92,
       avgDeliveryTime: "2.8 days",
       specialty: "Gaming & Tech",
+      deadline: "Delayed",
     },
   ];
 

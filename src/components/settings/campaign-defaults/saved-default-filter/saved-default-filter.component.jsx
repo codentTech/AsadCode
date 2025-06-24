@@ -1,26 +1,22 @@
-import React, { useState } from "react";
-import {
-  Filter,
-  Save,
-  DollarSign,
-  MapPin,
-  Calendar,
-  Users,
-  Tag,
-  Globe,
-  ArrowLeft,
-  CheckCircle,
-  Settings,
-  Zap,
-  Eye,
-  Star,
-  TrendingUp,
-} from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SidebarLayout from "@/common/layouts/sidebar.layout";
+import {
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  Eye,
+  MapPin,
+  Save,
+  Star,
+  Tag,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
+import { useState } from "react";
 
-const SavedDefaultFilters = ({ onNext, onBack }) => {
+const SavedDefaultFilters = () => {
   // Filter States
   const [budgetRange, setBudgetRange] = useState({ min: "", max: "" });
   const [selectedLocations, setSelectedLocations] = useState([]);
@@ -491,7 +487,6 @@ const SavedDefaultFilters = ({ onNext, onBack }) => {
                 <CustomButton
                   text="Save Settings"
                   className="btn-primary text-sm flex-1"
-                  onClick={onNext}
                   icon={Save}
                 />
                 <CustomButton

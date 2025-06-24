@@ -52,7 +52,7 @@ const api = (headers = null) => {
       const message = error.response?.data?.message || error.message || error.toString();
 
       // Handle unauthorized
-      if (status === 401 && typeof window !== "undefined") {
+      if (status === 401) {
         removeUser();
         window.location.href = "/";
         return;

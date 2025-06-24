@@ -1,5 +1,4 @@
-import { capitalizeFirstWord } from "@/common/utils/helper.utils";
-import { setSidebarToggleItem } from "@/provider/features/auth/auth.slice";
+import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
 import {
   Bell,
   Briefcase,
@@ -12,7 +11,7 @@ import {
   User,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const commonNavItems = [
@@ -54,19 +53,22 @@ const brandNavItems = [
         label: "Brand Profile",
         icon: Briefcase,
         children: [
-          { label: "Profile Information", href: "/brand/profile" },
-          { label: "Social Links", href: "/brand/social" },
-          { label: "Niche Tags", href: "/brand/niches" },
+          { label: "Profile Information", href: "/settings/brand-profile/profile-information" },
+          { label: "Social Links", href: "/settings/brand-profile/social-links" },
+          { label: "Niche Tags", href: "/settings/brand-profile/niche-tags" },
         ],
       },
       {
         label: "Campaign Defaults",
         icon: Target,
         children: [
-          { label: "Default Requirements", href: "/campaigns/defaults" },
-          { label: "Payment Type", href: "/campaigns/payment" },
-          { label: "Auto-Reply Template", href: "/campaigns/templates" },
-          { label: "Brief Template", href: "/campaigns/briefs" },
+          {
+            label: "Default Requirements",
+            href: "/settings/campaign-defaults/default-campaign-requirement",
+          },
+          { label: "Payment Type", href: "/settings/campaign-defaults/preffered-payment-type" },
+          { label: "Auto-Reply Template", href: "/settings/campaign-defaults/auto-reply-template" },
+          { label: "Brief Template", href: "/settings/campaign-defaults/breif-template" },
         ],
       },
       {
@@ -82,7 +84,7 @@ const brandNavItems = [
         label: "Privacy & Safety",
         icon: Shield,
         children: [
-          { label: "Blocked Brands", href: "/settings/privacy-safety/blocked-brands" },
+          { label: "Blocking & Restrictions", href: "/settings/privacy-safety/blocked-brands" },
           { label: "Data Privacy", href: "/settings/privacy-safety/data-privacy" },
         ],
       },
@@ -91,7 +93,7 @@ const brandNavItems = [
         icon: Mail,
         children: [
           { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
-          { label: "Push Notifications", href: "/" },
+          // { label: "Push Notifications", href: "/" },
         ],
       },
     ],
@@ -165,33 +167,66 @@ function useSidebar() {
   const dispatch = useDispatch();
   const pathname = usePathname();
 
-  const { isCreatorMode, sidebarToggleItem } = useSelector(({ auth }) => auth);
+  const { isCreatorMode, sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
 
-  const [expandedSections, setExpandedSections] = useState({});
-  const [activeItem, setActiveItem] = useState(sidebarToggleItem || "Dashboard");
-  const navItems = isCreatorMode ? creatorNavItems : creatorNavItems;
+  // Use Redux state directly, fallback to empty object
+  const expandedSections = sidebarSections || {};
+  const activeItem = sidebarActiveItem || "Dashboard";
 
+  // Memoize navItems to prevent recreation
+  const navItems = useMemo(() => {
+    return isCreatorMode ? creatorNavItems : brandNavItems;
+  }, [isCreatorMode]);
+
+  // Memoize the active item finder function
+  const findActiveItemFromPath = useCallback((items, currentPath) => {
+    for (const item of items) {
+      if (item.href === currentPath) {
+        return item.label;
+      }
+      if (item.children) {
+        const found = findActiveItemFromPath(item.children, currentPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
+
+  // Only update active item when pathname changes
   useEffect(() => {
-    setActiveItem(
-      navItems?.map((item) => item.href === pathname)
-        ? capitalizeFirstWord(pathname?.split("/")[1])
-        : navItems?.[0]?.label
-    );
-  }, [pathname]);
+    const foundActiveItem = findActiveItemFromPath(navItems, pathname);
+    if (foundActiveItem && foundActiveItem !== activeItem) {
+      dispatch(setSidebarActiveItem(foundActiveItem));
+    }
+  }, [pathname, navItems, findActiveItemFromPath, dispatch, activeItem]);
 
-  const toggleSection = (sectionPath) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionPath]: !prev[sectionPath],
-    }));
-  };
+  const toggleSection = useCallback(
+    (sectionPath) => {
+      const newExpandedSections = {
+        ...expandedSections,
+        [sectionPath]: !expandedSections[sectionPath],
+      };
+      dispatch(expandedSidebarSections(newExpandedSections));
+    },
+    [expandedSections, dispatch]
+  );
 
-  const handleItemClick = ({ hasChildren, currentPath, href, label }) => {
-    toggleSection(currentPath);
-    href && router.push(href);
-    label && dispatch(setSidebarToggleItem(label));
-    setActiveItem(label);
-  };
+  const handleItemClick = useCallback(
+    ({ hasChildren, currentPath, href, label }) => {
+      if (hasChildren) {
+        toggleSection(currentPath);
+      }
+
+      if (href) {
+        router.push(href);
+      }
+
+      if (label && label !== activeItem) {
+        dispatch(setSidebarActiveItem(label));
+      }
+    },
+    [toggleSection, router, dispatch, activeItem]
+  );
 
   return {
     expandedSections,

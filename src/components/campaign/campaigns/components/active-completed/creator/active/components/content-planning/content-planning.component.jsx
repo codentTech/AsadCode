@@ -35,7 +35,7 @@ const ContentPlanning = () => {
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
   return (
-    <div className="w-1/4 space-y-4">
+    <div className="w-1/5 space-y-4">
       {/* Content Planner */}
       <div className="bg-white">
         <div className="p-4 border-b border-gray-200">

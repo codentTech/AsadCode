@@ -16,8 +16,10 @@ function AudienceRequirementsExperience({ campaignData, setCampaignData, handleC
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="space-y-4">
+      {/* Overall Follower Requirement */}
+      <div className="space-y-2 w-full max-w-[237px]">
+        <h4 className="text-sm font-bold text-gray-800">Follower Requirements</h4>
         <CustomInput
           label="Minimum Combined Followers"
           type="number"
@@ -25,108 +27,60 @@ function AudienceRequirementsExperience({ campaignData, setCampaignData, handleC
           name="minCombinedFollowers"
           value={campaignData.minCombinedFollowers}
           onChange={handleChange}
-          placeholder="2000"
+          placeholder="e.g., 2000"
         />
       </div>
 
-      <div>
-        <h4 className="font-bold mb-3">Platform-Specific Minimum (Optional)</h4>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <CustomInput
-            label="Instagram"
-            type="number"
-            name="platformMinimums.instagram"
-            value={campaignData.platformMinimums.instagram}
-            onChange={(e) =>
-              setCampaignData((prev) => ({
-                ...prev,
-                platformMinimums: {
-                  ...prev.platformMinimums,
-                  instagram: e.target.value,
-                },
-              }))
-            }
-            placeholder="Min followers"
-          />
-
-          <CustomInput
-            label="TikTok"
-            type="number"
-            name="platformMinimums.tiktok"
-            value={campaignData.platformMinimums.tiktok}
-            onChange={(e) =>
-              setCampaignData((prev) => ({
-                ...prev,
-                platformMinimums: {
-                  ...prev.platformMinimums,
-                  tiktok: e.target.value,
-                },
-              }))
-            }
-            placeholder="Min followers"
-          />
-
-          <CustomInput
-            label="YouTube"
-            type="number"
-            name="platformMinimums.youtube"
-            value={campaignData.platformMinimums.youtube}
-            onChange={(e) =>
-              setCampaignData((prev) => ({
-                ...prev,
-                platformMinimums: {
-                  ...prev.platformMinimums,
-                  youtube: e.target.value,
-                },
-              }))
-            }
-            placeholder="Min subscribers"
-          />
-
-          <CustomInput
-            label="Facebook"
-            type="number"
-            name="platformMinimums.facebook"
-            value={campaignData.platformMinimums.facebook}
-            onChange={(e) =>
-              setCampaignData((prev) => ({
-                ...prev,
-                platformMinimums: {
-                  ...prev.platformMinimums,
-                  facebook: e.target.value,
-                },
-              }))
-            }
-            placeholder="Min followers"
-          />
-
-          <CustomInput
-            label="Pinterest"
-            type="number"
-            name="platformMinimums.pinterest"
-            value={campaignData.platformMinimums.pinterest}
-            onChange={(e) =>
-              setCampaignData((prev) => ({
-                ...prev,
-                platformMinimums: {
-                  ...prev.platformMinimums,
-                  pinterest: e.target.value,
-                },
-              }))
-            }
-            placeholder="Min followers"
-          />
+      {/* Platform-Specific Minimums */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-bold text-gray-800">Platform-Specific Minimums (Optional)</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {[
+            { key: "instagram", label: "Instagram" },
+            { key: "tiktok", label: "TikTok" },
+            { key: "youtube", label: "YouTube" },
+            { key: "facebook", label: "Facebook" },
+            { key: "pinterest", label: "Pinterest" },
+          ].map((platform) => (
+            <CustomInput
+              key={platform.key}
+              label={platform.label}
+              type="number"
+              name={`platformMinimums.${platform.key}`}
+              value={campaignData.platformMinimums[platform.key]}
+              onChange={(e) =>
+                setCampaignData((prev) => ({
+                  ...prev,
+                  platformMinimums: {
+                    ...prev.platformMinimums,
+                    [platform.key]: e.target.value,
+                  },
+                }))
+              }
+              placeholder="e.g., 1000"
+            />
+          ))}
         </div>
       </div>
 
-      <div className="w-full max-w-[235px]">
+      {/* Required Platforms */}
+      <div className="w-full max-w-[237px] space-y-2">
         <SimpleSelect
-          label="Required platforms"
-          placeHolder="Select an option"
+          label="Required Platforms"
+          placeHolder="Select one or more"
           options={socialMediaPlatformOptions}
           isMulti={true}
           isSearchable={true}
+          name="requiredPlatforms"
+          onChange={(selected) =>
+            setCampaignData((prev) => ({
+              ...prev,
+              requiredPlatforms: selected.map((s) => s.value),
+            }))
+          }
+          value={socialMediaPlatformOptions.filter((opt) =>
+            campaignData.requiredPlatforms?.includes(opt.value)
+          )}
         />
       </div>
     </div>
