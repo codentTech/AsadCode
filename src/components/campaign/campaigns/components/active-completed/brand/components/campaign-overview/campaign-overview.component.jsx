@@ -17,7 +17,7 @@ export default function CampaignOverview({ isCompleted = false }) {
   };
 
   return (
-    <div className="w-1/5 border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4 pb-20">
+    <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4 pb-20">
       <SimpleSelect
         placeHolder={isCompleted ? "Filter completed campaigns" : "Select a campaign"}
         options={options}

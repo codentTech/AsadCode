@@ -49,7 +49,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
   };
 
   return (
-    <div className="w-1/5 bg-white flex flex-col border h-screen pb-20">
+    <div className="w-[27%] bg-white flex flex-col border h-screen pb-20">
       {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">

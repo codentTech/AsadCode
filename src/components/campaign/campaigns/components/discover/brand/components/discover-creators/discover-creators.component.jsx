@@ -2,8 +2,25 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import InstagramIcon from "@/common/icons/instagram";
 import TiktokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
-import { Bookmark, ChevronRight, Mail, SquarePlus, Trash2 } from "lucide-react";
+import {
+  ChevronRight,
+  MoreHorizontal,
+  Search,
+  Star,
+  UserIcon,
+  Users,
+  X,
+  Filter,
+  Bookmark,
+  MessageCircle,
+  Mail,
+} from "lucide-react";
+import { useState } from "react";
 import useDiscoverDreatorsHook from "./use-discover-creators.hook";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SearchIcon from "@/common/icons/search-icon";
+import Modal from "@/common/components/modal/modal.component";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 
 function DiscoverCreators({
   sortOptions,
@@ -14,8 +31,79 @@ function DiscoverCreators({
   handleMessageCreator,
   getSortedCreators,
   handleRemoveFromShortlist,
+  handleInviteToApply,
+  userCampaigns = [], // Array of user's campaigns
 }) {
   const { scrollRefs, overflowStates } = useDiscoverDreatorsHook({ mockNicheCategories });
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    platforms: [],
+    minFollowers: "",
+    country: "",
+    city: "",
+    gender: "",
+    ageRange: "",
+    niches: [],
+  });
+
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedSort, setSelectedSort] = useState("");
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Mock data for filters
+  const platformOptions = [
+    { value: "instagram", label: "Instagram" },
+    { value: "youtube", label: "YouTube" },
+    { value: "tiktok", label: "TikTok" },
+    { value: "facebook", label: "Facebook" },
+    { value: "twitter", label: "Twitter" },
+  ];
+
+  const followerOptions = [
+    { value: "1000", label: "1K+" },
+    { value: "10000", label: "10K+" },
+    { value: "50000", label: "50K+" },
+    { value: "100000", label: "100K+" },
+    { value: "500000", label: "500K+" },
+    { value: "1000000", label: "1M+" },
+  ];
+
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "non-binary", label: "Non-binary" },
+    { value: "other", label: "Other" },
+  ];
+
+  const ageOptions = [
+    { value: "18-24", label: "18-24" },
+    { value: "25-34", label: "25-34" },
+    { value: "35-44", label: "35-44" },
+    { value: "45-54", label: "45-54" },
+    { value: "55+", label: "55+" },
+  ];
+
+  // Mock niche categories for filter
+  const nicheOptions = [
+    { value: "fitness", label: "Fitness" },
+    { value: "food", label: "Food" },
+    { value: "travel", label: "Travel" },
+    { value: "lifestyle", label: "Lifestyle" },
+    { value: "fashion", label: "Fashion" },
+    { value: "beauty", label: "Beauty" },
+    { value: "tech", label: "Technology" },
+    { value: "gaming", label: "Gaming" },
+    { value: "other", label: "Other" },
+  ];
+
+  const sortByOptions = [
+    { value: "followers", label: "Followers" },
+    { value: "rating", label: "Rating" },
+    { value: "engagement", label: "Engagement Rate" },
+  ];
 
   // Social media icons mapping
   const PlatformIcons = {
@@ -27,115 +115,424 @@ function DiscoverCreators({
   const handleSeeMoreClick = (categoryId) => {
     const el = scrollRefs.current[categoryId];
     if (el) {
-      el.scrollBy({ left: 300, behavior: "smooth" }); // You can adjust 300 to scroll more/less
+      el.scrollBy({ left: 300, behavior: "smooth" });
     }
   };
 
-  return (
-    <div className="flex-1 p-3 overflow-y-auto">
-      {selectedShortlist ? (
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-primary text-bold">{selectedShortlist.name}</h3>
+  const clearAllFilters = () => {
+    setFilters({
+      platforms: [],
+      minFollowers: "",
+      country: "",
+      city: "",
+      gender: "",
+      ageRange: "",
+      niches: [],
+    });
+    setSearchKeyword("");
+    setSelectedSort("");
+  };
 
-            <SimpleSelect
-              placeHolder="Select an option"
-              options={sortOptions}
-              className="w-full max-w-[200px]"
+  const handleNicheToggle = (niche) => {
+    setFilters((prev) => ({
+      ...prev,
+      niches: prev.niches.includes(niche)
+        ? prev.niches.filter((n) => n !== niche)
+        : [...prev.niches, niche],
+    }));
+  };
+
+  const handlePlatformToggle = (platform) => {
+    setFilters((prev) => ({
+      ...prev,
+      platforms: prev.platforms.includes(platform)
+        ? prev.platforms.filter((p) => p !== platform)
+        : [...prev.platforms, platform],
+    }));
+  };
+
+  const handleFollowerSelect = (follower) => {
+    setFilters((prev) => ({
+      ...prev,
+      minFollowers: prev.minFollowers === follower ? "" : follower,
+    }));
+  };
+
+  const handleGenderSelect = (gender) => {
+    setFilters((prev) => ({
+      ...prev,
+      gender: prev.gender === gender ? "" : gender,
+    }));
+  };
+
+  const handleAgeSelect = (age) => {
+    setFilters((prev) => ({
+      ...prev,
+      ageRange: prev.ageRange === age ? "" : age,
+    }));
+  };
+
+  const handleInviteClick = (creator, e) => {
+    e.stopPropagation();
+    setSelectedCreator(creator);
+    setShowInviteModal(true);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return (
+      filters.niches.length > 0 ||
+      filters.platforms.length > 0 ||
+      filters.minFollowers ||
+      filters.gender ||
+      filters.ageRange ||
+      filters.country ||
+      filters.city
+    );
+  };
+
+  // Compact Creator Card Component
+  const CreatorCard = ({ creator, isShortlist = false, showSeeMore = false }) => (
+    <div
+      className={`group relative flex-shrink-0 snap-start ${
+        isShortlist ? "w-full" : "w-64"
+      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
+      onClick={() => handleCreatorPreview(creator)}
+    >
+      {/* Compact Cover Images Section */}
+      <div className="relative h-24 bg-gray-100 overflow-hidden">
+        {creator.portfolioImages && creator.portfolioImages.length >= 3 ? (
+          <div className="flex h-full">
+            {creator.portfolioImages.slice(0, 3).map((image, index) => (
+              <div key={index} className="flex-1 relative">
+                <img
+                  src={image}
+                  alt={`Portfolio ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                {index < 2 && (
+                  <div className="absolute right-0 top-0 w-px h-full bg-white/30"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="w-full h-full bg-gray-200"></div>
+        )}
+      </div>
+
+      {/* Compact Content Section */}
+      <div className="relative pt-7 px-4 pb-4 space-y-3">
+        {/* Compact Profile Image */}
+        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+          <div className="w-12 h-12 rounded-full border-2 border-white bg-white overflow-hidden">
+            <img
+              src={creator.profileImage}
+              alt={creator.name}
+              className="w-full h-full object-cover"
             />
+          </div>
+        </div>
+        {/* Name and Location */}
+        <div className="text-center">
+          <h4 className="text-gray-900 font-semibold text-sm mb-1">{creator.name}</h4>
+          <p className="text-gray-500 text-xs">
+            {creator.age} • {creator.location}
+          </p>
+        </div>
+
+        {/* Compact Niche Tags */}
+        <div className="flex flex-wrap gap-1 justify-center">
+          {creator.niches?.slice(0, 2).map((niche) => (
+            <span
+              key={niche}
+              className="px-2 py-1 bg-gray-100 text-xs rounded-full text-gray-600 capitalize"
+            >
+              {niche}
+            </span>
+          ))}
+        </div>
+
+        {/* Compact Stats */}
+        <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 pt-2">
+          <span>
+            {creator.followers >= 1000000
+              ? `${(creator.followers / 1000000).toFixed(1)}M`
+              : `${(creator.followers / 1000).toFixed(0)}K`}
+          </span>
+          <div className="flex items-center space-x-1">
+            <Star className="w-3 h-3 text-yellow-400 fill-current" />
+            <span>{creator.rating}</span>
+            <span>({creator.reviewCount || 0})</span>
+          </div>
+        </div>
+
+        {/* Compact Social Icons */}
+        <div className="flex justify-center space-x-2">
+          {creator.platforms.map((platform) => (
+            <div
+              key={platform}
+              className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
+              title={`${platform}: ${creator.platformStats?.[platform]?.followers || "N/A"} followers`}
+            >
+              <div className="scale-75">
+                {PlatformIcons[platform] || (
+                  <span className="text-xs font-medium text-gray-600">
+                    {platform.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Icon Buttons */}
+        <div className="flex justify-center space-x-2">
+          {/* Bookmark */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInviteClick(creator, e);
+            }}
+            className="p-2 rounded-full hover:bg-blue-100 transition"
+            title="Save"
+          >
+            <Bookmark className="w-5 h-5 text-blue-600" />
+          </button>
+
+          {/* Message */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMessageCreator(creator);
+            }}
+            className="p-2 rounded-full hover:bg-purple-100 transition"
+            title="Message"
+          >
+            <Mail className="w-5 h-5 text-purple-600" />
+          </button>
+        </div>
+        {/* Compact Add/Remove Button */}
+        <div className="flex items-center gap-3">
+          {/* Add/Remove from Shortlist Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              isShortlist ? handleRemoveFromShortlist(creator.id) : handleSaveToShortlist(creator);
+            }}
+            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 border ${
+              isShortlist
+                ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            {isShortlist ? "Remove" : "Add to List"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const InviteModal = () =>
+    showInviteModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Invite {selectedCreator?.name}</h3>
+            <button
+              onClick={() => setShowInviteModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {userCampaigns.length === 0 ? (
+              <p className="text-gray-500">No active campaigns available</p>
+            ) : (
+              userCampaigns.map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    handleInviteToApply && handleInviteToApply(selectedCreator, campaign);
+                    setShowInviteModal(false);
+                  }}
+                >
+                  <h4 className="font-medium">{campaign.name}</h4>
+                  <p className="text-sm text-gray-600">{campaign.description}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="flex-1 p-4 overflow-y-auto bg-white">
+      {/* Main Content */}
+      {selectedShortlist ? (
+        <div className="space-y-4">
+          {/* Shortlist Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">{selectedShortlist.name}</h3>
+              <p className="text-sm text-gray-600">{getSortedCreators().length} creators</p>
+            </div>
+            <div className="w-full max-w-[230px]">
+              <SimpleSelect
+                placeHolder="Sort by"
+                options={sortOptions}
+                className="w-48"
+                onChange={() => {}}
+              />
+            </div>
           </div>
 
           {getSortedCreators().length === 0 ? (
-            <div className="text-center py-10">
-              <div className="text-gray-500">
-                No creators in this shortlist yet. Browse the Discover+ feed to add creators.
-              </div>
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-1">No creators yet</h4>
+              <p className="text-gray-600">Browse the Discover feed to add creators.</p>
             </div>
           ) : (
-            <div className="px-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {getSortedCreators().map((creator) => (
-                <div
-                  key={creator.id}
-                  className="w-full rounded-xl shadow hover:shadow-lg transition-shadow cursor-pointer bg-white border border-gray-100"
-                  onClick={() => handleCreatorPreview(creator)}
-                >
-                  <div className="p-4 bg-gray-100 border border-gray-100">
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={creator.profileImage}
-                        alt={creator.name}
-                        className="w-24 h-24 rounded-full mb-3 object-cover"
-                      />
-                      <h4 className="text-gray-600 font-bold text-base">{creator.name}</h4>
-                      <p className="text-sm text-gray-600 text-center">{creator.location}</p>
-                      <div className="flex w-h h-4 items-center mt-1 text-yellow-400 text-lg">
-                        {"★".repeat(Math.floor(creator.rating))}
-                        {"☆".repeat(5 - Math.floor(creator.rating))}
-                      </div>
-
-                      <p className="text-sm text-gray-600 mt-1">
-                        {creator.followers.toLocaleString()} followers
-                      </p>
-
-                      <div className="flex justify-center space-x-2 mt-2 text-gray-600 text-md">
-                        {creator.platforms.map((platform) => (
-                          <span key={platform}>{PlatformIcons[platform] || platform}</span>
-                        ))}
-                      </div>
-
-                      <div className="flex justify-center mt-3 w-full">
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFromShortlist(creator.id);
-                          }}
-                          className="px-1 rounded-full text-blue-600 hover:bg-blue-50 transition"
-                          title="Save"
-                        >
-                          <Trash2 color="#f20707" />
-                        </div>
-                        <div
-                          className="px-1 rounded-full text-green-600 hover:bg-green-50 transition"
-                          title="Add"
-                        >
-                          <SquarePlus color="#666666" />
-                        </div>
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMessageCreator(creator);
-                          }}
-                          className="px-1 rounded-full text-purple-600 hover:bg-purple-50 transition"
-                          title="Message"
-                        >
-                          <Mail color="#666666" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CreatorCard key={creator.id} creator={creator} isShortlist={true} />
               ))}
             </div>
           )}
         </div>
       ) : (
-        <div>
-          <h1 className="text-primary text-bold mb-3">Discover Creators</h1>
-          {mockNicheCategories.map((category) => (
-            <div key={category.id} className="w-full mb-4 cursor-pointer">
-              <div className="flex justify-between items-center mb-3">
-                <h4>{category.name}</h4>
+        <div className="space-y-6">
+          {/* Page Header */}
+          <div className="">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Discover Creators</h1>
+              <div className="flex items-center gap-3">
+                {/* Search Input */}
+                <div className="flex-1">
+                  <CustomInput
+                    placeholder="Search creators"
+                    value={searchKeyword}
+                    startIcon={<SearchIcon />}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                  />
+                </div>
 
-                {overflowStates[category.id] && (
-                  <div
-                    onClick={() => handleSeeMoreClick(category.id)}
-                    className="text-primary text-sm font-medium flex items-center gap-1 cursor-pointer"
-                  >
-                    See More
-                    <span>
-                      <ChevronRight size="15px" />
+                {/* Filter Button */}
+                <div className="relative">
+                  <CustomButton
+                    text="Filters"
+                    onClick={() => setShowFilterModal(true)}
+                    startIcon={<Filter size={18} />}
+                    className="btn-primary !h-10"
+                  />
+                </div>
+              </div>
+            </div>
+            <p className="text-gray-600">Find the perfect creators for your campaigns</p>
+          </div>
+          {/* Clean Search and Filter Bar */}
+          {!selectedShortlist && (
+            <div className="mb-6">
+              {/* Active Filters Display */}
+              {hasActiveFilters() && (
+                <div className="flex items-center gap-2 mt-3 flex-wrap border rounded-lg p-3 bg-gray-100">
+                  <span className="text-sm text-gray-600">Active filters:</span>
+
+                  {filters.niches.map((niche) => (
+                    <span
+                      key={niche}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                    >
+                      {nicheOptions.find((n) => n.value === niche)?.label}
+                      <button
+                        onClick={() => handleNicheToggle(niche)}
+                        className="hover:text-indigo-900"
+                      >
+                        <X size={12} />
+                      </button>
                     </span>
-                  </div>
+                  ))}
+
+                  {filters.platforms.map((platform) => (
+                    <span
+                      key={platform}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                    >
+                      {platformOptions.find((p) => p.value === platform)?.label}
+                      <button
+                        onClick={() => handlePlatformToggle(platform)}
+                        className="hover:text-indigo-900"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+
+                  {filters.minFollowers && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                      {followerOptions.find((f) => f.value === filters.minFollowers)?.label}+
+                      followers
+                      <button
+                        onClick={() => handleFollowerSelect(filters.minFollowers)}
+                        className="hover:text-indigo-900"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {filters.gender && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                      {genderOptions.find((g) => g.value === filters.gender)?.label}
+                      <button
+                        onClick={() => handleGenderSelect(filters.gender)}
+                        className="hover:text-indigo-900"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {filters.ageRange && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                      Age {filters.ageRange}
+                      <button
+                        onClick={() => handleAgeSelect(filters.ageRange)}
+                        className="hover:text-indigo-900"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Category Sections */}
+          {mockNicheCategories.map((category) => (
+            <div key={category.id} className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h4 className="text-lg font-semibold text-gray-900">{category.name}</h4>
+                {overflowStates[category.id] && (
+                  <button
+                    onClick={() => handleSeeMoreClick(category.id)}
+                    className="flex items-center space-x-1 text-primary hover:text-indigo-800 text-sm font-medium"
+                  >
+                    <span>See More</span>
+                    <ChevronRight size={14} />
+                  </button>
                 )}
               </div>
 
@@ -143,73 +540,161 @@ function DiscoverCreators({
                 ref={(el) => {
                   scrollRefs.current[category.id] = el;
                 }}
-                className="flex overflow-x-auto space-x-4 pb-4 mx-2 px-2 mb-4 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scroll-smooth snap-x"
+                className="flex overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
               >
                 {category.creators.map((creator) => (
-                  <div
-                    key={creator.id}
-                    className="flex-shrink-0 snap-start w-52 rounded-xl shadow hover:shadow-lg transition-shadow cursor-pointer bg-gray-100 border border-gray-100"
-                    onClick={() => handleCreatorPreview(creator)}
-                  >
-                    <div className="p-4">
-                      <div className="flex flex-col items-center">
-                        <img
-                          src={creator.profileImage}
-                          alt={creator.name}
-                          className="w-24 h-24 rounded-full mb-3 object-cover"
-                        />
-                        <h4 className="text-gray-600 font-bold text-base">{creator.name}</h4>
-                        <p className="text-sm text-gray-600 text-center">{creator.location}</p>
-                        <div className="flex w-h h-4 items-center mt-1 text-yellow-400 text-lg">
-                          {"★".repeat(Math.floor(creator.rating))}
-                          {"☆".repeat(5 - Math.floor(creator.rating))}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {creator.followers.toLocaleString()} followers
-                        </p>
-                        <div className="flex justify-center space-x-2 mt-2 text-gray-600 text-md">
-                          {creator.platforms.map((platform) => (
-                            <span key={platform}>{PlatformIcons[platform] || platform}</span>
-                          ))}
-                        </div>
-                        <div className="flex justify-center mt-3 w-full">
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSaveToShortlist(creator);
-                            }}
-                            className="px-1 rounded-full text-blue-600 hover:bg-blue-50 transition"
-                            title="Save"
-                          >
-                            <Bookmark color="#666666" />
-                          </div>
-                          <div
-                            className="px-1 rounded-full text-green-600 hover:bg-green-50 transition"
-                            title="Add"
-                          >
-                            <SquarePlus color="#666666" />
-                          </div>
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMessageCreator(creator);
-                            }}
-                            className="px-1 rounded-full text-purple-600 hover:bg-purple-50 transition"
-                            title="Message"
-                          >
-                            <Mail color="#666666" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <CreatorCard key={creator.id} creator={creator} showSeeMore={true} />
                 ))}
               </div>
-              <hr />
+
+              <hr className="border-gray-200" />
             </div>
           ))}
         </div>
       )}
+
+      {/* Filter Modal using Custom Modal Component */}
+      <Modal
+        title="Filter Creators"
+        show={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Niche Categories */}
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2">Niche Categories</h4>
+            <div className="grid grid-cols-7 gap-2">
+              {nicheOptions.map((niche) => (
+                <button
+                  key={niche.value}
+                  onClick={() => handleNicheToggle(niche.value)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    filters.niches.includes(niche.value)
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {niche.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Platforms */}
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
+            <div className="grid grid-cols-7 gap-2">
+              {platformOptions.map((platform) => (
+                <button
+                  key={platform.value}
+                  onClick={() => handlePlatformToggle(platform.value)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    filters.platforms.includes(platform.value)
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {platform.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Minimum Followers */}
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2">Minimum Followers</h4>
+            <div className="grid grid-cols-7 gap-2">
+              {followerOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleFollowerSelect(option.value)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    filters.minFollowers === option.value
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Demographics */}
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
+              <div className="grid grid-cols-5 gap-2">
+                {genderOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleGenderSelect(option.value)}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
+                      filters.gender === option.value
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
+              <div className="grid grid-cols-5 gap-2">
+                {ageOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleAgeSelect(option.value)}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
+                      filters.ageRange === option.value
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="grid grid-cols-2 gap-4">
+            <CustomInput
+              label="Country"
+              placeholder="Enter country"
+              value={filters.country}
+              onChange={(e) => setFilters((prev) => ({ ...prev, country: e.target.value }))}
+            />
+            <CustomInput
+              label="City"
+              placeholder="Enter city"
+              value={filters.city}
+              onChange={(e) => setFilters((prev) => ({ ...prev, city: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* Modal Actions */}
+        <div className="flex justify-between items-center mt-6">
+          <CustomButton onClick={clearAllFilters} text="Clear All" className="btn-cancel" />
+          <div className="flex gap-3">
+            <CustomButton
+              onClick={() => setShowFilterModal(false)}
+              text="Cancel"
+              className="btn-cancel"
+            />
+            <CustomButton onClick={() => setShowFilterModal(false)} text="Apply Filters" />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Invite Modal */}
+      <InviteModal />
     </div>
   );
 }
