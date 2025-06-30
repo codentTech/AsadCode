@@ -5,18 +5,7 @@ import InstagramIcon from "@/common/icons/instagram";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import {
-  MapPin,
-  Star,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Eye,
-  Heart,
-  DollarSign,
-  BarChart3,
-} from "lucide-react";
+import { MapPin, Minus, Star, TrendingDown, TrendingUp, Users } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({ isCompleted = false }) => {
@@ -71,6 +60,19 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
       default:
         return "text-gray-500";
     }
+  };
+
+  // Helper function to determine if performance is above or below average
+  const getPerformanceComparison = (metricType) => {
+    // Simulate random performance data - in real app this would come from your data
+    const isAboveAverage = Math.random() > 0.5;
+    const difference = Math.floor(Math.random() * 5000) + 100; // Random difference
+
+    return {
+      isAboveAverage,
+      difference: formatFollowers(difference),
+      textColor: isAboveAverage ? "text-green-600" : "text-red-600",
+    };
   };
 
   const totalViews = "10,000";
@@ -132,22 +134,34 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                   <div className="flex items-start justify-between mb-2">
                     <div className="w-full">
                       <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-gray-900">{creator.name} </h3>
+                        <div className="flex items-center space-x-3">
+                          <h3 className="text-lg font-semibold text-gray-900">{creator.name}</h3>
+                          {isCompleted && (
+                            <span
+                              className={`text-sm ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1`}
+                            >
+                              {creator.deadline}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
                           Creator Fee:
                           <span className="font-bold text-primary"> ${creator.totalSpent}</span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span>{creator.location}</span>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-1 text-xs">
+                          <MapPin className="w-4 h-4" />
+                          <span>{creator.location}</span>
+                        </div>
+                        <span className="text-xs text-gray-600">(27 Years)</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Rating */}
                   <div className="flex items-center space-x-2 mb-3">
-                    <div className="flex items-center">
+                    <div className="flex text-xs items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
@@ -159,8 +173,8 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                         />
                       ))}
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{creator.rating}</span>
-                    <span className="text-sm text-gray-500">({creator.reviewCount} reviews)</span>
+                    <span className="text-xs font-medium text-gray-900">{creator.rating}</span>
+                    <span className="text-xs text-gray-600">({creator.reviewCount} reviews)</span>
                   </div>
 
                   {/* Performance Metrics */}
@@ -172,21 +186,13 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                     >
                       <span className="font-medium">{creator.successRate}% Success Rate</span>
                     </div>
-                    <span className="text-xs bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
-                      27 Years
-                    </span>
-                    <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
-                      <span className="font-bold">Total Views:</span>{" "}
-                      {formatFollowers(
-                        Object.values(creator.platforms).reduce((sum, p) => sum + p.followers, 0)
-                      )}
-                    </div>
-                    {isCompleted && (
-                      <span
-                        className={`text-xs ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1 text-gray-600`}
-                      >
-                        <span className="font-bold">Deadline:</span> {creator.deadline}
-                      </span>
+                    {!isCompleted && (
+                      <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
+                        <span className="font-bold">Total Views:</span>{" "}
+                        {formatFollowers(
+                          Object.values(creator.platforms).reduce((sum, p) => sum + p.followers, 0)
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -216,67 +222,62 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
                       {/* Total Views Dashboard Card */}
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200 hover:shadow-sm transition-all duration-200">
+                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-blue-700">Total Views</span>
-                          <div className="flex items-center space-x-1">
-                            <TrendingUp className="w-3 h-3 text-green-500" />
-                            <span className="text-xs font-medium text-green-600">12%</span>
-                          </div>
+                          <span className="text-xs font-semibold text-gray-700">Total Views</span>
                         </div>
-                        <div className="text-lg font-bold text-blue-900 mb-1">{totalViews}</div>
-                        <div className="text-xs text-blue-600">+1.2K from last week</div>
+                        <div className="text-xs font-bold text-gray-900 mb-1">{totalViews}</div>
+                        <div className={`text-xs ${getPerformanceComparison("views").textColor}`}>
+                          +{getPerformanceComparison("views").difference} above campaign average
+                        </div>
                       </div>
 
                       {/* Total Engagement Dashboard Card */}
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200 hover:shadow-sm transition-all duration-200">
+                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-green-700">
+                          <span className="text-xs font-semibold text-gray-700">
                             Total Engagement
                           </span>
-                          <div className="flex items-center space-x-1">
-                            <TrendingUp className="w-3 h-3 text-green-500" />
-                            <span className="text-xs font-medium text-green-600">8%</span>
-                          </div>
                         </div>
-                        <div className="text-lg font-bold text-green-900 mb-1">
+                        <div className="text-xs font-bold text-gray-900 mb-1">
                           {totalEngagement}
                         </div>
-                        <div className="text-xs text-green-600">+800 interactions</div>
+                        <div
+                          className={`text-xs ${getPerformanceComparison("engagement").textColor}`}
+                        >
+                          +{getPerformanceComparison("engagement").difference} above campaign
+                          average
+                        </div>
                       </div>
 
                       {/* Engagement Rate Dashboard Card */}
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200 hover:shadow-sm transition-all duration-200">
+                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-purple-700">
+                          <span className="text-xs font-semibold text-gray-700">
                             Engagement Rate
                           </span>
-                          <div className="flex items-center space-x-1">
-                            <TrendingDown className="w-3 h-3 text-red-500" />
-                            <span className="text-xs font-medium text-red-600">3%</span>
-                          </div>
                         </div>
-                        <div className="text-lg font-bold text-purple-900 mb-1">
+                        <div className="text-xs font-bold text-gray-900 mb-1">
                           {engagementRate}%
                         </div>
-                        <div className="text-xs text-purple-600">-0.5% from avg</div>
+                        <div className={`text-xs ${getPerformanceComparison("rate").textColor}`}>
+                          +{getPerformanceComparison("rate").difference} above campaign average
+                        </div>
                       </div>
 
                       {/* Cost Per Engagement Dashboard Card */}
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200 hover:shadow-sm transition-all duration-200">
+                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-orange-700">
+                          <span className="text-xs font-semibold text-gray-700">
                             Cost Per Engagement
                           </span>
-                          <div className="flex items-center space-x-1">
-                            <TrendingDown className="w-3 h-3 text-green-500" />
-                            <span className="text-xs font-medium text-green-600">5%</span>
-                          </div>
                         </div>
-                        <div className="text-lg font-bold text-orange-900 mb-1">
+                        <div className="text-xs font-bold text-gray-900 mb-1">
                           ${costPerEngagement}
                         </div>
-                        <div className="text-xs text-orange-600">$0.50 less per click</div>
+                        <div className={`text-xs ${getPerformanceComparison("cost").textColor}`}>
+                          +${getPerformanceComparison("cost").difference} above campaign average
+                        </div>
                       </div>
                     </div>
                   )}

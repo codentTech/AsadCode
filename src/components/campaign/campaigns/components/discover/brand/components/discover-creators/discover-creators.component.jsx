@@ -1,26 +1,14 @@
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Modal from "@/common/components/modal/modal.component";
 import InstagramIcon from "@/common/icons/instagram";
+import SearchIcon from "@/common/icons/search-icon";
 import TiktokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
-import {
-  ChevronRight,
-  MoreHorizontal,
-  Search,
-  Star,
-  UserIcon,
-  Users,
-  X,
-  Filter,
-  Bookmark,
-  MessageCircle,
-  Mail,
-} from "lucide-react";
+import { Bookmark, ChevronRight, Filter, Mail, Star, Users, X } from "lucide-react";
 import { useState } from "react";
 import useDiscoverDreatorsHook from "./use-discover-creators.hook";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SearchIcon from "@/common/icons/search-icon";
-import Modal from "@/common/components/modal/modal.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 
 function DiscoverCreators({
   sortOptions,
@@ -191,7 +179,6 @@ function DiscoverCreators({
     );
   };
 
-  // Compact Creator Card Component
   const CreatorCard = ({ creator, isShortlist = false, showSeeMore = false }) => (
     <div
       className={`group relative flex-shrink-0 snap-start ${
@@ -199,8 +186,8 @@ function DiscoverCreators({
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
       onClick={() => handleCreatorPreview(creator)}
     >
-      {/* Compact Cover Images Section */}
-      <div className="relative h-24 bg-gray-100 overflow-hidden">
+      {/* Compact Cover Images Section - moved further down */}
+      <div className="relative h-32 bg-gray-100 overflow-hidden">
         {creator.portfolioImages && creator.portfolioImages.length >= 3 ? (
           <div className="flex h-full">
             {creator.portfolioImages.slice(0, 3).map((image, index) => (
@@ -222,10 +209,10 @@ function DiscoverCreators({
       </div>
 
       {/* Compact Content Section */}
-      <div className="relative pt-7 px-4 pb-4 space-y-3">
-        {/* Compact Profile Image */}
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-          <div className="w-12 h-12 rounded-full border-2 border-white bg-white overflow-hidden">
+      <div className="relative px-4 pb-4 space-y-3">
+        {/* Compact Profile Image - positioned at base of cover images */}
+        <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2">
+          <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
             <img
               src={creator.profileImage}
               alt={creator.name}
@@ -233,9 +220,17 @@ function DiscoverCreators({
             />
           </div>
         </div>
-        {/* Name and Location */}
+
+        {/* Name, Rating and Location */}
         <div className="text-center">
-          <h4 className="text-gray-900 font-semibold text-sm mb-1">{creator.name}</h4>
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <h4 className="text-gray-900 font-semibold text-sm">{creator.name}</h4>
+            <div className="flex items-center space-x-1">
+              <Star className="w-3 h-3 text-yellow-400 fill-current" />
+              <span className="text-xs text-gray-500">{creator.rating}</span>
+              <span className="text-xs text-gray-400">({creator.reviewCount || 0})</span>
+            </div>
+          </div>
           <p className="text-gray-500 text-xs">
             {creator.age} • {creator.location}
           </p>
@@ -253,51 +248,65 @@ function DiscoverCreators({
           ))}
         </div>
 
-        {/* Compact Stats */}
-        <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 pt-2">
-          <span>
-            {creator.followers >= 1000000
-              ? `${(creator.followers / 1000000).toFixed(1)}M`
-              : `${(creator.followers / 1000).toFixed(0)}K`}
-          </span>
-          <div className="flex items-center space-x-1">
-            <Star className="w-3 h-3 text-yellow-400 fill-current" />
-            <span>{creator.rating}</span>
-            <span>({creator.reviewCount || 0})</span>
-          </div>
+        {/* Short tagline bio */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            {creator.tagline || "Creating authentic content that resonates with audiences"}
+          </p>
         </div>
 
-        {/* Compact Social Icons */}
-        <div className="flex justify-center space-x-2">
+        {/* Compact Stats - just total followers */}
+        <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
+          <span className="font-medium">
+            {creator.followers >= 1000000
+              ? `${(creator.followers / 1000000).toFixed(1)}M Total Followers`
+              : `${(creator.followers / 1000).toFixed(0)}K Total Followers`}
+          </span>
+        </div>
+
+        {/* Compact Social Icons - more spread out with follower counts */}
+        <div className="flex justify-center space-x-4">
           {creator.platforms.map((platform) => (
-            <div
-              key={platform}
-              className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
-              title={`${platform}: ${creator.platformStats?.[platform]?.followers || "N/A"} followers`}
-            >
-              <div className="scale-75">
-                {PlatformIcons[platform] || (
-                  <span className="text-xs font-medium text-gray-600">
-                    {platform.charAt(0).toUpperCase()}
-                  </span>
-                )}
+            <div key={platform} className="flex flex-col items-center space-y-1">
+              <div
+                className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
+                title={`${platform}: ${creator.platformStats?.[platform]?.followers || "N/A"} followers`}
+              >
+                <div className="scale-75">
+                  {PlatformIcons[platform] || (
+                    <span className="text-xs font-medium text-gray-600">
+                      {platform.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
               </div>
+              <span className="text-xs text-gray-500">
+                {creator.platformStats?.[platform]?.followers
+                  ? creator.platformStats[platform].followers >= 1000000
+                    ? `${(creator.platformStats[platform].followers / 1000000).toFixed(1)}M`
+                    : creator.platformStats[platform].followers >= 1000
+                      ? `${(creator.platformStats[platform].followers / 1000).toFixed(0)}K`
+                      : creator.platformStats[platform].followers
+                  : "N/A"}
+              </span>
             </div>
           ))}
         </div>
 
         {/* Icon Buttons */}
         <div className="flex justify-center space-x-2">
-          {/* Bookmark */}
+          {/* Bookmark - for saving to lists */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleInviteClick(creator, e);
+              isShortlist ? handleRemoveFromShortlist(creator.id) : handleSaveToShortlist(creator);
             }}
             className="p-2 rounded-full hover:bg-blue-100 transition"
-            title="Save"
+            title={isShortlist ? "Remove from list" : "Save to list"}
           >
-            <Bookmark className="w-5 h-5 text-blue-600" />
+            <Bookmark
+              className={`w-5 h-5 ${isShortlist ? "text-blue-700 fill-current" : "text-blue-600"}`}
+            />
           </button>
 
           {/* Message */}
@@ -312,21 +321,17 @@ function DiscoverCreators({
             <Mail className="w-5 h-5 text-purple-600" />
           </button>
         </div>
-        {/* Compact Add/Remove Button */}
+
+        {/* Invite to Apply Button */}
         <div className="flex items-center gap-3">
-          {/* Add/Remove from Shortlist Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              isShortlist ? handleRemoveFromShortlist(creator.id) : handleSaveToShortlist(creator);
+              handleInviteClick(creator, e);
             }}
-            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 border ${
-              isShortlist
-                ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
-            }`}
+            className="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
           >
-            {isShortlist ? "Remove" : "Add to List"}
+            Invite to Apply
           </button>
         </div>
       </div>
@@ -412,12 +417,20 @@ function DiscoverCreators({
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Discover Creators</h1>
               <div className="flex items-center gap-3">
                 {/* Search Input */}
-                <div className="flex-1">
+                <div className="w-full min-w-[230px]">
                   <CustomInput
                     placeholder="Search creators"
                     value={searchKeyword}
                     startIcon={<SearchIcon />}
                     onChange={(e) => setSearchKeyword(e.target.value)}
+                  />
+                </div>
+
+                <div className="w-full min-w-[230px]">
+                  <SimpleSelect
+                    placeHolder="Select an opttion"
+                    options={sortByOptions}
+                    onChange={() => {}}
                   />
                 </div>
 

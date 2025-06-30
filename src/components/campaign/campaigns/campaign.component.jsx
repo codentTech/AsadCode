@@ -1,8 +1,7 @@
 import ActiveCompleted from "./components/active-completed/active-completed.component";
 import CampaignApplication from "./components/applications/applications.component";
-import Applications from "./components/applications/brand/applications.component";
 import Discover from "./components/discover/discover.component";
-import Rejected from "./components/rejected/rejected";
+import Rejected from "./components/rejected/rejected.component";
 import useCampaign from "./use-campaign.hook";
 
 export default function Campaign() {

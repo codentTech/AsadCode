@@ -1,9 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
-import { Download, TrendingUp } from "lucide-react";
 
 export default function CampaignOverview({ isCompleted = false }) {
   const { options, handleChange } = useCampaignList();
@@ -51,29 +49,22 @@ export default function CampaignOverview({ isCompleted = false }) {
             <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Total Reach:</span>
+                <span className="text-gray-600">Total Views:</span>
                 <span className="font-medium text-blue-800">2.4M</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Engagement Rate:</span>
+                <span className="text-gray-600">Total Engagement:</span>
                 <span className="font-medium text-blue-800">4.2%</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-600">Engagement Rate:</span>
+                <span className="font-medium text-blue-800">3.2%</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-600">Cost per Engagement:</span>
-                <span className="font-medium text-blue-800">$0.056</span>
+                <span className="font-medium text-blue-800">$1.026</span>
               </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <CustomInput label="Total Views (Combined of all creators)" />
-            <CustomInput
-              label="
-Total Engagements (likes, comments, shares)"
-            />
-            <CustomInput label="Average Engagement Rate (%) " />
-            <CustomInput label="Cost Per Engagement" />
-            <CustomButton text="Submit" className="btn-primary mt-2" />
           </div>
         </>
       )}
@@ -88,18 +79,16 @@ Total Engagements (likes, comments, shares)"
       <hr />
 
       {/* Action Buttons */}
-      <div className="space-y-2 mt-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-1">
         <CustomButton
           text="Export Campaign Data"
-          startIcon={<Download className="w-4 h-4" />}
           onClick={handleExportData}
-          className="w-full btn-secondary"
+          className="w-full btn-primary"
         />
         <CustomButton
           text="View Full Analytics"
-          startIcon={<TrendingUp className="w-4 h-4" />}
           onClick={handleViewAnalytics}
-          className="w-full btn-secondary"
+          className="w-full btn-outline"
         />
       </div>
     </div>

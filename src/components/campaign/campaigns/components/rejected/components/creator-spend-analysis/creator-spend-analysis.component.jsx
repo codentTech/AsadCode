@@ -137,7 +137,7 @@ const CreatorSpendAnalysis = () => {
                 </div>
 
                 {/* Compact Action Buttons */}
-                <div className="flex flex-col 2xl:flex-row gap-2">
+                <div className="flex flex-col gap-2">
                   <CustomButton
                     text="Reinstate to Applications"
                     className="w-full btn-primary !h-7"

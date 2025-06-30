@@ -12,8 +12,15 @@ export default function CampaignOverview() {
   const { options, handleChange } = useCampaignList();
   const { openFilterModal, setOpenFilterModal } = useCampaignOverview();
 
+  const countries = [
+    { value: "United States", label: "United States" },
+    { value: "United Kingdom", label: "United Kingdom" },
+    { value: "Canada", label: "Canada" },
+    { value: "Australia", label: "Australia" },
+  ];
+
   return (
-    <div className="w-1/5 border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4 pb-20">
+    <div className="w-1/4 border-r flex flex-col bg-white p-4 gap-4 pb-20">
       <SimpleSelect
         placeHolder="Select a campaign"
         options={options}
@@ -41,19 +48,28 @@ export default function CampaignOverview() {
 
         {/* Rating */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
-          <input type="range" min="1" max="5" step="0.1" className="w-full" />
+          <h4 className="text-sm font-semibold text-gray-600">Minimum Rating</h4>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            step="0.1"
+            defaultValue="4"
+            className="w-full h-1.5 text-primary"
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>1.0</span>
+            <span>5.0</span>
+          </div>
         </div>
 
         {/* Audience Country */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Audience Country</label>
-          <select className="w-full p-2 border border-gray-300 rounded text-sm">
-            <option>United States</option>
-            <option>United Kingdom</option>
-            <option>Canada</option>
-            <option>Australia</option>
-          </select>
+          <SimpleSelect
+            placeHolder="Select Audience Country"
+            options={countries}
+            onChange={() => {}}
+          />
         </div>
 
         {/* See More Button */}

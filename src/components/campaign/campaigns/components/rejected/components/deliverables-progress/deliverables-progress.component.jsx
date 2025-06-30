@@ -7,33 +7,10 @@ import { CheckCircle2, MapPin, Star } from "lucide-react";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
-  const {
-    getStatusColor,
-    getStatusIcon,
-    project,
-    privateNotes,
-    editingItem,
-    editForm,
-    setEditForm,
-    handleEdit,
-    handleSave,
-    handleCancel,
-    toggleDeliverable,
-    toggleTimelineStep,
-    messageDialogOpen,
-    setMessageDialogOpen,
-  } = useDeliverablesProgress();
-
-  const handleExportReport = () => {
-    // console.log("Exporting campaign report...");
-  };
-
-  const handleProcessPayments = () => {
-    // console.log("Processing final payments...");
-  };
+  const { privateNotes } = useDeliverablesProgress();
 
   return (
-    <div className="w-1/5 bg-white flex flex-col border h-screen pb-20">
+    <div className="w-1/4 bg-white flex flex-col border h-screen pb-20">
       {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">

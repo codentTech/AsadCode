@@ -61,6 +61,7 @@ function PitchTemplate() {
         show={showPitchPopup}
         title={showPitchPopup.name}
         onClose={() => setShowPitchPopup(false)}
+        size="lg"
       >
         <div className="space-y-4">
           <div>
@@ -107,6 +108,7 @@ function PitchTemplate() {
         show={showNewPitchForm}
         title="Create New Pitch"
         onClose={() => setShowNewPitchForm(false)}
+        size="lg"
       >
         <div className="space-y-4">
           <div>

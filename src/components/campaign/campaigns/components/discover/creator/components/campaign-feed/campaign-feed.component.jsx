@@ -149,7 +149,7 @@ function CampaignFeed() {
       </div>
 
       {/* Modal - Campaign Brief */}
-      <Modal show={showFullBrief} title="Campaign Brief" onClose={closeBrief}>
+      <Modal show={showFullBrief} title="Campaign Brief" onClose={closeBrief} size="lg">
         <div className="space-y-3">
           <div className="flex gap-3">
             <div className="relative shrink-0">
@@ -183,7 +183,7 @@ function CampaignFeed() {
       </Modal>
 
       {/* Modal - Apply to Campaign */}
-      <Modal show={showApplication} title="Apply to Campaign" onClose={closeApplication}>
+      <Modal show={showApplication} title="Apply to Campaign" onClose={closeApplication} size="lg">
         <div className="space-y-2">
           <h4 className="text-sm font-bold text-gray-900">
             {applicationCampaign?.brandName} - {applicationCampaign?.title}

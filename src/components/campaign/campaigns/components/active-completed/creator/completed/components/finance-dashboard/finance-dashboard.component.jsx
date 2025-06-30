@@ -16,7 +16,7 @@ const FinanceDashboard = ({
   };
 
   return (
-    <div className="w-1/5 bg-white border-l border-gray-200 flex flex-col">
+    <div className="w-1/4 bg-white border-l border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
         <div className="bg-green-50 p-4 rounded-lg">
