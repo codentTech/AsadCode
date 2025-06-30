@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export const useCreatorSpendAnalysis = () => {
+  const [open, setOpen] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
 
   const creators = [
@@ -8,7 +9,7 @@ export const useCreatorSpendAnalysis = () => {
       id: 1,
       name: "Sarah Martinez",
       image:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b977?w=150&h=150&fit=crop&crop=face",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
       location: "Los Angeles, CA",
       totalSpent: "12,500",
       rating: 4.9,
@@ -18,7 +19,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 95000, verified: true },
         twitter: { followers: 42000, verified: false },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 2,
@@ -34,7 +41,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 180000, verified: true },
         twitter: { followers: 67000, verified: true },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 3,
@@ -50,7 +63,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 145000, verified: true },
         twitter: { followers: 28000, verified: false },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 4,
@@ -66,7 +85,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 52000, verified: false },
         twitter: { followers: 15000, verified: false },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 5,
@@ -82,7 +107,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 89000, verified: true },
         twitter: { followers: 22000, verified: false },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 6,
@@ -98,7 +129,13 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 78000, verified: false },
         twitter: { followers: 31000, verified: false },
       },
-      appliedDate: "2 days ago",
+      appliedDate: "2024-05-15",
+      followers: "10000",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      ],
     },
   ];
 
@@ -117,11 +154,18 @@ export const useCreatorSpendAnalysis = () => {
     return colors[platform] || "text-gray-600";
   };
 
+  const handleOpenModal = () => setOpen(true);
+
+  const handleCloseModal = () => setOpen(false);
+
   return {
     creators,
     formatFollowers,
     getPlatformColor,
     messageDialogOpen,
     setMessageDialogOpen,
+    open,
+    handleOpenModal,
+    handleCloseModal,
   };
 };

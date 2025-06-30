@@ -4,7 +4,7 @@ export const useCreatorSpendAnalysis = () => {
       id: 1,
       name: "Sarah Martinez",
       image:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b977?w=150&h=150&fit=crop&crop=face",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
       location: "Los Angeles, CA",
       totalSpent: "12,500",
       rating: 4.9,
@@ -14,8 +14,14 @@ export const useCreatorSpendAnalysis = () => {
         youtube: { followers: 95000, verified: true },
         twitter: { followers: 42000, verified: false },
       },
+      followers: "10000",
       applicationDate: "2024-05-15",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 2,
@@ -32,7 +38,13 @@ export const useCreatorSpendAnalysis = () => {
         twitter: { followers: 67000, verified: true },
       },
       applicationDate: "2024-05-15",
+      followers: "10000",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 3,
@@ -49,7 +61,13 @@ export const useCreatorSpendAnalysis = () => {
         twitter: { followers: 28000, verified: false },
       },
       applicationDate: "2024-05-15",
+      followers: "10000",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 4,
@@ -66,7 +84,13 @@ export const useCreatorSpendAnalysis = () => {
         twitter: { followers: 15000, verified: false },
       },
       applicationDate: "2024-05-15",
+      followers: "10000",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 5,
@@ -83,7 +107,13 @@ export const useCreatorSpendAnalysis = () => {
         twitter: { followers: 22000, verified: false },
       },
       applicationDate: "2024-05-15",
+      followers: "10000",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
     {
       id: 6,
@@ -100,7 +130,13 @@ export const useCreatorSpendAnalysis = () => {
         twitter: { followers: 31000, verified: false },
       },
       applicationDate: "2024-05-15",
+      followers: "10000",
       rejectedDate: "2024-05-18",
+      portfolioImages: [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1515688594390-b649af70d282?w=400&h=300&fit=crop",
+      ],
     },
   ];
 
@@ -110,18 +146,8 @@ export const useCreatorSpendAnalysis = () => {
     return count.toString();
   };
 
-  const getPlatformColor = (platform) => {
-    const colors = {
-      instagram: "text-pink-600",
-      youtube: "text-red-600",
-      twitter: "text-blue-600",
-    };
-    return colors[platform] || "text-gray-600";
-  };
-
   return {
     creators,
     formatFollowers,
-    getPlatformColor,
   };
 };

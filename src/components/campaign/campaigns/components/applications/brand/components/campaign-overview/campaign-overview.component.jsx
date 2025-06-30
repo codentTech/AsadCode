@@ -20,7 +20,7 @@ export default function CampaignOverview() {
   ];
 
   return (
-    <div className="w-1/4 border-r flex flex-col bg-white p-4 gap-4 pb-20">
+    <div className="w-[23%] border-r flex flex-col bg-white p-4 gap-4 pb-20">
       <SimpleSelect
         placeHolder="Select a campaign"
         options={options}
