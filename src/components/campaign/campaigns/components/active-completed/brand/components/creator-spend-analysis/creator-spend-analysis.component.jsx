@@ -81,7 +81,7 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const costPerEngagement = "10,000";
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-white pb-20">
+    <div className="flex-1 flex flex-col h-screen bg-gray-100 pb-20">
       {/* Header */}
 
       {/* Compact Header */}
@@ -102,11 +102,9 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                 className="w-full max-w-[400px]"
               />
             </div>
-            {!isCompleted && (
-              <div className="w-full max-w-[200px]">
-                <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
-              </div>
-            )}
+            <div className="w-full max-w-[200px]">
+              <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
+            </div>
           </div>
         </div>
       </div>

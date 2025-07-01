@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export const useCreatorSpendAnalysis = () => {
   const [open, setOpen] = useState(false);
+
   const creators = [
     {
       id: 1,

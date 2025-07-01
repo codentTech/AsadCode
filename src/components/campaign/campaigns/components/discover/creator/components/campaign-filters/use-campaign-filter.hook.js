@@ -43,6 +43,24 @@ function useCampaignFilter() {
         : [...prev.platforms, platform],
     }));
   };
+
+  const applyFilters = () => {
+    // Apply filter logic here
+    console.log("Applying filters:", filters);
+  };
+
+  const hasActiveFilters = () => {
+    return Object.values(filters).some((value) =>
+      Array.isArray(value)
+        ? value.length > 0
+        : typeof value === "string"
+          ? value.trim() !== ""
+          : typeof value === "number"
+            ? value > 0
+            : Boolean(value)
+    );
+  };
+
   return {
     filters,
     setFilters,
@@ -50,6 +68,8 @@ function useCampaignFilter() {
     toggleFilter,
     resetFilters,
     handlePlatformChange,
+    applyFilters,
+    hasActiveFilters,
   };
 }
 

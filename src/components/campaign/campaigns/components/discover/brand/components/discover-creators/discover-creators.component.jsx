@@ -6,13 +6,15 @@ import InstagramIcon from "@/common/icons/instagram";
 import SearchIcon from "@/common/icons/search-icon";
 import TiktokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
-import { Bookmark, ChevronRight, Filter, Mail, Star, Users, X } from "lucide-react";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import { ArrowLeft, Bookmark, ChevronRight, Filter, Mail, Star, Users, X } from "lucide-react";
 import { useState } from "react";
 import useDiscoverDreatorsHook from "./use-discover-creators.hook";
 
 function DiscoverCreators({
   sortOptions,
   selectedShortlist,
+  setSelectedShortlist,
   mockNicheCategories,
   handleCreatorPreview,
   handleSaveToShortlist,
@@ -34,12 +36,21 @@ function DiscoverCreators({
     ageRange: "",
     niches: [],
   });
-
+  const [open, setOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedSort, setSelectedSort] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterType, setFilterType] = useState("creator");
+  const [audienceFilters, setAudienceFilters] = useState({
+    audienceGender: "",
+    audienceAgeRanges: [],
+    audienceCountries: [],
+    audienceCity: "",
+  });
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [filteredCreators, setFilteredCreators] = useState([]);
 
   // Mock data for filters
   const platformOptions = [
@@ -84,6 +95,7 @@ function DiscoverCreators({
     { value: "beauty", label: "Beauty" },
     { value: "tech", label: "Technology" },
     { value: "gaming", label: "Gaming" },
+    { value: "skincare", label: "Skincare" },
     { value: "other", label: "Other" },
   ];
 
@@ -93,6 +105,85 @@ function DiscoverCreators({
     { value: "engagement", label: "Engagement Rate" },
   ];
 
+  // Add language options
+  const languageOptions = [
+    { value: "english", label: "English" },
+    { value: "spanish", label: "Spanish" },
+    { value: "french", label: "French" },
+    { value: "german", label: "German" },
+    { value: "italian", label: "Italian" },
+    { value: "portuguese", label: "Portuguese" },
+    { value: "chinese", label: "Chinese" },
+    { value: "japanese", label: "Japanese" },
+    { value: "korean", label: "Korean" },
+    { value: "arabic", label: "Arabic" },
+    { value: "hindi", label: "Hindi" },
+    { value: "other", label: "Other" },
+  ];
+
+  // Audience-specific options
+  const audienceGenderOptions = [
+    { value: "mostly-male", label: "Mostly Male" },
+    { value: "mostly-female", label: "Mostly Female" },
+  ];
+
+  const audienceAgeOptions = [
+    { value: "13-17", label: "13–17" },
+    { value: "18-24", label: "18–24" },
+    { value: "25-34", label: "25–34" },
+    { value: "35-44", label: "35–44" },
+    { value: "45-54", label: "45–54" },
+    { value: "55+", label: "55+" },
+  ];
+
+  const countryOptions = [
+    { value: "us", label: "United States" },
+    { value: "ca", label: "Canada" },
+    { value: "uk", label: "United Kingdom" },
+    { value: "au", label: "Australia" },
+    { value: "de", label: "Germany" },
+    { value: "fr", label: "France" },
+    { value: "es", label: "Spain" },
+    { value: "it", label: "Italy" },
+    { value: "jp", label: "Japan" },
+    { value: "br", label: "Brazil" },
+  ];
+
+  // Handler functions for audience filters
+  const handleAudienceGenderSelect = (gender) => {
+    setAudienceFilters((prev) => ({
+      ...prev,
+      audienceGender: prev.audienceGender === gender ? "" : gender,
+    }));
+  };
+
+  const handleAudienceAgeToggle = (age) => {
+    setAudienceFilters((prev) => ({
+      ...prev,
+      audienceAgeRanges: prev.audienceAgeRanges.includes(age)
+        ? prev.audienceAgeRanges.filter((a) => a !== age)
+        : [...prev.audienceAgeRanges, age],
+    }));
+  };
+
+  const handleAudienceCountryToggle = (country) => {
+    setAudienceFilters((prev) => ({
+      ...prev,
+      audienceCountries: prev.audienceCountries.includes(country)
+        ? prev.audienceCountries.filter((c) => c !== country)
+        : [...prev.audienceCountries, country],
+    }));
+  };
+
+  const handleLanguageToggle = (language) => {
+    setFilters((prev) => ({
+      ...prev,
+      languages: prev.languages?.includes(language)
+        ? prev.languages.filter((l) => l !== language)
+        : [...(prev.languages || []), language],
+    }));
+  };
+
   // Social media icons mapping
   const PlatformIcons = {
     instagram: <InstagramIcon />,
@@ -100,11 +191,27 @@ function DiscoverCreators({
     tiktok: <TiktokIcon />,
   };
 
-  const handleSeeMoreClick = (categoryId) => {
-    const el = scrollRefs.current[categoryId];
-    if (el) {
-      el.scrollBy({ left: 300, behavior: "smooth" });
-    }
+  // Updated handleSeeMoreClick to filter by category
+  const handleSeeMoreClick = (category) => {
+    // Get the niche from category name (convert "Top in Skincare" to "skincare")
+    const categoryNiche = category.name.toLowerCase().replace("top in ", "").trim();
+
+    // Get all creators from all categories that have this niche
+    const allCreators = mockNicheCategories.flatMap((cat) => cat.creators);
+    const creatorsWithNiche = allCreators.filter(
+      (creator) =>
+        creator.niches && creator.niches.some((niche) => niche.toLowerCase() === categoryNiche)
+    );
+
+    setSelectedCategory(category);
+    setFilteredCreators(creatorsWithNiche);
+  };
+
+  // Function to go back to main discover view
+  const handleBackToDiscover = () => {
+    setSelectedCategory(null);
+    setFilteredCreators([]);
+    setSelectedShortlist(null);
   };
 
   const clearAllFilters = () => {
@@ -116,6 +223,13 @@ function DiscoverCreators({
       gender: "",
       ageRange: "",
       niches: [],
+      languages: [],
+    });
+    setAudienceFilters({
+      audienceGender: "",
+      audienceAgeRanges: [],
+      audienceCountries: [],
+      audienceCity: "",
     });
     setSearchKeyword("");
     setSelectedSort("");
@@ -175,18 +289,26 @@ function DiscoverCreators({
       filters.gender ||
       filters.ageRange ||
       filters.country ||
-      filters.city
+      filters.city ||
+      filters.languages?.length > 0 ||
+      audienceFilters.audienceGender ||
+      audienceFilters.audienceAgeRanges.length > 0 ||
+      audienceFilters.audienceCountries.length > 0 ||
+      audienceFilters.audienceCity
     );
   };
 
-  const CreatorCard = ({ creator, isShortlist = false, showSeeMore = false }) => (
+  const handleOpenModal = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false);
+
+  const CreatorCard = ({ creator, isShortlist = false }) => (
     <div
       className={`group relative flex-shrink-0 snap-start ${
         isShortlist ? "w-full" : "w-64"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
       onClick={() => handleCreatorPreview(creator)}
     >
-      {/* Compact Cover Images Section - moved further down */}
+      {/* Cover Images Section */}
       <div className="relative h-32 bg-gray-100 overflow-hidden">
         {creator.portfolioImages && creator.portfolioImages.length >= 3 ? (
           <div className="flex h-full">
@@ -204,13 +326,13 @@ function DiscoverCreators({
             ))}
           </div>
         ) : (
-          <div className="w-full h-full bg-gray-200"></div>
+          <div className="w-full h-full bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100"></div>
         )}
       </div>
 
-      {/* Compact Content Section */}
+      {/* Content Section */}
       <div className="relative px-4 pb-4 space-y-3">
-        {/* Compact Profile Image - positioned at base of cover images */}
+        {/* Profile Image */}
         <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2">
           <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
             <img
@@ -236,7 +358,7 @@ function DiscoverCreators({
           </p>
         </div>
 
-        {/* Compact Niche Tags */}
+        {/* Niche Tags */}
         <div className="flex flex-wrap gap-1 justify-center">
           {creator.niches?.slice(0, 2).map((niche) => (
             <span
@@ -255,7 +377,7 @@ function DiscoverCreators({
           </p>
         </div>
 
-        {/* Compact Stats - just total followers */}
+        {/* Stats */}
         <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
           <span className="font-medium">
             {creator.followers >= 1000000
@@ -264,7 +386,7 @@ function DiscoverCreators({
           </span>
         </div>
 
-        {/* Compact Social Icons - more spread out with follower counts */}
+        {/* Social Icons */}
         <div className="flex justify-center space-x-4">
           {creator.platforms.map((platform) => (
             <div key={platform} className="flex flex-col items-center space-y-1">
@@ -295,7 +417,6 @@ function DiscoverCreators({
 
         {/* Icon Buttons */}
         <div className="flex justify-center space-x-2">
-          {/* Bookmark - for saving to lists */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -309,7 +430,6 @@ function DiscoverCreators({
             />
           </button>
 
-          {/* Message */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -322,17 +442,16 @@ function DiscoverCreators({
           </button>
         </div>
 
-        {/* Invite to Apply Button */}
+        {/* Invite Button */}
         <div className="flex items-center gap-3">
-          <button
+          <CustomButton
+            text="Invite to Apply"
             onClick={(e) => {
               e.stopPropagation();
               handleInviteClick(creator, e);
             }}
-            className="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
-          >
-            Invite to Apply
-          </button>
+            className="btn-outline w-full rounded-lg"
+          />
         </div>
       </div>
     </div>
@@ -375,23 +494,54 @@ function DiscoverCreators({
     );
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto bg-white">
+    <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
       {/* Main Content */}
       {selectedShortlist ? (
         <div className="space-y-4">
           {/* Shortlist Header */}
           <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">{selectedShortlist.name}</h3>
-              <p className="text-sm text-gray-600">{getSortedCreators().length} creators</p>
+            <div className="flex items-center gap-2">
+              <div onClick={handleBackToDiscover} className="cursor-pointer">
+                <ArrowLeft />
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  {selectedShortlist.name}
+                  <p className="text-lg text-gray-600">({getSortedCreators().length} creators)</p>
+                </h3>
+              </div>
             </div>
-            <div className="w-full max-w-[230px]">
-              <SimpleSelect
-                placeHolder="Sort by"
-                options={sortOptions}
-                className="w-48"
-                onChange={() => {}}
-              />
+            <div className="flex items-center gap-3">
+              {/* Search Input */}
+              <div className="w-full min-w-[230px] bg-white">
+                <CustomInput
+                  placeholder="Search creators"
+                  value={searchKeyword}
+                  startIcon={<SearchIcon />}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+              </div>
+
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect placeHolder="Sort by" options={sortByOptions} onChange={() => {}} />
+              </div>
+
+              {/* Filter Button */}
+              <div className="relative">
+                <CustomButton
+                  text="Filters"
+                  onClick={() => setShowFilterModal(true)}
+                  startIcon={<Filter size={18} />}
+                  className="btn-outline !h-10"
+                />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
+                />
+              </div>
             </div>
           </div>
 
@@ -409,15 +559,79 @@ function DiscoverCreators({
             </div>
           )}
         </div>
+      ) : selectedCategory ? (
+        <div className="space-y-4">
+          {/* Shortlist Header */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div onClick={handleBackToDiscover} className="cursor-pointer">
+                <ArrowLeft />
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  {selectedCategory.name}
+                  <p className="text-lg text-gray-600">({filteredCreators.length} creators)</p>
+                </h3>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Search Input */}
+              <div className="w-full min-w-[230px] bg-white">
+                <CustomInput
+                  placeholder="Search creators"
+                  value={searchKeyword}
+                  startIcon={<SearchIcon />}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+              </div>
+
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect placeHolder="Sort by" options={sortByOptions} onChange={() => {}} />
+              </div>
+
+              {/* Filter Button */}
+              <div className="relative">
+                <CustomButton
+                  text="Filters"
+                  onClick={() => setShowFilterModal(true)}
+                  startIcon={<Filter size={18} />}
+                  className="btn-outline !h-10"
+                />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
+                />
+              </div>
+            </div>
+          </div>
+
+          {filteredCreators.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-1">No creators yet</h4>
+              <p className="text-gray-600">Browse the Discover feed to add creators.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {filteredCreators.map((creator, index) => (
+                <CreatorCard key={index} creator={creator} isShortlist={true} />
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
+        // Main discover view
         <div className="space-y-6">
           {/* Page Header */}
-          <div className="">
+          <div className="border-b pb-2">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Discover Creators</h1>
               <div className="flex items-center gap-3">
                 {/* Search Input */}
-                <div className="w-full min-w-[230px]">
+                <div className="w-full min-w-[230px] bg-white">
                   <CustomInput
                     placeholder="Search creators"
                     value={searchKeyword}
@@ -427,11 +641,7 @@ function DiscoverCreators({
                 </div>
 
                 <div className="w-full min-w-[230px]">
-                  <SimpleSelect
-                    placeHolder="Select an opttion"
-                    options={sortByOptions}
-                    onChange={() => {}}
-                  />
+                  <SimpleSelect placeHolder="Sort by" options={sortByOptions} onChange={() => {}} />
                 </div>
 
                 {/* Filter Button */}
@@ -440,6 +650,13 @@ function DiscoverCreators({
                     text="Filters"
                     onClick={() => setShowFilterModal(true)}
                     startIcon={<Filter size={18} />}
+                    className="btn-outline !h-10"
+                  />
+                </div>
+                <div className="w-full max-w-[200px]">
+                  <CustomButton
+                    text="Start a new campaign"
+                    onClick={handleOpenModal}
                     className="btn-primary !h-10"
                   />
                 </div>
@@ -447,87 +664,282 @@ function DiscoverCreators({
             </div>
             <p className="text-gray-600">Find the perfect creators for your campaigns</p>
           </div>
-          {/* Clean Search and Filter Bar */}
+
+          {/* Active Filters Display */}
           {!selectedShortlist && (
             <div className="mb-6">
-              {/* Active Filters Display */}
               {hasActiveFilters() && (
-                <div className="flex items-center gap-2 mt-3 flex-wrap border rounded-lg p-3 bg-gray-100">
-                  <span className="text-sm text-gray-600">Active filters:</span>
-
-                  {filters.niches.map((niche) => (
-                    <span
-                      key={niche}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                <div className="border rounded-xl p-4 bg-white shadow-sm">
+                  {/* Header Row */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-700">Active Filters</span>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        {/* Count total active filters */}
+                        {filters.niches.length +
+                          filters.platforms.length +
+                          (filters.minFollowers ? 1 : 0) +
+                          (filters.gender ? 1 : 0) +
+                          (filters.ageRange ? 1 : 0) +
+                          (filters.country ? 1 : 0) +
+                          (filters.city ? 1 : 0) +
+                          (filters.languages?.length || 0) +
+                          (audienceFilters.audienceGender ? 1 : 0) +
+                          audienceFilters.audienceAgeRanges.length +
+                          audienceFilters.audienceCountries.length +
+                          (audienceFilters.audienceCity ? 1 : 0)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors"
                     >
-                      {nicheOptions.find((n) => n.value === niche)?.label}
-                      <button
-                        onClick={() => handleNicheToggle(niche)}
-                        className="hover:text-indigo-900"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+                      Clear all filters
+                    </button>
+                  </div>
 
-                  {filters.platforms.map((platform) => (
-                    <span
-                      key={platform}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                    >
-                      {platformOptions.find((p) => p.value === platform)?.label}
-                      <button
-                        onClick={() => handlePlatformToggle(platform)}
-                        className="hover:text-indigo-900"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+                  {/* Filters Content */}
+                  <div className="flex gap-5">
+                    {/* Creator Filters Section */}
+                    {(filters.niches.length > 0 ||
+                      filters.platforms.length > 0 ||
+                      filters.minFollowers ||
+                      filters.gender ||
+                      filters.ageRange ||
+                      filters.country ||
+                      filters.city ||
+                      filters.languages?.length > 0) && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-100">
+                            Creator Filters
+                          </span>
+                        </div>
 
-                  {filters.minFollowers && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                      {followerOptions.find((f) => f.value === filters.minFollowers)?.label}+
-                      followers
-                      <button
-                        onClick={() => handleFollowerSelect(filters.minFollowers)}
-                        className="hover:text-indigo-900"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
+                        <div className="flex flex-wrap gap-2">
+                          {/* Niche Filters */}
+                          {filters.niches.map((niche) => (
+                            <span
+                              key={niche}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors"
+                            >
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              {nicheOptions.find((n) => n.value === niche)?.label}
+                              <button
+                                onClick={() => handleNicheToggle(niche)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
 
-                  {filters.gender && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                      {genderOptions.find((g) => g.value === filters.gender)?.label}
-                      <button
-                        onClick={() => handleGenderSelect(filters.gender)}
-                        className="hover:text-indigo-900"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
+                          {/* Platform Filters */}
+                          {filters.platforms.map((platform) => (
+                            <span
+                              key={platform}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors"
+                            >
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              {platformOptions.find((p) => p.value === platform)?.label}
+                              <button
+                                onClick={() => handlePlatformToggle(platform)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
 
-                  {filters.ageRange && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                      Age {filters.ageRange}
-                      <button
-                        onClick={() => handleAgeSelect(filters.ageRange)}
-                        className="hover:text-indigo-900"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
+                          {/* Min Followers Filter */}
+                          {filters.minFollowers && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              {followerOptions.find((f) => f.value === filters.minFollowers)?.label}
+                              + followers
+                              <button
+                                onClick={() => handleFollowerSelect(filters.minFollowers)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
 
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-xs text-gray-500 hover:text-gray-700 underline"
-                  >
-                    Clear all
-                  </button>
+                          {/* Gender Filter */}
+                          {filters.gender && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              {genderOptions.find((g) => g.value === filters.gender)?.label}
+                              <button
+                                onClick={() => handleGenderSelect(filters.gender)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+
+                          {/* Age Range Filter */}
+                          {filters.ageRange && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              Age {filters.ageRange}
+                              <button
+                                onClick={() => handleAgeSelect(filters.ageRange)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+
+                          {/* Language Filters */}
+                          {filters.languages?.map((language) => (
+                            <span
+                              key={language}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors"
+                            >
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              {languageOptions.find((l) => l.value === language)?.label}
+                              <button
+                                onClick={() => handleLanguageToggle(language)}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
+
+                          {/* Country Filter */}
+                          {filters.country && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              Country: {filters.country}
+                              <button
+                                onClick={() => setFilters((prev) => ({ ...prev, country: "" }))}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+
+                          {/* City Filter */}
+                          {filters.city && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                              City: {filters.city}
+                              <button
+                                onClick={() => setFilters((prev) => ({ ...prev, city: "" }))}
+                                className="ml-1 hover:text-blue-900 hover:bg-blue-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Audience Filters Section */}
+                    {(audienceFilters.audienceGender ||
+                      audienceFilters.audienceAgeRanges.length > 0 ||
+                      audienceFilters.audienceCountries.length > 0 ||
+                      audienceFilters.audienceCity) && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded-md border border-purple-100">
+                            Audience Filters
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {/* Audience Gender Filter */}
+                          {audienceFilters.audienceGender && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-xs font-medium rounded-full border border-purple-200 hover:bg-purple-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                              {
+                                audienceGenderOptions.find(
+                                  (g) => g.value === audienceFilters.audienceGender
+                                )?.label
+                              }
+                              <button
+                                onClick={() =>
+                                  handleAudienceGenderSelect(audienceFilters.audienceGender)
+                                }
+                                className="ml-1 hover:text-purple-900 hover:bg-purple-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+
+                          {/* Audience Age Range Filters */}
+                          {audienceFilters.audienceAgeRanges.map((age) => (
+                            <span
+                              key={age}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-xs font-medium rounded-full border border-purple-200 hover:bg-purple-200 transition-colors"
+                            >
+                              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                              Age {audienceAgeOptions.find((a) => a.value === age)?.label}
+                              <button
+                                onClick={() => handleAudienceAgeToggle(age)}
+                                className="ml-1 hover:text-purple-900 hover:bg-purple-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
+
+                          {/* Audience Country Filters */}
+                          {audienceFilters.audienceCountries.map((country) => (
+                            <span
+                              key={country}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-xs font-medium rounded-full border border-purple-200 hover:bg-purple-200 transition-colors"
+                            >
+                              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                              {countryOptions.find((c) => c.value === country)?.label}
+                              <button
+                                onClick={() => handleAudienceCountryToggle(country)}
+                                className="ml-1 hover:text-purple-900 hover:bg-purple-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
+
+                          {/* Audience City Filter */}
+                          {audienceFilters.audienceCity && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 text-xs font-medium rounded-full border border-purple-200 hover:bg-purple-200 transition-colors">
+                              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                              Audience City: {audienceFilters.audienceCity}
+                              <button
+                                onClick={() =>
+                                  setAudienceFilters((prev) => ({ ...prev, audienceCity: "" }))
+                                }
+                                className="ml-1 hover:text-purple-900 hover:bg-purple-300 rounded-full p-0.5 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -538,15 +950,13 @@ function DiscoverCreators({
             <div key={category.id} className="space-y-3">
               <div className="flex justify-between items-center">
                 <h4 className="text-lg font-semibold text-gray-900">{category.name}</h4>
-                {overflowStates[category.id] && (
-                  <button
-                    onClick={() => handleSeeMoreClick(category.id)}
-                    className="flex items-center space-x-1 text-primary hover:text-indigo-800 text-sm font-medium"
-                  >
-                    <span>See More</span>
-                    <ChevronRight size={14} />
-                  </button>
-                )}
+                <button
+                  onClick={() => handleSeeMoreClick(category)}
+                  className="flex items-center space-x-1 text-primary hover:text-indigo-800 text-sm font-medium"
+                >
+                  <span>See More</span>
+                  <ChevronRight size={14} />
+                </button>
               </div>
 
               <div
@@ -566,7 +976,7 @@ function DiscoverCreators({
         </div>
       )}
 
-      {/* Filter Modal using Custom Modal Component */}
+      {/* Filter Modal */}
       <Modal
         title="Filter Creators"
         show={showFilterModal}
@@ -574,122 +984,261 @@ function DiscoverCreators({
         size="lg"
       >
         <div className="space-y-6">
-          {/* Niche Categories */}
-          <div>
-            <h4 className="text-sm font-bold text-gray-900 mb-2">Niche Categories</h4>
-            <div className="grid grid-cols-7 gap-2">
-              {nicheOptions.map((niche) => (
-                <button
-                  key={niche.value}
-                  onClick={() => handleNicheToggle(niche.value)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                    filters.niches.includes(niche.value)
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {niche.label}
-                </button>
-              ))}
+          {/* Filter Type Toggle */}
+          <div className="flex items-center justify-center">
+            <div className="bg-gray-100 rounded-lg p-1 flex">
+              <button
+                onClick={() => setFilterType("creator")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  filterType === "creator"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Creator Filters
+              </button>
+              <button
+                onClick={() => setFilterType("audience")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  filterType === "audience"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Audience Filters
+              </button>
             </div>
           </div>
 
-          {/* Platforms */}
-          <div>
-            <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
-            <div className="grid grid-cols-7 gap-2">
-              {platformOptions.map((platform) => (
-                <button
-                  key={platform.value}
-                  onClick={() => handlePlatformToggle(platform.value)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                    filters.platforms.includes(platform.value)
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {platform.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Creator Filters */}
+          {filterType === "creator" && (
+            <div className="space-y-6">
+              {/* Niche Categories */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Niche Categories</h4>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                  {nicheOptions.map((niche) => (
+                    <button
+                      key={niche.value}
+                      onClick={() => handleNicheToggle(niche.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        filters.niches.includes(niche.value)
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {niche.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Minimum Followers */}
-          <div>
-            <h4 className="text-sm font-bold text-gray-900 mb-2">Minimum Followers</h4>
-            <div className="grid grid-cols-7 gap-2">
-              {followerOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleFollowerSelect(option.value)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                    filters.minFollowers === option.value
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
+              {/* Platforms */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                  {platformOptions.map((platform) => (
+                    <button
+                      key={platform.value}
+                      onClick={() => handlePlatformToggle(platform.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        filters.platforms.includes(platform.value)
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {platform.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Demographics */}
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
-              <div className="grid grid-cols-5 gap-2">
-                {genderOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleGenderSelect(option.value)}
-                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                      filters.gender === option.value
-                        ? "bg-primary text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              {/* Minimum Followers */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Minimum Followers</h4>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                  {followerOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleFollowerSelect(option.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        filters.minFollowers === option.value
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Demographics */}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {genderOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleGenderSelect(option.value)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          filters.gender === option.value
+                            ? "bg-primary text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {ageOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleAgeSelect(option.value)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          filters.ageRange === option.value
+                            ? "bg-primary text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 mb-2">Language</h4>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    {languageOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleLanguageToggle(option.value)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          filters.languages?.includes(option.value)
+                            ? "bg-primary text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="grid grid-cols-2 gap-4">
+                <CustomInput
+                  label="Country"
+                  placeholder="Enter country"
+                  value={filters.country}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, country: e.target.value }))}
+                />
+                <CustomInput
+                  label="City"
+                  placeholder="Enter city"
+                  value={filters.city}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, city: e.target.value }))}
+                />
               </div>
             </div>
+          )}
 
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
-              <div className="grid grid-cols-5 gap-2">
-                {ageOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleAgeSelect(option.value)}
-                    className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                      filters.ageRange === option.value
-                        ? "bg-primary text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+          {/* Audience Filters */}
+          {filterType === "audience" && (
+            <div className="space-y-6">
+              {/* Audience Gender */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Audience Gender</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Select the primary gender of the creator's audience
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {audienceGenderOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleAudienceGenderSelect(option.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        audienceFilters.audienceGender === option.value
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Audience Age Ranges */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Age Ranges</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Select multiple age ranges that make up the creator's primary audience
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {audienceAgeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleAudienceAgeToggle(option.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        audienceFilters.audienceAgeRanges.includes(option.value)
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Audience Country */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Country</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Select countries where the creator's audience is located
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                  {countryOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleAudienceCountryToggle(option.value)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        audienceFilters.audienceCountries.includes(option.value)
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Audience City */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience City</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Useful for location-specific businesses like restaurants or hotels
+                </p>
+                <CustomInput
+                  placeholder="Enter city (e.g., New York, Los Angeles)"
+                  value={audienceFilters.audienceCity}
+                  onChange={(e) =>
+                    setAudienceFilters((prev) => ({ ...prev, audienceCity: e.target.value }))
+                  }
+                />
               </div>
             </div>
-          </div>
-
-          {/* Location */}
-          <div className="grid grid-cols-2 gap-4">
-            <CustomInput
-              label="Country"
-              placeholder="Enter country"
-              value={filters.country}
-              onChange={(e) => setFilters((prev) => ({ ...prev, country: e.target.value }))}
-            />
-            <CustomInput
-              label="City"
-              placeholder="Enter city"
-              value={filters.city}
-              onChange={(e) => setFilters((prev) => ({ ...prev, city: e.target.value }))}
-            />
-          </div>
+          )}
         </div>
 
         {/* Modal Actions */}
@@ -701,13 +1250,21 @@ function DiscoverCreators({
               text="Cancel"
               className="btn-cancel"
             />
-            <CustomButton onClick={() => setShowFilterModal(false)} text="Apply Filters" />
+            <CustomButton
+              onClick={() => {
+                // Apply filters logic here
+                setShowFilterModal(false);
+              }}
+              text="Apply Filters"
+              className="btn-primary"
+            />
           </div>
         </div>
       </Modal>
 
       {/* Invite Modal */}
       <InviteModal />
+      <CampaignCreationWizard open={open} close={handleCloseModal} />
     </div>
   );
 }

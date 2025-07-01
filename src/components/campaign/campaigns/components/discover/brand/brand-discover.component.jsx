@@ -53,6 +53,7 @@ function BrandDiscover() {
       <DiscoverCreators
         sortOptions={sortOptions}
         selectedShortlist={selectedShortlist}
+        setSelectedShortlist={setSelectedShortlist}
         mockNicheCategories={mockNicheCategories}
         handleCreatorPreview={handleCreatorPreview}
         handleSaveToShortlist={handleSaveToShortlist}

@@ -1,7 +1,7 @@
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import { useState } from "react";
 import CampaignDetails from "./components/campaign-detail/campaign-detail.component";
-import CompletedCampaignList from "./components/campaign-lits/campaign-list.component";
+import CompletedCampaignList from "./components/campaign-list/campaign-list.component";
 import FinanceDashboard from "./components/finance-dashboard/finance-dashboard.component";
 import { avatar } from "@/common/constants/auth.constant";
 
