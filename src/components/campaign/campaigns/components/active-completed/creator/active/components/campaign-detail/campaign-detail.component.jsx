@@ -1,12 +1,18 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
+import { product } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
-import { Calendar, CheckCircle, Circle, DollarSign, Eye, Upload, X } from "lucide-react";
+import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "lucide-react";
 import { useState } from "react";
 
 const CampaignDetail = ({ campaigns, selectedCampaign }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    dosdonts: false,
+    styleGuide: false,
+    captions: false,
+  });
 
   const campaign = campaigns[selectedCampaign];
 
@@ -19,134 +25,348 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
     });
   };
 
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  // Sample data for the information sections
+  const campaignInfo = {
+    dosdonts: {
+      dos: [
+        "Use natural lighting when filming",
+        "Show product application process",
+        "Include before/after shots if possible",
+        "Mention the discount code: SUMMER20",
+        "Tag @GlowCoBeauty in all posts",
+      ],
+      donts: [
+        "Don't use heavy filters that alter skin tone",
+        "Avoid filming in poor lighting conditions",
+        "Don't make medical claims about the product",
+        "Avoid negative comparisons with competitors",
+        "Don't forget to disclose partnership (#ad)",
+      ],
+    },
+    styleGuide: {
+      colors: ["#FF6B9D", "#4ECDC4", "#FFE66D"],
+      fonts: ["Montserrat", "Open Sans"],
+      tone: "Fresh, authentic, and approachable",
+      aesthetics: [
+        "Clean, minimalist backgrounds",
+        "Bright, natural lighting",
+        "Focus on product textures and results",
+        "Include lifestyle elements (morning routine, skincare shelf)",
+      ],
+    },
+    captions: [
+      {
+        platform: "Instagram",
+        caption:
+          "Summer glow-up starts with the right skincare! ✨ This lightweight serum from @GlowCoBeauty has been a game-changer for my routine. The SPF 30 protection is perfect for these sunny days! 🌞 Use code SUMMER20 for 20% off! #GlowCoPartner #SummerSkincare #SPFProtection #ad",
+        hashtags: "#GlowCoPartner #SummerSkincare #SPFProtection #SkincareRoutine #GlowUp #ad",
+      },
+      {
+        platform: "TikTok",
+        caption:
+          "POV: You found the perfect summer skincare combo ☀️ This @GlowCoBeauty duo is giving me that healthy glow! Code SUMMER20 for 20% off 💕 #GlowCoPartner #SummerSkincare #SkincareHacks #ad",
+        hashtags: "#GlowCoPartner #SummerSkincare #SkincareHacks #GlowUp #SPF #ad",
+      },
+    ],
+  };
+
+  // Campaign type color mapping
+  const getCampaignTypeStyle = (type) => {
+    const styles = {
+      "Sponsored Post": {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-200",
+      },
+      UGC: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        border: "border-blue-200",
+      },
+      Gifted: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        border: "border-yellow-200",
+      },
+      Affiliate: {
+        bg: "bg-purple-100",
+        text: "text-purple-800",
+        border: "border-purple-200",
+      },
+    };
+    return styles[type] || styles["Sponsored Post"];
+  };
+
+  const typeStyle = getCampaignTypeStyle(campaign.type);
+
   return (
     <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 space-y-4">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <div className="w-24 h-24 bg-indigo-100 rounded-lg flex items-center justify-center text-6xl">
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
               {campaign.logo}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 leading-tight">
-                {campaign.brand}
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900">{campaign.brand}</h2>
               <p className="text-sm text-gray-600">{campaign.title}</p>
+              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                <Calendar className="w-3 h-3" />
+                <span>{formatDate(campaign.deadline)}</span>
+              </div>
             </div>
           </div>
-          {/* Product Image */}
-          <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center text-6xl">
-            {campaign.productImage}
+
+          {/* UGC Post Badge and Product */}
+
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
+            >
+              {campaign.type}
+            </div>
+            <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
+              <div>{campaign.compensation} -</div>
+              <div>{campaign.compensationAmount}</div>
+            </div>
           </div>
         </div>
 
-        {/* Compact Platform Stats and dates*/}
-        <div className="flex justify-between my-4">
-          <div className="flex gap-4">
-            {campaign.platforms.map((platform) => (
-              <div
-                key={platform}
-                className="flex items-center justify-between px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+        <div className="w-full flex gap-6">
+          {/* Information Sections */}
+          <div className="w-full space-y-2">
+            {/* Do's and Don'ts */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggleSection("dosdonts")}
+                className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-100 transition-colors"
               >
-                <div className="flex items-center gap-2 pr-1">
-                  <div className="rounded-md">{getPlatformIcon(platform)}</div>
-                  <span className="text-xs font-medium text-gray-600 capitalize">{platform}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-900">Do's and Don'ts</span>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-5 bg-gray-100 rounded-lg p-2 my-1">
-            <div className="flex gap-2">
-              <div className="flex gap-1 items-center">
-                <Calendar className="w-4 h-4" />
-                <h3 className="text-sm font-medium text-gray-900">Due Date:</h3>
-              </div>
-              <p className="text-sm text-gray-600">{formatDate(campaign.deadline)}</p>
-            </div>
-            <div className="flex gap-2">
-              <div className="flex items-center">
-                <DollarSign className="w-4 h-4" />
-                <h3 className="text-sm font-medium text-gray-900">Payment:</h3>
-              </div>
-              <p className="text-sm text-gray-600">{campaign.payment}</p>
-            </div>
-          </div>
-        </div>
+                {expandedSections.dosdonts ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
 
-        {/* Deliverables Summary */}
-        <div className="bg-gray-100 rounded-lg p-3">
-          <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-2">
-            Deliverables
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {campaign.deliverables.map((item, index) => (
-              <span
-                key={index}
-                className="bg-white border text-xs text-gray-700 px-2 py-1 rounded-lg flex items-center gap-1"
+              {expandedSections.dosdonts && (
+                <div className="p-3 bg-white border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <h4 className="text-xs font-medium text-green-700 mb-2 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Do's
+                      </h4>
+                      <ul className="space-y-1">
+                        {campaignInfo.dosdonts.dos.map((item, index) => (
+                          <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
+                            <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-medium text-red-700 mb-2 flex items-center gap-1">
+                        <X className="w-3 h-3" />
+                        Don'ts
+                      </h4>
+                      <ul className="space-y-1">
+                        {campaignInfo.dosdonts.donts.map((item, index) => (
+                          <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
+                            <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Style Guide */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggleSection("styleGuide")}
+                className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-100 transition-colors"
               >
-                <div className="w-1 h-1 bg-primary rounded-full" />
-                {item}
-              </span>
-            ))}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-900">Style Guide</span>
+                </div>
+                {expandedSections.styleGuide ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+
+              {expandedSections.styleGuide && (
+                <div className="p-3 bg-white border-t border-gray-200 space-y-2">
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Colors</h4>
+                    <div className="flex gap-1">
+                      {campaignInfo.styleGuide.colors.map((color, index) => (
+                        <div key={index} className="flex flex-col items-center gap-1">
+                          <div
+                            className="w-6 h-6 rounded border border-gray-200"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="text-xs text-gray-500">{color}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Tone</h4>
+                    <p className="text-xs text-gray-600">{campaignInfo.styleGuide.tone}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Captions and Hashtags */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggleSection("captions")}
+                className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-900">Captions & Hashtags</span>
+                </div>
+                {expandedSections.captions ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+
+              {expandedSections.captions && (
+                <div className="p-3 bg-white border-t border-gray-200 space-y-2">
+                  {campaignInfo.captions.map((item, index) => (
+                    <div key={index} className="border border-gray-100 rounded p-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-xs font-medium text-gray-900 flex items-center gap-1">
+                          <div className="w-3 h-3">{getPlatformIcon(item.platform)}</div>
+                          {item.platform}
+                        </h4>
+                        <button
+                          onClick={() => copyToClipboard(item.caption)}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Copy caption"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-1 line-clamp-2">{item.caption}</p>
+                      <p className="text-xs text-blue-600">{item.hashtags}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <img
+              src={product}
+              alt="Campaign Product"
+              className="w-36 h-36 rounded-lg object-cover border border-gray-200"
+            />
           </div>
         </div>
 
-        {/* Progress Tracker */}
-        <div className="bg-white  py-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">Campaign Progress</h3>
+        {/* Deliverables */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 mb-2">Deliverables</h3>
+          <div className="bg-gray-100 rounded-lg p-3">
+            <div className="flex flex-wrap gap-1">
+              {campaign.deliverables.map((item, index) => (
+                <span
+                  key={index}
+                  className="bg-white text-xs text-gray-700 px-2 py-1 rounded border flex items-center gap-1"
+                >
+                  <div className="w-1 h-1 bg-blue-500 rounded-full" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="border-l-2 border-primary my-5">
+          <p className="text-xs text-gray-600 line-clamp-2 ml-2">
+            <span className="font-bold">Description:</span> {campaign.description}
+          </p>
+        </div>
+
+        {/* Campaign Progress */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-900">Campaign Progress</h3>
             <div className="flex items-center gap-2">
-              <div className="w-32 bg-gray-200 rounded-full h-2">
+              <div className="w-24 bg-gray-200 rounded-full h-1.5">
                 <div
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                   style={{ width: `${campaign.completionRate}%` }}
                 />
               </div>
-              <span className="text-sm font-medium text-gray-600">{campaign.completionRate}%</span>
+              <span className="text-xs font-medium text-gray-600">{campaign.completionRate}%</span>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             {campaign.progress.map((item, index) => (
-              <div key={index} className="flex items-center p-2 bg-gray-100 rounded-lg">
-                <div className="flex-shrink-0 mr-4">
+              <div
+                key={index}
+                className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
                   {item.completed ? (
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
+                    <CheckCircle className="w-4 h-4 text-green-600" />
                   ) : (
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <Circle className="w-5 h-5 text-gray-400" />
-                    </div>
+                    <Circle className="w-4 h-4 text-gray-400" />
+                  )}
+                  <span className="text-xs text-gray-700">{item.task}</span>
+                  {item.completed && (
+                    <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                      Complete
+                    </span>
                   )}
                 </div>
-                <div className="flex-grow">
-                  <span
-                    className={`text-sm font-medium ${item.completed ? "text-gray-900" : "text-gray-600"}`}
-                  >
-                    {item.task}
-                  </span>
-                  {item.completed && <div className="text-xs text-green-600 mt-1">Completed</div>}
-                </div>
-                <div className="text-sm text-gray-600">Step {index + 1}</div>
+                <span className="text-xs text-gray-500">Step {index + 1}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-3 my-4">
-          <CustomButton text="Upload Content" startIcon={<Upload className="w-4 h-4 mr-2" />} />
+        <div className="grid grid-cols-4 gap-2">
+          <CustomButton text="Upload Content" className="btn-primary text-xs py-2" />
           <CustomButton
             text="Update Progress"
-            className="btn-outline"
+            className="btn-outline text-xs py-2"
             onClick={() => setShowProgressModal(true)}
           />
-          <CustomButton text="Message" />
+          <CustomButton text="Message" className="btn-outline text-xs py-2" />
           <CustomButton
-            text="View Breif"
-            className="btn-outline"
+            text="View Brief"
+            className="btn-outline text-xs py-2"
             onClick={() => setShowContentBrief(true)}
           />
         </div>
@@ -156,8 +376,9 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
       {showContentBrief && (
         <Modal
           show={showContentBrief}
-          title="Content Briefs"
+          title="Content Brief"
           onClose={() => setShowContentBrief(false)}
+          size="lg"
         >
           <div className="prose text-sm text-gray-600">
             <p className="mb-4">
@@ -208,7 +429,6 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
               className="btn-cancel"
               onClick={() => setShowProgressModal(false)}
             />
-
             <CustomButton
               text="Save Changes"
               className="btn-primary"

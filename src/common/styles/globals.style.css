@@ -60,10 +60,13 @@
     @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
   }
   .btn-primary {
-    @apply min-w-[106px] text-sm bg-primary hover:bg-secondary-blue focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+    @apply min-w-[106px] text-sm bg-primary hover:bg-secondary-blue rounded-md focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
   .btn-danger {
     @apply min-w-[106px] bg-danger hover:bg-red-700 focus:bg-red-700 disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+  }
+  .btn-danger-outline {
+    @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
   }
   .btn-primary-blue {
     @apply inline-block w-fit rounded-[10px] border-2 border-primary-purple bg-primary-blue py-4 font-dm text-lg font-semibold leading-6 text-white xs:px-5 lg:px-12;

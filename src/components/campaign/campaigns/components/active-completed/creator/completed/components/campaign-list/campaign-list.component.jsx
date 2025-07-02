@@ -9,7 +9,7 @@ const CompletedCampaignList = ({
   onSearch,
 }) => {
   return (
-    <div className="w-1/4 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-[23%] bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Completed Campaigns</h2>
         <CustomInput
@@ -40,10 +40,12 @@ const CompletedCampaignList = ({
               />
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 text-sm truncate">{campaign.title}</h3>
-                <p className="text-xs text-gray-600 mt-1">{campaign.brand.name}</p>
-                <span className="text-xs text-gray-500">
-                  Completed {new Date(campaign.completedDate).toLocaleDateString()}
-                </span>
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-bold text-gray-600 mt-1">{campaign.brand.name}</p>
+                  <span className="text-xs text-gray-500">
+                    Completed on {new Date(campaign.completedDate).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

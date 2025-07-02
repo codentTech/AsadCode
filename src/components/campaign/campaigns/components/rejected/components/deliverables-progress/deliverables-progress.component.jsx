@@ -55,25 +55,19 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4">
         {/* Header - Quick Actions */}
-        <div className="p-4 border-b">
-          <div className="flex flex-col justify-between items-start gap-3">
-            <h4 className="text-lg font-semibold text-gray-800">Original Application</h4>
-            <div className="flex flex-col gap-1">
-              <h6 className="text-sm font-bold">Application Message:</h6>
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <ReadMore
-                  maxLength={130}
-                  text="I love fashion and have been creating content for 3 years. My audience is primarily 18-35 year old women interested in affordable fashion trends."
-                />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold mb-4">Audience Demographics</h3>
-              <AudienceDemographics className="flex flex-col" />
-            </div>
+
+        <div className="bg-white rounded-lg">
+          <h4 className="text-lg font-semibold text-gray-900 pb-2">Application Message</h4>
+          <div className="bg-gray-100 p-3 rounded-lg">
+            <ReadMore text="I love fashion and have been creating content for 3 years. My audience is primarily 18-35 year old women interested in affordable fashion trends." />
           </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
+          <AudienceDemographics className="flex flex-col" />
         </div>
 
         {/* Private Notes Section */}

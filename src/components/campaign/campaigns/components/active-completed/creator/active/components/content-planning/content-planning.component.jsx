@@ -2,52 +2,47 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import {
-  Calendar,
-  Edit3,
-  Plus,
+  Bold,
+  CheckSquare,
   ChevronLeft,
   ChevronRight,
-  Paperclip,
-  Bold,
+  Edit3,
   Italic,
-  Underline,
   List,
   ListOrdered,
-  Undo,
+  Paperclip,
+  Plus,
   Redo,
-  Target,
-  CheckSquare,
   Square,
+  Underline,
+  Undo,
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 const upcomingTasks = [
   {
-    campaign: "Summer Skincare Collection",
-    task: "Sign contract",
-    date: "Jun 15",
+    campaign: "BeautyPlus New Eyeliner Campaign",
+    task: "Sign Agreement",
+    date: "Feb 12, 2025",
     status: "pending",
+    type: "agreement",
   },
   {
-    campaign: "Fitness Equipment Review",
-    task: "Submit content",
-    date: "Jun 18",
+    campaign: "New Season, New Shades",
+    task: "Feed Post",
+    date: "Feb 25, 2025",
     status: "in-progress",
+    type: "content",
+    submitBy: "Feb 20, 2025",
   },
   {
-    campaign: "Tech Gadget Unboxing",
-    task: "Submit payment info",
-    date: "Jun 22",
+    campaign: "Espresso+ Campaign",
+    task: "Feed Post (Revision Requested)",
+    date: "Feb 22, 2025",
     status: "pending",
-  },
-  {
-    campaign: "Fashion Haul Video",
-    task: "Final review",
-    date: "Jun 25",
-    status: "pending",
+    type: "content",
+    submitBy: "Feb 18, 2025",
   },
 ];
 
@@ -55,10 +50,23 @@ const ContentPlanning = () => {
   const [showContentPlanner, setShowContentPlanner] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showTrackCampaign, setShowTrackCampaign] = useState(false);
   const [activePlannerTab, setActivePlannerTab] = useState("Hook Ideas");
   const [selectedDate, setSelectedDate] = useState(25);
   const [currentMonth, setCurrentMonth] = useState({ month: 6, year: 2025 });
   const [goalMonth, setGoalMonth] = useState({ month: 6, year: 2025 });
+
+  // Track External Campaign Form State
+  const [externalCampaignForm, setExternalCampaignForm] = useState({
+    brandName: "",
+    campaignTitle: "",
+    typeOfWork: "",
+    niche: "",
+    platforms: [],
+    deliverables: [],
+    completionDate: "",
+    compensation: "",
+  });
 
   const [plannerContent, setPlannerContent] = useState({
     "Hook Ideas": "Brainstorm engaging opening lines...",
@@ -199,6 +207,31 @@ const ContentPlanning = () => {
     "bg-pink-100 text-pink-800",
   ];
 
+  // External Campaign Form Options
+  const workTypeOptions = [
+    { label: "UGC", value: "ugc" },
+    { label: "Sponsored Post", value: "sponsored" },
+    { label: "Affiliate", value: "affiliate" },
+    { label: "Gifting", value: "gifting" },
+    { label: "Other", value: "other" },
+  ];
+
+  const platformOptions = [
+    { label: "TikTok", value: "tiktok" },
+    { label: "Instagram", value: "instagram" },
+    { label: "YouTube", value: "youtube" },
+    { label: "Other", value: "other" },
+  ];
+
+  const deliverableOptions = [
+    { label: "1 TikTok Video", value: "1_tiktok" },
+    { label: "1 Instagram Post", value: "1_ig_post" },
+    { label: "1 Instagram Story", value: "1_ig_story" },
+    { label: "1 YouTube Video", value: "1_youtube" },
+    { label: "1 YouTube Short", value: "1_youtube_short" },
+    { label: "Other", value: "other" },
+  ];
+
   const handleDateClick = (day) => {
     setSelectedDate(day);
   };
@@ -276,89 +309,161 @@ const ContentPlanning = () => {
     editorRef.current?.focus();
   };
 
+  const handlePlatformChange = (platform) => {
+    setExternalCampaignForm((prev) => ({
+      ...prev,
+      platforms: prev.platforms.includes(platform)
+        ? prev.platforms.filter((p) => p !== platform)
+        : [...prev.platforms, platform],
+    }));
+  };
+
+  const handleDeliverableChange = (deliverable) => {
+    setExternalCampaignForm((prev) => ({
+      ...prev,
+      deliverables: prev.deliverables.includes(deliverable)
+        ? prev.deliverables.filter((d) => d !== deliverable)
+        : [...prev.deliverables, deliverable],
+    }));
+  };
+
+  const handleSubmitExternalCampaign = () => {
+    // Process form submission
+    console.log("External campaign data:", externalCampaignForm);
+
+    // Reset form and close modal
+    setExternalCampaignForm({
+      brandName: "",
+      campaignTitle: "",
+      typeOfWork: "",
+      niche: "",
+      platforms: [],
+      deliverables: [],
+      completionDate: "",
+      compensation: "",
+    });
+    setShowTrackCampaign(false);
+
+    // Show success message or handle as needed
+  };
+
+  const getTaskCTA = (task) => {
+    return (
+      <CustomButton
+        text={task.type === "agreement" ? "Sign Agreement" : "Submit Content"}
+        className="btn-outline !h-7"
+      />
+    );
+  };
+
   return (
-    <div className="w-[27%] space-y-4">
-      {/* Content Planner */}
-      <div className="bg-white">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Content Planner</h2>
-            <button
-              onClick={() => setShowContentPlanner(true)}
-              className="text-indigo-600 hover:text-indigo-700"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
+    <div className="w-[27%] bg-white border-l border-gray-200">
+      <div className="p-4 space-y-3">
+        {/* Content Planner */}
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                Content Planner
+              </h2>
+              <button
+                onClick={() => setShowContentPlanner(true)}
+                className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
-        <div className="p-4">
-          <div className="space-y-2">
-            {plannerTabs.map((tab) => (
-              <div
-                key={tab}
-                className="p-2 bg-gray-100 rounded text-xs text-gray-600 cursor-pointer hover:bg-blue-50"
+          <div>
+            <div className="space-y-1.5">
+              {plannerTabs.map((tab) => (
+                <div
+                  key={tab}
+                  className="px-3 py-2 bg-gray-50 rounded-md text-xs text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors border border-gray-100"
+                  onClick={() => setShowContentPlanner(true)}
+                >
+                  {tab}
+                </div>
+              ))}
+              <button
+                className="w-full px-3 py-2 border border-dashed border-gray-300 rounded-md text-xs text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
                 onClick={() => setShowContentPlanner(true)}
               >
-                {tab}
+                + Add More
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-2">
+          <CustomButton
+            text="Calendar & Tasks"
+            className="btn-outline w-full"
+            onClick={() => setShowCalendar(true)}
+          />
+          <CustomButton text="Monthly Goals" onClick={() => setShowGoals(true)} />
+          <CustomButton
+            text="Track External Campaign"
+            className="btn-outline w-full"
+            onClick={() => setShowTrackCampaign(true)}
+          />
+        </div>
+
+        {/* Upcoming Tasks */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2 mt-4">
+            Upcoming Tasks
+          </h3>
+          <div className="space-y-2">
+            {upcomingTasks.map((item, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-2 hover:border-gray-300 hover:shadow-sm transition-all duration-200 bg-white"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">
+                        {item.campaign}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500">Due: {item.date}</span>
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            item.status === "pending"
+                              ? "bg-orange-400"
+                              : item.status === "in-progress"
+                                ? "bg-blue-400"
+                                : "bg-green-400"
+                          }`}
+                        />
+                      </div>
+                      {item.submitBy && (
+                        <p className="text-xs text-orange-600 mt-1">Submit by {item.submitBy}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                      {item.task}
+                    </span>
+                    {getTaskCTA(item)}
+                  </div>
+                </div>
               </div>
             ))}
-            <CustomButton
-              text="+ Add More"
-              className="w-full p-2 border-2 border-dashed border-gray-300 rounded text-xs text-gray-500 hover:border-gray-400 hover:text-gray-600"
-            />
           </div>
         </div>
       </div>
 
-      {/* Calendar & To Do List Button */}
-      <div className="mx-4">
-        <CustomButton text="Calendar & To Do List" onClick={() => setShowCalendar(true)} />
-      </div>
-
-      {/* Goals Button */}
-      <div className="mx-4">
-        <CustomButton text="Goals" onClick={() => setShowGoals(true)} />
-      </div>
-
-      {/* Upcoming Tasks */}
-      <div className="mx-4">
-        <h3 className="text-lg font-semibold text-gray-800 pb-2">Upcoming Tasks</h3>
-        <div className="space-y-3">
-          {upcomingTasks.map((item, index) => (
-            <div
-              key={index}
-              className="rounded-lg p-2 bg-gray-100 border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200 group cursor-pointer"
-              onClick={() => handleCampaignClick(item.campaign)}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                    item.status === "pending"
-                      ? "bg-red-500"
-                      : item.status === "in-progress"
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                  }`}
-                ></div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-600 group-hover:text-indigo-900">
-                    {item.task}
-                  </p>
-                  <p className="text-xs text-gray-500">{item.campaign}</p>
-                </div>
-                <p className="text-xs text-gray-500">{item.date}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Enhanced Content Planner Modal */}
+      {/* Content Planner Modal */}
       <Modal
         show={showContentPlanner}
         title="Content Planner"
         onClose={() => setShowContentPlanner(false)}
-        size="xl"
+        size="lg"
       >
         <div className="flex h-[600px]">
           <div className="w-48 border-r border-gray-200 pr-4">
@@ -367,9 +472,9 @@ const ContentPlanning = () => {
                 <button
                   key={tab}
                   onClick={() => setActivePlannerTab(tab)}
-                  className={`w-full p-3 rounded text-sm text-left transition-colors ${
+                  className={`w-full p-3 rounded-lg text-sm text-left transition-colors ${
                     activePlannerTab === tab
-                      ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-500"
+                      ? "bg-slate-100 text-slate-900 border-l-2 border-slate-600"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
@@ -384,24 +489,24 @@ const ContentPlanning = () => {
               <h3 className="text-lg font-semibold mb-2">{activePlannerTab}</h3>
 
               {/* Rich Text Toolbar */}
-              <div className="flex items-center gap-2 p-2 border border-gray-200 rounded-t-lg bg-gray-50">
+              <div className="border border-gray-200 flex items-center gap-2 p-2 rounded-t-lg bg-gray-50">
                 <button
                   onClick={() => formatRichText("bold")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Bold"
                 >
                   <Bold className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => formatRichText("italic")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Italic"
                 >
                   <Italic className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => formatRichText("underline")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Underline"
                 >
                   <Underline className="w-4 h-4" />
@@ -409,14 +514,14 @@ const ContentPlanning = () => {
                 <div className="w-px h-4 bg-gray-300 mx-1"></div>
                 <button
                   onClick={() => formatRichText("insertUnorderedList")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Bullet List"
                 >
                   <List className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => formatRichText("insertOrderedList")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Numbered List"
                 >
                   <ListOrdered className="w-4 h-4" />
@@ -424,20 +529,23 @@ const ContentPlanning = () => {
                 <div className="w-px h-4 bg-gray-300 mx-1"></div>
                 <button
                   onClick={() => formatRichText("undo")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Undo"
                 >
                   <Undo className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => formatRichText("redo")}
-                  className="p-1 hover:bg-gray-200 rounded"
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   title="Redo"
                 >
                   <Redo className="w-4 h-4" />
                 </button>
                 <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button className="p-1 hover:bg-gray-200 rounded" title="Add Image">
+                <button
+                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                  title="Add Image"
+                >
                   <Paperclip className="w-4 h-4" />
                 </button>
               </div>
@@ -446,7 +554,7 @@ const ContentPlanning = () => {
               <div
                 ref={editorRef}
                 contentEditable
-                className="w-full h-96 p-4 border border-gray-200 border-t-0 rounded-b-lg focus:outline-none bg-white overflow-y-auto"
+                className="border border-gray-200 w-full h-96 p-4 border-t-0 rounded-b-lg focus:outline-none bg-white overflow-y-auto focus:border-slate-300"
                 style={{ minHeight: "400px" }}
                 dangerouslySetInnerHTML={{ __html: plannerContent[activePlannerTab] }}
                 onBlur={(e) =>
@@ -460,7 +568,7 @@ const ContentPlanning = () => {
 
             <div className="flex justify-between items-center text-xs text-gray-500">
               <span>Auto-saved • Last updated: just now</span>
-              <button className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700">
+              <button className="flex items-center gap-1 text-slate-600 hover:text-slate-800">
                 <Paperclip className="w-3 h-3" />
                 Add Media
               </button>
@@ -469,16 +577,169 @@ const ContentPlanning = () => {
         </div>
       </Modal>
 
-      {/* Enhanced Calendar & To Do List Modal */}
+      {/* Track External Campaign Modal */}
+      <Modal
+        show={showTrackCampaign}
+        title="Track External Campaign"
+        onClose={() => setShowTrackCampaign(false)}
+        size="lg"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 mb-4">
+            Add campaigns from outside CleerCut to use our content planner and calendar tools.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <CustomInput
+                label="Brand Name"
+                value={externalCampaignForm.brandName}
+                onChange={(e) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    brandName: e.target.value,
+                  }))
+                }
+                placeholder="e.g., Nike"
+                required
+              />
+            </div>
+            <div>
+              <CustomInput
+                label="Campaign Title"
+                value={externalCampaignForm.campaignTitle}
+                onChange={(e) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    campaignTitle: e.target.value,
+                  }))
+                }
+                placeholder="e.g., Summer Collection Launch"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <SimpleSelect
+                label="Type of Work"
+                placeHolder="Select work type"
+                options={workTypeOptions}
+                onChange={(value) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    typeOfWork: value,
+                  }))
+                }
+                required
+              />
+            </div>
+            <div>
+              <CustomInput
+                label="Niche"
+                value={externalCampaignForm.niche}
+                onChange={(e) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    niche: e.target.value,
+                  }))
+                }
+                placeholder="e.g., Fashion, Beauty, Tech"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Platform(s) <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {platformOptions.map((platform) => (
+                <label key={platform.value} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={externalCampaignForm.platforms.includes(platform.value)}
+                    onChange={() => handlePlatformChange(platform.value)}
+                    className="w-4 h-4 text-slate-600 rounded mr-2"
+                  />
+                  <span className="text-sm text-gray-700">{platform.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">Deliverables</label>
+            <div className="grid grid-cols-2 gap-2">
+              {deliverableOptions.map((deliverable) => (
+                <label key={deliverable.value} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={externalCampaignForm.deliverables.includes(deliverable.value)}
+                    onChange={() => handleDeliverableChange(deliverable.value)}
+                    className="w-4 h-4 text-slate-600 rounded mr-2"
+                  />
+                  <span className="text-sm text-gray-700">{deliverable.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <CustomInput
+                label="Completion Date"
+                type="date"
+                value={externalCampaignForm.completionDate}
+                onChange={(e) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    completionDate: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <CustomInput
+                label="Compensation (Optional)"
+                value={externalCampaignForm.compensation}
+                onChange={(e) =>
+                  setExternalCampaignForm((prev) => ({
+                    ...prev,
+                    compensation: e.target.value,
+                  }))
+                }
+                placeholder="e.g., $500, Gifted"
+              />
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-500 italic">
+            *For your reference only – not added to CleerCut income totals
+          </p>
+
+          <div className="flex gap-3 pt-4">
+            <CustomButton
+              text="Cancel"
+              className="btn-cancel w-full"
+              onClick={() => setShowTrackCampaign(false)}
+            />
+            <CustomButton text="Add Campaign" onClick={handleSubmitExternalCampaign} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Calendar & To Do List Modal */}
       <Modal
         show={showCalendar}
         title="Calendar & To Do List"
         onClose={() => setShowCalendar(false)}
-        size="xl"
+        size="lg"
       >
         <div className="grid grid-cols-5 gap-6 h-[600px]">
           {/* Calendar (60%) */}
-          <div className="col-span-3">
+          <div className="col-span-2">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {monthNames[currentMonth.month - 1]} {currentMonth.year}
             </h3>
@@ -495,13 +756,13 @@ const ContentPlanning = () => {
                   onClick={() => handleDateClick(day)}
                   className={`p-2 text-sm cursor-pointer hover:bg-gray-100 rounded relative ${
                     selectedDate === day
-                      ? "bg-indigo-100 text-indigo-800 font-semibold"
+                      ? "bg-slate-100 text-slate-800 font-semibold"
                       : "text-gray-700"
                   }`}
                 >
                   {day}
                   {calendarTasks[day] && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-indigo-500 rounded-full"></div>
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-slate-500 rounded-full"></div>
                   )}
                 </div>
               ))}
@@ -519,7 +780,7 @@ const ContentPlanning = () => {
               {!showAddTag ? (
                 <button
                   onClick={() => setShowAddTag(true)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700"
+                  className="text-xs text-slate-600 hover:text-slate-800"
                 >
                   + Add color tag
                 </button>
@@ -545,7 +806,7 @@ const ContentPlanning = () => {
                   <div className="flex gap-1">
                     <button
                       onClick={addColorTag}
-                      className="px-2 py-1 bg-indigo-600 text-white text-xs rounded"
+                      className="px-2 py-1 bg-slate-600 text-white text-xs rounded"
                     >
                       Add
                     </button>
@@ -562,7 +823,7 @@ const ContentPlanning = () => {
           </div>
 
           {/* To Do List (40%) */}
-          <div className="col-span-2 border-l border-gray-200 pl-6">
+          <div className="col-span-3 border-l border-gray-200 pl-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {monthNames[currentMonth.month - 1]} {selectedDate}, {currentMonth.year}
             </h3>
@@ -615,79 +876,89 @@ const ContentPlanning = () => {
       </Modal>
 
       {/* Goals Modal */}
-      <Modal show={showGoals} title="Monthly Goals" onClose={() => setShowGoals(false)} size="md">
-        <div className="space-y-4">
+      <Modal show={showGoals} title="Monthly Goals" onClose={() => setShowGoals(false)} size="lg">
+        <div className="p-3">
           {/* Month Navigation */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3 bg-gray-100 rounded-md p-2">
             <button
               onClick={() => navigateGoalMonth("prev")}
-              className="p-2 hover:bg-gray-100 rounded"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-xl font-semibold text-gray-900">
               {monthNames[goalMonth.month - 1]} {goalMonth.year}
             </h3>
             <button
               onClick={() => navigateGoalMonth("next")}
-              className="p-2 hover:bg-gray-100 rounded"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
 
           {/* Weekly Goals Grid */}
-          <div className="grid grid-cols-2 gap-6 pb-10">
-            {["week1", "week2", "week3", "week4"].map((week, index) => (
-              <div
-                key={week}
-                className={`border border-gray-200 rounded-lg p-4 ${[0, 3].includes(index) ? "bg-red-50" : "bg-green-50"}`}
-              >
-                <h4 className="font-semibold text-gray-800 mb-3">Week {index + 1}</h4>
-                <div className="space-y-2">
-                  {monthlyGoals[week]?.map((goal) => (
-                    <div key={goal.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={goal.completed}
-                        onChange={() => {
-                          setMonthlyGoals((prev) => ({
-                            ...prev,
-                            [week]: prev[week].map((g) =>
-                              g.id === goal.id ? { ...g, completed: !g.completed } : g
-                            ),
-                          }));
-                        }}
-                        className="w-4 h-4 text-indigo-600 rounded"
-                      />
-                      <input
-                        type="text"
-                        value={goal.text}
-                        onChange={(e) => {
-                          setMonthlyGoals((prev) => ({
-                            ...prev,
-                            [week]: prev[week].map((g) =>
-                              g.id === goal.id ? { ...g, text: e.target.value } : g
-                            ),
-                          }));
-                        }}
-                        className={`flex-1 text-sm bg-transparent border-none outline-none ${
-                          goal.completed ? "line-through text-gray-500" : "text-gray-700"
-                        }`}
-                        placeholder="Enter goal..."
-                      />
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => addGoal(week)}
-                    className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add more
-                  </button>
+          <div className="grid grid-cols-2 gap-6">
+            {["week1", "week2", "week3", "week4"].map((week, index) => {
+              const colors = [
+                "bg-orange-50 border-orange-200", // Week 1 - Soft Orange
+                "bg-pink-50 border-pink-200", // Week 2 - Soft Pink
+                "bg-green-50 border-green-200", // Week 3 - Soft Green
+                "bg-blue-50 border-blue-200", // Week 4 - Soft Blue
+              ];
+
+              return (
+                <div key={week} className={`border rounded-md p-3 ${colors[index]} h-fit`}>
+                  <h4 className="font-semibold text-gray-800 mb-4 text-lg">Week {index + 1}</h4>
+                  <div className="space-y-1">
+                    {monthlyGoals[week]?.map((goal) => (
+                      <div key={goal.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={goal.completed}
+                          onChange={() => {
+                            setMonthlyGoals((prev) => ({
+                              ...prev,
+                              [week]: prev[week].map((g) =>
+                                g.id === goal.id ? { ...g, completed: !g.completed } : g
+                              ),
+                            }));
+                          }}
+                          className="w-4 h-4 text-slate-600 rounded flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={goal.text}
+                            onChange={(e) => {
+                              setMonthlyGoals((prev) => ({
+                                ...prev,
+                                [week]: prev[week].map((g) =>
+                                  g.id === goal.id ? { ...g, text: e.target.value } : g
+                                ),
+                              }));
+                            }}
+                            className={`w-full text-sm bg-transparent border-none outline-none pb-1 ${
+                              goal.completed
+                                ? "line-through text-gray-500 border-b border-gray-300"
+                                : "text-gray-700 border-b border-gray-400"
+                            } focus:border-slate-500 transition-colors`}
+                            placeholder="Enter goal..."
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => addGoal(week)}
+                      className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 mt-4 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add more
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </Modal>

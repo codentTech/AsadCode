@@ -19,7 +19,7 @@ export default function CustomButton({
   id = null,
   text,
   onClick = null,
-  className = "w-full py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-color",
+  className = "w-full py-1.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-color",
   type = "button",
   variant = "",
   disabled = false,

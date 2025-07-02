@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { Calendar, DollarSign, Eye, Gift, Package, Percent, X } from "lucide-react";
+import { Calendar, Clock, DollarSign, Eye, Gift, Package, Percent, X, XCircle } from "lucide-react";
 import { useState } from "react";
 
 const CreatorApplications = () => {
@@ -215,19 +215,6 @@ const CreatorApplications = () => {
     console.log(`Withdrawing application ${applicationId}`);
   };
 
-  const getCompensationIcon = (type) => {
-    switch (type) {
-      case "Paid":
-        return <DollarSign className="w-3 h-3" />;
-      case "Gifted":
-        return <Gift className="w-3 h-3" />;
-      case "Commission":
-        return <Percent className="w-3 h-3" />;
-      default:
-        return <Package className="w-3 h-3" />;
-    }
-  };
-
   const getCompensationColor = (type) => {
     switch (type) {
       case "Paid":
@@ -253,27 +240,49 @@ const CreatorApplications = () => {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Top Section - Toggle */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            <CustomButton
-              text={`Pending (${applications.pending.length})`}
-              onClick={() => setActiveTab("pending")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === "pending"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            />
-            <CustomButton
-              text={`Rejected (${applications.rejected.length})`}
-              onClick={() => setActiveTab("rejected")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === "rejected"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            />
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Campaign Applications</h1>
+              <p className="text-gray-600">Track and manage your brand applications</p>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex items-center space-x-1 bg-gray-100 p-1.5 rounded-xl shadow-inner">
+              <CustomButton
+                text={
+                  <div className="flex items-center space-x-2 text-xs">
+                    <span>Pending</span>
+                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
+                      {applications.pending.length}
+                    </span>
+                  </div>
+                }
+                onClick={() => setActiveTab("pending")}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === "pending"
+                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                }`}
+              />
+              <CustomButton
+                text={
+                  <div className="flex items-center space-x-2 text-xs">
+                    <span>Rejected</span>
+                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
+                      {applications.rejected.length}
+                    </span>
+                  </div>
+                }
+                onClick={() => setActiveTab("rejected")}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === "rejected"
+                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                }`}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -320,13 +329,12 @@ const CreatorApplications = () => {
 
                     <div className="flex items-center justify-between mt-2">
                       <span
-                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getCompensationColor(application.compensationType)}`}
+                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium ${getCompensationColor(application.compensationType)}`}
                       >
-                        {getCompensationIcon(application.compensationType)}
                         <span>{application.compensationType}</span>
                       </span>
                       <span
-                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${
                           application.status === "Pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
@@ -340,10 +348,10 @@ const CreatorApplications = () => {
                   {/* Card Body */}
                   <div className="p-4 flex-1 flex flex-col">
                     {/* Date Applied */}
-                    <div className="flex items-center space-x-1 text-xs text-gray-600 mb-2">
+                    <div className="flex items-center space-x-1 text-xs text-gray-600 mb-3">
                       <Calendar className="w-3 h-3" />
                       <span className="text-xs text-gray-600 font-semibold">
-                        Applied {formatDate(application.dateApplied)}
+                        Applied on {formatDate(application.dateApplied)}
                       </span>
                     </div>
 
@@ -372,19 +380,14 @@ const CreatorApplications = () => {
                   {/* Card Footer */}
                   <div className="p-4 border-t border-gray-100">
                     <div className="flex flex-col space-y-2">
-                      <CustomButton
-                        text="View Campaign"
-                        className="btn-outline"
-                        startIcon={<Eye className="w-3 h-3" />}
-                      />
-
                       {application.status === "Pending" && (
                         <CustomButton
                           text="Withdraw"
-                          startIcon={<X className="w-3 h-3" />}
+                          className="btn-secondary"
                           onClick={() => handleWithdrawApplication(application.id)}
                         />
                       )}
+                      <CustomButton text="View Campaign" className="btn-outline" />
                     </div>
                   </div>
                 </div>

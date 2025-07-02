@@ -41,6 +41,11 @@ function usePitchTemplate() {
   const [newPitchContent, setNewPitchContent] = useState("");
   const [applicationPitch, setApplicationPitch] = useState("");
 
+  // Edit functionality states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editPitchTitle, setEditPitchTitle] = useState("");
+  const [editPitchContent, setEditPitchContent] = useState("");
+
   const copyPitchTemplate = (content) => {
     navigator.clipboard.writeText(content);
     setApplicationPitch(content);
@@ -58,18 +63,45 @@ function usePitchTemplate() {
       setNewPitchTitle("");
       setNewPitchContent("");
       setShowNewPitchForm(false);
+      enqueueSnackbar("Pitch template created successfully!", { variant: "success" });
+    } else {
+      enqueueSnackbar("Please fill in both pitch name and content", { variant: "error" });
+    }
+  };
+
+  const updatePitch = (id, newTitle, newContent) => {
+    if (newTitle && newContent) {
+      setPitchTemplates(
+        pitchTemplates.map((pitch) =>
+          pitch.id === id ? { ...pitch, name: newTitle, content: newContent } : pitch
+        )
+      );
+
+      // Update the showPitchPopup state to reflect the changes immediately
+      setShowPitchPopup((prev) =>
+        prev && prev.id === id ? { ...prev, name: newTitle, content: newContent } : prev
+      );
+
+      setEditPitchTitle("");
+      setEditPitchContent("");
+      enqueueSnackbar("Pitch template updated successfully!", { variant: "success" });
+    } else {
+      enqueueSnackbar("Please fill in both pitch name and content", { variant: "error" });
     }
   };
 
   const deletePitch = (id) => {
     setPitchTemplates(pitchTemplates.filter((pitch) => pitch.id !== id));
     setShowPitchPopup(false);
+    setIsEditing(false);
+    enqueueSnackbar("Pitch template deleted", { variant: "info" });
   };
 
   return {
     pitchTemplates,
     copyPitchTemplate,
     createNewPitch,
+    updatePitch,
     deletePitch,
     setShowPitchPopup,
     setShowNewPitchForm,
@@ -79,6 +111,14 @@ function usePitchTemplate() {
     newPitchContent,
     setNewPitchTitle,
     setNewPitchContent,
+    applicationPitch,
+    setApplicationPitch,
+    isEditing,
+    setIsEditing,
+    editPitchTitle,
+    editPitchContent,
+    setEditPitchTitle,
+    setEditPitchContent,
   };
 }
 

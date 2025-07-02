@@ -66,7 +66,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
           </div>
         </div>
 
-        <div className="">
+        <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
           <AudienceDemographics className="flex flex-col" />
         </div>

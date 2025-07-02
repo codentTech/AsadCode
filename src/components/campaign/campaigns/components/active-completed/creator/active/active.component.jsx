@@ -18,6 +18,11 @@ const ActiveCampaign = () => {
       payment: "$1,200",
       productImage: "🧴",
       completionRate: 65,
+      type: "UGC",
+      compensation: "Gifted",
+      compensationAmount: "Free Meal ($75 value)",
+      description:
+        "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
       progress: [
         { task: "Content recorded", completed: true },
         { task: "1st draft sent", completed: true },
@@ -35,6 +40,11 @@ const ActiveCampaign = () => {
       payment: "Gifted + $800",
       productImage: "🏋️",
       completionRate: 65,
+      type: "UGC",
+      compensation: "Gifted",
+      compensationAmount: "Free Meal ($75 value)",
+      description:
+        "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
       progress: [
         { task: "Content recorded", completed: false },
         { task: "1st draft sent", completed: false },
@@ -52,6 +62,11 @@ const ActiveCampaign = () => {
       payment: "$950",
       productImage: "📱",
       completionRate: 65,
+      type: "UGC",
+      compensation: "Gifted",
+      compensationAmount: "Free Meal ($75 value)",
+      description:
+        "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
       progress: [
         { task: "Content recorded", completed: true },
         { task: "1st draft sent", completed: false },

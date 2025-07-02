@@ -99,7 +99,7 @@ function CampaignFeed() {
                 {/* Header Row with Brand Info and Campaign Type */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl border border-gray-200 flex-shrink-0">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
                       {campaign.brandLogo}
                     </div>
                     <div className="min-w-0">
@@ -119,16 +119,13 @@ function CampaignFeed() {
                   {/* Campaign Type and Payment Info */}
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     <div
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
                     >
-                      {typeStyle.icon}
                       {campaign.type}
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs text-gray-500">{campaign.compensation}</div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {campaign.compensationAmount}
-                      </div>
+                    <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
+                      <div>{campaign.compensation} -</div>
+                      <div>{campaign.compensationAmount}</div>
                     </div>
                   </div>
                 </div>
@@ -137,8 +134,8 @@ function CampaignFeed() {
                 <div className="flex gap-4">
                   {/* Requirements Section */}
                   <div className="flex-1">
-                    <h5 className="text-xs font-semibold text-gray-600 mb-2">Requirements</h5>
-                    <div className="grid grid-cols-2 gap-1 text-xs">
+                    <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
+                    <div className="flex flex-col gap-1 text-xs">
                       <span className="flex items-center gap-2 text-gray-600">
                         <span className="font-medium">Niche:</span> #{campaign.niche}
                       </span>
@@ -156,8 +153,8 @@ function CampaignFeed() {
                     </div>
 
                     {/* Deliverables */}
-                    <div className="mt-3">
-                      <h5 className="text-xs font-semibold text-gray-600 mb-2">Deliverables</h5>
+                    <div className="mt-2">
+                      <h5 className="text-xs font-semibold text-gray-900 mb-2">Deliverables</h5>
                       <div className="flex flex-wrap gap-1">
                         {campaign.deliverables.map((item) => (
                           <span
@@ -171,9 +168,9 @@ function CampaignFeed() {
                     </div>
 
                     {/* Description */}
-                    <div className="mt-3">
-                      <p className="text-xs text-gray-600 line-clamp-2">
-                        <span className="font-medium">Description:</span> {campaign.description}
+                    <div className="border-l-2 border-primary mt-3">
+                      <p className="text-xs text-gray-600 line-clamp-2 ml-2">
+                        <span className="font-bold">Description:</span> {campaign.description}
                       </p>
                     </div>
                   </div>
@@ -183,7 +180,7 @@ function CampaignFeed() {
                     <img
                       src={product}
                       alt="Campaign Product"
-                      className="w-24 h-24 rounded-lg object-cover border border-gray-200"
+                      className="w-44 h-44 rounded-lg object-cover border border-gray-200"
                     />
                   </div>
                 </div>
@@ -211,18 +208,17 @@ function CampaignFeed() {
       <Modal show={showFullBrief} title="Campaign Brief" onClose={closeBrief} size="lg">
         <div className="space-y-4">
           <div className="flex gap-3">
-            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-4xl border border-gray-200 flex-shrink-0">
+            <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center text-7xl border border-gray-200 flex-shrink-0">
               {briefCampaign?.brandLogo}
             </div>
             <div className="flex-1">
-              <h4 className="text-xl font-semibold text-gray-900">{briefCampaign?.brandName}</h4>
-              <p className="text-gray-700 font-medium">{briefCampaign?.title}</p>
+              <h4 className="text-lg font-semibold text-gray-900">{briefCampaign?.brandName}</h4>
+              <p className="text-xs text-gray-700 font-medium">{briefCampaign?.title}</p>
               <div className="mt-2">
                 {briefCampaign && (
                   <div
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getCampaignTypeStyle(briefCampaign.type).bg} ${getCampaignTypeStyle(briefCampaign.type).text} ${getCampaignTypeStyle(briefCampaign.type).border}`}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${getCampaignTypeStyle(briefCampaign.type).bg} ${getCampaignTypeStyle(briefCampaign.type).text} ${getCampaignTypeStyle(briefCampaign.type).border}`}
                   >
-                    {getCampaignTypeStyle(briefCampaign.type).icon}
                     {briefCampaign.type} • {briefCampaign.compensationAmount}
                   </div>
                 )}
@@ -230,14 +226,14 @@ function CampaignFeed() {
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h5 className="text-lg font-medium text-gray-900 mb-2">Campaign Details</h5>
-            <p className="text-gray-700 text-sm leading-relaxed">{briefCampaign?.brief}</p>
+          <div className="bg-gray-100 rounded-lg p-2">
+            <h5 className="text-lg font-medium text-gray-900">Campaign Details</h5>
+            <p className="text-gray-700 text-xs leading-relaxed">{briefCampaign?.brief}</p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h5 className="text-lg font-medium text-gray-900 mb-3">Deliverables</h5>
-            <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
+          <div className="bg-gray-100 rounded-lg p-4">
+            <h5 className="text-lg font-medium text-gray-900">Deliverables</h5>
+            <ul className="list-disc list-inside text-gray-700 text-xs space-y-1">
               {briefCampaign?.deliverables.map((deliverable, index) => (
                 <li key={index}>{deliverable}</li>
               ))}
@@ -249,11 +245,11 @@ function CampaignFeed() {
       {/* Modal - Apply to Campaign */}
       <Modal show={showApplication} title="Apply to Campaign" onClose={closeApplication} size="lg">
         <div className="space-y-4">
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-100 rounded-lg p-3">
             <h4 className="text-lg font-semibold text-gray-900">
               {applicationCampaign?.brandName}
             </h4>
-            <p className="text-gray-700">{applicationCampaign?.title}</p>
+            <p className="text-sm text-gray-600">{applicationCampaign?.title}</p>
           </div>
 
           <TextArea
