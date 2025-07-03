@@ -357,16 +357,16 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-4 gap-2">
-          <CustomButton text="Upload Content" className="btn-primary text-xs py-2" />
+          <CustomButton text="Upload Content" className="btn-primary" />
           <CustomButton
             text="Update Progress"
-            className="btn-outline text-xs py-2"
+            className="btn-outline"
             onClick={() => setShowProgressModal(true)}
           />
-          <CustomButton text="Message" className="btn-outline text-xs py-2" />
+          <CustomButton text="Message" className="btn-outline" />
           <CustomButton
             text="View Brief"
-            className="btn-outline text-xs py-2"
+            className="btn-outline"
             onClick={() => setShowContentBrief(true)}
           />
         </div>

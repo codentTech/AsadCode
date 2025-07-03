@@ -626,9 +626,9 @@ function DiscoverCreators({
         // Main discover view
         <div className="space-y-6">
           {/* Page Header */}
-          <div className="border-b pb-2">
+          <div className="bg-white border-b p-3 rounded-lg">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Discover Creators</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Discover Creators</h1>
               <div className="flex items-center gap-3">
                 {/* Search Input */}
                 <div className="w-full min-w-[230px] bg-white">

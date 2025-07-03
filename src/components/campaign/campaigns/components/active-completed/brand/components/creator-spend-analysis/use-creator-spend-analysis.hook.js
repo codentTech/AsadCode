@@ -2,6 +2,8 @@ import { useState } from "react";
 
 export const useCreatorSpendAnalysis = () => {
   const [open, setOpen] = useState(false);
+  const [showBrandCalendar, setShowBrandCalendar] = useState(false);
+  const [showTaskManager, setShowTaskManager] = useState(false);
 
   const creators = [
     {
@@ -159,5 +161,9 @@ export const useCreatorSpendAnalysis = () => {
     getSuccessRateColor,
     handleOpenModal,
     handleCloseModal,
+    showBrandCalendar,
+    setShowBrandCalendar,
+    showTaskManager,
+    setShowTaskManager,
   };
 };

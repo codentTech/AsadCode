@@ -50,23 +50,10 @@ const ContentPlanning = () => {
   const [showContentPlanner, setShowContentPlanner] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
-  const [showTrackCampaign, setShowTrackCampaign] = useState(false);
   const [activePlannerTab, setActivePlannerTab] = useState("Hook Ideas");
   const [selectedDate, setSelectedDate] = useState(25);
   const [currentMonth, setCurrentMonth] = useState({ month: 6, year: 2025 });
   const [goalMonth, setGoalMonth] = useState({ month: 6, year: 2025 });
-
-  // Track External Campaign Form State
-  const [externalCampaignForm, setExternalCampaignForm] = useState({
-    brandName: "",
-    campaignTitle: "",
-    typeOfWork: "",
-    niche: "",
-    platforms: [],
-    deliverables: [],
-    completionDate: "",
-    compensation: "",
-  });
 
   const [plannerContent, setPlannerContent] = useState({
     "Hook Ideas": "Brainstorm engaging opening lines...",
@@ -207,31 +194,6 @@ const ContentPlanning = () => {
     "bg-pink-100 text-pink-800",
   ];
 
-  // External Campaign Form Options
-  const workTypeOptions = [
-    { label: "UGC", value: "ugc" },
-    { label: "Sponsored Post", value: "sponsored" },
-    { label: "Affiliate", value: "affiliate" },
-    { label: "Gifting", value: "gifting" },
-    { label: "Other", value: "other" },
-  ];
-
-  const platformOptions = [
-    { label: "TikTok", value: "tiktok" },
-    { label: "Instagram", value: "instagram" },
-    { label: "YouTube", value: "youtube" },
-    { label: "Other", value: "other" },
-  ];
-
-  const deliverableOptions = [
-    { label: "1 TikTok Video", value: "1_tiktok" },
-    { label: "1 Instagram Post", value: "1_ig_post" },
-    { label: "1 Instagram Story", value: "1_ig_story" },
-    { label: "1 YouTube Video", value: "1_youtube" },
-    { label: "1 YouTube Short", value: "1_youtube_short" },
-    { label: "Other", value: "other" },
-  ];
-
   const handleDateClick = (day) => {
     setSelectedDate(day);
   };
@@ -309,44 +271,6 @@ const ContentPlanning = () => {
     editorRef.current?.focus();
   };
 
-  const handlePlatformChange = (platform) => {
-    setExternalCampaignForm((prev) => ({
-      ...prev,
-      platforms: prev.platforms.includes(platform)
-        ? prev.platforms.filter((p) => p !== platform)
-        : [...prev.platforms, platform],
-    }));
-  };
-
-  const handleDeliverableChange = (deliverable) => {
-    setExternalCampaignForm((prev) => ({
-      ...prev,
-      deliverables: prev.deliverables.includes(deliverable)
-        ? prev.deliverables.filter((d) => d !== deliverable)
-        : [...prev.deliverables, deliverable],
-    }));
-  };
-
-  const handleSubmitExternalCampaign = () => {
-    // Process form submission
-    console.log("External campaign data:", externalCampaignForm);
-
-    // Reset form and close modal
-    setExternalCampaignForm({
-      brandName: "",
-      campaignTitle: "",
-      typeOfWork: "",
-      niche: "",
-      platforms: [],
-      deliverables: [],
-      completionDate: "",
-      compensation: "",
-    });
-    setShowTrackCampaign(false);
-
-    // Show success message or handle as needed
-  };
-
   const getTaskCTA = (task) => {
     return (
       <CustomButton
@@ -354,6 +278,18 @@ const ContentPlanning = () => {
         className="btn-outline !h-7"
       />
     );
+  };
+
+  // Get dot indicators for calendar dates
+  const getDateIndicators = (day) => {
+    const tasks = calendarTasks[day] || [];
+    const hasDeadline = tasks.some((task) => task.tag.label === "Campaign Deadline");
+    const hasDraft = tasks.some((task) => task.tag.label === "1st Draft Deadline");
+    const hasOther = tasks.some(
+      (task) => !["Campaign Deadline", "1st Draft Deadline"].includes(task.tag.label)
+    );
+
+    return { hasDeadline, hasDraft, hasOther };
   };
 
   return (
@@ -374,7 +310,7 @@ const ContentPlanning = () => {
               </button>
             </div>
           </div>
-          <div>
+          <div className="p-2">
             <div className="space-y-1.5">
               {plannerTabs.map((tab) => (
                 <div
@@ -396,18 +332,13 @@ const ContentPlanning = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-2">
+        <div className="flex justify-between space-x-2">
           <CustomButton
             text="Calendar & Tasks"
             className="btn-outline w-full"
             onClick={() => setShowCalendar(true)}
           />
           <CustomButton text="Monthly Goals" onClick={() => setShowGoals(true)} />
-          <CustomButton
-            text="Track External Campaign"
-            className="btn-outline w-full"
-            onClick={() => setShowTrackCampaign(true)}
-          />
         </div>
 
         {/* Upcoming Tasks */}
@@ -463,7 +394,7 @@ const ContentPlanning = () => {
         show={showContentPlanner}
         title="Content Planner"
         onClose={() => setShowContentPlanner(false)}
-        size="lg"
+        size="xl"
       >
         <div className="flex h-[600px]">
           <div className="w-48 border-r border-gray-200 pr-4">
@@ -577,306 +508,232 @@ const ContentPlanning = () => {
         </div>
       </Modal>
 
-      {/* Track External Campaign Modal */}
-      <Modal
-        show={showTrackCampaign}
-        title="Track External Campaign"
-        onClose={() => setShowTrackCampaign(false)}
-        size="lg"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Add campaigns from outside CleerCut to use our content planner and calendar tools.
-          </p>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <CustomInput
-                label="Brand Name"
-                value={externalCampaignForm.brandName}
-                onChange={(e) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    brandName: e.target.value,
-                  }))
-                }
-                placeholder="e.g., Nike"
-                required
-              />
-            </div>
-            <div>
-              <CustomInput
-                label="Campaign Title"
-                value={externalCampaignForm.campaignTitle}
-                onChange={(e) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    campaignTitle: e.target.value,
-                  }))
-                }
-                placeholder="e.g., Summer Collection Launch"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <SimpleSelect
-                label="Type of Work"
-                placeHolder="Select work type"
-                options={workTypeOptions}
-                onChange={(value) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    typeOfWork: value,
-                  }))
-                }
-                required
-              />
-            </div>
-            <div>
-              <CustomInput
-                label="Niche"
-                value={externalCampaignForm.niche}
-                onChange={(e) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    niche: e.target.value,
-                  }))
-                }
-                placeholder="e.g., Fashion, Beauty, Tech"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Platform(s) <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {platformOptions.map((platform) => (
-                <label key={platform.value} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={externalCampaignForm.platforms.includes(platform.value)}
-                    onChange={() => handlePlatformChange(platform.value)}
-                    className="w-4 h-4 text-slate-600 rounded mr-2"
-                  />
-                  <span className="text-sm text-gray-700">{platform.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">Deliverables</label>
-            <div className="grid grid-cols-2 gap-2">
-              {deliverableOptions.map((deliverable) => (
-                <label key={deliverable.value} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={externalCampaignForm.deliverables.includes(deliverable.value)}
-                    onChange={() => handleDeliverableChange(deliverable.value)}
-                    className="w-4 h-4 text-slate-600 rounded mr-2"
-                  />
-                  <span className="text-sm text-gray-700">{deliverable.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <CustomInput
-                label="Completion Date"
-                type="date"
-                value={externalCampaignForm.completionDate}
-                onChange={(e) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    completionDate: e.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <CustomInput
-                label="Compensation (Optional)"
-                value={externalCampaignForm.compensation}
-                onChange={(e) =>
-                  setExternalCampaignForm((prev) => ({
-                    ...prev,
-                    compensation: e.target.value,
-                  }))
-                }
-                placeholder="e.g., $500, Gifted"
-              />
-            </div>
-          </div>
-
-          <p className="text-xs text-gray-500 italic">
-            *For your reference only – not added to CleerCut income totals
-          </p>
-
-          <div className="flex gap-3 pt-4">
-            <CustomButton
-              text="Cancel"
-              className="btn-cancel w-full"
-              onClick={() => setShowTrackCampaign(false)}
-            />
-            <CustomButton text="Add Campaign" onClick={handleSubmitExternalCampaign} />
-          </div>
-        </div>
-      </Modal>
-
+      {/* Calendar & To Do List Modal */}
       {/* Calendar & To Do List Modal */}
       <Modal
         show={showCalendar}
         title="Calendar & To Do List"
         onClose={() => setShowCalendar(false)}
-        size="lg"
+        size="xl"
       >
-        <div className="grid grid-cols-5 gap-6 h-[600px]">
+        <div className="grid grid-cols-5 gap-4 p-1">
           {/* Calendar (60%) */}
-          <div className="col-span-2">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {monthNames[currentMonth.month - 1]} {currentMonth.year}
-            </h3>
-
-            <div className="grid grid-cols-7 gap-1 text-center mb-4">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="p-2 text-sm font-medium text-gray-500">
-                  {day}
-                </div>
-              ))}
-              {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => (
-                <div
-                  key={day}
-                  onClick={() => handleDateClick(day)}
-                  className={`p-2 text-sm cursor-pointer hover:bg-gray-100 rounded relative ${
-                    selectedDate === day
-                      ? "bg-slate-100 text-slate-800 font-semibold"
-                      : "text-gray-700"
-                  }`}
-                >
-                  {day}
-                  {calendarTasks[day] && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-slate-500 rounded-full"></div>
-                  )}
-                </div>
-              ))}
+          <div className="col-span-3">
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold text-gray-900">
+                {monthNames[currentMonth.month - 1]} {currentMonth.year}
+              </h3>
+              <div className="flex gap-1">
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Color Legend */}
-            <div className="space-y-2">
-              {colorTags.slice(0, 3).map((tag) => (
-                <div key={tag.label} className="flex items-center text-xs">
-                  <div className={`w-3 h-3 rounded mr-2 ${tag.value.split(" ")[0]}`}></div>
-                  <span className="text-gray-600">{tag.label}</span>
-                </div>
-              ))}
-
-              {!showAddTag ? (
-                <button
-                  onClick={() => setShowAddTag(true)}
-                  className="text-xs text-slate-600 hover:text-slate-800"
-                >
-                  + Add color tag
-                </button>
-              ) : (
-                <div className="space-y-2 p-2 bg-gray-50 rounded">
-                  <CustomInput
-                    type="text"
-                    placeholder="Tag name"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                  />
-                  <div className="flex gap-1">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setNewTagColor(color)}
-                        className={`w-4 h-4 rounded ${color.split(" ")[0]} ${
-                          newTagColor === color ? "ring-2 ring-gray-400" : ""
-                        }`}
-                      />
-                    ))}
+            {/* Calendar Grid */}
+            <div className="bg-gray-100 rounded-lg p-3 mb-3">
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                  <div key={day} className="p-2 text-xs font-semibold text-gray-500 text-left">
+                    {day}
                   </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={addColorTag}
-                      className="px-2 py-1 bg-slate-600 text-white text-xs rounded"
+                ))}
+                {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
+                  const isSelected = selectedDate === day;
+                  const hasAnyTask = calendarTasks[day] && calendarTasks[day].length > 0;
+
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => handleDateClick(day)}
+                      className={`relative h-8 w-8 flex items-center justify-center text-xs font-medium cursor-pointer rounded-full transition-all ${
+                        isSelected
+                          ? "bg-primary text-white shadow-md scale-105"
+                          : hasAnyTask
+                            ? "bg-white shadow-sm hover:shadow-md border border-gray-200 hover:border-gray-300"
+                            : "hover:bg-white hover:shadow-sm"
+                      }`}
                     >
-                      Add
-                    </button>
+                      {day}
+
+                      {/* Task indicator dot */}
+                      {calendarTasks[day] && (
+                        <div className="absolute -top-0.5 -right-0.5">
+                          <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Compact Legend */}
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <h4 className="font-semibold text-gray-900 mb-2">Legend</h4>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  {colorTags.slice(0, 3).map((tag) => (
+                    <div key={tag.label} className="flex items-center gap-2 text-xs">
+                      <div className={`w-2 h-2 rounded-full ${tag.value.split(" ")[0]}`}></div>
+                      <span className="text-gray-600">{tag.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  {!showAddTag && (
                     <button
-                      onClick={() => setShowAddTag(false)}
-                      className="px-2 py-1 bg-gray-300 text-xs rounded"
+                      onClick={() => setShowAddTag(true)}
+                      className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 font-medium"
                     >
-                      Cancel
+                      <Plus className="w-3 h-3" />
+                      Add category
                     </button>
+                  )}
+                </div>
+              </div>
+
+              {showAddTag && (
+                <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+                  <div className="space-y-2">
+                    <CustomInput
+                      type="text"
+                      placeholder="Category name"
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                    />
+                    <div className="flex gap-1">
+                      {colorOptions.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setNewTagColor(color)}
+                          className={`w-5 h-5 rounded-full ${color.split(" ")[0]} ${
+                            newTagColor === color ? "ring-1 ring-gray-400" : ""
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={addColorTag}
+                        className="px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-gray-800"
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => setShowAddTag(false)}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* To Do List (40%) */}
-          <div className="col-span-3 border-l border-gray-200 pl-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {monthNames[currentMonth.month - 1]} {selectedDate}, {currentMonth.year}
-            </h3>
+          {/* Task List (40%) */}
+          <div className="col-span-2">
+            <div className="bg-white border border-gray-200 rounded-lg h-full">
+              <div className="p-3 border-b border-gray-200">
+                <h3 className="font-bold text-gray-900">
+                  {monthNames[currentMonth.month - 1]} {selectedDate}, {currentMonth.year}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {(calendarTasks[selectedDate] || []).length} tasks scheduled
+                </p>
+              </div>
 
-            <div className="space-y-3 mb-4">
-              {(calendarTasks[selectedDate] || []).map((task) => (
-                <div key={task.id} className="flex items-center gap-3">
-                  <button onClick={() => toggleTask(task.id)}>
-                    {task.completed ? (
-                      <CheckSquare className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Square className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                  <div className="flex justify-between w-full items-center">
-                    <p
-                      className={`text-sm ${task.completed ? "line-through text-gray-500" : "text-gray-700"}`}
-                    >
-                      {task.text}
-                    </p>
-                    <span
-                      className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${getTagColor(task.tag.label)}`}
-                    >
-                      {task.tag.label}
-                    </span>
+              {/* Tasks */}
+              <div className="p-3 max-h-64 overflow-y-auto space-y-2">
+                {(calendarTasks[selectedDate] || []).length === 0 ? (
+                  <div className="text-center">
+                    <p className="text-gray-500 text-xs">No tasks for this day</p>
                   </div>
+                ) : (
+                  (calendarTasks[selectedDate] || []).map((task) => (
+                    <div
+                      key={task.id}
+                      className={`group rounded-lg border transition-all ${
+                        task.completed
+                          ? "bg-gray-50 border-gray-200"
+                          : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                      }`}
+                    >
+                      <div className="p-2">
+                        <div className="flex items-start gap-2">
+                          <button
+                            onClick={() => toggleTask(task.id)}
+                            className="mt-0.5 hover:scale-110 transition-transform"
+                          >
+                            {task.completed ? (
+                              <CheckSquare className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <Square className="w-4 h-4 text-gray-400" />
+                            )}
+                          </button>
+
+                          <div className="flex-1">
+                            <p
+                              className={`text-xs font-medium leading-relaxed ${
+                                task.completed ? "line-through text-gray-500" : "text-gray-700"
+                              }`}
+                            >
+                              {task.text}
+                            </p>
+
+                            <div className="flex items-center justify-between mt-1">
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${getTagColor(task.tag.label)}`}
+                              >
+                                {task.tag.label}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Add Task */}
+              <div className="p-3 border-t border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1 text-sm">
+                  Add Task
+                </h4>
+
+                <div className="space-y-2">
+                  <CustomInput
+                    type="text"
+                    placeholder="Add a new task"
+                    value={newTaskText}
+                    onChange={(e) => setNewTaskText(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && addTask()}
+                  />
+
+                  <SimpleSelect
+                    placeHolder="Select an option"
+                    options={colorTags}
+                    onChange={(value) => setSelectedTag(value)}
+                  />
+
+                  <CustomButton text="Add Task" onClick={addTask} />
                 </div>
-              ))}
-            </div>
-
-            {/* Add Task */}
-            <div className="space-y-2">
-              <CustomInput
-                type="text"
-                placeholder="Add a new task"
-                value={newTaskText}
-                onChange={(e) => setNewTaskText(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && addTask()}
-              />
-              <SimpleSelect
-                placeHolder="Select an option"
-                options={colorTags}
-                onChange={(value) => setSelectedTag(value)}
-              />
-
-              <CustomButton text="Add Task" onClick={addTask} />
+              </div>
             </div>
           </div>
         </div>
       </Modal>
 
       {/* Goals Modal */}
-      <Modal show={showGoals} title="Monthly Goals" onClose={() => setShowGoals(false)} size="lg">
+      <Modal show={showGoals} title="Monthly Goals" onClose={() => setShowGoals(false)} size="xl">
         <div className="p-3">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-3 bg-gray-100 rounded-md p-2">
@@ -938,10 +795,8 @@ const ContentPlanning = () => {
                                 ),
                               }));
                             }}
-                            className={`w-full text-sm bg-transparent border-none outline-none pb-1 ${
-                              goal.completed
-                                ? "line-through text-gray-500 border-b border-gray-300"
-                                : "text-gray-700 border-b border-gray-400"
+                            className={`w-full text-sm bg-transparent border-b ${colors[index]} outline-none pb-1 ${
+                              goal.completed ? "line-through text-gray-500" : "text-gray-700"
                             } focus:border-slate-500 transition-colors`}
                             placeholder="Enter goal..."
                           />

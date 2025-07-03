@@ -7,6 +7,8 @@ import YoutubeIcon from "@/common/icons/youtube";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import { MapPin, Minus, Star, TrendingDown, TrendingUp, Users } from "lucide-react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import BrandCalendarModal from "./components/brand-calendar-modal/brand-calendar-modal.component";
+import TaskManagerModal from "./components/task-manager/task-manager.component";
 
 const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const {
@@ -17,6 +19,10 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
     getSuccessRateColor,
     handleOpenModal,
     handleCloseModal,
+    showBrandCalendar,
+    setShowBrandCalendar,
+    showTaskManager,
+    setShowTaskManager,
   } = useCreatorSpendAnalysis();
 
   const getPlatformIcon = (platform) => {
@@ -29,36 +35,6 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
         return <TwitterIcon />;
       default:
         return <Users className="w-4 h-4" />;
-    }
-  };
-
-  // Generate random trending data for demonstration
-  const getTrendingData = () => {
-    const trends = ["up", "down", "stable"];
-    const trend = trends[Math.floor(Math.random() * trends.length)];
-    const percentage = Math.floor(Math.random() * 20) + 1;
-    return { trend, percentage };
-  };
-
-  const getTrendingIcon = (trend) => {
-    switch (trend) {
-      case "up":
-        return <TrendingUp className="w-3 h-3 text-green-500" />;
-      case "down":
-        return <TrendingDown className="w-3 h-3 text-red-500" />;
-      default:
-        return <Minus className="w-3 h-3 text-gray-400" />;
-    }
-  };
-
-  const getTrendingColor = (trend) => {
-    switch (trend) {
-      case "up":
-        return "text-green-600";
-      case "down":
-        return "text-red-600";
-      default:
-        return "text-gray-500";
     }
   };
 
@@ -102,8 +78,22 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
                 className="w-full max-w-[400px]"
               />
             </div>
-            <div className="w-full max-w-[200px]">
-              <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
+            <div className="flex gap-3">
+              <CustomButton
+                text="Calendar"
+                className="btn-primary"
+                onClick={() => setShowBrandCalendar(true)}
+              />
+              <CustomButton
+                text="Task Manager"
+                className="btn-outline"
+                onClick={() => setShowTaskManager(true)}
+              />
+              <CustomButton
+                text="Start a new campaign"
+                className="btn-primary"
+                onClick={handleOpenModal}
+              />
             </div>
           </div>
         </div>
@@ -287,6 +277,8 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
+      <BrandCalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
+      {/* <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} /> */}
     </div>
   );
 };

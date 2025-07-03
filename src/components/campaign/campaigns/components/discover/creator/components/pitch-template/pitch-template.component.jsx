@@ -128,7 +128,7 @@ function PitchTemplate() {
               // View Mode
               <div className="space-y-4">
                 <div>
-                  <div className="flex justify-between items-center mb-[6px]">
+                  <div className="flex justify-between items-center">
                     <FieldLabel label="Pitch Content" />
                     <div className="flex items-center gap-2">
                       <button
