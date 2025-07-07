@@ -322,7 +322,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
             <div className="flex items-center gap-2">
               <div className="w-24 bg-gray-200 rounded-full h-1.5">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                  className="bg-primary h-1.5 rounded-full transition-all duration-300"
                   style={{ width: `${campaign.completionRate}%` }}
                 />
               </div>

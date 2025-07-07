@@ -509,7 +509,6 @@ const ContentPlanning = () => {
       </Modal>
 
       {/* Calendar & To Do List Modal */}
-      {/* Calendar & To Do List Modal */}
       <Modal
         show={showCalendar}
         title="Calendar & To Do List"
@@ -679,7 +678,7 @@ const ContentPlanning = () => {
                             )}
                           </button>
 
-                          <div className="flex-1">
+                          <div className="w-full flex justify-between items-center">
                             <p
                               className={`text-xs font-medium leading-relaxed ${
                                 task.completed ? "line-through text-gray-500" : "text-gray-700"

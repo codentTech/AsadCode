@@ -278,7 +278,7 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
       <BrandCalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
-      {/* <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} /> */}
+      <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
     </div>
   );
 };
