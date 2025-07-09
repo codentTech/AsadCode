@@ -23,7 +23,7 @@ function Icon({ isOpen }) {
 
 export default function SimpleSelect({
   label,
-  placeHolder,
+  placeHolder = "Select an option",
   options,
   isMulti,
   isSearchable,
@@ -52,7 +52,7 @@ export default function SimpleSelect({
   });
 
   return (
-    <div className={`relative w-full flex flex-col gap-2 ${className}`}>
+    <div className={`relative w-full flex flex-col gap-[6px] ${className}`}>
       {label && <FieldLabel label={label} />}
       <div
         ref={inputRef}

@@ -1,17 +1,11 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Modal from "@/common/components/modal/modal.component";
 import ReadMore from "@/common/components/readmore/readmore.component";
-import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
 import { CheckCircle2, MapPin, Star } from "lucide-react";
 import CampaignHistory from "../campaign-history/campaign-history.component";
-import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
-  const { messageDialogOpen, setMessageDialogOpen } = useDeliverablesProgress();
-
   return (
     <div className="w-[27%] bg-white flex flex-col border h-screen pb-20">
       {/* Sticky Profile Section */}
@@ -71,41 +65,10 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
           <AudienceDemographics className="flex flex-col" />
         </div>
 
-        {/* Action Buttons */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Actions</h3>
-          <div className="grid grid-cols-1 2xl:grid-cols-3 gap-2">
-            <CustomButton
-              text="Message"
-              onClick={() => setMessageDialogOpen(true)}
-              className="btn-primary"
-            />
-            <CustomButton text="Save for latter" className="btn-outline" />
-            <CustomButton text="Reject" className="btn-danger" />
-          </div>
-        </div>
         <hr />
 
         <CampaignHistory />
       </div>
-
-      {/* Message Creator Dialog */}
-      <Modal
-        title={`Message to Sam Waters`}
-        show={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
-      >
-        <TextArea label="Your Message" />
-        <div className="w-full flex justify-end gap-3">
-          <CustomButton
-            text="Cancel"
-            className="btn-cancel"
-            onClick={() => setMessageDialogOpen(false)}
-          />
-
-          <CustomButton text="Send Message" className="btn-primary" />
-        </div>
-      </Modal>
     </div>
   );
 };
