@@ -70,7 +70,7 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4">
             <div className="flex-1 max-w-sm">
               <SimpleSelect
                 placeHolder="Select an option"
