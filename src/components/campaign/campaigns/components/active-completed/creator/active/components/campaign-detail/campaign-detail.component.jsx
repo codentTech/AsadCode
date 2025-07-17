@@ -15,7 +15,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
     captions: false,
   });
 
-  const campaign = campaigns[selectedCampaign];
+  const campaign = campaigns?.[selectedCampaign];
 
   const { getPlatformIcon } = useGetplatform();
 

@@ -37,7 +37,13 @@ function useGetplatform() {
     }
   };
 
-  return { getPlatformIcon, getPlatformColor };
+  const formatFollowers = (count) => {
+    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
+    return count.toString();
+  };
+
+  return { getPlatformIcon, getPlatformColor, formatFollowers };
 }
 
 export default useGetplatform;

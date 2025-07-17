@@ -13,7 +13,6 @@ const Register = ({ onNext, onBack }) => {
 
   const [selectedType, setSelectedType] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const schema = yup.object().shape({
