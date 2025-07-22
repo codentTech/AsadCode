@@ -1,19 +1,19 @@
-import api from '@/common/utils/api';
-import { removeUser } from '@/common/utils/users.util';
+import api from "@/common/utils/api";
+import { removeUser } from "@/common/utils/users.util";
 
 // Login user
 const login = async (userData) => {
-  const response = await api().post('/auth/login', userData);
+  const response = await api().post("/auth/login", userData);
   if (response.data.Succeeded) {
-    localStorage.setItem('user', JSON.stringify(response.data.data));
-    localStorage.setItem('isOtpVerify', false);
+    localStorage.setItem("user", JSON.stringify(response.data.data));
+    localStorage.setItem("isOtpVerify", false);
   }
   return response.data;
 };
 
 // Logout user
 const logout = async () => {
-  const response = await api().get('/user/logout');
+  const response = await api().get("/user/logout");
   if (response.data.Succeeded) {
     removeUser();
   }
@@ -21,28 +21,38 @@ const logout = async () => {
 };
 
 const signUp = async (userData) => {
-  const response = await api().post('/user/register', userData);
+  const response = await api().post("/auth/register", userData);
+  return response.data;
+};
+
+const verifyEmail = async (data) => {
+  const response = await api().post("/auth/onboarding/verify-email", data);
+  return response.data;
+};
+
+const resendEmail = async (email) => {
+  const response = await api().post("/auth/resend-email", { email });
   return response.data;
 };
 
 const loginAndSignUpWithOAuth = async ({ loginType, email, accessToken }) => {
-  const response = await api().post('/auth/login-and-sign-up-with-oauth', {
+  const response = await api().post("/auth/login-and-sign-up-with-oauth", {
     loginType,
     email,
-    accessToken
+    accessToken,
   });
   if (response.data.Succeeded) {
-    localStorage.setItem('user', JSON.stringify(response.data.data));
-    localStorage.setItem('isOtpVerify', false);
+    localStorage.setItem("user", JSON.stringify(response.data.data));
+    localStorage.setItem("isOtpVerify", false);
   }
   return response.data;
 };
 
 const loginAndSignUpWithLinkedin = async (payload) => {
-  const response = await api().post('/auth/login-and-sign-up-with-linkedin', payload);
+  const response = await api().post("/auth/login-and-sign-up-with-linkedin", payload);
   if (response.data.Succeeded) {
-    localStorage.setItem('user', JSON.stringify(response.data.data));
-    localStorage.setItem('isOtpVerify', false);
+    localStorage.setItem("user", JSON.stringify(response.data.data));
+    localStorage.setItem("isOtpVerify", false);
   }
   return response.data;
 };
@@ -51,8 +61,10 @@ const authService = {
   logout,
   login,
   signUp,
+  verifyEmail,
+  resendEmail,
   loginAndSignUpWithOAuth,
-  loginAndSignUpWithLinkedin
+  loginAndSignUpWithLinkedin,
 };
 
 export default authService;

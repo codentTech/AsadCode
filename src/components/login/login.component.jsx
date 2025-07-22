@@ -1,19 +1,15 @@
-import Link from "next/link";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loader from "@/common/components/loader/loader.component";
-import useLogin from "./use-login.hook";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import Loader from "@/common/components/loader/loader.component";
+import Link from "next/link";
+import useLogin from "./use-login.hook";
 
 export default function Login() {
   // hooks
   const {
     onSubmit,
-    borderStyle,
-    borderSuc,
-    showPassword,
     isChecked,
     setIsChecked,
-    toggleShowPassword,
     router,
     loading,
     register,

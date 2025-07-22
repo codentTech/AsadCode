@@ -3,18 +3,18 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./features/auth/auth.slice";
 import userReducer from "./features/user/user.slice";
-import dashboardReducer from "./features/dashboard/dashboard.slice";
+import onboardingReducer from "./features/onboarding/onboarding.slice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "dashboard"],
+  whitelist: ["auth", "dashboard", "onboarding"],
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
   user: userReducer,
-  dashboard: dashboardReducer,
+  onboarding: onboardingReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
