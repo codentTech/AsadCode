@@ -21,7 +21,7 @@ export default function Onboarding() {
   const [selectedAccountType, setSelectedAccountType] = useState("");
 
   // Use onboarding status from API
-  const { step: onboardingStep, role, loading, email } = useOnboarding();
+  const { step: onboardingStep, role, loading } = useOnboarding();
 
   useEffect(() => {
     if (!loading && onboardingStep) {
@@ -59,27 +59,23 @@ export default function Onboarding() {
           />
         );
       case 2:
-        return <Register onNext={nextStep} onBack={prevStep} email={email} />;
+        return <Register onNext={nextStep} onBack={prevStep} />;
       case 3:
-        return <EmailVerification onNext={nextStep} onBack={prevStep} email={email} />;
+        return <EmailVerification onNext={nextStep} onBack={prevStep} />;
       case 4:
         return isCreatorMode ? (
-          <ProfileSetup onNext={nextStep} onBack={prevStep} email={email} />
+          <ProfileSetup onNext={nextStep} onBack={prevStep} />
         ) : (
-          <BrandProfile onNext={nextStep} onBack={prevStep} email={email} />
+          <BrandProfile onNext={nextStep} onBack={prevStep} />
         );
       case 5:
         return isCreatorMode ? (
-          <CampaignPreferences onNext={completeOnboarding} onBack={prevStep} email={email} />
+          <CampaignPreferences onNext={completeOnboarding} onBack={prevStep} />
         ) : (
-          <BrandCampaignPreferences onNext={nextStep} onBack={prevStep} email={email} />
+          <BrandCampaignPreferences onNext={nextStep} onBack={prevStep} />
         );
       case 6:
-        return (
-          !isCreatorMode && (
-            <IdealCreator onNext={completeOnboarding} onBack={prevStep} email={email} />
-          )
-        );
+        return !isCreatorMode && <IdealCreator onNext={completeOnboarding} onBack={prevStep} />;
       default:
         return (
           <AccountType

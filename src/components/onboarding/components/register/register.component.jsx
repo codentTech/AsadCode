@@ -63,7 +63,7 @@ const Register = ({ onNext, onBack }) => {
   };
 
   return (
-    <div className=" py-8 px-4 bg-gray-100">
+    <div className="py-8 px-4 bg-gray-100">
       <div className="max-w-xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-6">
@@ -85,8 +85,10 @@ const Register = ({ onNext, onBack }) => {
 
         {/* Header */}
         <div className="text-center mb-5">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-          <p className="text-gray-600">Let's set up your profile to start connecting with brands</p>
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">Create Your Account</h1>
+          <p className="text-sm lg:text-lg text-gray-600">
+            Let's set up your profile to start connecting with brands
+          </p>
         </div>
 
         {/* Form */}

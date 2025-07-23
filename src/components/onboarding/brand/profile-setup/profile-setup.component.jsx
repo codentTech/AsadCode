@@ -57,8 +57,12 @@ const BrandProfile = ({ onNext, onBack }) => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Build Your Brand Profile</h1>
-          <p className="text-gray-600">Set up your public profile that creators will see</p>
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
+            Build Your Brand Profile
+          </h1>
+          <p className="text-sm lg:text-lg text-gray-600">
+            Set up your public profile that creators will see
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>

@@ -108,10 +108,12 @@ const CampaignPreferences = ({ onNext, onBack }) => {
 
         {/* Header */}
         <div className="text-center mb-5">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
             Tell Us the Campaigns You're Open To
           </h1>
-          <p className="text-gray-600">Help brands find you for the right opportunities</p>
+          <p className="text-sm lg:text-lg text-gray-600">
+            Help brands find you for the right opportunities
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>

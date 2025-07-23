@@ -26,6 +26,5 @@ export default function useOnboarding() {
     user: onboardingStatus?.user,
     loading,
     error,
-    email,
   };
 }

@@ -55,6 +55,7 @@ export default function useIdealCreator({ onNext }) {
       if (response.payload && response.payload.success) {
         onNext && onNext();
         resetForm();
+        localStorage.removeItem("email");
       }
     } catch (error) {
       console.error("Form submission error:", error.message);

@@ -98,7 +98,7 @@ const IdealCreator = ({ onNext, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto px-4">
         {/* Progress Bar */}
         <div className="mb-8">
@@ -120,10 +120,12 @@ const IdealCreator = ({ onNext, onBack }) => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
             Who Are You Looking to Work With?
           </h1>
-          <p className="text-gray-600">Help us find the perfect creators for your campaigns</p>
+          <p className="text-sm lg:text-lg text-gray-600">
+            Help us find the perfect creators for your campaigns
+          </p>
         </div>
 
         <form>

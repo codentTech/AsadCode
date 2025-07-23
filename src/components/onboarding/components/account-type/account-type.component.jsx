@@ -38,8 +38,8 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
       <div className="w-full max-w-3xl rounded-3xl shadow-2xl p-10 space-y-5">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">Let's Get Started</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-autoa">
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-2">Let's Get Started</h1>
+          <p className="text-sm lg:text-lg text-gray-600 max-w-3xl mx-autoa">
             Choose how you'd like to use CleerCut and unlock opportunities that match your goals
           </p>
         </div>

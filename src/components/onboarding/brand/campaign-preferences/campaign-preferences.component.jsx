@@ -143,7 +143,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="py-8 px-4 bg-gray-100">
       <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-8">
@@ -165,8 +165,10 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Campaign Preferences</h1>
-          <p className="text-gray-600">Set your campaign needs and find the right creators</p>
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">Campaign Preferences</h1>
+          <p className="text-sm lg:text-lg text-gray-600">
+            Set your campaign needs and find the right creators
+          </p>
         </div>
 
         <form>
