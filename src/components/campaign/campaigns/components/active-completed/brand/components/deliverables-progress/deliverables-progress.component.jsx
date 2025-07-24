@@ -8,6 +8,7 @@ import { Calendar, CheckCircle2, DollarSign, Edit3, MapPin, Star } from "lucide-
 import React from "react";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
@@ -223,38 +224,12 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
 
             {/* Timeline */}
             <div className="border-y p-4">
-              <h4 className="text-lg font-semibold text-gray-800 mb-2 pb-2 border-b">
-                Project Timeline
-              </h4>
-              {project.timeline.map((step, index) => (
-                <div key={step.id} className="w-full flex items-center py-2 space-x-3">
-                  <div
-                    onClick={!isCompleted ? () => toggleTimelineStep(step.id) : undefined}
-                    className={`rounded-full flex items-center justify-center ${
-                      step.completed || isCompleted
-                        ? "bg-primary border-primary text-white"
-                        : "border-gray-300 hover:border-gray-400"
-                    } ${isCompleted ? "cursor-default" : "cursor-pointer"}`}
-                  >
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div className="text-xs w-full flex justify-between">
-                    <span
-                      className={`${step.completed || isCompleted ? "text-primary" : "text-gray-600"}`}
-                    >
-                      {step.step}
-                    </span>
-                    <span className="text-gray-600 ml-2">{step.date}</span>
-                  </div>
-                  {index < project.timeline.length - 1 && (
-                    <div className="absolute left-3 mt-6 w-0.5 h-6 bg-gray-200"></div>
-                  )}
-                </div>
-              ))}
+              <h4 className="text-lg font-semibold text-gray-800 mb-2">Project Timeline</h4>
+              <BrandTimelineSteps />
             </div>
 
             {/* Deliverables */}
-            <div className="p-4">
+            {/* <div className="p-4">
               <h4 className="text-lg font-semibold text-gray-800 mb-2">Deliverables</h4>
               <div className="space-y-4">
                 {project.deliverables.map((deliverable) => (
@@ -263,9 +238,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                     className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
                   >
                     <div className="flex flex-col lg:flex-row gap-4 w-full">
-                      {/* Checkbox + Content */}
                       <div className="flex flex-col sm:flex-row gap-3 w-full">
-                        {/* Check Button */}
                         <div className="flex-shrink-0">
                           <button
                             onClick={
@@ -281,7 +254,6 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                           </button>
                         </div>
 
-                        {/* Editable or View Mode Content */}
                         <div className="flex-1 w-full">
                           {editingItem?.type === "deliverable" &&
                           editingItem?.id === deliverable.id &&
@@ -375,7 +347,6 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                         </div>
                       </div>
 
-                      {/* Edit Button */}
                       {!isCompleted && editingItem?.id !== deliverable.id && (
                         <div className="self-start">
                           <CustomButton
@@ -389,57 +360,13 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="w-full border-t">
-            <div className="p-4">
-              {/* Progress Summary */}
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {isCompleted ? "Final Summary" : "Progress Summary"}
-              </h3>
-              <div className="bg-white border rounded-lg p-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span>Completed:</span>
-                    <span className="text-xs font-medium">
-                      {isCompleted
-                        ? `${project.deliverables.length}/${project.deliverables.length}`
-                        : `${project.deliverables.filter((d) => d.completed).length}/${project.deliverables.length}`}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: isCompleted
-                          ? "100%"
-                          : `${(project.deliverables.filter((d) => d.completed).length / project.deliverables.length) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span>{isCompleted ? "Total Paid:" : "Amount Earned:"}</span>
-                    <span className="font-medium text-primary">
-                      $
-                      {isCompleted
-                        ? project.deliverables.reduce((sum, d) => sum + d.amount, 0)
-                        : project.deliverables
-                            .filter((d) => d.completed)
-                            .reduce((sum, d) => sum + d.amount, 0)}
-                    </span>
-                  </div>
-                  {isCompleted && (
-                    <div className="flex justify-between text-xs pt-2 border-t">
-                      <span className="text-green-600 font-medium">Campaign Status:</span>
-                      <span className="font-medium text-green-600">Successfully Completed</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
+            <div className="px-4 pb-4">
               {isCompleted && (
-                <div className="bg-white rounded-lg p-4 shadow border mt-4">
+                <div className="bg-white rounded-lg p-4 shadow border">
                   <h4 className="text-base font-medium text-gray-800 mb-2">Leave a review</h4>
                   <TextArea placeholder="leave a review" />
                   <div className="flex justify-end gap-4">
@@ -448,7 +375,6 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                   </div>
                 </div>
               )}
-
               {/* Private Notes Section */}
               <div className="bg-white rounded-lg p-4 shadow mt-4">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">

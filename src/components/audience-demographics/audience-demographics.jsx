@@ -67,9 +67,9 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
     locationData,
   });
   return (
-    <div className={`${className} gap-6`}>
+    <div className={`${className} gap-3`}>
       {/* Age Chart */}
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Age Distribution</h5>
         </div>
@@ -105,7 +105,7 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
       </div>
 
       {/* Gender Chart */}
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Gender Distribution</h5>
         </div>
@@ -144,7 +144,7 @@ function AudienceDemographics({ className = "grid grid-cols-1 lg:grid-cols-2 xl:
       </div>
 
       {/* Location Chart */}
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-sm font-medium text-gray-700">Location Distribution</h5>
         </div>

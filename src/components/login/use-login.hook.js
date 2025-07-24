@@ -1,5 +1,7 @@
 "use client";
 
+import { isLoginVerified } from "@/common/utils/access-token.util";
+import { login } from "@/provider/features/auth/auth.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AES, enc } from "crypto-js";
 import { useRouter } from "next/navigation";
@@ -7,17 +9,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import * as Yup from "yup";
-import { generalSettingCurrentBusiness } from "@/provider/features/setting/setting.slice";
-import { login, loginAndSignUpWithOAuth } from "@/provider/features/auth/auth.slice";
-import {
-  getEmailForURL,
-  is2FAEnabled,
-  isEmailVerified,
-  isPhoneVerified,
-  isProfileCreated,
-  isSuperAdmin,
-} from "@/common/utils/users.util";
-import { isLoginVerified } from "@/common/utils/access-token.util";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email address").required("Email is required"),
@@ -70,22 +61,8 @@ export default function useLogin() {
     // }
   };
 
-  // functions
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const borderStyle = {
-    border: "1px solid red",
-  };
-
-  const borderSuc = {
-    border: "1px solid #7E7D7D",
-  };
-
   const moveRouter = (data) => {
-    router.push("/");
-
+    // router.push("/")s;
     // const _email = getEmailForURL(data?.email);
     // handleRedirection(data, _email);
   };
@@ -136,32 +113,16 @@ export default function useLogin() {
     }
   };
 
-  const loginWithOAuth = (loginType, email, accessToken) => {
-    dispatch(
-      loginAndSignUpWithOAuth({
-        loginType,
-        email,
-        accessToken,
-        successCallBack: moveRouter,
-      })
-    );
-  };
-
   return {
     onSubmit,
-    borderStyle,
-    borderSuc,
-    showPassword,
     isChecked,
     setIsChecked,
-    toggleShowPassword,
     router,
     loading,
-    loginWithOAuth,
     register,
     handleSubmit,
     errors,
-    password,
     email,
+    password,
   };
 }

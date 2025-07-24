@@ -48,27 +48,23 @@ const api = (headers = null) => {
         throw error;
       }
 
-      const status = error.response?.status;
       const message = error.response?.data?.message || error.message || error.toString();
 
+      const responseURL = error.request?.responseURL;
+
+      if (responseURL.includes("onboarding")) return null;
+
       // Handle unauthorized
-      if (status === 401) {
-        removeUser();
-        window.location.href = "/";
-        return;
-      }
+      // if (status === 401) {
+      //   removeUser();
+      //   window.location.href = "/";
+      //   return;
+      // }
 
       // Handle message display
       if (Array.isArray(message)) {
         message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
       } else {
-        const responseURL = error.request?.responseURL;
-        const currentEndpoint = responseURL?.split("/").pop();
-
-        if (currentEndpoint === "current-business-setting") {
-          return error.message;
-        }
-
         if (message !== "Record Not Found") {
           enqueueSnackbar(message, { variant: "error" });
         }

@@ -80,8 +80,8 @@
   .btn-secondary {
     @apply bg-gray-100 text-gray-600 border-solid border-text-ultra-light-gray disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
-  .btn-secondary-outline {
-    @apply rounded-md border border-solid border-secondary-green bg-white text-sm font-bold not-italic leading-[21px] text-secondary-green hover:bg-secondary-medium-green hover:text-white focus:bg-secondary-dark-green focus:text-white disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+  .btn-success {
+    @apply rounded-md border border-solid border-secondary-green bg-secondary-green text-sm font-bold not-italic leading-[21px] text-white hover:bg-secondary-medium-green hover:text-white focus:bg-secondary-dark-green focus:text-white disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
   .alert-error {
     @apply ml-auto flex h-[50px] w-full max-w-[437px] items-center justify-between bg-danger-light p-[16px] font-dm text-xs font-normal not-italic leading-4 text-danger;

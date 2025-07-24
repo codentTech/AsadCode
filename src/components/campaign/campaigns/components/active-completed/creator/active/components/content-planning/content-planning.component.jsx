@@ -18,7 +18,7 @@ import {
   Underline,
   Undo,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState, useRef } from "react";
 
 const upcomingTasks = [
   {
@@ -167,6 +167,8 @@ const ContentPlanning = () => {
 
   const plannerTabs = ["Hook Ideas", "Script", "Shot Ideas", "General Notes"];
   const editorRef = useRef(null);
+  const idCounter = useRef(0);
+  const getNextId = () => ++idCounter.current;
 
   const monthNames = [
     "January",
@@ -201,7 +203,7 @@ const ContentPlanning = () => {
   const addTask = () => {
     if (newTaskText.trim()) {
       const newTask = {
-        id: Date.now(),
+        id: getNextId(),
         text: newTaskText,
         completed: false,
         tag: selectedTag,
@@ -250,7 +252,7 @@ const ContentPlanning = () => {
 
   const addGoal = (week) => {
     const newGoal = {
-      id: Date.now(),
+      id: getNextId(),
       text: "",
       completed: false,
     };

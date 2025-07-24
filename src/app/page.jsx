@@ -12,12 +12,12 @@ import { useEffect } from "react";
 export default function Home() {
   const router = useRouter();
 
-  useEffect(() => {
-    if (checkExpiryDateOfToken() !== true) {
-      removeUser();
-      router.push("/");
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (checkExpiryDateOfToken() !== true) {
+  //     removeUser();
+  //     router.push("/");
+  //   }
+  // }, []);
 
   return <LandinPage />;
 }

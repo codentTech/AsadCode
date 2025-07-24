@@ -2,9 +2,34 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import { CheckCircle, Circle } from "lucide-react";
+import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 
 export default function CampaignOverview({ isCompleted = false }) {
   const { options, handleChange } = useCampaignList();
+
+  const campaign = {
+    id: 1,
+    title: "Summer Skincare Collection",
+    brand: "GlowCo Beauty",
+    logo: "🌟",
+    deadline: "2025-06-15",
+    platforms: ["TikTok", "Instagram"],
+    deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
+    payment: "$1,200",
+    productImage: "🧴",
+    completionRate: 65,
+    type: "UGC",
+    compensation: "Gifted",
+    compensationAmount: "Free Meal ($75 value)",
+    description:
+      "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
+    progress: [
+      { task: "Content recorded", completed: true },
+      { task: "1st draft sent", completed: true },
+      { task: "Final post published", completed: false },
+    ],
+  };
 
   const handleExportData = () => {
     // console.log("Exporting completed campaigns data...");
@@ -79,7 +104,7 @@ export default function CampaignOverview({ isCompleted = false }) {
       <hr />
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-1">
+      <div className="flex flex-col gap-2 mt-1">
         <CustomButton
           text="Export Campaign Data"
           onClick={handleExportData}

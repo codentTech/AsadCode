@@ -23,13 +23,13 @@ export default function Private({ component, title = NAVBAR_TITLE.DOCUMENTS }) {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (checkExpiryDateOfToken() !== true) {
-      removeUser();
-      router.push("/");
-    }
-  }, []);
-  useAutoRedirection();
+  // useEffect(() => {
+  //   if (checkExpiryDateOfToken() !== true) {
+  //     removeUser();
+  //     router.push("/");
+  //   }
+  // }, []);
+  // useAutoRedirection();
 
   if (logoutLoader) {
     return <Loadar />;

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import ROLES from '../constants/role.constant';
+import ROLES from "../constants/role.constant";
 
 /**
  * Retrive access token from local storage
@@ -8,8 +8,15 @@ import ROLES from '../constants/role.constant';
  */
 
 export const getUser = () => {
-  if (typeof window === 'object' && window?.localStorage?.getItem('user')) {
-    return JSON.parse(localStorage.getItem('user'));
+  if (typeof window === "object" && window?.localStorage?.getItem("user")) {
+    return JSON.parse(localStorage.getItem("user"));
+  }
+  return undefined;
+};
+
+export const getOnboardingEmail = () => {
+  if (typeof window === "object" && window?.localStorage?.getItem("email")) {
+    return localStorage.getItem("email");
   }
   return undefined;
 };
@@ -18,12 +25,12 @@ export const getUser = () => {
  * Remove the user from local storage
  */
 export const removeUser = () => {
-  if (typeof window === 'object' && window.localStorage) {
-    localStorage.removeItem('user');
-    localStorage.removeItem('isOtpVerify');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('phone');
-    localStorage.removeItem('userProfile');
+  if (typeof window === "object" && window.localStorage) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("isOtpVerify");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("phone");
+    localStorage.removeItem("userProfile");
   }
 };
 
@@ -33,7 +40,7 @@ export const removeUser = () => {
  */
 
 export const isPhoneVerified = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user.isPhoneVerified;
   }
@@ -46,7 +53,7 @@ export const isPhoneVerified = (data) => {
  */
 
 export const isEmailVerified = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user.isEmailVerified;
   }
@@ -54,7 +61,7 @@ export const isEmailVerified = (data) => {
 };
 
 export const isProfileCreated = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user.currentBusinessId;
   }
@@ -62,7 +69,7 @@ export const isProfileCreated = (data) => {
 };
 
 export const is2FAEnabled = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user.isTwoFactorAuth;
   }
@@ -70,7 +77,7 @@ export const is2FAEnabled = (data) => {
 };
 
 export const isSuperAdmin = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user.role === ROLES.SUPER_ADMIN.toString();
   }
@@ -79,6 +86,6 @@ export const isSuperAdmin = (data) => {
 
 export const getEmailForURL = (email) => {
   // comment condition for production
-  if (email?.includes('+')) return email.replace('+', '%2B');
+  if (email?.includes("+")) return email.replace("+", "%2B");
   return email;
 };
