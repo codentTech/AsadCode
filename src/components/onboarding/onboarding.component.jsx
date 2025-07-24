@@ -14,8 +14,7 @@ import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 import useOnboarding from "./use-onboarding.hook";
 
 export default function Onboarding() {
-  // const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-  const isCreatorMode = true;
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
   const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAccountType, setSelectedAccountType] = useState("");
