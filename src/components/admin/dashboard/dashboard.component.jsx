@@ -1,8 +1,7 @@
 "use client";
 
-import SidebarLayout from "@/common/layouts/sidebar.layout";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import StatsCards from "./components/stats-cards/stats-cards.component";
-import WaitingList from "./components/waiting-list/waiting-list.component";
 
 const AdminDashboard = () => {
   // Mock data for waiting list
@@ -87,15 +86,15 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <SidebarLayout showDashboardHeader={true}>
+    <DashboardLayout>
       {/* Dashboard Content */}
 
       {/* Stats Cards */}
       <StatsCards users={waitingListUsers} />
 
       {/* Waitlist Table */}
-      <WaitingList users={waitingListUsers} />
-    </SidebarLayout>
+      {/* <WaitingList users={waitingListUsers} /> */}
+    </DashboardLayout>
   );
 };
 

@@ -1,10 +1,10 @@
 "use client";
 
-import DashboardHeader from "@/components/dashboard/components/header/header.component";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import Sidebar from "../components/dashboard/sidebar/sidebar.component";
 import { notificationsMockData } from "../constants/notifications.data.constant";
+import DashboardHeader from "@/components/admin/header/header.component";
 
 export default function SidebarLayout({
   children,

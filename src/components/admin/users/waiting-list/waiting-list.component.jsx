@@ -3,6 +3,7 @@ import CustomDataTable from "@/common/components/custom-data-table/custom-data-t
 import { formatDateBySplit } from "@/common/utils/formate-date";
 import { Download, Eye, Filter, Mail, Trash2, UserCheck } from "lucide-react";
 import useWaitingList from "./use-waiting-list.hook";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 
 const WaitingList = () => {
   const {
@@ -99,42 +100,44 @@ const WaitingList = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Waitlist Management</h3>
-          <div className="flex space-x-3">
-            <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-              <Filter size={16} />
-              <span>Filter</span>
-            </button>
-            <button
-              onClick={handleExport}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
-            >
-              <Download size={16} />
-              <span>Export</span>
-            </button>
+    <DashboardLayout>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Waitlist Management</h3>
+            <div className="flex space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+                <Filter size={16} />
+                <span>Filter</span>
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                <Download size={16} />
+                <span>Export</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Custom Data Table */}
-      <CustomDataTable
-        columns={columns}
-        data={filteredUsers}
-        selectable={true}
-        selectedIds={selectedUsers}
-        searchValue={searchTerm}
-        onSearchChange={handleSearchChange}
-        onSelectionChange={handleSelectionChange}
-        actions={actions}
-        onActionClick={handleActionClick}
-        customCellRenderer={customCellRenderer}
-        emptyMessage="No users found"
-      />
-    </div>
+        {/* Custom Data Table */}
+        <CustomDataTable
+          columns={columns}
+          data={filteredUsers}
+          selectable={true}
+          selectedIds={selectedUsers}
+          searchValue={searchTerm}
+          onSearchChange={handleSearchChange}
+          onSelectionChange={handleSelectionChange}
+          actions={actions}
+          onActionClick={handleActionClick}
+          customCellRenderer={customCellRenderer}
+          emptyMessage="No users found"
+        />
+      </div>
+    </DashboardLayout>
   );
 };
 
