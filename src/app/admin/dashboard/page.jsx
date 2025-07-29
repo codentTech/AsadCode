@@ -2,7 +2,7 @@
 
 import Auth from "@/auth/auth.component";
 import AUTH from "@/common/constants/auth.constant";
-import AdminDashboard from "@/components/dashboard/dashboard.component";
+import AdminDashboard from "@/components/admin/dashboard/dashboard.component";
 import Login from "@/components/login/login.component";
 
 export default function Page() {

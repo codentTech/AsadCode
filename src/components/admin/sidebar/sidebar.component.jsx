@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import useSidebar from "../../../../common/components/dashboard/sidebar/use-sidebar";
+import useSidebar from "./use-sidebar";
 
 function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
   const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();

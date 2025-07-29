@@ -20,7 +20,7 @@ const commonNavItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     isActive: true,
-    href: "/dashboard",
+    href: "/admin/dashboard",
   },
   {
     label: "Notifications",
@@ -48,7 +48,7 @@ const adminNavItems = [
       },
       {
         label: "Waitlist",
-        href: "/admin/waitlist",
+        href: "/admin/users/waitlist",
       },
     ],
   },
