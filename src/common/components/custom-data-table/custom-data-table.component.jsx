@@ -4,6 +4,8 @@ import ThreedotIcon from "@/common/icons/threedot.icon";
 import PropTypes from "prop-types";
 import React from "react";
 import { useCustomDataTable } from "./use-custom-data-table.hook";
+import SearchIcon from "@/common/icons/search-icon";
+import CustomInput from "../custom-input/custom-input.component";
 
 const CustomDataTable = ({
   // Core data props
@@ -177,6 +179,21 @@ const CustomDataTable = ({
 
   return (
     <div className={`bg-white ${className}`}>
+      {searchable && !externalSearch && (
+        <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+          <div className="relative max-w-sm">
+            <CustomInput
+              type="text"
+              name="search"
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              placeholder="Search conversations..."
+              startIcon={<SearchIcon />}
+              className="!h-[36px]"
+            />
+          </div>
+        </div>
+      )}
       {/* Table */}
       <div className="w-full overflow-x-auto relative rounded-lg" style={{ height }}>
         <table className={`w-full ${tableClassName}`}>
