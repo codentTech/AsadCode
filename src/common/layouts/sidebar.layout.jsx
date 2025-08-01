@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import Sidebar from "../components/dashboard/sidebar/sidebar.component";
 import { notificationsMockData } from "../constants/notifications.data.constant";
 import DashboardHeader from "@/components/admin/header/header.component";
+// import Header from "@/components/header/header.component";
 
 export default function SidebarLayout({
   children,

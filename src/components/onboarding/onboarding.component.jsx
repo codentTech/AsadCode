@@ -1,8 +1,5 @@
 "use client";
 
-import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
@@ -14,38 +11,15 @@ import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 import useOnboarding from "./use-onboarding.hook";
 
 export default function Onboarding() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-  const dispatch = useDispatch();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedAccountType, setSelectedAccountType] = useState("");
-
-  // Use onboarding status from API
-  const { step: onboardingStep, role, loading } = useOnboarding();
-
-  useEffect(() => {
-    if (!loading && onboardingStep) {
-      setCurrentStep(onboardingStep || 1);
-      if (role) {
-        setSelectedAccountType(role.toLowerCase());
-        dispatch(setIsCreatorModeMode(role.toLowerCase() === "creator"));
-      }
-    }
-  }, [onboardingStep, role, loading, dispatch]);
-
-  const nextStep = () => {
-    setCurrentStep((prev) => prev + 1);
-  };
-
-  const prevStep = () => {
-    setCurrentStep((prev) => prev - 1);
-  };
-
-  const completeOnboarding = () => {};
-
-  const handleSelectMode = (type) => {
-    setSelectedAccountType(type);
-    dispatch(setIsCreatorModeMode(type === "creator"));
-  };
+  const {
+    currentStep,
+    selectedAccountType,
+    isCreatorMode,
+    nextStep,
+    prevStep,
+    completeOnboarding,
+    handleSelectMode,
+  } = useOnboarding();
 
   const renderStep = () => {
     switch (currentStep) {

@@ -7,9 +7,9 @@ import ROLES from "../constants/role.constant";
  * @returns string | undefined
  */
 
-export const getUser = () => {
+export const getUser = (user) => {
   if (typeof window === "object" && window?.localStorage?.getItem("user")) {
-    return JSON.parse(localStorage.getItem("user"));
+    return user || JSON.parse(localStorage.getItem("user"));
   }
   return undefined;
 };
@@ -19,6 +19,11 @@ export const getOnboardingEmail = () => {
     return localStorage.getItem("email");
   }
   return undefined;
+};
+
+export const isCreatorMode = () => {
+  const user = getUser();
+  return user?.role === ROLES.CREATOR;
 };
 
 /**

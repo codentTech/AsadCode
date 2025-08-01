@@ -1,17 +1,16 @@
-'use client';
+"use client";
 
-import { isJwtExpired } from 'jwt-check-expiration';
-import authService from '@/provider/features/auth/auth.service';
-import { getUser } from './users.util';
+import { isJwtExpired } from "jwt-check-expiration";
+import authService from "@/provider/features/auth/auth.service";
+import { getUser } from "./users.util";
 
 /**
  * Retrive access token from local storage
  * @returns string | undefined
  */
 export const getAccessToken = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
-    const user = data ?? getUser();
-    return user?.loginVerifiedToken?.[0]?.token;
+  if ((typeof window === "object" && localStorage?.getItem("token")) || data) {
+    return JSON.parse(localStorage.getItem("token"));
   }
   return undefined;
 };
@@ -21,7 +20,7 @@ export const getAccessToken = (data) => {
  * @returns bool
  */
 export const isLoginVerified = (data) => {
-  if ((typeof window === 'object' && window?.localStorage?.getItem('user')) || data) {
+  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
     return user?.loginVerifiedToken?.[0]?.isLoginVerified;
   }
@@ -33,10 +32,8 @@ export const isLoginVerified = (data) => {
  * @returns date | undefined
  */
 export const getAccessTokenExpiry = () => {
-  if (typeof window === 'object') {
-    const accessTokenExpiry = JSON.parse(
-      window.localStorage.getItem('accessTokenExpiry')
-    );
+  if (typeof window === "object") {
+    const accessTokenExpiry = JSON.parse(window.localStorage.getItem("accessTokenExpiry"));
     return accessTokenExpiry;
   }
   return null;
@@ -47,7 +44,7 @@ export const getAccessTokenExpiry = () => {
  * @returns false | true
  */
 export const checkForOldToken = async () => {
-  if (typeof window === 'object' && window?.localStorage?.getItem('user')) {
+  if (typeof window === "object" && window?.localStorage?.getItem("user")) {
     if (getUser()?.loginVerifiedToken?.[0].token) {
       const response = await authService.logout();
       return response.Succeeded;
@@ -62,7 +59,7 @@ export const checkForOldToken = async () => {
  * @returns string | null
  */
 export const checkExpiryDateOfToken = () => {
-  if (typeof window === 'object' && window?.localStorage?.getItem('user')) {
+  if (typeof window === "object" && window?.localStorage?.getItem("user")) {
     if (getUser()?.loginVerifiedToken?.[0].token) {
       if (isJwtExpired(getUser()?.loginVerifiedToken?.[0].token) === false) {
         return true;

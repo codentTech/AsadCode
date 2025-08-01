@@ -19,7 +19,7 @@ const api = (headers = null) => {
     : { ...defaultHeaders, ...headers };
 
   const apiInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_MAIN_URL,
+    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
     headers: combinedHeaders,
   });
 
@@ -30,7 +30,7 @@ const api = (headers = null) => {
 
       const isSuccessResponse =
         (method === "get" && endpoint === "generate-otp") ||
-        (["post", "patch", "delete"].includes(method) &&
+        (["post", "patch", "delete", "put"].includes(method) &&
           !["get", "get-all"].includes(endpoint) &&
           !["/upload/single", "/upload/multiple"].includes(response.config.url));
 
