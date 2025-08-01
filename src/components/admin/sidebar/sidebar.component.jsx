@@ -27,7 +27,7 @@ function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           }`}
-          style={{ marginLeft: `${depth * 12}px` }}
+          style={{ marginLeft: `${depth * 1}px` }}
         >
           {label}
         </button>

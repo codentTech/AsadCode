@@ -14,6 +14,8 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ROLES from "@/common/constants/role.constant";
+import { getUser } from "@/common/utils/users.util";
 
 const commonNavItems = [
   {
@@ -257,6 +259,7 @@ function useSidebar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const pathname = usePathname();
+  const currentUser = getUser();
 
   const { isCreatorMode, sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
 
@@ -266,8 +269,12 @@ function useSidebar() {
 
   // Memoize navItems to prevent recreation
   const navItems = useMemo(() => {
-    return isCreatorMode ? creatorNavItems : brandNavItems;
-  }, [isCreatorMode]);
+    return currentUser.role === ROLES.ADMIN
+      ? adminNavItems
+      : currentUser.role === ROLES.CREATOR
+        ? creatorNavItems
+        : brandNavItems;
+  }, [currentUser]);
 
   // Memoize the active item finder function
   const findActiveItemFromPath = useCallback((items, currentPath) => {

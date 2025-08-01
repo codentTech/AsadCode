@@ -4,6 +4,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSelect from "@/common/components/custom-select/custom-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import SidebarLayout from "@/common/layouts/sidebar.layout";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import { updateUser } from "@/provider/features/users/users.slice";
@@ -124,6 +125,7 @@ export default function PersonalInformationPage() {
       const { email, ...updateData } = data;
 
       const result = await dispatch(updateUser(updateData)).unwrap();
+      console.log("🚀 ~ onSubmit ~ result:", result);
 
       if (result.success) {
         setIsLoading(false);
@@ -136,7 +138,7 @@ export default function PersonalInformationPage() {
   };
 
   return (
-    <SidebarLayout>
+    <DashboardLayout>
       <div className="min-h-screen">
         {/* Header */}
         <div className="bg-primary p-4 rounded-lg text-white mb-4">
@@ -338,6 +340,6 @@ export default function PersonalInformationPage() {
           </form>
         </div>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 }

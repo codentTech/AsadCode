@@ -19,7 +19,7 @@ const api = (headers = null) => {
     : { ...defaultHeaders, ...headers };
 
   const apiInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
+    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:3000/api",
     headers: combinedHeaders,
   });
 

@@ -1,7 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
 import { getUser } from "@/common/utils/users.util";
 import { updateCampaignDefaults } from "@/provider/features/users/users.slice";
 import { AddCircle } from "@mui/icons-material";
@@ -158,6 +157,8 @@ const SavedDefaultFilters = () => {
         ],
       };
 
+      console.log("Sending defaults:", defaults);
+
       const result = await dispatch(updateCampaignDefaults(defaults)).unwrap();
 
       if (result.success) {
@@ -167,6 +168,12 @@ const SavedDefaultFilters = () => {
       }
     } catch (error) {
       console.error("Error saving settings:", error);
+      // Show user-friendly error message
+      if (error.response?.data?.message) {
+        console.error("API Error:", error.response.data.message);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
