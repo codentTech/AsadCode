@@ -45,24 +45,24 @@ function Sidebar({ isOpen, onClose }) {
         {/* Section header */}
         <button
           onClick={() => handleItemClick({ hasChildren, currentPath, href, label })}
-          className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors group ${
+          className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors group min-w-0 ${
             activeItem === item?.label
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
               : "text-gray-600 hover:bg-gray-50"
           }`}
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             {Icon && (
               <Icon
                 size={20}
-                className="text-gray-500 group-hover:text-indigo-600 transition-colors"
+                className="text-gray-500 group-hover:text-indigo-600 transition-colors flex-shrink-0"
               />
             )}
-            <span className="font-medium text-sm">{label}</span>
+            <span className="font-medium text-sm truncate">{label}</span>
           </div>
           {hasChildren && (
             <div
-              className={`transform transition-transform duration-200 ${
+              className={`transform transition-transform duration-200 flex-shrink-0 ${
                 isExpanded ? "rotate-90" : ""
               }`}
             >
@@ -75,7 +75,9 @@ function Sidebar({ isOpen, onClose }) {
 
         {/* Render children */}
         {isExpanded && hasChildren && (
-          <div className={`${depth > 0 ? "ml-2" : ""} pl-2 border-l-2 border-gray-200 space-y-1`}>
+          <div
+            className={`${depth > 0 ? "ml-2" : ""} pl-2 border-l-2 border-gray-200 space-y-1 min-w-0`}
+          >
             {children.map((child) => renderNavItem(child, depth + 1, currentPath))}
           </div>
         )}
@@ -89,23 +91,26 @@ function Sidebar({ isOpen, onClose }) {
       <div
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 h-screen flex flex-col`} // Add h-screen and flex-col
+        } lg:translate-x-0 h-screen flex flex-col overflow-hidden`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6">
-          <Link href="/" className="flex items-center cursor-pointer">
+        <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6 min-w-0">
+          <Link href="/" className="flex items-center cursor-pointer min-w-0">
             <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
           </Link>
-          <button onClick={onClose} className="lg:hidden text-black hover:text-indigo-200">
+          <button
+            onClick={onClose}
+            className="lg:hidden text-black hover:text-indigo-200 flex-shrink-0"
+          >
             <X size={24} />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
-          {" "}
-          {/* Ensure this has flex-1 and overflow-y-auto */}
-          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4">
+          <div className="px-4 space-y-2 min-w-0">
+            {navItems?.map((item) => renderNavItem(item))}
+          </div>
         </nav>
       </div>
     </>

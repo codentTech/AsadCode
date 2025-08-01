@@ -114,6 +114,8 @@ const PreferredCollaborationType = () => {
         shippingAddress: shippingAddress,
       };
 
+      console.log("Sending preferences:", preferences);
+
       const result = await dispatch(updateCreatorPreferences(preferences)).unwrap();
 
       if (result.success) {
@@ -123,6 +125,12 @@ const PreferredCollaborationType = () => {
       }
     } catch (error) {
       console.error("Error updating preferences:", error);
+      // Show user-friendly error message
+      if (error.response?.data?.message) {
+        console.error("API Error:", error.response.data.message);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 

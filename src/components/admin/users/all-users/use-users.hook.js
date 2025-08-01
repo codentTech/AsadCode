@@ -1,3 +1,4 @@
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { formatDateBySplit } from "@/common/utils/formate-date";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
@@ -69,6 +70,21 @@ const columns = [
     title: "Status",
     customRender: (row) => (
       <span className="text-neutral-700">{row.is_blocked ? "Blocked" : "Active"}</span>
+    ),
+  },
+  {
+    key: "onboarding_step",
+    title: "Onboarding",
+    customRender: (row) => (
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+          row.onboarding_step === ONBOARDING_STEPS.COMPLETED
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
+        {row.onboarding_step === ONBOARDING_STEPS.COMPLETED ? "Completed" : "In Progress"}
+      </span>
     ),
   },
 ];

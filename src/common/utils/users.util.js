@@ -8,8 +8,9 @@ import ROLES from "../constants/role.constant";
  */
 
 export const getUser = (user) => {
+  user && localStorage.setItem("user", JSON.stringify(user));
   if (typeof window === "object" && window?.localStorage?.getItem("user")) {
-    return user || JSON.parse(localStorage.getItem("user"));
+    return JSON.parse(localStorage.getItem("user"));
   }
   return undefined;
 };
@@ -31,6 +32,7 @@ export const isCreatorMode = () => {
  */
 export const removeUser = () => {
   if (typeof window === "object" && window.localStorage) {
+    localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("isOtpVerify");
     localStorage.removeItem("userId");
@@ -93,4 +95,8 @@ export const getEmailForURL = (email) => {
   // comment condition for production
   if (email?.includes("+")) return email.replace("+", "%2B");
   return email;
+};
+
+export const logout = () => {
+  localStorage.clear();
 };

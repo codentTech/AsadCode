@@ -3,6 +3,8 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { Bell, Menu } from "lucide-react";
 import useHeader from "./use-header.hook";
+import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
+import ROLES from "@/common/constants/role.constant";
 
 const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
   const {
@@ -23,7 +25,13 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
           <button onClick={onMenuClick} className="lg:hidden text-gray-600 hover:text-gray-900">
             <Menu size={24} />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {currentUser.role === ROLES.ADMIN
+              ? "Admin Dashboard"
+              : currentUser.role === ROLES.CREATOR
+                ? "Creator Dashboard"
+                : "Brand Dashboard"}
+          </h2>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -61,14 +69,14 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
                   />
                 ) : (
                   <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {getUserInitials(currentUser.name)}
+                    {getUserInitials(currentUser.first_name)}
                   </div>
                 )}
               </div>
 
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
-                <p className="text-xs text-gray-500">{currentUser.role}</p>
+                <p className="text-sm font-medium text-gray-900">{currentUser.first_name}</p>
+                <p className="text-xs text-gray-500">{capitalizeFirstLetter(currentUser.role)}</p>
               </div>
             </button>
 
@@ -87,12 +95,12 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
                         />
                       ) : (
                         <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                          {getUserInitials(currentUser.name)}
+                          {getUserInitials(currentUser.first_name)}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 text-sm truncate">
-                          {currentUser.name}
+                          {currentUser.first_name} {currentUser.last_name}
                         </p>
                         <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
                       </div>

@@ -3,24 +3,86 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { User } from "lucide-react";
 import { Email } from "@mui/icons-material";
-
+import { formatDateBySplit } from "@/common/utils/formate-date";
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 // Define table columns
 const columns = [
   {
+    key: "first_name",
+    title: "First Name",
+    customRender: (row) => <span className="text-neutral-700">{row.first_name || "N/A"}</span>,
+  },
+  {
+    key: "last_name",
+    title: "Last Name",
+  },
+  {
     key: "email",
     title: "Email",
+    customRender: (row) => (
+      <div className="flex items-center">
+        <div className="flex-shrink-0 h-10 w-10">
+          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+            <Email className="h-5 w-5 text-indigo-600" />
+          </div>
+        </div>
+        <div className="ml-2">
+          <div className="text-sm font-medium text-gray-600">{row.email}</div>
+        </div>
+      </div>
+    ),
   },
   {
     key: "role",
     title: "Role",
+    customRender: (value) => {
+      const getRoleColor = (role) => {
+        switch (role) {
+          case "ADMIN":
+            return "bg-purple-100 text-purple-800";
+          case "BRAND":
+            return "bg-blue-100 text-blue-800";
+          case "CREATOR":
+            return "bg-green-100 text-green-800";
+          default:
+            return "bg-gray-100 text-gray-800";
+        }
+      };
+
+      return (
+        <span
+          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(value.role)}`}
+        >
+          {value.role}
+        </span>
+      );
+    },
   },
   {
     key: "created_at",
     title: "Joined Date",
+    customRender: (row) => (
+      <span className="text-neutral-700">{formatDateBySplit(row.created_at)}</span>
+    ),
   },
   {
     key: "blocked_at",
     title: "Blocked Date",
+  },
+  {
+    key: "onboarding_step",
+    title: "Onboarding",
+    customRender: (row) => (
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+          row.onboarding_step === ONBOARDING_STEPS.COMPLETED
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
+        {row.onboarding_step === ONBOARDING_STEPS.COMPLETED ? "Completed" : "In Progress"}
+      </span>
+    ),
   },
 ];
 
