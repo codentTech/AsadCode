@@ -266,11 +266,7 @@ function useSidebar() {
 
   // Memoize navItems to prevent recreation
   const navItems = useMemo(() => {
-    // Check if user is admin (you'll need to add this logic based on your auth state)
-    const isAdmin = true; // This should come from your auth state
-    if (isAdmin) {
-      return adminNavItems;
-    }
+    console.log("🚀 ~ useSidebar ~ isCreatorMode:", isCreatorMode);
     return isCreatorMode ? creatorNavItems : brandNavItems;
   }, [isCreatorMode]);
 

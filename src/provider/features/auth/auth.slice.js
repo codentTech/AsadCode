@@ -36,6 +36,7 @@ export const login = createAsyncThunk("auth/login", async (payload, thunkAPI) =>
     return thunkAPI.rejectWithValue({ payload: error });
   }
 });
+
 // signUp user
 export const signUp = createAsyncThunk("auth/register", async (payload, thunkAPI) => {
   try {

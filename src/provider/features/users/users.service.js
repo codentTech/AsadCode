@@ -1,7 +1,52 @@
 import api from "@/common/utils/api";
+import { getUser } from "@/common/utils/users.util";
 
 const getAllUsers = async () => {
   const response = await api().get("/user");
+  return response.data;
+};
+
+const updateUser = async (userData) => {
+  const response = await api().put("/user/update", userData);
+  if (response.data.Succeeded) {
+    // Update user in localStorage with new data
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const updatedUser = { ...currentUser, ...response.data.data };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
+  return response.data;
+};
+
+const getUserById = async (userId) => {
+  const response = await api().get(`/user/${userId}`);
+  return response.data;
+};
+
+const updateCreatorPreferences = async (preferences) => {
+  const user = getUser();
+  const response = await api().post(
+    `/auth/onboarding/creator/campaign-preferences?email=${encodeURIComponent(user.email)}`,
+    preferences
+  );
+  if (response.data.success) {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const updatedUser = { ...currentUser, ...response.data.data };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
+  return response.data;
+};
+
+const updateCampaignDefaults = async (defaults) => {
+  const user = getUser();
+  const response = await api().post(
+    `/auth/onboarding/creator/profile-setup?email=${encodeURIComponent(user.email)}`,
+    defaults
+  );
+  if (response.data.success) {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const updatedUser = { ...currentUser, ...response.data.data };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
   return response.data;
 };
 
@@ -27,6 +72,10 @@ const isUserBlocked = async (userId) => {
 
 const usersService = {
   getAllUsers,
+  updateUser,
+  getUserById,
+  updateCreatorPreferences,
+  updateCampaignDefaults,
   toggleBlockUser,
   adminToggleBlockUser,
   getBlockedUsers,

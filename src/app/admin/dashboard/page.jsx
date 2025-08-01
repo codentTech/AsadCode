@@ -6,5 +6,5 @@ import AdminDashboard from "@/components/admin/dashboard/dashboard.component";
 import Login from "@/components/login/login.component";
 
 export default function Page() {
-  return <Auth component={<AdminDashboard />} type={AUTH.AUTH_MAIN_ROUTES} />;
+  return <Auth component={<AdminDashboard />} type={AUTH.PRIVATE} />;
 }

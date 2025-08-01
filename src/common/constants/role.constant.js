@@ -1,7 +1,7 @@
 const ROLES = Object.freeze({
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  BUSINESS_OWNER: 'BUSINESS_OWNER',
-  ADMIN: 'ADMIN'
+  ADMIN: "ADMIN",
+  BRAND: "ADMIN",
+  CREATOR: "CREATOR",
 });
 
 export default ROLES;

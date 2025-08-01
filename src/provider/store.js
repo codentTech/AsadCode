@@ -2,7 +2,6 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./features/auth/auth.slice";
-import userReducer from "./features/user/user.slice";
 import onboardingReducer from "./features/onboarding/onboarding.slice";
 import usersReducer from "./features/users/users.slice";
 
@@ -14,7 +13,6 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  user: userReducer,
   onboarding: onboardingReducer,
   users: usersReducer,
 });
@@ -29,6 +27,7 @@ export const store = configureStore({
         ignoredActions: ["persist/PERSIST"],
       },
     }),
+  devTools: process.env.NODE_ENV !== "production",
 });
 
 export const persistor = persistStore(store);

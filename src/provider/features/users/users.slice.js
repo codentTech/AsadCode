@@ -11,6 +11,10 @@ const generalState = {
 
 const initialState = {
   getAllUsers: { ...generalState },
+  updateUser: { ...generalState },
+  getUserById: { ...generalState },
+  updateCreatorPreferences: { ...generalState },
+  updateCampaignDefaults: { ...generalState },
   toggleBlockUser: { ...generalState },
   adminToggleBlockUser: { ...generalState },
   getBlockedUsers: { ...generalState },
@@ -28,6 +32,60 @@ export const getAllUsers = createAsyncThunk("users/getAllUsers", async (_, thunk
     return thunkAPI.rejectWithValue(error);
   }
 });
+
+export const updateUser = createAsyncThunk("users/updateUser", async (data, thunkAPI) => {
+  try {
+    const response = await usersService.updateUser(data);
+    if (response.success) {
+      return response;
+    }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error);
+  }
+});
+
+export const getUserById = createAsyncThunk("users/getUserById", async (userId, thunkAPI) => {
+  try {
+    const response = await usersService.getUserById(userId);
+    if (response.success) {
+      return response;
+    }
+    return thunkAPI.rejectWithValue(response);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error);
+  }
+});
+
+export const updateCreatorPreferences = createAsyncThunk(
+  "users/updateCreatorPreferences",
+  async (preferences, thunkAPI) => {
+    try {
+      const response = await usersService.updateCreatorPreferences(preferences);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const updateCampaignDefaults = createAsyncThunk(
+  "users/updateCampaignDefaults",
+  async (defaults, thunkAPI) => {
+    try {
+      const response = await usersService.updateCampaignDefaults(defaults);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
 
 export const toggleBlockUser = createAsyncThunk("users/toggleBlockUser", async (data, thunkAPI) => {
   try {
@@ -86,6 +144,10 @@ export const usersSlice = createSlice({
   reducers: {
     reset: (state) => {
       state.getAllUsers = { ...generalState };
+      state.updateUser = { ...generalState };
+      state.getUserById = { ...generalState };
+      state.updateCreatorPreferences = { ...generalState };
+      state.updateCampaignDefaults = { ...generalState };
       state.toggleBlockUser = { ...generalState };
       state.adminToggleBlockUser = { ...generalState };
       state.getBlockedUsers = { ...generalState };
@@ -107,6 +169,84 @@ export const usersSlice = createSlice({
         state.getAllUsers.isLoading = false;
         state.getAllUsers.isError = true;
         state.getAllUsers.message = action.payload;
+      })
+      // updateUser
+      .addCase(updateUser.pending, (state) => {
+        if (state.updateUser) {
+          state.updateUser.isLoading = true;
+          state.updateUser.message = "";
+          state.updateUser.isError = false;
+          state.updateUser.isSuccess = false;
+          state.updateUser.data = null;
+        }
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        if (state.updateUser) {
+          state.updateUser.isLoading = false;
+          state.updateUser.isSuccess = true;
+          state.updateUser.data = action.payload;
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        if (state.updateUser) {
+          state.updateUser.isLoading = false;
+          state.updateUser.isError = true;
+          state.updateUser.message = action.payload;
+        }
+      })
+      // getUserById
+      .addCase(getUserById.pending, (state) => {
+        state.getUserById.isLoading = true;
+      })
+      .addCase(getUserById.fulfilled, (state, action) => {
+        state.getUserById.isLoading = false;
+        state.getUserById.isSuccess = true;
+        state.getUserById.data = action.payload;
+      })
+      .addCase(getUserById.rejected, (state, action) => {
+        state.getUserById.isLoading = false;
+        state.getUserById.isError = true;
+        state.getUserById.message = action.payload;
+      })
+      // updateCreatorPreferences
+      .addCase(updateCreatorPreferences.pending, (state) => {
+        if (state.updateCreatorPreferences) {
+          state.updateCreatorPreferences.isLoading = true;
+        }
+      })
+      .addCase(updateCreatorPreferences.fulfilled, (state, action) => {
+        if (state.updateCreatorPreferences) {
+          state.updateCreatorPreferences.isLoading = false;
+          state.updateCreatorPreferences.isSuccess = true;
+          state.updateCreatorPreferences.data = action.payload;
+        }
+      })
+      .addCase(updateCreatorPreferences.rejected, (state, action) => {
+        if (state.updateCreatorPreferences) {
+          state.updateCreatorPreferences.isLoading = false;
+          state.updateCreatorPreferences.isError = true;
+          state.updateCreatorPreferences.message = action.payload;
+        }
+      })
+      // updateCampaignDefaults
+      .addCase(updateCampaignDefaults.pending, (state) => {
+        if (state.updateCampaignDefaults) {
+          state.updateCampaignDefaults.isLoading = true;
+        }
+      })
+      .addCase(updateCampaignDefaults.fulfilled, (state, action) => {
+        if (state.updateCampaignDefaults) {
+          state.updateCampaignDefaults.isLoading = false;
+          state.updateCampaignDefaults.isSuccess = true;
+          state.updateCampaignDefaults.data = action.payload;
+        }
+      })
+      .addCase(updateCampaignDefaults.rejected, (state, action) => {
+        if (state.updateCampaignDefaults) {
+          state.updateCampaignDefaults.isLoading = false;
+          state.updateCampaignDefaults.isError = true;
+          state.updateCampaignDefaults.message = action.payload;
+        }
       })
       // toggleBlockUser
       .addCase(toggleBlockUser.pending, (state) => {

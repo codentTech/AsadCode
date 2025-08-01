@@ -6,6 +6,7 @@ const useHeader = () => {
   const router = useRouter();
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  // const currentUser = useSelector((state) => state.auth.user);
 
   const currentUser = {
     name: "John Doe",

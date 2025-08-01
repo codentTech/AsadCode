@@ -1,4 +1,3 @@
-import { addUserToWaitlist } from "@/provider/features/user/user.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -6,9 +5,7 @@ import { useDispatch } from "react-redux";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required"),
+  email: Yup.string().email("Invalid email address").required("Email is required"),
 });
 
 function useJoinCleercut() {
@@ -26,17 +23,17 @@ function useJoinCleercut() {
   });
 
   const onSubmit = async (values) => {
-    setLoading(true);
-    const response = await dispatch(
-      addUserToWaitlist({
-        payload: { ...values },
-        setLoading,
-      })
-    );
-    response && setLoading(false);
-    if (response.payload?.success) {
-      setIsSubmitted(true);
-    }
+    // setLoading(true);
+    // const response = await dispatch(
+    //   addUserToWaitlist({
+    //     payload: { ...values },
+    //     setLoading,
+    //   })
+    // );
+    // response && setLoading(false);
+    // if (response.payload?.success) {
+    //   setIsSubmitted(true);
+    // }
   };
 
   return { loading, register, handleSubmit, onSubmit, errors, isSubmitted };
