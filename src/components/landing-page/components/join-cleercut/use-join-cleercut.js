@@ -1,3 +1,4 @@
+import { addUserToWaitlist } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -23,17 +24,12 @@ function useJoinCleercut() {
   });
 
   const onSubmit = async (values) => {
-    // setLoading(true);
-    // const response = await dispatch(
-    //   addUserToWaitlist({
-    //     payload: { ...values },
-    //     setLoading,
-    //   })
-    // );
-    // response && setLoading(false);
-    // if (response.payload?.success) {
-    //   setIsSubmitted(true);
-    // }
+    setLoading(true);
+    const response = await dispatch(addUserToWaitlist(values));
+    response && setLoading(false);
+    if (response.payload?.success) {
+      setIsSubmitted(true);
+    }
   };
 
   return { loading, register, handleSubmit, onSubmit, errors, isSubmitted };

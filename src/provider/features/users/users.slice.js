@@ -19,6 +19,7 @@ const initialState = {
   adminToggleBlockUser: { ...generalState },
   getBlockedUsers: { ...generalState },
   isUserBlocked: { ...generalState },
+  addUserToWaitlist: { ...generalState },
 };
 
 export const getAllUsers = createAsyncThunk("users/getAllUsers", async (_, thunkAPI) => {
@@ -138,6 +139,22 @@ export const isUserBlocked = createAsyncThunk("users/isUserBlocked", async (user
   }
 });
 
+export const addUserToWaitlist = createAsyncThunk(
+  "users/addUserToWaitlist",
+  async (payload, thunkAPI) => {
+    console.log("🚀 ~ payload:", payload);
+    try {
+      const response = await usersService.addUserToWaitlist(payload);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
 export const usersSlice = createSlice({
   name: "users",
   initialState,
@@ -152,6 +169,7 @@ export const usersSlice = createSlice({
       state.adminToggleBlockUser = { ...generalState };
       state.getBlockedUsers = { ...generalState };
       state.isUserBlocked = { ...generalState };
+      state.addUserToWaitlist = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -303,6 +321,26 @@ export const usersSlice = createSlice({
         state.isUserBlocked.isLoading = false;
         state.isUserBlocked.isError = true;
         state.isUserBlocked.message = action.payload;
+      })
+      // add user to waiting list
+      .addCase(addUserToWaitlist.pending, (state) => {
+        if (state.addUserToWaitlist) {
+          state.addUserToWaitlist.isLoading = true;
+        }
+      })
+      .addCase(addUserToWaitlist.fulfilled, (state, action) => {
+        if (state.addUserToWaitlist) {
+          state.addUserToWaitlist.isLoading = false;
+          state.addUserToWaitlist.isSuccess = true;
+          state.addUserToWaitlist.data = action.payload;
+        }
+      })
+      .addCase(addUserToWaitlist.rejected, (state, action) => {
+        if (state.addUserToWaitlist) {
+          state.addUserToWaitlist.isLoading = false;
+          state.addUserToWaitlist.isError = true;
+          state.addUserToWaitlist.message = action.payload;
+        }
       });
   },
 });

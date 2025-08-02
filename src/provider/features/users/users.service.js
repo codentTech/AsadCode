@@ -70,6 +70,19 @@ const isUserBlocked = async (userId) => {
   return response.data;
 };
 
+const addUserToWaitlist = async (email) => {
+  const response = await api().post("/user/waitlist", email);
+  return response.data;
+};
+
+const getCurrentUser = async () => {
+  const response = await api().get("/user");
+  if (response.data.Succeeded) {
+    localStorage.setItem("user", JSON.stringify({ ...response.data.data }));
+  }
+  return response.data;
+};
+
 const usersService = {
   getAllUsers,
   updateUser,
@@ -80,6 +93,7 @@ const usersService = {
   adminToggleBlockUser,
   getBlockedUsers,
   isUserBlocked,
+  addUserToWaitlist,
 };
 
 export default usersService;
