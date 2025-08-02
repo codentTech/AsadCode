@@ -78,12 +78,16 @@ const columns = [
     customRender: (row) => (
       <span
         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          row.onboarding_step === ONBOARDING_STEPS.COMPLETED
+          row.onboarding_step === ONBOARDING_STEPS.COMPLETED ||
+          row.onboarding_step === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES
             ? "bg-green-100 text-green-800"
             : "bg-red-100 text-red-800"
         }`}
       >
-        {row.onboarding_step === ONBOARDING_STEPS.COMPLETED ? "Completed" : "In Progress"}
+        {row.onboarding_step === ONBOARDING_STEPS.COMPLETED ||
+        row.onboarding_step === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES
+          ? "Completed"
+          : "In Progress"}
       </span>
     ),
   },
