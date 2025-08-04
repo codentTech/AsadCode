@@ -6,7 +6,7 @@ const login = async (userData) => {
   const { data } = await api().post("/auth/login", userData);
   const response = data?.data;
   if (response) localStorage.setItem("user", JSON.stringify(response.user));
-  if (response) localStorage.setItem("token", JSON.stringify(response.token));
+  if (response) localStorage.setItem("token", response.token);
   return data;
 };
 
