@@ -26,9 +26,9 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
             <Menu size={24} />
           </button>
           <h2 className="text-2xl font-bold text-gray-900">
-            {currentUser.role === ROLES.ADMIN
+            {currentUser?.role === ROLES.ADMIN
               ? "Admin Dashboard"
-              : currentUser.role === ROLES.CREATOR
+              : currentUser?.role === ROLES.CREATOR
                 ? "Creator Dashboard"
                 : "Brand Dashboard"}
           </h2>
@@ -61,22 +61,22 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
               className="flex items-center space-x-2 p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <div className="relative">
-                {currentUser.avatar ? (
+                {currentUser?.avatar ? (
                   <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
+                    src={currentUser?.avatar}
+                    alt={currentUser?.name}
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {getUserInitials(currentUser.first_name)}
+                    {getUserInitials(currentUser?.first_name)}
                   </div>
                 )}
               </div>
 
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-gray-900">{currentUser.first_name}</p>
-                <p className="text-xs text-gray-500">{capitalizeFirstLetter(currentUser.role)}</p>
+                <p className="text-sm font-medium text-gray-900">{currentUser?.first_name}</p>
+                <p className="text-xs text-gray-500">{capitalizeFirstLetter(currentUser?.role)}</p>
               </div>
             </button>
 
@@ -87,22 +87,22 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
                 <div className="absolute top-12 right-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                   <div className="p-3 border-b border-gray-100">
                     <div className="flex items-center space-x-3">
-                      {currentUser.avatar ? (
+                      {currentUser?.avatar ? (
                         <img
-                          src={currentUser.avatar}
-                          alt={currentUser.name}
+                          src={currentUser?.avatar}
+                          alt={currentUser?.name}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                          {getUserInitials(currentUser.first_name)}
+                          {getUserInitials(currentUser?.first_name)}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 text-sm truncate">
-                          {currentUser.first_name} {currentUser.last_name}
+                          {currentUser?.first_name} {currentUser?.last_name}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                        <p className="text-xs text-gray-500 truncate">{currentUser?.email}</p>
                       </div>
                     </div>
                   </div>

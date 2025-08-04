@@ -19,7 +19,7 @@ const useHeader = () => {
 
   const getUserInitials = (name) =>
     name
-      .split(" ")
+      ?.split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase();

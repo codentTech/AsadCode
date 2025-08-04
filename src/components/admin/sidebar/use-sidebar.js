@@ -269,25 +269,29 @@ function useSidebar() {
 
   // Memoize navItems to prevent recreation
   const navItems = useMemo(() => {
-    return currentUser.role === ROLES.ADMIN
-      ? adminNavItems
-      : currentUser.role === ROLES.CREATOR
-        ? creatorNavItems
-        : brandNavItems;
+    if (currentUser) {
+      return currentUser.role === ROLES.ADMIN
+        ? adminNavItems
+        : currentUser.role === ROLES.CREATOR
+          ? creatorNavItems
+          : brandNavItems;
+    }
   }, [currentUser]);
 
   // Memoize the active item finder function
   const findActiveItemFromPath = useCallback((items, currentPath) => {
-    for (const item of items) {
-      if (item.href === currentPath) {
-        return item.label;
+    if (items?.length) {
+      for (const item of items) {
+        if (item.href === currentPath) {
+          return item.label;
+        }
+        if (item.children) {
+          const found = findActiveItemFromPath(item.children, currentPath);
+          if (found) return found;
+        }
       }
-      if (item.children) {
-        const found = findActiveItemFromPath(item.children, currentPath);
-        if (found) return found;
-      }
+      return null;
     }
-    return null;
   }, []);
 
   // Only update active item when pathname changes

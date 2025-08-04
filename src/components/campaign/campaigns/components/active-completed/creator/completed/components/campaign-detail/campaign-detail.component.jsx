@@ -5,7 +5,7 @@ import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "lucide-react";
 import { useState } from "react";
 
-const CampaignDetail = ({ campaigns, selectedCampaign }) => {
+const CampaignDetail = ({ campaign, selectedCampaign }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
@@ -14,7 +14,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
     captions: false,
   });
 
-  const campaign = campaigns?.[selectedCampaign];
+  console.log("🚀 ~ CampaignDetail ~ campaign:", campaign);
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -117,14 +117,18 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-              {campaign.logo}
+              <img
+                src={campaign?.brand?.logo}
+                alt={campaign?.brand?.logo}
+                className="object-cover"
+              />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{campaign.brand}</h2>
-              <p className="text-sm text-gray-600">{campaign.title}</p>
+              <h2 className="text-lg font-semibold text-gray-900">{campaign?.brand?.name}</h2>
+              <p className="text-sm text-gray-600">{campaign?.title}</p>
               <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                <span>{formatDate(campaign.deadline)}</span>
+                <span>{campaign?.deadline}</span>
               </div>
             </div>
           </div>
@@ -135,11 +139,11 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
             <div
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
             >
-              {campaign.type}
+              {campaign?.type}
             </div>
             <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
-              <div>{campaign.compensation} -</div>
-              <div>{campaign.compensationAmount}</div>
+              <div>{campaign?.compensation} -</div>
+              <div>{campaign?.compensationAmount}</div>
             </div>
           </div>
         </div>
@@ -156,14 +160,14 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-900">Do's and Don'ts</span>
                 </div>
-                {expandedSections.dosdonts ? (
+                {expandedSections?.dosdonts ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {expandedSections.dosdonts && (
+              {expandedSections?.dosdonts && (
                 <div className="p-3 bg-white border-t border-gray-200">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -172,7 +176,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
                         Do's
                       </h4>
                       <ul className="space-y-1">
-                        {campaignInfo.dosdonts.dos.map((item, index) => (
+                        {campaignInfo?.dosdonts?.dos?.map((item, index) => (
                           <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
                             <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
                             {item}
@@ -186,7 +190,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
                         Don'ts
                       </h4>
                       <ul className="space-y-1">
-                        {campaignInfo.dosdonts.donts.map((item, index) => (
+                        {campaignInfo?.dosdonts?.donts?.map((item, index) => (
                           <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
                             <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
                             {item}
@@ -295,7 +299,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
           <h3 className="text-sm font-medium text-gray-900 mb-2">Deliverables</h3>
           <div className="bg-gray-100 rounded-lg p-3">
             <div className="flex flex-wrap gap-1">
-              {campaign.deliverables.map((item, index) => (
+              {campaign?.deliverables?.map((item, index) => (
                 <span
                   key={index}
                   className="bg-white text-xs text-gray-700 px-2 py-1 rounded border flex items-center gap-1"
@@ -311,7 +315,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
         {/* Description */}
         <div className="border-l-2 border-primary my-5">
           <p className="text-xs text-gray-600 line-clamp-2 ml-2">
-            <span className="font-bold">Description:</span> {campaign.description}
+            <span className="font-bold">Description:</span> {campaign?.description}
           </p>
         </div>
 
@@ -323,15 +327,15 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
               <div className="w-24 bg-gray-200 rounded-full h-1.5">
                 <div
                   className="bg-primary h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${campaign.completionRate}%` }}
+                  style={{ width: `${campaign?.completionRate}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-gray-600">{campaign.completionRate}%</span>
+              <span className="text-xs font-medium text-gray-600">{campaign?.completionRate}%</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            {campaign.progress.map((item, index) => (
+            {campaign?.progress?.map((item, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
@@ -410,7 +414,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
       >
         <div>
           <div className="space-y-3 mb-4">
-            {campaigns[selectedCampaign].progress.map((item, index) => (
+            {campaign?.progress?.map((item, index) => (
               <div key={index} className="flex items-center">
                 <input
                   type="checkbox"
