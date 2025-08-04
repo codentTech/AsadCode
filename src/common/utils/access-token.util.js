@@ -10,7 +10,7 @@ import { getUser } from "./users.util";
  */
 export const getAccessToken = (data) => {
   if ((typeof window === "object" && localStorage?.getItem("token")) || data) {
-    return JSON.parse(localStorage.getItem("token"));
+    return localStorage.getItem("token");
   }
   return undefined;
 };
