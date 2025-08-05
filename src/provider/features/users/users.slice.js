@@ -142,7 +142,6 @@ export const isUserBlocked = createAsyncThunk("users/isUserBlocked", async (user
 export const addUserToWaitlist = createAsyncThunk(
   "users/addUserToWaitlist",
   async (payload, thunkAPI) => {
-    console.log("🚀 ~ payload:", payload);
     try {
       const response = await usersService.addUserToWaitlist(payload);
       if (response.success) {

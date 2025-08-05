@@ -1,5 +1,6 @@
 "use client";
 
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import ROLES from "../constants/role.constant";
 
 /**
@@ -25,6 +26,10 @@ export const getOnboardingEmail = () => {
 export const isCreatorMode = () => {
   const user = getUser();
   return user?.role === ROLES.CREATOR;
+};
+
+export const isOnboardingCompleted = (user) => {
+  return user?.onboarding_step == ONBOARDING_STEPS.COMPLETED;
 };
 
 /**
