@@ -23,12 +23,12 @@ const schema = yup.object().shape({
   date_of_birth: yup.string().required("Date of birth is required"),
   city: yup.string().required("City is required"),
   country: yup.string().required("Country is required"),
-  // account_type: yup.string().required("Account type is required"),
-  // creator_type: yup.string().when("account_type", {
-  //   is: "creator",
-  //   then: (schema) => schema.required("Creator type is required"),
-  //   otherwise: (schema) => schema.optional(),
-  // }),
+  account_type: yup.string().required("Account type is required"),
+  creator_type: yup.string().when("account_type", {
+    is: !isCreatorMode,
+    then: (schema) => schema.required("Creator type is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
 });
 
 export default function PersonalInformationPage() {
@@ -58,7 +58,6 @@ export default function PersonalInformationPage() {
       creator_type: "",
     },
   });
-  console.log("🚀 ~ PersonalInformationPage ~ errors:", errors);
 
   const accountType = watch("account_type");
 
@@ -125,7 +124,6 @@ export default function PersonalInformationPage() {
       const { email, ...updateData } = data;
 
       const result = await dispatch(updateUser(updateData)).unwrap();
-      console.log("🚀 ~ onSubmit ~ result:", result);
 
       if (result.success) {
         setIsLoading(false);
@@ -275,8 +273,8 @@ export default function PersonalInformationPage() {
                     </h2>
                   </div>
 
-                  <div className="space-y-4">
-                    <CustomSelect
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <SimpleSelect
                       label="Account Type"
                       name="account_type"
                       register={register}
@@ -284,21 +282,17 @@ export default function PersonalInformationPage() {
                       options={accountTypeOptions}
                       placeholder="Select your account type"
                       isRequired={true}
-                      startIcon={<Building2 className="h-4 w-4" />}
                     />
 
-                    {accountType === "creator" && (
-                      <CustomSelect
-                        label="Creator Type"
-                        name="creator_type"
-                        register={register}
-                        errors={errors}
-                        options={creatorTypeOptions}
-                        placeholder="Select your creator type"
-                        isRequired={true}
-                        startIcon={<User className="h-4 w-4" />}
-                      />
-                    )}
+                    <SimpleSelect
+                      label="Creator Type"
+                      name="creator_type"
+                      register={register}
+                      errors={errors}
+                      options={creatorTypeOptions}
+                      placeholder="Select your creator type"
+                      isRequired={true}
+                    />
                   </div>
                 </div>
               </>

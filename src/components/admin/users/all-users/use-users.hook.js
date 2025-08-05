@@ -1,5 +1,6 @@
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { formatDateBySplit } from "@/common/utils/formate-date";
+import { isOnboardingCompleted } from "@/common/utils/users.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
 import { useEffect, useState } from "react";
@@ -78,16 +79,10 @@ const columns = [
     customRender: (row) => (
       <span
         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          row.onboarding_step === ONBOARDING_STEPS.COMPLETED ||
-          row.onboarding_step === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES
-            ? "bg-green-100 text-green-800"
-            : "bg-red-100 text-red-800"
+          isOnboardingCompleted(row) ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
         }`}
       >
-        {row.onboarding_step === ONBOARDING_STEPS.COMPLETED ||
-        row.onboarding_step === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES
-          ? "Completed"
-          : "In Progress"}
+        {isOnboardingCompleted(row) ? "Completed" : "In Progress"}
       </span>
     ),
   },

@@ -24,10 +24,18 @@ const setupBrandIdealCreator = async (data, email) => {
   return response.data;
 };
 
+const getBrandProfile = async (email) => {
+  const response = await api().get(
+    `/auth/onboarding/brand/profile-setup?email=${encodeURIComponent(email)}`
+  );
+  return response.data;
+};
+
 const brandProfileService = {
   setupBrandProfile,
   setupBrandCampaignPreferences,
   setupBrandIdealCreator,
+  getBrandProfile,
 };
 
 export default brandProfileService;
