@@ -8,7 +8,12 @@ const useHeader = () => {
   const router = useRouter();
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const currentUser = getUser();
+  const currentUser = getUser() || {
+    first_name: "John Doe",
+    email: "john.doe@company.com",
+    avatar: null,
+    role: "Admin",
+  };
 
   // const currentUser = {
   //   name: "John Doe",

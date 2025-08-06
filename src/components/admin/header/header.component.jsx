@@ -64,7 +64,7 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
                 {currentUser?.avatar ? (
                   <img
                     src={currentUser?.avatar}
-                    alt={currentUser?.name}
+                    alt={currentUser?.first_name}
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (

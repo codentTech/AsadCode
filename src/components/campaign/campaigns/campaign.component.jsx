@@ -1,3 +1,4 @@
+import HeaderLayout from "@/common/layouts/header.layout";
 import ActiveCompleted from "./components/active-completed/active-completed.component";
 import CampaignApplication from "./components/applications/applications.component";
 import Discover from "./components/discover/discover.component";
@@ -8,7 +9,7 @@ export default function Campaign() {
   const { activeTab, setActiveTab, mainTabs } = useCampaign();
 
   return (
-    <div className="max-h-screen">
+    <HeaderLayout>
       <div className="h-screen overflow-hidden shadow-xl border border-gray-200">
         {/* Top navigation - streamlined and modern */}
         <div className="py-3 flex items-center bg-white border-b">
@@ -17,7 +18,7 @@ export default function Campaign() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-2 py-2 mx-1 text-sm font-bold transition-all relative ${
+                className={`px-2 py-2 mx-1 text-sm transition-all relative ${
                   activeTab === tab.id ? "text-primary" : "text-gray-600 hover:text-primary"
                 }`}
               >
@@ -42,6 +43,6 @@ export default function Campaign() {
           <Discover />
         )}
       </div>
-    </div>
+    </HeaderLayout>
   );
 }
