@@ -473,12 +473,12 @@ const DefaultCampaignRequirements = () => {
                         }
                         className={`
                               p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
-                              ${
-                                isSelected
-                                  ? "border-indigo-500 bg-indigo-50"
-                                  : "border-gray-200 hover:border-indigo-200"
-                              }
-                            `}
+                        ${
+                          isSelected
+                            ? "border-indigo-500 bg-indigo-50"
+                            : "border-gray-200 hover:border-indigo-200"
+                        }
+                      `}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
@@ -641,12 +641,12 @@ const DefaultCampaignRequirements = () => {
                         }
                         className={`
                               p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
-                              ${
-                                isSelected
-                                  ? "border-indigo-500 bg-indigo-50"
-                                  : "border-gray-200 hover:border-indigo-200"
-                              }
-                            `}
+                        ${
+                          isSelected
+                            ? "border-indigo-500 bg-indigo-50"
+                            : "border-gray-200 hover:border-indigo-200"
+                        }
+                      `}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-3">
