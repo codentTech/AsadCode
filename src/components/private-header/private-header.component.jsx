@@ -21,21 +21,24 @@ function Header() {
   };
 
   return (
-    <nav className="fixed w-full z-50 transition-all duration-300 bg-white py-5">
-      <div className="px-2 flex justify-start items-center">
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+    <header className="fixed top-0 left-0 w-full z-50 bg-primary shadow-sm border-b">
+      <div className="flex items-center h-12">
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center space-x-6">
           {links.map(({ href, label, openInNewTab }) => {
-            const isActive = pathname === href || (href.includes("#") && pathname === "/"); // for anchor links like /#features
+            const isActive = pathname === href || (href.includes("#") && pathname === "/");
+
+            const baseStyles =
+              "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";
+            const activeStyles = "text-primary bg-white";
+            const inactiveStyles = "text-white hover:text-primary hover:bg-gray-100";
 
             if (openInNewTab) {
               return (
                 <button
                   key={href}
                   onClick={handleInboxClick}
-                  className={`font-medium transition cursor-pointer ${
-                    isActive ? "text-indigo-600" : "text-gray-600 hover:text-indigo-600"
-                  }`}
+                  className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
                 >
                   {label}
                 </button>
@@ -47,17 +50,15 @@ function Header() {
                 key={href}
                 href={href}
                 prefetch={true}
-                className={`font-medium transition cursor-pointer ${
-                  isActive ? "text-indigo-600" : "text-gray-600 hover:text-indigo-600"
-                }`}
+                className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
               >
                 {label}
               </Link>
             );
           })}
-        </div>
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }
 

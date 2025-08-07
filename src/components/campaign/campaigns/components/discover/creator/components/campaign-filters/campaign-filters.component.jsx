@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import {
@@ -8,7 +9,6 @@ import {
 } from "@/common/constants/options.constant";
 import { ChevronDown, ChevronUp, Filter, RotateCcw } from "lucide-react";
 import useCampaignFilter from "./use-campaign-filter.hook";
-import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 
 function CampaignFilters() {
   const {

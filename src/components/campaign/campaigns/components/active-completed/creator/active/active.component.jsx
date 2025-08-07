@@ -76,7 +76,7 @@ const ActiveCampaign = () => {
   ];
 
   return (
-    <div className="relative flex flex-1 overflow-hidden">
+    <div className="relative flex">
       {/* Left Column - Campaign List */}
       <CampaignList
         campaigns={campaigns}

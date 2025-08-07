@@ -14,8 +14,6 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
     captions: false,
   });
 
-  console.log("🚀 ~ CampaignDetail ~ campaign:", campaign);
-
   const { getPlatformIcon } = useGetplatform();
 
   const formatDate = (dateString) => {
@@ -111,7 +109,7 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
   const typeStyle = getCampaignTypeStyle(campaign?.type);
 
   return (
-    <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
+    <div className="w-full h-screen bg-white flex-1 flex flex-col overflow-y-auto">
       <div className="p-4 space-y-4">
         {/* Header Section */}
         <div className="flex items-start justify-between">

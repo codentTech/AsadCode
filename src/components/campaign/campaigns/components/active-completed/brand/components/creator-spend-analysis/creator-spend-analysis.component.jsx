@@ -57,7 +57,7 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const costPerEngagement = "10,000";
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gray-100 pb-20">
+    <div className="flex-1 flex flex-col h-screen bg-gray-100">
       {/* Header */}
 
       {/* Compact Header */}
