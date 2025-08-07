@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 function useChatList() {
   const [selectedChat, setSelectedChat] = useState("Sam Waters");
