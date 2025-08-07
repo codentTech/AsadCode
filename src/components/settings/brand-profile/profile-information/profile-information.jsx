@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
-import * as Yup from "yup";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import { Building2, Upload, Camera, Globe, MapPin } from "lucide-react";
-import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
+import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Camera, MapPin, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
   brandName: Yup.string().required("Brand name is required"),
@@ -21,14 +21,14 @@ const validationSchema = Yup.object().shape({
 });
 
 const countries = [
-  { value: "us", label: "🇺🇸 United States" },
-  { value: "uk", label: "🇬🇧 United Kingdom" },
-  { value: "ca", label: "🇨🇦 Canada" },
-  { value: "au", label: "🇦🇺 Australia" },
-  { value: "de", label: "🇩🇪 Germany" },
-  { value: "fr", label: "🇫🇷 France" },
-  { value: "jp", label: "🇯🇵 Japan" },
-  { value: "sg", label: "🇸🇬 Singapore" },
+  { value: "us", label: "United States" },
+  { value: "uk", label: "United Kingdom" },
+  { value: "ca", label: "Canada" },
+  { value: "au", label: "Australia" },
+  { value: "de", label: "Germany" },
+  { value: "fr", label: "France" },
+  { value: "jp", label: "Japan" },
+  { value: "sg", label: "Singapore" },
 ];
 
 const ProfileInformation = () => {
@@ -119,154 +119,148 @@ const ProfileInformation = () => {
   };
 
   return (
-    <SidebarLayout>
-      <div className="min-h-screen bg-gray-100 py-8">
-        <div className="max-w-full mx-auto px-4">
-          {/* Header (from settings) */}
-          <div className="bg-primary p-4 rounded-lg text-white mb-8">
-            <h1 className="text-xl font-bold text-white">Profile Information</h1>
-            <p className="text-sm mt-1">
-              Create an impressive brand profile that attracts the right creators
-            </p>
-          </div>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Left Column */}
+    <DashboardLayout>
+      {/* Header (from settings) */}
+      <div className="bg-primary p-4 rounded-lg text-white mb-8">
+        <h1 className="text-xl font-bold text-white">Profile Information</h1>
+        <p className="text-sm mt-1">
+          Create an impressive brand profile that attracts the right creators
+        </p>
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column */}
+          <div className="space-y-4">
+            {/* Brand Information */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Brand Information <span className="text-red-500">*</span>
+              </h3>
               <div className="space-y-4">
-                {/* Brand Information */}
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Brand Information <span className="text-red-500">*</span>
-                  </h3>
-                  <div className="space-y-4">
-                    <CustomInput
-                      label="Brand Name"
-                      name="brandName"
-                      placeholder="Enter your brand or agency name"
-                      register={register}
-                      errors={errors}
+                <CustomInput
+                  label="Brand Name"
+                  name="brandName"
+                  placeholder="Enter your brand or agency name"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomInput
+                  label="Website URL"
+                  name="websiteUrl"
+                  type="url"
+                  placeholder="https://www.yourbrand.com"
+                  register={register}
+                  errors={errors}
+                />
+              </div>
+            </div>
+            {/* Brand Logo */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Brand Logo <span className="text-red-500">*</span>
+              </h3>
+              <div className="flex items-center space-x-6">
+                <div className="relative">
+                  {brandLogo ? (
+                    <img
+                      src={brandLogo}
+                      alt="Brand Logo"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                     />
-                    <CustomInput
-                      label="Website URL"
-                      name="websiteUrl"
-                      type="url"
-                      placeholder="https://www.yourbrand.com"
-                      register={register}
-                      errors={errors}
-                    />
-                  </div>
-                </div>
-                {/* Brand Logo */}
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Brand Logo <span className="text-red-500">*</span>
-                  </h3>
-                  <div className="flex items-center space-x-6">
-                    <div className="relative">
-                      {brandLogo ? (
-                        <img
-                          src={brandLogo}
-                          alt="Brand Logo"
-                          className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                        />
-                      ) : (
-                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
-                          <Camera className="h-8 w-8 text-gray-400" />
-                        </div>
-                      )}
-                      {brandLogo && (
-                        <button
-                          onClick={() => setValue("brandLogoUrl", "")}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
-                          type="button"
-                        >
-                          ×
-                        </button>
-                      )}
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
+                      <Camera className="h-8 w-8 text-gray-400" />
                     </div>
-                    <div>
-                      <CustomButton
-                        text="Upload Logo"
-                        className="btn-secondary"
-                        icon={Upload}
-                        onClick={handleLogoUpload}
-                        type="button"
-                      />
-                      <p className="text-xs text-gray-600 mt-2">PNG or JPG, max 5MB</p>
-                    </div>
-                  </div>
-                  {errors.brandLogoUrl && (
-                    <p className="text-xs text-red-600 mt-2">{errors.brandLogoUrl.message}</p>
+                  )}
+                  {brandLogo && (
+                    <button
+                      onClick={() => setValue("brandLogoUrl", "")}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
+                      type="button"
+                    >
+                      ×
+                    </button>
                   )}
                 </div>
-                {/* Location */}
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    HQ Location <span className="text-red-500">*</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CustomInput
-                      label="City"
-                      name="city"
-                      placeholder="Enter your city"
-                      icon={MapPin}
-                      register={register}
-                      errors={errors}
-                    />
-                    <SimpleSelect
-                      label="Country"
-                      placeHolder="Select an option"
-                      options={countries}
-                      value={selectedCountry}
-                      onChange={({ value }) => setValue("country", value, { shouldValidate: true })}
-                      error={errors.country?.message}
-                    />
-                  </div>
+                <div>
+                  <CustomButton
+                    text="Upload Logo"
+                    className="btn-secondary"
+                    icon={Upload}
+                    onClick={handleLogoUpload}
+                    type="button"
+                  />
+                  <p className="text-xs text-gray-600 mt-2">PNG or JPG, max 5MB</p>
                 </div>
               </div>
-              {/* Right Column */}
-              <div className="space-y-4">
-                {/* Company Description */}
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Company Description <span className="text-red-500">*</span>
-                  </h3>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Tell creators about your brand and what makes you unique
-                  </p>
-                  <div>
-                    <textarea
-                      placeholder="Tell creators about your brand, mission, and what makes you unique..."
-                      rows={5}
-                      maxLength={300}
-                      {...register("companyDescription")}
-                      className="w-full p-4 border border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none"
-                    />
-                    <p className="text-xs text-gray-600 mt-2">
-                      {(description || "").length}/300 characters
-                    </p>
-                    {errors.companyDescription && (
-                      <p className="text-xs text-red-600 mt-2">
-                        {errors.companyDescription.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+              {errors.brandLogoUrl && (
+                <p className="text-xs text-red-600 mt-2">{errors.brandLogoUrl.message}</p>
+              )}
+            </div>
+            {/* Location */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                HQ Location <span className="text-red-500">*</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CustomInput
+                  label="City"
+                  name="city"
+                  placeholder="Enter your city"
+                  icon={MapPin}
+                  register={register}
+                  errors={errors}
+                />
+                <SimpleSelect
+                  label="Country"
+                  placeHolder="Select an option"
+                  options={countries}
+                  value={selectedCountry}
+                  onChange={({ value }) => setValue("country", value, { shouldValidate: true })}
+                  error={errors.country?.message}
+                />
               </div>
             </div>
-            {/* Action Buttons */}
-            <div className="flex justify-end mt-10">
-              <CustomButton
-                text={isSubmitting || isLoading ? "Saving..." : "Save"}
-                className="btn-primary"
-                type="submit"
-                disabled={isSubmitting || isLoading}
-              />
+          </div>
+          {/* Right Column */}
+          <div className="space-y-4">
+            {/* Company Description */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Company Description <span className="text-red-500">*</span>
+              </h3>
+              <p className="text-xs text-gray-600 mb-2">
+                Tell creators about your brand and what makes you unique
+              </p>
+              <div>
+                <textarea
+                  placeholder="Tell creators about your brand, mission, and what makes you unique..."
+                  rows={5}
+                  maxLength={300}
+                  {...register("companyDescription")}
+                  className="w-full p-4 border border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none"
+                />
+                <p className="text-xs text-gray-600 mt-2">
+                  {(description || "").length}/300 characters
+                </p>
+                {errors.companyDescription && (
+                  <p className="text-xs text-red-600 mt-2">{errors.companyDescription.message}</p>
+                )}
+              </div>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
-    </SidebarLayout>
+        {/* Action Buttons */}
+        <div className="flex justify-end mt-10">
+          <CustomButton
+            text={isSubmitting || isLoading ? "Saving..." : "Save"}
+            className="btn-primary"
+            type="submit"
+            disabled={isSubmitting || isLoading}
+          />
+        </div>
+      </form>
+    </DashboardLayout>
   );
 };
 

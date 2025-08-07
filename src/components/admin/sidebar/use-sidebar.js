@@ -9,6 +9,8 @@ import {
   Shield,
   Target,
   User,
+  User2,
+  UserLock,
   Users,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,6 +18,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
+import { Campaign } from "@mui/icons-material";
 
 const commonNavItems = [
   {
@@ -43,14 +46,17 @@ const adminNavItems = [
       {
         label: "All Users",
         href: "/admin/users",
+        icon: Users,
       },
       {
         label: "Blocked Users",
         href: "/admin/users/blocked",
+        icon: UserLock,
       },
       {
         label: "Waitlist",
         href: "/admin/users/waitlist",
+        icon: User2,
       },
     ],
   },
@@ -115,7 +121,6 @@ const adminNavItems = [
         icon: Mail,
         children: [
           { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
-          // { label: "Push Notifications", href: "/" },
         ],
       },
     ],
@@ -126,6 +131,12 @@ const adminNavItems = [
 const brandNavItems = [
   ...commonNavItems,
   {
+    label: "Campaigns",
+    icon: Campaign,
+    isActive: false,
+    href: "/campaign",
+  },
+  {
     label: "Settings",
     icon: Settings,
     isActive: false,
@@ -186,7 +197,6 @@ const brandNavItems = [
         icon: Mail,
         children: [
           { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
-          // { label: "Push Notifications", href: "/" },
         ],
       },
     ],
@@ -196,6 +206,12 @@ const brandNavItems = [
 // Define nav items for Creator users
 const creatorNavItems = [
   ...commonNavItems,
+  {
+    label: "Campaigns",
+    icon: Campaign,
+    isActive: false,
+    href: "/campaign",
+  },
   {
     label: "Settings",
     icon: Settings,
@@ -261,7 +277,7 @@ function useSidebar() {
   const pathname = usePathname();
   const currentUser = getUser();
 
-  const { isCreatorMode, sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
+  const { sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
 
   // Use Redux state directly, fallback to empty object
   const expandedSections = sidebarSections || {};

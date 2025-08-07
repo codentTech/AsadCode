@@ -1,10 +1,11 @@
 "use client";
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { notificationsMockData } from "@/common/constants/notifications.data.constant";
+import ROLES from "@/common/constants/role.constant";
+import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { Bell, Menu } from "lucide-react";
 import useHeader from "./use-header.hook";
-import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
-import ROLES from "@/common/constants/role.constant";
 
 const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
   const {
@@ -135,7 +136,7 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
             <h3 className="text-sm font-bold text-gray-900">Recent Notifications</h3>
           </div>
           <div className="max-h-64 overflow-y-auto">
-            {notifications["brand"].slice(0, 3).map((notification) => (
+            {notificationsMockData["brand"].slice(0, 3).map((notification) => (
               <div key={notification.id} className="p-3 border-b border-gray-100 hover:bg-gray-50">
                 <div className="flex items-start space-x-3">
                   <span className="text-lg">{notification.icon}</span>
