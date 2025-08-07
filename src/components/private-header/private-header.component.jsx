@@ -24,7 +24,7 @@ function Header() {
     <header className="fixed top-0 left-0 w-full z-50 bg-primary shadow-sm border-b">
       <div className="flex items-center h-12">
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-3">
           {links.map(({ href, label, openInNewTab }) => {
             const isActive = pathname === href || (href.includes("#") && pathname === "/");
 
