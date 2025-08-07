@@ -360,6 +360,14 @@ const IdealCreator = ({ onNext, onBack }) => {
             />
           </div>
         </form>
+        <div className="flex justify-end mt-10">
+          <CustomButton
+            text="Complete Setup"
+            className="btn-primary"
+            onClick={handleSubmit(onSubmit)}
+            disabled={isLoading}
+          />
+        </div>
       </div>
     </div>
   );

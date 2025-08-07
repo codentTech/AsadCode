@@ -20,7 +20,7 @@ function ShortlistSidebar({
           <li
             key={shortlist.id}
             onClick={() => handleShortlistSelect(shortlist)}
-            className={`cursor-pointer text-sm px- py-2 mb-2 rounded-lg transition-colors duration-200 ${
+            className={`cursor-pointer text-sm pl-2 py-2 mb-2 rounded-lg transition-colors duration-200 ${
               selectedShortlist?.id === shortlist.id
                 ? "bg-blue-50 font-medium"
                 : "hover:bg-gray-100 text-gray-700"

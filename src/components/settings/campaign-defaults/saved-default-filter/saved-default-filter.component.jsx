@@ -1,509 +1,373 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
-import {
-  Calendar,
-  CheckCircle,
-  DollarSign,
-  Eye,
-  MapPin,
-  Save,
-  Star,
-  Tag,
-  TrendingUp,
-  Users,
-  Zap,
-} from "lucide-react";
-import { useState } from "react";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
+import { getUser } from "@/common/utils/users.util";
+import { updateCampaignDefaults } from "@/provider/features/users/users.slice";
+import { AddCircle } from "@mui/icons-material";
+import { DollarSign, Link, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 const SavedDefaultFilters = () => {
-  // Filter States
-  const [budgetRange, setBudgetRange] = useState({ min: "", max: "" });
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [projectDuration, setProjectDuration] = useState("");
-  const [campaignTypes, setCampaignTypes] = useState([]);
-  const [brandCategories, setBrandCategories] = useState([]);
-  const [companySize, setCompanySize] = useState([]);
-  const [urgency, setUrgency] = useState("");
+  const dispatch = useDispatch();
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [platformUsernames, setPlatformUsernames] = useState({});
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [keywordTags, setKeywordTags] = useState([]);
+  const [contentRates, setContentRates] = useState({});
+  const [customRates, setCustomRates] = useState([{ contentType: "", price: "" }]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter Options
-  const locations = [
-    { id: "local", label: "Local (Same City)", icon: "📍", desc: "Brands in your area" },
-    { id: "national", label: "National", icon: "🇺🇸", desc: "Country-wide brands" },
-    { id: "global", label: "Global", icon: "🌍", desc: "International brands" },
+  // Load user data on component mount
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const user = getUser();
+        if (user) {
+          // Set initial values from user data
+          if (user.creator_profile?.social_platforms) {
+            const platforms = user.creator_profile.social_platforms.map((p) => p.platform);
+            const usernames = {};
+            user.creator_profile.social_platforms.forEach((p) => {
+              usernames[p.platform] = p.username;
+            });
+            setSelectedPlatforms(platforms);
+            setPlatformUsernames(usernames);
+          }
+          if (user.creator_profile?.categories) {
+            setSelectedCategories(user.creator_profile.categories);
+          }
+          if (user.creator_profile?.keyword_tags) {
+            setKeywordTags(user.creator_profile.keyword_tags);
+          }
+          if (user.creator_profile?.content_rates) {
+            const rates = {};
+            user.creator_profile.content_rates.forEach((rate, index) => {
+              rates[index] = rate.price;
+            });
+            setContentRates(rates);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  const platforms = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook"];
+  const categories = [
+    "Fashion",
+    "Fitness",
+    "Food",
+    "Travel",
+    "Tech",
+    "Beauty",
+    "Lifestyle",
+    "Gaming",
   ];
 
-  const durationOptions = [
-    { id: "short", label: "1-3 days", desc: "Quick turnaround projects" },
-    { id: "medium", label: "1-2 weeks", desc: "Standard project timeline" },
-    { id: "long", label: "1+ months", desc: "Long-term partnerships" },
-    { id: "ongoing", label: "Ongoing", desc: "Continuous collaboration" },
+  const standardContentTypes = [
+    "1 sponsored Instagram post (photos)",
+    "1 Sponsored Instagram Reel",
+    "1 Sponsored TikTok Post",
+    "1 Sponsored YouTube Short",
+    "1 Instagram story (3 Frames)",
+    "1 UGC video",
+    "1 feature in a longform YouTube Video",
   ];
 
-  const campaignTypeOptions = [
-    {
-      id: "sponsored",
-      label: "Sponsored Posts",
-      icon: DollarSign,
-      color: "bg-green-100 text-green-700",
-    },
-    { id: "ugc", label: "UGC Content", icon: "🎬", color: "bg-purple-100 text-purple-700" },
-    { id: "gifted", label: "Gifted Products", icon: "🎁", color: "bg-pink-100 text-pink-700" },
-    {
-      id: "affiliate",
-      label: "Affiliate Marketing",
-      icon: "💰",
-      color: "bg-blue-100 text-blue-700",
-    },
-    {
-      id: "events",
-      label: "Event Partnerships",
-      icon: "🎪",
-      color: "bg-orange-100 text-orange-700",
-    },
-  ];
+  const togglePlatform = (platform) => {
+    const newSelectedPlatforms = selectedPlatforms.includes(platform)
+      ? selectedPlatforms.filter((p) => p !== platform)
+      : [...selectedPlatforms, platform];
 
-  const brandCategoryOptions = [
-    { id: "fashion", label: "Fashion & Style", icon: "👗" },
-    { id: "beauty", label: "Beauty & Skincare", icon: "💄" },
-    { id: "food", label: "Food & Beverage", icon: "🍕" },
-    { id: "tech", label: "Technology", icon: "💻" },
-    { id: "fitness", label: "Fitness & Health", icon: "💪" },
-    { id: "travel", label: "Travel & Tourism", icon: "✈️" },
-    { id: "home", label: "Home & Lifestyle", icon: "🏠" },
-    { id: "automotive", label: "Automotive", icon: "🚗" },
-    { id: "finance", label: "Finance & Business", icon: "💼" },
-    { id: "gaming", label: "Gaming & Entertainment", icon: "🎮" },
-  ];
-
-  const companySizeOptions = [
-    { id: "startup", label: "Startup (1-50)", desc: "Young, agile companies" },
-    { id: "medium", label: "Medium (51-500)", desc: "Growing businesses" },
-    { id: "large", label: "Large (500+)", desc: "Established corporations" },
-    { id: "enterprise", label: "Enterprise (1000+)", desc: "Major corporations" },
-  ];
-
-  const urgencyOptions = [
-    {
-      id: "flexible",
-      label: "Flexible",
-      desc: "No rush, quality first",
-      icon: "🕐",
-      color: "text-green-600",
-    },
-    {
-      id: "standard",
-      label: "Standard (1-2 weeks)",
-      desc: "Normal timeline",
-      icon: "⏰",
-      color: "text-blue-600",
-    },
-    {
-      id: "urgent",
-      label: "Urgent (3-7 days)",
-      desc: "Quick turnaround",
-      icon: "⚡",
-      color: "text-orange-600",
-    },
-    {
-      id: "asap",
-      label: "ASAP (1-3 days)",
-      desc: "Immediate need",
-      icon: "🔥",
-      color: "text-red-600",
-    },
-  ];
-
-  // Toggle functions
-  const toggleSelection = (item, selectedArray, setSelectedArray) => {
-    setSelectedArray((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-    );
+    setSelectedPlatforms(newSelectedPlatforms);
   };
 
-  const getFilterCount = () => {
-    let count = 0;
-    if (budgetRange.min || budgetRange.max) count++;
-    if (selectedLocations.length > 0) count++;
-    if (projectDuration) count++;
-    if (campaignTypes.length > 0) count++;
-    if (brandCategories.length > 0) count++;
-    if (companySize.length > 0) count++;
-    if (urgency) count++;
-    return count;
+  const handleUsernameChange = (platform, username) => {
+    const newUsernames = { ...platformUsernames, [platform]: username };
+    setPlatformUsernames(newUsernames);
   };
 
-  const resetAllFilters = () => {
-    setBudgetRange({ min: "", max: "" });
-    setSelectedLocations([]);
-    setProjectDuration("");
-    setCampaignTypes([]);
-    setBrandCategories([]);
-    setCompanySize([]);
-    setUrgency("");
+  const toggleCategory = (category) => {
+    let newSelectedCategories;
+    if (selectedCategories.includes(category)) {
+      newSelectedCategories = selectedCategories.filter((c) => c !== category);
+    } else if (selectedCategories.length < 5) {
+      newSelectedCategories = [...selectedCategories, category];
+    } else {
+      return; // Don't allow more than 5
+    }
+
+    setSelectedCategories(newSelectedCategories);
+  };
+
+  const addKeywordTag = (tag) => {
+    if (tag.trim() && !keywordTags.includes(tag.trim())) {
+      const newTags = [...keywordTags, tag.trim()];
+      setKeywordTags(newTags);
+    }
+  };
+
+  const removeKeywordTag = (index) => {
+    const newTags = keywordTags.filter((_, i) => i !== index);
+    setKeywordTags(newTags);
+  };
+
+  const handleRateChange = (index, value) => {
+    const newRates = { ...contentRates, [index]: value };
+    setContentRates(newRates);
+  };
+
+  // Custom Rates Handlers
+  const handleCustomRateChange = (idx, field, value) => {
+    const updated = [...customRates];
+    updated[idx][field] = value;
+    setCustomRates(updated);
+  };
+
+  const addCustomRateRow = () => {
+    setCustomRates([...customRates, { contentType: "", price: "" }]);
+  };
+
+  const removeCustomRate = (idx) => {
+    const updated = customRates.filter((_, i) => i !== idx);
+    setCustomRates(updated.length ? updated : [{ contentType: "", price: "" }]);
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const defaults = {
+        socialPlatforms: selectedPlatforms.map((platform) => ({
+          platform,
+          username: platformUsernames[platform] || "",
+        })),
+        categories: selectedCategories,
+        keywordTags: keywordTags,
+        contentRates: [
+          ...standardContentTypes.map((type, index) => ({
+            contentType: type,
+            price: parseFloat(contentRates[index] || 0),
+          })),
+          ...customRates.filter((rate) => rate.contentType && rate.price),
+        ],
+      };
+
+      console.log("Sending defaults:", defaults);
+
+      const result = await dispatch(updateCampaignDefaults(defaults)).unwrap();
+
+      if (result.success) {
+        // Refresh user data from localStorage after successful update
+        getUser(result?.data);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      // Show user-friendly error message
+      if (error.response?.data?.message) {
+        console.error("API Error:", error.response.data.message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <SidebarLayout>
-      <div className="max-w-8xl mx-auto">
-        {/* Header */}
-        <div className="bg-primary p-4 sm:p-6 rounded-lg text-white mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Saved Default Filters</h1>
-          <p className="text-sm sm:text-base mt-1">
-            Set your default filters to automatically see the most relevant campaigns. Save time and
-            focus on opportunities that match your preferences.
-          </p>
-        </div>
+    <DashboardLayout>
+      {/* Header - Keep the primary banner */}
+      <div className="bg-primary p-4 rounded-lg text-white mb-4">
+        <h1 className="text-xl font-bold text-white">Saved Default Filters</h1>
+        <p className="text-sm mt-1">
+          Set your default filters to automatically see the most relevant campaigns. Save time and
+          focus on opportunities that match your preferences.
+        </p>
+      </div>
 
-        <div className="grid lg:grid-cols-2 gap-4">
+      <div className="max-w-full mx-auto">
+        <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column */}
           <div className="space-y-4">
-            {/* Budget Range */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg mr-3">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Budget Range</h3>
+            {/* Social Platforms */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Link Other Platforms <span className="text-red-500">*</span>
+              </h3>
+              <div className="space-y-3">
+                {platforms.map((platform) => (
+                  <div key={platform} className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedPlatforms.includes(platform)}
+                      onChange={() => togglePlatform(platform)}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                    <Link className="h-4 w-4 text-gray-400" />
+                    <CustomInput
+                      placeholder={`Your ${platform} username`}
+                      disabled={!selectedPlatforms.includes(platform)}
+                      value={platformUsernames[platform] || ""}
+                      onChange={(e) => handleUsernameChange(platform, e.target.value)}
+                    />
+                  </div>
+                ))}
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <CustomInput
-                  label="Min Budget"
-                  name="minBudget"
-                  type="number"
-                  placeholder="100"
-                  value={budgetRange.min}
-                  onChange={(e) => setBudgetRange((prev) => ({ ...prev, min: e.target.value }))}
-                />
-                <CustomInput
-                  label="Max Budget"
-                  name="maxBudget"
-                  type="number"
-                  placeholder="5000"
-                  value={budgetRange.max}
-                  onChange={(e) => setBudgetRange((prev) => ({ ...prev, max: e.target.value }))}
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Filter campaigns within your preferred budget range
+              <p className="flex justify-end text-xs text-gray-600 mt-2">
+                At least 1 platform required
               </p>
             </div>
-
-            {/* Location Preferences */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg mr-3">
-                  <MapPin className="h-4 w-4 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Location Preferences</h3>
-              </div>
-
-              <div className="space-y-2">
-                {locations.map((location) => {
-                  const isSelected = selectedLocations.includes(location.id);
-                  return (
-                    <button
-                      key={location.id}
-                      onClick={() =>
-                        toggleSelection(location.id, selectedLocations, setSelectedLocations)
-                      }
-                      className={`
-                        w-full flex items-center p-3 rounded-lg border transition-all duration-200
-                        ${
-                          isSelected
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-indigo-200"
-                        }
-                      `}
-                    >
-                      <span className="text-lg mr-3">{location.icon}</span>
-                      <div className="text-left flex-1">
-                        <div className="font-medium text-sm">{location.label}</div>
-                        <div className="text-xs text-gray-500">{location.desc}</div>
-                      </div>
-                      {isSelected && <CheckCircle className="h-4 w-4 text-indigo-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Project Duration */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-lg mr-3">
-                  <Calendar className="h-4 w-4 text-purple-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Project Duration</h3>
-              </div>
-
-              <div className="space-y-2">
-                {durationOptions.map((duration) => (
-                  <label
-                    key={duration.id}
+            {/* Categories */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Creator Categories <span className="text-red-500">*</span>
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    disabled={
+                      !selectedCategories.includes(category) && selectedCategories.length >= 5
+                    }
                     className={`
-                      flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200
-                      ${
-                        projectDuration === duration.id
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:border-indigo-200"
-                      }
-                    `}
+                          p-2 rounded-lg border-2 text-xs font-medium transition-all duration-200
+                          ${
+                            selectedCategories.includes(category)
+                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                              : "border-gray-200 text-gray-700 hover:border-indigo-200 disabled:opacity-50"
+                          }
+                        `}
                   >
-                    <input
-                      type="radio"
-                      name="duration"
-                      value={duration.id}
-                      checked={projectDuration === duration.id}
-                      onChange={(e) => setProjectDuration(e.target.value)}
-                      className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 mr-3"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{duration.label}</div>
-                      <div className="text-xs text-gray-500">{duration.desc}</div>
-                    </div>
-                  </label>
+                    {category}
+                  </button>
                 ))}
               </div>
-            </div>
-
-            {/* Urgency Preference */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-lg mr-3">
-                  <Zap className="h-4 w-4 text-red-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Urgency Preference</h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {urgencyOptions.map((option) => (
-                  <label
-                    key={option.id}
-                    className={`
-                      flex flex-col items-center p-3 rounded-lg border cursor-pointer transition-all duration-200
-                      ${
-                        urgency === option.id
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:border-indigo-200"
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="urgency"
-                      value={option.id}
-                      checked={urgency === option.id}
-                      onChange={(e) => setUrgency(e.target.value)}
-                      className="hidden"
-                    />
-                    <div className="text-lg mb-1">{option.icon}</div>
-                    <div className={`font-medium text-sm ${option.color}`}>{option.label}</div>
-                    <div className="text-xs text-gray-500 text-center">{option.desc}</div>
-                    {urgency === option.id && (
-                      <CheckCircle className="h-3 w-3 text-indigo-500 mt-1" />
-                    )}
-                  </label>
-                ))}
-              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Select up to 5 categories ({selectedCategories.length}/5)
+              </p>
             </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-4">
-            {/* Campaign Types */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-lg mr-3">
-                  <Star className="h-4 w-4 text-orange-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Campaign Types</h3>
-              </div>
-
-              <div className="space-y-2">
-                {campaignTypeOptions.map((type) => {
-                  const isSelected = campaignTypes.includes(type.id);
-                  const Icon = type.icon;
-                  return (
-                    <button
-                      key={type.id}
-                      onClick={() => toggleSelection(type.id, campaignTypes, setCampaignTypes)}
-                      className={`
-                        w-full flex items-center p-3 rounded-lg border transition-all duration-200
-                        ${
-                          isSelected
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-indigo-200"
-                        }
-                      `}
-                    >
-                      <div
-                        className={`
-                          flex items-center justify-center w-8 h-8 rounded-lg mr-3
-                          ${isSelected ? "bg-indigo-500 text-white" : type.color}
-                        `}
-                      >
-                        {typeof Icon === "string" ? (
-                          <span className="text-sm">{Icon}</span>
-                        ) : (
-                          <Icon className="h-4 w-4" />
-                        )}
-                      </div>
-                      <span className="font-medium flex-1 text-left text-sm">{type.label}</span>
-                      {isSelected && <CheckCircle className="h-4 w-4 text-indigo-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Brand Categories */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 rounded-lg mr-3">
-                  <Tag className="h-4 w-4 text-yellow-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Brand Categories</h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {brandCategoryOptions.map((category) => {
-                  const isSelected = brandCategories.includes(category.id);
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() =>
-                        toggleSelection(category.id, brandCategories, setBrandCategories)
-                      }
-                      className={`
-                        flex items-center p-2 rounded-lg border transition-all duration-200
-                        ${
-                          isSelected
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-indigo-200"
-                        }
-                      `}
-                    >
-                      <span className="text-sm mr-2">{category.icon}</span>
-                      <span className="text-xs font-medium text-left flex-1">{category.label}</span>
-                      {isSelected && <CheckCircle className="h-3 w-3 text-indigo-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Company Size */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-teal-100 rounded-lg mr-3">
-                  <Users className="h-4 w-4 text-teal-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Company Size</h3>
-              </div>
-
-              <div className="space-y-2">
-                {companySizeOptions.map((size) => {
-                  const isSelected = companySize.includes(size.id);
-                  return (
-                    <button
-                      key={size.id}
-                      onClick={() => toggleSelection(size.id, companySize, setCompanySize)}
-                      className={`
-                        w-full flex items-center p-3 rounded-lg border transition-all duration-200
-                        ${
-                          isSelected
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-indigo-200"
-                        }
-                      `}
-                    >
-                      <div className="text-left flex-1">
-                        <div className="font-medium text-sm">{size.label}</div>
-                        <div className="text-xs text-gray-500">{size.desc}</div>
-                      </div>
-                      {isSelected && <CheckCircle className="h-4 w-4 text-indigo-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Preview Section */}
-            <div className="bg-white rounded-lg shadow-sm p-4 border">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                  <Eye className="h-4 w-4 text-indigo-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">Filter Preview</h3>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-gray-50 border rounded-lg p-2 text-center">
-                  <div className="text-lg font-bold">{getFilterCount()}</div>
-                  <div className="text-xs text-gray-500">Active Filters</div>
-                </div>
-                <div className="bg-gray-50 border rounded-lg p-2 text-center">
-                  <div className="text-lg font-bold">
-                    {campaignTypes.length === 0 ? "All" : campaignTypes.length}
-                  </div>
-                  <div className="text-xs text-gray-500">Campaign Types</div>
-                </div>
-                <div className="bg-gray-50 border rounded-lg p-2 text-center">
-                  <div className="text-lg font-bold">
-                    {brandCategories.length === 0 ? "All" : brandCategories.length}
-                  </div>
-                  <div className="text-xs text-gray-500">Brand Categories</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 border rounded-lg p-3 mb-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-sm font-medium">Est. Monthly Matches</h4>
-                  <TrendingUp className="h-4 w-4 text-indigo-500" />
-                </div>
-                <div className="text-xl font-bold">
-                  {getFilterCount() === 0
-                    ? "500+"
-                    : getFilterCount() <= 2
-                      ? "300+"
-                      : getFilterCount() <= 4
-                        ? "150+"
-                        : "75+"}
-                </div>
-                <p className="text-xs text-gray-500">
-                  {getFilterCount() === 0
-                    ? "All campaigns visible"
-                    : getFilterCount() <= 2
-                      ? "Broad filtering"
-                      : getFilterCount() <= 4
-                        ? "Balanced filtering"
-                        : "Highly targeted"}
-                </p>
-              </div>
+            {/* Keywords */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Keyword Tags (Optional)</h3>
 
               <div className="flex gap-2">
-                <CustomButton
-                  text="Save Settings"
-                  className="btn-primary text-sm flex-1"
-                  icon={Save}
-                />
-                <CustomButton
-                  onClick={resetAllFilters}
-                  className="btn-secondary text-sm"
-                  text="Reset"
+                <CustomInput
+                  type="text"
+                  placeholder="e.g. Luxury Hotels"
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
+                      e.preventDefault();
+                      addKeywordTag(e.target.value);
+                      e.target.value = "";
+                    }
+                  }}
                 />
               </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {keywordTags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeKeywordTag(index)}
+                      className="ml-2 text-indigo-500 hover:text-indigo-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
 
-              <p className="text-xs text-gray-400 text-center mt-2">
-                You can change filters anytime in your dashboard.
-              </p>
+            {/* Rates */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Content Rates (Optional)</h3>
+              <div className="space-y-3 text-sm">
+                {standardContentTypes.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                  >
+                    <span className="text-xs text-gray-600">{item}</span>
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="h-4 w-4 text-gray-400" />
+                      <CustomInput
+                        type="number"
+                        placeholder="0"
+                        className="!w-20 !border !h-7 !border-gray-600"
+                        value={contentRates[index] || ""}
+                        onChange={(e) => handleRateChange(index, e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Custom Rates Section */}
+              <div className="mt-4 p-3 border-2 border-dashed border-gray-300 rounded-lg">
+                {customRates.map((rate, idx) => (
+                  <div key={idx} className="flex justify-between mb-2">
+                    <div className="flex gap-2">
+                      <CustomInput
+                        placeholder="Custom package"
+                        className="!border !border-gray-300"
+                        value={rate.contentType}
+                        onChange={(e) => handleCustomRateChange(idx, "contentType", e.target.value)}
+                      />
+                      <CustomInput
+                        type="number"
+                        placeholder="Price"
+                        className="!border !border-gray-300"
+                        value={rate.price}
+                        onChange={(e) => handleCustomRateChange(idx, "price", e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="bg-red-200 p-1 rounded-full m-2.5"
+                        onClick={() => removeCustomRate(idx)}
+                        disabled={customRates.length === 1}
+                      >
+                        <X className="text-red-600 w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="bg-gray-200 p-2 rounded-full"
+                      onClick={addCustomRateRow}
+                    >
+                      <AddCircle className="text-primary" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end text-center mt-10">
+          <CustomButton
+            text={"Save Settings"}
+            className="btn-primary"
+            loading={isLoading}
+            onClick={handleSaveSettings}
+          />
+        </div>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 };
 

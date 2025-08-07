@@ -1,11 +1,11 @@
 "use client";
 
-import SearchIcon from "@/common/icons/search-icon";
 import ThreedotIcon from "@/common/icons/threedot.icon";
 import PropTypes from "prop-types";
 import React from "react";
-import CustomInput from "../custom-input/custom-input.component";
 import { useCustomDataTable } from "./use-custom-data-table.hook";
+import SearchIcon from "@/common/icons/search-icon";
+import CustomInput from "../custom-input/custom-input.component";
 
 const CustomDataTable = ({
   // Core data props
@@ -101,12 +101,49 @@ const CustomDataTable = ({
     onSelectionChange,
   });
 
+  // Helper function to get nested value from object
+  const getNestedValue = (obj, path) => {
+    return path.split(".").reduce((current, key) => {
+      return current && current[key] !== undefined ? current[key] : null;
+    }, obj);
+  };
+
   // Render cell content
   const renderCell = (column, row) => {
+    // If there's a custom renderer, use it
+    if (column.customRender) {
+      return column.customRender(row);
+    }
+
+    // If there's a global custom renderer for this column, use it
     if (customCellRenderer[column.key]) {
       return customCellRenderer[column.key](row[column.key], row);
     }
-    return row[column.key] ?? "---";
+
+    // Get the value using the column key (supports nested keys like 'category.name')
+    const value = getNestedValue(row, column.key);
+
+    // Handle null/undefined values
+    if (value === null || value === undefined) {
+      return <span className="text-gray-400">---</span>;
+    }
+
+    // Handle different data types
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+
+    if (typeof value === "object") {
+      // If it's an object, try to render it as JSON or return a placeholder
+      try {
+        return <span className="text-gray-400 text-xs">Object</span>;
+      } catch (e) {
+        return <span className="text-gray-400">---</span>;
+      }
+    }
+
+    // For strings, numbers, and other primitive types
+    return String(value);
   };
 
   // Render sort icon
@@ -142,7 +179,6 @@ const CustomDataTable = ({
 
   return (
     <div className={`bg-white ${className}`}>
-      {/* Search Header */}
       {searchable && !externalSearch && (
         <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
           <div className="relative max-w-sm">
@@ -158,13 +194,12 @@ const CustomDataTable = ({
           </div>
         </div>
       )}
-
       {/* Table */}
-      <div className="overflow-x-auto relative" style={{ height }}>
+      <div className="w-full overflow-x-auto relative rounded-lg" style={{ height }}>
         <table className={`w-full ${tableClassName}`}>
           {/* Header */}
           {showHeader && (
-            <thead className={`z-10 bg-gray-50 border-b ${headerClassName}`}>
+            <thead className={`z-10 bg-gray-50 border-b rounded-full ${headerClassName}`}>
               <tr>
                 {/* Selection checkbox */}
                 {selectable && (
@@ -176,22 +211,19 @@ const CustomDataTable = ({
                         if (el) el.indeterminate = isIndeterminate;
                       }}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="border border-gray-300 text-blue-600 rounded-full focus:ring-blue-500"
                     />
                   </th>
                 )}
 
                 {/* Column headers */}
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className="px-4 py-3 text-left text-sm font-medium text-gray-900"
-                  >
+                {columns.map((column, index) => (
+                  <th key={index} className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                     <div
-                      className={`flex items-center ${
+                      className={`flex items-center whitespace-nowrap ${
                         column.sortable ? "cursor-pointer hover:text-gray-700" : ""
                       }`}
-                      onClick={() => handleSort(column.key)}
+                      onClick={() => column.sortable && handleSort(column.key)}
                     >
                       {column.title}
                       {renderSortIcon(column)}
@@ -246,8 +278,11 @@ const CustomDataTable = ({
                     )}
 
                     {/* Data cells */}
-                    {columns.map((column) => (
-                      <td key={column.key} className="px-4 py-3 text-sm text-gray-900">
+                    {columns.map((column, colIndex) => (
+                      <td
+                        key={colIndex}
+                        className="whitespace-nowrap px-4 py-3 text-sm text-gray-900"
+                      >
                         {renderCell(column, row)}
                       </td>
                     ))}
@@ -373,6 +408,7 @@ CustomDataTable.propTypes = {
       key: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
       sortable: PropTypes.bool,
+      customRender: PropTypes.func,
     })
   ).isRequired,
   data: PropTypes.arrayOf(PropTypes.object).isRequired,

@@ -3,7 +3,14 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import useEmailVerification from "./use-email-verification.hook";
 
 const EmailVerification = ({ onNext, onBack }) => {
-  const { email, emailSent, countdown, handleResendEmail, handleContinue } = useEmailVerification({
+  const {
+    email,
+    emailSent,
+    countdown,
+    handleResendEmail,
+    handleContinue,
+    onboardingStatusLoading,
+  } = useEmailVerification({
     onNext,
   });
 
@@ -73,6 +80,7 @@ const EmailVerification = ({ onNext, onBack }) => {
               text="Continue to Profile Setup"
               className="btn-primary w-full"
               onClick={handleContinue}
+              loading={onboardingStatusLoading}
             />
             <p className="text-sm text-center text-gray-400 hover:text-gray-600 transition">
               Having trouble? <span className="underline cursor-pointer">Contact Support</span>

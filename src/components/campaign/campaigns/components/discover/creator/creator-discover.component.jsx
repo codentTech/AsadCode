@@ -4,7 +4,7 @@ import PitchTemplate from "./components/pitch-template/pitch-template.component"
 
 const CampaignDashboard = () => {
   return (
-    <div className="mx-auto max-w-7xl relative flex flex-1 overflow-hidden pb-20">
+    <div className="mx-auto max-w-7xl relative flex">
       {/* Left Column - Campaign Filters */}
       <CampaignFilters />
 

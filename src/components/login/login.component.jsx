@@ -137,7 +137,7 @@ export default function Login() {
               <div className="text-xs font-normal leading-[18px] text-text-dark-gray">
                 <p className="login mt-5 text-center">
                   Create an account?
-                  <Link href="/" className="span-link">
+                  <Link href="/onboarding" className="span-link">
                     Signup
                   </Link>
                 </p>

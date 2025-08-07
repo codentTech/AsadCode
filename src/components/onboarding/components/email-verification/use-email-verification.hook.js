@@ -3,7 +3,7 @@
 import { getOnboardingEmail } from "@/common/utils/users.util";
 import { resendEmail, reset, verifyEmail } from "@/provider/features/auth/auth.slice";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function useEmailVerification({ onNext }) {
   const dispatch = useDispatch();
@@ -11,6 +11,8 @@ export default function useEmailVerification({ onNext }) {
 
   const [emailSent, setEmailSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
+
+  const { onboardingStatusLoading } = useSelector((state) => state.onboarding || {});
 
   useEffect(() => {
     let timer;
@@ -46,5 +48,6 @@ export default function useEmailVerification({ onNext }) {
     countdown,
     handleResendEmail,
     handleContinue,
+    onboardingStatusLoading,
   };
 }

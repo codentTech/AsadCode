@@ -1,5 +1,6 @@
 "use client";
 
+import FullPageLoader from "@/common/components/full-page-loader/full-page-loader.component";
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
@@ -45,12 +46,7 @@ function LayoutWrapper({ children }) {
 
   return (
     <React.Fragment>
-      {loading && (
-        <div className="fixed inset-0 w-screen h-screen bg-white/90 flex justify-center items-center z-[9999]">
-          <Loader className="animate-spin" />
-        </div>
-      )}
-      <React.Fragment>{children}</React.Fragment>
+      {loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
     </React.Fragment>
   );
 }

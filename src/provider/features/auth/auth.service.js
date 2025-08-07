@@ -3,12 +3,11 @@ import { removeUser } from "@/common/utils/users.util";
 
 // Login user
 const login = async (userData) => {
-  const response = await api().post("/auth/login", userData);
-  if (response.data.Succeeded) {
-    localStorage.setItem("user", JSON.stringify(response.data.data));
-    localStorage.setItem("isOtpVerify", false);
-  }
-  return response.data;
+  const { data } = await api().post("/auth/login", userData);
+  const response = data?.data;
+  if (response) localStorage.setItem("user", JSON.stringify(response.user));
+  if (response) localStorage.setItem("token", response.token);
+  return data;
 };
 
 // Logout user

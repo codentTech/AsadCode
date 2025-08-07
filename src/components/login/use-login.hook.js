@@ -38,34 +38,8 @@ export default function useLogin() {
   const { email, password } = watch();
 
   useEffect(() => {
-    if (isLoginVerified()) {
-      handleRedirection();
-    }
-  }, [router]);
-
-  useEffect(() => {
     handleLogin();
   }, []);
-
-  const handleRedirection = (data, _email) => {
-    // if (isSuperAdmin(data)) {
-    //   router.push("/super-admin/dashboard");
-    // } else if (!isEmailVerified(data)) {
-    //   router.push(`/verify-email?type=email-verification&email=${_email}`);
-    // } else if (!isProfileCreated(data)) {
-    //   router.push(`/profile?email=${_email}&userId=${data.id}`);
-    // } else if (is2FAEnabled(data) && isPhoneVerified(data) && data) {
-    //   router.push(`/two-factor-auth?userId=${data.id}&phone=${data.phone}`);
-    // } else {
-    //   router.push("/dashboard");
-    // }
-  };
-
-  const moveRouter = (data) => {
-    // router.push("/")s;
-    // const _email = getEmailForURL(data?.email);
-    // handleRedirection(data, _email);
-  };
 
   const handleLogin = () => {
     if (typeof window === "object") {
@@ -91,9 +65,8 @@ export default function useLogin() {
 
   const onSubmit = async (values) => {
     setLoading(true);
-    const response = await dispatch(
-      login({ payload: { ...values }, successCallBack: moveRouter, setLoading })
-    );
+    const response = await dispatch(login(values));
+    if (response.payload.success) router.push("admin/dashboard");
     response && setLoading(false);
     if (typeof window === "object" && isChecked) {
       // Check if the browser supports localStorage

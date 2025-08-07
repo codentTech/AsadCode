@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import { setupCreatorCampaignPreferences } from "@/provider/features/creator-profile/creator-profile.slice";
 import { getOnboardingEmail } from "@/common/utils/users.util";
+import { useRouter } from "next/navigation";
 
 const validationSchema = Yup.object().shape({
   campaignTypes: Yup.array().min(1, "Select at least one campaign type"),
@@ -19,6 +20,7 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function useCampaignPreferences({ onNext }) {
+  const route = useRouter();
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
@@ -62,6 +64,7 @@ export default function useCampaignPreferences({ onNext }) {
         onNext && onNext();
         resetForm();
         localStorage.removeItem("email");
+        route.push("/login");
       }
     } catch (error) {
       console.error("Form submission error:", error.message);
