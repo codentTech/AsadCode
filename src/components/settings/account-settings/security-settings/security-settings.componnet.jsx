@@ -2,7 +2,7 @@
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { CheckCircle, Lock, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -54,7 +54,7 @@ export default function SecuritySettings() {
   };
 
   return (
-    <SidebarLayout>
+    <DashboardLayout>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Security Settings</h1>
@@ -173,6 +173,6 @@ export default function SecuritySettings() {
           </li>
         </ul>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 }

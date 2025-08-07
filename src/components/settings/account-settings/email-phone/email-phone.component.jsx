@@ -2,7 +2,7 @@
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AlertCircle, Check, Edit2, Mail, Phone, Plus, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -226,7 +226,7 @@ export default function ContactMethodsPage() {
   };
 
   return (
-    <SidebarLayout>
+    <DashboardLayout>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Email & Phone Numbers</h1>
@@ -418,6 +418,6 @@ export default function ContactMethodsPage() {
           </div>
         </div>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 }

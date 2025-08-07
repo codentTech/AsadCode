@@ -5,5 +5,5 @@ import AUTH from "@/common/constants/auth.constant";
 import Notifications from "@/components/notifications/notifications.component";
 
 export default function Page() {
-  return <Auth component={<Notifications />} type={AUTH.AUTH_MAIN_ROUTES} />;
+  return <Auth component={<Notifications />} type={AUTH.PRIVATE} />;
 }

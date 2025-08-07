@@ -1,6 +1,6 @@
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import {
   AlertCircle,
   CheckCircle,
@@ -280,120 +280,112 @@ const PaymentHistoryPage = () => {
   };
 
   return (
-    <SidebarLayout>
-      <div className="max-w-8xl mx-auto min-h-screen">
-        {/* Header */}
-        <div className="bg-primary p-4 rounded-lg text-white mb-4">
-          <h1 className="text-xl font-bold text-white">Payout History</h1>
-          <p className="text-sm mt-1">Track all your processed and pending payouts</p>
-        </div>
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg border p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg mr-3">
-                <DollarSign className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Earned</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  ${totalEarned.toLocaleString()}
-                </p>
-              </div>
+    <DashboardLayout>
+      {/* Header */}
+      <div className="bg-primary p-4 rounded-lg text-white mb-4">
+        <h1 className="text-xl font-bold text-white">Payout History</h1>
+        <p className="text-sm mt-1">Track all your processed and pending payouts</p>
+      </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg mr-3">
+              <DollarSign className="h-5 w-5 text-green-600" />
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg border p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg mr-3">
-                <Clock className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  ${pendingAmount.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-xl font-semibold text-gray-900">{completedPayments}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">This Month</p>
-                <p className="text-xl font-semibold text-gray-900">$2,420</p>
-              </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Earned</p>
+              <p className="text-xl font-semibold text-gray-900">${totalEarned.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        {/* Filters */}
-        <div className="bg-white rounded-lg border p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <SimpleSelect placeHolder="Select status" options={statusOptions} onChange={() => {}} />
 
-            <SimpleSelect
-              placeHolder="Select time"
-              options={timeFilterOptions}
-              onChange={() => {}}
-            />
-          </div>
-        </div>
-        {/* Payment History Table using CustomDataTable */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Payment History ({filteredPayments.length})
-              </h3>
-              <div className="flex space-x-3">
-                <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-                  <Filter size={16} />
-                  <span>Filter</span>
-                </button>
-                <button
-                  onClick={handleExport}
-                  className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
-                >
-                  <Download size={16} />
-                  <span>Export</span>
-                </button>
-              </div>
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+              <Clock className="h-5 w-5 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-xl font-semibold text-gray-900">
+                ${pendingAmount.toLocaleString()}
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Custom Data Table */}
-          <CustomDataTable
-            columns={columns}
-            data={filteredPayments}
-            selectable={true}
-            selectedIds={selectedPayments}
-            searchValue={searchTerm}
-            onSearchChange={handleSearchChange}
-            onSelectionChange={handleSelectionChange}
-            actions={actions}
-            onActionClick={handleActionClick}
-            customCellRenderer={customCellRenderer}
-            emptyMessage="No payments found"
-          />
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <CheckCircle className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Completed</p>
+              <p className="text-xl font-semibold text-gray-900">{completedPayments}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg mr-3">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">This Month</p>
+              <p className="text-xl font-semibold text-gray-900">$2,420</p>
+            </div>
+          </div>
         </div>
       </div>
-    </SidebarLayout>
+      {/* Filters */}
+      <div className="bg-white rounded-lg border p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <SimpleSelect placeHolder="Select status" options={statusOptions} onChange={() => {}} />
+
+          <SimpleSelect placeHolder="Select time" options={timeFilterOptions} onChange={() => {}} />
+        </div>
+      </div>
+      {/* Payment History Table using CustomDataTable */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Payment History ({filteredPayments.length})
+            </h3>
+            <div className="flex space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+                <Filter size={16} />
+                <span>Filter</span>
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                <Download size={16} />
+                <span>Export</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Custom Data Table */}
+        <CustomDataTable
+          columns={columns}
+          data={filteredPayments}
+          selectable={true}
+          selectedIds={selectedPayments}
+          searchValue={searchTerm}
+          onSearchChange={handleSearchChange}
+          onSelectionChange={handleSelectionChange}
+          actions={actions}
+          onActionClick={handleActionClick}
+          customCellRenderer={customCellRenderer}
+          emptyMessage="No payments found"
+        />
+      </div>
+    </DashboardLayout>
   );
 };
 

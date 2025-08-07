@@ -11,7 +11,7 @@ function Header() {
     { href: "/campaign", label: "Campaigns" },
     { href: "/creator-portfolio", label: "My Portfolio" },
     { href: "/chat-inbox", label: "Inbox", openInNewTab: true },
-    { href: "/admin/notifications", label: "Notifications" },
+    { href: "/notifications", label: "Notifications" },
     { href: "/admin/dashboard", label: "Settings" },
   ];
 

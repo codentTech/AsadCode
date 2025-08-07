@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import useSidebar from "./use-sidebar";
 
-function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
+function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
   const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
@@ -29,7 +29,19 @@ function Sidebar({ menuItems, isOpen, onClose, setCurrentBar, currentBar }) {
           }`}
           style={{ marginLeft: `${depth * 1}px` }}
         >
-          {label}
+          <div className="flex items-center space-x-3">
+            {Icon && (
+              <Icon
+                size={20}
+                className={`${
+                  activeItem === label
+                    ? "text-primary"
+                    : "text-gray-500 group-hover:text-indigo-600"
+                } transition-colors`}
+              />
+            )}
+            <span>{label}</span>
+          </div>
         </button>
       );
     }

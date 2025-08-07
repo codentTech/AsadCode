@@ -1,12 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import SidebarLayout from "@/common/layouts/sidebar.layout";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { Bell, X } from "lucide-react";
 import useNotifications from "./use-notifications.hook";
 
 function Notifications() {
   const { notifications, markAsRead, removeNotification } = useNotifications();
   return (
-    <SidebarLayout>
+    <DashboardLayout>
       <div className="flex gap-60 min-h-screen">
         <div className="w-[50%] space-y-4">
           {notifications["brand"].length === 0 ? (
@@ -71,7 +71,7 @@ function Notifications() {
           <Bell size={420} className="text-orange-500 rotate-45" />
         </div>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 }
 
