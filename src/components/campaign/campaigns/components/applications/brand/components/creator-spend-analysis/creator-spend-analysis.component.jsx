@@ -161,7 +161,7 @@ const CreatorSpendAnalysis = () => {
   );
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gray-100 pb-10">
+    <div className="flex-1 flex flex-col h-screen bg-gray-100">
       {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">

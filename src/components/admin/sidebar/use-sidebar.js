@@ -12,6 +12,22 @@ import {
   User2,
   UserLock,
   Users,
+  UserCheck,
+  Lock,
+  Phone,
+  Info,
+  Link,
+  Tag,
+  FileText,
+  DollarSign,
+  MessageSquare,
+  Template,
+  History,
+  Receipt,
+  UserX,
+  Database,
+  MailOpen,
+  Heart,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
@@ -72,18 +88,39 @@ const adminNavItems = [
           {
             label: "Personal Information",
             href: "/settings/account-settings/personal-information",
+            icon: UserCheck,
           },
-          { label: "Security Settings", href: "/settings/account-settings/security-settings" },
-          { label: "Email & Phone", href: "/settings/account-settings/email-phone" },
+          {
+            label: "Security Settings",
+            href: "/settings/account-settings/security-settings",
+            icon: Lock,
+          },
+          {
+            label: "Email & Phone",
+            href: "/settings/account-settings/email-phone",
+            icon: Phone,
+          },
         ],
       },
       {
         label: "Brand Profile",
         icon: Briefcase,
         children: [
-          { label: "Profile Information", href: "/settings/brand-profile/profile-information" },
-          { label: "Social Links", href: "/settings/brand-profile/social-links" },
-          { label: "Niche Tags", href: "/settings/brand-profile/niche-tags" },
+          {
+            label: "Profile Information",
+            href: "/settings/brand-profile/profile-information",
+            icon: Info,
+          },
+          {
+            label: "Social Links",
+            href: "/settings/brand-profile/social-links",
+            icon: Link,
+          },
+          {
+            label: "Niche Tags",
+            href: "/settings/brand-profile/niche-tags",
+            icon: Tag,
+          },
         ],
       },
       {
@@ -93,34 +130,71 @@ const adminNavItems = [
           {
             label: "Default Requirements",
             href: "/settings/campaign-defaults/default-campaign-requirement",
+            icon: FileText,
           },
-          { label: "Payment Type", href: "/settings/campaign-defaults/preffered-payment-type" },
-          { label: "Auto-Reply Template", href: "/settings/campaign-defaults/auto-reply-template" },
-          { label: "Brief Template", href: "/settings/campaign-defaults/breif-template" },
+          {
+            label: "Payment Type",
+            href: "/settings/campaign-defaults/preffered-payment-type",
+            icon: DollarSign,
+          },
+          {
+            label: "Auto-Reply Template",
+            href: "/settings/campaign-defaults/auto-reply-template",
+            icon: MessageSquare,
+          },
+          {
+            label: "Brief Template",
+            href: "/settings/campaign-defaults/breif-template",
+            icon: Template,
+          },
         ],
       },
       {
         label: "Billing & Payments",
         icon: CreditCard,
         children: [
-          { label: "Billing Methods", href: "/settings/payments/payout-methods" },
-          { label: "Transaction History", href: "/settings/payments/payment-history" },
-          { label: "Invoices & Receipts", href: "/settings/payments/invoice-receipt" },
+          {
+            label: "Billing Methods",
+            href: "/settings/payments/payout-methods",
+            icon: CreditCard,
+          },
+          {
+            label: "Transaction History",
+            href: "/settings/payments/payment-history",
+            icon: History,
+          },
+          {
+            label: "Invoices & Receipts",
+            href: "/settings/payments/invoice-receipt",
+            icon: Receipt,
+          },
         ],
       },
       {
         label: "Privacy & Safety",
         icon: Shield,
         children: [
-          { label: "Blocking & Restrictions", href: "/settings/privacy-safety/blocked-brands" },
-          { label: "Data Privacy", href: "/settings/privacy-safety/data-privacy" },
+          {
+            label: "Blocking & Restrictions",
+            href: "/settings/privacy-safety/blocked-brands",
+            icon: UserX,
+          },
+          {
+            label: "Data Privacy",
+            href: "/settings/privacy-safety/data-privacy",
+            icon: Database,
+          },
         ],
       },
       {
         label: "Communications",
         icon: Mail,
         children: [
-          { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
+          {
+            label: "Email Preferences",
+            href: "/settings/communications/email-preferrence",
+            icon: MailOpen,
+          },
         ],
       },
     ],
@@ -148,18 +222,39 @@ const brandNavItems = [
           {
             label: "Personal Information",
             href: "/settings/account-settings/personal-information",
+            icon: UserCheck,
           },
-          { label: "Security Settings", href: "/settings/account-settings/security-settings" },
-          { label: "Email & Phone", href: "/settings/account-settings/email-phone" },
+          {
+            label: "Security Settings",
+            href: "/settings/account-settings/security-settings",
+            icon: Lock,
+          },
+          {
+            label: "Email & Phone",
+            href: "/settings/account-settings/email-phone",
+            icon: Phone,
+          },
         ],
       },
       {
         label: "Brand Profile",
         icon: Briefcase,
         children: [
-          { label: "Profile Information", href: "/settings/brand-profile/profile-information" },
-          { label: "Social Links", href: "/settings/brand-profile/social-links" },
-          { label: "Niche Tags", href: "/settings/brand-profile/niche-tags" },
+          {
+            label: "Profile Information",
+            href: "/settings/brand-profile/profile-information",
+            icon: Info,
+          },
+          {
+            label: "Social Links",
+            href: "/settings/brand-profile/social-links",
+            icon: Link,
+          },
+          {
+            label: "Niche Tags",
+            href: "/settings/brand-profile/niche-tags",
+            icon: Tag,
+          },
         ],
       },
       {
@@ -169,34 +264,71 @@ const brandNavItems = [
           {
             label: "Default Requirements",
             href: "/settings/campaign-defaults/default-campaign-requirement",
+            icon: FileText,
           },
-          { label: "Payment Type", href: "/settings/campaign-defaults/preffered-payment-type" },
-          { label: "Auto-Reply Template", href: "/settings/campaign-defaults/auto-reply-template" },
-          { label: "Brief Template", href: "/settings/campaign-defaults/breif-template" },
+          {
+            label: "Payment Type",
+            href: "/settings/campaign-defaults/preffered-payment-type",
+            icon: DollarSign,
+          },
+          {
+            label: "Auto-Reply Template",
+            href: "/settings/campaign-defaults/auto-reply-template",
+            icon: MessageSquare,
+          },
+          {
+            label: "Brief Template",
+            href: "/settings/campaign-defaults/breif-template",
+            icon: Template,
+          },
         ],
       },
       {
         label: "Billing & Payments",
         icon: CreditCard,
         children: [
-          { label: "Billing Methods", href: "/settings/payments/payout-methods" },
-          { label: "Transaction History", href: "/settings/payments/payment-history" },
-          { label: "Invoices & Receipts", href: "/settings/payments/invoice-receipt" },
+          {
+            label: "Billing Methods",
+            href: "/settings/payments/payout-methods",
+            icon: CreditCard,
+          },
+          {
+            label: "Transaction History",
+            href: "/settings/payments/payment-history",
+            icon: History,
+          },
+          {
+            label: "Invoices & Receipts",
+            href: "/settings/payments/invoice-receipt",
+            icon: Receipt,
+          },
         ],
       },
       {
         label: "Privacy & Safety",
         icon: Shield,
         children: [
-          { label: "Blocking & Restrictions", href: "/settings/privacy-safety/blocked-brands" },
-          { label: "Data Privacy", href: "/settings/privacy-safety/data-privacy" },
+          {
+            label: "Blocking & Restrictions",
+            href: "/settings/privacy-safety/blocked-brands",
+            icon: UserX,
+          },
+          {
+            label: "Data Privacy",
+            href: "/settings/privacy-safety/data-privacy",
+            icon: Database,
+          },
         ],
       },
       {
         label: "Communications",
         icon: Mail,
         children: [
-          { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
+          {
+            label: "Email Preferences",
+            href: "/settings/communications/email-preferrence",
+            icon: MailOpen,
+          },
         ],
       },
     ],
@@ -224,9 +356,18 @@ const creatorNavItems = [
           {
             label: "Personal Information",
             href: "/settings/account-settings/personal-information",
+            icon: UserCheck,
           },
-          { label: "Security Settings", href: "/settings/account-settings/security-settings" },
-          { label: "Email & Phone", href: "/settings/account-settings/email-phone" },
+          {
+            label: "Security Settings",
+            href: "/settings/account-settings/security-settings",
+            icon: Lock,
+          },
+          {
+            label: "Email & Phone",
+            href: "/settings/account-settings/email-phone",
+            icon: Phone,
+          },
         ],
       },
       {
@@ -236,10 +377,12 @@ const creatorNavItems = [
           {
             label: "Preferred Collaboration Type",
             href: "/settings/campaign-defaults/preferred-collaboration-type",
+            icon: Heart,
           },
           {
             label: "Saved Filter Settings",
             href: "/settings/campaign-defaults/saved-default-filter",
+            icon: Settings,
           },
         ],
       },
@@ -247,24 +390,48 @@ const creatorNavItems = [
         label: "Payments",
         icon: CreditCard,
         children: [
-          { label: "Payout Methods", href: "/settings/payments/payout-methods" },
-          { label: "Payment History", href: "/settings/payments/payment-history" },
-          { label: "Invoices & Receipts", href: "/settings/payments/invoice-receipt" },
+          {
+            label: "Payout Methods",
+            href: "/settings/payments/payout-methods",
+            icon: CreditCard,
+          },
+          {
+            label: "Payment History",
+            href: "/settings/payments/payment-history",
+            icon: History,
+          },
+          {
+            label: "Invoices & Receipts",
+            href: "/settings/payments/invoice-receipt",
+            icon: Receipt,
+          },
         ],
       },
       {
         label: "Privacy & Safety",
         icon: Shield,
         children: [
-          { label: "Blocked Brands", href: "/settings/privacy-safety/blocked-brands" },
-          { label: "Data Privacy", href: "/settings/privacy-safety/data-privacy" },
+          {
+            label: "Blocked Brands",
+            href: "/settings/privacy-safety/blocked-brands",
+            icon: UserX,
+          },
+          {
+            label: "Data Privacy",
+            href: "/settings/privacy-safety/data-privacy",
+            icon: Database,
+          },
         ],
       },
       {
         label: "Communications",
         icon: Mail,
         children: [
-          { label: "Email Preferences", href: "/settings/communications/email-preferrence" },
+          {
+            label: "Email Preferences",
+            href: "/settings/communications/email-preferrence",
+            icon: MailOpen,
+          },
         ],
       },
     ],

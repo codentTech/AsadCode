@@ -22,7 +22,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
         <button
           key={href}
           onClick={() => handleItemClick({ href, label, currentPath, hasChildren: false })}
-          className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
+          className={`w-full text-left p-2 rounded-md text-xs transition-colors ${
             activeItem === label
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -32,7 +32,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={20}
+                size={13}
                 className={`${
                   activeItem === label
                     ? "text-primary"
@@ -66,11 +66,11 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={20}
+                size={13}
                 className="text-gray-500 group-hover:text-indigo-600 transition-colors"
               />
             )}
-            <span className="font-medium text-sm">{label}</span>
+            <span className="font-medium text-xs">{label}</span>
           </div>
           {hasChildren && (
             <div
@@ -119,7 +119,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 py-4 h-screen overflow-y-scroll pb-10">
           <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>

@@ -5,7 +5,7 @@ import DeliverablesProgress from "./components/deliverables-progress/deliverable
 
 function Brand({ isCompleted }) {
   return (
-    <div className="relative flex flex-1 overflow-hidden pb-20">
+    <div className="relative flex">
       {/* Chat list */}
       <CampaignOverview isCompleted={isCompleted} />
 
