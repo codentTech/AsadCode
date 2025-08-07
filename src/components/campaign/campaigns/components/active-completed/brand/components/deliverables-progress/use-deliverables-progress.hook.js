@@ -1,9 +1,32 @@
-import { useState } from "react";
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
+import { useState } from "react";
+import useMessageThread from "../message-thread-modal/use-message-thread.hook";
+import { avatar } from "@/common/constants/auth.constant";
 
 const useDeliverablesProgress = () => {
   const { getStatusColor, getStatusIcon } = useCommonHelpers();
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+
+  // Creator data for message thread
+  const creator = {
+    id: "creator_sam_waters",
+    name: "Sam Waters",
+    avatar, // Replace with actual avatar path
+    isOnline: true,
+    location: "Los Angeles, CA",
+    age: 27,
+    rating: 4.2,
+    reviewCount: 245,
+    platforms: {
+      instagram: { followers: 285000, verified: true },
+      youtube: { followers: 95000, verified: true },
+      twitter: { followers: 42000, verified: false },
+    },
+  };
+
+  // Initialize message thread hook
+  const messageThreadHook = useMessageThread(creator.id);
+
+  // Existing state management
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({});
 
@@ -53,18 +76,23 @@ const useDeliverablesProgress = () => {
     ],
   });
 
+  // Private notes data
   const privateNotes = [
     {
       text: "Mention the brand in the first 5 seconds",
       timestamp: "2025-04-23 10:12 AM",
     },
-    { text: "Use trending audio", timestamp: "2025-04-23 10:15 AM" },
+    {
+      text: "Use trending audio",
+      timestamp: "2025-04-23 10:15 AM",
+    },
     {
       text: "Tag the brand and use hashtag #SpringLaunch",
       timestamp: "2025-04-23 10:18 AM",
     },
   ];
 
+  // Existing project management functions
   const handleEdit = (type, item) => {
     setEditingItem({ type, id: item.id });
     if (type === "deliverable") {
@@ -118,7 +146,82 @@ const useDeliverablesProgress = () => {
     }));
   };
 
+  // Enhanced campaign actions
+  const markCampaignComplete = async () => {
+    try {
+      // TODO: Replace with actual API call
+      console.log("Marking campaign as complete...");
+
+      // Update all deliverables to completed
+      setProject((prev) => ({
+        ...prev,
+        deliverables: prev.deliverables.map((item) => ({
+          ...item,
+          completed: true,
+          status: "completed",
+        })),
+        timeline: prev.timeline.map((step) => ({
+          ...step,
+          completed: true,
+        })),
+      }));
+
+      // Optionally send a message to the creator
+      await messageThreadHook.sendMessage(
+        "Campaign has been marked as complete! Great work on all deliverables."
+      );
+    } catch (error) {
+      console.error("Error marking campaign complete:", error);
+    }
+  };
+
+  const releasePayment = async () => {
+    try {
+      // TODO: Replace with actual API call
+      console.log("Releasing payment...");
+
+      // Optionally notify creator via message
+      await messageThreadHook.sendMessage(
+        "Payment has been released! You should receive it within 2-3 business days."
+      );
+    } catch (error) {
+      console.error("Error releasing payment:", error);
+    }
+  };
+
+  const requestRevision = async (revisionDetails) => {
+    try {
+      // TODO: Replace with actual API call
+      console.log("Requesting revision:", revisionDetails);
+
+      // Send message to creator about revision
+      const revisionMessage = `Revision Request: ${revisionDetails || "Please make some adjustments to the deliverables as discussed."}`;
+      await messageThreadHook.sendMessage(revisionMessage);
+    } catch (error) {
+      console.error("Error requesting revision:", error);
+    }
+  };
+
+  const editPaymentDetails = async (paymentDetails) => {
+    try {
+      // TODO: Replace with actual API call
+      console.log("Updating payment details:", paymentDetails);
+
+      setProject((prev) => ({
+        ...prev,
+        totalAmount: paymentDetails.amount || prev.totalAmount,
+      }));
+    } catch (error) {
+      console.error("Error updating payment details:", error);
+    }
+  };
+
   return {
+    // Message thread integration
+    messageThreadHook,
+    creator,
+
+    // Existing functionality
     getStatusColor,
     getStatusIcon,
     project,
@@ -131,8 +234,12 @@ const useDeliverablesProgress = () => {
     handleCancel,
     toggleDeliverable,
     toggleTimelineStep,
-    messageDialogOpen,
-    setMessageDialogOpen,
+
+    // Enhanced campaign actions
+    markCampaignComplete,
+    releasePayment,
+    requestRevision,
+    editPaymentDetails,
   };
 };
 
