@@ -1,22 +1,22 @@
+import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
-import { Avatar } from "@mui/material";
-import { Calendar, CheckCircle2, DollarSign, Edit3, MapPin, Star } from "lucide-react";
-import React from "react";
-import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import { Avatar } from "@mui/material";
+import { CheckCircle2, MapPin, Star } from "lucide-react";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline";
+import MessageThreadModal from "../message-thread-modal/message-thread-modal.component";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false }) => {
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
   const {
-    getStatusColor,
-    getStatusIcon,
-    project,
     privateNotes,
+    messageThreadHook,
+    creator,
+    // Keep existing functionality
+    project,
     editingItem,
     editForm,
     setEditForm,
@@ -25,16 +25,14 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
     handleCancel,
     toggleDeliverable,
     toggleTimelineStep,
-    messageDialogOpen,
-    setMessageDialogOpen,
   } = useDeliverablesProgress();
 
   const handleExportReport = () => {
-    // console.log("Exporting campaign report...");
+    console.log("Exporting campaign report...");
   };
 
   const handleProcessPayments = () => {
-    // console.log("Processing final payments...");
+    console.log("Processing final payments...");
   };
 
   const platforms = {
@@ -174,7 +172,7 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                         <CustomButton
                           text="Send Message"
                           className="w-full btn-secondary"
-                          onClick={() => setMessageDialogOpen(true)}
+                          onClick={messageThreadHook.openMessageModal}
                         />
                         <CustomButton text="Request Revision" className="w-full btn-secondary" />
                       </div>
@@ -227,140 +225,6 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
               <h4 className="text-lg font-semibold text-gray-800 mb-2">Project Timeline</h4>
               <BrandTimelineSteps />
             </div>
-
-            {/* Deliverables */}
-            {/* <div className="p-4">
-              <h4 className="text-lg font-semibold text-gray-800 mb-2">Deliverables</h4>
-              <div className="space-y-4">
-                {project.deliverables.map((deliverable) => (
-                  <div
-                    key={deliverable.id}
-                    className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
-                  >
-                    <div className="flex flex-col lg:flex-row gap-4 w-full">
-                      <div className="flex flex-col sm:flex-row gap-3 w-full">
-                        <div className="flex-shrink-0">
-                          <button
-                            onClick={
-                              !isCompleted ? () => toggleDeliverable(deliverable.id) : undefined
-                            }
-                            className={`rounded-full flex items-center justify-center ${
-                              deliverable.completed || isCompleted
-                                ? "bg-primary border-primary text-white"
-                                : "border border-gray-300 hover:border-gray-400"
-                            } ${isCompleted ? "cursor-default" : "cursor-pointer"}`}
-                          >
-                            <CheckCircle2 className="w-5 h-5" />
-                          </button>
-                        </div>
-
-                        <div className="flex-1 w-full">
-                          {editingItem?.type === "deliverable" &&
-                          editingItem?.id === deliverable.id &&
-                          !isCompleted ? (
-                            <div className="space-y-3 w-full">
-                              <CustomInput
-                                type="text"
-                                value={editForm.title}
-                                onChange={(e) =>
-                                  setEditForm({ ...editForm, title: e.target.value })
-                                }
-                              />
-
-                              <div className="flex flex-col sm:flex-row gap-3 w-full">
-                                <CustomInput
-                                  type="date"
-                                  value={editForm.deadline}
-                                  onChange={(e) =>
-                                    setEditForm({ ...editForm, deadline: e.target.value })
-                                  }
-                                  className="w-full"
-                                />
-                                <CustomInput
-                                  type="number"
-                                  value={editForm.amount}
-                                  onChange={(e) =>
-                                    setEditForm({ ...editForm, amount: Number(e.target.value) })
-                                  }
-                                  placeholder="Amount"
-                                  className="w-full"
-                                />
-                              </div>
-
-                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-[60%]">
-                                <CustomButton
-                                  text="Cancel"
-                                  className="btn-cancel w-full"
-                                  onClick={handleCancel}
-                                />
-                                <CustomButton
-                                  text="Save"
-                                  onClick={handleSave}
-                                  className="btn-primary w-full"
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <h3
-                                className={`text-xs ${
-                                  deliverable.completed || isCompleted
-                                    ? "text-gray-500"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                {deliverable.title}
-                              </h3>
-
-                              <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  <span>{deliverable.deadline}</span>
-                                </div>
-
-                                <div className="flex items-center text-xs">
-                                  <DollarSign className="w-3 h-3" />
-                                  <span>{deliverable.amount}</span>
-                                </div>
-
-                                <div
-                                  className={`flex items-center text-xs gap-1 px-2 py-1 rounded-full ${
-                                    isCompleted
-                                      ? "bg-green-100 text-green-800"
-                                      : getStatusColor(deliverable.status)
-                                  }`}
-                                >
-                                  {isCompleted ? (
-                                    <CheckCircle2 className="w-3 h-3" />
-                                  ) : (
-                                    getStatusIcon(deliverable.status)
-                                  )}
-                                  <span className="capitalize">
-                                    {isCompleted
-                                      ? "Completed"
-                                      : deliverable.status.replace("-", " ")}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {!isCompleted && editingItem?.id !== deliverable.id && (
-                        <div className="self-start">
-                          <CustomButton
-                            onClick={() => handleEdit("deliverable", deliverable)}
-                            className="text-gray-400 hover:text-gray-600"
-                            endIcon={<Edit3 className="w-4 h-4" />}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
           </div>
 
           <div className="w-full border-t">
@@ -406,23 +270,12 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
         </div>
       </div>
 
-      {/* Message Creator Dialog */}
-      <Modal
-        title={`Message to Sam Waters`}
-        show={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
-      >
-        <TextArea label="Your Message" />
-        <div className="w-full flex justify-end gap-3">
-          <CustomButton
-            text="Cancel"
-            className="btn-cancel"
-            onClick={() => setMessageDialogOpen(false)}
-          />
-
-          <CustomButton text="Send Message" className="btn-primary" />
-        </div>
-      </Modal>
+      {/* Message Thread Modal - Replaces the simple Modal */}
+      <MessageThreadModal
+        isOpen={messageThreadHook.isModalOpen}
+        onClose={messageThreadHook.closeMessageModal}
+        creator={creator}
+      />
     </div>
   );
 };
