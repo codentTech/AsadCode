@@ -32,7 +32,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={13}
+                size={14}
                 className={`${
                   activeItem === label
                     ? "text-primary"
@@ -66,7 +66,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={13}
+                size={14}
                 className="text-gray-500 group-hover:text-indigo-600 transition-colors"
               />
             )}
@@ -104,12 +104,12 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6">
+        <div className="flex items-center justify-between py-[14px] border-b border-gray-200 px-6">
           <Link href="/" className="flex items-center cursor-pointer">
             <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
           </Link>
@@ -119,7 +119,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 h-screen overflow-y-scroll pb-10">
+        <nav className="flex-1 py-4 h-screen overflow-y-auto pb-10">
           <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>
