@@ -22,7 +22,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
         <button
           key={href}
           onClick={() => handleItemClick({ href, label, currentPath, hasChildren: false })}
-          className={`w-full text-left p-2 rounded-md text-xs transition-colors ${
+          className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
             activeItem === label
               ? "bg-indigo-50 text-primary font-medium border-l-2 border-primary"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -32,7 +32,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={13}
+                size={15}
                 className={`${
                   activeItem === label
                     ? "text-primary"
@@ -66,11 +66,11 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           <div className="flex items-center space-x-3">
             {Icon && (
               <Icon
-                size={13}
+                size={15}
                 className="text-gray-500 group-hover:text-indigo-600 transition-colors"
               />
             )}
-            <span className="font-medium text-xs">{label}</span>
+            <span className="font-medium text-sm">{label}</span>
           </div>
           {hasChildren && (
             <div
@@ -104,12 +104,12 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between py-[14px] shadow-sm border-b border-gray-200 px-6">
+        <div className="flex items-center justify-between py-[14px] border-b border-gray-200 px-6">
           <Link href="/" className="flex items-center cursor-pointer">
             <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
           </Link>
@@ -119,7 +119,7 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 h-screen overflow-y-scroll pb-10">
+        <nav className="flex-1 py-4 h-screen overflow-y-auto pb-10">
           <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>
