@@ -20,6 +20,9 @@ const initialState = {
   getBlockedUsers: { ...generalState },
   isUserBlocked: { ...generalState },
   addUserToWaitlist: { ...generalState },
+  connectSocialMedia: { ...generalState },
+  getSocialAccounts: { ...generalState },
+  disconnectSocialAccount: { ...generalState },
 };
 
 export const getAllUsers = createAsyncThunk("users/getAllUsers", async (_, thunkAPI) => {
@@ -148,6 +151,42 @@ export const addUserToWaitlist = createAsyncThunk(
         return response;
       }
       return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const connectSocialMedia = createAsyncThunk(
+  "users/connectSocialMedia",
+  async (platform, thunkAPI) => {
+    try {
+      const response = await usersService.connectSocialMedia(platform);
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const getSocialAccounts = createAsyncThunk(
+  "users/getSocialAccounts",
+  async (_, thunkAPI) => {
+    try {
+      const response = await usersService.getSocialAccounts();
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const disconnectSocialAccount = createAsyncThunk(
+  "users/disconnectSocialAccount",
+  async (platform, thunkAPI) => {
+    try {
+      const response = await usersService.disconnectSocialAccount(platform);
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -339,6 +378,66 @@ export const usersSlice = createSlice({
           state.addUserToWaitlist.isLoading = false;
           state.addUserToWaitlist.isError = true;
           state.addUserToWaitlist.message = action.payload;
+        }
+      })
+      // connectSocialMedia
+      .addCase(connectSocialMedia.pending, (state) => {
+        if (state.connectSocialMedia) {
+          state.connectSocialMedia.isLoading = true;
+        }
+      })
+      .addCase(connectSocialMedia.fulfilled, (state, action) => {
+        if (state.connectSocialMedia) {
+          state.connectSocialMedia.isLoading = false;
+          state.connectSocialMedia.isSuccess = true;
+          state.connectSocialMedia.data = action.payload;
+        }
+      })
+      .addCase(connectSocialMedia.rejected, (state, action) => {
+        if (state.connectSocialMedia) {
+          state.connectSocialMedia.isLoading = false;
+          state.connectSocialMedia.isError = true;
+          state.connectSocialMedia.message = action.payload;
+        }
+      })
+      // getSocialAccounts
+      .addCase(getSocialAccounts.pending, (state) => {
+        if (state.getSocialAccounts) {
+          state.getSocialAccounts.isLoading = true;
+        }
+      })
+      .addCase(getSocialAccounts.fulfilled, (state, action) => {
+        if (state.getSocialAccounts) {
+          state.getSocialAccounts.isLoading = false;
+          state.getSocialAccounts.isSuccess = true;
+          state.getSocialAccounts.data = action.payload;
+        }
+      })
+      .addCase(getSocialAccounts.rejected, (state, action) => {
+        if (state.getSocialAccounts) {
+          state.getSocialAccounts.isLoading = false;
+          state.getSocialAccounts.isError = true;
+          state.getSocialAccounts.message = action.payload;
+        }
+      })
+      // disconnectSocialAccount
+      .addCase(disconnectSocialAccount.pending, (state) => {
+        if (state.disconnectSocialAccount) {
+          state.disconnectSocialAccount.isLoading = true;
+        }
+      })
+      .addCase(disconnectSocialAccount.fulfilled, (state, action) => {
+        if (state.disconnectSocialAccount) {
+          state.disconnectSocialAccount.isLoading = false;
+          state.disconnectSocialAccount.isSuccess = true;
+          state.disconnectSocialAccount.data = action.payload;
+        }
+      })
+      .addCase(disconnectSocialAccount.rejected, (state, action) => {
+        if (state.disconnectSocialAccount) {
+          state.disconnectSocialAccount.isLoading = false;
+          state.disconnectSocialAccount.isError = true;
+          state.disconnectSocialAccount.message = action.payload;
         }
       });
   },
