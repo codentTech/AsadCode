@@ -1,79 +1,123 @@
 import { avatar } from "@/common/constants/auth.constant";
-import React, { useState } from "react";
+import { getUser } from "@/common/utils/users.util";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
-const portfolioItems = [
-  {
-    id: 1,
-    image: avatar,
-    caption: "Summer Collection with @FashionBrand",
-    type: "video",
-  },
-  {
-    id: 2,
-    image: avatar,
-    caption: "Skincare Routine with @GlowCo",
-    type: "image",
-  },
-  {
-    id: 3,
-    image: avatar,
-    caption: "Travel Diary: Barcelona Edition",
-    type: "video",
-  },
-  {
-    id: 4,
-    image: avatar,
-    caption: "Sustainable Fashion Haul",
-    type: "video",
-  },
-  {
-    id: 5,
-    image: avatar,
-    caption: "Morning Routine Partnership with @WellnessBrand",
-    type: "image",
-  },
-  {
-    id: 6,
-    image: avatar,
-    caption: "Home Decor Tips",
-    type: "image",
-  },
-  {
-    id: 7,
-    image: avatar,
-    caption: "Fitness Challenge with @ActiveWear",
-    type: "video",
-  },
-  {
-    id: 8,
-    image: avatar,
-    caption: "Makeup Tutorial Collab",
-    type: "video",
-  },
-  {
-    id: 9,
-    image: avatar,
-    caption: "Healthy Recipes with @OrganicFoods",
-    type: "image",
-  },
-  {
-    id: 10,
-    image: avatar,
-    caption: "Weekend Getaway",
-    type: "video",
-  },
-];
-
-function useGallary() {
+function useGallary(refreshKey = 0) {
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedNiche, setSelectedNiche] = useState("all");
+  const [portfolioItems, setPortfolioItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const userRef = useRef(null);
+  const lastGalleryDataRef = useRef(null);
 
-  // Filter portfolio items based on active tab
-  const filteredPortfolio =
-    activeTab === "all"
-      ? portfolioItems
-      : portfolioItems.filter((item) => item.type === activeTab);
+  const refreshGallery = useCallback(() => {
+    // This will now be triggered by the parent's refreshKey
+    loadCreatorData();
+  }, []);
 
-  return { activeTab, setActiveTab, filteredPortfolio, portfolioItems };
+  // Safe function to get user data without side effects
+  const getSafeUser = useCallback(() => {
+    if (typeof window === "object" && window?.localStorage?.getItem("user")) {
+      try {
+        return JSON.parse(localStorage.getItem("user"));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        return null;
+      }
+    }
+    return null;
+  }, []);
+
+  // Function to transform gallery data
+  const transformGalleryData = useCallback((user) => {
+    if (!user || !user.creator_profile || !user.creator_profile.gallery) {
+      console.log("No gallery data found:", { user, creator_profile: user?.creator_profile });
+      return [];
+    }
+
+    console.log("Processing gallery data:", user.creator_profile.gallery);
+    const transformedItems = [];
+
+    user.creator_profile.gallery.forEach((niche) => {
+      if (niche.media && Array.isArray(niche.media)) {
+        niche.media.forEach((mediaUrl, index) => {
+          // Determine media type from URL extension
+          const isVideo =
+            mediaUrl.includes(".mp4") ||
+            mediaUrl.includes(".mov") ||
+            mediaUrl.includes(".avi") ||
+            mediaUrl.includes(".webm");
+          const isImage =
+            mediaUrl.includes(".jpg") ||
+            mediaUrl.includes(".jpeg") ||
+            mediaUrl.includes(".png") ||
+            mediaUrl.includes(".gif") ||
+            mediaUrl.includes(".webp");
+
+          if (isVideo || isImage) {
+            transformedItems.push({
+              id: `${niche.niche}-${index}`,
+              image: mediaUrl,
+              caption: `${niche.niche} - ${isVideo ? "Video" : "Image"}`,
+              type: isVideo ? "video" : "image",
+              niche: niche.niche,
+              url: mediaUrl,
+            });
+          }
+        });
+      }
+    });
+
+    console.log("Transformed gallery items:", transformedItems);
+    return transformedItems;
+  }, []);
+
+  const loadCreatorData = useCallback(() => {
+    const user = getSafeUser();
+    userRef.current = user;
+
+    const transformedItems = transformGalleryData(user);
+    setPortfolioItems(transformedItems);
+
+    // Store the gallery data for comparison
+    if (user?.creator_profile?.gallery) {
+      lastGalleryDataRef.current = JSON.stringify(user.creator_profile.gallery);
+    }
+
+    setIsLoading(false);
+  }, [getSafeUser, transformGalleryData]);
+
+  // Initialize data on mount
+  useEffect(() => {
+    loadCreatorData();
+  }, [loadCreatorData]);
+
+  // Update portfolio items when refreshKey changes
+  useEffect(() => {
+    if (refreshKey > 0) {
+      loadCreatorData();
+    }
+  }, [refreshKey, loadCreatorData]);
+
+  // Memoize filtered portfolio to prevent unnecessary recalculations
+  const filteredPortfolio = useMemo(() => {
+    return portfolioItems.filter((item) => {
+      const matchesTab = activeTab === "all" || item.type === activeTab;
+      const matchesNiche = selectedNiche === "all" || item.niche === selectedNiche;
+      return matchesTab && matchesNiche;
+    });
+  }, [portfolioItems, activeTab, selectedNiche]);
+
+  return {
+    activeTab,
+    setActiveTab,
+    selectedNiche,
+    setSelectedNiche,
+    filteredPortfolio,
+    portfolioItems,
+    isLoading,
+    refreshGallery,
+  };
 }
 
 export default useGallary;

@@ -2,14 +2,30 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
-import { updateCampaignDefaults } from "@/provider/features/users/users.slice";
+import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import {
+  updateCampaignDefaults,
+  connectSocialMedia,
+  getSocialAccounts,
+  disconnectSocialAccount,
+} from "@/provider/features/users/users.slice";
 import { AddCircle } from "@mui/icons-material";
-import { DollarSign, Link, X } from "lucide-react";
+import {
+  DollarSign,
+  Link,
+  X,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const SavedDefaultFilters = () => {
   const dispatch = useDispatch();
+  const { getPlatformIcon, getPlatformColor, formatFollowers } = useGetplatform();
+
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [platformUsernames, setPlatformUsernames] = useState({});
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -17,10 +33,20 @@ const SavedDefaultFilters = () => {
   const [contentRates, setContentRates] = useState({});
   const [customRates, setCustomRates] = useState([{ contentType: "", price: "" }]);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectedAccounts, setConnectedAccounts] = useState([]);
 
-  // Load user data on component mount
+  // Redux selectors with safe fallbacks
+  const connectSocialMediaState = useSelector((state) => state.users?.connectSocialMedia);
+  const getSocialAccountsState = useSelector((state) => state.users?.getSocialAccounts);
+  const disconnectSocialAccountState = useSelector((state) => state.users?.disconnectSocialAccount);
+
+  const isConnecting = connectSocialMediaState?.isLoading || false;
+  const socialAccountsData = getSocialAccountsState?.data;
+  const isDisconnecting = disconnectSocialAccountState?.isLoading || false;
+
+  // Load user data and connected social accounts on component mount
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       try {
         const user = getUser();
         if (user) {
@@ -48,6 +74,9 @@ const SavedDefaultFilters = () => {
             setContentRates(rates);
           }
         }
+
+        // Load connected social accounts
+        await loadConnectedAccounts();
       } catch (error) {
         console.error("Error loading user data:", error);
       } finally {
@@ -58,7 +87,52 @@ const SavedDefaultFilters = () => {
     loadUserData();
   }, []);
 
-  const platforms = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook"];
+  // Load connected social accounts
+  const loadConnectedAccounts = async () => {
+    try {
+      const result = await dispatch(getSocialAccounts()).unwrap();
+      if (result.success) {
+        setConnectedAccounts(result.data || []);
+      }
+    } catch (error) {
+      console.error("Error loading social accounts:", error);
+    }
+  };
+
+  // Handle social media connection
+  const handleConnectSocialMedia = async (platform) => {
+    try {
+      await dispatch(connectSocialMedia(platform.toLowerCase())).unwrap();
+      // The user will be redirected to OAuth, so we don't need to handle the response here
+    } catch (error) {
+      console.error(`Error connecting to ${platform}:`, error);
+    }
+  };
+
+  // Handle social media disconnection
+  const handleDisconnectSocialMedia = async (platform) => {
+    try {
+      const result = await dispatch(disconnectSocialAccount(platform)).unwrap();
+      if (result.success) {
+        // Reload connected accounts
+        await loadConnectedAccounts();
+      }
+    } catch (error) {
+      console.error(`Error disconnecting from ${platform}:`, error);
+    }
+  };
+
+  // Check if a platform is connected
+  const isPlatformConnected = (platform) => {
+    return connectedAccounts.some((account) => account.platform === platform);
+  };
+
+  // Get connected account data for a platform
+  const getConnectedAccountData = (platform) => {
+    return connectedAccounts.find((account) => account.platform === platform);
+  };
+
+  const platforms = ["facebook", "instagram", "tiktok", "youtube", "twitter"];
   const categories = [
     "Fashion",
     "Fitness",
@@ -189,43 +263,133 @@ const SavedDefaultFilters = () => {
       </div>
 
       <div className="max-w-full mx-auto">
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Left Column */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Social Platforms */}
             <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Link Other Platforms <span className="text-red-500">*</span>
-              </h3>
-              <div className="space-y-3">
-                {platforms.map((platform) => (
-                  <div key={platform} className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedPlatforms.includes(platform)}
-                      onChange={() => togglePlatform(platform)}
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    />
-                    <Link className="h-4 w-4 text-gray-400" />
-                    <CustomInput
-                      placeholder={`Your ${platform} username`}
-                      disabled={!selectedPlatforms.includes(platform)}
-                      value={platformUsernames[platform] || ""}
-                      onChange={(e) => handleUsernameChange(platform, e.target.value)}
-                    />
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Connect Social Media Platforms <span className="text-red-500">*</span>
+                </h3>
+                <CustomButton
+                  text="Refresh"
+                  onClick={loadConnectedAccounts}
+                  className="btn-outline text-xs px-3 py-1.5"
+                  startIcon={<RefreshCw className="w-3 h-3" />}
+                />
               </div>
-              <p className="flex justify-end text-xs text-gray-600 mt-2">
-                At least 1 platform required
-              </p>
+
+              <div className="grid grid-cols-1 gap-2.5">
+                {platforms.map((platform) => {
+                  const isConnected = isPlatformConnected(platform);
+                  const connectedData = getConnectedAccountData(platform);
+                  const platformColor = getPlatformColor(platform);
+
+                  return (
+                    <div
+                      key={platform}
+                      className={`
+                        relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md
+                        ${
+                          isConnected
+                            ? "border-green-200 bg-green-50"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center justify-between">
+                        {/* Left side - Platform info */}
+                        <div className="flex items-center space-x-3">
+                          {/* Platform Icon with background */}
+                          <div
+                            className={`
+                            w-9 h-9 rounded-full flex items-center justify-center
+                            ${isConnected ? platformColor : "bg-gray-100"}
+                          `}
+                          >
+                            {getPlatformIcon(platform)}
+                          </div>
+
+                          {/* Platform details */}
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-900 text-sm">{platform}</span>
+                            {isConnected ? (
+                              <div className="flex items-center space-x-2">
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                                <span className="text-xs text-green-600 font-medium">
+                                  Connected
+                                </span>
+                                {connectedData?.profile_data?.username && (
+                                  <span className="text-xs text-gray-500">
+                                    @{connectedData.profile_data.username}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-500">Click to connect</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right side - Action buttons */}
+                        <div className="flex items-center space-x-2">
+                          {isConnected ? (
+                            <>
+                              <CustomButton
+                                text="Profile"
+                                onClick={() =>
+                                  window.open(connectedData?.profile_data?.profile_url, "_blank")
+                                }
+                                className="btn-outline text-xs px-3 py-1 h-7"
+                                startIcon={<ExternalLink className="w-3 h-3" />}
+                              />
+                              <CustomButton
+                                text="Disconnect"
+                                onClick={() => handleDisconnectSocialMedia(platform)}
+                                className="btn-danger text-xs px-3 py-1 h-7"
+                                disabled={isDisconnecting}
+                              />
+                            </>
+                          ) : (
+                            <CustomButton
+                              text="Connect"
+                              onClick={() => handleConnectSocialMedia(platform)}
+                              className="btn-primary text-xs px-4 py-1 h-7"
+                              disabled={isConnecting}
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Connection status indicator */}
+                      {isConnected && (
+                        <div className="absolute top-2 right-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-blue-800">
+                    <span className="font-medium">Note:</span> Connect at least 1 platform to
+                    continue. Connected accounts will be used for campaign matching and analytics.
+                  </div>
+                </div>
+              </div>
             </div>
+
             {/* Categories */}
             <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 Creator Categories <span className="text-red-500">*</span>
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 {categories.map((category) => (
                   <button
                     key={category}
@@ -235,13 +399,13 @@ const SavedDefaultFilters = () => {
                       !selectedCategories.includes(category) && selectedCategories.length >= 5
                     }
                     className={`
-                          p-2 rounded-lg border-2 text-xs font-medium transition-all duration-200
-                          ${
-                            selectedCategories.includes(category)
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200 disabled:opacity-50"
-                          }
-                        `}
+                      p-2 rounded-lg border-2 text-xs font-medium transition-all duration-200
+                      ${
+                        selectedCategories.includes(category)
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                          : "border-gray-200 text-gray-700 hover:border-indigo-200 disabled:opacity-50"
+                      }
+                    `}
                   >
                     {category}
                   </button>
@@ -254,10 +418,10 @@ const SavedDefaultFilters = () => {
           </div>
 
           {/* Right Column */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Keywords */}
             <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Keyword Tags (Optional)</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Keyword Tags (Optional)</h3>
 
               <div className="flex gap-2">
                 <CustomInput
@@ -293,16 +457,16 @@ const SavedDefaultFilters = () => {
 
             {/* Rates */}
             <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Content Rates (Optional)</h3>
-              <div className="space-y-3 text-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Content Rates (Optional)</h3>
+              <div className="space-y-2.5 text-sm">
                 {standardContentTypes.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                    className="flex items-center justify-between p-2.5 bg-gray-100 rounded-lg"
                   >
                     <span className="text-xs text-gray-600">{item}</span>
                     <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-gray-400" />
+                      <DollarSign className="h-4 h-4 text-gray-400" />
                       <CustomInput
                         type="number"
                         placeholder="0"
@@ -358,7 +522,7 @@ const SavedDefaultFilters = () => {
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-end text-center mt-10">
+        <div className="flex justify-end text-center mt-8">
           <CustomButton
             text={"Save Settings"}
             className="btn-primary"

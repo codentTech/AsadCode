@@ -3,11 +3,14 @@ import InstagramIcon from "../icons/instagram";
 import TikTokIcon from "../icons/tiktok";
 import TwitterIcon from "../icons/twitter";
 import YoutubeIcon from "../icons/youtube";
+import FacebookIcon from "../icons/facebook";
 
 function useGetplatform() {
   const getPlatformIcon = (platform) => {
     const value = platform?.toLowerCase();
     switch (value) {
+      case "facebook":
+        return <FacebookIcon className="w-4 h-4" />;
       case "instagram":
         return <InstagramIcon className="w-4 h-4" />;
       case "youtube":
@@ -24,6 +27,8 @@ function useGetplatform() {
   const getPlatformColor = (platform) => {
     const value = platform?.toLowerCase();
     switch (value) {
+      case "facebook":
+        return "bg-blue-100 text-green-800";
       case "instagram":
         return "bg-pink-100 text-pink-800";
       case "youtube":

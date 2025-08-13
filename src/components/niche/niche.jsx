@@ -1,31 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getUser } from "@/common/utils/users.util";
 
-function Niche() {
-  const [activeCategory, setActiveCategory] = useState("Skincare");
-  const categories = [
-    "Beauty",
-    "Skincare",
-    "Fitness",
-    "Fashion",
-    "Travel",
-    "Food",
-    "Finance",
-    "Business",
-    "Health",
-  ];
+function Niche({ categories = [], onNicheChange, selectedNiche = "all" }) {
+  const [localCategories, setLocalCategories] = useState([]);
+
+  useEffect(() => {
+    // If categories are passed as props, use them; otherwise fetch from user data
+    if (categories.length > 0) {
+      setLocalCategories(categories);
+    } else {
+      const user = getUser();
+      if (user && user.creator_profile && user.creator_profile.categories) {
+        setLocalCategories(user.creator_profile.categories);
+      } else {
+        // Fallback to default categories
+        setLocalCategories([
+          "Beauty",
+          "Skincare",
+          "Fitness",
+          "Fashion",
+          "Travel",
+          "Food",
+          "Finance",
+          "Business",
+          "Health",
+        ]);
+      }
+    }
+  }, []);
+
+  const handleNicheClick = (niche) => {
+    if (onNicheChange) {
+      onNicheChange(niche);
+    }
+  };
+
+  // Add "All" option at the beginning
+  const displayCategories = ["all", ...localCategories];
+
   return (
     <div className="flex flex-wrap gap-2">
-      {categories.map((category) => (
+      {displayCategories.map((category) => (
         <button
           key={category}
-          onClick={() => setActiveCategory(category)}
+          onClick={() => handleNicheClick(category)}
           className={`px-2 py-1.5 rounded-lg text-xs border ${
-            activeCategory === category
+            selectedNiche === category
               ? "bg-primary text-white shadow-sm"
               : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
           }`}
         >
-          {category}
+          {category === "all" ? "All Niches" : category}
         </button>
       ))}
     </div>

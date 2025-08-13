@@ -3,33 +3,116 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Camera, DollarSign, Edit, ImageIcon, Images, Tag, User, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateCampaignDefaults } from "@/provider/features/users/users.slice";
+import {
+  uploadSingleFile,
+  uploadMultipleFiles,
+} from "@/provider/features/upload-file/upload-file.slice";
+import { getUser } from "@/common/utils/users.util";
+import { updateUser } from "@/provider/features/users/users.slice";
 
-const ProfileEditModal = ({ isOpen, onClose, creator }) => {
+const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("profile");
   const [newNiche, setNewNiche] = useState("");
   const [showNicheInput, setShowNicheInput] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    name: "Sophia Chen",
-    handle: "@sophia.creates",
-    location: "Los Angeles, CA",
-    bio: "Creative content creator passionate about lifestyle, fashion, and travel.",
+    name: "",
+    handle: "",
+    location: "",
+    bio: "",
     profilePic: null,
     miniCards: [null, null, null],
-    niches: ["Fashion", "Lifestyle", "Travel"],
-    startingRates: {
-      instagramPost: 250,
-      instagramStory: 150,
-      youtubeVideo: 800,
-      tiktokVideo: 200,
-    },
+    niches: [],
+    startingRates: {},
   });
 
   const [galleries, setGalleries] = useState({
-    videos: [],
-    images: [],
+    nicheContent: {},
   });
+
+  // Initialize profile data when creator prop changes
+  useEffect(() => {
+    if (creator) {
+      // Debug: Log the content rates to see what we're working with
+      console.log("Creator content rates:", creator.contentRates);
+
+      // Ensure contentRates is an array and has content
+      const hasContentRates =
+        creator.contentRates &&
+        Array.isArray(creator.contentRates) &&
+        creator.contentRates.length > 0;
+      console.log("Has content rates:", hasContentRates);
+
+      setProfileData({
+        name: creator.name || "",
+        handle: creator.handle || "",
+        location: creator.location || "",
+        bio: creator.bio || "",
+        profilePic: creator.profilePic || null,
+        miniCards: [null, null, null], // Not in API yet
+        niches: creator.categories || [],
+
+        startingRates:
+          creator?.creator_profile?.content_rates?.map((rate) => ({
+            type: rate.contentType,
+            price: `$${rate.price || 0}`,
+          })) || [],
+      });
+
+      // Initialize galleries from creator data
+      if (creator.creator_profile?.gallery && Array.isArray(creator.creator_profile.gallery)) {
+        const galleryData = {};
+        creator.creator_profile.gallery.forEach((niche) => {
+          if (niche.media && Array.isArray(niche.media)) {
+            // Separate videos and images based on URL extensions
+            const videos = niche.media.filter(
+              (url) =>
+                url.includes(".mp4") ||
+                url.includes(".mov") ||
+                url.includes(".avi") ||
+                url.includes(".webm")
+            );
+            const images = niche.media.filter(
+              (url) =>
+                url.includes(".jpg") ||
+                url.includes(".jpeg") ||
+                url.includes(".png") ||
+                url.includes(".gif") ||
+                url.includes(".webp")
+            );
+
+            galleryData[niche.niche] = {
+              videos: videos.map((url, index) => ({
+                id: `${niche.niche}-video-${index}`,
+                src: url,
+                title: `Video ${index + 1}`,
+                niche: niche.niche,
+                type: "video",
+                fileSize: 0, // We don't have this info from the API
+                uploadDate: new Date().toISOString(),
+              })),
+              images: images.map((url, index) => ({
+                id: `${niche.niche}-image-${index}`,
+                src: url,
+                title: `Image ${index + 1}`,
+                niche: niche.niche,
+                type: "image",
+                fileSize: 0, // We don't have this info from the API
+                uploadDate: new Date().toISOString(),
+              })),
+            };
+          }
+        });
+        setGalleries({ nicheContent: galleryData });
+        console.log("Initialized galleries from creator data:", galleryData);
+      }
+    }
+  }, [creator]);
 
   const fileInputRef = useRef(null);
   const miniCardRefs = [useRef(null), useRef(null), useRef(null)];
@@ -68,9 +151,10 @@ const ProfileEditModal = ({ isOpen, onClose, creator }) => {
 
   const addNiche = () => {
     if (newNiche.trim() && !profileData.niches.includes(newNiche.trim())) {
+      const newNicheName = newNiche.trim();
       setProfileData((prev) => ({
         ...prev,
-        niches: [...prev.niches, newNiche.trim()],
+        niches: [...prev.niches, newNicheName],
       }));
       setNewNiche("");
       setShowNicheInput(false);
@@ -82,38 +166,285 @@ const ProfileEditModal = ({ isOpen, onClose, creator }) => {
       ...prev,
       niches: prev.niches.filter((n) => n !== niche),
     }));
+
+    setGalleries((prev) => {
+      const newNicheContent = { ...prev.nicheContent };
+      delete newNicheContent[niche];
+      return {
+        ...prev,
+        nicheContent: newNicheContent,
+      };
+    });
   };
 
-  const addGalleryItem = (type) => {
+  const addGalleryItem = async (type, niche) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = type === "video" ? "video/*" : "image/*";
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setGalleries((prev) => ({
-            ...prev,
-            [type === "video" ? "videos" : "images"]: [
-              ...prev[type === "video" ? "videos" : "images"],
-              { id: Date.now(), src: e.target.result, title: file.name },
-            ],
-          }));
-        };
-        reader.readAsDataURL(file);
+
+    // Set accept based on type
+    if (type === "video") {
+      input.accept = "video/*";
+    } else if (type === "image") {
+      input.accept = "image/*";
+    } else if (type === "mixed") {
+      input.accept = "image/*,video/*";
+    }
+
+    input.multiple = true; // Allow multiple file selection
+
+    input.onchange = async (e) => {
+      const files = Array.from(e.target.files);
+
+      if (files.length === 0) return;
+
+      // Validate file sizes (50MB limit)
+      const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+      const oversizedFiles = files.filter((file) => file.size > MAX_FILE_SIZE);
+
+      if (oversizedFiles.length > 0) {
+        const fileNames = oversizedFiles.map((f) => f.name).join(", ");
+        console.warn(`Files too large (max 50MB): ${fileNames}`);
+        return;
+      }
+
+      try {
+        // Show loading state
+        setGalleries((prev) => ({
+          ...prev,
+          isUploading: true,
+        }));
+
+        if (files.length === 1) {
+          // Single file upload
+          const result = await dispatch(
+            uploadSingleFile({ file: files[0], folder: "creator" })
+          ).unwrap();
+
+          if (result && result.url) {
+            const fileType = files[0].type.startsWith("video/") ? "video" : "image";
+            const newItem = {
+              id: Date.now(),
+              src: result.url,
+              title: files[0].name,
+              niche,
+              type: fileType,
+              fileSize: files[0].size,
+              uploadDate: new Date().toISOString(),
+            };
+
+            setGalleries((prev) => {
+              const currentNicheContent = prev.nicheContent[niche] || { videos: [], images: [] };
+              return {
+                ...prev,
+                nicheContent: {
+                  ...prev.nicheContent,
+                  [niche]: {
+                    ...currentNicheContent,
+                    [fileType === "video" ? "videos" : "images"]: [
+                      ...currentNicheContent[fileType === "video" ? "videos" : "images"],
+                      newItem,
+                    ],
+                  },
+                },
+                isUploading: false,
+              };
+            });
+          }
+        } else {
+          // Multiple files upload
+          const result = await dispatch(uploadMultipleFiles({ files, folder: "creator" })).unwrap();
+
+          if (result && result.urls && Array.isArray(result.urls)) {
+            const newItems = result.urls.map((url, index) => {
+              const fileType = files[index].type.startsWith("video/") ? "video" : "image";
+              return {
+                id: Date.now() + index,
+                src: url,
+                title: files[index].name,
+                niche,
+                type: fileType,
+                fileSize: files[index].size,
+                uploadDate: new Date().toISOString(),
+              };
+            });
+
+            // Separate videos and images
+            const videos = newItems.filter((item) => item.type === "video");
+            const images = newItems.filter((item) => item.type === "image");
+
+            setGalleries((prev) => {
+              const currentNicheContent = prev.nicheContent[niche] || { videos: [], images: [] };
+              return {
+                ...prev,
+                nicheContent: {
+                  ...prev.nicheContent,
+                  [niche]: {
+                    ...currentNicheContent,
+                    videos: [...currentNicheContent.videos, ...videos],
+                    images: [...currentNicheContent.images, ...images],
+                  },
+                },
+                isUploading: false,
+              };
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error uploading files:", error);
+        // Reset loading state
+        setGalleries((prev) => ({
+          ...prev,
+          isUploading: false,
+        }));
       }
     };
+
     input.click();
   };
 
-  const removeGalleryItem = (type, id) => {
-    setGalleries((prev) => ({
-      ...prev,
-      [type === "video" ? "videos" : "images"]: prev[type === "video" ? "videos" : "images"].filter(
-        (item) => item.id !== id
-      ),
-    }));
+  const removeGalleryItem = (type, id, niche) => {
+    setGalleries((prev) => {
+      const currentNicheContent = prev.nicheContent[niche];
+      if (!currentNicheContent) return prev;
+
+      return {
+        ...prev,
+        nicheContent: {
+          ...prev.nicheContent,
+          [niche]: {
+            ...currentNicheContent,
+            [type === "video" ? "videos" : "images"]: currentNicheContent[
+              type === "video" ? "videos" : "images"
+            ].filter((item) => item.id !== id),
+          },
+        },
+      };
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      // Prepare gallery data for API - ensure all uploaded media is included
+      const galleryData = Object.entries(galleries.nicheContent).map(([niche, content]) => {
+        // Collect all media URLs from both videos and images
+        const allMedia = [
+          ...(content.videos || []).map((video) => video.src),
+          ...(content.images || []).map((image) => image.src),
+        ];
+
+        return {
+          niche,
+          media: allMedia,
+        };
+      });
+
+      // Prepare content rates for API - use existing content rates from creator
+      const contentRates = creator.contentRates || [
+        {
+          contentType: "Instagram Post",
+          price: 0,
+        },
+        {
+          contentType: "Instagram Story",
+          price: 0,
+        },
+        {
+          contentType: "YouTube Video",
+          price: 0,
+        },
+        {
+          contentType: "TikTok Video",
+          price: 0,
+        },
+      ];
+
+      // Step 1: Update user fields (first_name, last_name, email, etc.)
+      const userUpdateData = {
+        first_name: profileData.name.split(" ")[0] || "",
+        last_name: profileData.name.split(" ").slice(1).join(" ") || "",
+        city: profileData.location.split(",")[0]?.trim() || "",
+        country: profileData.location.split(",")[1]?.trim() || "",
+      };
+
+      // Step 2: Update creator profile fields
+      const creatorProfileData = {
+        profilePhotoUrl: profileData.profilePic,
+        bio: profileData.bio,
+        socialPlatforms: creator.user?.creator_profile?.social_platforms || [],
+        categories: profileData.niches,
+        keywordTags: creator.user?.creator_profile?.keyword_tags || [],
+        contentRates: contentRates,
+        gallery: galleryData,
+      };
+
+      console.log("Saving gallery data:", galleryData);
+
+      // Update user first
+      const user = getUser();
+      if (!user || !user.email) {
+        throw new Error("User not found or email missing");
+      }
+
+      // Call user update API
+      const userResult = await dispatch(updateUser(userUpdateData)).unwrap();
+      console.log("User update result:", userResult);
+
+      // Then call creator profile update API
+      const creatorResult = await dispatch(updateCampaignDefaults(creatorProfileData)).unwrap();
+      console.log("Creator profile update result:", creatorResult);
+
+      if (creatorResult.success) {
+        // Update local user data with new gallery information
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        if (currentUser.creator_profile) {
+          currentUser.creator_profile.gallery = galleryData;
+          localStorage.setItem("user", JSON.stringify(currentUser));
+        }
+
+        // Refresh the creator data to ensure gallery is updated
+        const refreshedUser = getUser();
+        if (refreshedUser && refreshedUser.creator_profile) {
+          refreshedUser.creator_profile.gallery = galleryData;
+          localStorage.setItem("user", JSON.stringify(refreshedUser));
+        }
+
+        // Call onSave callback if provided (for refreshing parent components)
+        if (onSave) {
+          onSave();
+        }
+
+        // Close the modal
+        onClose();
+      } else {
+        throw new Error(creatorResult.message || "Failed to update creator profile");
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      // Ensure error message is serializable
+      const errorMessage = error?.message || error?.toString() || "An unknown error occurred";
+      console.error("Serializable error message:", errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getNicheContentCount = (niche) => {
+    const content = galleries.nicheContent[niche];
+    if (!content) return { videos: 0, images: 0 };
+    return {
+      videos: content.videos?.length || 0,
+      images: content.images?.length || 0,
+    };
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   if (!isOpen) return null;
@@ -249,6 +580,19 @@ const ProfileEditModal = ({ isOpen, onClose, creator }) => {
                   </div>
                 </div>
 
+                {/* Bio */}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <h3 className="text-xs font-semibold text-gray-900 mb-3">Bio</h3>
+                  <TextArea
+                    label="Tell us about yourself"
+                    name="bio"
+                    value={profileData.bio}
+                    onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Share your story, passion, and what makes you unique..."
+                    rows={4}
+                  />
+                </div>
+
                 {/* Mini Cards */}
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                   <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
@@ -350,37 +694,19 @@ const ProfileEditModal = ({ isOpen, onClose, creator }) => {
               <div className="space-y-4 max-w-3xl">
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                   <h3 className="text-xs font-semibold text-gray-900 mb-3">Starting Rates</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      { key: "instagramPost", label: "Instagram Post", desc: "Single feed post" },
-                      { key: "instagramStory", label: "Instagram Story", desc: "24-hour story" },
-                      { key: "youtubeVideo", label: "YouTube Video", desc: "Full video content" },
-                      { key: "tiktokVideo", label: "TikTok Video", desc: "Short-form content" },
-                    ].map((item) => (
+                  <div className="space-y-4">
+                    {creator?.contentRates?.map((rate, index) => (
                       <div
-                        key={item.key}
-                        className="p-3 bg-gray-100 rounded-lg border border-gray-200 hover:shadow-sm transition-all"
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition"
                       >
-                        <div className="relative">
-                          <CustomInput
-                            label={item.label + " (" + item.desc + ")"}
-                            type="number"
-                            value={profileData.startingRates[item.key]}
-                            onChange={(e) =>
-                              setProfileData((prev) => ({
-                                ...prev,
-                                startingRates: {
-                                  ...prev.startingRates,
-                                  [item.key]: parseInt(e.target.value) || 0,
-                                },
-                              }))
-                            }
-                            placeholder="0"
-                            help
-                          />
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <DollarSign className="w-4 h-4 text-indigo-500" />
+                          <span className="text-sm font-medium">{rate.contentType}</span>
                         </div>
+                        <span className="font-semibold">${rate.price || 0}</span>
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </div>
               </div>
@@ -446,93 +772,161 @@ const ProfileEditModal = ({ isOpen, onClose, creator }) => {
             {activeTab === "gallery" && (
               <div className="space-y-4 max-w-4xl">
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Upload Your Content
-                    </h3>
-
-                    <div className="flex space-x-2 mb-3">
-                      <CustomButton
-                        text="Add Video"
-                        onClick={() => addGalleryItem("video")}
-                        className="btn-outline"
-                      />
-                      <CustomButton
-                        text="Add Image"
-                        onClick={() => addGalleryItem("image")}
-                        className="btn-primary"
-                      />
-                    </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900">Gallery by Niche</h3>
                   </div>
 
-                  {galleries.videos.length > 0 && (
-                    <div className="mb-3">
-                      <h4 className="font-semibold text-gray-900 mb-2 text-xs">
-                        Videos ({galleries.videos.length})
-                      </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {galleries.videos.map((video) => (
-                          <div key={video.id} className="relative group">
-                            <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
-                              <video src={video.src} className="w-full h-full object-cover" />
-                            </div>
-                            <button
-                              onClick={() => removeGalleryItem("video", video.id)}
-                              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
+                  {profileData.niches.length === 0 ? (
+                    <div className="text-center py-6 text-gray-500">
+                      <div className="flex justify-center items-center w-10 h-10 bg-gray-200 rounded-lg mx-auto mb-2">
+                        <Tag className="w-4 h-4 text-gray-500" />
                       </div>
-                    </div>
-                  )}
-
-                  {galleries.images.length > 0 ? (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 text-xs">
-                        Images ({galleries.images.length})
-                      </h4>
-                      <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                        {galleries.images.map((image) => (
-                          <div key={image.id} className="relative group">
-                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
-                              <img
-                                src={image.src}
-                                alt={image.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <button
-                              onClick={() => removeGalleryItem("image", image.id)}
-                              className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                            >
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                      <p className="text-xs font-medium">No niches added yet</p>
+                      <p className="text-xs mt-1">Add some niches first to organize your gallery</p>
                     </div>
                   ) : (
-                    galleries.videos.length === 0 && (
-                      <div className="text-center py-6 text-gray-500">
-                        <div className="flex justify-center items-center w-10 h-10 bg-gray-200 rounded-lg mx-auto mb-2">
-                          <ImageIcon className="w-4 h-4 text-gray-500" />
-                        </div>
-                        <p className="text-xs font-medium">No media added yet</p>
-                        <p className="text-xs mt-1">Upload some content to showcase your work</p>
-                      </div>
-                    )
+                    <div className="space-y-6">
+                      {profileData.niches.map((niche) => {
+                        const nicheContent = galleries.nicheContent[niche] || {
+                          videos: [],
+                          images: [],
+                        };
+                        const totalContent =
+                          nicheContent.videos.length + nicheContent.images.length;
+
+                        return (
+                          <div key={niche} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-xs font-semibold text-gray-900">
+                                {niche} ({totalContent} items)
+                              </h4>
+                              <div className="flex space-x-2">
+                                <CustomButton
+                                  text={galleries.isUploading ? "Uploading..." : "Add Video"}
+                                  onClick={() => addGalleryItem("video", niche)}
+                                  className="btn-outline text-xs px-3 py-1.5"
+                                  startIcon={<Camera className="w-3 h-3" />}
+                                  disabled={galleries.isUploading}
+                                />
+                                <CustomButton
+                                  text={galleries.isUploading ? "Uploading..." : "Add Image"}
+                                  onClick={() => addGalleryItem("image", niche)}
+                                  className="btn-primary text-xs px-3 py-1.5"
+                                  startIcon={<ImageIcon className="w-3 h-3" />}
+                                  disabled={galleries.isUploading}
+                                />
+                                <CustomButton
+                                  text={galleries.isUploading ? "Uploading..." : "Bulk Upload"}
+                                  onClick={() => addGalleryItem("mixed", niche)}
+                                  className="btn-secondary text-xs px-3 py-1.5"
+                                  startIcon={<Images className="w-3 h-3" />}
+                                  disabled={galleries.isUploading}
+                                />
+                              </div>
+                            </div>
+
+                            {totalContent === 0 ? (
+                              <div className="text-center py-4 text-gray-400 bg-gray-50 rounded-lg">
+                                <p className="text-xs">No content uploaded for this niche yet</p>
+                                <p className="text-xs mt-1 text-gray-500">
+                                  Use the buttons above to add your first content
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {nicheContent.videos.map((video) => (
+                                  <div key={video.id} className="relative group">
+                                    <div className="h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
+                                      <div className="relative w-full h-full bg-gray-800">
+                                        <video
+                                          src={video.src}
+                                          className="w-full h-full object-cover"
+                                          controls
+                                          preload="metadata"
+                                          style={{
+                                            pointerEvents: "auto",
+                                            zIndex: 1,
+                                          }}
+                                        />
+                                      </div>
+
+                                      <button
+                                        onClick={() => removeGalleryItem("video", video.id, niche)}
+                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 z-30"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+
+                                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 via-black/60 to-transparent p-2 z-20">
+                                        <p className="text-white text-xs font-medium leading-tight">
+                                          {video.title.length > 20
+                                            ? video.title.substring(0, 20) + "..."
+                                            : video.title}
+                                        </p>
+                                        <p className="text-white/90 text-xs mt-0.5">
+                                          <span className="inline-flex items-center">
+                                            <Camera className="w-3 h-3 mr-1" />
+                                            {formatFileSize(video.fileSize)}
+                                          </span>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+
+                                {nicheContent.images.map((image) => (
+                                  <div key={image.id} className="relative group">
+                                    <div className="h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
+                                      <img
+                                        src={image.src}
+                                        alt={image.title}
+                                        className="w-full h-full object-cover"
+                                      />
+
+                                      <button
+                                        onClick={() => removeGalleryItem("image", image.id, niche)}
+                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 z-10"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+
+                                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 via-black/60 to-transparent p-2 z-20">
+                                        <p className="text-white text-xs font-medium leading-tight">
+                                          {image.title.length > 20
+                                            ? image.title.substring(0, 20) + "..."
+                                            : image.title}
+                                        </p>
+                                        <p className="text-white/90 text-xs mt-0.5">
+                                          <span className="inline-flex items-center">
+                                            <ImageIcon className="w-3 h-3 mr-1" />
+                                            {formatFileSize(image.fileSize)}
+                                          </span>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Save Changes Button - Bottom */}
           <div className="px-6 py-[15px] border-t border-gray-200 bg-">
             <div className="flex justify-end">
-              <CustomButton text="Save Changes" className="btn-primary" />
+              <CustomButton
+                text="Save Changes"
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={isSaving}
+                loading={isSaving}
+              />
             </div>
           </div>
         </div>
