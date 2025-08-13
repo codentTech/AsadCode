@@ -9,9 +9,6 @@ const BioPricing = ({ refreshKey }) => {
   const loadCreatorData = () => {
     const user = getUser();
     if (user && user.creator_profile) {
-      // Debug: Log the content rates to see what we're working with
-      console.log("BioPricing - User content rates:", user.creator_profile.content_rates);
-
       setCreator({
         bio:
           user.creator_profile.bio ||

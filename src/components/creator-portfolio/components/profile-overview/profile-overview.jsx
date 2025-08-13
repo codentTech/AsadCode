@@ -39,6 +39,7 @@ const ProfileOverview = ({ onProfileUpdate }) => {
         contentRates: user.creator_profile.content_rates || [],
         gallery: user.creator_profile.gallery || [],
         user: user,
+        miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
       });
     }
     setIsLoading(false);
@@ -186,7 +187,6 @@ const ProfileOverview = ({ onProfileUpdate }) => {
         onClose={() => setIsEditModalOpen(false)}
         creator={creator}
         onSave={() => {
-          // Refresh the component data instead of reloading the page
           const user = getUser();
           if (user && user.creator_profile) {
             setCreator({
@@ -196,10 +196,10 @@ const ProfileOverview = ({ onProfileUpdate }) => {
                 user.city && user.country
                   ? `${user.city}, ${user.country}`
                   : user.city || user.country || "Location not set",
-              rating: 4.8, // Default rating since not in API
-              reviewCount: 0, // Default since not in API
-              followers: 0, // Default since not in API
-              following: 0, // Default since not in API
+              rating: 4.8,
+              reviewCount: 0,
+              followers: 0,
+              following: 0,
               socialMedia:
                 user.creator_profile.social_platforms?.map((platform) =>
                   platform.platform.toLowerCase()
@@ -213,7 +213,6 @@ const ProfileOverview = ({ onProfileUpdate }) => {
             });
           }
 
-          // Call the parent's profile update function
           if (onProfileUpdate) {
             onProfileUpdate();
           }

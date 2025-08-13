@@ -6,6 +6,7 @@ import onboardingReducer from "./features/onboarding/onboarding.slice";
 import usersReducer from "./features/users/users.slice";
 import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
 import uploadFileReducer from "./features/upload-file/upload-file.slice";
+import analyticsReducer from "./features/analytics/analytics.slice";
 
 const persistConfig = {
   key: "root",
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   users: usersReducer,
   brandProfile: brandProfileReducer,
   uploadFile: uploadFileReducer,
+  analytics: analyticsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

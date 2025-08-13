@@ -11,11 +11,9 @@ function useGallary(refreshKey = 0) {
   const lastGalleryDataRef = useRef(null);
 
   const refreshGallery = useCallback(() => {
-    // This will now be triggered by the parent's refreshKey
     loadCreatorData();
   }, []);
 
-  // Safe function to get user data without side effects
   const getSafeUser = useCallback(() => {
     if (typeof window === "object" && window?.localStorage?.getItem("user")) {
       try {
@@ -28,20 +26,16 @@ function useGallary(refreshKey = 0) {
     return null;
   }, []);
 
-  // Function to transform gallery data
   const transformGalleryData = useCallback((user) => {
     if (!user || !user.creator_profile || !user.creator_profile.gallery) {
-      console.log("No gallery data found:", { user, creator_profile: user?.creator_profile });
       return [];
     }
 
-    console.log("Processing gallery data:", user.creator_profile.gallery);
     const transformedItems = [];
 
     user.creator_profile.gallery.forEach((niche) => {
       if (niche.media && Array.isArray(niche.media)) {
         niche.media.forEach((mediaUrl, index) => {
-          // Determine media type from URL extension
           const isVideo =
             mediaUrl.includes(".mp4") ||
             mediaUrl.includes(".mov") ||
@@ -68,7 +62,6 @@ function useGallary(refreshKey = 0) {
       }
     });
 
-    console.log("Transformed gallery items:", transformedItems);
     return transformedItems;
   }, []);
 
@@ -79,7 +72,6 @@ function useGallary(refreshKey = 0) {
     const transformedItems = transformGalleryData(user);
     setPortfolioItems(transformedItems);
 
-    // Store the gallery data for comparison
     if (user?.creator_profile?.gallery) {
       lastGalleryDataRef.current = JSON.stringify(user.creator_profile.gallery);
     }
@@ -87,19 +79,16 @@ function useGallary(refreshKey = 0) {
     setIsLoading(false);
   }, [getSafeUser, transformGalleryData]);
 
-  // Initialize data on mount
   useEffect(() => {
     loadCreatorData();
   }, [loadCreatorData]);
 
-  // Update portfolio items when refreshKey changes
   useEffect(() => {
     if (refreshKey > 0) {
       loadCreatorData();
     }
   }, [refreshKey, loadCreatorData]);
 
-  // Memoize filtered portfolio to prevent unnecessary recalculations
   const filteredPortfolio = useMemo(() => {
     return portfolioItems.filter((item) => {
       const matchesTab = activeTab === "all" || item.type === activeTab;
