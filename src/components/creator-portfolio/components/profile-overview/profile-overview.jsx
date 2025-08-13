@@ -5,23 +5,80 @@ import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
 import Niche from "@/components/niche/niche";
+import { getUser } from "@/common/utils/users.util";
 import { BookmarkPlus, Edit, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 
-function ProfileOverview() {
+const ProfileOverview = ({ onProfileUpdate }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [creator, setCreator] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const creator = {
-    name: "Sophia Chen",
-    handle: "@sophia.creates",
-    location: "Los Angeles, CA",
-    rating: 4.8,
-    reviewCount: 42,
-    followers: 85400,
-    following: 523,
-    socialMedia: ["instagram", "youtube", "tiktok"],
-    profilePic: avatar,
+  useEffect(() => {
+    const user = getUser();
+    if (user && user.creator_profile) {
+      setCreator({
+        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Creator",
+        handle: user.creator_profile.handle || `@${user.email?.split("@")[0] || "creator"}`,
+        location:
+          user.city && user.country
+            ? `${user.city}, ${user.country}`
+            : user.city || user.country || "Location not set",
+        rating: 4.8, // Default rating since not in API
+        reviewCount: 0, // Default since not in API
+        followers: 0, // Default since not in API
+        following: 0, // Default since not in API
+        socialMedia:
+          user.creator_profile.social_platforms?.map((platform) =>
+            platform.platform.toLowerCase()
+          ) || [],
+        profilePic: user.creator_profile.profile_photo_url || avatar,
+        bio: user.creator_profile.bio || "",
+        categories: user.creator_profile.categories || [],
+        contentRates: user.creator_profile.content_rates || [],
+        gallery: user.creator_profile.gallery || [],
+        user: user,
+      });
+    }
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className="bg-white rounded-lg shadow-md p-6">
+        <div className="animate-pulse">
+          <div className="h-32 w-32 bg-gray-200 rounded-full mx-auto mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/4 mx-auto"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!creator) {
+    return (
+      <section className="bg-white rounded-lg shadow-md p-6">
+        <div className="text-center text-gray-500">
+          <p>Creator profile not found</p>
+        </div>
+      </section>
+    );
+  }
+
+  const getSocialIcon = (platform) => {
+    switch (platform.toLowerCase()) {
+      case "instagram":
+        return <InstagramIcon />;
+      case "youtube":
+        return <YoutubeIcon />;
+      case "tiktok":
+        return <TikTokIcon />;
+      case "facebook":
+        return <FacebookIcon />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -33,7 +90,7 @@ function ProfileOverview() {
             {/* Profile Image */}
             <div className="relative">
               <img
-                src={avatar}
+                src={creator.profilePic}
                 alt={creator.name}
                 className="rounded-full w-32 h-32 object-cover border-4 border-white shadow-md ring-2 ring-primary"
               />
@@ -41,7 +98,7 @@ function ProfileOverview() {
 
             {/* Profile Details */}
             <div className="text-center md:text-left">
-              <h2>{creator.name}</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{creator.name}</h2>
               <p className="text-gray-500">{creator.handle}</p>
 
               {/* Rating */}
@@ -58,10 +115,9 @@ function ProfileOverview() {
 
               {/* Social Media */}
               <div className="flex space-x-3 justify-center md:justify-start mb-3">
-                <InstagramIcon />
-                <YoutubeIcon />
-                <FacebookIcon />
-                <TikTokIcon />
+                {creator.socialMedia.map((platform, index) => (
+                  <div key={index}>{getSocialIcon(platform)}</div>
+                ))}
               </div>
 
               {/* Location */}
@@ -71,7 +127,7 @@ function ProfileOverview() {
               </div>
 
               {/* Niche Tags */}
-              <Niche />
+              <Niche categories={creator.categories} selectedNiche="all" />
             </div>
           </div>
 
@@ -129,9 +185,42 @@ function ProfileOverview() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         creator={creator}
+        onSave={() => {
+          // Refresh the component data instead of reloading the page
+          const user = getUser();
+          if (user && user.creator_profile) {
+            setCreator({
+              name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Creator",
+              handle: user.creator_profile.handle || `@${user.email?.split("@")[0] || "creator"}`,
+              location:
+                user.city && user.country
+                  ? `${user.city}, ${user.country}`
+                  : user.city || user.country || "Location not set",
+              rating: 4.8, // Default rating since not in API
+              reviewCount: 0, // Default since not in API
+              followers: 0, // Default since not in API
+              following: 0, // Default since not in API
+              socialMedia:
+                user.creator_profile.social_platforms?.map((platform) =>
+                  platform.platform.toLowerCase()
+                ) || [],
+              profilePic: user.creator_profile.profile_photo_url || avatar,
+              bio: user.creator_profile.bio || "",
+              categories: user.creator_profile.categories || [],
+              contentRates: user.creator_profile.content_rates || [],
+              gallery: user.creator_profile.gallery || [],
+              user: user,
+            });
+          }
+
+          // Call the parent's profile update function
+          if (onProfileUpdate) {
+            onProfileUpdate();
+          }
+        }}
       />
     </>
   );
-}
+};
 
 export default ProfileOverview;

@@ -5,6 +5,7 @@ import authReducer from "./features/auth/auth.slice";
 import onboardingReducer from "./features/onboarding/onboarding.slice";
 import usersReducer from "./features/users/users.slice";
 import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
+import uploadFileReducer from "./features/upload-file/upload-file.slice";
 
 const persistConfig = {
   key: "root",
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   onboarding: onboardingReducer,
   users: usersReducer,
   brandProfile: brandProfileReducer,
+  uploadFile: uploadFileReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
