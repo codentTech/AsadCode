@@ -142,13 +142,7 @@ const Gallary = ({ refreshKey }) => {
               ? "Your portfolio gallery is empty. Add some images or videos to showcase your work!"
               : `No ${activeTab}s found in your portfolio.`}
           </p>
-          <div className="mt-4 text-xs text-gray-400">
-            <p>Debug Info:</p>
-            <p>Total items: {portfolioItems.length}</p>
-            <p>Active tab: {activeTab}</p>
-            <p>Selected niche: {selectedNiche}</p>
-            <p>Filtered items: {filteredPortfolio.length}</p>
-          </div>
+
         </div>
       )}
     </section>

@@ -17,7 +17,7 @@ export default function CreatorPortfolio() {
     <HeaderLayout className="min-h-screen bg-gray-50">
       <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%] bg-gray-50">
         {/* Profile Overview Section */}
-        <ProfileOverview onProfileUpdate={handleProfileUpdate} />
+        <ProfileOverview onProfileUpdate={handleProfileUpdate} refreshKey={refreshKey} />
 
         {/* Bio & Pricing Section */}
         <BioPricing refreshKey={refreshKey} />
