@@ -7,15 +7,15 @@ import YoutubeIcon from "@/common/icons/youtube";
 import Niche from "@/components/niche/niche";
 import { getUser } from "@/common/utils/users.util";
 import { BookmarkPlus, Edit, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 
-const ProfileOverview = ({ onProfileUpdate }) => {
+const ProfileOverview = ({ onProfileUpdate, refreshKey = 0 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadCreatorData = useCallback(() => {
     const user = getUser();
     if (user && user.creator_profile) {
       setCreator({
@@ -44,6 +44,18 @@ const ProfileOverview = ({ onProfileUpdate }) => {
     }
     setIsLoading(false);
   }, []);
+
+  // Load data on component mount
+  useEffect(() => {
+    loadCreatorData();
+  }, [loadCreatorData]);
+
+  // Refresh when refreshKey changes (following the same pattern as other components)
+  useEffect(() => {
+    if (refreshKey > 0) {
+      loadCreatorData();
+    }
+  }, [refreshKey, loadCreatorData]);
 
   if (isLoading) {
     return (
@@ -95,6 +107,21 @@ const ProfileOverview = ({ onProfileUpdate }) => {
                 alt={creator.name}
                 className="rounded-full w-32 h-32 object-cover border-4 border-white shadow-md ring-2 ring-primary"
               />
+
+              {/* Showcase Images (Mini Profile Pictures) */}
+              {creator.miniProfilePictures && creator.miniProfilePictures.length > 0 && (
+                <div className="mt-3 flex gap-2 justify-center">
+                  {creator.miniProfilePictures.map((pic, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={pic}
+                        alt={`Showcase ${index + 1}`}
+                        className="w-12 h-12 rounded-lg object-cover border-2 border-white shadow-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Profile Details */}
@@ -210,6 +237,7 @@ const ProfileOverview = ({ onProfileUpdate }) => {
               contentRates: user.creator_profile.content_rates || [],
               gallery: user.creator_profile.gallery || [],
               user: user,
+              miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
             });
           }
 

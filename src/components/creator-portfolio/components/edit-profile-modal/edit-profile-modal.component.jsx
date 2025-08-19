@@ -488,15 +488,21 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
       if (creatorResult.success) {
         const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
         if (currentUser.creator_profile) {
+          // Update creator profile data
           currentUser.creator_profile.gallery = galleryData;
           currentUser.creator_profile.content_rates = allContentRates;
           currentUser.creator_profile.mini_profile_pictures = profileData.miniCards.filter(
             (card) => card !== null
           );
           currentUser.creator_profile.profile_photo_url = profileData.profilePic;
+          currentUser.creator_profile.bio = profileData.bio;
+          currentUser.creator_profile.categories = profileData.niches;
+
           // Also update the root level for backward compatibility
           currentUser.miniProfilePictures = profileData.miniCards.filter((card) => card !== null);
           currentUser.profilePic = profileData.profilePic;
+          currentUser.gallery = galleryData; // Add gallery at root level for immediate access
+
           localStorage.setItem("user", JSON.stringify(currentUser));
         }
 

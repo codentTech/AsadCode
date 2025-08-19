@@ -1,30 +1,12 @@
 import { avatar } from "@/common/constants/auth.constant";
 import { getUser } from "@/common/utils/users.util";
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 function useGallary(refreshKey = 0) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedNiche, setSelectedNiche] = useState("all");
   const [portfolioItems, setPortfolioItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const userRef = useRef(null);
-  const lastGalleryDataRef = useRef(null);
-
-  const refreshGallery = useCallback(() => {
-    loadCreatorData();
-  }, []);
-
-  const getSafeUser = useCallback(() => {
-    if (typeof window === "object" && window?.localStorage?.getItem("user")) {
-      try {
-        return JSON.parse(localStorage.getItem("user"));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        return null;
-      }
-    }
-    return null;
-  }, []);
 
   const transformGalleryData = useCallback((user) => {
     if (!user || !user.creator_profile || !user.creator_profile.gallery) {
@@ -66,28 +48,34 @@ function useGallary(refreshKey = 0) {
   }, []);
 
   const loadCreatorData = useCallback(() => {
-    const user = getSafeUser();
-    userRef.current = user;
-
-    const transformedItems = transformGalleryData(user);
-    setPortfolioItems(transformedItems);
-
-    if (user?.creator_profile?.gallery) {
-      lastGalleryDataRef.current = JSON.stringify(user.creator_profile.gallery);
+    const user = getUser();
+    if (user && user.creator_profile) {
+      const transformedItems = transformGalleryData(user);
+      setPortfolioItems(transformedItems);
     }
-
     setIsLoading(false);
-  }, [getSafeUser, transformGalleryData]);
+  }, [transformGalleryData]);
 
+  const refreshGallery = useCallback(() => {
+    loadCreatorData();
+  }, [loadCreatorData]);
+
+  // Load data on component mount
   useEffect(() => {
     loadCreatorData();
   }, [loadCreatorData]);
 
+  // Refresh when refreshKey changes (following the same pattern as other components)
   useEffect(() => {
     if (refreshKey > 0) {
-      loadCreatorData();
+      // Force immediate refresh when refreshKey changes
+      const user = getUser();
+      if (user && user.creator_profile) {
+        const transformedItems = transformGalleryData(user);
+        setPortfolioItems(transformedItems);
+      }
     }
-  }, [refreshKey, loadCreatorData]);
+  }, [refreshKey, transformGalleryData]);
 
   const filteredPortfolio = useMemo(() => {
     return portfolioItems.filter((item) => {
