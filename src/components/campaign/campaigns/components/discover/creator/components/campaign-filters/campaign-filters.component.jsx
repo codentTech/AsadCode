@@ -3,9 +3,9 @@ import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-chec
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import {
-  campaignTypeOptions,
-  compensationTypeOptions,
-  locationOptions,
+  CAMPAIGN_TYPE_OPTIONS,
+  COMPENSATION_TYPE_OPTIONS,
+  LOCATION_OPTIONS,
 } from "@/common/constants/options.constant";
 import { ChevronDown, ChevronUp, Filter, RotateCcw } from "lucide-react";
 import useCampaignFilter from "./use-campaign-filter.hook";
@@ -85,7 +85,7 @@ function CampaignFilters() {
             <div className="mt-2">
               <SimpleSelect
                 placeHolder="Select campaign type"
-                options={campaignTypeOptions}
+                options={CAMPAIGN_TYPE_OPTIONS}
                 value={filters.campaignType}
                 onChange={(value) => setFilters({ ...filters, campaignType: value })}
               />
@@ -140,7 +140,7 @@ function CampaignFilters() {
             <div className="mt-2">
               <SimpleSelect
                 placeHolder="Select compensation type"
-                options={compensationTypeOptions}
+                options={COMPENSATION_TYPE_OPTIONS}
                 value={filters.compensationType}
                 onChange={(value) => setFilters({ ...filters, compensationType: value })}
               />
@@ -165,7 +165,7 @@ function CampaignFilters() {
             <div className="mt-2">
               <SimpleSelect
                 placeHolder="Select location"
-                options={locationOptions}
+                options={LOCATION_OPTIONS}
                 value={filters.location}
                 onChange={(value) => setFilters({ ...filters, location: value })}
               />
