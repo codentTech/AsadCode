@@ -1,8 +1,13 @@
 import api from "@/common/utils/api";
 import { getUser } from "@/common/utils/users.util";
 
-const getAllUsers = async () => {
-  const response = await api().get("/user");
+const getAllUsers = async (payload) => {
+  const response = await api().get("/user", { params: payload });
+  return response.data;
+};
+
+const discoverCreators = async (payload) => {
+  const response = await api().get("/user", { params: payload });
   return response.data;
 };
 
@@ -170,6 +175,7 @@ const disconnectSocialAccount = async (platform) => {
 
 const usersService = {
   getAllUsers,
+  discoverCreators,
   updateUser,
   getUserById,
   updateCreatorPreferences,

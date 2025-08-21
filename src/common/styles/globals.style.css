@@ -1,4 +1,35 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap");
+@import url("./component-styles/input.style.css");
+@import url("./component-styles/switch.style.css");
+@import url("./component-styles/dropdown.style.css");
+@import url("./component-styles/modals.style.css");
+
+/* Font loading fallback to ensure consistent rendering */
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmsans/v14/rP2Hp2ywxg089UriCZ2IHQ.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmsans/v14/rP2Cp2ywxg089UriAWCrCBc6As.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmsans/v14/rP2Cp2ywxg089UriASitCBc6As.woff2")
+    format("woff2");
+}
 
 :root {
   --color-primary: #00a3e0;
@@ -24,6 +55,31 @@
 }
 
 @layer base {
+  /* Set DM Sans as default font for all elements */
+  * {
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
+  }
+
+  body {
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
+  }
+
   input[type="number"] {
     -moz-appearance: textfield;
   }
@@ -53,14 +109,15 @@
 }
 
 @layer components {
+  /* Ensure all buttons use DM Sans font */
   .btn {
-    @apply flex h-[36px]  flex-row items-center justify-center rounded-md text-xs font-medium capitalize not-italic leading-4 text-white;
+    @apply flex h-[36px] flex-row items-center justify-center rounded-md text-xs font-medium capitalize not-italic leading-4 text-white font-dm;
   }
   .btn-outline {
-    @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary  text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray  disabled:text-text-light-gray;
+    @apply flex h-[36px] min-w-[106px] flex-row items-center justify-center rounded-md border-[1.5px] border-solid border-primary text-sm font-medium not-italic leading-4 text-primary hover:bg-secondary-light-blue disabled:cursor-not-allowed disabled:border-text-ultra-light-gray disabled:text-text-light-gray font-dm;
   }
   .btn-primary {
-    @apply min-w-[106px] text-sm bg-primary hover:bg-secondary-blue rounded-md focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+    @apply min-w-[106px] text-sm bg-primary hover:bg-secondary-blue rounded-md focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white font-dm;
   }
   .btn-danger {
     @apply min-w-[106px] bg-danger hover:bg-red-700 focus:bg-red-700 disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
@@ -81,7 +138,46 @@
     @apply bg-gray-100 text-gray-600 border-solid border-text-ultra-light-gray disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
   }
   .btn-success {
-    @apply rounded-md border border-solid border-secondary-green bg-secondary-green text-sm font-bold not-italic leading-[21px] text-white hover:bg-secondary-medium-green hover:text-white focus:bg-secondary-dark-green focus:text-white disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white;
+    @apply rounded-md border border-solid border-secondary-green bg-secondary-green text-sm font-bold not-italic leading-[21px] text-white hover:bg-secondary-medium-green hover:text-white focus:bg-secondary-dark-green focus:text-white disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white font-dm;
+  }
+
+  /* Ensure all form elements use DM Sans */
+  input,
+  textarea,
+  select,
+  button {
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
+  }
+
+  /* Ensure Material-UI components use DM Sans */
+  .MuiButton-root,
+  .MuiInput-root,
+  .MuiSelect-root,
+  .MuiTypography-root,
+  .MuiFormLabel-root,
+  .MuiMenuItem-root,
+  .MuiChip-root,
+  .MuiTab-root,
+  .MuiTableCell-root,
+  .MuiTableHead-root,
+  .MuiTableBody-root {
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
   }
   .alert-error {
     @apply ml-auto flex h-[50px] w-full max-w-[437px] items-center justify-between bg-danger-light p-[16px] font-dm text-xs font-normal not-italic leading-4 text-danger;
@@ -339,11 +435,6 @@
   .panel {
     @apply rounded-[20px] border-[1px] border-[#F5F5F5] bg-white p-4;
   }
-
-  @import url("./component-styles/input.style.css");
-  @import url("./component-styles/switch.style.css");
-  @import url("./component-styles/dropdown.style.css");
-  @import url("./component-styles/modals.style.css");
 }
 
 .payment-details-radios label {
@@ -403,11 +494,83 @@
   width: 24px !important;
   height: 32px !important;
 }
+/* Global font consistency - ensure all elements use DM Sans */
 * {
-  font-family: "DM Sans";
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif !important;
   font-style: normal;
-  /* font-weight: 400; */
-  /* color: #46474f; */
+}
+
+/* Ensure third-party components and dynamically created elements use DM Sans */
+[class*="Mui"],
+[class*="css-"],
+[class*="ant-"],
+[class*="rc-"],
+[class*="react-"],
+[class*="swiper-"],
+[class*="tox-"] {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif !important;
+}
+
+/* Ensure form elements and interactive components use DM Sans */
+input,
+textarea,
+select,
+button,
+label,
+span,
+div,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+li,
+td,
+th {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif !important;
+}
+
+/* Font rendering optimization */
+html {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* input:not([type='checkbox']):not([type='radio']) {
