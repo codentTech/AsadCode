@@ -7,15 +7,15 @@ import YoutubeIcon from "@/common/icons/youtube";
 import Niche from "@/components/niche/niche";
 import { getUser } from "@/common/utils/users.util";
 import { BookmarkPlus, Edit, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 
-const ProfileOverview = ({ onProfileUpdate }) => {
+const ProfileOverview = ({ onProfileUpdate, refreshKey = 0 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadCreatorData = useCallback(() => {
     const user = getUser();
     if (user && user.creator_profile) {
       setCreator({
@@ -39,10 +39,23 @@ const ProfileOverview = ({ onProfileUpdate }) => {
         contentRates: user.creator_profile.content_rates || [],
         gallery: user.creator_profile.gallery || [],
         user: user,
+        miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
       });
     }
     setIsLoading(false);
   }, []);
+
+  // Load data on component mount
+  useEffect(() => {
+    loadCreatorData();
+  }, [loadCreatorData]);
+
+  // Refresh when refreshKey changes (following the same pattern as other components)
+  useEffect(() => {
+    if (refreshKey > 0) {
+      loadCreatorData();
+    }
+  }, [refreshKey, loadCreatorData]);
 
   if (isLoading) {
     return (
@@ -94,6 +107,21 @@ const ProfileOverview = ({ onProfileUpdate }) => {
                 alt={creator.name}
                 className="rounded-full w-32 h-32 object-cover border-4 border-white shadow-md ring-2 ring-primary"
               />
+
+              {/* Showcase Images (Mini Profile Pictures) */}
+              {creator.miniProfilePictures && creator.miniProfilePictures.length > 0 && (
+                <div className="mt-3 flex gap-2 justify-center">
+                  {creator.miniProfilePictures.map((pic, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={pic}
+                        alt={`Showcase ${index + 1}`}
+                        className="w-12 h-12 rounded-lg object-cover border-2 border-white shadow-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Profile Details */}
@@ -186,7 +214,6 @@ const ProfileOverview = ({ onProfileUpdate }) => {
         onClose={() => setIsEditModalOpen(false)}
         creator={creator}
         onSave={() => {
-          // Refresh the component data instead of reloading the page
           const user = getUser();
           if (user && user.creator_profile) {
             setCreator({
@@ -196,10 +223,10 @@ const ProfileOverview = ({ onProfileUpdate }) => {
                 user.city && user.country
                   ? `${user.city}, ${user.country}`
                   : user.city || user.country || "Location not set",
-              rating: 4.8, // Default rating since not in API
-              reviewCount: 0, // Default since not in API
-              followers: 0, // Default since not in API
-              following: 0, // Default since not in API
+              rating: 4.8,
+              reviewCount: 0,
+              followers: 0,
+              following: 0,
               socialMedia:
                 user.creator_profile.social_platforms?.map((platform) =>
                   platform.platform.toLowerCase()
@@ -210,10 +237,10 @@ const ProfileOverview = ({ onProfileUpdate }) => {
               contentRates: user.creator_profile.content_rates || [],
               gallery: user.creator_profile.gallery || [],
               user: user,
+              miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
             });
           }
 
-          // Call the parent's profile update function
           if (onProfileUpdate) {
             onProfileUpdate();
           }

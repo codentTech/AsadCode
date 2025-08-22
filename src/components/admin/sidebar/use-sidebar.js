@@ -21,7 +21,7 @@ import {
   FileText,
   DollarSign,
   MessageSquare,
-  Template,
+  Clipboard,
   History,
   Receipt,
   UserX,
@@ -145,7 +145,7 @@ const adminNavItems = [
           {
             label: "Brief Template",
             href: "/settings/campaign-defaults/breif-template",
-            icon: Template,
+            icon: Clipboard,
           },
         ],
       },
@@ -279,7 +279,7 @@ const brandNavItems = [
           {
             label: "Brief Template",
             href: "/settings/campaign-defaults/breif-template",
-            icon: Template,
+            icon: Clipboard,
           },
         ],
       },

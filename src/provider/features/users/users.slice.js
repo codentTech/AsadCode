@@ -11,6 +11,7 @@ const generalState = {
 
 const initialState = {
   getAllUsers: { ...generalState },
+  discoverCreators: { ...generalState },
   updateUser: { ...generalState },
   getUserById: { ...generalState },
   updateCreatorPreferences: { ...generalState },
@@ -25,17 +26,32 @@ const initialState = {
   disconnectSocialAccount: { ...generalState },
 };
 
-export const getAllUsers = createAsyncThunk("users/getAllUsers", async (_, thunkAPI) => {
+export const getAllUsers = createAsyncThunk("users/getAllUsers", async (payload, thunkAPI) => {
   try {
-    const response = await usersService.getAllUsers();
+    const response = await usersService.getAllUsers(payload);
     if (response.success) {
-      return response;
+      return response.data;
     }
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
     return thunkAPI.rejectWithValue(error);
   }
 });
+
+export const discoverCreators = createAsyncThunk(
+  "users/discoverCreators",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await usersService.discoverCreators(payload);
+      if (response.success) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
 
 export const updateUser = createAsyncThunk("users/updateUser", async (data, thunkAPI) => {
   try {
@@ -199,6 +215,7 @@ export const usersSlice = createSlice({
   reducers: {
     reset: (state) => {
       state.getAllUsers = { ...generalState };
+      state.discoverCreators = { ...generalState };
       state.updateUser = { ...generalState };
       state.getUserById = { ...generalState };
       state.updateCreatorPreferences = { ...generalState };
@@ -225,6 +242,20 @@ export const usersSlice = createSlice({
         state.getAllUsers.isLoading = false;
         state.getAllUsers.isError = true;
         state.getAllUsers.message = action.payload;
+      })
+      // discoverCreators
+      .addCase(discoverCreators.pending, (state) => {
+        state.discoverCreators.isLoading = true;
+      })
+      .addCase(discoverCreators.fulfilled, (state, action) => {
+        state.discoverCreators.isLoading = false;
+        state.discoverCreators.isSuccess = true;
+        state.discoverCreators.data = action.payload;
+      })
+      .addCase(discoverCreators.rejected, (state, action) => {
+        state.discoverCreators.isLoading = false;
+        state.discoverCreators.isError = true;
+        state.discoverCreators.message = action.payload;
       })
       // updateUser
       .addCase(updateUser.pending, (state) => {
