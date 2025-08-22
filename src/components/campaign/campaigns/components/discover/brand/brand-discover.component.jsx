@@ -51,15 +51,15 @@ function BrandDiscover() {
 
       {/* Center Column - Discovery Feed or Shortlist View */}
       <DiscoverCreators
-        sortOptions={sortOptions}
         selectedShortlist={selectedShortlist}
         setSelectedShortlist={setSelectedShortlist}
-        mockNicheCategories={mockNicheCategories}
         handleCreatorPreview={handleCreatorPreview}
         handleSaveToShortlist={handleSaveToShortlist}
         handleMessageCreator={handleMessageCreator}
         getSortedCreators={getSortedCreators}
         handleRemoveFromShortlist={handleRemoveFromShortlist}
+        handleInviteToApply={() => {}}
+        userCampaigns={[]}
       />
 
       {/* New Shortlist Dialog */}

@@ -36,7 +36,7 @@ function Header() {
             if (openInNewTab) {
               return (
                 <button
-                  key={href}
+                  key={label}
                   onClick={handleInboxClick}
                   className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
                 >
@@ -47,7 +47,7 @@ function Header() {
 
             return (
               <Link
-                key={href}
+                key={label}
                 href={href}
                 prefetch={true}
                 className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
