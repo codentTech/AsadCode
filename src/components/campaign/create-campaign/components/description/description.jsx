@@ -5,27 +5,58 @@ import AddIcon from "@mui/icons-material/Add";
 import TextArea from "@/common/components/text-area/text-area.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 
-function Description({ campaignData, handleChange, handleImageUpload, handleStyleGuideUpload }) {
+/**
+ * Description Component
+ *
+ * Handles campaign content including descriptions, images, hashtags,
+ * guidelines, and questions for creators.
+ */
+function Description({
+  campaignData,
+  handleChange,
+  handleImageUpload,
+  handleStyleGuideUpload,
+  addQuestion,
+  removeQuestion,
+  handleQuestionChange,
+  errors = {},
+  register,
+}) {
   const [questions, setQuestions] = useState(campaignData.questions || [""]);
 
-  const handleQuestionChange = (index, value) => {
+  // Handle question changes with local state sync
+  const handleLocalQuestionChange = (index, value) => {
     const updated = [...questions];
     updated[index] = value;
     setQuestions(updated);
-    handleChange({
-      target: {
-        name: "questions",
-        value: updated.filter((q) => q.trim() !== ""),
-      },
-    });
+
+    // Use parent handler if available, otherwise use handleChange
+    if (handleQuestionChange) {
+      handleQuestionChange(index, value);
+    } else {
+      handleChange({
+        target: {
+          name: "questions",
+          value: updated.filter((q) => q.trim() !== ""),
+        },
+      });
+    }
   };
 
-  const addQuestion = () => {
-    setQuestions([...questions, ""]);
+  // Add question handler
+  const handleAddQuestion = () => {
+    if (addQuestion) {
+      addQuestion();
+    } else {
+      setQuestions([...questions, ""]);
+    }
   };
 
-  const removeQuestion = (index) => {
-    if (questions.length > 1) {
+  // Remove question handler
+  const handleRemoveQuestion = (index) => {
+    if (removeQuestion) {
+      removeQuestion(index);
+    } else if (questions.length > 1) {
       const updated = questions.filter((_, i) => i !== index);
       setQuestions(updated);
       handleChange({
@@ -43,21 +74,21 @@ function Description({ campaignData, handleChange, handleImageUpload, handleStyl
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TextArea
           label="Short Description"
-          name="shortDescription"
-          value={campaignData.shortDescription}
-          onChange={handleChange}
+          name="short_description"
           isRequired={true}
           className="w-full"
           placeholder="Brief overview of your campaign..."
+          errors={errors}
+          register={register}
         />
 
         <TextArea
           label="Long Description"
-          name="longDescription"
-          value={campaignData.longDescription}
-          onChange={handleChange}
+          name="long_description"
           className="w-full"
           placeholder="Detailed campaign information..."
+          errors={errors}
+          register={register}
         />
       </div>
 
@@ -91,19 +122,19 @@ function Description({ campaignData, handleChange, handleImageUpload, handleStyl
         <TextArea
           label="Hashtags & Captions"
           name="hashtags"
-          value={campaignData.hashtags}
-          onChange={handleChange}
           className="w-full"
           placeholder="#cleanbeauty #sponsored #authentic"
+          errors={errors}
+          register={register}
         />
 
         <TextArea
           label="Do's and Don'ts"
-          name="nonNegotiables"
-          value={campaignData.nonNegotiables}
-          onChange={handleChange}
+          name="non_negotiables"
           className="w-full"
           placeholder="Do: Show real results. Don't: Mention competitors."
+          errors={errors}
+          register={register}
         />
       </div>
 
