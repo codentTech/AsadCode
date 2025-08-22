@@ -1,10 +1,9 @@
-import { getAllUsers, adminToggleBlockUser } from "@/provider/features/users/users.slice";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { User } from "lucide-react";
-import { Email } from "@mui/icons-material";
-import { formatDateBySplit } from "@/common/utils/formate-date";
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
+import { formatDateBySplit } from "@/common/utils/formate-date";
+import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
+import { Email } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 // Define table columns
 const columns = [
   {
@@ -88,10 +87,11 @@ const columns = [
 
 function useBlockedUsers() {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
+
+  const { users } = useSelector((state) => state.users.getAllUsers?.data);
+  const { isLoading } = useSelector((state) => state.users.getAllUsers);
 
   // Filter only blocked users
   const blockedUsers = users.filter((user) => user.is_blocked);
@@ -101,17 +101,11 @@ function useBlockedUsers() {
   }, []);
 
   const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await dispatch(getAllUsers());
-      if (response.payload?.data) {
-        setUsers(response.payload.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
+    await dispatch(
+      getAllUsers({
+        isBlocked: true,
+      })
+    );
   };
 
   // Handle action clicks
@@ -186,7 +180,7 @@ function useBlockedUsers() {
     blockedUsers,
     columns,
     selectedUsers,
-    loading,
+    isLoading,
     handleSearchChange,
     handleExport,
     handleSelectionChange,

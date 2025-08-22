@@ -1,10 +1,9 @@
-import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { formatDateBySplit } from "@/common/utils/formate-date";
 import { isOnboardingCompleted } from "@/common/utils/users.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 // Define table columns
 const columns = [
@@ -90,12 +89,13 @@ const columns = [
 
 function useUsers() {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  const filteredUsers = users.filter(
+  const { users } = useSelector((state) => state.users.getAllUsers?.data);
+  const { isLoading } = useSelector((state) => state.users.getAllUsers);
+
+  const filteredUsers = users?.filter(
     (user) =>
       user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user?.role?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -106,17 +106,7 @@ function useUsers() {
   }, []);
 
   const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await dispatch(getAllUsers());
-      if (response.payload?.data) {
-        setUsers(response.payload.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
+    await dispatch(getAllUsers());
   };
 
   // Handle action clicks
@@ -218,7 +208,7 @@ function useUsers() {
     filteredUsers,
     columns,
     selectedUsers,
-    loading,
+    isLoading,
     handleSearchChange,
     handleExport,
     handleSelectionChange,

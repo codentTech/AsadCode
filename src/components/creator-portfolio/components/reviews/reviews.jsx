@@ -18,15 +18,6 @@ function Reviews() {
             options={options}
             onChange={({ value }) => setReviewSort(value)}
           />
-          {/* <select
-            value={reviewSort}
-            onChange={(e) => setReviewSort(e.target.value)}
-            className="w-full appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 px-4 pr-10 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          >
-            <option value="newest">Newest First</option>
-            <option value="highest">Highest Rating</option>
-            <option value="lowest">Lowest Rating</option>
-          </select> */}
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
             <ChevronDown className="w-4 h-4" />
           </div>

@@ -14,6 +14,7 @@ const Users = () => {
     handleExport,
     handleSelectionChange,
     handleActionClick,
+    isLoading,
   } = useUsers();
 
   // Define actions
@@ -70,6 +71,7 @@ const Users = () => {
           actions={actions}
           onActionClick={handleActionClick}
           emptyMessage="No users found"
+          isLoading={isLoading}
         />
       </div>
     </DashboardLayout>
