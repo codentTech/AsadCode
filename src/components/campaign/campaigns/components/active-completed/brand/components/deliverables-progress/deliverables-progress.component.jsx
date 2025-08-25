@@ -1,10 +1,11 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import Loader from "@/common/components/loader/loader.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
+import { CheckCircle2, MapPin, Star, Edit2, Trash2 } from "lucide-react";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 import MessageThreadModal from "../message-thread-modal/message-thread-modal.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
@@ -25,6 +26,23 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
     handleCancel,
     toggleDeliverable,
     toggleTimelineStep,
+    // New note functionality
+    editingNote,
+    editNoteForm,
+    setEditNoteForm,
+    newNoteText,
+    setNewNoteText,
+    handleEditNote,
+    handleSaveEditNote,
+    handleCancelEditNote,
+    handleDeleteNote,
+    handleSaveNewNote,
+    handleCancelNewNote,
+    // Loading states
+    isNotesLoading,
+    isCreateNoteLoading,
+    isUpdateNoteLoading,
+    isDeleteNoteLoading,
   } = useDeliverablesProgress();
 
   const handleExportReport = () => {
@@ -244,23 +262,110 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">
                   {isCompleted ? "Campaign Notes" : "Private Notes"}
                 </h4>
-                <ul className="space-y-3 text-sm text-gray-700 mb-4">
-                  {privateNotes.map((note, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-gray-500 mt-1">📝</span>
-                      <div className="flex flex-col">
-                        <span>{note.text}</span>
-                        <span className="text-xs text-gray-400 mt-1">{note.timestamp}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                {isNotesLoading ? (
+                  <div className="flex justify-center py-4">
+                    <Loader loading={true} />
+                  </div>
+                ) : (
+                  <ul className="space-y-3 text-sm text-gray-700 mb-4">
+                    {privateNotes.map((note, index) => (
+                      <li key={note.id || index} className="flex items-start gap-2 group">
+                        <span className="text-gray-500 mt-1">📝</span>
+                        <div className="flex-1">
+                          {editingNote === note.id ? (
+                            // Edit mode
+                            <div className="space-y-2">
+                              <TextArea
+                                value={editNoteForm.text}
+                                onChange={(e) =>
+                                  setEditNoteForm({ ...editNoteForm, text: e.target.value })
+                                }
+                                className="w-full text-sm"
+                                rows={2}
+                              />
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={handleCancelEditNote}
+                                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleSaveEditNote(note.id)}
+                                  disabled={isUpdateNoteLoading}
+                                  className="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                >
+                                  {isUpdateNoteLoading ? <Loader loading={true} /> : "Save"}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            // View mode
+                            <div className="flex justify-between items-start">
+                              <div className="flex flex-col flex-1">
+                                <span>{note.text}</span>
+                                <span className="text-xs text-gray-400 mt-1">
+                                  {note.created_at
+                                    ? new Date(note.created_at).toLocaleString("en-US", {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                      })
+                                    : note.timestamp}
+                                </span>
+                              </div>
+                              {!isCompleted && (
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                                  <button
+                                    onClick={() => handleEditNote(note)}
+                                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                                    title="Edit note"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteNote(note.id)}
+                                    disabled={isDeleteNoteLoading}
+                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                    title="Delete note"
+                                  >
+                                    {isDeleteNoteLoading ? (
+                                      <Loader loading={true} />
+                                    ) : (
+                                      <Trash2 className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {!isCompleted && (
                   <React.Fragment>
-                    <TextArea label="Add a new note..." />
+                    <TextArea
+                      label="Add a new note..."
+                      value={newNoteText}
+                      onChange={(e) => setNewNoteText(e.target.value)}
+                    />
                     <div className="flex justify-end gap-4">
-                      <CustomButton text="Cancel" className="btn-cancel" />
-                      <CustomButton text="Save" className="btn-primary" />
+                      <CustomButton
+                        text="Cancel"
+                        className="btn-cancel"
+                        onClick={handleCancelNewNote}
+                      />
+                      <CustomButton
+                        text={isCreateNoteLoading ? <Loader loading={true} /> : "Save"}
+                        className="btn-primary"
+                        onClick={handleSaveNewNote}
+                        disabled={!newNoteText.trim() || isCreateNoteLoading}
+                      />
                     </div>
                   </React.Fragment>
                 )}

@@ -1,10 +1,29 @@
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../message-thread-modal/use-message-thread.hook";
 import { avatar } from "@/common/constants/auth.constant";
+import {
+  createCampaignNote,
+  getCampaignNotes,
+  updateCampaignNote,
+  deleteCampaignNote,
+  resetCreateCampaignNote,
+  resetUpdateCampaignNote,
+  resetDeleteCampaignNote,
+} from "@/provider/features/campaign-notes/campaign-notes.slice";
 
-const useDeliverablesProgress = () => {
+const useDeliverablesProgress = (campaignId = "temp-campaign-id") => {
   const { getStatusColor, getStatusIcon } = useCommonHelpers();
+  const dispatch = useDispatch();
+
+  // Redux selectors
+  const {
+    createCampaignNote: createNoteState,
+    getCampaignNotes: getNotesState,
+    updateCampaignNote: updateNoteState,
+    deleteCampaignNote: deleteNoteState,
+  } = useSelector((state) => state.campaignNotes);
 
   // Creator data for message thread
   const creator = {
@@ -76,21 +95,13 @@ const useDeliverablesProgress = () => {
     ],
   });
 
-  // Private notes data
-  const privateNotes = [
-    {
-      text: "Mention the brand in the first 5 seconds",
-      timestamp: "2025-04-23 10:12 AM",
-    },
-    {
-      text: "Use trending audio",
-      timestamp: "2025-04-23 10:15 AM",
-    },
-    {
-      text: "Tag the brand and use hashtag #SpringLaunch",
-      timestamp: "2025-04-23 10:18 AM",
-    },
-  ];
+  // Get private notes from Redux (or use empty array as fallback)
+  const privateNotes = getNotesState.data || [];
+
+  // Note editing state
+  const [editingNote, setEditingNote] = useState(null);
+  const [editNoteForm, setEditNoteForm] = useState({ text: "" });
+  const [newNoteText, setNewNoteText] = useState("");
 
   // Existing project management functions
   const handleEdit = (type, item) => {
@@ -216,6 +227,78 @@ const useDeliverablesProgress = () => {
     }
   };
 
+  // Private Notes Management Functions
+  const handleEditNote = (note) => {
+    setEditingNote(note.id);
+    setEditNoteForm({ text: note.text });
+  };
+
+  const handleSaveEditNote = async (noteId) => {
+    try {
+      await dispatch(
+        updateCampaignNote({
+          noteId,
+          noteData: { text: editNoteForm.text },
+        })
+      ).unwrap();
+
+      setEditingNote(null);
+      setEditNoteForm({ text: "" });
+
+      // Refresh notes after update
+      dispatch(getCampaignNotes(campaignId));
+    } catch (error) {
+      console.error("Error updating note:", error);
+    }
+  };
+
+  const handleCancelEditNote = () => {
+    setEditingNote(null);
+    setEditNoteForm({ text: "" });
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await dispatch(deleteCampaignNote(noteId)).unwrap();
+
+      // Refresh notes after delete
+      dispatch(getCampaignNotes(campaignId));
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
+  };
+
+  const handleSaveNewNote = async () => {
+    if (!newNoteText.trim()) return;
+
+    try {
+      await dispatch(
+        createCampaignNote({
+          campaignId,
+          noteData: { text: newNoteText.trim() },
+        })
+      ).unwrap();
+
+      setNewNoteText("");
+
+      // Refresh notes after creation
+      dispatch(getCampaignNotes(campaignId));
+    } catch (error) {
+      console.error("Error adding new note:", error);
+    }
+  };
+
+  const handleCancelNewNote = () => {
+    setNewNoteText("");
+  };
+
+  // Fetch notes when component mounts or campaignId changes
+  useEffect(() => {
+    if (campaignId && campaignId !== "temp-campaign-id") {
+      dispatch(getCampaignNotes(campaignId));
+    }
+  }, [dispatch, campaignId]);
+
   return {
     // Message thread integration
     messageThreadHook,
@@ -240,6 +323,25 @@ const useDeliverablesProgress = () => {
     releasePayment,
     requestRevision,
     editPaymentDetails,
+
+    // Private Notes Management
+    editingNote,
+    editNoteForm,
+    setEditNoteForm,
+    newNoteText,
+    setNewNoteText,
+    handleEditNote,
+    handleSaveEditNote,
+    handleCancelEditNote,
+    handleDeleteNote,
+    handleSaveNewNote,
+    handleCancelNewNote,
+
+    // Loading states
+    isNotesLoading: getNotesState.isLoading,
+    isCreateNoteLoading: createNoteState.isLoading,
+    isUpdateNoteLoading: updateNoteState.isLoading,
+    isDeleteNoteLoading: deleteNoteState.isLoading,
   };
 };
 

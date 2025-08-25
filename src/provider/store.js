@@ -7,6 +7,7 @@ import usersReducer from "./features/users/users.slice";
 import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
 import uploadFileReducer from "./features/upload-file/upload-file.slice";
 import analyticsReducer from "./features/analytics/analytics.slice";
+import campaignNotesReducer from "./features/campaign-notes/campaign-notes.slice";
 
 const persistConfig = {
   key: "root",
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   brandProfile: brandProfileReducer,
   uploadFile: uploadFileReducer,
   analytics: analyticsReducer,
+  campaignNotes: campaignNotesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
