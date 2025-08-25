@@ -217,13 +217,13 @@ function DiscoverCreators({
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
-        <div className="text-center py-12 text-red-600 text-sm">Error: {error}</div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
+  //       <div className="text-center py-12 text-red-600 text-sm">Error: {error}</div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
