@@ -1,10 +1,11 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import Loader from "@/common/components/loader/loader.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
+import { CheckCircle2, MapPin, Star, Edit2, Trash2 } from "lucide-react";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 import MessageThreadModal from "../message-thread-modal/message-thread-modal.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
@@ -25,6 +26,26 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
     handleCancel,
     toggleDeliverable,
     toggleTimelineStep,
+    // Review functionality
+    campaignReviews,
+    editingReview,
+    editReviewForm,
+    setEditReviewForm,
+    newReviewText,
+    setNewReviewText,
+    newReviewRating,
+    setNewReviewRating,
+    handleEditReview,
+    handleSaveEditReview,
+    handleCancelEditReview,
+    handleDeleteReview,
+    handleSaveNewReview,
+    handleCancelNewReview,
+    // Review loading states
+    isReviewsLoading,
+    isCreateReviewLoading,
+    isUpdateReviewLoading,
+    isDeleteReviewLoading,
   } = useDeliverablesProgress();
 
   const handleExportReport = () => {
@@ -231,11 +252,149 @@ const DeliverablesProgress = ({ isCompleted = false }) => {
             <div className="px-4 pb-4">
               {isCompleted && (
                 <div className="bg-white rounded-lg p-4 shadow border">
-                  <h4 className="text-base font-medium text-gray-800 mb-2">Leave a review</h4>
-                  <TextArea placeholder="leave a review" />
-                  <div className="flex justify-end gap-4">
-                    <CustomButton text="Cancel" className="btn-cancel" />
-                    <CustomButton text="Save" className="btn-primary" />
+                  <h4 className="text-base font-medium text-gray-800 mb-2">
+                    Reviews
+                    {isReviewsLoading && (
+                      <span className="ml-2 text-sm text-gray-500">(Loading...)</span>
+                    )}
+                  </h4>
+
+                  {/* Existing Reviews */}
+                  {isReviewsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader loading={true} />
+                    </div>
+                  ) : (
+                    <ul className="space-y-3 text-sm text-gray-700 mb-4">
+                      {campaignReviews.map((review, index) => (
+                        <li key={review.id || index} className="flex items-start gap-2 group">
+                          <div className="flex text-yellow-400 mt-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${i < review.rating ? "fill-current" : ""}`}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex-1">
+                            {editingReview === review.id ? (
+                              // Edit mode
+                              <div className="space-y-2">
+                                <div className="flex gap-1 mb-2">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`w-5 h-5 cursor-pointer text-yellow-400 ${
+                                        i < editReviewForm.rating ? "fill-current" : ""
+                                      }`}
+                                      onClick={() =>
+                                        setEditReviewForm({ ...editReviewForm, rating: i + 1 })
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                                <TextArea
+                                  value={editReviewForm.review}
+                                  onChange={(e) =>
+                                    setEditReviewForm({ ...editReviewForm, review: e.target.value })
+                                  }
+                                  className="w-full text-sm"
+                                  rows={2}
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={handleCancelEditReview}
+                                    className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveEditReview(review.id)}
+                                    disabled={isUpdateReviewLoading}
+                                    className="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {isUpdateReviewLoading ? <Loader loading={true} /> : "Save"}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              // View mode
+                              <div className="flex justify-between items-start">
+                                <div className="flex flex-col flex-1">
+                                  <span>{review.review}</span>
+                                  <span className="text-xs text-gray-400 mt-1">
+                                    {review.created_at
+                                      ? new Date(review.created_at).toLocaleString("en-US", {
+                                          year: "numeric",
+                                          month: "2-digit",
+                                          day: "2-digit",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
+                                      : review.timestamp}
+                                  </span>
+                                </div>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                                  <button
+                                    onClick={() => handleEditReview(review)}
+                                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                                    title="Edit review"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteReview(review.id)}
+                                    disabled={isDeleteReviewLoading}
+                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                    title="Delete review"
+                                  >
+                                    {isDeleteReviewLoading ? (
+                                      <Loader loading={true} />
+                                    ) : (
+                                      <Trash2 className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Add New Review */}
+                  <div className="space-y-3">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 cursor-pointer text-yellow-400 ${
+                            i < newReviewRating ? "fill-current" : ""
+                          }`}
+                          onClick={() => setNewReviewRating(i + 1)}
+                        />
+                      ))}
+                    </div>
+                    <TextArea
+                      placeholder="Leave a review..."
+                      value={newReviewText}
+                      onChange={(e) => setNewReviewText(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-4">
+                      <CustomButton
+                        text="Cancel"
+                        className="btn-cancel"
+                        onClick={handleCancelNewReview}
+                      />
+                      <CustomButton
+                        text={isCreateReviewLoading ? <Loader loading={true} /> : "Save"}
+                        className="btn-primary"
+                        onClick={handleSaveNewReview}
+                        disabled={!newReviewText.trim() || isCreateReviewLoading}
+                      />
+                    </div>
                   </div>
                 </div>
               )}

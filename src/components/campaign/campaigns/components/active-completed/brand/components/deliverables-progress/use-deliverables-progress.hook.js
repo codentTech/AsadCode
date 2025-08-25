@@ -1,10 +1,29 @@
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../message-thread-modal/use-message-thread.hook";
 import { avatar } from "@/common/constants/auth.constant";
+import {
+  createCampaignReview,
+  getCampaignReviews,
+  updateCampaignReview,
+  deleteCampaignReview,
+  resetCreateCampaignReview,
+  resetUpdateCampaignReview,
+  resetDeleteCampaignReview,
+} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 
-const useDeliverablesProgress = () => {
+const useDeliverablesProgress = (campaignId = "temp-campaign-id") => {
   const { getStatusColor, getStatusIcon } = useCommonHelpers();
+  const dispatch = useDispatch();
+
+  // Redux selectors for reviews
+  const {
+    createCampaignReview: createReviewState,
+    getCampaignReviews: getReviewsState,
+    updateCampaignReview: updateReviewState,
+    deleteCampaignReview: deleteReviewState,
+  } = useSelector((state) => state.campaignReviews);
 
   // Creator data for message thread
   const creator = {
@@ -216,6 +235,95 @@ const useDeliverablesProgress = () => {
     }
   };
 
+  // Get reviews from Redux (or use empty array as fallback)
+  const campaignReviews = getReviewsState.data || [];
+
+  // Review state management
+  const [editingReview, setEditingReview] = useState(null);
+  const [editReviewForm, setEditReviewForm] = useState({ review: "", rating: 5 });
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(5);
+
+  // Review Management Functions
+  const handleEditReview = (review) => {
+    setEditingReview(review.id);
+    setEditReviewForm({ review: review.review, rating: review.rating });
+  };
+
+  const handleSaveEditReview = async (reviewId) => {
+    try {
+      await dispatch(
+        updateCampaignReview({
+          reviewId,
+          reviewData: {
+            review: editReviewForm.review,
+            rating: editReviewForm.rating,
+          },
+        })
+      ).unwrap();
+
+      setEditingReview(null);
+      setEditReviewForm({ review: "", rating: 5 });
+
+      // Refresh reviews after update
+      dispatch(getCampaignReviews(campaignId));
+    } catch (error) {
+      console.error("Error updating review:", error);
+    }
+  };
+
+  const handleCancelEditReview = () => {
+    setEditingReview(null);
+    setEditReviewForm({ review: "", rating: 5 });
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await dispatch(deleteCampaignReview(reviewId)).unwrap();
+
+      // Refresh reviews after delete
+      dispatch(getCampaignReviews(campaignId));
+    } catch (error) {
+      console.error("Error deleting review:", error);
+    }
+  };
+
+  const handleSaveNewReview = async () => {
+    if (!newReviewText.trim()) return;
+
+    try {
+      await dispatch(
+        createCampaignReview({
+          campaignId,
+          reviewData: {
+            review: newReviewText.trim(),
+            rating: newReviewRating,
+          },
+        })
+      ).unwrap();
+
+      setNewReviewText("");
+      setNewReviewRating(5);
+
+      // Refresh reviews after creation
+      dispatch(getCampaignReviews(campaignId));
+    } catch (error) {
+      console.error("Error adding new review:", error);
+    }
+  };
+
+  const handleCancelNewReview = () => {
+    setNewReviewText("");
+    setNewReviewRating(5);
+  };
+
+  // Fetch reviews when component mounts or campaignId changes
+  useEffect(() => {
+    if (campaignId && campaignId !== "temp-campaign-id") {
+      dispatch(getCampaignReviews(campaignId));
+    }
+  }, [dispatch, campaignId]);
+
   return {
     // Message thread integration
     messageThreadHook,
@@ -240,6 +348,28 @@ const useDeliverablesProgress = () => {
     releasePayment,
     requestRevision,
     editPaymentDetails,
+
+    // Review Management
+    campaignReviews,
+    editingReview,
+    editReviewForm,
+    setEditReviewForm,
+    newReviewText,
+    setNewReviewText,
+    newReviewRating,
+    setNewReviewRating,
+    handleEditReview,
+    handleSaveEditReview,
+    handleCancelEditReview,
+    handleDeleteReview,
+    handleSaveNewReview,
+    handleCancelNewReview,
+
+    // Review Loading states
+    isReviewsLoading: getReviewsState.isLoading,
+    isCreateReviewLoading: createReviewState.isLoading,
+    isUpdateReviewLoading: updateReviewState.isLoading,
+    isDeleteReviewLoading: deleteReviewState.isLoading,
   };
 };
 
