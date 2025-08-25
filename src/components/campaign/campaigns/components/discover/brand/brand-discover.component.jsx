@@ -36,6 +36,8 @@ function BrandDiscover() {
     mockNicheCategories,
     sortOptions,
     handleRemoveFromShortlist,
+    handleEditShortlist,
+    handleDeleteShortlist,
     handleSendMessage,
   } = useDiscover();
   return (
@@ -47,6 +49,8 @@ function BrandDiscover() {
         setSelectedShortlist={setSelectedShortlist}
         handleShortlistSelect={handleShortlistSelect}
         setIsNewShortlistDialogOpen={setIsNewShortlistDialogOpen}
+        handleEditShortlist={handleEditShortlist}
+        handleDeleteShortlist={handleDeleteShortlist}
       />
 
       {/* Center Column - Discovery Feed or Shortlist View */}

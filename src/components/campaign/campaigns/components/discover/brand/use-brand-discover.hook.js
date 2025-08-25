@@ -500,6 +500,37 @@ function useDiscover() {
     setSelectedShortlist(updatedSelectedShortlist);
   };
 
+  // Handle editing shortlist name
+  const handleEditShortlist = (shortlistId, newName) => {
+    const updatedShortlists = shortlists.map((shortlist) => {
+      if (shortlist.id === shortlistId) {
+        return {
+          ...shortlist,
+          name: newName,
+        };
+      }
+      return shortlist;
+    });
+
+    setShortlists(updatedShortlists);
+
+    // Update selected shortlist reference if it's the one being edited
+    if (selectedShortlist && selectedShortlist.id === shortlistId) {
+      setSelectedShortlist({ ...selectedShortlist, name: newName });
+    }
+  };
+
+  // Handle deleting shortlist
+  const handleDeleteShortlist = (shortlistId) => {
+    const updatedShortlists = shortlists.filter((shortlist) => shortlist.id !== shortlistId);
+    setShortlists(updatedShortlists);
+
+    // Clear selected shortlist if it was deleted
+    if (selectedShortlist && selectedShortlist.id === shortlistId) {
+      setSelectedShortlist(null);
+    }
+  };
+
   // Handle messaging a creator
   const handleMessageCreator = (creator) => {
     setCreatorToMessage(creator);
@@ -574,6 +605,8 @@ function useDiscover() {
     mockNicheCategories,
     sortOptions,
     handleRemoveFromShortlist,
+    handleEditShortlist,
+    handleDeleteShortlist,
     handleSendMessage,
     handleInviteToApply,
   };
