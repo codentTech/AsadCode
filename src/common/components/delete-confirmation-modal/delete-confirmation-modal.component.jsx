@@ -1,4 +1,4 @@
-import { CancelOutlined, Delete } from "@mui/icons-material";
+import { X, AlertTriangle } from "lucide-react";
 import { Dialog } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
@@ -19,41 +19,58 @@ function DeleteConfirmationModal({
   type,
 }) {
   return (
-    <div>
-      <Dialog className="scrol-bar" ref={confirmationRef} open={openConfirmationPopup}>
-        <div className="max-h-full w-[471px] max-w-full pb-6">
-          <div className="flex h-14 items-center justify-between px-5">
-            <div className="text-xl font-medium not-italic leading-[30px] text-text-dark-gray" />
-            <div className="hover:cursor-pointer" onClick={() => setOpenConfirmationPopup(false)}>
-              <CancelOutlined />
+    <Dialog
+      className="scrol-bar"
+      ref={confirmationRef}
+      open={openConfirmationPopup}
+      maxWidth="sm"
+      fullWidth
+    >
+      <div className="bg-white rounded-lg shadow-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-red-50 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-3 h-3 text-red-600" />
             </div>
+            <h3 className="text-base font-semibold text-gray-900">Delete Confirmation</h3>
           </div>
-          <div className="flex flex-col items-center gap-6">
-            <div>
-              <div className="flex items-center justify-center rounded-full bg-red-500 w-14 h-14">
-                <Delete sx={{ color: "white" }} />
-              </div>
-            </div>
-            <div className="mt-2">
-              {mainText && <div className={mainStyling}>{mainText}</div>}
-              {subText && <div className={subStyling}>{subText}</div>}
-            </div>
-            <div className="mt-[14px] flex gap-5">
-              <CustomButton
-                className="border border-solid border-text-ultra-light-gray px-6 py-2 text-sm font-bold leading-[21px] text-text-medium-gray"
-                text={closeText}
-                onClick={() => setOpenConfirmationPopup(false)}
-              />
-              <CustomButton
-                className={`btn-${type} items-center px-6 py-2 text-sm font-semibold not-italic leading-[normal]`}
-                text={confirmText}
-                onClick={() => action(id)}
-              />
+          <button
+            onClick={() => setOpenConfirmationPopup(false)}
+            className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            {/* Warning Icon */}
+
+            {/* Text Content */}
+            <div className="flex-1">
+              {mainText && (
+                <div className={`text-sm font-medium text-gray-900 mb-1 ${mainStyling}`}>
+                  {mainText}
+                </div>
+              )}
+              {subText && <div className={`text-xs text-gray-600 ${subStyling}`}>{subText}</div>}
             </div>
           </div>
         </div>
-      </Dialog>
-    </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
+          <CustomButton
+            className="btn-cancel"
+            text={closeText}
+            onClick={() => setOpenConfirmationPopup(false)}
+          />
+          <CustomButton className="btn-danger" text={confirmText} onClick={() => action(id)} />
+        </div>
+      </div>
+    </Dialog>
   );
 }
 
