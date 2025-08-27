@@ -7,12 +7,16 @@ import usersReducer from "./features/users/users.slice";
 import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
 import uploadFileReducer from "./features/upload-file/upload-file.slice";
 import analyticsReducer from "./features/analytics/analytics.slice";
+
 import campaignReviewsReducer from "./features/campaign-reviews/campaign-reviews.slice";
+import shortlistReducer from "./features/shortlist/shortlist.slice";
+import campaignsReducer from "./features/campaigns/campaigns.slice";
+
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile"],
+  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile", "shortlist"],
 };
 
 const rootReducer = combineReducers({
@@ -23,6 +27,8 @@ const rootReducer = combineReducers({
   uploadFile: uploadFileReducer,
   analytics: analyticsReducer,
   campaignReviews: campaignReviewsReducer,
+  shortlist: shortlistReducer,
+  campaigns: campaignsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -43,14 +43,27 @@ const CustomStepper = ({
   colors = {},
   showLabels = true,
   children,
+  // New props for validation and submission
+  onNext = null,
+  onSave = null,
+  isLoading = false,
+  canProceed = true,
 }) => {
-  const { nextStep, prevStep, editCampaign } = useCustomStepper({
+  const {
+    nextStep: defaultNextStep,
+    prevStep,
+    editCampaign: defaultEditCampaign,
+  } = useCustomStepper({
     steps,
     activeStep,
     setActiveStep,
     showPreview,
     setShowPreview,
   });
+
+  // Use custom handlers if provided, otherwise use defaults
+  const handleNext = onNext || defaultNextStep;
+  const handleSave = onSave || defaultEditCampaign;
   // Merge default colors with custom colors
   const defaultColors = {
     active: "#3b82f6", // blue-500
@@ -217,10 +230,18 @@ const CustomStepper = ({
         />
 
         <CustomButton
-          text={activeStep < steps.length - 1 ? "Next" : "Save"}
-          onClick={activeStep < steps.length - 1 ? nextStep : editCampaign}
-          className="btn-primary"
-          endIcon={activeStep < steps.length - 1 ? <ArrowForward className="h-4 w-4 ml-1" /> : null}
+          text={
+            isLoading ? "Processing..." : activeStep < steps.length - 1 ? "Next" : "Save Campaign"
+          }
+          onClick={activeStep < steps.length - 1 ? handleNext : handleSave}
+          disabled={!canProceed || isLoading}
+          className={`btn-primary ${!canProceed || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          startIcon={isLoading ? <SaveOutlined className="h-4 w-4 animate-spin" /> : null}
+          endIcon={
+            !isLoading && activeStep < steps.length - 1 ? (
+              <ArrowForward className="h-4 w-4 ml-1" />
+            ) : null
+          }
         />
       </div>
     </div>

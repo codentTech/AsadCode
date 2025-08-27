@@ -131,7 +131,7 @@ const CreatorCard = ({
 
         {/* Social Icons */}
         <div className="flex justify-center space-x-4">
-          {creator.platforms.map((platform) => (
+          {(creator.platforms || []).map((platform) => (
             <div key={platform} className="flex flex-col items-center space-y-1">
               <div
                 className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
