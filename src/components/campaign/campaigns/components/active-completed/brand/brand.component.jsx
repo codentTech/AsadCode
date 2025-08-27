@@ -2,6 +2,7 @@ import React from "react";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
+import { isCreatorMode } from "@/common/utils/users.util";
 
 function Brand({ isCompleted }) {
   return (
@@ -10,7 +11,7 @@ function Brand({ isCompleted }) {
 
       <CreatorSpendAnalysis isCompleted={isCompleted} />
 
-      <DeliverablesProgress isCreatorMode={false} isCompleted={isCompleted} />
+      <DeliverablesProgress isCreatorMode={isCreatorMode()} isCompleted={isCompleted} />
     </div>
   );
 }

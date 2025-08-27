@@ -7,7 +7,7 @@ import useChatInbox from "./use-chat-inbox";
 
 export default function ChatInbox() {
   const {
-    isCreatorMode,
+    creatorMode,
     activeTab,
     setActiveTab,
     activeSection,
@@ -32,9 +32,7 @@ export default function ChatInbox() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-2 py-2 mx-1 text-sm font-bold transition-all relative ${
-                      activeTab === tab.id
-                        ? "text-primary"
-                        : "text-gray-600 hover:text-primary"
+                      activeTab === tab.id ? "text-primary" : "text-gray-600 hover:text-primary"
                     }`}
                   >
                     {tab.label}
@@ -65,7 +63,7 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </div>
-              {[4, 5].includes(activeTab) && !isCreatorMode && (
+              {[4, 5].includes(activeTab) && !creatorMode && (
                 <CustomButton
                   onClick={handleOpenQuickHire}
                   text="Quick Hire"
@@ -76,21 +74,18 @@ export default function ChatInbox() {
           )}
 
           {openQuickHire && (
-            <QuickHire
-              openQuickHire={openQuickHire}
-              handleCloseQuickHire={handleCloseQuickHire}
-            />
+            <QuickHire openQuickHire={openQuickHire} handleCloseQuickHire={handleCloseQuickHire} />
           )}
 
           <div className="flex flex-1 overflow-hidden">
             {/* Chat list */}
-            <ChatList isCreatorMode={isCreatorMode} activeTab={activeTab} />
+            <ChatList isCreatorMode={creatorMode} activeTab={activeTab} />
 
             {/* Chat area */}
             <Inbox />
 
             {/* Right sidebar - Profile and connections */}
-            <Profile isCreatorMode={isCreatorMode} activeTab={activeTab} />
+            <Profile isCreatorMode={creatorMode} activeTab={activeTab} />
           </div>
         </main>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { getAccessToken } from "@/common/utils/access-token.util";
+import { isLoginVerified } from "@/common/utils/access-token.util";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { useEffect } from "react";
@@ -15,7 +15,7 @@ export default function AuthMainRoutes({ component }) {
 
   useEffect(() => {
     const checkAuth = () => {
-      if (getAccessToken()) {
+      if (isLoginVerified()) {
         router.push("admin/dashboard");
         return;
       }

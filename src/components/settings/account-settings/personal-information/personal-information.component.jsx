@@ -23,7 +23,7 @@ const schema = yup.object().shape({
   country: yup.string().required("Country is required"),
   account_type: yup.string().required("Account type is required"),
   creator_type: yup.string().when("account_type", {
-    is: !isCreatorMode,
+    is: !isCreatorMode(),
     then: (schema) => schema.required("Creator type is required"),
     otherwise: (schema) => schema.optional(),
   }),

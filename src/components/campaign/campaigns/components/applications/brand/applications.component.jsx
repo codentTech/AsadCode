@@ -1,3 +1,4 @@
+import { isCreatorMode } from "@/common/utils/users.util";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
@@ -12,7 +13,7 @@ function BrandApplications() {
       <CreatorSpendAnalysis />
 
       {/* Right sidebar - Profile and connections */}
-      <DeliverablesProgress isCreatorMode={false} />
+      <DeliverablesProgress isCreatorMode={isCreatorMode()} />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { isCreatorMode } from "@/common/utils/users.util";
 
 export default function useChatInbox() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode = isCreatorMode();
 
   const [activeTab, setActiveTab] = useState(1);
   const [activeSection, setActiveSection] = useState(1);
@@ -33,7 +33,7 @@ export default function useChatInbox() {
   ];
 
   return {
-    isCreatorMode,
+    creatorMode,
     activeTab,
     setActiveTab,
     activeSection,
