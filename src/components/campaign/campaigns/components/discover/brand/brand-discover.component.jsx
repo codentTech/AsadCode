@@ -39,6 +39,7 @@ function BrandDiscover() {
     handleEditShortlist,
     handleDeleteShortlist,
     handleSendMessage,
+    shortlistState,
   } = useDiscover();
   return (
     <div className="flex bg-white w-full h-[calc(100vh-48px)]">
@@ -51,6 +52,10 @@ function BrandDiscover() {
         setIsNewShortlistDialogOpen={setIsNewShortlistDialogOpen}
         handleEditShortlist={handleEditShortlist}
         handleDeleteShortlist={handleDeleteShortlist}
+        handleCreateShortlist={handleCreateShortlist}
+        newShortlistName={newShortlistName}
+        setNewShortlistName={setNewShortlistName}
+        shortlistState={shortlistState}
       />
 
       {/* Center Column - Discovery Feed or Shortlist View */}

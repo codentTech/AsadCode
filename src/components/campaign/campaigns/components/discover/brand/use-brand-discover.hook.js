@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createShortlist,
+  getAllShortlists,
+  updateShortlist,
+  deleteShortlist,
+  addUserToShortlist,
+  removeUserFromShortlist,
+} from "@/provider/features/shortlist/shortlist.slice";
 
 // Mock Creator Data with portfolio images and additional fields
 const mockCreators = [
@@ -399,8 +408,10 @@ const mockShortlists = [
 ];
 
 function useDiscover() {
+  const dispatch = useDispatch();
+  const shortlistState = useSelector((state) => state.shortlist);
+
   // State for shortlists
-  const [shortlists, setShortlists] = useState(mockShortlists);
   const [selectedShortlist, setSelectedShortlist] = useState(null);
   const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] = useState(false);
   const [newShortlistName, setNewShortlistName] = useState("");
@@ -421,13 +432,22 @@ function useDiscover() {
   const [creatorToMessage, setCreatorToMessage] = useState(null);
   const [messageText, setMessageText] = useState("");
 
+  // Load shortlists from Redux on component mount
+  useEffect(() => {
+    dispatch(getAllShortlists());
+  }, [dispatch]);
+
   // Update the selected shortlist when shortlists change
   useEffect(() => {
-    if (selectedShortlist) {
-      const updatedShortlist = shortlists.find((s) => s.id === selectedShortlist.id);
-      setSelectedShortlist(updatedShortlist);
+    if (selectedShortlist && shortlistState.getAllShortlists.data) {
+      const updatedShortlist = shortlistState.getAllShortlists.data.find(
+        (s) => s.id === selectedShortlist.id
+      );
+      if (updatedShortlist) {
+        setSelectedShortlist(updatedShortlist);
+      }
     }
-  }, [shortlists]);
+  }, [shortlistState.getAllShortlists.data, selectedShortlist]);
 
   // Handle shortlist selection
   const handleShortlistSelect = (shortlist) => {
@@ -437,12 +457,7 @@ function useDiscover() {
   // Handle new shortlist creation
   const handleCreateShortlist = () => {
     if (newShortlistName.trim()) {
-      const newShortlist = {
-        id: shortlists.length + 1,
-        name: newShortlistName,
-        creators: [],
-      };
-      setShortlists([...shortlists, newShortlist]);
+      dispatch(createShortlist({ name: newShortlistName.trim() }));
       setNewShortlistName("");
       setIsNewShortlistDialogOpen(false);
     }
@@ -462,20 +477,24 @@ function useDiscover() {
 
   // Confirm adding creator to selected shortlist
   const confirmSaveToShortlist = (shortlistId) => {
-    const updatedShortlists = shortlists.map((shortlist) => {
-      if (shortlist.id === shortlistId) {
-        // Check if creator is already in shortlist
-        if (!shortlist.creators.some((c) => c.id === creatorToSave.id)) {
-          return {
-            ...shortlist,
-            creators: [...shortlist.creators, creatorToSave],
-          };
-        }
-      }
-      return shortlist;
-    });
+    if (creatorToSave) {
+      dispatch(
+        addUserToShortlist({
+          shortlistId,
+          userId: creatorToSave.id,
+        })
+      );
 
-    setShortlists(updatedShortlists);
+      // Update selected shortlist reference optimistically
+      if (selectedShortlist && selectedShortlist.id === shortlistId) {
+        const updatedShortlist = {
+          ...selectedShortlist,
+          users: [...(selectedShortlist.users || []), creatorToSave],
+          user_count: (selectedShortlist.user_count || 0) + 1,
+        };
+        setSelectedShortlist(updatedShortlist);
+      }
+    }
     setSaveToShortlistDialogOpen(false);
   };
 
@@ -483,38 +502,32 @@ function useDiscover() {
   const handleRemoveFromShortlist = (creatorId) => {
     if (!selectedShortlist) return;
 
-    const updatedShortlists = shortlists.map((shortlist) => {
-      if (shortlist.id === selectedShortlist.id) {
-        return {
-          ...shortlist,
-          creators: shortlist.creators.filter((creator) => creator.id !== creatorId),
-        };
-      }
-      return shortlist;
-    });
+    dispatch(
+      removeUserFromShortlist({
+        shortlistId: selectedShortlist.id,
+        userId: creatorId,
+      })
+    );
 
-    setShortlists(updatedShortlists);
-
-    // Update selected shortlist reference
-    const updatedSelectedShortlist = updatedShortlists.find((s) => s.id === selectedShortlist.id);
-    setSelectedShortlist(updatedSelectedShortlist);
+    // Update selected shortlist reference optimistically
+    const updatedShortlist = {
+      ...selectedShortlist,
+      users: selectedShortlist.users?.filter((user) => user.id !== creatorId) || [],
+      user_count: Math.max((selectedShortlist.user_count || 0) - 1, 0),
+    };
+    setSelectedShortlist(updatedShortlist);
   };
 
   // Handle editing shortlist name
   const handleEditShortlist = (shortlistId, newName) => {
-    const updatedShortlists = shortlists.map((shortlist) => {
-      if (shortlist.id === shortlistId) {
-        return {
-          ...shortlist,
-          name: newName,
-        };
-      }
-      return shortlist;
-    });
+    dispatch(
+      updateShortlist({
+        shortlistId,
+        updateData: { name: newName },
+      })
+    );
 
-    setShortlists(updatedShortlists);
-
-    // Update selected shortlist reference if it's the one being edited
+    // Update selected shortlist reference optimistically
     if (selectedShortlist && selectedShortlist.id === shortlistId) {
       setSelectedShortlist({ ...selectedShortlist, name: newName });
     }
@@ -522,8 +535,7 @@ function useDiscover() {
 
   // Handle deleting shortlist
   const handleDeleteShortlist = (shortlistId) => {
-    const updatedShortlists = shortlists.filter((shortlist) => shortlist.id !== shortlistId);
-    setShortlists(updatedShortlists);
+    dispatch(deleteShortlist(shortlistId));
 
     // Clear selected shortlist if it was deleted
     if (selectedShortlist && selectedShortlist.id === shortlistId) {
@@ -550,22 +562,58 @@ function useDiscover() {
     console.log(`Inviting ${creator.name} to apply for ${campaign.name}`);
   };
 
+  // Transform backend user data to frontend creator format
+  const transformUserToCreator = (user) => {
+    const creatorProfile = user.creator_profile || {};
+    const socialPlatforms = creatorProfile.social_platforms || [];
+
+    return {
+      id: user.id,
+      name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown Creator",
+      profileImage: creatorProfile.profile_photo_url || "/default-avatar.png",
+      age: user.date_of_birth
+        ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear()
+        : "N/A",
+      location:
+        `${user.city || ""}, ${user.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
+        "Unknown Location",
+      rating: 4.5, // Default rating since it's not in the backend yet
+      reviewCount: 0, // Default review count
+      followers: 10000, // Default followers count
+      engagementRate: 3.2, // Default engagement rate
+      tagline: creatorProfile.bio || "Creating authentic content that resonates with audiences",
+      niches: creatorProfile.categories || [],
+      platforms: socialPlatforms.map((sp) => sp.platform).filter(Boolean),
+      platformStats: socialPlatforms.reduce((acc, sp) => {
+        acc[sp.platform] = {
+          followers: Math.floor(Math.random() * 50000) + 1000, // Mock data for now
+        };
+        return acc;
+      }, {}),
+      portfolioImages: creatorProfile.mini_profile_pictures || [],
+    };
+  };
+
   // Sort creators in the selected shortlist
   const getSortedCreators = () => {
-    if (!selectedShortlist) return [];
+    if (!selectedShortlist || !selectedShortlist.users || !Array.isArray(selectedShortlist.users)) {
+      return [];
+    }
 
-    return [...selectedShortlist.creators].sort((a, b) => {
+    const transformedCreators = selectedShortlist.users.map(transformUserToCreator);
+
+    return [...transformedCreators].sort((a, b) => {
       switch (sortOption) {
         case "followers":
-          return b.followers - a.followers;
+          return (b.followers || 0) - (a.followers || 0);
         case "rating":
-          return b.rating - a.rating;
+          return (b.rating || 0) - (a.rating || 0);
         case "reviews":
-          return b.reviewCount - a.reviewCount;
+          return (b.reviewCount || 0) - (a.reviewCount || 0);
         case "engagement":
-          return b.engagementRate - a.engagementRate;
+          return (b.engagementRate || 0) - (a.engagementRate || 0);
         default:
-          return b.followers - a.followers;
+          return (b.followers || 0) - (a.followers || 0);
       }
     });
   };
@@ -578,7 +626,7 @@ function useDiscover() {
   ];
 
   return {
-    shortlists,
+    shortlists: shortlistState.getAllShortlists.data || [],
     selectedShortlist,
     setSelectedShortlist,
     isNewShortlistDialogOpen,
@@ -609,6 +657,7 @@ function useDiscover() {
     handleDeleteShortlist,
     handleSendMessage,
     handleInviteToApply,
+    shortlistState,
   };
 }
 
