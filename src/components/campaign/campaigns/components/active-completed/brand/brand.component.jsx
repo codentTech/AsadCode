@@ -6,13 +6,10 @@ import DeliverablesProgress from "./components/deliverables-progress/deliverable
 function Brand({ isCompleted }) {
   return (
     <div className="relative flex">
-      {/* Chat list */}
       <CampaignOverview isCompleted={isCompleted} />
 
-      {/* Chat area */}
       <CreatorSpendAnalysis isCompleted={isCompleted} />
 
-      {/* Right sidebar - Profile and connections */}
       <DeliverablesProgress isCreatorMode={false} isCompleted={isCompleted} />
     </div>
   );
