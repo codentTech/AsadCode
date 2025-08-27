@@ -1,13 +1,28 @@
-import { useState } from "react";
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import TextArea from "@/common/components/text-area/text-area.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { useState } from "react";
 
-function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
-  const [countrySearch, setCountrySearch] = useState("");
-  const [citySearch, setCitySearch] = useState("");
-  const [languageSearch, setLanguageSearch] = useState("");
+/**
+ * Eligibility Component
+ *
+ * Handles creator eligibility criteria including location requirements,
+ * demographics, and platform requirements.
+ */
+function Eligibility({
+  campaignData,
+  handleChange,
+  handleRequirementToggle,
+  errors = {},
+  register,
+}) {
+  // Local state for search inputs
+  const [countrySearch, setCountrySearch] = useState(campaignData.creatorCountry || "");
+  const [citySearch, setCitySearch] = useState(campaignData.creatorCity || "");
+  const [languageSearch, setLanguageSearch] = useState(campaignData.creatorLanguage || "");
+
+  console.log(errors);
 
   const platformOptions = [
     { label: "Instagram", value: "Instagram" },
@@ -110,12 +125,6 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
     language.toLowerCase().includes(languageSearch.toLowerCase())
   );
 
-  const handleRequirementToggle = (field, value) => {
-    const requirementField = `${field}Requirement`;
-    const newValue = campaignData[requirementField] === value ? "none" : value;
-    handleChange({ target: { name: requirementField, value: newValue } });
-  };
-
   const RequirementToggle = ({ field, label }) => (
     <div className="flex items-center gap-2 mt-2">
       <span className="text-sm text-gray-600">Requirement:</span>
@@ -157,22 +166,40 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
           label="Location Requirements"
           name="locationOptions"
           options={locationOptions}
-          checkedValues={{
-            isRemote: campaignData.isRemote,
-            inPersonRequired: campaignData.inPersonRequired,
+          values={[
+            ...(campaignData.isRemote ? ["isRemote"] : []),
+            ...(campaignData.inPersonRequired ? ["inPersonRequired"] : []),
+          ]}
+          onChange={(selectedValues) => {
+            // Handle location option changes
+            const isRemote = selectedValues.includes("isRemote");
+            const inPersonRequired = selectedValues.includes("inPersonRequired");
+
+            // Update both fields
+            handleChange({
+              target: { name: "isRemote", value: isRemote, type: "checkbox", checked: isRemote },
+            });
+            handleChange({
+              target: {
+                name: "inPersonRequired",
+                value: inPersonRequired,
+                type: "checkbox",
+                checked: inPersonRequired,
+              },
+            });
           }}
-          onChange={handleChange}
         />
 
         {campaignData.inPersonRequired && (
           <>
             <TextArea
               label="Location Details"
-              name="locationDetails"
-              value={campaignData.locationDetails}
-              onChange={handleChange}
+              name="location_details"
               placeholder="Provide specific location details (essential for restaurants, hotels, etc.)"
               className="mt-3"
+              errors={errors}
+              register={register}
+              isRequired={true}
             />
             <div className="mt-2 p-2 bg-orange-50 rounded text-sm text-orange-700">
               ⚠️ In-person filming requirement will prevent remote creators from applying
@@ -186,10 +213,16 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
         <div className="relative">
           <CustomInput
             label="Creator Country"
+            name="creator_country"
             placeholder="Type to search countries"
             value={countrySearch}
-            onChange={(e) => setCountrySearch(e.target.value)}
+            onChange={(e) => {
+              setCountrySearch(e.target.value);
+              // Also update the campaign data as user types
+              handleChange({ target: { name: "creatorCountry", value: e.target.value } });
+            }}
             className="mb-2"
+            errors={errors}
           />
           {countrySearch && (
             <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
@@ -214,6 +247,9 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
             Selected: <strong>{campaignData.creatorCountry}</strong>
           </div>
         )}
+        {errors.creator_country && (
+          <div className="text-sm text-red-600 mt-2">{errors.creator_country.message}</div>
+        )}
         <RequirementToggle field="country" label="Country" />
       </div>
 
@@ -222,10 +258,16 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
         <div className="relative">
           <CustomInput
             label="Creator City (Optional)"
+            name="creator_city"
             placeholder="Type to search cities"
             value={citySearch}
-            onChange={(e) => setCitySearch(e.target.value)}
+            onChange={(e) => {
+              setCitySearch(e.target.value);
+              // Also update the campaign data as user types
+              handleChange({ target: { name: "creatorCity", value: e.target.value } });
+            }}
             className="mb-2"
+            errors={errors}
           />
           {citySearch && (
             <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
@@ -250,6 +292,9 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
             Selected: <strong>{campaignData.creatorCity}</strong>
           </div>
         )}
+        {errors.creator_city && (
+          <div className="text-sm text-red-600 mt-2">{errors.creator_city.message}</div>
+        )}
         <RequirementToggle field="city" label="City" />
       </div>
 
@@ -262,24 +307,25 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
           <CustomInput
             label="Minimum Age"
             type="number"
-            name="minAge"
-            value={campaignData.minAge}
-            onChange={handleChange}
+            name="min_age"
             placeholder="18"
             min="13"
             max="100"
+            errors={errors}
+            register={register}
           />
           <CustomInput
             label="Maximum Age"
             type="number"
-            name="maxAge"
-            value={campaignData.maxAge}
-            onChange={handleChange}
+            name="max_age"
             placeholder="65"
             min="13"
             max="100"
+            errors={errors}
+            register={register}
           />
         </div>
+
         <RequirementToggle field="age" label="Age Range" />
       </div>
 
@@ -287,10 +333,20 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
       <div className="border rounded-lg p-4">
         <SimpleSelect
           label="Creator Gender (Optional)"
+          name="creator_gender"
           placeHolder="Select gender preference"
           options={genderOptions}
-          onChange={() => {}}
+          value={campaignData.creatorGender}
+          onChange={(selectedOption) =>
+            handleChange({
+              target: { name: "creatorGender", value: selectedOption.value },
+            })
+          }
+          errors={errors}
         />
+        {errors.creator_gender && (
+          <div className="text-sm text-red-600 mt-2">{errors.creator_gender.message}</div>
+        )}
         <RequirementToggle field="gender" label="Gender" />
       </div>
 
@@ -299,10 +355,16 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
         <div className="relative">
           <CustomInput
             label="Creator Language (Optional)"
+            name="creator_language"
             placeholder="Type to search languages"
             value={languageSearch}
-            onChange={(e) => setLanguageSearch(e.target.value)}
+            onChange={(e) => {
+              setLanguageSearch(e.target.value);
+              // Also update the campaign data as user types
+              handleChange({ target: { name: "creatorLanguage", value: e.target.value } });
+            }}
             className="mb-2"
+            errors={errors}
           />
           {languageSearch && (
             <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
@@ -327,18 +389,10 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
             Selected: <strong>{campaignData.creatorLanguage}</strong>
           </div>
         )}
+        {errors.creator_language && (
+          <div className="text-sm text-red-600 mt-2">{errors.creator_language.message}</div>
+        )}
         <RequirementToggle field="language" label="Language" />
-      </div>
-
-      {/* Required Platforms */}
-      <div className="border rounded-lg p-4">
-        <CustomCheckboxGroup
-          label="Required Platforms"
-          name="requiredPlatforms"
-          options={platformOptions}
-          checkedValues={campaignData.requiredPlatforms || {}}
-          onChange={(value) => handleCheckboxToggle("requiredPlatforms", value)}
-        />
       </div>
 
       {/* Application Deadline */}
@@ -352,44 +406,6 @@ function Eligibility({ campaignData, handleChange, handleCheckboxToggle }) {
             onChange={handleChange}
           />
         </div>
-      </div>
-
-      {/* Summary of Mandatory Requirements */}
-      <div className="border rounded-lg p-4 bg-red-50">
-        <h3 className="text-sm font-medium text-red-800 mb-2">Mandatory Requirements Summary</h3>
-        <p className="text-xs text-red-600 mb-2">
-          The following requirements will prevent ineligible creators from applying:
-        </p>
-        <ul className="text-sm text-red-700 space-y-1">
-          {campaignData.inPersonRequired && <li>• In-person filming required</li>}
-          {campaignData.countryRequirement === "mandatory" && campaignData.creatorCountry && (
-            <li>• Must be from {campaignData.creatorCountry}</li>
-          )}
-          {campaignData.cityRequirement === "mandatory" && campaignData.creatorCity && (
-            <li>• Must be from {campaignData.creatorCity}</li>
-          )}
-          {campaignData.ageRequirement === "mandatory" &&
-            (campaignData.minAge || campaignData.maxAge) && (
-              <li>
-                • Age must be between {campaignData.minAge || "any"} and{" "}
-                {campaignData.maxAge || "any"}
-              </li>
-            )}
-          {campaignData.genderRequirement === "mandatory" && campaignData.creatorGender && (
-            <li>• Must identify as {campaignData.creatorGender}</li>
-          )}
-          {campaignData.languageRequirement === "mandatory" && campaignData.creatorLanguage && (
-            <li>• Must speak {campaignData.creatorLanguage}</li>
-          )}
-        </ul>
-        {!campaignData.inPersonRequired &&
-          campaignData.countryRequirement !== "mandatory" &&
-          campaignData.cityRequirement !== "mandatory" &&
-          campaignData.ageRequirement !== "mandatory" &&
-          campaignData.genderRequirement !== "mandatory" &&
-          campaignData.languageRequirement !== "mandatory" && (
-            <p className="text-sm text-gray-600 italic">No mandatory requirements set</p>
-          )}
       </div>
     </div>
   );
