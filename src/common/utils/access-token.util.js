@@ -19,11 +19,10 @@ export const getAccessToken = (data) => {
  * Retrive isLoginVerified Status
  * @returns bool
  */
-export const isLoginVerified = (data) => {
-  if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
-    const user = data ?? getUser();
-    return user?.loginVerifiedToken?.[0]?.isLoginVerified;
-  }
+export const isLoginVerified = () => {
+  const token = getAccessToken();
+  const user = getUser();
+  if (token && user) return true;
   return false;
 };
 

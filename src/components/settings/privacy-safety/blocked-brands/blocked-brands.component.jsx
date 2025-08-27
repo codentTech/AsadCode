@@ -4,6 +4,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
+import { isCreatorMode } from "@/common/utils/users.util";
 import {
   AlertTriangle,
   Ban,
@@ -17,7 +18,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { useSelector } from "react-redux";
 
 const BlockedBrandsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,7 +27,7 @@ const BlockedBrandsPage = () => {
   const [selectedBlocks, setSelectedBlocks] = useState([]);
   const [filterReason, setFilterReason] = useState("all");
 
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode = isCreatorMode();
 
   // Sample blocked brands data
   const [blockedBrands, setBlockedBrands] = useState([
@@ -269,10 +269,10 @@ const BlockedBrandsPage = () => {
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">
-          {isCreatorMode ? "Blocked Brands" : "Blocked Creators"}
+          {creatorMode ? "Blocked Brands" : "Blocked Creators"}
         </h1>
         <p className="text-sm mt-1">
-          {`Manage ${isCreatorMode ? "brands" : "creators"} that are blocked from contacting or hiring you`}
+          {`Manage ${creatorMode ? "brands" : "creators"} that are blocked from contacting or hiring you`}
         </p>
       </div>
 
@@ -339,7 +339,7 @@ const BlockedBrandsPage = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
-              Blocked {isCreatorMode ? "Brands" : "Creators"} List
+              Blocked {creatorMode ? "Brands" : "Creators"} List
             </h3>
             <div className="flex space-x-3">
               <div className="w-full min-w-[230px]">
@@ -381,14 +381,14 @@ const BlockedBrandsPage = () => {
           actions={actions}
           onActionClick={handleActionClick}
           customCellRenderer={customCellRenderer}
-          emptyMessage={`No blocked ${isCreatorMode ? "brands" : "creators"} found. ${isCreatorMode ? "Brands" : "Creators"} you block will appear here.`}
-          searchPlaceholder={`Search blocked ${isCreatorMode ? "brands" : "creators"}`}
+          emptyMessage={`No blocked ${creatorMode ? "brands" : "creators"} found. ${creatorMode ? "Brands" : "Creators"} you block will appear here.`}
+          searchPlaceholder={`Search blocked ${creatorMode ? "brands" : "creators"}`}
         />
       </div>
 
       <Modal
         show={showAddModal}
-        title={`Block New ${isCreatorMode ? "Brands" : "Creators"}`}
+        title={`Block New ${creatorMode ? "Brands" : "Creators"}`}
         onClose={() => setShowAddModal(false)}
       >
         <div className="space-y-4">
@@ -434,15 +434,15 @@ const BlockedBrandsPage = () => {
             <h3 className="text-sm font-medium text-blue-800">How Blocking Works</h3>
             <div className="text-sm text-blue-700 mt-1 space-y-1">
               <p>
-                • Blocked {isCreatorMode ? "brands" : "creators"} cannot send you campaign
-                invitations or direct messages
+                • Blocked {creatorMode ? "brands" : "creators"} cannot send you campaign invitations
+                or direct messages
               </p>
               <p>• Your profile will not appear in their search results</p>
               <p>
-                • Existing contracts with blocked {isCreatorMode ? "brands" : "creators"} remain
-                valid until completion
+                • Existing contracts with blocked {creatorMode ? "brands" : "creators"} remain valid
+                until completion
               </p>
-              <p>• You can unblock {isCreatorMode ? "brands" : "creators"} at any time</p>
+              <p>• You can unblock {creatorMode ? "brands" : "creators"} at any time</p>
             </div>
           </div>
         </div>

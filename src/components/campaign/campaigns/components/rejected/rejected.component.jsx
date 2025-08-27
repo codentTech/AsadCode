@@ -1,3 +1,4 @@
+import { isCreatorMode } from "@/common/utils/users.util";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
@@ -5,14 +6,11 @@ import DeliverablesProgress from "./components/deliverables-progress/deliverable
 function Rejected() {
   return (
     <div className="relative flex">
-      {/* Chat list */}
       <CampaignOverview />
 
-      {/* Chat area */}
       <CreatorSpendAnalysis />
 
-      {/* Right sidebar - Profile and connections */}
-      <DeliverablesProgress isCreatorMode={false} />
+      <DeliverablesProgress isCreatorMode={isCreatorMode()} />
     </div>
   );
 }
