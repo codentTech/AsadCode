@@ -22,7 +22,7 @@ export default function CampaignCreationWizard({ open, close }) {
     handleSubmit,
     isLoading,
     campaignData,
-  } = useCreateCampaign();
+  } = useCreateCampaign(close);
 
   // Check if user can proceed to next step or submit
   const canProceed = currentStep < steps.length - 1 || campaignData.termsAgreed;

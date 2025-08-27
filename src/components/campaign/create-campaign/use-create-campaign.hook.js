@@ -177,7 +177,7 @@ const validationSchema = Yup.object().shape({
   termsAgreed: Yup.boolean().oneOf([true], "You must agree to the Terms of Service"),
 });
 
-export default function useCreateCampaign() {
+export default function useCreateCampaign(close) {
   const dispatch = useDispatch();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
@@ -477,9 +477,7 @@ export default function useCreateCampaign() {
     const result = await dispatch(createCampaign(apiData));
 
     if (createCampaign.fulfilled.match(result)) {
-      console.log("Campaign created successfully:", result.payload);
-    } else {
-      console.error("Campaign creation failed:", result);
+      close();
     }
   };
 
