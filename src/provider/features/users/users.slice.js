@@ -46,9 +46,9 @@ export const discoverCreators = createAsyncThunk(
       if (response.success) {
         return response.data;
       }
-      return thunkAPI.rejectWithValue(response);
+      return thunkAPI.rejectWithValue(response.message || "Request failed");
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(error.message || "An error occurred");
     }
   }
 );

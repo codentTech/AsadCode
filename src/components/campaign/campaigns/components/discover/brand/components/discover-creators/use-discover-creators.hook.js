@@ -117,7 +117,20 @@ export default function useDiscoverCreators() {
   // Computed Values
   const safeData = discoverCreatorsState?.data || {};
   const loading = discoverCreatorsState?.isLoading || false;
-  const error = discoverCreatorsState?.isError || false;
+
+  // Ensure error is always a string or null, never an object
+  let error = null;
+  if (discoverCreatorsState?.isError) {
+    const errorMessage = discoverCreatorsState?.message;
+    if (typeof errorMessage === "string") {
+      error = errorMessage;
+    } else if (errorMessage && typeof errorMessage === "object") {
+      error = errorMessage.message || "An error occurred";
+    } else {
+      error = "An error occurred";
+    }
+  }
+
   const message = discoverCreatorsState?.message || "";
   const isReduxReady = !!discoverCreatorsState;
 
