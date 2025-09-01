@@ -5,10 +5,10 @@ import InstagramIcon from "@/common/icons/instagram";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { MapPin, Minus, Star, TrendingDown, TrendingUp, Users } from "lucide-react";
-import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import BrandCalendarModal from "./components/brand-calendar-modal/brand-calendar-modal.component";
+import { MapPin, Star, Users } from "lucide-react";
+import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
+import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({ isCompleted = false }) => {
   const {
@@ -277,7 +277,7 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
-      <BrandCalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
+      <CalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
       <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
     </div>
   );
