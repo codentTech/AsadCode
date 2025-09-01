@@ -80,7 +80,7 @@ export default function CustomInput({
           autoFocus={autoFocus}
           type={showPassword ? "text" : type}
           placeholder={placeholder}
-          className={`text-sm font-normal not-italic leading-[18px] text-text-ultra-light-gray 
+          className={`text-sm font-normal not-italic leading-[18px] text-black 
             ${type === "number" ? "numArrowNotShow" : ""} 
             ${type === "date" ? "bg-red-300" : ""} 
             input-field default-input hover:border-text-dark-gray 

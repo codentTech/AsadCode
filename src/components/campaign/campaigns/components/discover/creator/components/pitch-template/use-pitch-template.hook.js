@@ -112,7 +112,11 @@ const usePitchTemplate = () => {
         break;
     }
 
-    pitchForm.reset();
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
     dispatch(getAllPitches());
 
     // Reset specific operation state
@@ -128,20 +132,30 @@ const usePitchTemplate = () => {
 
   const copyPitchTemplate = async (content) => {
     try {
-      await navigator.clipboard.writeText(content);
-      setApplicationPitch(content);
+      // Strip HTML tags to get plain text
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = content;
+      const plainText = tempDiv.textContent || tempDiv.innerText || "";
+
+      await navigator.clipboard.writeText(plainText);
+      setApplicationPitch(plainText);
       enqueueSnackbar("Pitch copied to clipboard!", { variant: "success" });
     } catch (error) {
       console.error("Clipboard error:", error);
       // Fallback for older browsers or when clipboard API fails
       try {
+        // Strip HTML tags for fallback too
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = content;
+        const plainText = tempDiv.textContent || tempDiv.innerText || "";
+
         const textArea = document.createElement("textarea");
-        textArea.value = content;
+        textArea.value = plainText;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand("copy");
         document.body.removeChild(textArea);
-        setApplicationPitch(content);
+        setApplicationPitch(plainText);
         enqueueSnackbar("Pitch copied to clipboard!", { variant: "success" });
       } catch (fallbackError) {
         console.error("Fallback copy failed:", fallbackError);
@@ -162,8 +176,10 @@ const usePitchTemplate = () => {
         id: showPitchPopup.id,
         data: trimmedData,
       });
+      resetUpdatePitch();
     } else {
       dispatchPitchAction(createPitch, trimmedData);
+      resetCreatePitch();
     }
   };
 
@@ -180,17 +196,32 @@ const usePitchTemplate = () => {
   const handleOpenNewPitchForm = () => {
     setShowNewPitchForm(true);
     setIsEditing(false);
-    pitchForm.reset();
+    // Ensure form is properly reset with default values
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    // Clear any validation errors
+    pitchForm.clearErrors();
+    resetCreatePitch();
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    pitchForm.reset();
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
   };
 
   const handleCloseNewPitchForm = () => {
     setShowNewPitchForm(false);
-    pitchForm.reset();
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
   };
 
   const handleDeletePitch = (id) => {
@@ -210,6 +241,7 @@ const usePitchTemplate = () => {
   const confirmDeletePitch = () => {
     if (deleteConfirmationModal.pitchId) {
       dispatchPitchAction(deletePitch, deleteConfirmationModal.pitchId);
+      resetDeletePitch();
     }
   };
 
