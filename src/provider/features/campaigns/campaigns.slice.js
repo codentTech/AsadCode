@@ -152,6 +152,9 @@ export const campaignsSlice = createSlice({
     resetUpdateCampaign: (state) => {
       state.updateCampaign = { ...generalState };
     },
+    resetFilteredCampaigns: (state) => {
+      state.filterCampaigns = { ...generalState };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -311,5 +314,6 @@ export const campaignsSlice = createSlice({
   },
 });
 
-export const { reset, resetCreateCampaign, resetUpdateCampaign } = campaignsSlice.actions;
+export const { reset, resetCreateCampaign, resetUpdateCampaign, resetFilteredCampaigns } =
+  campaignsSlice.actions;
 export default campaignsSlice.reducer;

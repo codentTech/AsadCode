@@ -103,6 +103,7 @@ export const COUNTRY_OPTIONS = [
 
 // Campaign type options for campaign filtering
 export const CAMPAIGN_TYPE_OPTIONS = [
+  { value: "gifted", label: "Gifted" },
   { value: "branded-content", label: "Branded Content" },
   { value: "product-review", label: "Product Review" },
   { value: "sponsored-post", label: "Sponsored Post" },
