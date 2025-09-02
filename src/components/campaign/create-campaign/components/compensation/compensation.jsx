@@ -17,10 +17,10 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
 
   // Campaign type options
   const campaignTypeOptions = [
-    { label: "Sponsored Post", value: "Sponsored Post" },
-    { label: "UGC", value: "UGC" },
-    { label: "Gifted", value: "Gifted" },
-    { label: "Affiliate", value: "Affiliate" },
+    { label: "Sponsored Post", value: "SPONSORED_POST" },
+    { label: "UGC", value: "BRANDED_CONTENT" },
+    { label: "Gifted", value: "GIFTED" },
+    { label: "Affiliate", value: "AFFILIATE" },
   ];
 
   const paymentOptions = [
@@ -44,7 +44,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       "product_value",
       "suggested_min",
       "suggested_max",
-      "fixed_price",
+      "creator_fixed_price",
     ];
     fieldsToReset.forEach((field) => {
       handleChange({ target: { name: field, value: "" } });
@@ -53,20 +53,20 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
     // Set appropriate compensation type based on campaign type
     let compensationType = "";
     switch (option.value) {
-      case "Sponsored Post":
-      case "UGC":
-        compensationType = "fixed"; // Default for these types
+      case "SPONSORED_POST":
+      case "BRANDED_CONTENT":
+        compensationType = "FIXED"; // Default for these types
         break;
-      case "Gifted":
-        compensationType = "gifted"; // No payment, just product
+      case "GIFTED":
+        compensationType = "GIFTED"; // No payment, just product
         break;
-      case "Affiliate":
-        compensationType = "commission"; // Commission-based
+      case "AFFILIATE":
+        compensationType = "COMMISSION"; // Commission-based
         break;
       default:
         compensationType = "";
     }
-    handleChange({ target: { name: "compensationType", value: compensationType } });
+    handleChange({ target: { name: "compensation_type", value: compensationType } });
   };
 
   return (
@@ -86,17 +86,54 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
             isRequired={true}
           />
         </div>
+
+        {/* Compensation Type Display */}
+        {campaignData.compensation_type && (
+          <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+            <p className="text-sm font-medium text-indigo-900 mb-1">Compensation Type</p>
+            <p className="text-sm text-indigo-700">
+              {campaignData.compensation_type === "FIXED" && (
+                <>
+                  <span className="font-semibold">Fixed Payment (Budget-based)</span>
+                  <br />
+                  <span className="text-xs text-indigo-600">
+                    Set a budget and choose between suggested range or fixed price for creators
+                  </span>
+                </>
+              )}
+              {campaignData.compensation_type === "GIFTED" && (
+                <>
+                  <span className="font-semibold text-red-600">Product Gifting Only</span>
+                  <br />
+                  <span className="text-xs text-indigo-600">
+                    Creators receive product only - no monetary compensation
+                  </span>
+                </>
+              )}
+              {campaignData.compensation_type === "COMMISSION" && (
+                <>
+                  <span className="font-semibold">Commission-based (Percentage per sale)</span>
+                  <br />
+                  <span className="text-xs text-indigo-600">
+                    Creators earn a percentage commission on each sale they generate
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* Hidden input for compensation_type */}
+        <input
+          type="hidden"
+          {...register("compensation_type")}
+          value={campaignData.compensation_type || ""}
+        />
       </div>
 
       {/* Sponsored Post & UGC Campaign Configuration */}
-      {["Sponsored Post", "UGC"].includes(campaignData.campaign_type) && (
+      {["SPONSORED_POST", "BRANDED_CONTENT"].includes(campaignData.campaign_type) && (
         <div className="space-y-4">
-          {/* Payment Type - Fixed for these campaign types */}
-          <div className="p-3 bg-gray-50 rounded-lg border">
-            <p className="text-sm font-medium text-gray-700 mb-1">Payment Type</p>
-            <p className="text-sm text-gray-600">Fixed Payment (Budget-based compensation)</p>
-          </div>
-
           {/* Total Budget */}
           <CustomInput
             label="Enter Total Budget Amount (Private, not publicly visible)"
@@ -144,7 +181,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
             <CustomInput
               label="Fixed Creator Payment"
               type="number"
-              name="fixed_price"
+              name="creator_fixed_price"
               placeholder="e.g., 200"
               errors={errors}
               register={register}
@@ -154,18 +191,8 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       )}
 
       {/* Gifted Campaign Configuration */}
-      {campaignData.campaign_type === "Gifted" && (
+      {campaignData.campaign_type === "GIFTED" && (
         <div className="space-y-4">
-          {/* Payment Type - No Payment */}
-          <div className="p-3 bg-gray-50 rounded-lg border">
-            <p className="text-sm font-medium text-gray-700 mb-1">Payment Type</p>
-            <p className="text-sm text-gray-600">Product Gifting Only</p>
-            <p className="text-sm font-medium text-gray-800 mt-2">
-              Creator Compensation:{" "}
-              <span className="font-semibold text-red-600">$0 (Product Only)</span>
-            </p>
-          </div>
-
           <div className="w-full max-w-sm">
             <CustomInput
               label="Product Value"
@@ -181,14 +208,8 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       )}
 
       {/* Affiliate Campaign Configuration */}
-      {campaignData.campaign_type === "Affiliate" && (
+      {campaignData.campaign_type === "AFFILIATE" && (
         <div className="space-y-4">
-          {/* Payment Type - Commission */}
-          <div className="p-3 bg-gray-50 rounded-lg border">
-            <p className="text-sm font-medium text-gray-700 mb-1">Payment Type</p>
-            <p className="text-sm text-gray-600">Commission-based (Percentage per sale)</p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CustomInput
               label="Commission Percentage per Sale"

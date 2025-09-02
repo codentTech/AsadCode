@@ -272,7 +272,7 @@ export default function useCreateCampaign(close) {
   const steps = [
     "Campaign Title & Niche",
     "Audience Requirements",
-    "Campaign Type & Compensation",
+    "Compensation",
     "Eligibility",
     "Description",
     "Preview & Publish",
