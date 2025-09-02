@@ -51,16 +51,6 @@ function useCampaignFilter() {
     dispatch(getAllCampaigns({ page: 1, limit: 10 }));
   };
 
-  // This function is not needed since we're using the onChange from CustomCheckboxGroup
-  // const handlePlatformChange = (platform) => {
-  //   setFilters((prev) => ({
-  //     ...prev,
-  //     platforms: prev.platforms.includes(platform)
-  //       ? prev.platforms.filter((p) => p !== platform)
-  //       : [...prev.platforms, platform],
-  //   }));
-  // };
-
   const applyFilters = () => {
     // Transform frontend filters to backend API format
     const apiFilters = {
@@ -70,7 +60,7 @@ function useCampaignFilter() {
       niches: [],
       compensation_type: filters.compensationType?.value || filters.compensationType || undefined,
       min_followers: "",
-      platforms: filters.platforms.length > 0 ? filters.platforms.join(",") : undefined,
+      platforms: filters.platforms.length > 0 ? filters.platforms : undefined,
       is_remote:
         filters.location === "Remote" ? true : filters.location === "In-Person" ? false : undefined,
       country:

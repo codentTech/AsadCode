@@ -48,6 +48,12 @@ const getCampaignStats = async () => {
   return response.data;
 };
 
+// Apply to campaign
+const applyToCampaign = async (campaignId, pitch) => {
+  const response = await api().post(`/campaigns/${campaignId}/apply`, { pitch });
+  return response.data;
+};
+
 const campaignsService = {
   createCampaign,
   getAllCampaigns,
@@ -57,6 +63,7 @@ const campaignsService = {
   publishCampaign,
   filterCampaigns,
   getCampaignStats,
+  applyToCampaign,
 };
 
 export default campaignsService;

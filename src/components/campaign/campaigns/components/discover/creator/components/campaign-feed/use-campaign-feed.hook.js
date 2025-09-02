@@ -4,6 +4,7 @@ import {
   getAllCampaigns,
   filterCampaigns,
   resetFilteredCampaigns,
+  applyToCampaign,
 } from "@/provider/features/campaigns/campaigns.slice";
 
 export function useCampaignFeed() {
@@ -24,10 +25,25 @@ export function useCampaignFeed() {
 
   const [selectedNiche, setSelectedNiche] = useState("all");
 
+  // Get apply to campaign state
+  const {
+    isLoading: isApplying,
+    isSuccess: applySuccess,
+    isError: applyError,
+  } = useSelector((state) => state.campaigns.applyToCampaign);
+
   // Determine which data to use (filtered or all campaigns)
   const campaignsData = filteredCampaignsData?.data || allCampaignsData?.data;
   const isLoading = filteredCampaignsLoading || allCampaignsLoading;
   const isFiltering = filteredCampaignsLoading;
+
+  // Handle success/error notifications for apply to campaign
+  useEffect(() => {
+    if (applySuccess) {
+      // Success notification is handled by the API interceptor
+      console.log("Application submitted successfully!");
+    }
+  }, [applySuccess]);
 
   // Handle niche filter change
   const handleNicheChange = (niche) => {
@@ -88,59 +104,92 @@ export function useCampaignFeed() {
 
     return campaignsData.campaigns.map((campaign) => ({
       id: campaign.id,
-      brandLogo: campaign.brand?.profile_image || "🏢",
-      brandName: campaign.brand?.company_name || campaign.brand?.first_name || "Unknown Brand",
+      brandLogo: campaign.created_by?.profile_image || "🏢",
+      brandName:
+        campaign.created_by?.company_name || campaign.created_by?.first_name || "Unknown Brand",
       title: campaign.campaign_title,
-      type: campaign.campaign_type || "Sponsored Post",
-      compensation:
-        campaign.compensation_type === "fixed"
-          ? "Paid"
-          : campaign.compensation_type === "commission"
-            ? "Commission"
-            : campaign.compensation_type === "gifted"
-              ? "Gifted"
-              : "Paid",
-      compensationAmount:
-        campaign.compensation_type === "fixed"
-          ? `$${campaign.fixed_price || campaign.suggested_min || 0}`
-          : campaign.compensation_type === "commission"
-            ? `${campaign.commission_percentage || 0}% Commission`
-            : campaign.compensation_type === "gifted"
-              ? `Product ($${campaign.product_value || 0} value)`
-              : "$0",
-      compensationValue:
-        campaign.compensation_type === "fixed"
-          ? campaign.fixed_price || campaign.suggested_min || 0
-          : campaign.compensation_type === "commission"
-            ? campaign.suggested_max || 1000
-            : campaign.compensation_type === "gifted"
-              ? campaign.product_value || 0
-              : 0,
+      type: campaign.campaign_type || "SPONSORED_POST",
+      compensation: getCompensationType(campaign),
+      compensationAmount: getCompensationAmount(campaign),
+      compensationValue: getCompensationValue(campaign),
       deliverables: campaign.deliverables || [],
-      niche: campaign.niches?.[0] || "General",
-      location: campaign.is_remote ? "Remote" : campaign.location_details || "In-Person",
+      niche: campaign.niches,
+      location: campaign.remote ? "Remote" : "In-Person",
       locationMandatory: campaign.in_person_required,
-      locationPreferred: !campaign.in_person_required && campaign.location_details,
+      locationPreferred:
+        !campaign.in_person_required && (campaign.creator_country || campaign.creator_city),
       productImage: campaign.campaign_image || "📦",
       language: campaign.creator_language || "English",
       followerMin: `${campaign.min_combined_followers || 0} Combined`,
       description:
         campaign.short_description || campaign.long_description || "No description available",
       brief: campaign.long_description || campaign.short_description || "No brief available",
-      postedDate: campaign.published_at
-        ? new Date(campaign.published_at)
-        : new Date(campaign.created_at),
+      postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
       // Backend fields for filtering
       campaign_type: campaign.campaign_type,
-      compensation_type: campaign.compensation_type,
+      compensation_type: getCompensationTypeKey(campaign),
       required_platforms: campaign.required_platforms || [],
       min_combined_followers: campaign.min_combined_followers,
-      is_remote: campaign.is_remote,
+      remote: campaign.remote,
       creator_country: campaign.creator_country,
       creator_city: campaign.creator_city,
       niches: campaign.niches || [],
+      // Additional fields for brief modal
+      creator_gender: campaign.creator_gender,
+      min_age: campaign.min_age,
+      max_age: campaign.max_age,
+      campaign_deadline: campaign.campaign_deadline,
+      budget: campaign.budget,
+      suggested_min: campaign.suggested_min,
+      suggested_max: campaign.suggested_max,
+      creator_fixed_price: campaign.creator_fixed_price,
+      product_value: campaign.product_value,
+      commission_percentage: campaign.commission_percentage,
+      platform_minimums: campaign.platform_minimums,
+      hashtags: campaign.hashtags,
+      do_donts: campaign.do_donts,
+      style_guide: campaign.style_guide,
+      questions: campaign.questions,
     }));
   }, [campaignsData]);
+
+  // Helper functions for compensation
+  function getCompensationType(campaign) {
+    if (campaign.creator_fixed_price) return "Paid";
+    if (campaign.commission_percentage) return "Commission";
+    if (campaign.product_value) return "Gifted";
+    return "Paid";
+  }
+
+  function getCompensationTypeKey(campaign) {
+    if (campaign.creator_fixed_price) return "fixed";
+    if (campaign.commission_percentage) return "commission";
+    if (campaign.product_value) return "gifted";
+    return "fixed";
+  }
+
+  function getCompensationAmount(campaign) {
+    if (campaign.creator_fixed_price) {
+      return `$${campaign.creator_fixed_price}`;
+    }
+    if (campaign.commission_percentage) {
+      return `${campaign.commission_percentage}% Commission`;
+    }
+    if (campaign.product_value) {
+      return `Product ($${campaign.product_value} value)`;
+    }
+    if (campaign.suggested_min && campaign.suggested_max) {
+      return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
+    }
+    return "$0";
+  }
+
+  function getCompensationValue(campaign) {
+    if (campaign.creator_fixed_price) return campaign.creator_fixed_price;
+    if (campaign.suggested_max) return campaign.suggested_max;
+    if (campaign.product_value) return campaign.product_value;
+    return 0;
+  }
 
   // Use campaigns directly since backend handles sorting
   const sortedCampaigns = transformedCampaigns;
@@ -180,6 +229,30 @@ export function useCampaignFeed() {
     setApplicationPitch("");
   };
 
+  const handleApply = async () => {
+    if (!applicationCampaign || !applicationPitch.trim()) {
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        applyToCampaign({
+          campaignId: applicationCampaign.id,
+          pitch: applicationPitch.trim(),
+        })
+      ).unwrap();
+
+      // Close modal and reset on success
+      closeApplication();
+
+      // Show success message (the API will handle the notification)
+      console.log("Successfully applied to campaign:", result);
+    } catch (error) {
+      console.error("Failed to apply to campaign:", error);
+      // Error notification is handled by the API interceptor
+    }
+  };
+
   return {
     campaigns: transformedCampaigns,
     sortedCampaigns,
@@ -202,6 +275,10 @@ export function useCampaignFeed() {
     handleOpenApplication,
     closeBrief,
     closeApplication,
+    handleApply,
+    isApplying,
+    applySuccess,
+    applyError,
     dispatch,
     filteredCampaignsData,
   };

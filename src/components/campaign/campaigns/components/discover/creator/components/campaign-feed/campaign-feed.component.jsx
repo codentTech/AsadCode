@@ -3,6 +3,7 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { product } from "@/common/constants/auth.constant";
+import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
 import { Globe, DollarSign, Gift, Users, Zap, Loader2 } from "lucide-react";
 import { useCampaignFeed } from "./use-campaign-feed.hook";
@@ -30,6 +31,10 @@ function CampaignFeed() {
     handleOpenApplication,
     closeBrief,
     closeApplication,
+    handleApply,
+    isApplying,
+    applySuccess,
+    applyError,
     dispatch,
     filteredCampaignsData,
   } = useCampaignFeed();
@@ -42,6 +47,7 @@ function CampaignFeed() {
   // Campaign type color mapping
   const getCampaignTypeStyle = (type) => {
     const styles = {
+      // Legacy support for old format
       "Sponsored Post": {
         bg: "bg-green-100",
         text: "text-green-800",
@@ -66,63 +72,63 @@ function CampaignFeed() {
         border: "border-purple-200",
         icon: <Zap size={12} />,
       },
-      // Add support for new campaign types from enum
-      gifted: {
+      // New enum values from backend
+      GIFTED: {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
         border: "border-yellow-200",
         icon: <Gift size={12} />,
       },
-      "branded-content": {
+      BRANDED_CONTENT: {
         bg: "bg-blue-100",
         text: "text-blue-800",
         border: "border-blue-200",
         icon: <Users size={12} />,
       },
-      "product-review": {
+      PRODUCT_REVIEW: {
         bg: "bg-orange-100",
         text: "text-orange-800",
         border: "border-orange-200",
         icon: <Users size={12} />,
       },
-      "sponsored-post": {
+      SPONSORED_POST: {
         bg: "bg-green-100",
         text: "text-green-800",
         border: "border-green-200",
         icon: <DollarSign size={12} />,
       },
-      affiliate: {
+      AFFILIATE: {
         bg: "bg-purple-100",
         text: "text-purple-800",
         border: "border-purple-200",
         icon: <Zap size={12} />,
       },
-      giveaway: {
+      GIVEAWAY: {
         bg: "bg-pink-100",
         text: "text-pink-800",
         border: "border-pink-200",
         icon: <Gift size={12} />,
       },
-      event: {
+      EVENT: {
         bg: "bg-indigo-100",
         text: "text-indigo-800",
         border: "border-indigo-200",
         icon: <Globe size={12} />,
       },
-      "app-promotion": {
+      APP_PROMOTION: {
         bg: "bg-teal-100",
         text: "text-teal-800",
         border: "border-teal-200",
         icon: <Zap size={12} />,
       },
-      other: {
+      OTHER: {
         bg: "bg-gray-100",
         text: "text-gray-800",
         border: "border-gray-200",
         icon: <Globe size={12} />,
       },
     };
-    return styles[type] || styles["Sponsored Post"];
+    return styles[type] || styles["SPONSORED_POST"];
   };
 
   return (
@@ -203,11 +209,7 @@ function CampaignFeed() {
                         </h4>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                           <Globe className="h-3 w-3" />
-                          <span>
-                            {campaign.postedDate
-                              ? `${Math.floor((Date.now() - campaign.postedDate) / (1000 * 60 * 60))}h ago`
-                              : "Recently"}
-                          </span>
+                          <span>{formatTimeAgo(campaign.postedDate)}</span>
                         </div>
                       </div>
                     </div>
@@ -233,7 +235,10 @@ function CampaignFeed() {
                       <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
                       <div className="flex flex-col gap-1 text-xs">
                         <span className="flex items-center gap-2 text-gray-600">
-                          <span className="font-medium">Niche:</span> #{campaign.niche}
+                          <span className="font-medium">Niche:</span>{" "}
+                          {Array.isArray(campaign.niche)
+                            ? campaign.niche.map((n) => `#${n}`).join(", ")
+                            : `#${campaign.niche}`}
                         </span>
                         {(campaign.locationMandatory || campaign.locationPreferred) && (
                           <span className="flex items-center gap-2 text-gray-600">
@@ -348,9 +353,28 @@ function CampaignFeed() {
                 <div>
                   <span className="font-medium">Amount:</span> {briefCampaign?.compensationAmount}
                 </div>
-                {briefCampaign?.compensation_type === "commission" && (
+                {briefCampaign?.creator_fixed_price && (
                   <div>
-                    <span className="font-medium">Max:</span> ${briefCampaign?.compensationValue}
+                    <span className="font-medium">Fixed Price:</span> $
+                    {briefCampaign?.creator_fixed_price}
+                  </div>
+                )}
+                {briefCampaign?.suggested_min && briefCampaign?.suggested_max && (
+                  <div>
+                    <span className="font-medium">Range:</span> ${briefCampaign?.suggested_min} - $
+                    {briefCampaign?.suggested_max}
+                  </div>
+                )}
+                {briefCampaign?.commission_percentage && (
+                  <div>
+                    <span className="font-medium">Commission:</span>{" "}
+                    {briefCampaign?.commission_percentage}%
+                  </div>
+                )}
+                {briefCampaign?.product_value && (
+                  <div>
+                    <span className="font-medium">Product Value:</span> $
+                    {briefCampaign?.product_value}
                   </div>
                 )}
               </div>
@@ -372,6 +396,17 @@ function CampaignFeed() {
                 <div>
                   <span className="font-medium">Location:</span> {briefCampaign?.location}
                 </div>
+                {briefCampaign?.creator_gender && (
+                  <div>
+                    <span className="font-medium">Gender:</span> {briefCampaign?.creator_gender}
+                  </div>
+                )}
+                {briefCampaign?.min_age && briefCampaign?.max_age && (
+                  <div>
+                    <span className="font-medium">Age Range:</span> {briefCampaign?.min_age} -{" "}
+                    {briefCampaign?.max_age}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -415,9 +450,7 @@ function CampaignFeed() {
                 <div>
                   <span className="text-sm font-medium text-gray-700">Posted:</span>
                   <span className="text-sm text-gray-600 ml-2">
-                    {briefCampaign?.postedDate
-                      ? `${Math.floor((Date.now() - briefCampaign.postedDate) / (1000 * 60 * 60))}h ago`
-                      : "Recently"}
+                    {formatTimeAgo(briefCampaign?.postedDate)}
                   </span>
                 </div>
               </div>
@@ -426,11 +459,11 @@ function CampaignFeed() {
                 <div>
                   <span className="text-sm font-medium text-gray-700">Location Details:</span>
                   <div className="text-sm text-gray-600 mt-1">
-                    {briefCampaign?.locationMandatory ? (
+                    {briefCampaign?.in_person_required ? (
                       <span className="text-red-600 font-medium">In-person required</span>
-                    ) : briefCampaign?.locationPreferred ? (
+                    ) : briefCampaign?.creator_country || briefCampaign?.creator_city ? (
                       <span className="text-orange-600 font-medium">
-                        Preferred: {briefCampaign.location}
+                        Preferred: {briefCampaign.creator_country} {briefCampaign.creator_city}
                       </span>
                     ) : (
                       <span className="text-green-600 font-medium">Remote friendly</span>
@@ -532,9 +565,10 @@ function CampaignFeed() {
           <div className="flex gap-3">
             <CustomButton text="Cancel" className="w-full btn-cancel" onClick={closeApplication} />
             <CustomButton
-              text="Submit Application"
+              text={isApplying ? "Submitting..." : "Submit Application"}
               className="w-full btn-primary"
-              onClick={closeApplication}
+              onClick={handleApply}
+              disabled={isApplying}
             />
           </div>
         </div>

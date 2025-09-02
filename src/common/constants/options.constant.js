@@ -103,31 +103,36 @@ export const COUNTRY_OPTIONS = [
 
 // Campaign type options for campaign filtering
 export const CAMPAIGN_TYPE_OPTIONS = [
-  { value: "gifted", label: "Gifted" },
-  { value: "branded-content", label: "Branded Content" },
-  { value: "product-review", label: "Product Review" },
-  { value: "sponsored-post", label: "Sponsored Post" },
-  { value: "affiliate", label: "Affiliate Marketing" },
-  { value: "giveaway", label: "Giveaway" },
-  { value: "event", label: "Event Promotion" },
-  { value: "app-promotion", label: "App Promotion" },
-  { value: "other", label: "Other" },
+  { value: "GIFTED", label: "Gifted" },
+  { value: "BRANDED_CONTENT", label: "Branded Content" },
+  { value: "PRODUCT_REVIEW", label: "Product Review" },
+  { value: "SPONSORED_POST", label: "Sponsored Post" },
+  { value: "AFFILIATE", label: "Affiliate Marketing" },
+  { value: "GIVEAWAY", label: "Giveaway" },
+  { value: "EVENT", label: "Event Promotion" },
+  { value: "APP_PROMOTION", label: "App Promotion" },
+  { value: "OTHER", label: "Other" },
 ];
 
 // Compensation type options for campaign filtering
 export const COMPENSATION_TYPE_OPTIONS = [
-  { value: "flat-rate", label: "Flat Rate" },
-  { value: "commission", label: "Commission" },
-  { value: "product-exchange", label: "Product Exchange" },
-  { value: "gift-card", label: "Gift Card" },
-  { value: "free-product", label: "Free Product" },
-  { value: "other", label: "Other" },
+  { value: "FIXED", label: "Fixed Price" },
+  { value: "COMMISSION", label: "Commission" },
+  { value: "GIFTED", label: "Product Exchange" },
 ];
 
 // Location options for campaign filtering
 export const LOCATION_OPTIONS = [
-  { value: "remote", label: "Remote" },
-  { value: "on-location", label: "On Location" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "travel-required", label: "Travel Required" },
+  { value: "Remote", label: "Remote" },
+  { value: "In-Person", label: "In-Person" },
+  { value: "United States", label: "United States" },
+  { value: "Canada", label: "Canada" },
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "Australia", label: "Australia" },
+  { value: "Germany", label: "Germany" },
+  { value: "France", label: "France" },
+  { value: "Spain", label: "Spain" },
+  { value: "Italy", label: "Italy" },
+  { value: "Japan", label: "Japan" },
+  { value: "Brazil", label: "Brazil" },
 ];
