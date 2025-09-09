@@ -12,7 +12,7 @@ export const toCamelCase = (str) => str.replace(/_([a-z])/g, (_, letter) => lett
 
 /**
  * Formats a date into a readable time ago format
- * Shows hours for < 24 hours, then switches to days
+ * Shows minutes for < 1 hour, hours for < 24 hours, then switches to days
  * @param {Date|string} date - The date to format
  * @returns {string} Formatted time ago string
  */
@@ -27,8 +27,14 @@ export const formatTimeAgo = (date) => {
 
   const diffInMs = now - targetDate;
 
-  // Convert to hours
+  // Convert to minutes and hours
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+
+  // If less than 1 hour, show minutes
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`;
+  }
 
   // If less than 24 hours, show hours
   if (diffInHours < 24) {

@@ -54,6 +54,46 @@ const applyToCampaign = async (campaignId, pitch) => {
   return response.data;
 };
 
+// Withdraw application from campaign
+const withdrawApplication = async (campaignId) => {
+  const response = await api().post(`/campaigns/${campaignId}/withdraw`);
+  return response.data;
+};
+
+// Get applied creators for a campaign
+const getAppliedCreators = async (campaignId, filters = {}) => {
+  const response = await api().get(`/campaigns/${campaignId}/applied-creators`, {
+    params: filters,
+  });
+  return response.data;
+};
+
+// Get brand campaigns excluding completed ones
+const getBrandCampaignsExcludingCompleted = async () => {
+  const response = await api().get("/campaigns/brand/active");
+  return response.data;
+};
+
+// Get creator applications
+const getCreatorApplications = async (status) => {
+  const response = await api().get("/campaigns/creator/applications", {
+    params: status ? { status } : {},
+  });
+  return response.data;
+};
+
+// Reject creator application
+const rejectCreator = async (campaignId, creatorId) => {
+  const response = await api().post(`/campaigns/${campaignId}/reject/${creatorId}`);
+  return response.data;
+};
+
+// Reinstate creator application
+const reinstateCreator = async (campaignId, creatorId) => {
+  const response = await api().post(`/campaigns/${campaignId}/reinstate/${creatorId}`);
+  return response.data;
+};
+
 const campaignsService = {
   createCampaign,
   getAllCampaigns,
@@ -64,6 +104,12 @@ const campaignsService = {
   filterCampaigns,
   getCampaignStats,
   applyToCampaign,
+  withdrawApplication,
+  getBrandCampaignsExcludingCompleted,
+  getAppliedCreators,
+  getCreatorApplications,
+  rejectCreator,
+  reinstateCreator,
 };
 
 export default campaignsService;

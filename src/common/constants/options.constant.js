@@ -101,24 +101,19 @@ export const COUNTRY_OPTIONS = [
   { value: "br", label: "Brazil" },
 ];
 
-// Campaign type options for campaign filtering
-export const CAMPAIGN_TYPE_OPTIONS = [
-  { value: "GIFTED", label: "Gifted" },
-  { value: "BRANDED_CONTENT", label: "Branded Content" },
-  { value: "PRODUCT_REVIEW", label: "Product Review" },
-  { value: "SPONSORED_POST", label: "Sponsored Post" },
-  { value: "AFFILIATE", label: "Affiliate Marketing" },
-  { value: "GIVEAWAY", label: "Giveaway" },
-  { value: "EVENT", label: "Event Promotion" },
-  { value: "APP_PROMOTION", label: "App Promotion" },
-  { value: "OTHER", label: "Other" },
-];
-
 // Compensation type options for campaign filtering
 export const COMPENSATION_TYPE_OPTIONS = [
   { value: "FIXED", label: "Fixed Price" },
   { value: "COMMISSION", label: "Commission" },
   { value: "GIFTED", label: "Product Exchange" },
+];
+
+// Campaign type options
+export const CAMPAIGN_TYPE_OPTIONS = [
+  { label: "Sponsored Post", value: "SPONSORED_POST" },
+  { label: "UGC", value: "BRANDED_CONTENT" },
+  { label: "Gifted", value: "GIFTED" },
+  { label: "Affiliate", value: "AFFILIATE" },
 ];
 
 // Location options for campaign filtering

@@ -1,12 +1,13 @@
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 
-export default function ContractPreviewModal({
+export default function CreatorContractViewModal({
   show,
   onClose,
   contractData,
   creatorData,
   campaignData,
+  onAcceptContract,
 }) {
   const generateContractText = () => {
     // Calculate creator payout per sale for commission-based campaigns
@@ -19,33 +20,6 @@ export default function ContractPreviewModal({
             100
           ).toFixed(2)
         : "0";
-
-    // Format usage rights text
-    const getUsageRightsText = () => {
-      if (contractData.usageRights === "no_usage") return "No usage rights";
-      if (contractData.usageRights === "permanent") return "Permanent usage rights";
-      return `${contractData.usageRights} months usage rights`;
-    };
-
-    // Format exclusivity text
-    const getExclusivityText = () => {
-      if (contractData.exclusivityClause === "none") return "None";
-      return `${contractData.exclusivityClause} months`;
-    };
-
-    // Format compensation text
-    const getCompensationText = () => {
-      switch (contractData.compensationType) {
-        case "fixed":
-          return `Fixed Payment: $${contractData.totalCompensation || "[enter amount]"}`;
-        case "commission":
-          return `Commission-Based: ${contractData.totalCompensation || "[enter rate]"}% per sale`;
-        case "gifted":
-          return "Gifted Product: Product only (no monetary compensation)";
-        default:
-          return "[enter compensation type]";
-      }
-    };
 
     return (
       "CleerCut Collaboration Agreement\n\n" +
@@ -160,8 +134,21 @@ export default function ContractPreviewModal({
 
   const contractText = replaceTemplateVariables(generateContractText());
 
+  const handleAcceptContract = () => {
+    const signatureData = {
+      contractId: contractData.contractId,
+      creatorId: creatorData?.id,
+      brandId: campaignData?.created_by?.id,
+      signedAt: new Date().toISOString(),
+      signatureTimestamp: new Date().toISOString(),
+      contractData: contractData,
+    };
+
+    onAcceptContract(signatureData);
+  };
+
   return (
-    <Modal title="Contract Preview" show={show} onClose={onClose} size="xl" height={true}>
+    <Modal title="Contract Review" show={show} onClose={onClose} size="xl" height={true}>
       <div className="space-y-4">
         {/* Contract Document Container */}
         <div className="bg-gray-100 border border-gray-200 rounded-lg p-6 max-h-[33rem] overflow-y-auto">
@@ -207,16 +194,36 @@ export default function ContractPreviewModal({
           </div>
         </div>
 
+        {/* E-Signature Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">E-Signature Confirmation</h3>
+          <p className="text-sm text-blue-700 mb-4">
+            By clicking "Agree & Accept Contract" below, you acknowledge that you have read,
+            understood, and agree to all terms and conditions outlined in this agreement. This
+            action constitutes a valid e-signature under the E-SIGN Act and applicable electronic
+            transaction laws.
+          </p>
+
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="checkbox"
+              id="agree-terms"
+              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+              required
+            />
+            <label htmlFor="agree-terms" className="text-sm text-blue-900">
+              I have read and agree to all terms and conditions of this agreement
+            </label>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
-          <CustomButton text="Back to Edit" className="btn-outline px-6 py-2" onClick={onClose} />
+          <CustomButton text="Decline" className="btn-outline px-6 py-2" onClick={onClose} />
           <CustomButton
-            text="Send Offer"
+            text="Agree & Accept Contract"
             className="btn-primary px-6 py-2"
-            onClick={() => {
-              console.log("Sending offer with contract data:", contractData);
-              onClose();
-            }}
+            onClick={handleAcceptContract}
           />
         </div>
       </div>
