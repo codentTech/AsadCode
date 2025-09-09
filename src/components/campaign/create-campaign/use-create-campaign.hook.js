@@ -34,6 +34,12 @@ const validationSchema = Yup.object().shape({
 
   // Step 2: Compensation (conditional validation)
   campaign_type: Yup.string().required("Campaign type is required"),
+  compensation_type: Yup.string()
+    .oneOf(
+      ["FIXED", "GIFTED", "COMMISSION"],
+      "Compensation type must be FIXED, GIFTED, or COMMISSION"
+    )
+    .required("Compensation type is required"),
   budget: Yup.number()
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
@@ -211,7 +217,7 @@ export default function useCreateCampaign(close) {
     required_platforms: [],
 
     // Compensation
-    compensationType: "fixed",
+    compensation_type: "FIXED",
     budget: null,
     suggested_min: null,
     suggested_max: null,
@@ -427,11 +433,11 @@ export default function useCreateCampaign(close) {
       required_platforms: data.required_platforms || [],
 
       // Compensation
-      compensation_type: data.compensationType || "fixed",
+      compensation_type: data.compensation_type || "FIXED",
       budget: data.budget ? parseFloat(data.budget) : null,
       suggested_min: data.suggested_min ? parseFloat(data.suggested_min) : null,
       suggested_max: data.suggested_max ? parseFloat(data.suggested_max) : null,
-      fixed_price: data.fixed_price ? parseFloat(data.fixed_price) : null,
+      creator_fixed_price: data.fixed_price ? parseFloat(data.fixed_price) : null,
       product_value: data.product_value ? parseFloat(data.product_value) : null,
       commission_percentage: data.commission_percentage
         ? parseFloat(data.commission_percentage)

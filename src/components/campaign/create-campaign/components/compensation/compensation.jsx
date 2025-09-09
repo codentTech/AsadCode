@@ -5,6 +5,7 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import CustomRadioGroup from "@/common/components/radio-group/radio-group.component";
 import React, { useState } from "react";
 import { AlertCircle } from "lucide-react";
+import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
 /**
  * Compensation Component
@@ -14,14 +15,6 @@ import { AlertCircle } from "lucide-react";
  */
 function Compensation({ campaignData, handleChange, errors = {}, register }) {
   const [creatorCompOption, setCreatorCompOption] = useState("suggested");
-
-  // Campaign type options
-  const campaignTypeOptions = [
-    { label: "Sponsored Post", value: "SPONSORED_POST" },
-    { label: "UGC", value: "BRANDED_CONTENT" },
-    { label: "Gifted", value: "GIFTED" },
-    { label: "Affiliate", value: "AFFILIATE" },
-  ];
 
   const paymentOptions = [
     { label: "Suggested Range", value: "suggested" },
@@ -77,7 +70,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
           <SimpleSelect
             label="Campaign Type"
             placeHolder="Select campaign type"
-            options={campaignTypeOptions}
+            options={CAMPAIGN_TYPE_OPTIONS}
             name="campaign_type"
             register={register}
             value={campaignData.campaign_type}

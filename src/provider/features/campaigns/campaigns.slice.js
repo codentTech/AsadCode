@@ -19,6 +19,13 @@ const initialState = {
   filterCampaigns: { ...generalState },
   getCampaignStats: { ...generalState },
   applyToCampaign: { ...generalState },
+  withdrawApplication: { ...generalState },
+  getBrandCampaignsExcludingCompleted: { ...generalState },
+  getAppliedCreators: { ...generalState },
+  getRejectedCreators: { ...generalState },
+  getCreatorApplications: { ...generalState },
+  rejectCreator: { ...generalState },
+  reinstateCreator: { ...generalState },
 };
 
 // Create campaign
@@ -139,6 +146,104 @@ export const applyToCampaign = createAsyncThunk(
   async ({ campaignId, pitch }, thunkAPI) => {
     try {
       const response = await campaignsService.applyToCampaign(campaignId, pitch);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Withdraw application from campaign
+export const withdrawApplication = createAsyncThunk(
+  "campaigns/withdrawApplication",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.withdrawApplication(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get applied creators for a campaign
+export const getAppliedCreators = createAsyncThunk(
+  "campaigns/getAppliedCreators",
+  async ({ campaignId, filters = {} }, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, filters);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get brand campaigns excluding completed ones
+export const getBrandCampaignsExcludingCompleted = createAsyncThunk(
+  "campaigns/getBrandCampaignsExcludingCompleted",
+  async (_, thunkAPI) => {
+    try {
+      const response = await campaignsService.getBrandCampaignsExcludingCompleted();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get rejected creators
+export const getRejectedCreators = createAsyncThunk(
+  "campaigns/getRejectedCreators",
+  async ({ campaignId, filters = {} }, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, filters);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get creator applications
+export const getCreatorApplications = createAsyncThunk(
+  "campaigns/getCreatorApplications",
+  async (status, thunkAPI) => {
+    try {
+      const response = await campaignsService.getCreatorApplications(status);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Reject creator application
+export const rejectCreator = createAsyncThunk(
+  "campaigns/rejectCreator",
+  async ({ campaignId, creatorId }, thunkAPI) => {
+    try {
+      const response = await campaignsService.rejectCreator(campaignId, creatorId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Reinstate creator application
+export const reinstateCreator = createAsyncThunk(
+  "campaigns/reinstateCreator",
+  async ({ campaignId, creatorId }, thunkAPI) => {
+    try {
+      const response = await campaignsService.reinstateCreator(campaignId, creatorId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -344,6 +449,144 @@ export const campaignsSlice = createSlice({
         state.applyToCampaign.isLoading = false;
         state.applyToCampaign.isError = true;
         state.applyToCampaign.data = null;
+      })
+      // withdrawApplication
+      .addCase(withdrawApplication.pending, (state) => {
+        state.withdrawApplication.isLoading = true;
+        state.withdrawApplication.message = "";
+        state.withdrawApplication.isError = false;
+        state.withdrawApplication.isSuccess = false;
+        state.withdrawApplication.data = null;
+      })
+      .addCase(withdrawApplication.fulfilled, (state, action) => {
+        state.withdrawApplication.isLoading = false;
+        state.withdrawApplication.isSuccess = true;
+        state.withdrawApplication.data = action.payload;
+      })
+      .addCase(withdrawApplication.rejected, (state, action) => {
+        state.withdrawApplication.message =
+          action.payload?.message || "Failed to withdraw application";
+        state.withdrawApplication.isLoading = false;
+        state.withdrawApplication.isError = true;
+        state.withdrawApplication.data = null;
+      })
+      // getBrandCampaignsExcludingCompleted
+      .addCase(getBrandCampaignsExcludingCompleted.pending, (state) => {
+        state.getBrandCampaignsExcludingCompleted.isLoading = true;
+        state.getBrandCampaignsExcludingCompleted.message = "";
+        state.getBrandCampaignsExcludingCompleted.isError = false;
+        state.getBrandCampaignsExcludingCompleted.isSuccess = false;
+        state.getBrandCampaignsExcludingCompleted.data = null;
+      })
+      .addCase(getBrandCampaignsExcludingCompleted.fulfilled, (state, action) => {
+        state.getBrandCampaignsExcludingCompleted.isLoading = false;
+        state.getBrandCampaignsExcludingCompleted.isSuccess = true;
+        state.getBrandCampaignsExcludingCompleted.data = action.payload;
+      })
+      .addCase(getBrandCampaignsExcludingCompleted.rejected, (state, action) => {
+        state.getBrandCampaignsExcludingCompleted.message =
+          action.payload?.message || "Failed to fetch brand campaigns";
+        state.getBrandCampaignsExcludingCompleted.isLoading = false;
+        state.getBrandCampaignsExcludingCompleted.isError = true;
+        state.getBrandCampaignsExcludingCompleted.data = null;
+      })
+      // getAppliedCreators
+      .addCase(getAppliedCreators.pending, (state) => {
+        state.getAppliedCreators.isLoading = true;
+        state.getAppliedCreators.message = "";
+        state.getAppliedCreators.isError = false;
+        state.getAppliedCreators.isSuccess = false;
+        state.getAppliedCreators.data = null;
+      })
+      .addCase(getAppliedCreators.fulfilled, (state, action) => {
+        state.getAppliedCreators.isLoading = false;
+        state.getAppliedCreators.isSuccess = true;
+        state.getAppliedCreators.data = action.payload;
+      })
+      .addCase(getAppliedCreators.rejected, (state, action) => {
+        state.getAppliedCreators.message =
+          action.payload?.message || "Failed to fetch applied creators";
+        state.getAppliedCreators.isLoading = false;
+        state.getAppliedCreators.isError = true;
+        state.getAppliedCreators.data = null;
+      })
+      // getRejectedCreators
+      .addCase(getRejectedCreators.pending, (state) => {
+        state.getRejectedCreators.isLoading = true;
+        state.getRejectedCreators.message = "";
+        state.getRejectedCreators.isError = false;
+        state.getRejectedCreators.isSuccess = false;
+        state.getRejectedCreators.data = null;
+      })
+      .addCase(getRejectedCreators.fulfilled, (state, action) => {
+        state.getRejectedCreators.isLoading = false;
+        state.getRejectedCreators.isSuccess = true;
+        state.getRejectedCreators.data = action.payload;
+      })
+      .addCase(getRejectedCreators.rejected, (state, action) => {
+        state.getRejectedCreators.message =
+          action.payload?.message || "Failed to fetch rejected creators";
+        state.getRejectedCreators.isLoading = false;
+        state.getRejectedCreators.isError = true;
+        state.getRejectedCreators.data = null;
+      })
+      // getCreatorApplications
+      .addCase(getCreatorApplications.pending, (state) => {
+        state.getCreatorApplications.isLoading = true;
+        state.getCreatorApplications.message = "";
+        state.getCreatorApplications.isError = false;
+        state.getCreatorApplications.isSuccess = false;
+        state.getCreatorApplications.data = null;
+      })
+      .addCase(getCreatorApplications.fulfilled, (state, action) => {
+        state.getCreatorApplications.isLoading = false;
+        state.getCreatorApplications.isSuccess = true;
+        state.getCreatorApplications.data = action.payload;
+      })
+      .addCase(getCreatorApplications.rejected, (state, action) => {
+        state.getCreatorApplications.message =
+          action.payload?.message || "Failed to fetch creator applications";
+        state.getCreatorApplications.isLoading = false;
+        state.getCreatorApplications.isError = true;
+        state.getCreatorApplications.data = null;
+      })
+      // rejectCreator
+      .addCase(rejectCreator.pending, (state) => {
+        state.rejectCreator.isLoading = true;
+        state.rejectCreator.message = "";
+        state.rejectCreator.isError = false;
+        state.rejectCreator.isSuccess = false;
+        state.rejectCreator.data = null;
+      })
+      .addCase(rejectCreator.fulfilled, (state, action) => {
+        state.rejectCreator.isLoading = false;
+        state.rejectCreator.isSuccess = true;
+        state.rejectCreator.data = action.payload;
+      })
+      .addCase(rejectCreator.rejected, (state, action) => {
+        state.rejectCreator.message = action.payload?.message || "Failed to reject creator";
+        state.rejectCreator.isLoading = false;
+        state.rejectCreator.isError = true;
+        state.rejectCreator.data = null;
+      })
+      // reinstateCreator
+      .addCase(reinstateCreator.pending, (state) => {
+        state.reinstateCreator.isLoading = true;
+        state.reinstateCreator.message = "";
+        state.reinstateCreator.isError = false;
+        state.reinstateCreator.isSuccess = false;
+        state.reinstateCreator.data = null;
+      })
+      .addCase(reinstateCreator.fulfilled, (state, action) => {
+        state.reinstateCreator.isLoading = false;
+        state.reinstateCreator.isSuccess = true;
+        state.reinstateCreator.data = action.payload;
+      })
+      .addCase(reinstateCreator.rejected, (state, action) => {
+        state.reinstateCreator.message = action.payload?.message || "Failed to reinstate creator";
+        state.reinstateCreator.isLoading = false;
+        state.reinstateCreator.isError = true;
+        state.reinstateCreator.data = null;
       });
   },
 });
