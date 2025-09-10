@@ -12,6 +12,7 @@ import campaignReviewsReducer from "./features/campaign-reviews/campaign-reviews
 import shortlistReducer from "./features/shortlist/shortlist.slice";
 import campaignsReducer from "./features/campaigns/campaigns.slice";
 import pitchesReducer from "./features/pitches/pitches.slice";
+import campaignTasksReducer from "./features/campaign-tasks/campaign-tasks.slice";
 
 const persistConfig = {
   key: "root",
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   shortlist: shortlistReducer,
   campaigns: campaignsReducer,
   pitches: pitchesReducer,
+  campaignTasks: campaignTasksReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
