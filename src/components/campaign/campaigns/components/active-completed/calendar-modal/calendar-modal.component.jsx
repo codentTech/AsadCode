@@ -5,7 +5,7 @@ import Modal from "@/common/components/modal/modal.component";
 import { CheckSquare, ChevronLeft, ChevronRight, Plus, Square } from "lucide-react";
 import { useState } from "react";
 
-const BrandCalendarModal = ({ show, onClose }) => {
+const CalendarModal = ({ show, onClose }) => {
   const [selectedDate, setSelectedDate] = useState(15);
   const [currentMonth, setCurrentMonth] = useState({ month: 7, year: 2025 });
   const [newTaskText, setNewTaskText] = useState("");
@@ -195,7 +195,7 @@ const BrandCalendarModal = ({ show, onClose }) => {
   };
 
   return (
-    <Modal show={show} title="Calendar & To Do List" onClose={onClose} size="xl">
+    <Modal show={show} title="Calendar" onClose={onClose} size="xl">
       <div className="grid grid-cols-5 gap-4 p-1">
         {/* Calendar (60%) */}
         <div className="col-span-3">
@@ -447,4 +447,4 @@ const BrandCalendarModal = ({ show, onClose }) => {
   );
 };
 
-export default BrandCalendarModal;
+export default CalendarModal;
