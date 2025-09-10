@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 
 export default function useActiveCompletedCampaign(isCompleted = false) {
   const dispatch = useDispatch();
+  const hasAutoSelected = useRef(false);
 
   // Redux state
   const {
@@ -97,6 +98,14 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
 
       console.log("Campaign options for dropdown:", options);
       setCampaignOptions(options);
+
+      // Auto-select first campaign if none is selected and campaigns are available
+      if (filteredCampaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current) {
+        const firstCampaign = filteredCampaigns[0];
+        console.log("Auto-selecting first campaign:", firstCampaign);
+        setSelectedCampaign(firstCampaign);
+        hasAutoSelected.current = true;
+      }
     } else if (campaignsSuccess && !campaignsData?.data) {
       // Handle case where API returns success but no data
       console.log("No campaigns data received");

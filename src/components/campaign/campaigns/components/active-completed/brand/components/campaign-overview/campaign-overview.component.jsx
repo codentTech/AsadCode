@@ -1,9 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import Loader from "@/common/components/loader/loader.component";
 import { CheckCircle, Circle, AlertCircle } from "lucide-react";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 import useActiveCompletedCampaign from "../../hooks/use-active-completed-campaign.hook";
+import { useEffect, useRef } from "react";
 
 export default function CampaignOverview({ isCompleted = false, onCampaignSelect }) {
   const {
@@ -19,9 +21,23 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
     hasData,
   } = useActiveCompletedCampaign(isCompleted);
 
+  const hasNotifiedParent = useRef(false);
+
   // Debug campaign options
   console.log("CampaignOverview - campaignOptions:", campaignOptions);
   console.log("CampaignOverview - selectedCampaign:", selectedCampaign);
+
+  // Notify parent component when campaign is auto-selected (only once)
+  useEffect(() => {
+    if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
+      console.log(
+        "CampaignOverview - Notifying parent of auto-selected campaign:",
+        selectedCampaign
+      );
+      onCampaignSelect(selectedCampaign);
+      hasNotifiedParent.current = true;
+    }
+  }, [selectedCampaign, onCampaignSelect]);
 
   // Enhanced campaign selection handler
   const handleCampaignSelect = (selectedOption) => {
@@ -53,21 +69,38 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
         isMulti={false}
         onChange={handleCampaignSelect}
         isLoading={isLoading}
+        value={
+          selectedCampaign
+            ? {
+                value: selectedCampaign.id,
+                label: selectedCampaign.campaign_title,
+                campaign: selectedCampaign,
+              }
+            : null
+        }
       />
 
       <hr />
 
-      {/* Campaign Selection Message */}
-      {!hasData && !isLoading && (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Loader loading={true} />
+          <p className="text-sm text-gray-500 mt-3">Loading campaigns...</p>
+        </div>
+      )}
+
+      {/* No Data Message */}
+      {!hasData && !isLoading && campaignOptions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="w-12 h-12 text-gray-400 mb-3" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {isCompleted ? "No Completed Campaigns" : "Select a Campaign"}
+            {isCompleted ? "No Completed Campaigns" : "No Active Campaigns"}
           </h3>
           <p className="text-sm text-gray-500 max-w-xs">
             {isCompleted
               ? "You don't have any completed campaigns yet. Complete some active campaigns to see them here."
-              : "Choose a campaign from the dropdown above to view detailed analytics and manage creators."}
+              : "You don't have any active campaigns yet. Create a campaign to get started."}
           </p>
         </div>
       )}
