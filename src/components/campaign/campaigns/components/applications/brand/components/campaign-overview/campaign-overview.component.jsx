@@ -8,6 +8,8 @@ import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/C
 import { RefreshRounded } from "@mui/icons-material";
 import { ChevronDown, ChevronUp, Filter } from "lucide-react";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
 import HireCreatorModal from "../hire-creator-modal/hire-creator-modal.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
 
@@ -20,10 +22,25 @@ export default function CampaignOverview({
   onClearFilters,
   onRejectCreator,
 }) {
+  const dispatch = useDispatch();
   const [hireModalOpen, setHireModalOpen] = useState(false);
   const [hireCreatorData, setHireCreatorData] = useState(null);
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
+
+  // Get contract creation state from Redux
+  const {
+    isLoading: createContractLoading,
+    isSuccess: createContractSuccess,
+    isError: createContractError,
+  } = useSelector((state) => state.campaigns.createContract || {});
+
+  // Get contract sending state from Redux
+  const {
+    isLoading: sendContractLoading,
+    isSuccess: sendContractSuccess,
+    isError: sendContractError,
+  } = useSelector((state) => state.campaigns.sendContract || {});
 
   const {
     openFilterModal,
@@ -53,28 +70,76 @@ export default function CampaignOverview({
   };
 
   const handleHireClick = () => {
-    // You'll need to get the selected creator and campaign data
-    setHireCreatorData({
-      id: 1,
-      name: "Sam Waters",
-      email: "sam@example.com",
-    });
-    setSelectedCampaignForHire(
-      selectedCampaign || {
-        title: "Summer Launch Campaign",
-        brandName: "Brand Name",
-        deliverables: "1 TikTok, 3 Instagram Stories",
-        hashtags: "#summer #brand",
-        mentions: "@brand",
-      }
-    );
+    if (!selectedCreator || !externalSelectedCampaign) {
+      console.error("Missing creator or campaign data for hiring");
+      return;
+    }
+
+    // Set real creator and campaign data
+    setHireCreatorData(selectedCreator);
+    setSelectedCampaignForHire(externalSelectedCampaign);
     setHireModalOpen(true);
   };
 
-  const handleSendOffer = (contractData) => {
-    console.log("Contract data:", contractData);
-    // Here you'll make API call to backend
-    // createContract(contractData);
+  const handleSendOffer = async (contractData) => {
+    try {
+      // Prepare contract data for API
+      const contractPayload = {
+        campaignId: externalSelectedCampaign.id,
+        creatorId: selectedCreator.creator?.id || selectedCreator.id,
+        brandId: externalSelectedCampaign.created_by?.id,
+        startDate: contractData.startDate,
+        completionDeadline: contractData.completionDeadline,
+        contentFormat: contractData.contentFormat,
+        revisionsLimit: contractData.revisionsLimit,
+        compensationType: contractData.compensationType.toLowerCase(),
+        totalCompensation: contractData.totalCompensation
+          ? parseFloat(contractData.totalCompensation)
+          : undefined,
+        productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
+        usageRights:
+          contractData.usageRights === "no_usage"
+            ? "no_usage"
+            : contractData.usageRights === "permanent"
+              ? "permanent"
+              : `${contractData.usageRights}_months`,
+        exclusivityClause:
+          contractData.exclusivityClause === "none"
+            ? "none"
+            : `${contractData.exclusivityClause}_months`,
+        hashtags: contractData.hashtags,
+        mentions: contractData.mentions,
+        inPersonRequired: contractData.inPersonRequired,
+        eligibleCountry: contractData.eligibleCountry,
+        eligibleCity: contractData.eligibleCity,
+        ageRange: contractData.ageRange,
+        gender: contractData.gender,
+        language: contractData.language,
+      };
+
+      // Create contract
+      const createResult = await dispatch(createContract(contractPayload)).unwrap();
+
+      if (createResult.success) {
+        // Send contract (this now auto-approves and hires the creator)
+        await dispatch(sendContract(createResult.data.id)).unwrap();
+
+        // Close modal
+        setHireModalOpen(false);
+        setHireCreatorData(null);
+        setSelectedCampaignForHire(null);
+
+        // Add a small delay to ensure backend has updated the status
+        setTimeout(() => {
+          // Refresh applications list
+          if (onCampaignSelect) {
+            onCampaignSelect(externalSelectedCampaign);
+          }
+        }, 1000); // 1 second delay
+      }
+    } catch (error) {
+      console.error("Failed to create and send contract:", error);
+    }
   };
 
   const handleRejectClick = () => {
@@ -245,6 +310,9 @@ export default function CampaignOverview({
         creatorData={hireCreatorData}
         campaignData={selectedCampaignForHire}
         onSendOffer={handleSendOffer}
+        isLoading={createContractLoading || sendContractLoading}
+        isSuccess={createContractSuccess && sendContractSuccess}
+        isError={createContractError || sendContractError}
       />
 
       {/* Message Creator Dialog */}

@@ -13,7 +13,7 @@ import {
   resetDeleteCampaignReview,
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 
-const useDeliverablesProgress = (campaignId = "temp-campaign-id") => {
+const useDeliverablesProgress = (campaignId = "temp-campaign-id", selectedCampaign = null) => {
   const { getStatusColor, getStatusIcon } = useCommonHelpers();
   const dispatch = useDispatch();
 

@@ -42,6 +42,7 @@ function BrandApplications() {
 
   // Handle campaign selection from CampaignOverview
   const handleCampaignSelect = (campaign) => {
+    console.log("Refreshing campaign data for:", campaign.id);
     setSelectedCampaign(campaign);
     setSelectedCreator(null); // Reset selected creator when campaign changes
 

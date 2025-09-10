@@ -4,6 +4,7 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import { useState, useEffect } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
+import useHireCreator from "./use-hire-creator.hook";
 
 export default function HireCreatorModal({
   show,
@@ -11,98 +12,50 @@ export default function HireCreatorModal({
   creatorData,
   campaignData,
   onSendOffer,
+  isLoading = false,
+  isSuccess = false,
+  isError = false,
 }) {
-  const [contractData, setContractData] = useState({
-    // General Information (auto-filled)
-    campaignTitle: "",
-    partiesInvolved: "",
-    contractId: `CC-${Date.now()}`, // Auto-generated
-    startDate: "",
-
-    // Deliverables (auto-filled from campaign)
-    contentFormat: "",
-    firstDraftDeadline: "",
-    completionDeadline: "",
-    revisionsLimit: 2,
-
-    // Payment Terms
-    compensationType: "fixed",
-    totalCompensation: "",
-    productPrice: "", // For commission-based campaigns
-
-    // Legal & Compliance
-    exclusivityClause: "none",
-    exclusivityMonths: 0,
-    usageRights: "no_usage",
-    usageMonths: 0,
-
-    // Campaign-level data (non-editable)
-    brandName: "",
-    hashtags: "",
-    mentions: "",
-    campaignDescription: "",
-    contentGuidelines: "",
-
-    // Creator-specific data
-    creatorName: "",
-    inPersonRequired: false,
-    eligibleCountry: "",
-    eligibleCity: "",
-    ageRange: "",
-    gender: "",
-    language: "",
-  });
-
   const [showPreview, setShowPreview] = useState(false);
 
-  // Initialize contract data when modal opens
+  const {
+    register,
+    handleSubmit,
+    errors,
+    onSubmit,
+    watch,
+    setValue,
+    reset,
+    initializeForm,
+    getCompensationInputLabel,
+    isCompensationRequired,
+    isSubmitting,
+    trigger,
+    isValid,
+    createEnrichedContractData,
+  } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
+
+  // Debug: Log errors to see what's happening
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("Form errors:", errors);
+    }
+  }, [errors]);
+
+  // Initialize form when modal opens
   useEffect(() => {
     if (show && campaignData && creatorData) {
-      const creator = creatorData.creator;
-      const profile = creator?.creator_profile;
-
-      setContractData({
-        // General Information
-        campaignTitle: campaignData.campaign_title || "",
-        partiesInvolved: `${campaignData.created_by?.first_name || ""} ${campaignData.created_by?.last_name || ""}`,
-        contractId: `CC-${Date.now()}`,
-        startDate: "",
-
-        // Deliverables
-        contentFormat: campaignData.deliverables?.join(", ") || "",
-        firstDraftDeadline: "",
-        completionDeadline: "",
-        revisionsLimit: 2,
-
-        // Payment Terms
-        compensationType: campaignData.compensation_type?.toLowerCase() || "fixed",
-        totalCompensation: "",
-        productPrice: campaignData.product_value || "",
-
-        // Legal & Compliance
-        exclusivityClause: "none",
-        exclusivityMonths: 0,
-        usageRights: "no_usage",
-        usageMonths: 0,
-
-        // Campaign-level data
-        brandName: `${campaignData.created_by?.first_name || ""} ${campaignData.created_by?.last_name || ""}`,
-        hashtags: campaignData.hashtags || "",
-        mentions: campaignData.mentions || "",
-        campaignDescription: campaignData.short_description || "",
-        contentGuidelines: campaignData.style_guide || "",
-
-        // Creator-specific data
-        creatorName: `${creator?.first_name || ""} ${creator?.last_name || ""}`,
-        inPersonRequired: campaignData.in_person_required || false,
-        eligibleCountry: campaignData.creator_country || "",
-        eligibleCity: campaignData.creator_city || "",
-        ageRange: `${campaignData.min_age || ""} - ${campaignData.max_age || ""}`,
-        gender: campaignData.creator_gender || "",
-        language: campaignData.creator_language || "",
-      });
+      initializeForm();
     }
-  }, [show, campaignData, creatorData]);
+  }, [show, campaignData, creatorData, initializeForm]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!show) {
+      reset();
+      setShowPreview(false);
+    }
+  }, [show, reset]);
 
   const compensationOptions = [
     { value: "fixed", label: "Fixed Payment" },
@@ -126,109 +79,44 @@ export default function HireCreatorModal({
   ];
 
   const revisionOptions = [
-    { value: 0, label: "0 Revisions" },
-    { value: 1, label: "1 Revision" },
-    { value: 2, label: "2 Revisions" },
-    { value: 3, label: "3 Revisions" },
-    { value: 4, label: "4 Revisions" },
-    { value: 5, label: "5 Revisions" },
+    { value: "0", label: "0 Revisions" },
+    { value: "1", label: "1 Revision" },
+    { value: "2", label: "2 Revisions" },
+    { value: "3", label: "3 Revisions" },
+    { value: "4", label: "4 Revisions" },
+    { value: "5", label: "5 Revisions" },
   ];
-
-  const handleInputChange = (field, value) => {
-    setContractData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
 
   const handlePreviewContract = () => {
     setShowPreview(true);
   };
 
-  const handleSendOffer = () => {
-    // Validate required fields
-    const requiredFields = ["startDate", "completionDeadline"];
-    const missingFields = requiredFields.filter((field) => !contractData[field]);
-
-    if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
-      return;
-    }
-
-    // Validate compensation based on type
-    if (contractData.compensationType === "fixed" && !contractData.totalCompensation) {
-      alert("Please enter the total compensation amount");
-      return;
-    }
-
-    if (contractData.compensationType === "commission" && !contractData.totalCompensation) {
-      alert("Please enter the commission percentage");
-      return;
-    }
-
-    // Validate dates
-    const startDate = new Date(contractData.startDate);
-    const completionDate = new Date(contractData.completionDeadline);
-    const today = new Date();
-
-    if (startDate < today) {
-      alert("Start date cannot be in the past");
-      return;
-    }
-
-    if (completionDate <= startDate) {
-      alert("Completion deadline must be after start date");
-      return;
-    }
-
-    // Prepare contract data for sending
-    const finalContractData = {
-      ...contractData,
-      // Add metadata
-      sentAt: new Date().toISOString(),
-      status: "pending_creator_approval",
-      // Ensure all required fields are present
-      startDate: contractData.startDate,
-      completionDeadline: contractData.completionDeadline,
-      totalCompensation: contractData.totalCompensation || "0",
-      productPrice: contractData.productPrice || "0",
-    };
-
-    onSendOffer(finalContractData);
-    onClose();
-  };
-
-  const getCompensationInputLabel = () => {
-    switch (contractData.compensationType) {
-      case "fixed":
-        return "Total Compensation ($)";
-      case "commission":
-        return "Commission Rate (%)";
-      case "gifted":
-        return "Product Value ($)";
-      default:
-        return "Compensation";
-    }
-  };
-
-  const isCompensationRequired = () => {
-    return contractData.compensationType !== "gifted";
+  const handleFormSubmit = async (data) => {
+    // Trigger validation for all fields
+    await trigger();
+    onSubmit(data);
   };
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         {/* General Information */}
         <div>
           <h3 className="font-bold mb-2">General Information</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <CustomInput label="Campaign Title" value={contractData.campaignTitle} disabled />
-            <CustomInput label="Contract ID" value={contractData.contractId} disabled />
+            <CustomInput
+              label="Campaign Title"
+              value={campaignData?.campaign_title || ""}
+              disabled
+            />
+            <CustomInput label="Contract ID" value="DRAFT" disabled />
             <CustomInput
               label="Start Date"
               type="date"
-              value={contractData.startDate}
-              onChange={(e) => handleInputChange("startDate", e.target.value)}
+              register={register}
+              name="startDate"
+              errors={errors}
+              isRequired={true}
             />
           </div>
         </div>
@@ -239,28 +127,34 @@ export default function HireCreatorModal({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <CustomInput
               label="Content Format(s)"
-              value={contractData.contentFormat}
-              onChange={(e) => handleInputChange("contentFormat", e.target.value)}
+              register={register}
+              name="contentFormat"
+              errors={errors}
               placeholder="e.g., 1 TikTok, 3 Instagram Stories"
+              isRequired={true}
             />
             <CustomInput
               label="1st Draft Deadline (Optional)"
               type="date"
-              value={contractData.firstDraftDeadline}
-              onChange={(e) => handleInputChange("firstDraftDeadline", e.target.value)}
+              register={register}
+              name="firstDraftDeadline"
+              errors={errors}
             />
             <CustomInput
               label="Completion Deadline"
               type="date"
-              value={contractData.completionDeadline}
-              onChange={(e) => handleInputChange("completionDeadline", e.target.value)}
+              register={register}
+              name="completionDeadline"
+              errors={errors}
+              isRequired={true}
             />
             <div>
               <SimpleSelect
                 label="Revisions Limit"
-                value={contractData.revisionsLimit}
+                value={watch.revisionsLimit}
                 options={revisionOptions}
-                onChange={(value) => handleInputChange("revisionsLimit", value)}
+                onChange={(option) => setValue("revisionsLimit", option.value)}
+                error={errors.revisionsLimit?.message}
               />
             </div>
           </div>
@@ -273,27 +167,32 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Compensation Type"
-                value={contractData.compensationType}
+                value={watch.compensationType}
                 options={compensationOptions}
-                onChange={(value) => handleInputChange("compensationType", value)}
+                onChange={(option) => setValue("compensationType", option.value)}
+                error={errors.compensationType?.message}
               />
             </div>
             {isCompensationRequired() && (
               <CustomInput
                 label={getCompensationInputLabel()}
                 type="number"
-                value={contractData.totalCompensation}
-                onChange={(e) => handleInputChange("totalCompensation", e.target.value)}
+                register={register}
+                name="totalCompensation"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
-            {contractData.compensationType === "commission" && (
+            {watch.compensationType === "commission" && (
               <CustomInput
                 label="Product Price ($)"
                 type="number"
-                value={contractData.productPrice}
-                onChange={(e) => handleInputChange("productPrice", e.target.value)}
+                register={register}
+                name="productPrice"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
           </div>
@@ -306,17 +205,19 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
-                value={contractData.exclusivityClause}
+                value={watch.exclusivityClause}
                 options={exclusivityOptions}
-                onChange={(value) => handleInputChange("exclusivityClause", value)}
+                onChange={(option) => setValue("exclusivityClause", option.value)}
+                error={errors.exclusivityClause?.message}
               />
             </div>
             <div>
               <SimpleSelect
                 label="Usage Rights"
-                value={contractData.usageRights}
+                value={watch.usageRights}
                 options={usageRightsOptions}
-                onChange={(value) => handleInputChange("usageRights", value)}
+                onChange={(option) => setValue("usageRights", option.value)}
+                error={errors.usageRights?.message}
               />
             </div>
           </div>
@@ -327,62 +228,73 @@ export default function HireCreatorModal({
           <CustomButton
             text="Save Draft"
             className="btn-outline"
+            type="button"
             onClick={() => console.log("Save draft")}
           />
           <CustomButton
             text="Preview Contract"
             className="btn-secondary"
+            type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton text="Send Offer" className="btn-primary" onClick={handleSendOffer} />
+          <CustomButton
+            text="Send Offer"
+            className="btn-primary"
+            type="submit"
+            disabled={isSubmitting}
+          />
         </div>
 
         {/* Contract Summary */}
-        {contractData.startDate && contractData.completionDeadline && (
+        {watch.startDate && watch.completionDeadline && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
             <h4 className="font-semibold text-blue-900 mb-2">Contract Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium text-blue-800">Campaign:</span>{" "}
-                {contractData.campaignTitle}
+                {campaignData?.campaign_title || ""}
               </div>
               <div>
                 <span className="font-medium text-blue-800">Creator:</span>{" "}
-                {contractData.creatorName}
+                {`${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`}
               </div>
               <div>
                 <span className="font-medium text-blue-800">Start Date:</span>{" "}
-                {new Date(contractData.startDate).toLocaleDateString()}
+                {watch.startDate ? new Date(watch.startDate).toLocaleDateString() : ""}
               </div>
               <div>
                 <span className="font-medium text-blue-800">Deadline:</span>{" "}
-                {new Date(contractData.completionDeadline).toLocaleDateString()}
+                {watch.completionDeadline
+                  ? new Date(watch.completionDeadline).toLocaleDateString()
+                  : ""}
               </div>
               <div>
                 <span className="font-medium text-blue-800">Compensation:</span>{" "}
-                {contractData.compensationType === "fixed"
-                  ? `$${contractData.totalCompensation}`
-                  : contractData.compensationType === "commission"
-                    ? `${contractData.totalCompensation}% commission`
+                {watch.compensationType === "fixed"
+                  ? `$${watch.totalCompensation || 0}`
+                  : watch.compensationType === "commission"
+                    ? `${watch.totalCompensation || 0}% commission`
                     : "Gifted product"}
               </div>
               <div>
                 <span className="font-medium text-blue-800">Revisions:</span>{" "}
-                {contractData.revisionsLimit}
+                {watch.revisionsLimit || 2}
               </div>
             </div>
           </div>
         )}
-      </div>
+      </form>
 
       {/* Contract Preview Modal */}
       {showPreview && (
         <ContractPreviewModal
           show={showPreview}
           onClose={() => setShowPreview(false)}
-          contractData={contractData}
+          contractData={createEnrichedContractData(watch)}
           creatorData={creatorData}
           campaignData={campaignData}
+          onSendOffer={onSendOffer}
+          isLoading={isSubmitting}
         />
       )}
     </Modal>
