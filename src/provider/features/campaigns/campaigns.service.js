@@ -94,6 +94,24 @@ const reinstateCreator = async (campaignId, creatorId) => {
   return response.data;
 };
 
+// Create contract
+const createContract = async (contractData) => {
+  const response = await api().post("/contracts", contractData);
+  return response.data;
+};
+
+// Send contract
+const sendContract = async (contractId) => {
+  const response = await api().post(`/contracts/${contractId}/send`);
+  return response.data;
+};
+
+// Hire creator (simple hire without contract)
+const hireCreator = async (campaignId, creatorId) => {
+  const response = await api().post(`/campaigns/${campaignId}/hire/${creatorId}`);
+  return response.data;
+};
+
 const campaignsService = {
   createCampaign,
   getAllCampaigns,
@@ -110,6 +128,9 @@ const campaignsService = {
   getCreatorApplications,
   rejectCreator,
   reinstateCreator,
+  createContract,
+  sendContract,
+  hireCreator,
 };
 
 export default campaignsService;

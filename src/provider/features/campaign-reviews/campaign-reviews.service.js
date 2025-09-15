@@ -12,6 +12,14 @@ const getCampaignReviews = async (campaignId) => {
   return response.data;
 };
 
+// Get reviews for a specific creator profile in a campaign
+const getCampaignReviewsByCreatorProfile = async (campaignId, creatorProfileId) => {
+  const response = await api().get(
+    `/campaign-reviews/campaign/${campaignId}/creator-profile/${creatorProfileId}`
+  );
+  return response.data;
+};
+
 // Update campaign review
 const updateCampaignReview = async (reviewId, reviewData) => {
   const response = await api().put(`/campaign-reviews/${reviewId}`, reviewData);
@@ -27,6 +35,7 @@ const deleteCampaignReview = async (reviewId) => {
 const campaignReviewsService = {
   createCampaignReview,
   getCampaignReviews,
+  getCampaignReviewsByCreatorProfile,
   updateCampaignReview,
   deleteCampaignReview,
 };

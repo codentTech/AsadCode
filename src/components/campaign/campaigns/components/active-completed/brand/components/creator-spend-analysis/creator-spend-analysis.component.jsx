@@ -8,12 +8,23 @@ import CampaignCreationWizard from "@/components/campaign/create-campaign/create
 import { MapPin, Star, Users } from "lucide-react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
+import React from "react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
-const CreatorSpendAnalysis = ({ isCompleted = false }) => {
+const CreatorSpendAnalysis = ({
+  isCompleted = false,
+  selectedCampaign,
+  selectedCreator,
+  onCreatorSelect,
+  onSortChange,
+  currentSort = "newest",
+}) => {
   const {
     open,
     creators,
+    creatorsLoading,
+    creatorsSuccess,
+    creatorsError,
     formatFollowers,
     getPlatformColor,
     getSuccessRateColor,
@@ -23,7 +34,22 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-  } = useCreatorSpendAnalysis();
+  } = useCreatorSpendAnalysis(selectedCampaign);
+
+  // Handle sort change
+  const handleSortChange = (option) => {
+    console.log("Sort changed to:", option?.value);
+    if (onSortChange && option?.value) {
+      onSortChange(option.value);
+    }
+  };
+
+  // Auto-select first creator when creators are loaded and no creator is selected
+  React.useEffect(() => {
+    if (creatorsSuccess && creators.length > 0 && !selectedCreator && selectedCampaign) {
+      onCreatorSelect(creators[0]);
+    }
+  }, [creatorsSuccess, creators, selectedCreator, selectedCampaign, onCreatorSelect]);
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -75,6 +101,15 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
               <SimpleSelect
                 placeHolder="Select an option"
                 options={sortOptions}
+                value={
+                  currentSort
+                    ? {
+                        value: currentSort,
+                        label: sortOptions.find((opt) => opt.value === currentSort)?.label,
+                      }
+                    : null
+                }
+                onChange={handleSortChange}
                 className="w-full max-w-[400px]"
               />
             </div>
@@ -102,177 +137,256 @@ const CreatorSpendAnalysis = ({ isCompleted = false }) => {
       {/* Creator List */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {creators.map((creator) => (
-            <div
-              key={creator.id}
-              className="p-4 rounded-lg bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-gray-100"
-            >
-              <div className="flex items-start space-x-4">
-                {/* Profile Image */}
-                <div className="flex-shrink-0">
-                  <img
-                    src={avatar}
-                    alt={creator.name}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
-                  />
-                </div>
+          {/* Campaign Selection Message */}
+          {!selectedCampaign && !creatorsLoading && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Users className="w-16 h-16 text-gray-400 mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">
+                {isCompleted ? "No Completed Campaign Selected" : "No Active Campaign Selected"}
+              </h3>
+              <p className="text-gray-500 max-w-md">
+                {isCompleted
+                  ? "Select a completed campaign from the left panel to view creator performance and analytics."
+                  : "Select an active campaign from the left panel to view and manage creators."}
+              </p>
+            </div>
+          )}
 
-                {/* Creator Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="w-full">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="text-lg font-semibold text-gray-900">{creator.name}</h3>
-                          {isCompleted && (
-                            <span
-                              className={`text-sm ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1`}
-                            >
-                              {creator.deadline}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
-                          Creator Fee:
-                          <span className="font-bold text-primary"> ${creator.totalSpent}</span>
+          {/* Loading State */}
+          {creatorsLoading && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+              <p className="text-gray-500">Loading creators...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {creatorsError && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <TrendingDown className="w-16 h-16 text-red-400 mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Error Loading Creators</h3>
+              <p className="text-gray-500 max-w-md">
+                There was an error loading the creators for this campaign. Please try again.
+              </p>
+            </div>
+          )}
+
+          {/* No Creators Message */}
+          {creatorsSuccess && creators.length === 0 && selectedCampaign && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Users className="w-16 h-16 text-gray-400 mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">
+                {isCompleted ? "No Creators Found" : "No Creators Applied"}
+              </h3>
+              <p className="text-gray-500 max-w-md">
+                {isCompleted
+                  ? "This completed campaign doesn't have any creators associated with it."
+                  : "No creators have applied to this campaign yet. Share your campaign to attract creators."}
+              </p>
+            </div>
+          )}
+
+          {/* Creators List */}
+          {creatorsSuccess &&
+            creators.length > 0 &&
+            selectedCampaign &&
+            creators.map((creator) => {
+              const isSelected = selectedCreator?.id === creator.id;
+              return (
+                <div
+                  key={creator.id}
+                  onClick={() => onCreatorSelect(creator)}
+                  className={`p-4 rounded-lg bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border cursor-pointer ${
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                      : "border-gray-100 hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-start space-x-4">
+                    {/* Profile Image */}
+                    <div className="flex-shrink-0">
+                      <img
+                        src={creator.image || avatar}
+                        alt={creator.name}
+                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
+                        onError={(e) => {
+                          e.target.src = avatar;
+                        }}
+                      />
+                    </div>
+
+                    {/* Creator Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="w-full">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {creator.name}
+                              </h3>
+                              {isCompleted && (
+                                <span
+                                  className={`text-sm ${creator.deadline === "On time" ? "text-green-600 bg-green-50" : creator.deadline === "Cancelled" ? "text-orange-600 bg-orange-50" : "text-red-600 bg-red-50"} rounded-lg px-2 py-1`}
+                                >
+                                  {creator.deadline}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                              Creator Fee:
+                              <span className="font-bold text-primary"> ${creator.totalSpent}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-1 text-xs">
+                              <MapPin className="w-4 h-4" />
+                              <span>{creator.location}</span>
+                            </div>
+                            <span className="text-xs text-gray-600">(27 Years)</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <div className="flex items-center space-x-1 text-xs">
-                          <MapPin className="w-4 h-4" />
-                          <span>{creator.location}</span>
+
+                      {/* Rating */}
+                      <div className="flex items-center space-x-2 mb-3">
+                        <div className="flex text-xs items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < Math.floor(creator.rating)
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <span className="text-xs text-gray-600">(27 Years)</span>
+                        <span className="text-xs font-medium text-gray-900">{creator.rating}</span>
+                        <span className="text-xs text-gray-600">
+                          ({creator.reviewCount} reviews)
+                        </span>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Rating */}
-                  <div className="flex items-center space-x-2 mb-3">
-                    <div className="flex text-xs items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(creator.rating)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs font-medium text-gray-900">{creator.rating}</span>
-                    <span className="text-xs text-gray-600">({creator.reviewCount} reviews)</span>
-                  </div>
-
-                  {/* Performance Metrics */}
-                  <div className="flex items-center space-x-4 text-xs">
-                    <div
-                      className={`px-2 py-1 rounded-full ${getSuccessRateColor(
-                        creator.successRate
-                      )}`}
-                    >
-                      <span className="font-medium">{creator.successRate}% Success Rate</span>
-                    </div>
-                    {!isCompleted && (
-                      <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
-                        <span className="font-bold">Total Views:</span>{" "}
-                        {formatFollowers(
-                          Object.values(creator.platforms).reduce((sum, p) => sum + p.followers, 0)
+                      {/* Performance Metrics */}
+                      <div className="flex items-center space-x-4 text-xs">
+                        <div
+                          className={`px-2 py-1 rounded-full ${getSuccessRateColor(
+                            creator.successRate
+                          )}`}
+                        >
+                          <span className="font-medium">{creator.successRate}% Success Rate</span>
+                        </div>
+                        {!isCompleted && (
+                          <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
+                            <span className="font-bold">Total Views:</span>{" "}
+                            {formatFollowers(
+                              Object.values(creator.platforms).reduce(
+                                (sum, p) => sum + p.followers,
+                                0
+                              )
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Enhanced Platform Stats Grid */}
-                  {!isCompleted ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                      {Object.entries(creator.platforms).map(([platform, data]) => (
-                        <div
-                          key={platform}
-                          className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3
+                      {/* Enhanced Platform Stats Grid */}
+                      {!isCompleted ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                          {Object.entries(creator.platforms).map(([platform, data]) => (
+                            <div
+                              key={platform}
+                              className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3
                                     hover:bg-gray-100/80 transition-colors duration-200"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
-                              {getPlatformIcon(platform)}
-                            </span>
-                            <span className="text-xs capitalize font-semibold text-gray-700">
-                              {platform}
-                            </span>
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                                  {getPlatformIcon(platform)}
+                                </span>
+                                <span className="text-xs capitalize font-semibold text-gray-700">
+                                  {platform}
+                                </span>
+                              </div>
+                              <div className="text-sm font-bold text-gray-900">
+                                {formatFollowers(data.followers)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                          {/* Total Views Dashboard Card */}
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-gray-700">
+                                Total Views
+                              </span>
+                            </div>
+                            <div className="text-xs font-bold text-gray-900 mb-1">{totalViews}</div>
+                            <div
+                              className={`text-xs ${getPerformanceComparison("views").textColor}`}
+                            >
+                              +{getPerformanceComparison("views").difference} above campaign average
+                            </div>
                           </div>
-                          <div className="text-sm font-bold text-gray-900">
-                            {formatFollowers(data.followers)}
+
+                          {/* Total Engagement Dashboard Card */}
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-gray-700">
+                                Total Engagement
+                              </span>
+                            </div>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {totalEngagement}
+                            </div>
+                            <div
+                              className={`text-xs ${getPerformanceComparison("engagement").textColor}`}
+                            >
+                              +{getPerformanceComparison("engagement").difference} above campaign
+                              average
+                            </div>
+                          </div>
+
+                          {/* Engagement Rate Dashboard Card */}
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-gray-700">
+                                Engagement Rate
+                              </span>
+                            </div>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {engagementRate}%
+                            </div>
+                            <div
+                              className={`text-xs ${getPerformanceComparison("rate").textColor}`}
+                            >
+                              +{getPerformanceComparison("rate").difference} above campaign average
+                            </div>
+                          </div>
+
+                          {/* Cost Per Engagement Dashboard Card */}
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-gray-700">
+                                Cost Per Engagement
+                              </span>
+                            </div>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              ${costPerEngagement}
+                            </div>
+                            <div
+                              className={`text-xs ${getPerformanceComparison("cost").textColor}`}
+                            >
+                              +${getPerformanceComparison("cost").difference} above campaign average
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                      {/* Total Views Dashboard Card */}
-                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-gray-700">Total Views</span>
-                        </div>
-                        <div className="text-xs font-bold text-gray-900 mb-1">{totalViews}</div>
-                        <div className={`text-xs ${getPerformanceComparison("views").textColor}`}>
-                          +{getPerformanceComparison("views").difference} above campaign average
-                        </div>
-                      </div>
-
-                      {/* Total Engagement Dashboard Card */}
-                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-gray-700">
-                            Total Engagement
-                          </span>
-                        </div>
-                        <div className="text-xs font-bold text-gray-900 mb-1">
-                          {totalEngagement}
-                        </div>
-                        <div
-                          className={`text-xs ${getPerformanceComparison("engagement").textColor}`}
-                        >
-                          +{getPerformanceComparison("engagement").difference} above campaign
-                          average
-                        </div>
-                      </div>
-
-                      {/* Engagement Rate Dashboard Card */}
-                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-gray-700">
-                            Engagement Rate
-                          </span>
-                        </div>
-                        <div className="text-xs font-bold text-gray-900 mb-1">
-                          {engagementRate}%
-                        </div>
-                        <div className={`text-xs ${getPerformanceComparison("rate").textColor}`}>
-                          +{getPerformanceComparison("rate").difference} above campaign average
-                        </div>
-                      </div>
-
-                      {/* Cost Per Engagement Dashboard Card */}
-                      <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-gray-700">
-                            Cost Per Engagement
-                          </span>
-                        </div>
-                        <div className="text-xs font-bold text-gray-900 mb-1">
-                          ${costPerEngagement}
-                        </div>
-                        <div className={`text-xs ${getPerformanceComparison("cost").textColor}`}>
-                          +${getPerformanceComparison("cost").difference} above campaign average
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
         </div>
       </div>
 

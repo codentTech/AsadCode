@@ -23,6 +23,7 @@ const CreatorApplications = () => {
     withdrawLoading,
     withdrawSuccess,
     withdrawError,
+    allApplications,
   } = useCreatorApplications();
 
   // Helper function to format compensation type
@@ -108,8 +109,7 @@ const CreatorApplications = () => {
                   <div className="flex items-center space-x-2 text-xs">
                     <span>Pending</span>
                     <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {applicationsData?.data?.filter((app) => app.status === "PENDING")?.length ||
-                        0}
+                      {allApplications.pending.length || 0}
                     </span>
                   </div>
                 }
@@ -125,8 +125,7 @@ const CreatorApplications = () => {
                   <div className="flex items-center space-x-2 text-xs">
                     <span>Rejected</span>
                     <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {applicationsData?.data?.filter((app) => app.status === "REJECTED")?.length ||
-                        0}
+                      {allApplications.rejected.length || 0}
                     </span>
                   </div>
                 }

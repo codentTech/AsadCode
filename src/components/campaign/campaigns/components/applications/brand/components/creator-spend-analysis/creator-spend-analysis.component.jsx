@@ -5,16 +5,13 @@ import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
 import { Star, Bookmark, Mail } from "lucide-react";
-import { useEffect } from "react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
-  appliedCreators,
-  setAppliedCreators,
-  isLoadingCreators,
-  setIsLoadingCreators,
+  appliedCreatorsData,
+  appliedCreatorsLoading,
   onCreatorSelect,
   selectedCreator,
   filters,
@@ -28,31 +25,12 @@ const CreatorSpendAnalysis = ({
     open,
     handleOpenModal,
     handleCloseModal,
-    appliedCreatorsData,
-    appliedCreatorsLoading,
-    appliedCreatorsSuccess,
-    appliedCreatorsError,
-    fetchAppliedCreators,
   } = useCreatorSpendAnalysis();
 
   const { getPlatformIcon } = useGetplatform();
 
-  // Fetch applied creators when campaign is selected or filters change
-  useEffect(() => {
-    if (selectedCampaign?.id) {
-      // Remove empty filters
-      const cleanFilters = Object.fromEntries(
-        Object.entries(filters || {}).filter(
-          ([_, value]) =>
-            value !== "" &&
-            value !== null &&
-            value !== undefined &&
-            (Array.isArray(value) ? value.length > 0 : true)
-        )
-      );
-      fetchAppliedCreators(selectedCampaign.id, cleanFilters);
-    }
-  }, [selectedCampaign?.id, filters, fetchAppliedCreators]);
+  // Note: We don't need to fetch data here since it's passed from parent component
+  // The parent Applications component handles all API calls and passes the data down
 
   const handleCreatorPreview = (creator) => {
     if (onCreatorSelect) {

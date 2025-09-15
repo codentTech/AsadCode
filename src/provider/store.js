@@ -7,6 +7,7 @@ import usersReducer from "./features/users/users.slice";
 import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
 import uploadFileReducer from "./features/upload-file/upload-file.slice";
 import analyticsReducer from "./features/analytics/analytics.slice";
+import campaignNotesReducer from "./features/campaign-notes/campaign-notes.slice";
 
 import campaignReviewsReducer from "./features/campaign-reviews/campaign-reviews.slice";
 import shortlistReducer from "./features/shortlist/shortlist.slice";
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
   shortlist: shortlistReducer,
   campaigns: campaignsReducer,
   pitches: pitchesReducer,
+  campaignNotes: campaignNotesReducer,
   campaignTasks: campaignTasksReducer,
 });
 

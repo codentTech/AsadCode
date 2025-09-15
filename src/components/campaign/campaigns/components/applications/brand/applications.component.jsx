@@ -36,12 +36,13 @@ function BrandApplications() {
     city: "",
     niches: [],
     platforms: [],
-    status: "",
+    status: "PENDING", // Default to PENDING applications
     sort: "newest",
   });
 
   // Handle campaign selection from CampaignOverview
   const handleCampaignSelect = (campaign) => {
+    console.log("Refreshing campaign data for:", campaign.id);
     setSelectedCampaign(campaign);
     setSelectedCreator(null); // Reset selected creator when campaign changes
 
@@ -49,7 +50,7 @@ function BrandApplications() {
     dispatch(
       getAppliedCreators({
         campaignId: campaign.id,
-        filters: { ...filters, status: "PENDING" },
+        filters: filters,
       })
     );
   };
@@ -69,7 +70,7 @@ function BrandApplications() {
       dispatch(
         getAppliedCreators({
           campaignId: selectedCampaign.id,
-          filters: { ...newFilters, status: "PENDING" },
+          filters: newFilters,
         })
       );
     }
@@ -85,7 +86,7 @@ function BrandApplications() {
       city: "",
       niches: [],
       platforms: [],
-      status: "",
+      status: "PENDING", // Reset to PENDING when clearing filters
       sort: "newest",
     };
     setFilters(clearedFilters);
@@ -95,7 +96,7 @@ function BrandApplications() {
       dispatch(
         getAppliedCreators({
           campaignId: selectedCampaign.id,
-          filters: { ...clearedFilters, status: "PENDING" },
+          filters: clearedFilters,
         })
       );
     }

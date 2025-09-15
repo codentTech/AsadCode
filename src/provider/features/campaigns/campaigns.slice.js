@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import campaignsService from "./campaigns.service";
 
+// Helper function to extract serializable error information
+const getSerializableError = (error, defaultMessage) => {
+  const errorMessage = error.response?.data?.message || error.message || defaultMessage;
+  return { message: errorMessage };
+};
+
 const generalState = {
   isLoading: false,
   isSuccess: false,
@@ -22,10 +28,14 @@ const initialState = {
   withdrawApplication: { ...generalState },
   getBrandCampaignsExcludingCompleted: { ...generalState },
   getAppliedCreators: { ...generalState },
+  getHiredCreators: { ...generalState }, // Separate state for active-completed tab
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
   reinstateCreator: { ...generalState },
+  createContract: { ...generalState },
+  sendContract: { ...generalState },
+  hireCreator: { ...generalState },
 };
 
 // Create campaign
@@ -37,7 +47,7 @@ export const createCampaign = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -51,7 +61,7 @@ export const getAllCampaigns = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch campaigns"));
     }
   }
 );
@@ -65,7 +75,7 @@ export const getCampaignById = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to get campaign"));
     }
   }
 );
@@ -79,7 +89,7 @@ export const updateCampaign = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -93,7 +103,7 @@ export const deleteCampaign = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -107,7 +117,7 @@ export const publishCampaign = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -121,7 +131,7 @@ export const filterCampaigns = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -135,7 +145,7 @@ export const getCampaignStats = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -149,7 +159,7 @@ export const applyToCampaign = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -163,7 +173,7 @@ export const withdrawApplication = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -177,7 +187,23 @@ export const getAppliedCreators = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get applied creators")
+      );
+    }
+  }
+);
+
+// Get hired creators for a campaign (separate from applied creators)
+export const getHiredCreators = createAsyncThunk(
+  "campaigns/getHiredCreators",
+  async ({ campaignId, filters = {} }, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, filters);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to get hired creators"));
     }
   }
 );
@@ -191,7 +217,7 @@ export const getBrandCampaignsExcludingCompleted = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -205,7 +231,7 @@ export const getRejectedCreators = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -219,7 +245,7 @@ export const getCreatorApplications = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -233,7 +259,7 @@ export const rejectCreator = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -247,7 +273,49 @@ export const reinstateCreator = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
+
+// Create contract
+export const createContract = createAsyncThunk(
+  "campaigns/createContract",
+  async (contractData, thunkAPI) => {
+    try {
+      const response = await campaignsService.createContract(contractData);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
+
+// Send contract
+export const sendContract = createAsyncThunk(
+  "campaigns/sendContract",
+  async (contractId, thunkAPI) => {
+    try {
+      const response = await campaignsService.sendContract(contractId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
+
+// Hire creator (simple hire without contract)
+export const hireCreator = createAsyncThunk(
+  "campaigns/hireCreator",
+  async ({ campaignId, creatorId }, thunkAPI) => {
+    try {
+      const response = await campaignsService.hireCreator(campaignId, creatorId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -510,6 +578,26 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
       })
+      // getHiredCreators
+      .addCase(getHiredCreators.pending, (state) => {
+        state.getHiredCreators.isLoading = true;
+        state.getHiredCreators.message = "";
+        state.getHiredCreators.isError = false;
+        state.getHiredCreators.isSuccess = false;
+        state.getHiredCreators.data = null;
+      })
+      .addCase(getHiredCreators.fulfilled, (state, action) => {
+        state.getHiredCreators.isLoading = false;
+        state.getHiredCreators.isSuccess = true;
+        state.getHiredCreators.data = action.payload;
+      })
+      .addCase(getHiredCreators.rejected, (state, action) => {
+        state.getHiredCreators.message =
+          action.payload?.message || "Failed to fetch hired creators";
+        state.getHiredCreators.isLoading = false;
+        state.getHiredCreators.isError = true;
+        state.getHiredCreators.data = null;
+      })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {
         state.getRejectedCreators.isLoading = true;
@@ -587,6 +675,63 @@ export const campaignsSlice = createSlice({
         state.reinstateCreator.isLoading = false;
         state.reinstateCreator.isError = true;
         state.reinstateCreator.data = null;
+      })
+      // createContract
+      .addCase(createContract.pending, (state) => {
+        state.createContract.isLoading = true;
+        state.createContract.message = "";
+        state.createContract.isError = false;
+        state.createContract.isSuccess = false;
+        state.createContract.data = null;
+      })
+      .addCase(createContract.fulfilled, (state, action) => {
+        state.createContract.isLoading = false;
+        state.createContract.isSuccess = true;
+        state.createContract.data = action.payload;
+      })
+      .addCase(createContract.rejected, (state, action) => {
+        state.createContract.message = action.payload?.message || "Failed to create contract";
+        state.createContract.isLoading = false;
+        state.createContract.isError = true;
+        state.createContract.data = null;
+      })
+      // sendContract
+      .addCase(sendContract.pending, (state) => {
+        state.sendContract.isLoading = true;
+        state.sendContract.message = "";
+        state.sendContract.isError = false;
+        state.sendContract.isSuccess = false;
+        state.sendContract.data = null;
+      })
+      .addCase(sendContract.fulfilled, (state, action) => {
+        state.sendContract.isLoading = false;
+        state.sendContract.isSuccess = true;
+        state.sendContract.data = action.payload;
+      })
+      .addCase(sendContract.rejected, (state, action) => {
+        state.sendContract.message = action.payload?.message || "Failed to send contract";
+        state.sendContract.isLoading = false;
+        state.sendContract.isError = true;
+        state.sendContract.data = null;
+      })
+      // hireCreator
+      .addCase(hireCreator.pending, (state) => {
+        state.hireCreator.isLoading = true;
+        state.hireCreator.message = "";
+        state.hireCreator.isError = false;
+        state.hireCreator.isSuccess = false;
+        state.hireCreator.data = null;
+      })
+      .addCase(hireCreator.fulfilled, (state, action) => {
+        state.hireCreator.isLoading = false;
+        state.hireCreator.isSuccess = true;
+        state.hireCreator.data = action.payload;
+      })
+      .addCase(hireCreator.rejected, (state, action) => {
+        state.hireCreator.message = action.payload?.message || "Failed to hire creator";
+        state.hireCreator.isLoading = false;
+        state.hireCreator.isError = true;
+        state.hireCreator.data = null;
       });
   },
 });

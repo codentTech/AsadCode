@@ -1,5 +1,6 @@
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { useState } from "react";
 
 export default function ContractPreviewModal({
   show,
@@ -7,7 +8,14 @@ export default function ContractPreviewModal({
   contractData,
   creatorData,
   campaignData,
+  onSendOffer,
+  isLoading = false,
+  contractId = null, // Real contract ID from backend (optional)
 }) {
+  // Generate stable timestamp when modal opens
+  const [signatureTimestamp] = useState(() => new Date().toISOString());
+  const [dateSigned] = useState(() => new Date().toLocaleDateString());
+
   const generateContractText = () => {
     // Calculate creator payout per sale for commission-based campaigns
     const creatorPayoutPerSale =
@@ -90,6 +98,7 @@ export default function ContractPreviewModal({
       "Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Brand if no deliverables are completed.\n\n" +
       "8. Agreement and Signatures\n\n" +
       'By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.\n\n' +
+      "Contract ID: {{ContractId}}\n" +
       "Signed by Brand: {{BrandName}}\n" +
       "Signed by Creator: {{CreatorName}}\n" +
       "Date Signed: {{DateSigned}}\n" +
@@ -99,38 +108,85 @@ export default function ContractPreviewModal({
 
   // Replace template variables with actual data
   const replaceTemplateVariables = (template) => {
+    // Format dates properly
+    const formatDate = (dateString) => {
+      if (!dateString) return "[enter date]";
+      try {
+        return new Date(dateString).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      } catch (error) {
+        return dateString;
+      }
+    };
+
+    // Get deliverables from campaign data
+    const getDeliverables = () => {
+      if (contractData.contentFormat) return contractData.contentFormat;
+      if (campaignData?.deliverables) return campaignData.deliverables;
+      return "Feed Post, Story: 3+";
+    };
+
+    // Get campaign eligibility data
+    const getEligibilityData = () => {
+      return {
+        inPersonRequired: campaignData?.in_person_required ? "Yes" : "No",
+        eligibleCountry: campaignData?.creator_country || "[enter country]",
+        eligibleCity: campaignData?.creator_city || "[enter city]",
+        ageRange:
+          campaignData?.min_age && campaignData?.max_age
+            ? `${campaignData.min_age} - ${campaignData.max_age}`
+            : "[enter age range]",
+        gender: campaignData?.creator_gender || "[enter gender]",
+        language: campaignData?.creator_language || "[enter language]",
+      };
+    };
+
+    const eligibility = getEligibilityData();
+
     return template
-      .replace(/{{StartDate}}/g, contractData.startDate || "[enter date]")
-      .replace(/{{BrandName}}/g, contractData.brandName || "[enter brand name]")
-      .replace(/{{CreatorName}}/g, contractData.creatorName || "[enter creator name]")
-      .replace(/{{CampaignTitle}}/g, contractData.campaignTitle || "[enter campaign title]")
-      .replace(/{{Deliverables}}/g, contractData.contentFormat || "[enter deliverables]")
-      .replace(/{{Deadline}}/g, contractData.completionDeadline || "[enter deadline]")
+      .replace(/{{StartDate}}/g, formatDate(contractData.startDate))
+      .replace(/{{BrandName}}/g, contractData.brandName || "[Brand Name]")
+      .replace(/{{CreatorName}}/g, contractData.creatorName || "[Creator Name]")
+      .replace(/{{CampaignTitle}}/g, contractData.campaignTitle || "[Campaign Title]")
+      .replace(/{{Deliverables}}/g, getDeliverables())
+      .replace(/{{Deadline}}/g, formatDate(contractData.completionDeadline))
       .replace(/{{RevisionsAllowed}}/g, contractData.revisionsLimit || 2)
-      .replace(/{{CompensationType}}/g, contractData.compensationType || "Fixed")
+      .replace(
+        /{{CompensationType}}/g,
+        contractData.compensationType
+          ? contractData.compensationType.charAt(0).toUpperCase() +
+              contractData.compensationType.slice(1)
+          : "Fixed"
+      )
       .replace(
         /{{FixedAmount}}/g,
         contractData.compensationType === "fixed"
-          ? contractData.totalCompensation || "[enter amount]"
-          : "[enter amount]"
+          ? `$${contractData.totalCompensation || "[Amount]"}`
+          : "[Amount]"
       )
       .replace(
         /{{CommissionRate}}/g,
         contractData.compensationType === "commission"
-          ? contractData.totalCompensation || "[enter rate]"
-          : "[enter rate]"
+          ? `${contractData.totalCompensation || "[Rate]"}%`
+          : "[Rate]"
       )
-      .replace(/{{ProductPrice}}/g, contractData.productPrice || "[ProductPrice]")
+      .replace(
+        /{{ProductPrice}}/g,
+        contractData.productPrice ? `$${contractData.productPrice}` : "[Product Price]"
+      )
       .replace(
         /{{CreatorPayoutPerSale}}/g,
         contractData.compensationType === "commission" &&
           contractData.productPrice &&
           contractData.totalCompensation
-          ? (
+          ? `$${(
               (parseFloat(contractData.productPrice) * parseFloat(contractData.totalCompensation)) /
               100
-            ).toFixed(2)
-          : "0"
+            ).toFixed(2)}`
+          : "$0"
       )
       .replace(
         /{{UsageRights}}/g,
@@ -148,14 +204,15 @@ export default function ContractPreviewModal({
       )
       .replace(/{{Hashtags}}/g, contractData.hashtags || "[enter hashtags]")
       .replace(/{{Mentions}}/g, contractData.mentions || "[enter mentions]")
-      .replace(/{{InPersonRequired}}/g, contractData.inPersonRequired ? "Yes" : "No")
-      .replace(/{{EligibleCountry}}/g, contractData.eligibleCountry || "[enter country]")
-      .replace(/{{EligibleCity}}/g, contractData.eligibleCity || "[enter city]")
-      .replace(/{{AgeRange}}/g, contractData.ageRange || "[enter age range]")
-      .replace(/{{Gender}}/g, contractData.gender || "[enter gender]")
-      .replace(/{{Language}}/g, contractData.language || "[enter language]")
-      .replace(/{{DateSigned}}/g, new Date().toLocaleDateString())
-      .replace(/{{SignatureTimestamp}}/g, new Date().toISOString());
+      .replace(/{{InPersonRequired}}/g, eligibility.inPersonRequired)
+      .replace(/{{EligibleCountry}}/g, eligibility.eligibleCountry)
+      .replace(/{{EligibleCity}}/g, eligibility.eligibleCity)
+      .replace(/{{AgeRange}}/g, eligibility.ageRange)
+      .replace(/{{Gender}}/g, eligibility.gender)
+      .replace(/{{Language}}/g, eligibility.language)
+      .replace(/{{ContractId}}/g, contractId || contractData.contractId || "DRAFT")
+      .replace(/{{DateSigned}}/g, dateSigned)
+      .replace(/{{SignatureTimestamp}}/g, signatureTimestamp);
   };
 
   const contractText = replaceTemplateVariables(generateContractText());
@@ -210,14 +267,6 @@ export default function ContractPreviewModal({
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <CustomButton text="Back to Edit" className="btn-outline px-6 py-2" onClick={onClose} />
-          <CustomButton
-            text="Send Offer"
-            className="btn-primary px-6 py-2"
-            onClick={() => {
-              console.log("Sending offer with contract data:", contractData);
-              onClose();
-            }}
-          />
         </div>
       </div>
     </Modal>

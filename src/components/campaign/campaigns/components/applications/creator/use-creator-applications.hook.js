@@ -8,6 +8,7 @@ import {
 function useCreatorApplications() {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("pending");
+  const [allApplications, setAllApplications] = useState({ pending: [], rejected: [] });
 
   // Get creator applications state from Redux
   const {
@@ -24,8 +25,23 @@ function useCreatorApplications() {
     isError: withdrawError,
   } = useSelector((state) => state.campaigns.withdrawApplication || {});
 
-  // Function to fetch creator applications
-  const fetchCreatorApplications = useCallback(
+  // Function to fetch all applications (both pending and rejected)
+  const fetchAllApplications = useCallback(async () => {
+    try {
+      // Fetch pending applications
+      const pendingResponse = await dispatch(getCreatorApplications("PENDING")).unwrap();
+      setAllApplications((prev) => ({ ...prev, pending: pendingResponse?.data || [] }));
+
+      // Fetch rejected applications
+      const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
+      setAllApplications((prev) => ({ ...prev, rejected: rejectedResponse?.data || [] }));
+    } catch (error) {
+      console.error("Failed to fetch applications:", error);
+    }
+  }, [dispatch]);
+
+  // Function to fetch applications for a specific status (for tab switching)
+  const fetchApplicationsForStatus = useCallback(
     (status) => {
       dispatch(getCreatorApplications(status));
     },
@@ -37,26 +53,28 @@ function useCreatorApplications() {
     async (campaignId) => {
       try {
         await dispatch(withdrawApplication(campaignId)).unwrap();
-        // Refresh the applications list after successful withdrawal
-        fetchCreatorApplications(activeTab === "pending" ? "PENDING" : "REJECTED");
+        // Refresh all applications after successful withdrawal
+        await fetchAllApplications();
       } catch (error) {
         // Error handling is done globally in api.js
         console.error("Withdrawal failed:", error);
       }
     },
-    [dispatch, fetchCreatorApplications, activeTab]
+    [dispatch, fetchAllApplications]
   );
 
   // Fetch applications when tab changes
   useEffect(() => {
-    fetchCreatorApplications(activeTab === "pending" ? "PENDING" : "REJECTED");
-  }, [activeTab, fetchCreatorApplications]);
+    fetchApplicationsForStatus(activeTab === "pending" ? "PENDING" : "REJECTED");
+  }, [activeTab, fetchApplicationsForStatus]);
 
-  // Filter data based on active tab
-  const filteredData =
-    applicationsData?.data?.filter((app) =>
-      activeTab === "pending" ? app.status === "PENDING" : app.status === "REJECTED"
-    ) || [];
+  // Fetch all applications on component mount
+  useEffect(() => {
+    fetchAllApplications();
+  }, [fetchAllApplications]);
+
+  // Filter data based on active tab - use local state for display
+  const filteredData = activeTab === "pending" ? allApplications.pending : allApplications.rejected;
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -69,12 +87,13 @@ function useCreatorApplications() {
     applicationsLoading,
     applicationsSuccess,
     applicationsError,
-    fetchCreatorApplications,
+    fetchApplicationsForStatus,
     filteredData,
     handleWithdrawApplication,
     withdrawLoading,
     withdrawSuccess,
     withdrawError,
+    allApplications,
   };
 }
 
