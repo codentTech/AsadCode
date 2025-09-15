@@ -4,7 +4,7 @@ import { isCreatorMode } from "@/common/utils/users.util";
 export default function useChatInbox() {
   const creatorMode = isCreatorMode();
 
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(4);
   const [activeSection, setActiveSection] = useState(1);
   const [openQuickHire, setOpenQuickHire] = useState(false);
 

@@ -7,11 +7,12 @@ import Niche from "@/components/niche/niche";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import { RefreshRounded } from "@mui/icons-material";
 import { ChevronDown, ChevronUp, Filter } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
 import HireCreatorModal from "../hire-creator-modal/hire-creator-modal.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
+import Loader from "@/common/components/loader/loader.component";
 
 export default function CampaignOverview({
   onCampaignSelect,
@@ -68,6 +69,13 @@ export default function CampaignOverview({
       onCampaignSelect(campaign);
     }
   };
+
+  // Notify parent if internal auto-selection happens and parent hasn't provided selectedCampaign
+  useEffect(() => {
+    if (!externalSelectedCampaign && internalSelectedCampaign && onCampaignSelect) {
+      onCampaignSelect(internalSelectedCampaign);
+    }
+  }, [externalSelectedCampaign, internalSelectedCampaign, onCampaignSelect]);
 
   const handleHireClick = () => {
     if (!selectedCreator || !externalSelectedCampaign) {
@@ -177,7 +185,7 @@ export default function CampaignOverview({
 
       <hr />
 
-      {/* Show Actions and Filters only when a campaign is selected */}
+      {/* Show Actions and Filters - now default campaign is auto-selected */}
       {selectedCampaign ? (
         <>
           <div className="space-y-4">
@@ -310,17 +318,11 @@ export default function CampaignOverview({
             </button>
           </div>
         </>
-      ) : (
-        <div className="text-center py-12">
-          <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
-            <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-          </div>
-          <h3 className="text-base font-medium text-gray-800 mb-2">Select a Campaign</h3>
-          <p className="text-sm text-gray-600 max-w-xs mx-auto">
-            Choose a campaign from the dropdown to view available actions and filters
-          </p>
+      ) : campaignsLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader loading={true} />
         </div>
-      )}
+      ) : null}
 
       <HireCreatorModal
         show={hireModalOpen}

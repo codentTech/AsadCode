@@ -1,6 +1,6 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { sortOptions } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { Star } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";

@@ -353,7 +353,7 @@ const CalendarModal = ({ show, onClose }) => {
             </div>
 
             {/* Tasks */}
-            <div className="p-3 max-h-64 overflow-y-auto space-y-2">
+            <div className="p-3 min-h-64 overflow-y-auto space-y-2">
               {(calendarTasks[selectedDate] || []).length === 0 ? (
                 <div className="text-center">
                   <p className="text-gray-500 text-xs">No tasks for this day</p>

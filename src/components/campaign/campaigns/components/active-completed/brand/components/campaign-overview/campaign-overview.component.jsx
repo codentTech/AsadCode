@@ -1,11 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import Loader from "@/common/components/loader/loader.component";
-import { CheckCircle, Circle, AlertCircle } from "lucide-react";
-import BrandTimelineSteps from "../brand-timeline/brand-timeline";
-import useActiveCompletedCampaign from "../../hooks/use-active-completed-campaign.hook";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
+import useActiveCompletedCampaign from "../../hooks/use-active-completed-campaign.hook";
 
 export default function CampaignOverview({ isCompleted = false, onCampaignSelect }) {
   const {
@@ -23,17 +22,9 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   const hasNotifiedParent = useRef(false);
 
-  // Debug campaign options
-  console.log("CampaignOverview - campaignOptions:", campaignOptions);
-  console.log("CampaignOverview - selectedCampaign:", selectedCampaign);
-
   // Notify parent component when campaign is auto-selected (only once)
   useEffect(() => {
     if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      console.log(
-        "CampaignOverview - Notifying parent of auto-selected campaign:",
-        selectedCampaign
-      );
       onCampaignSelect(selectedCampaign);
       hasNotifiedParent.current = true;
     }
@@ -41,11 +32,6 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   // Enhanced campaign selection handler
   const handleCampaignSelect = (selectedOption) => {
-    console.log("CampaignOverview - handleCampaignSelect called with:", selectedOption);
-    console.log("selectedOption type:", typeof selectedOption);
-    console.log("selectedOption.campaign:", selectedOption?.campaign);
-    console.log("selectedOption.campaign?.id:", selectedOption?.campaign?.id);
-
     internalHandleCampaignSelect(selectedOption);
     if (onCampaignSelect && selectedOption) {
       onCampaignSelect(selectedOption.campaign);

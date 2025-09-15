@@ -1,4 +1,4 @@
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { useState } from "react";
 import CampaignDetails from "./components/campaign-detail/campaign-detail.component";
 import CompletedCampaignList from "./components/campaign-list/campaign-list.component";

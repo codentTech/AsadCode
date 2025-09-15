@@ -1,12 +1,16 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Loader from "@/common/components/loader/loader.component";
 import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
-import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
-import { Star, Bookmark, Mail } from "lucide-react";
-import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
+import NoResultFound from "@/common/components/no-result-found/no-result-found";
+import { avatar } from "@/common/constants/auth.constant";
+import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import { Filter } from "lucide-react";
+import React from "react";
+import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
+import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -15,19 +19,31 @@ const CreatorSpendAnalysis = ({
   onCreatorSelect,
   selectedCreator,
   filters,
+  onCampaignSelect,
+  onFilterChange,
+  onClearFilters,
+  onMessageClick,
 }) => {
-  const {
-    creators,
-    formatFollowers,
-    getPlatformColor,
-    messageDialogOpen,
-    setMessageDialogOpen,
-    open,
-    handleOpenModal,
-    handleCloseModal,
-  } = useCreatorSpendAnalysis();
+  const { creators, formatFollowers, getPlatformColor, open, handleOpenModal, handleCloseModal } =
+    useCreatorSpendAnalysis();
 
-  const { getPlatformIcon } = useGetplatform();
+  const [showFilterModal, setShowFilterModal] = React.useState(false);
+  const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
+  const hasAutoSelected = React.useRef(false);
+
+  // Auto-select first campaign and notify parent once
+  React.useEffect(() => {
+    if (
+      !selectedCampaign &&
+      !hasAutoSelected.current &&
+      Array.isArray(campaignsData?.data) &&
+      campaignsData.data.length > 0 &&
+      typeof onCampaignSelect === "function"
+    ) {
+      onCampaignSelect(campaignsData.data[0]);
+      hasAutoSelected.current = true;
+    }
+  }, [selectedCampaign, campaignsData, onCampaignSelect]);
 
   // Note: We don't need to fetch data here since it's passed from parent component
   // The parent Applications component handles all API calls and passes the data down
@@ -42,24 +58,19 @@ const CreatorSpendAnalysis = ({
     console.log("Save to shortlist:", creator);
   };
 
-  const handleMessageCreator = (creator) => {
-    setMessageDialogOpen(true);
-  };
-
   const handleInviteClick = (creator, e) => {
     e.stopPropagation();
     console.log("Invite creator:", creator);
   };
 
-  const CreatorCard = ({ creator, isRecommended = false }) => {
-    // Map API data directly in the card
+  // Map API data to shared CreatorCard shape
+  const mapCreatorForCard = (creator) => {
     const creatorData = creator.creator;
     const profile = creatorData?.creator_profile;
-
-    const mappedCreator = {
+    return {
       id: creator.id,
-      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`,
-      image: profile?.profile_photo_url || avatar,
+      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
+      profileImage: profile?.profile_photo_url || avatar,
       age: creatorData?.date_of_birth
         ? Math.floor(
             (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
@@ -68,166 +79,16 @@ const CreatorSpendAnalysis = ({
       location:
         `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
         "Location not specified",
-      rating: 4.5, // Mock rating
-      reviewCount: 12, // Mock review count
-      appliedDate: new Date(creator.applied_at).toLocaleDateString(),
-      followers: 50000, // Mock followers count
-      platforms: profile?.social_platforms,
+      rating: 4.5,
+      reviewCount: 12,
+      followers: 0,
+      platforms: (profile?.social_platforms || []).map(({ platform }) => platform).filter(Boolean),
+      platformStats: {},
       portfolioImages: profile?.mini_profile_pictures || [],
-      status: creator.status,
-      pitch: creator.pitch,
       niches: profile?.categories || [],
+      tagline: creator.pitch || "",
+      appliedDate: new Date(creator.applied_at).toLocaleDateString(),
     };
-
-    const formatFollowers = (followers) => {
-      if (followers >= 1000000) {
-        return `${(followers / 1000000).toFixed(1)}M`;
-      }
-      if (followers >= 1000) {
-        return `${(followers / 1000).toFixed(0)}K`;
-      }
-      return followers;
-    };
-
-    return (
-      <div
-        className={`group relative flex-shrink-0 snap-start w-64 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden ${
-          selectedCreator?.id === creator.id ? "border-primary shadow-md" : ""
-        }`}
-        onClick={() => handleCreatorPreview(creator)}
-      >
-        {/* Cover Images Section */}
-        <div className="relative h-32 bg-gray-100 overflow-hidden">
-          {mappedCreator.portfolioImages && mappedCreator.portfolioImages.length >= 3 ? (
-            <div className="flex h-full">
-              {mappedCreator.portfolioImages.slice(0, 3).map((image, index) => (
-                <div key={index} className="flex-1 relative">
-                  <img
-                    src={image}
-                    alt={`Portfolio ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {index < 2 && (
-                    <div className="absolute right-0 top-0 w-px h-full bg-white/30"></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100"></div>
-          )}
-
-          {/* Recommended Badge */}
-          {isRecommended && (
-            <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-md font-medium">
-              Rec
-            </div>
-          )}
-        </div>
-
-        {/* Content Section */}
-        <div className="relative px-4 pb-4 space-y-3">
-          {/* Profile Image */}
-          <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2">
-            <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
-              <img
-                src={mappedCreator.image}
-                alt={mappedCreator.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
-          {/* Name, Rating and Location */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <h4 className="text-gray-900 font-semibold text-sm">{mappedCreator.name}</h4>
-              <div className="flex items-center space-x-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                <span className="text-xs text-gray-500">{mappedCreator.rating}</span>
-                <span className="text-xs text-gray-400">({mappedCreator.reviewCount || 0})</span>
-              </div>
-            </div>
-            <p className="text-gray-500 text-xs">
-              {mappedCreator.age} • {mappedCreator.location}
-            </p>
-          </div>
-
-          {/* Niche Tags */}
-          <div className="flex flex-wrap gap-1 justify-center">
-            {mappedCreator.niches?.slice(0, 2).map((niche) => (
-              <span
-                key={niche}
-                className="px-2 py-1 bg-gray-100 text-xs rounded-full text-gray-600 capitalize"
-              >
-                {niche}
-              </span>
-            ))}
-          </div>
-
-          {/* Application Status Badge - Unique to our component */}
-          <div className="flex flex-col justify-center items-center text-center gap-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">
-              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-              Applied on {mappedCreator.appliedDate}
-            </span>
-          </div>
-
-          {/* Stats */}
-          <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
-            <span className="font-medium">
-              {formatFollowers(mappedCreator.followers)} Total Followers
-            </span>
-          </div>
-
-          {/* Social Icons */}
-          <div className="flex justify-center space-x-4">
-            {mappedCreator.platforms &&
-              mappedCreator.platforms?.map(({ platform }) => (
-                <div key={platform} className="flex flex-col items-center space-y-1">
-                  <div
-                    className={`w-8 h-8 flex items-center justify-center rounded ${getPlatformColor(platform)}`}
-                    title={`${platform}: ${formatFollowers(27000)} followers`}
-                  >
-                    <div className="scale-75">{getPlatformIcon(platform)}</div>
-                  </div>
-                  <span className="text-xs text-gray-500">{formatFollowers(27000)}</span>
-                </div>
-              ))}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2">
-            {isRecommended ? (
-              <CustomButton
-                text="Invite to Apply"
-                className="btn-outline rounded-lg"
-                onClick={(e) => handleInviteClick(creator, e)}
-              />
-            ) : (
-              <>
-                <CustomButton
-                  text="Save"
-                  className="btn-secondary rounded-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSaveToShortlist(creator);
-                  }}
-                />
-                <CustomButton
-                  text="Message"
-                  className="btn-outline rounded-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMessageCreator(creator);
-                  }}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -235,10 +96,35 @@ const CreatorSpendAnalysis = ({
       {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Creator Analysis</h1>
-              <p className="text-xs text-gray-500">Discover top creators for your campaigns</p>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2 w-full">
+              <div className="min-w-[240px] w-[260px]">
+                <SimpleSelect
+                  placeHolder="Select a campaign"
+                  options={campaignOptions}
+                  isSearchable={true}
+                  isMulti={false}
+                  isLoading={campaignsLoading}
+                  value={
+                    selectedCampaign
+                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
+                      : null
+                  }
+                  onChange={(opt) => {
+                    const id = opt?.value;
+                    const campaign = campaignsData?.data?.find((c) => c.id === id);
+                    if (onCampaignSelect && campaign) onCampaignSelect(campaign);
+                  }}
+                />
+              </div>
+              <div className="relative">
+                <CustomButton
+                  text="Filters"
+                  onClick={() => setShowFilterModal(true)}
+                  startIcon={<Filter size={18} />}
+                  className="btn-outline !h-10"
+                />
+              </div>
             </div>
             <div className="w-full max-w-[200px]">
               <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
@@ -248,18 +134,7 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Show message if no campaign is selected */}
-        {!selectedCampaign ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
-              <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-            </div>
-            <h3 className="text-base font-medium text-gray-800 mb-2">No Campaign Selected</h3>
-            <p className="text-sm text-gray-600 max-w-xs mx-auto">
-              Select a campaign from the dropdown to view applied creators and their details
-            </p>
-          </div>
-        ) : (
+        {selectedCampaign ? (
           <>
             {/* Campaign Info */}
             <div className="mb-6 p-4 bg-white rounded-lg border">
@@ -273,59 +148,213 @@ const CreatorSpendAnalysis = ({
 
             {/* Loading State */}
             {selectedCampaign && appliedCreatorsLoading && (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center animate-pulse">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                </div>
-                <h3 className="text-base font-medium text-gray-800 mb-2">Loading Creators...</h3>
-                <p className="text-sm text-gray-600 max-w-xs mx-auto">
-                  Please wait while we fetch the applied creators for this campaign
-                </p>
+              <div className="text-center py-8 flex flex-col items-center">
+                <Loader loading={true} color="blue" size={32} />
               </div>
             )}
 
             {/* Applied Creators Grid */}
             {!appliedCreatorsLoading &&
-              appliedCreatorsData?.data &&
-              appliedCreatorsData.data?.length !== 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
-                  {appliedCreatorsData?.data?.map((creator) => (
-                    <CreatorCard key={creator.id} creator={creator} />
-                  ))}
+              Array.isArray(appliedCreatorsData?.data) &&
+              appliedCreatorsData.data.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                  {appliedCreatorsData.data.map((creator) => {
+                    const mapped = mapCreatorForCard(creator);
+                    return (
+                      <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
+                        <CreatorCard
+                          creator={mapped}
+                          tab="applications"
+                          appliedDate={mapped.appliedDate}
+                          onCreatorPreview={handleCreatorPreview}
+                          onSaveToShortlist={handleSaveToShortlist}
+                          onRemoveFromShortlist={() => {}}
+                          onMessageCreator={onMessageClick}
+                          onInviteClick={() => {}}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
-            {/* No Applied Creators */}
-            {!appliedCreatorsLoading && appliedCreatorsData?.data?.length === 0 && (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+            {/* No Creators Found */}
+            {!appliedCreatorsLoading &&
+              (!Array.isArray(appliedCreatorsData?.data) ||
+                appliedCreatorsData.data.length === 0) && (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <NoResultFound
+                    message="No Creators Found"
+                    subMessage="Try adjusting filters or selecting a different campaign."
+                  />
                 </div>
-                <h3 className="text-base font-medium text-gray-800 mb-2">No Applications Yet</h3>
-                <p className="text-sm text-gray-600 max-w-xs mx-auto">
-                  This campaign hasn't received any creator applications yet. Check back later!
-                </p>
-              </div>
-            )}
+              )}
           </>
-        )}
+        ) : null}
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
 
-      <Modal
-        title={`Message to Sam Waters`}
-        show={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
-      >
-        <TextArea label="Your Message" />
-        <div className="w-full flex justify-end gap-3">
-          <CustomButton
-            text="Cancel"
-            className="btn-cancel"
-            onClick={() => setMessageDialogOpen(false)}
-          />
-          <CustomButton text="Send Message" className="btn-primary" />
+      {/* Filters Modal */}
+      <Modal title="Filters" show={showFilterModal} onClose={() => setShowFilterModal(false)}>
+        <div className="space-y-6">
+          {/* Follower Count */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Follower Count</label>
+            <div className="flex gap-2">
+              <CustomInput
+                type="number"
+                placeholder="Min"
+                value={filters?.min_followers || ""}
+                onChange={(e) => onFilterChange && onFilterChange("min_followers", e.target.value)}
+              />
+              <CustomInput
+                type="number"
+                placeholder="Max"
+                value={filters?.max_followers || ""}
+                onChange={(e) => onFilterChange && onFilterChange("max_followers", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Categories (Niches) */}
+          <div className="p-2 bg-gray-50 rounded-lg border">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Categories</h4>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Beauty",
+                "Skincare",
+                "Fitness",
+                "Fashion",
+                "Travel",
+                "Food",
+                "Finance",
+                "Business",
+                "Health",
+              ].map((niche) => (
+                <button
+                  key={niche}
+                  onClick={() => {
+                    const current = filters?.niches || [];
+                    const next = current.includes(niche)
+                      ? current.filter((n) => n !== niche)
+                      : [...current, niche];
+                    onFilterChange && onFilterChange("niches", next);
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-xs border ${
+                    filters?.niches?.includes(niche)
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {niche}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Minimum Rating */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Minimum Rating</h4>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              step="0.1"
+              value={filters?.min_rating || 1}
+              onChange={(e) => onFilterChange && onFilterChange("min_rating", e.target.value)}
+              className="w-full accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>1.0</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          {/* Countries */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Countries</h4>
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+              {["United States", "Canada", "United Kingdom", "Australia"].map((country) => (
+                <label key={country} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={filters?.country === country}
+                    onChange={(e) =>
+                      onFilterChange && onFilterChange("country", e.target.checked ? country : "")
+                    }
+                  />
+                  <span>{country}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Platforms */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Social Platforms</h4>
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+              {["Instagram", "TikTok", "YouTube"].map((platform) => (
+                <label key={platform} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={filters?.platforms?.includes(platform)}
+                    onChange={(e) => {
+                      const current = filters?.platforms || [];
+                      const next = e.target.checked
+                        ? [...current, platform]
+                        : current.filter((p) => p !== platform);
+                      onFilterChange && onFilterChange("platforms", next);
+                    }}
+                  />
+                  <span>{platform}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <SimpleSelect
+              placeHolder="Sort by"
+              options={[
+                { value: "newest", label: "Newest First" },
+                { value: "oldest", label: "Oldest First" },
+                { value: "rating", label: "Highest Rating" },
+                { value: "followers", label: "Most Followers" },
+              ]}
+              value={
+                filters?.sort
+                  ? {
+                      value: filters.sort,
+                      label:
+                        filters.sort === "newest"
+                          ? "Newest First"
+                          : filters.sort === "oldest"
+                            ? "Oldest First"
+                            : filters.sort === "rating"
+                              ? "Highest Rating"
+                              : "Most Followers",
+                    }
+                  : null
+              }
+              onChange={(option) =>
+                onFilterChange && onFilterChange("sort", option?.value || "newest")
+              }
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <CustomButton text="Clear" className="btn-outline" onClick={onClearFilters} />
+            <CustomButton
+              text="Apply"
+              className="btn-primary"
+              onClick={() => setShowFilterModal(false)}
+            />
+          </div>
         </div>
       </Modal>
     </div>

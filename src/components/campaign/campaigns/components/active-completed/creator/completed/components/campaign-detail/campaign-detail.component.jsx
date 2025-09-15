@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "lucide-react";
 import { useState } from "react";
 

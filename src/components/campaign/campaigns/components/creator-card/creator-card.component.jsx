@@ -1,14 +1,7 @@
-import { Star, Bookmark, Mail } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import InstagramIcon from "@/common/icons/instagram";
-import TiktokIcon from "@/common/icons/tiktok";
-import YoutubeIcon from "@/common/icons/youtube";
-
-const PlatformIcons = {
-  instagram: <InstagramIcon />,
-  youtube: <YoutubeIcon />,
-  tiktok: <TiktokIcon />,
-};
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { Bookmark, Mail, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const CreatorCard = ({
   creator,
@@ -18,7 +11,12 @@ const CreatorCard = ({
   onRemoveFromShortlist,
   onMessageCreator,
   onInviteClick,
+  tab = "discover", // "discover" | "applications"
+  appliedDate,
 }) => {
+  const router = useRouter();
+  const { getPlatformIcon } = useGetplatform();
+
   const handleSaveClick = (e) => {
     e.stopPropagation();
     if (isShortlist) {
@@ -117,6 +115,16 @@ const CreatorCard = ({
           ))}
         </div>
 
+        {/* Applied Date (Applications tab) */}
+        {tab === "applications" && appliedDate && (
+          <div className="flex flex-col justify-center items-center text-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">
+              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+              Applied on {appliedDate}
+            </span>
+          </div>
+        )}
+
         {/* Short tagline bio */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
@@ -131,58 +139,82 @@ const CreatorCard = ({
 
         {/* Social Icons */}
         <div className="flex justify-center space-x-4">
-          {(creator.platforms || []).map((platform) => (
-            <div key={platform} className="flex flex-col items-center space-y-1">
-              <div
-                className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
-                title={`${platform}: ${creator.platformStats?.[platform]?.followers || "N/A"} followers`}
-              >
-                <div className="scale-75">
-                  {PlatformIcons[platform] || (
-                    <span className="text-xs font-medium text-gray-600">
-                      {platform.charAt(0).toUpperCase()}
-                    </span>
-                  )}
+          {formatFollowers(creator.followers) !== 0 &&
+            (creator.platforms || []).map((platform) => (
+              <div key={platform} className="flex flex-col items-center space-y-1">
+                <div
+                  className="w-8 h-8 flex items-center justify-center rounded bg-gray-100"
+                  title={`${platform}: ${creator.platformStats?.[platform]?.followers || "N/A"} followers`}
+                >
+                  <div className="scale-75">
+                    {getPlatformIcon(platform) || (
+                      <span className="text-xs font-medium text-gray-600">
+                        {platform.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                <span className="text-xs text-gray-500">
+                  {creator.platformStats?.[platform]?.followers
+                    ? formatFollowers(creator.platformStats[platform].followers)
+                    : "N/A"}
+                </span>
               </div>
-              <span className="text-xs text-gray-500">
-                {creator.platformStats?.[platform]?.followers
-                  ? formatFollowers(creator.platformStats[platform].followers)
-                  : "N/A"}
-              </span>
-            </div>
-          ))}
+            ))}
         </div>
 
-        {/* Icon Buttons */}
-        <div className="flex justify-center space-x-2">
-          <button
-            onClick={handleSaveClick}
-            className="p-2 rounded-full hover:bg-blue-100 transition"
-            title={isShortlist ? "Remove from list" : "Save to list"}
-          >
-            <Bookmark
-              className={`w-5 h-5 ${isShortlist ? "text-blue-700 fill-current" : "text-blue-600"}`}
+        {/* Icon Buttons (Discover tab) */}
+        {tab === "discover" && (
+          <div className="flex justify-center space-x-2">
+            <button
+              onClick={handleSaveClick}
+              className="p-2 rounded-full hover:bg-blue-100 transition"
+              title={isShortlist ? "Remove from list" : "Save to list"}
+            >
+              <Bookmark
+                className={`w-5 h-5 ${isShortlist ? "text-blue-700 fill-current" : "text-blue-600"}`}
+              />
+            </button>
+
+            <button
+              onClick={handleMessageClick}
+              className="p-2 rounded-full hover:bg-purple-100 transition"
+              title="Message"
+            >
+              <Mail className="w-5 h-5 text-purple-600" />
+            </button>
+          </div>
+        )}
+
+        {/* Actions Row */}
+        {tab === "discover" ? (
+          <div className="flex items-center gap-3">
+            <CustomButton
+              text="Invite to Apply"
+              onClick={handleInviteClickInternal}
+              className="btn-outline w-full rounded-lg"
             />
-          </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3">
+            <CustomButton
+              text={isShortlist ? "Remove" : "Save"}
+              className="w-full btn-secondary rounded-lg"
+              onClick={handleSaveClick}
+            />
+            <CustomButton
+              text="Message"
+              className="w-full btn-outline rounded-lg"
+              onClick={handleMessageClick}
+            />
+          </div>
+        )}
 
-          <button
-            onClick={handleMessageClick}
-            className="p-2 rounded-full hover:bg-purple-100 transition"
-            title="Message"
-          >
-            <Mail className="w-5 h-5 text-purple-600" />
-          </button>
-        </div>
-
-        {/* Invite Button */}
-        <div className="flex items-center gap-3">
-          <CustomButton
-            text="Invite to Apply"
-            onClick={handleInviteClickInternal}
-            className="btn-outline w-full rounded-lg"
-          />
-        </div>
+        <CustomButton
+          text="view full portfolio"
+          className="w-full btn-primary rounded-lg"
+          onClick={() => router.push(`/creator-portfolio`)}
+        />
       </div>
     </div>
   );

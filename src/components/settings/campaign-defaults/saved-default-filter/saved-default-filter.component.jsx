@@ -2,7 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
   updateCampaignDefaults,
   connectSocialMedia,
