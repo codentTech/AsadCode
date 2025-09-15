@@ -5,17 +5,19 @@ import InstagramIcon from "@/common/icons/instagram";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { MapPin, Minus, Star, TrendingDown, TrendingUp, Users } from "lucide-react";
-import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import BrandCalendarModal from "./components/brand-calendar-modal/brand-calendar-modal.component";
+import { MapPin, Star, Users } from "lucide-react";
+import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
 import React from "react";
+import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
   isCompleted = false,
   selectedCampaign,
   selectedCreator,
   onCreatorSelect,
+  onSortChange,
+  currentSort = "newest",
 }) => {
   const {
     open,
@@ -33,6 +35,14 @@ const CreatorSpendAnalysis = ({
     showTaskManager,
     setShowTaskManager,
   } = useCreatorSpendAnalysis(selectedCampaign);
+
+  // Handle sort change
+  const handleSortChange = (option) => {
+    console.log("Sort changed to:", option?.value);
+    if (onSortChange && option?.value) {
+      onSortChange(option.value);
+    }
+  };
 
   // Auto-select first creator when creators are loaded and no creator is selected
   React.useEffect(() => {
@@ -91,6 +101,15 @@ const CreatorSpendAnalysis = ({
               <SimpleSelect
                 placeHolder="Select an option"
                 options={sortOptions}
+                value={
+                  currentSort
+                    ? {
+                        value: currentSort,
+                        label: sortOptions.find((opt) => opt.value === currentSort)?.label,
+                      }
+                    : null
+                }
+                onChange={handleSortChange}
                 className="w-full max-w-[400px]"
               />
             </div>
@@ -372,7 +391,7 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
-      <BrandCalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
+      <CalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
       <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
     </div>
   );

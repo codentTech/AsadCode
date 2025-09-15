@@ -12,6 +12,14 @@ const getCampaignNotes = async (campaignId) => {
   return response.data;
 };
 
+// Get notes for a specific creator profile in a campaign
+const getCampaignNotesByCreatorProfile = async (campaignId, creatorProfileId) => {
+  const response = await api().get(
+    `/campaign-notes/campaign/${campaignId}/creator-profile/${creatorProfileId}`
+  );
+  return response.data;
+};
+
 // Get specific note by ID
 const getCampaignNoteById = async (noteId) => {
   const response = await api().get(`/campaign-notes/${noteId}`);
@@ -33,6 +41,7 @@ const deleteCampaignNote = async (noteId) => {
 const campaignNotesService = {
   createCampaignNote,
   getCampaignNotes,
+  getCampaignNotesByCreatorProfile,
   getCampaignNoteById,
   updateCampaignNote,
   deleteCampaignNote,

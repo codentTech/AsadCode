@@ -12,6 +12,7 @@ const generalState = {
 const initialState = {
   createCampaignNote: { ...generalState },
   getCampaignNotes: { ...generalState },
+  getCampaignNotesByCreatorProfile: { ...generalState },
   getCampaignNoteById: { ...generalState },
   updateCampaignNote: { ...generalState },
   deleteCampaignNote: { ...generalState },
@@ -20,9 +21,12 @@ const initialState = {
 // Create campaign note
 export const createCampaignNote = createAsyncThunk(
   "campaignNotes/createCampaignNote",
-  async ({ campaignId, noteData }, thunkAPI) => {
+  async ({ campaignId, creatorProfileId, noteData }, thunkAPI) => {
     try {
-      const response = await campaignNotesService.createCampaignNote(campaignId, noteData);
+      const response = await campaignNotesService.createCampaignNote(campaignId, {
+        ...noteData,
+        creator_profile_id: creatorProfileId,
+      });
       if (response.success) {
         return response.data;
       }
@@ -39,6 +43,25 @@ export const getCampaignNotes = createAsyncThunk(
   async (campaignId, thunkAPI) => {
     try {
       const response = await campaignNotesService.getCampaignNotes(campaignId);
+      if (response.success) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+// Get campaign notes by creator profile
+export const getCampaignNotesByCreatorProfile = createAsyncThunk(
+  "campaignNotes/getCampaignNotesByCreatorProfile",
+  async ({ campaignId, creatorProfileId }, thunkAPI) => {
+    try {
+      const response = await campaignNotesService.getCampaignNotesByCreatorProfile(
+        campaignId,
+        creatorProfileId
+      );
       if (response.success) {
         return response.data;
       }
@@ -104,6 +127,7 @@ export const campaignNotesSlice = createSlice({
     reset: (state) => {
       state.createCampaignNote = { ...generalState };
       state.getCampaignNotes = { ...generalState };
+      state.getCampaignNotesByCreatorProfile = { ...generalState };
       state.getCampaignNoteById = { ...generalState };
       state.updateCampaignNote = { ...generalState };
       state.deleteCampaignNote = { ...generalState };
@@ -153,6 +177,24 @@ export const campaignNotesSlice = createSlice({
         state.getCampaignNotes.isLoading = false;
         state.getCampaignNotes.isError = true;
         state.getCampaignNotes.message = action.payload?.message || "Failed to fetch notes";
+      })
+
+      // getCampaignNotesByCreatorProfile
+      .addCase(getCampaignNotesByCreatorProfile.pending, (state) => {
+        state.getCampaignNotesByCreatorProfile.isLoading = true;
+        state.getCampaignNotesByCreatorProfile.isError = false;
+        state.getCampaignNotesByCreatorProfile.isSuccess = false;
+      })
+      .addCase(getCampaignNotesByCreatorProfile.fulfilled, (state, action) => {
+        state.getCampaignNotesByCreatorProfile.isLoading = false;
+        state.getCampaignNotesByCreatorProfile.isSuccess = true;
+        state.getCampaignNotesByCreatorProfile.data = action.payload;
+      })
+      .addCase(getCampaignNotesByCreatorProfile.rejected, (state, action) => {
+        state.getCampaignNotesByCreatorProfile.isLoading = false;
+        state.getCampaignNotesByCreatorProfile.isError = true;
+        state.getCampaignNotesByCreatorProfile.message =
+          action.payload?.message || "Failed to fetch creator notes";
       })
 
       // getCampaignNoteById

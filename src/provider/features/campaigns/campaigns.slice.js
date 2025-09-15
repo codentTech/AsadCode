@@ -28,6 +28,7 @@ const initialState = {
   withdrawApplication: { ...generalState },
   getBrandCampaignsExcludingCompleted: { ...generalState },
   getAppliedCreators: { ...generalState },
+  getHiredCreators: { ...generalState }, // Separate state for active-completed tab
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
@@ -189,6 +190,20 @@ export const getAppliedCreators = createAsyncThunk(
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to get applied creators")
       );
+    }
+  }
+);
+
+// Get hired creators for a campaign (separate from applied creators)
+export const getHiredCreators = createAsyncThunk(
+  "campaigns/getHiredCreators",
+  async ({ campaignId, filters = {} }, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, filters);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to get hired creators"));
     }
   }
 );
@@ -562,6 +577,26 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
+      })
+      // getHiredCreators
+      .addCase(getHiredCreators.pending, (state) => {
+        state.getHiredCreators.isLoading = true;
+        state.getHiredCreators.message = "";
+        state.getHiredCreators.isError = false;
+        state.getHiredCreators.isSuccess = false;
+        state.getHiredCreators.data = null;
+      })
+      .addCase(getHiredCreators.fulfilled, (state, action) => {
+        state.getHiredCreators.isLoading = false;
+        state.getHiredCreators.isSuccess = true;
+        state.getHiredCreators.data = action.payload;
+      })
+      .addCase(getHiredCreators.rejected, (state, action) => {
+        state.getHiredCreators.message =
+          action.payload?.message || "Failed to fetch hired creators";
+        state.getHiredCreators.isLoading = false;
+        state.getHiredCreators.isError = true;
+        state.getHiredCreators.data = null;
       })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {

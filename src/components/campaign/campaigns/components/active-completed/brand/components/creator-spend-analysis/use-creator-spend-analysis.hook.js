@@ -6,22 +6,22 @@ export const useCreatorSpendAnalysis = (selectedCampaign) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
-  // Redux state - use the same data that's already being fetched by the main hook
+  // Redux state - use the hired creators data for active-completed tab
   const {
     isLoading: creatorsLoading,
     isSuccess: creatorsSuccess,
     isError: creatorsError,
     data: creatorsData,
-  } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+  } = useSelector((state) => state.campaigns.getHiredCreators || {});
 
   // Process creators data from API
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
-        id: creator.id,
+        id: creator?.creator?.creator_profile?.id,
         name:
           `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||
           "Unknown Creator",
-        image: creator.creator?.profile_picture || "/default-avatar.png",
+        image: creator.creator?.creator_profile?.profile_photo_url,
         location:
           `${creator.creator?.city || ""}, ${creator.creator?.country || ""}`.replace(
             /^,\s*|,\s*$/g,

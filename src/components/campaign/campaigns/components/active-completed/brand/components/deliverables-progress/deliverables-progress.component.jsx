@@ -78,7 +78,7 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
     // Helper functions
     getStatusColor,
     getStatusIcon,
-  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign);
+  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign, selectedCreator);
 
   // ==================== RENDER HELPERS ====================
   const renderCampaignSelectionMessage = () => (
@@ -101,11 +101,13 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
     <div className="flex flex-col items-center pt-2 pb-3 px-3 border-b bg-white sticky top-0 z-10">
       <div className="relative">
         <Avatar
-          src={selectedCreator.image || avatar}
-          alt={selectedCreator.name}
+          src={
+            selectedCreator.user?.profile_photo_url || selectedCreator.profile_photo_url || avatar
+          }
+          alt={selectedCreator.user?.first_name || selectedCreator.name || "Creator"}
           className="h-16 w-16 border-2 border-white shadow-sm ring-1 ring-indigo-500"
         >
-          {selectedCreator.name?.charAt(0) || "C"}
+          {(selectedCreator.user?.first_name || selectedCreator.name || "C")?.charAt(0)}
         </Avatar>
         <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full ring-2 ring-white"></span>
         {isCompleted && (
@@ -115,8 +117,10 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
         )}
       </div>
       <h3 className="text-sm font-medium text-gray-900 mt-1">
-        {selectedCreator.name}{" "}
-        <span className="text-xs text-gray-500">({selectedCreator.age || "N/A"})</span>
+        {selectedCreator.user?.first_name || selectedCreator.name || "Creator"}{" "}
+        <span className="text-xs text-gray-500">
+          ({selectedCreator.user?.age || selectedCreator.age || "N/A"})
+        </span>
       </h3>
 
       <div className="flex items-center mt-1">
@@ -134,7 +138,11 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
       </div>
       <div className="flex items-center mt-1 text-xs text-gray-600">
         <MapPin className="w-3 h-3 mr-1" />
-        <span>{selectedCreator.location || "Location not specified"}</span>
+        <span>
+          {selectedCreator.shipping_address?.city ||
+            selectedCreator.location ||
+            "Location not specified"}
+        </span>
       </div>
 
       {isCompleted && (
@@ -204,26 +212,57 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
       ) : (
         <div className="space-y-2">
           {campaignReviews.map((review, index) => (
-            <div key={review.id || index} className="border-l-2 border-indigo-500 pl-3 py-1">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 ${
-                        i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
-                      }`}
-                    />
-                  ))}
+            <div key={review.id || index} className="border-l-2 border-indigo-500 pl-3 py-1 group">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-700">{review.review}</p>
+                  <span className="text-xs text-gray-400 mt-0.5">
+                    {new Date(review.created_at).toLocaleString()}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500">{review.created_at}</span>
+                {!isCompleted && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditReview(review.id)}
+                      className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                      title="Edit review"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteReview(review.id)}
+                      disabled={isDeleteReviewLoading}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      title="Delete review"
+                    >
+                      {isDeleteReviewLoading ? (
+                        <Loader loading={true} />
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-700">{review.text}</p>
             </div>
           ))}
-          {!isCompleted && (
+          {!isCompleted && (selectedCreator?.creator_profile_id || selectedCreator?.id) && (
             <div className="mt-3 p-3 bg-gray-50 rounded">
-              <h5 className="text-xs font-semibold text-gray-700 mb-2">Add Review</h5>
+              <h5 className="text-xs font-semibold text-gray-700 mb-2">
+                {editingReview ? "Edit Review" : "Add Review"}
+              </h5>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-600">Rating:</span>
@@ -240,6 +279,7 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
                   </div>
                 </div>
                 <TextArea
+                  key={`review-textarea-${editingReview || "new"}`}
                   placeholder="Leave a review..."
                   value={newReviewText}
                   onChange={(e) => setNewReviewText(e.target.value)}
@@ -250,13 +290,27 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
                   <CustomButton
                     text="Cancel"
                     className="btn-cancel text-xs py-1 px-2"
-                    onClick={handleCancelNewReview}
+                    onClick={editingReview ? handleCancelEditReview : handleCancelNewReview}
                   />
                   <CustomButton
-                    text={isCreateReviewLoading ? <Loader loading={true} /> : "Save"}
+                    text={
+                      isCreateReviewLoading || isUpdateReviewLoading ? (
+                        <Loader loading={true} />
+                      ) : editingReview ? (
+                        "Update"
+                      ) : (
+                        "Save"
+                      )
+                    }
                     className="btn-primary text-xs py-1 px-2"
-                    onClick={handleSaveNewReview}
-                    disabled={!newReviewText.trim() || isCreateReviewLoading}
+                    onClick={
+                      editingReview
+                        ? () => handleSaveEditReview(editingReview)
+                        : handleSaveNewReview
+                    }
+                    disabled={
+                      !newReviewText.trim() || isCreateReviewLoading || isUpdateReviewLoading
+                    }
                   />
                 </div>
               </div>
@@ -277,85 +331,57 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
           <Loader loading={true} />
         </div>
       ) : (
-        <ul className="space-y-2 text-xs text-gray-700 mb-3">
+        <div className="space-y-2 text-xs text-gray-700 mb-3">
           {privateNotes.map((note, index) => (
-            <li key={note.id || index} className="flex items-start gap-2 group">
-              <span className="text-gray-500 mt-0.5">📝</span>
-              <div className="flex-1">
-                {editingNote === note.id ? (
-                  <div className="space-y-2">
-                    <TextArea
-                      value={editNoteForm.text}
-                      onChange={(e) => setEditNoteForm({ ...editNoteForm, text: e.target.value })}
-                      className="w-full text-xs"
-                      rows={2}
-                    />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={handleCancelEditNote}
-                        className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleSaveEditNote(note.id)}
-                        disabled={isUpdateNoteLoading}
-                        className="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                      >
-                        {isUpdateNoteLoading ? <Loader loading={true} /> : "Save"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col flex-1">
-                      <span>{note.text}</span>
-                      <span className="text-xs text-gray-400 mt-0.5">
-                        {note.created_at
-                          ? new Date(note.created_at).toLocaleString("en-US", {
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
-                          : note.timestamp}
-                      </span>
-                    </div>
-                    {!isCompleted && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
-                        <button
-                          onClick={() => handleEditNote(note)}
-                          className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
-                          title="Edit note"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteNote(note.id)}
-                          disabled={isDeleteNoteLoading}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                          title="Delete note"
-                        >
-                          {isDeleteNoteLoading ? (
-                            <Loader loading={true} />
-                          ) : (
-                            <Trash2 className="w-3 h-3" />
-                          )}
-                        </button>
-                      </div>
-                    )}
+            <div key={note.id || index} className="border-l-2 border-indigo-500 pl-3 py-1 group">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col flex-1">
+                  <span>{note.text}</span>
+                  <span className="text-xs text-gray-400 mt-0.5">
+                    {note.created_at
+                      ? new Date(note.created_at).toLocaleString("en-US", {
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                      : note.timestamp}
+                  </span>
+                </div>
+                {!isCompleted && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                    <button
+                      onClick={() => handleEditNote(note.id)}
+                      className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                      title="Edit note"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      disabled={isDeleteNoteLoading}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      title="Delete note"
+                    >
+                      {isDeleteNoteLoading ? (
+                        <Loader loading={true} />
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       {!isCompleted && (
         <React.Fragment>
           <TextArea
-            label="Add a new note..."
+            key={`note-textarea-${editingNote || "new"}`}
+            label={editingNote ? "Edit note..." : "Add a new note..."}
             value={newNoteText}
             onChange={(e) => setNewNoteText(e.target.value)}
             className="text-xs"
@@ -365,13 +391,21 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
             <CustomButton
               text="Cancel"
               className="btn-cancel text-xs py-1 px-2"
-              onClick={handleCancelNewNote}
+              onClick={editingNote ? handleCancelEditNote : handleCancelNewNote}
             />
             <CustomButton
-              text={isCreateNoteLoading ? <Loader loading={true} /> : "Save"}
+              text={
+                isCreateNoteLoading || isUpdateNoteLoading ? (
+                  <Loader loading={true} />
+                ) : editingNote ? (
+                  "Update"
+                ) : (
+                  "Save"
+                )
+              }
               className="btn-primary text-xs py-1 px-2"
-              onClick={handleSaveNewNote}
-              disabled={!newNoteText.trim() || isCreateNoteLoading}
+              onClick={editingNote ? () => handleSaveEditNote(editingNote) : handleSaveNewNote}
+              disabled={!newNoteText.trim() || isCreateNoteLoading || isUpdateNoteLoading}
             />
           </div>
         </React.Fragment>

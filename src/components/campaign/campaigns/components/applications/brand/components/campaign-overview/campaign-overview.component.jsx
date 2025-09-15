@@ -238,6 +238,24 @@ export default function CampaignOverview({
               </div>
             </div>
 
+            {/* Application Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Application Status
+              </label>
+              <SimpleSelect
+                placeHolder="Select status"
+                options={[
+                  { value: "PENDING", label: "Pending" },
+                  { value: "HIRED", label: "Hired" },
+                  { value: "REJECTED", label: "Rejected" },
+                  { value: "DRAFT", label: "Draft" },
+                ]}
+                value={filters?.status ? { value: filters.status, label: filters.status } : null}
+                onChange={(option) => onFilterChange("status", option?.value || "")}
+              />
+            </div>
+
             {/* Audience Country */}
             <div>
               <SimpleSelect

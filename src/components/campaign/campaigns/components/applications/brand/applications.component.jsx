@@ -36,7 +36,7 @@ function BrandApplications() {
     city: "",
     niches: [],
     platforms: [],
-    status: "",
+    status: "PENDING", // Default to PENDING applications
     sort: "newest",
   });
 
@@ -50,7 +50,7 @@ function BrandApplications() {
     dispatch(
       getAppliedCreators({
         campaignId: campaign.id,
-        filters: { ...filters, status: "PENDING" },
+        filters: filters,
       })
     );
   };
@@ -70,7 +70,7 @@ function BrandApplications() {
       dispatch(
         getAppliedCreators({
           campaignId: selectedCampaign.id,
-          filters: { ...newFilters, status: "PENDING" },
+          filters: newFilters,
         })
       );
     }
@@ -86,7 +86,7 @@ function BrandApplications() {
       city: "",
       niches: [],
       platforms: [],
-      status: "",
+      status: "PENDING", // Reset to PENDING when clearing filters
       sort: "newest",
     };
     setFilters(clearedFilters);
@@ -96,7 +96,7 @@ function BrandApplications() {
       dispatch(
         getAppliedCreators({
           campaignId: selectedCampaign.id,
-          filters: { ...clearedFilters, status: "PENDING" },
+          filters: clearedFilters,
         })
       );
     }
