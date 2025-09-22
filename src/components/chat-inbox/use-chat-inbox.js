@@ -27,9 +27,6 @@ export default function useChatInbox() {
   const sections = [
     { id: 1, label: "Creators" },
     { id: 2, label: "Brands" },
-    { id: 3, label: "Groups" },
-    { id: 4, label: "Events" },
-    { id: 5, label: "Other" },
   ];
 
   return {

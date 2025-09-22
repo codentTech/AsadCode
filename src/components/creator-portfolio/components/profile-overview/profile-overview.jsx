@@ -5,45 +5,85 @@ import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
 import Niche from "@/components/niche/niche";
-import { getUser } from "@/common/utils/users.util";
+import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import { BookmarkPlus, Edit, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
+import { useSelector, useDispatch } from "react-redux";
+import { getCreatorById } from "@/provider/features/creator-profile/creator-profile.slice";
 
-const ProfileOverview = ({ onProfileUpdate, refreshKey = 0 }) => {
+const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
 
-  const loadCreatorData = useCallback(() => {
-    const user = getUser();
-    if (user && user.creator_profile) {
-      setCreator({
-        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Creator",
-        handle: user.creator_profile.handle || `@${user.email?.split("@")[0] || "creator"}`,
-        location:
-          user.city && user.country
-            ? `${user.city}, ${user.country}`
-            : user.city || user.country || "Location not set",
-        rating: 4.8, // Default rating since not in API
-        reviewCount: 0, // Default since not in API
-        followers: 0, // Default since not in API
-        following: 0, // Default since not in API
-        socialMedia:
-          user.creator_profile.social_platforms?.map((platform) =>
-            platform.platform.toLowerCase()
-          ) || [],
-        profilePic: user.creator_profile.profile_photo_url || avatar,
-        bio: user.creator_profile.bio || "",
-        categories: user.creator_profile.categories || [],
-        contentRates: user.creator_profile.content_rates || [],
-        gallery: user.creator_profile.gallery || [],
-        user: user,
-        miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
-      });
+  const loadCreatorData = useCallback(async () => {
+    if (creatorId) {
+      // Load creator by ID for brand view
+      try {
+        const result = await dispatch(getCreatorById(creatorId)).unwrap();
+        if (result.success && result.data) {
+          const creatorData = result.data;
+          setCreator({
+            name:
+              `${creatorData.first_name || ""} ${creatorData.last_name || ""}`.trim() || "Creator",
+            handle: `@${creatorData.email?.split("@")[0] || "creator"}`,
+            location:
+              creatorData.city && creatorData.country
+                ? `${creatorData.city}, ${creatorData.country}`
+                : creatorData.city || creatorData.country || "Location not set",
+            rating: 4.8, // Default rating since not in API
+            reviewCount: 0, // Default since not in API
+            followers: 0, // Default since not in API
+            following: 0, // Default since not in API
+            socialMedia:
+              creatorData.creator_profile?.social_platforms?.map((platform) =>
+                platform.platform.toLowerCase()
+              ) || [],
+            profilePic: creatorData.creator_profile?.profile_photo_url || avatar,
+            bio: creatorData.creator_profile?.bio || "",
+            categories: creatorData.creator_profile?.categories || [],
+            contentRates: creatorData.creator_profile?.content_rates || [],
+            gallery: creatorData.creator_profile?.gallery || [],
+            user: creatorData,
+            miniProfilePictures: creatorData.creator_profile?.mini_profile_pictures || [],
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load creator:", error);
+      }
+    } else {
+      // Load current user's profile (creator mode)
+      const user = getUser();
+      if (user && user.creator_profile) {
+        setCreator({
+          name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Creator",
+          handle: `@${user.email?.split("@")[0] || "creator"}`,
+          location:
+            user.city && user.country
+              ? `${user.city}, ${user.country}`
+              : user.city || user.country || "Location not set",
+          rating: 4.8, // Default rating since not in API
+          reviewCount: 0, // Default since not in API
+          followers: 0, // Default since not in API
+          following: 0, // Default since not in API
+          socialMedia:
+            user.creator_profile.social_platforms?.map((platform) =>
+              platform.platform.toLowerCase()
+            ) || [],
+          profilePic: user.creator_profile.profile_photo_url || avatar,
+          bio: user.creator_profile.bio || "",
+          categories: user.creator_profile.categories || [],
+          contentRates: user.creator_profile.content_rates || [],
+          gallery: user.creator_profile.gallery || [],
+          user: user,
+          miniProfilePictures: user.creator_profile.mini_profile_pictures || [],
+        });
+      }
     }
     setIsLoading(false);
-  }, []);
+  }, [creatorId, dispatch]);
 
   // Load data on component mount
   useEffect(() => {
@@ -161,13 +201,15 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0 }) => {
 
           {/* Right Side - Stats & Actions */}
           <div className="mt-6 md:mt-0 flex flex-col items-center md:items-end">
-            {/* Edit Icon (visible to profile owner) */}
-            <div
-              className="self-end p-2 text-white bg-primary rounded-lg cursor-pointer hover:bg-indigo-700 mb-4 transition-colors duration-200 hover:scale-105"
-              onClick={() => setIsEditModalOpen(true)}
-            >
-              <Edit className="w-5 h-5" />
-            </div>
+            {/* Edit Icon (visible to profile owner only) */}
+            {isCreatorMode() && !creatorId && (
+              <div
+                className="self-end p-2 text-white bg-primary rounded-lg cursor-pointer hover:bg-indigo-700 mb-4 transition-colors duration-200 hover:scale-105"
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <Edit className="w-5 h-5" />
+              </div>
+            )}
 
             {/* Followers/Following */}
             <div className="flex gap-6 mb-4 text-center">
@@ -218,7 +260,7 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0 }) => {
           if (user && user.creator_profile) {
             setCreator({
               name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Creator",
-              handle: user.creator_profile.handle || `@${user.email?.split("@")[0] || "creator"}`,
+              handle: `@${user.email?.split("@")[0] || "creator"}`,
               location:
                 user.city && user.country
                   ? `${user.city}, ${user.country}`

@@ -10,7 +10,7 @@ function Header() {
     { href: "/admin/dashboard", label: "Dashboard" },
     { href: "/campaign", label: "Campaigns" },
     { href: "/creator-portfolio", label: "My Portfolio" },
-    { href: "/chat-inbox", label: "Inbox", openInNewTab: true },
+    { href: "/chat-inbox", label: "Inbox" },
     { href: "/notifications", label: "Notifications" },
     { href: "/admin/dashboard", label: "Settings" },
   ];
@@ -26,7 +26,9 @@ function Header() {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center space-x-3">
           {links.map(({ href, label, openInNewTab }) => {
-            const isActive = pathname === href || (href.includes("#") && pathname === "/");
+            const isActive =
+              pathname === href ||
+              (href.includes("creator-portfolio") && pathname.includes("/creator-profile"));
 
             const baseStyles =
               "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";

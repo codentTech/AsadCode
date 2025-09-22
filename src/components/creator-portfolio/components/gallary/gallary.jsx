@@ -3,7 +3,7 @@ import { RefreshCw } from "lucide-react";
 import useGallary from "./use-gallary";
 import Niche from "@/components/niche/niche";
 
-const Gallary = ({ refreshKey }) => {
+const Gallary = ({ refreshKey, creatorId = null }) => {
   const {
     activeTab,
     setActiveTab,
@@ -11,9 +11,10 @@ const Gallary = ({ refreshKey }) => {
     setSelectedNiche,
     filteredPortfolio,
     portfolioItems,
+    creatorCategories,
     isLoading,
     refreshGallery,
-  } = useGallary(refreshKey);
+  } = useGallary(refreshKey, creatorId);
 
   const handleNicheChange = (niche) => {
     setSelectedNiche(niche);
@@ -86,7 +87,11 @@ const Gallary = ({ refreshKey }) => {
 
       {/* Niche Filter */}
       <div className="mb-3">
-        <Niche onNicheChange={handleNicheChange} selectedNiche={selectedNiche} />
+        <Niche
+          categories={creatorCategories}
+          onNicheChange={handleNicheChange}
+          selectedNiche={selectedNiche}
+        />
       </div>
 
       {/* Portfolio Grid */}
@@ -142,7 +147,6 @@ const Gallary = ({ refreshKey }) => {
               ? "Your portfolio gallery is empty. Add some images or videos to showcase your work!"
               : `No ${activeTab}s found in your portfolio.`}
           </p>
-
         </div>
       )}
     </section>

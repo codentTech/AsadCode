@@ -211,9 +211,12 @@ const CreatorCard = ({
         )}
 
         <CustomButton
-          text="view full portfolio"
+          text="View Full Portfolio"
           className="w-full btn-primary rounded-lg"
-          onClick={() => router.push(`/creator-portfolio`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/creator-profile/${creator.id}`);
+          }}
         />
       </div>
     </div>

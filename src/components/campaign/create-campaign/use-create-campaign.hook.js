@@ -413,12 +413,26 @@ export default function useCreateCampaign(close) {
 
   // Transform frontend data to backend format (snake_case → snake_case for API)
   const transformDataForAPI = async (data) => {
+    // Transform deliverables from new format to expected format
+    const transformedDeliverables = (data.deliverables || []).map((deliverable) => {
+      // If it's already a string (old format), return as is
+      if (typeof deliverable === "string") {
+        return deliverable;
+      }
+      // If it's the new format with quantity and text, return the display text
+      if (deliverable && typeof deliverable === "object" && deliverable.displayText) {
+        return deliverable.displayText;
+      }
+      // Fallback to text if available
+      return deliverable?.text || deliverable;
+    });
+
     return {
       // Basic Campaign Info
       campaign_title: data.campaign_title?.trim() || "",
       campaign_type: data.campaign_type || data.campaignTypes?.[0] || "",
       niches: data.niches || [],
-      deliverables: data.deliverables || [],
+      deliverables: transformedDeliverables,
       application_deadline: data.applicationDeadline || null,
 
       // Audience Requirements

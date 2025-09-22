@@ -93,15 +93,15 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
     <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
       <div className="relative">
         <Avatar
-          src={creatorData?.image || avatar}
-          alt={creatorData?.image || avatar}
+          src={creator?.image || avatar}
+          alt={creator?.image || avatar}
           className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
         >
-          {creatorData.name?.charAt(0) || "C"}
+          {creator.name?.charAt(0) || "C"}
         </Avatar>
         <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
-      <h3>{creatorData.name}</h3>
+      <h3>{creator.name}</h3>
 
       <p className="primary-text text-center">Fitness and lifestyle creator based in Los Angeles</p>
 
@@ -110,16 +110,14 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
           <Star
             key={i}
             className={`w-4 h-4 ${
-              i < Math.floor(creatorData.rating || 0)
-                ? "text-yellow-400 fill-current"
-                : "text-gray-300"
+              i < Math.floor(creator.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
             }`}
           />
         ))}
       </div>
       <div className="flex items-center space-x-2 text-sm text-gray-600">
         <MapPin className="w-4 h-4" />
-        <span>{creatorData.location}</span>
+        <span>{creator.location}</span>
       </div>
 
       {isCompleted && (

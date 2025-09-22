@@ -103,15 +103,15 @@ export const COUNTRY_OPTIONS = [
 
 // Compensation type options for campaign filtering
 export const COMPENSATION_TYPE_OPTIONS = [
-  { value: "FIXED", label: "Fixed Price" },
+  { value: "PAID", label: "Paid" },
+  { value: "GIFTED_PRODUCT", label: "Gifted Product" },
   { value: "COMMISSION", label: "Commission" },
-  { value: "GIFTED", label: "Product Exchange" },
 ];
 
 // Campaign type options
 export const CAMPAIGN_TYPE_OPTIONS = [
   { label: "Sponsored Post", value: "SPONSORED_POST" },
-  { label: "UGC", value: "BRANDED_CONTENT" },
+  { label: "UGC", value: "UGC" },
   { label: "Gifted", value: "GIFTED" },
   { label: "Affiliate", value: "AFFILIATE" },
 ];
@@ -119,15 +119,5 @@ export const CAMPAIGN_TYPE_OPTIONS = [
 // Location options for campaign filtering
 export const LOCATION_OPTIONS = [
   { value: "Remote", label: "Remote" },
-  { value: "In-Person", label: "In-Person" },
-  { value: "United States", label: "United States" },
-  { value: "Canada", label: "Canada" },
-  { value: "United Kingdom", label: "United Kingdom" },
-  { value: "Australia", label: "Australia" },
-  { value: "Germany", label: "Germany" },
-  { value: "France", label: "France" },
-  { value: "Spain", label: "Spain" },
-  { value: "Italy", label: "Italy" },
-  { value: "Japan", label: "Japan" },
-  { value: "Brazil", label: "Brazil" },
+  { value: "On Location", label: "On Location" },
 ];

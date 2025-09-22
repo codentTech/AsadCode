@@ -225,41 +225,6 @@ function CampaignFilters() {
             </div>
           )}
         </div>
-
-        {/* Recently Posted Toggle */}
-        <div className="mb-6">
-          <button
-            onClick={() => toggleFilter("recent")}
-            className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
-          >
-            Recently Posted
-            {filters.recentlyPosted && (
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full mr-2">
-                Active
-              </span>
-            )}
-            {expandedFilters.recent ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-          {expandedFilters.recent && (
-            <div className="mt-2">
-              <div className="space-y-2">
-                <label className="flex items-center text-xs gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.recentlyPosted || false}
-                    onChange={(e) => setFilters({ ...filters, recentlyPosted: e.target.checked })}
-                    className="h-3.5 w-3.5 accent-primary cursor-pointer"
-                  />
-                  Recently Posted
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Action Buttons - Fixed at bottom */}

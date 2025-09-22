@@ -12,27 +12,20 @@ export default function CustomRadioGroup({
   register = null,
   label = null,
   defaultValue = null,
+  value = null,
   inlineRadioButtons = false,
   onChange,
 }) {
   return (
     <FormControl className="w-full">
-      {label && (
-        <FormLabel className="text-sm font-medium text-gray-700 mb-1">
-          {label}
-        </FormLabel>
-      )}
-      <div
-        className={`flex gap-4 ${inlineRadioButtons ? "flex-row" : "flex-col"}`}
-      >
+      {label && <FormLabel className="text-sm font-medium text-gray-700 mb-1">{label}</FormLabel>}
+      <div className={`flex gap-4 ${inlineRadioButtons ? "flex-row" : "flex-col"}`}>
         {radioOptions?.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center text-xs gap-1 cursor-pointer"
-          >
+          <label key={option.value} className="flex items-center text-xs gap-1 cursor-pointer">
             <input
               type="radio"
-              value={defaultValue || option.value}
+              value={option.value}
+              checked={value ? value === option.value : defaultValue === option.value}
               {...(register && register(name))}
               className="w-4 h-4 accent-blue-600"
               name={name}

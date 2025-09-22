@@ -1,12 +1,15 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { AlertCircle } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useActiveCompletedCampaign from "../../hooks/use-active-completed-campaign.hook";
 
 export default function CampaignOverview({ isCompleted = false, onCampaignSelect }) {
+  const [isMultiCreator, setIsMultiCreator] = useState(true); // Default to Multi-Creator
+
   const {
     campaignOptions,
     selectedCampaign,
@@ -48,8 +51,19 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
+      {/* Campaign Type Toggle */}
+      <div className="bg-gray-100 rounded-lg p-3">
+        <CustomSwitch
+          label="Campaign Type"
+          checked={isMultiCreator}
+          onChange={() => setIsMultiCreator(!isMultiCreator)}
+          rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+          parentDivClassName="justify-between"
+        />
+      </div>
+
       <SimpleSelect
-        placeHolder={isCompleted ? "Filter completed campaigns" : "Select a campaign"}
+        placeHolder={isCompleted ? "Completed campaigns" : "Active campaigns"}
         options={campaignOptions}
         isSearchable={true}
         isMulti={false}
