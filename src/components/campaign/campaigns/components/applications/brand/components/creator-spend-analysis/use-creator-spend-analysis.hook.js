@@ -4,7 +4,6 @@ import { getAppliedCreators } from "@/provider/features/campaigns/campaigns.slic
 
 function useCreatorSpendAnalysis() {
   const dispatch = useDispatch();
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [open, setOpen] = useState(false);
 
   // Get applied creators state from Redux
@@ -126,8 +125,6 @@ function useCreatorSpendAnalysis() {
     creators: mockCreators,
     formatFollowers,
     getPlatformColor,
-    messageDialogOpen,
-    setMessageDialogOpen,
     open,
     handleOpenModal,
     handleCloseModal,

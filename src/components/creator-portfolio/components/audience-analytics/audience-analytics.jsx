@@ -7,7 +7,7 @@ import {
   clearErrors,
 } from "@/provider/features/analytics/analytics.slice";
 
-function AudienceAnalytics() {
+function AudienceAnalytics({ creatorId = null }) {
   const dispatch = useDispatch();
   const { combinedSummary, isLoading, isError, message } = useSelector((state) => state.analytics);
 
@@ -18,13 +18,15 @@ function AudienceAnalytics() {
 
   // Fetch analytics data on component mount
   useEffect(() => {
+    // For now, we'll fetch the current user's analytics regardless of creatorId
+    // In the future, this could be modified to fetch specific creator's analytics
     dispatch(fetchCombinedAnalyticsSummary());
 
     // Cleanup on unmount
     return () => {
       dispatch(clearErrors());
     };
-  }, [dispatch]);
+  }, [dispatch, creatorId]);
 
   // Update audience data when analytics are fetched
   useEffect(() => {

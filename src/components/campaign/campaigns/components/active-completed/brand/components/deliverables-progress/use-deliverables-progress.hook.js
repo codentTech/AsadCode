@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { avatar } from "@/common/constants/auth.constant";
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
-import useMessageThread from "../message-thread-modal/use-message-thread.hook";
+import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 import {
   createCampaignNote,
   deleteCampaignNote,

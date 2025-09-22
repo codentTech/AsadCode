@@ -1,21 +1,24 @@
 import { avatar } from "@/common/constants/auth.constant";
-import { getUser } from "@/common/utils/users.util";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import useCreatorData from "../../use-creator-data.hook";
 
-function useGallary(refreshKey = 0) {
+function useGallary(refreshKey = 0, creatorId = null) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedNiche, setSelectedNiche] = useState("all");
   const [portfolioItems, setPortfolioItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading, error, getCreatorGallery, getCreatorCategories, refreshData } = useCreatorData(
+    creatorId,
+    refreshKey
+  );
 
-  const transformGalleryData = useCallback((user) => {
-    if (!user || !user.creator_profile || !user.creator_profile.gallery) {
+  const transformGalleryData = useCallback((gallery) => {
+    if (!gallery || !Array.isArray(gallery)) {
       return [];
     }
 
     const transformedItems = [];
 
-    user.creator_profile.gallery.forEach((niche) => {
+    gallery.forEach((niche) => {
       if (niche.media && Array.isArray(niche.media)) {
         niche.media.forEach((mediaUrl, index) => {
           const isVideo =
@@ -47,35 +50,18 @@ function useGallary(refreshKey = 0) {
     return transformedItems;
   }, []);
 
-  const loadCreatorData = useCallback(() => {
-    const user = getUser();
-    if (user && user.creator_profile) {
-      const transformedItems = transformGalleryData(user);
+  // Transform gallery data when it changes
+  useEffect(() => {
+    if (!isLoading && !error) {
+      const gallery = getCreatorGallery();
+      const transformedItems = transformGalleryData(gallery);
       setPortfolioItems(transformedItems);
     }
-    setIsLoading(false);
-  }, [transformGalleryData]);
+  }, [isLoading, error, getCreatorGallery, transformGalleryData]);
 
   const refreshGallery = useCallback(() => {
-    loadCreatorData();
-  }, [loadCreatorData]);
-
-  // Load data on component mount
-  useEffect(() => {
-    loadCreatorData();
-  }, [loadCreatorData]);
-
-  // Refresh when refreshKey changes (following the same pattern as other components)
-  useEffect(() => {
-    if (refreshKey > 0) {
-      // Force immediate refresh when refreshKey changes
-      const user = getUser();
-      if (user && user.creator_profile) {
-        const transformedItems = transformGalleryData(user);
-        setPortfolioItems(transformedItems);
-      }
-    }
-  }, [refreshKey, transformGalleryData]);
+    refreshData();
+  }, [refreshData]);
 
   const filteredPortfolio = useMemo(() => {
     return portfolioItems.filter((item) => {
@@ -92,7 +78,9 @@ function useGallary(refreshKey = 0) {
     setSelectedNiche,
     filteredPortfolio,
     portfolioItems,
+    creatorCategories: getCreatorCategories(),
     isLoading,
+    error,
     refreshGallery,
   };
 }

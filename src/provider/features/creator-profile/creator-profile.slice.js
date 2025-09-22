@@ -11,6 +11,7 @@ const generalState = {
 
 const initialState = {
   setupCreatorProfile: generalState,
+  getCreatorById: generalState,
 };
 
 export const setupCreatorProfile = createAsyncThunk(
@@ -31,6 +32,19 @@ export const setupCreatorCampaignPreferences = createAsyncThunk(
   async ({ payload, email }, thunkAPI) => {
     try {
       const response = await creatorProfileService.setupCreatorCampaignPreferences(payload, email);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+export const getCreatorById = createAsyncThunk(
+  "creator-profile/getById",
+  async (creatorId, thunkAPI) => {
+    try {
+      const response = await creatorProfileService.getCreatorById(creatorId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -79,6 +93,19 @@ export const creatorProfileSlice = createSlice({
           isError: true,
           message: action.payload.message,
         };
+      })
+      .addCase(getCreatorById.pending, (state) => {
+        state.getCreatorById.isLoading = true;
+      })
+      .addCase(getCreatorById.fulfilled, (state, action) => {
+        state.getCreatorById.isLoading = false;
+        state.getCreatorById.isSuccess = true;
+        state.getCreatorById.data = action.payload;
+      })
+      .addCase(getCreatorById.rejected, (state, action) => {
+        state.getCreatorById.isLoading = false;
+        state.getCreatorById.isError = true;
+        state.getCreatorById.message = action.payload.message;
       });
   },
 });

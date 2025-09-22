@@ -16,16 +16,14 @@ function useCampaignFilter() {
     compensationType: "",
     location: "Remote",
     minPayment: 0,
-    recentlyPosted: false,
   });
 
   const [expandedFilters, setExpandedFilters] = useState({
-    type: true,
-    platform: true,
-    compensation: true,
-    location: true,
-    payment: true,
-    recent: true,
+    type: false,
+    platform: false,
+    compensation: false,
+    location: false,
+    payment: false,
   });
 
   const toggleFilter = (section) => {
@@ -42,7 +40,6 @@ function useCampaignFilter() {
       compensationType: "",
       location: "Remote",
       minPayment: 0,
-      recentlyPosted: false,
     });
     // Reset to show all campaigns without filters
     // First clear the filtered campaigns state
@@ -61,8 +58,7 @@ function useCampaignFilter() {
       compensation_type: filters.compensationType?.value || filters.compensationType || undefined,
       min_followers: "",
       platforms: filters.platforms.length > 0 ? filters.platforms : undefined,
-      is_remote:
-        filters.location === "Remote" ? true : filters.location === "In-Person" ? false : undefined,
+
       country:
         filters.location && filters.location !== "Remote" && filters.location !== "In-Person"
           ? filters.location.value || filters.location
@@ -81,11 +77,6 @@ function useCampaignFilter() {
     // Add minimum payment filter if set
     if (filters.minPayment > 0) {
       apiFilters.min_payment = filters.minPayment;
-    }
-
-    // Add recently posted filter if enabled
-    if (filters.recentlyPosted) {
-      apiFilters.recently_posted = "true";
     }
 
     // Remove undefined values

@@ -1,13 +1,15 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import Loader from "@/common/components/loader/loader.component";
-import { CheckCircle, Circle, AlertCircle } from "lucide-react";
-import BrandTimelineSteps from "../brand-timeline/brand-timeline";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import useActiveCompletedCampaign from "../../hooks/use-active-completed-campaign.hook";
-import { useEffect, useRef } from "react";
 
 export default function CampaignOverview({ isCompleted = false, onCampaignSelect }) {
+  const [isMultiCreator, setIsMultiCreator] = useState(true); // Default to Multi-Creator
+
   const {
     campaignOptions,
     selectedCampaign,
@@ -23,17 +25,9 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   const hasNotifiedParent = useRef(false);
 
-  // Debug campaign options
-  console.log("CampaignOverview - campaignOptions:", campaignOptions);
-  console.log("CampaignOverview - selectedCampaign:", selectedCampaign);
-
   // Notify parent component when campaign is auto-selected (only once)
   useEffect(() => {
     if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      console.log(
-        "CampaignOverview - Notifying parent of auto-selected campaign:",
-        selectedCampaign
-      );
       onCampaignSelect(selectedCampaign);
       hasNotifiedParent.current = true;
     }
@@ -41,11 +35,6 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   // Enhanced campaign selection handler
   const handleCampaignSelect = (selectedOption) => {
-    console.log("CampaignOverview - handleCampaignSelect called with:", selectedOption);
-    console.log("selectedOption type:", typeof selectedOption);
-    console.log("selectedOption.campaign:", selectedOption?.campaign);
-    console.log("selectedOption.campaign?.id:", selectedOption?.campaign?.id);
-
     internalHandleCampaignSelect(selectedOption);
     if (onCampaignSelect && selectedOption) {
       onCampaignSelect(selectedOption.campaign);
@@ -62,8 +51,19 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
+      {/* Campaign Type Toggle */}
+      <div className="bg-gray-100 rounded-lg p-3">
+        <CustomSwitch
+          label="Campaign Type"
+          checked={isMultiCreator}
+          onChange={() => setIsMultiCreator(!isMultiCreator)}
+          rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+          parentDivClassName="justify-between"
+        />
+      </div>
+
       <SimpleSelect
-        placeHolder={isCompleted ? "Filter completed campaigns" : "Select a campaign"}
+        placeHolder={isCompleted ? "Completed campaigns" : "Active campaigns"}
         options={campaignOptions}
         isSearchable={true}
         isMulti={false}

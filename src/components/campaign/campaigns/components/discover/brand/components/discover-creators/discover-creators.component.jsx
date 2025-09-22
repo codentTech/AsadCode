@@ -4,14 +4,14 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import SearchIcon from "@/common/icons/search-icon";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 
-import CreatorCard from "./components/creator-card.component";
+import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
+import ActiveFilters from "./components/active-filters.component";
 import FilterModal from "./components/filter-modal.component";
 import InviteModal from "./components/invite-modal.component";
-import ActiveFilters from "./components/active-filters.component";
 import useDiscoverCreators from "./use-discover-creators.hook";
 
-import { ArrowLeft, ChevronRight, Filter, Users } from "lucide-react";
 import { SORT_BY_OPTIONS } from "@/common/constants/options.constant";
+import { ArrowLeft, ChevronRight, Filter, Users } from "lucide-react";
 
 function DiscoverCreators({
   selectedShortlist,
@@ -168,6 +168,7 @@ function DiscoverCreators({
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onMessageCreator={handleMessageCreator}
           onInviteClick={handleInviteClick}
+          tab="discover"
         />
       ))}
     </div>
@@ -201,6 +202,7 @@ function DiscoverCreators({
             onRemoveFromShortlist={handleRemoveFromShortlist}
             onMessageCreator={handleMessageCreator}
             onInviteClick={handleInviteClick}
+            tab="discover"
           />
         ))}
       </div>

@@ -5,8 +5,16 @@ import AudienceDemographics from "@/components/audience-demographics/audience-de
 import { Avatar } from "@mui/material";
 import { CheckCircle2, MapPin, Star } from "lucide-react";
 import CampaignHistory from "../campaign-history/campaign-history.component";
+import Loader from "@/common/components/loader/loader.component";
 
-const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedCreator }) => {
+const DeliverablesProgress = ({
+  isCompleted = false,
+  selectedCampaign,
+  selectedCreator,
+  onHireClick,
+  onRejectClick,
+  onMessageClick,
+}) => {
   // Extract creator data from the selectedCreator object
   const getCreatorData = () => {
     if (!selectedCreator) return null;
@@ -37,35 +45,19 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
   };
 
   const creatorData = getCreatorData();
-  // Show message if no campaign or creator is selected
+  // If no campaign selected, render nothing (campaign auto-selects in sidebar)
   if (!selectedCampaign) {
     return (
-      <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-        <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
-            <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-          </div>
-          <h3 className="text-base font-medium text-gray-800 mb-2">Select Campaign</h3>
-          <p className="text-sm text-gray-600 max-w-xs mx-auto">
-            Choose a campaign to view creator details and progress
-          </p>
-        </div>
+      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+        <Loader loading={true} />
       </div>
     );
   }
 
   if (!creatorData) {
     return (
-      <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-        <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
-            <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-          </div>
-          <h3 className="text-base font-medium text-gray-800 mb-2">Select Creator</h3>
-          <p className="text-sm text-gray-600 max-w-xs mx-auto">
-            Click on a creator card to view their profile and take action
-          </p>
-        </div>
+      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+        <Loader loading={true} />
       </div>
     );
   }
@@ -75,20 +67,19 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
-            src={creatorData.image || avatar}
-            alt={creatorData.name}
+            src={creatorData?.image || avatar}
+            alt={creatorData?.image || avatar}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
             {creatorData.name?.charAt(0) || "C"}
           </Avatar>
           <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
-          {isCompleted && (
-            <span className="absolute -top-1 -right-1 h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-white" />
-            </span>
-          )}
         </div>
         <h3>{creatorData.name}</h3>
+
+        <p className="primary-text text-center">
+          Fitness and lifestyle creator based in Los Angeles
+        </p>
 
         <div className="flex items-center">
           {[...Array(5)].map((_, i) => (
@@ -106,7 +97,7 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
           <MapPin className="w-4 h-4" />
           <span>{creatorData.location}</span>
         </div>
-        <p className="primary-text text-center">Applied on {creatorData.appliedDate}</p>
+
         {isCompleted && (
           <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
             Campaign Completed
@@ -116,19 +107,57 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
 
       {/* Scrollable Content */}
       <div className="flex flex-col overflow-y-auto p-4 gap-4">
-        <div className="bg-white rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 pb-2">Application Message</h4>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <ReadMore text={creatorData.pitch || "No application message provided."} />
+        {/* Actions under profile */}
+        <div className="grid grid-cols-3 gap-2 w-full">
+          <CustomButton text="Message" className="btn-primary !py-1" onClick={onMessageClick} />
+          <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
+          <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
+        </div>
+        {/* Compact Performance Metrics */}
+        <div className="bg-white rounded-lg border p-3">
+          <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Engagement Rate</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.engagement_rate ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Reach</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_reach ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Views</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_views ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Posting Frequency</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.posting_frequency ?? "N/A"}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
+        <div className="bg-white border rounded-lg p-3">
+          <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
           <AudienceDemographics className="flex flex-col" />
         </div>
 
-        <hr />
+        <div className="bg-white border rounded-lg p-3">
+          <h4 className="text-sm font-bold text-gray-800 mb-2">Application Message</h4>
+          <div className="bg-gray-100 p-3 rounded-lg">
+            <ReadMore
+              text={creatorData.pitch || "No application message provided."}
+              maxLength={100}
+            />
+          </div>
+        </div>
 
         <CampaignHistory />
       </div>

@@ -1,35 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { DollarSign, RefreshCw } from "lucide-react";
-import { getUser } from "@/common/utils/users.util";
+import useCreatorData from "../../use-creator-data.hook";
 
-const BioPricing = ({ refreshKey }) => {
+const BioPricing = ({ refreshKey, creatorId = null }) => {
   const [creator, setCreator] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadCreatorData = () => {
-    const user = getUser();
-    if (user && user.creator_profile) {
-      setCreator({
-        bio:
-          user.creator_profile.bio ||
-          "Fashion and lifestyle creator specializing in sustainable fashion tips, minimal aesthetics, and travel diaries. I love creating authentic content that inspires and connects.",
-        pricing:
-          user.creator_profile.content_rates?.map((rate) => ({
-            type: rate.contentType,
-            price: `$${rate.price || 0}`,
-          })) || [],
-      });
-    }
-    setIsLoading(false);
-  };
-
-  const handleManualRefresh = () => {
-    loadCreatorData();
-  };
+  const { isLoading, error, getCreatorBio, getCreatorPricing, refreshData } = useCreatorData(
+    creatorId,
+    refreshKey
+  );
 
   useEffect(() => {
-    loadCreatorData();
-  }, [refreshKey]);
+    if (!isLoading && !error) {
+      const bio = getCreatorBio();
+      const pricing = getCreatorPricing();
+
+      setCreator({
+        bio:
+          bio ||
+          "Fashion and lifestyle creator specializing in sustainable fashion tips, minimal aesthetics, and travel diaries. I love creating authentic content that inspires and connects.",
+        pricing: pricing.map((rate) => ({
+          type: rate.contentType,
+          price: `$${rate.price || 0}`,
+        })),
+      });
+    }
+  }, [isLoading, error, getCreatorBio, getCreatorPricing]);
+
+  const handleManualRefresh = () => {
+    refreshData();
+  };
 
   if (isLoading) {
     return (
@@ -48,11 +47,11 @@ const BioPricing = ({ refreshKey }) => {
     );
   }
 
-  if (!creator) {
+  if (error || !creator) {
     return (
       <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <div className="text-center text-gray-500">
-          <p>Creator profile not found</p>
+          <p>{error || "Creator profile not found"}</p>
         </div>
       </section>
     );

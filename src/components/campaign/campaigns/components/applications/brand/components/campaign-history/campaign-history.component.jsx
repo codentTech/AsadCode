@@ -12,10 +12,9 @@ const CampaignHistory = () => {
   ];
 
   return (
-    <div className="w-full border-gray-200">
+    <div className="w-full border rounded-lg p-3 border-gray-200">
       <div className="bg-white mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Campaign History</h3>
-        <p className="text-xs text-gray-600">Recent activity</p>
+        <h3 className="text-sm font-bold text-gray-800 mb-2">Campaign History</h3>
       </div>
 
       <div className="space-y-2">

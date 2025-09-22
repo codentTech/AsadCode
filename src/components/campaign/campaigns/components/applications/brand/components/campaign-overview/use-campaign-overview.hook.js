@@ -21,6 +21,19 @@ function useCampaignOverview() {
     dispatch(getBrandCampaignsExcludingCompleted());
   }, [dispatch]);
 
+  // Auto-select the first campaign by default when data loads
+  useEffect(() => {
+    if (
+      campaignsSuccess &&
+      campaignsData?.data &&
+      Array.isArray(campaignsData.data) &&
+      campaignsData.data.length > 0 &&
+      !selectedCampaign
+    ) {
+      setSelectedCampaign(campaignsData.data[0]);
+    }
+  }, [campaignsSuccess, campaignsData, selectedCampaign]);
+
   // Transform campaigns for dropdown options
   const campaignOptions =
     campaignsData?.data?.map((campaign) => ({

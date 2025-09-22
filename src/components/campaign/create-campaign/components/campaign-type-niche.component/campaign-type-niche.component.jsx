@@ -1,7 +1,8 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import Niche from "@/components/niche/niche";
-import { X, AlertCircle } from "lucide-react";
-
+import SearchableNicheInput from "../searchable-niche-input/searchable-niche-input.component";
+import QuantityDeliverableInput from "../quantity-deliverable-input/quantity-deliverable-input.component";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { X } from "lucide-react";
 /**
  * Campaign Type & Niche Selection Component
  *
@@ -17,117 +18,90 @@ function CampaignTypeNiche({
   removeDeliverable,
 }) {
   const watchedValues = watch?.() || {};
+  const selectedNiches = watchedValues.niches || [];
   const selectedDeliverables = watchedValues.deliverables || [];
 
-  const deliverableOptions = ["Feed Post", "Story: 3+ Frames", "Reel"];
+  console.log("Current form values:", watchedValues);
+  console.log("Selected niches from form:", selectedNiches);
 
   // Handle niche selection
-  const handleNicheChange = (niche) => {
+  const handleNicheChange = (niches) => {
+    console.log("Parent handleNicheChange called with:", niches);
     if (!setValue) return;
+    setValue("niches", niches);
+    console.log("Set niches in form:", niches);
+  };
 
-    if (niche === "all") {
-      setValue("niches", []);
-    } else {
-      const currentNiches = watch?.("niches") || [];
-      const updatedNiches = currentNiches.includes(niche)
-        ? currentNiches.filter((n) => n !== niche)
-        : [...currentNiches, niche];
-      setValue("niches", updatedNiches);
-    }
+  // Handle deliverable selection
+  const handleDeliverableChange = (deliverables) => {
+    if (!setValue) return;
+    setValue("deliverables", deliverables);
+  };
+
+  // Handle niche removal
+  const handleNicheRemove = (nicheToRemove) => {
+    const newNiches = selectedNiches.filter((niche) => niche !== nicheToRemove);
+    handleNicheChange(newNiches);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Campaign Title */}
-      <div className="space-y-2">
-        <CustomInput
-          label="Campaign Title"
-          name="campaign_title"
-          register={register}
-          errors={errors}
-          placeholder="Enter a descriptive campaign title"
-          isRequired={true}
-          className="w-full"
-        />
-      </div>
-
-      {/* Niche Selection */}
-      <div className="space-y-2">
-        <div className="p-4 bg-gray-50 rounded-lg border">
-          <h4 className="text-sm font-semibold text-gray-600 mb-2">Select Niche(s) *</h4>
-          <div className="flex flex-wrap gap-2">
-            <Niche selectedNiche="all" onNicheChange={handleNicheChange} />
-          </div>
-
-          {/* Selected Niches Display */}
-          {watch?.("niches")?.length > 0 && (
-            <div className="mt-3">
-              <h5 className="text-xs font-semibold text-gray-600 mb-2">Selected Niches:</h5>
-              <div className="flex flex-wrap gap-2">
-                {watch("niches").map((niche) => (
-                  <span
-                    key={niche}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                  >
-                    {niche}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+    <div className="space-y-4">
+      {/* Campaign Title and Niche Selection - Same Line */}
+      <div className="flex gap-4">
+        {/* Campaign Title */}
+        <div className="flex-1">
+          <CustomInput
+            label="Campaign Title"
+            name="campaign_title"
+            register={register}
+            errors={errors}
+            placeholder="Enter a descriptive campaign title"
+            isRequired={true}
+            className="w-full"
+          />
         </div>
-        {errors.niches && <p className="text-sm text-red-600">{errors.niches.message}</p>}
+
+        {/* Niche Selection */}
+        <div className="flex-1">
+          <SearchableNicheInput
+            selectedNiches={selectedNiches}
+            onNichesChange={handleNicheChange}
+            placeholder="Type to search niches..."
+            handleNicheRemove={handleNicheRemove}
+          />
+        </div>
       </div>
+
+      {/* Selected Niches */}
+      {selectedNiches.length > 0 && (
+        <div className="space-y-1">
+          <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
+          <div className="flex flex-wrap gap-1">
+            {selectedNiches.map((niche) => (
+              <span
+                key={niche}
+                className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
+              >
+                {niche}
+                <CustomButton
+                  text=""
+                  onClick={() => handleNicheRemove(niche)}
+                  className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
+                  startIcon={<X className="text-black w-3 h-3 ml-4" />}
+                />
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Deliverables */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-600">
-          Select Deliverables
-          <span className="text-xs text-gray-400 ml-1">(Click multiple times for duplicates)</span>
-        </label>
-
-        {/* Deliverable Options */}
-        <div className="flex flex-wrap gap-2">
-          {deliverableOptions.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => addDeliverable?.(item)}
-              className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-
-        {/* Selected Deliverables */}
-        {selectedDeliverables.length > 0 && (
-          <div className="mt-3">
-            <h4 className="text-xs font-semibold text-gray-600 mb-2">Selected Deliverables:</h4>
-            <div className="flex flex-wrap gap-2 text-sm">
-              {selectedDeliverables.map((item, index) => (
-                <div
-                  key={`${item}-${index}`}
-                  className="relative flex items-center px-3 py-1 bg-white border text-gray-600 rounded-md shadow-sm pr-10"
-                >
-                  {item}
-                  <button
-                    type="button"
-                    onClick={() => removeDeliverable?.(index)}
-                    className="absolute top-1.5 right-1 text-gray-400 hover:text-red-600 transition-colors"
-                    aria-label={`Remove ${item}`}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {errors.deliverables && (
-          <p className="text-sm text-red-600">{errors.deliverables.message}</p>
-        )}
+        <QuantityDeliverableInput
+          deliverables={selectedDeliverables}
+          onDeliverablesChange={handleDeliverableChange}
+          error={errors.deliverables?.message}
+        />
       </div>
     </div>
   );

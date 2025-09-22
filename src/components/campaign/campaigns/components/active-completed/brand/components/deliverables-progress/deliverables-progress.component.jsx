@@ -1,20 +1,12 @@
-import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import TextArea from "@/common/components/text-area/text-area.component";
 import Loader from "@/common/components/loader/loader.component";
+import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
-import {
-  CheckCircle2,
-  MapPin,
-  Star,
-  Edit2,
-  Trash2,
-  MessageCircle,
-  CheckCircle,
-} from "lucide-react";
+import { CheckCircle, CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
+import React from "react";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline";
-import MessageThreadModal from "../message-thread-modal/message-thread-modal.component";
+import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedCreator }) => {
@@ -98,56 +90,39 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
   );
 
   const renderCreatorProfile = () => (
-    <div className="flex flex-col items-center pt-2 pb-3 px-3 border-b bg-white sticky top-0 z-10">
+    <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
       <div className="relative">
         <Avatar
-          src={
-            selectedCreator.user?.profile_photo_url || selectedCreator.profile_photo_url || avatar
-          }
-          alt={selectedCreator.user?.first_name || selectedCreator.name || "Creator"}
-          className="h-16 w-16 border-2 border-white shadow-sm ring-1 ring-indigo-500"
+          src={creator?.image || avatar}
+          alt={creator?.image || avatar}
+          className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
         >
-          {(selectedCreator.user?.first_name || selectedCreator.name || "C")?.charAt(0)}
+          {creator.name?.charAt(0) || "C"}
         </Avatar>
-        <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full ring-2 ring-white"></span>
-        {isCompleted && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-green-500 rounded-full flex items-center justify-center">
-            <CheckCircle className="w-3 h-3 text-white" />
-          </span>
-        )}
+        <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
-      <h3 className="text-sm font-medium text-gray-900 mt-1">
-        {selectedCreator.user?.first_name || selectedCreator.name || "Creator"}{" "}
-        <span className="text-xs text-gray-500">
-          ({selectedCreator.user?.age || selectedCreator.age || "N/A"})
-        </span>
-      </h3>
+      <h3>{creator.name}</h3>
 
-      <div className="flex items-center mt-1">
+      <p className="primary-text text-center">Fitness and lifestyle creator based in Los Angeles</p>
+
+      <div className="flex items-center">
         {[...Array(5)].map((_, i) => (
           <Star
             key={i}
-            className={`w-3 h-3 ${
-              i < Math.floor(selectedCreator.rating || 0)
-                ? "text-yellow-400 fill-current"
-                : "text-gray-300"
+            className={`w-4 h-4 ${
+              i < Math.floor(creator.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
             }`}
           />
         ))}
-        <span className="text-xs text-gray-500 ml-1">({selectedCreator.reviewCount || 0})</span>
       </div>
-      <div className="flex items-center mt-1 text-xs text-gray-600">
-        <MapPin className="w-3 h-3 mr-1" />
-        <span>
-          {selectedCreator.shipping_address?.city ||
-            selectedCreator.location ||
-            "Location not specified"}
-        </span>
+      <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <MapPin className="w-4 h-4" />
+        <span>{creator.location}</span>
       </div>
 
       {isCompleted && (
-        <div className="mt-2 px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-          Completed
+        <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+          Campaign Completed
         </div>
       )}
     </div>

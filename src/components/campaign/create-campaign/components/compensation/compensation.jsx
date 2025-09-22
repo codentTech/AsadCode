@@ -3,7 +3,7 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import CustomRadioGroup from "@/common/components/radio-group/radio-group.component";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
@@ -14,7 +14,13 @@ import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
  * including fixed payments, suggested ranges, affiliate commissions, etc.
  */
 function Compensation({ campaignData, handleChange, errors = {}, register }) {
-  const [creatorCompOption, setCreatorCompOption] = useState("suggested");
+  const [creatorCompOption, setCreatorCompOption] = useState("suggested"); // Default to Suggested Range
+  const [paymentType, setPaymentType] = useState("paid"); // Default to Paid Collaboration
+
+  const paymentTypeOptions = [
+    { label: "Paid Collaboration", value: "paid" },
+    { label: "Gifted Product", value: "gifted" },
+  ];
 
   const paymentOptions = [
     { label: "Suggested Range", value: "suggested" },
@@ -24,6 +30,14 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
   // Calculate commission payment for affiliate campaigns
   const commissionPayment =
     (Number(campaignData.commission_percentage) / 100) * Number(campaignData.product_price || 0);
+
+  // Set default radio button selections when campaign type is Sponsored Post or UGC
+  useEffect(() => {
+    if (["SPONSORED_POST", "UGC"].includes(campaignData.campaign_type)) {
+      setPaymentType("paid");
+      setCreatorCompOption("suggested");
+    }
+  }, [campaignData.campaign_type]);
 
   // Handle campaign type change and reset related fields
   const handleCampaignTypeChange = (option) => {
@@ -43,11 +57,15 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       handleChange({ target: { name: field, value: "" } });
     });
 
+    // Reset payment type and creator compensation option
+    setPaymentType("paid");
+    setCreatorCompOption("suggested");
+
     // Set appropriate compensation type based on campaign type
     let compensationType = "";
     switch (option.value) {
       case "SPONSORED_POST":
-      case "BRANDED_CONTENT":
+      case "UGC":
         compensationType = "FIXED"; // Default for these types
         break;
       case "GIFTED":
@@ -96,7 +114,9 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
               )}
               {campaignData.compensation_type === "GIFTED" && (
                 <>
-                  <span className="font-semibold text-red-600">Product Gifting Only</span>
+                  <span className="font-semibold text-red-600">
+                    Product Gifting Only ($0 (can't be changed)
+                  </span>
                   <br />
                   <span className="text-xs text-indigo-600">
                     Creators receive product only - no monetary compensation
@@ -125,60 +145,96 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       </div>
 
       {/* Sponsored Post & UGC Campaign Configuration */}
-      {["SPONSORED_POST", "BRANDED_CONTENT"].includes(campaignData.campaign_type) && (
+      {["SPONSORED_POST", "UGC"].includes(campaignData.campaign_type) && (
         <div className="space-y-4">
-          {/* Total Budget */}
-          <CustomInput
-            label="Enter Total Budget Amount (Private, not publicly visible)"
-            type="number"
-            name="budget"
-            placeholder="e.g., 1000"
-            errors={errors}
-            register={register}
-            isRequired={true}
-          />
-
-          {/* Creator Compensation Options */}
+          {/* How would you like to compensate the creator? */}
           <CustomRadioGroup
-            label="Creator Compensation"
-            name="creatorComp"
-            radioOptions={paymentOptions}
+            label="How would you like to compensate the creator?"
+            name="paymentType"
+            radioOptions={paymentTypeOptions}
             inlineRadioButtons
-            value={creatorCompOption}
-            onChange={(val) => setCreatorCompOption(val)}
+            value={paymentType}
+            onChange={(val) => setPaymentType(val)}
           />
 
-          {/* Compensation Inputs */}
-          {creatorCompOption === "suggested" && (
-            <div className="flex gap-4">
+          {/* Paid Collaboration Configuration */}
+          {paymentType === "paid" && (
+            <div className="space-y-4">
+              {/* Total Budget */}
               <CustomInput
-                label="Suggested Minimum"
+                label="Enter total budget amount (Not publicly visible, for budget management only)"
                 type="number"
-                name="suggested_min"
-                placeholder="e.g., 100"
+                name="budget"
+                placeholder="e.g., 1000"
                 errors={errors}
                 register={register}
+                isRequired={true}
               />
-              <CustomInput
-                label="Suggested Maximum"
-                type="number"
-                name="suggested_max"
-                placeholder="e.g., 300"
-                errors={errors}
-                register={register}
+
+              {/* Creator Compensation Options */}
+              <CustomRadioGroup
+                label="Creator compensation: (select one)"
+                name="creatorComp"
+                radioOptions={paymentOptions}
+                inlineRadioButtons
+                value={creatorCompOption}
+                onChange={(val) => setCreatorCompOption(val)}
               />
+
+              {/* Compensation Inputs */}
+              {creatorCompOption === "suggested" && (
+                <div className="space-y-2">
+                  <div className="flex gap-4">
+                    <CustomInput
+                      label="Suggested Minimum"
+                      type="number"
+                      name="suggested_min"
+                      placeholder="e.g., 100"
+                      errors={errors}
+                      register={register}
+                    />
+                    <CustomInput
+                      label="Suggested Maximum"
+                      type="number"
+                      name="suggested_max"
+                      placeholder="e.g., 300"
+                      errors={errors}
+                      register={register}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {creatorCompOption === "set-price" && (
+                <div className="space-y-2">
+                  <CustomInput
+                    label="Fixed Creator Payment"
+                    type="number"
+                    name="creator_fixed_price"
+                    placeholder="e.g., 200"
+                    errors={errors}
+                    register={register}
+                  />
+                </div>
+              )}
             </div>
           )}
 
-          {creatorCompOption === "set-price" && (
-            <CustomInput
-              label="Fixed Creator Payment"
-              type="number"
-              name="creator_fixed_price"
-              placeholder="e.g., 200"
-              errors={errors}
-              register={register}
-            />
+          {/* Gifted Product Configuration */}
+          {paymentType === "gifted" && (
+            <div className="space-y-4">
+              <div className="w-full max-w-sm">
+                <CustomInput
+                  label="Product Value:"
+                  type="number"
+                  name="product_value"
+                  placeholder="e.g., 75"
+                  errors={errors}
+                  register={register}
+                  isRequired={true}
+                />
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -186,9 +242,10 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
       {/* Gifted Campaign Configuration */}
       {campaignData.campaign_type === "GIFTED" && (
         <div className="space-y-4">
+          {/* Product Value Input */}
           <div className="w-full max-w-sm">
             <CustomInput
-              label="Product Value"
+              label="Product Value:"
               type="number"
               name="product_value"
               placeholder="e.g., 75"
@@ -205,7 +262,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CustomInput
-              label="Commission Percentage per Sale"
+              label="% commission per sale (input)"
               type="number"
               name="commission_percentage"
               placeholder="e.g., 10"
@@ -214,7 +271,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
               isRequired={true}
             />
             <CustomInput
-              label="Product Price"
+              label="Product price (input)"
               type="number"
               name="product_price"
               placeholder="e.g., 49.99"
@@ -227,7 +284,9 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
           {/* Commission Calculator */}
           {campaignData.commission_percentage && campaignData.product_price && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm font-medium text-blue-800 mb-1">Commission Calculation</p>
+              <p className="text-sm font-medium text-blue-800 mb-1">
+                Creator payout per sale (Automatically calculates % x product price)
+              </p>
               <p className="text-sm text-blue-700">
                 Creator earns <strong>${commissionPayment.toFixed(2)}</strong> per $
                 {campaignData.product_price} sale

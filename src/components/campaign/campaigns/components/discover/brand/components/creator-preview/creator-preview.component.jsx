@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { avatar, cover } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { VerifiedOutlined, VerifiedRounded } from "@mui/icons-material";
 import {
