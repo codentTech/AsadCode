@@ -6,7 +6,7 @@ import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "
 import { useState } from "react";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 
-const CampaignDetail = ({ campaigns, selectedCampaign }) => {
+const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
@@ -15,7 +15,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
     captions: false,
   });
 
-  const campaign = campaigns?.[selectedCampaign];
+  const campaign = selectedCampaign;
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -108,6 +108,35 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
     };
     return styles[type] || styles["Sponsored Post"];
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-gray-500 mb-2">Loading campaign details...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no campaign selected state
+  if (!campaign) {
+    return (
+      <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-gray-500 mb-2">No campaign selected</div>
+            <div className="text-xs text-gray-400">
+              Select a campaign from the list to view details.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const typeStyle = getCampaignTypeStyle(campaign.type);
 
@@ -381,7 +410,7 @@ const CampaignDetail = ({ campaigns, selectedCampaign }) => {
       >
         <div>
           <div className="space-y-3 mb-4">
-            {campaigns[selectedCampaign].progress.map((item, index) => (
+            {campaign.progress.map((item, index) => (
               <div key={index} className="flex items-center">
                 <input
                   type="checkbox"

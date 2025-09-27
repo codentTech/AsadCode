@@ -17,9 +17,13 @@ import {
   Square,
   Underline,
   Undo,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { useState, useRef } from "react";
 import CalendarModal from "../../../../calendar-modal/calendar-modal.component";
+import useContentPlanning from "./use-content-planning.hook";
+import useMonthlyGoals from "./use-monthly-goals.hook";
 
 const upcomingTasks = [
   {
@@ -47,21 +51,62 @@ const upcomingTasks = [
   },
 ];
 
-const ContentPlanning = () => {
-  const [showContentPlanner, setShowContentPlanner] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showGoals, setShowGoals] = useState(false);
-  const [activePlannerTab, setActivePlannerTab] = useState("Hook Ideas");
+const ContentPlanning = ({ selectedCampaign }) => {
+  // Use the custom hook for content planner functionality
+  const {
+    showContentPlanner,
+    showCalendar,
+    showGoals,
+    activePlannerTab,
+    plannerContent,
+    contentPlanners,
+    showAddTitle,
+    newTitle,
+    selectedPlanner,
+    getAllContentPlannersState,
+    createContentPlannerState,
+    updateContentPlannerState,
+    deleteContentPlannerState,
+    setActivePlannerTab,
+    handleContentChange,
+    handleContentChangeAndSave,
+    handleAutoSave,
+    openContentPlanner,
+    closeContentPlanner,
+    openCalendar,
+    closeCalendar,
+    openGoals,
+    closeGoals,
+    handleAddTitle,
+    handleSaveTitle,
+    handleCancelAddTitle,
+    handleSelectPlanner,
+    handleNewTitleChange,
+    handleDeletePlanner,
+    handleEditTitle,
+    handleUpdateTitle,
+  } = useContentPlanning(selectedCampaign);
+
+  // Use monthly goals hook
+  const {
+    goalMonth,
+    goalsByWeek,
+    campaignGoals,
+    createMonthlyGoalState,
+    updateMonthlyGoalState,
+    deleteMonthlyGoalState,
+    navigateGoalMonth,
+    addGoal,
+    toggleGoalCompletion,
+    updateGoalTitle,
+    deleteGoal,
+  } = useMonthlyGoals(selectedCampaign);
+
+  // Local state for other functionality
   const [selectedDate, setSelectedDate] = useState(25);
   const [currentMonth, setCurrentMonth] = useState({ month: 6, year: 2025 });
-  const [goalMonth, setGoalMonth] = useState({ month: 6, year: 2025 });
-
-  const [plannerContent, setPlannerContent] = useState({
-    "Hook Ideas": "Brainstorm engaging opening lines...",
-    Script: "Full video script goes here...",
-    "Shot Ideas": "Different angles and shots to capture...",
-    "General Notes": "Additional thoughts and reminders...",
-  });
+  const [addingGoalToWeek, setAddingGoalToWeek] = useState(null);
+  const [newGoalTitle, setNewGoalTitle] = useState("");
 
   // Calendar data structure for tasks
   const [calendarTasks, setCalendarTasks] = useState({
@@ -146,26 +191,6 @@ const ContentPlanning = () => {
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("bg-gray-100 text-gray-800");
 
-  // Goals data structure
-  const [monthlyGoals, setMonthlyGoals] = useState({
-    week1: [
-      { id: 1, text: "Post 3 reels on Instagram", completed: false },
-      { id: 2, text: "Film 2 YouTube videos", completed: true },
-    ],
-    week2: [
-      { id: 3, text: "Collaborate with 1 creator", completed: false },
-      { id: 4, text: "Reach 10k followers", completed: false },
-    ],
-    week3: [
-      { id: 5, text: "Try 5 trending sounds on TikTok", completed: true },
-      { id: 6, text: "Optimize video thumbnails", completed: false },
-    ],
-    week4: [
-      { id: 7, text: "Negotiate 2 brand deals", completed: false },
-      { id: 8, text: "Increase engagement by 15%", completed: false },
-    ],
-  });
-
   const plannerTabs = ["Hook Ideas", "Script", "Shot Ideas", "General Notes"];
   const editorRef = useRef(null);
   const idCounter = useRef(0);
@@ -242,31 +267,44 @@ const ContentPlanning = () => {
     return tag ? tag.value : "bg-gray-100 text-gray-800";
   };
 
-  const navigateGoalMonth = (direction) => {
-    setGoalMonth((prev) => {
-      const newMonth = direction === "next" ? prev.month + 1 : prev.month - 1;
-      if (newMonth > 12) return { month: 1, year: prev.year + 1 };
-      if (newMonth < 1) return { month: 12, year: prev.year - 1 };
-      return { ...prev, month: newMonth };
-    });
-  };
-
-  const addGoal = (week) => {
-    const newGoal = {
-      id: getNextId(),
-      text: "",
-      completed: false,
-    };
-
-    setMonthlyGoals((prev) => ({
-      ...prev,
-      [week]: [...prev[week], newGoal],
-    }));
-  };
-
   const handleCampaignClick = (campaign) => {
     // Navigate to campaign page
     console.log("Navigate to campaign:", campaign);
+  };
+
+  // Handle adding new goal
+  const handleAddGoalClick = (weekNumber) => {
+    setAddingGoalToWeek(weekNumber);
+    setNewGoalTitle("");
+  };
+
+  const handleAddGoalSubmit = async () => {
+    if (!newGoalTitle.trim()) return;
+
+    const goalData = {
+      title: newGoalTitle.trim(),
+      completed: false,
+      week_number: addingGoalToWeek,
+      month: goalMonth.month,
+      year: goalMonth.year,
+    };
+
+    await addGoal(addingGoalToWeek, goalData);
+    setAddingGoalToWeek(null);
+    setNewGoalTitle("");
+  };
+
+  const handleAddGoalCancel = () => {
+    setAddingGoalToWeek(null);
+    setNewGoalTitle("");
+  };
+
+  const handleAddGoalKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleAddGoalSubmit();
+    } else if (e.key === "Escape") {
+      handleAddGoalCancel();
+    }
   };
 
   const formatRichText = (command) => {
@@ -306,7 +344,7 @@ const ContentPlanning = () => {
                 Content Planner
               </h2>
               <button
-                onClick={() => setShowContentPlanner(true)}
+                onClick={openContentPlanner}
                 className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
@@ -315,21 +353,76 @@ const ContentPlanning = () => {
           </div>
           <div className="p-2">
             <div className="space-y-1.5">
-              {plannerTabs.map((tab) => (
+              {/* Existing Content Planners */}
+              {contentPlanners.map((planner) => (
                 <div
-                  key={tab}
-                  className="px-3 py-2 bg-gray-50 rounded-md text-xs text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors border border-gray-100"
-                  onClick={() => setShowContentPlanner(true)}
+                  key={planner.id}
+                  className="group px-3 py-2 bg-blue-50 rounded-md text-xs text-blue-700 cursor-pointer hover:bg-blue-100 transition-colors border border-blue-200 flex items-center justify-between"
+                  onClick={() => handleSelectPlanner(planner)}
                 >
-                  {tab}
+                  <span className="flex-1">{planner.title}</span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTitle(planner);
+                      }}
+                      className="p-1 hover:bg-blue-200 rounded transition-colors"
+                      title="Edit title"
+                    >
+                      <Pencil size={12} className="text-blue-600" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePlanner(planner.id);
+                      }}
+                      className="p-1 hover:bg-red-200 rounded transition-colors"
+                      title="Delete planner"
+                    >
+                      <Trash2 size={12} className="text-red-600" />
+                    </button>
+                  </div>
                 </div>
               ))}
-              <button
-                className="w-full px-3 py-2 border border-dashed border-gray-300 rounded-md text-xs text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-                onClick={() => setShowContentPlanner(true)}
-              >
-                + Add More
-              </button>
+
+              {/* Add Title Input */}
+              {showAddTitle ? (
+                <div className="space-y-2">
+                  <CustomInput
+                    placeholder="Enter content planner title..."
+                    value={newTitle}
+                    onChange={handleNewTitleChange}
+                    className="text-xs"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <CustomButton
+                      text={selectedPlanner ? "Update" : "Save"}
+                      onClick={selectedPlanner ? handleUpdateTitle : handleSaveTitle}
+                      disabled={
+                        !newTitle.trim() ||
+                        (selectedPlanner
+                          ? updateContentPlannerState.isLoading
+                          : createContentPlannerState.isLoading)
+                      }
+                      className="btn-primary text-xs px-3 py-1"
+                    />
+                    <CustomButton
+                      text="Cancel"
+                      onClick={handleCancelAddTitle}
+                      className="btn-outline text-xs px-3 py-1"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="w-full px-3 py-2 border border-dashed border-gray-300 rounded-md text-xs text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                  onClick={handleAddTitle}
+                >
+                  + Add More
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -339,9 +432,9 @@ const ContentPlanning = () => {
           <CustomButton
             text="Calendar & Tasks"
             className="btn-outline w-full"
-            onClick={() => setShowCalendar(true)}
+            onClick={openCalendar}
           />
-          <CustomButton text="Monthly Goals" onClick={() => setShowGoals(true)} />
+          <CustomButton text="Monthly Goals" onClick={openGoals} />
         </div>
 
         {/* Upcoming Tasks */}
@@ -395,8 +488,8 @@ const ContentPlanning = () => {
       {/* Content Planner Modal */}
       <Modal
         show={showContentPlanner}
-        title="Content Planner"
-        onClose={() => setShowContentPlanner(false)}
+        title={selectedPlanner ? selectedPlanner.title : "Content Planner"}
+        onClose={closeContentPlanner}
         size="xl"
       >
         <div className="flex h-[600px]">
@@ -491,12 +584,10 @@ const ContentPlanning = () => {
                 className="border border-gray-200 w-full h-96 p-4 border-t-0 rounded-b-lg focus:outline-none bg-white overflow-y-auto focus:border-slate-300"
                 style={{ minHeight: "400px" }}
                 dangerouslySetInnerHTML={{ __html: plannerContent[activePlannerTab] }}
-                onBlur={(e) =>
-                  setPlannerContent({
-                    ...plannerContent,
-                    [activePlannerTab]: e.target.innerHTML,
-                  })
-                }
+                onBlur={(e) => {
+                  const content = e.target.innerHTML;
+                  handleContentChangeAndSave(activePlannerTab, content);
+                }}
               />
             </div>
 
@@ -512,10 +603,14 @@ const ContentPlanning = () => {
       </Modal>
 
       {/* Calendar & To Do List Modal */}
-      <CalendarModal show={showCalendar} onClose={() => setShowCalendar(false)} />
+      <CalendarModal
+        show={showCalendar}
+        onClose={closeCalendar}
+        selectedCampaign={selectedCampaign}
+      />
 
       {/* Goals Modal */}
-      <Modal show={showGoals} title="Monthly Goals" onClose={() => setShowGoals(false)} size="xl">
+      <Modal show={showGoals} title="Monthly Goals" onClose={closeGoals} size="xl">
         <div className="p-3">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-3 bg-gray-100 rounded-md p-2">
@@ -546,52 +641,84 @@ const ContentPlanning = () => {
                 "bg-blue-50 border-blue-200", // Week 4 - Soft Blue
               ];
 
+              const weekNumber = index + 1;
+              const weekGoals = goalsByWeek[week] || [];
+
               return (
                 <div key={week} className={`border rounded-md p-3 ${colors[index]} h-fit`}>
-                  <h4 className="font-semibold text-gray-800 mb-4 text-lg">Week {index + 1}</h4>
-                  <div className="space-y-1">
-                    {monthlyGoals[week]?.map((goal) => (
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-semibold text-gray-800 text-lg">Week {weekNumber}</h4>
+                    <button
+                      onClick={() => handleAddGoalClick(weekNumber)}
+                      disabled={createMonthlyGoalState.isLoading}
+                      className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-colors disabled:opacity-50"
+                    >
+                      <Plus className="w-4 h-4 border border-black rounded-full" />
+                      Add more
+                    </button>
+                  </div>
+                  <div className="h-36 overflow-y-auto space-y-1">
+                    {weekGoals.map((goal) => (
                       <div key={goal.id} className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           checked={goal.completed}
-                          onChange={() => {
-                            setMonthlyGoals((prev) => ({
-                              ...prev,
-                              [week]: prev[week].map((g) =>
-                                g.id === goal.id ? { ...g, completed: !g.completed } : g
-                              ),
-                            }));
-                          }}
-                          className="w-4 h-4 text-slate-600 rounded flex-shrink-0"
+                          onChange={() => toggleGoalCompletion(goal)}
+                          disabled={updateMonthlyGoalState.isLoading}
+                          className="w-4 h-4 text-slate-600 rounded flex-shrink-0 disabled:opacity-50"
                         />
                         <div className="flex-1">
                           <input
                             type="text"
-                            value={goal.text}
-                            onChange={(e) => {
-                              setMonthlyGoals((prev) => ({
-                                ...prev,
-                                [week]: prev[week].map((g) =>
-                                  g.id === goal.id ? { ...g, text: e.target.value } : g
-                                ),
-                              }));
-                            }}
+                            value={goal.title}
+                            onChange={(e) => updateGoalTitle(goal, e.target.value)}
+                            disabled={updateMonthlyGoalState.isLoading}
                             className={`w-full text-sm bg-transparent border-b ${colors[index]} outline-none pb-1 ${
                               goal.completed ? "line-through text-gray-500" : "text-gray-700"
-                            } focus:border-slate-500 transition-colors`}
-                            placeholder="Enter goal..."
+                            } focus:border-slate-500 transition-colors disabled:opacity-50`}
+                            placeholder={`Enter Week ${weekNumber} goal...`}
+                          />
+                        </div>
+                        <button
+                          onClick={() => deleteGoal(goal.id)}
+                          disabled={deleteMonthlyGoalState.isLoading}
+                          className="p-1 hover:bg-red-200 rounded transition-colors disabled:opacity-50"
+                          title="Delete goal"
+                        >
+                          <Trash2 size={12} className="text-red-600" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add new goal input field */}
+                    {addingGoalToWeek === weekNumber && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          disabled
+                          className="w-4 h-4 text-slate-600 rounded flex-shrink-0 opacity-50"
+                        />
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={newGoalTitle}
+                            onChange={(e) => setNewGoalTitle(e.target.value)}
+                            onKeyDown={handleAddGoalKeyPress}
+                            onBlur={() => {
+                              // Small delay to allow submit button click to work
+                              setTimeout(() => {
+                                if (addingGoalToWeek === weekNumber) {
+                                  handleAddGoalCancel();
+                                }
+                              }, 150);
+                            }}
+                            className={`w-full text-sm bg-transparent border-b ${colors[index]} outline-none pb-1 text-gray-700 focus:border-slate-500 transition-colors`}
+                            placeholder={`Enter Week ${weekNumber} goal...`}
+                            autoFocus
                           />
                         </div>
                       </div>
-                    ))}
-                    <button
-                      onClick={() => addGoal(week)}
-                      className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 mt-4 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add more
-                    </button>
+                    )}
                   </div>
                 </div>
               );

@@ -36,9 +36,9 @@ const publishCampaign = async (campaignId) => {
   return response.data;
 };
 
-// Filter campaigns
+// Filter campaigns (now consolidated with getAllCampaigns)
 const filterCampaigns = async (filters) => {
-  const response = await api().get("/campaigns/filter", { params: filters });
+  const response = await api().get("/campaigns", { params: filters });
   return response.data;
 };
 
