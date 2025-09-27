@@ -8,6 +8,8 @@ import {
   ExternalLink,
   MessageSquare,
   Eye,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
@@ -153,55 +155,44 @@ const CreatorTimelineSteps = ({
   const getStepIcon = (step) => {
     switch (step.status) {
       case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
       case "revision_requested":
-        return <AlertCircle className="w-4 h-4 text-orange-500" />;
+        return <AlertCircle className="w-5 h-5 text-orange-600" />;
       case "pending_approval":
       case "awaiting_brand_approval":
-        return <Clock className="w-4 h-4 text-blue-500" />;
+        return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
       case "in_progress":
-        return <Clock className="w-4 h-4 text-blue-500" />;
+        return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
       default:
-        return <Circle className="w-4 h-4 text-gray-400" />;
+        return <Lock className="w-5 h-5 text-gray-400" />;
     }
   };
 
   const getStepBorderColor = (step) => {
-    switch (step.status) {
-      case "completed":
-        return "border-green-200 bg-green-50";
-      case "revision_requested":
-        return "border-orange-200 bg-orange-50";
-      case "pending_approval":
-      case "awaiting_brand_approval":
-        return "border-blue-200 bg-blue-50";
-      case "in_progress":
-        return "border-blue-200 bg-blue-50";
-      default:
-        return "border-gray-200 bg-gray-50";
-    }
+    // Always use white background with subtle border
+    return "border-gray-200 bg-white";
   };
 
   const getStatusTag = (step) => {
     const statusMap = {
       completed: { text: "Completed", className: "bg-green-100 text-green-800" },
-      pending_approval: { text: "Pending Approval", className: "bg-blue-100 text-blue-800" },
+      pending_approval: { text: "In Progress", className: "bg-orange-100 text-orange-800" },
       awaiting_brand_approval: {
-        text: "Awaiting Brand Approval",
-        className: "bg-blue-100 text-blue-800",
+        text: "In Progress",
+        className: "bg-orange-100 text-orange-800",
       },
       revision_requested: {
         text: "Revision Requested",
         className: "bg-orange-100 text-orange-800",
       },
-      in_progress: { text: "In Progress", className: "bg-yellow-100 text-yellow-800" },
+      in_progress: { text: "In Progress", className: "bg-orange-100 text-orange-800" },
       pending: { text: "Pending", className: "bg-gray-100 text-gray-800" },
     };
 
     const status = statusMap[step.status] || statusMap.pending;
     return (
       <span
-        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${status.className}`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.className}`}
       >
         {status.text}
       </span>
@@ -241,14 +232,13 @@ const CreatorTimelineSteps = ({
               <div className="flex items-start gap-3">
                 {getStepIcon(step)}
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-900">{step.title}</h4>
+                  <h4 className="text-sm font-bold text-gray-900">
+                    Step {step.id}: {step.title}
+                  </h4>
                   <p className="text-xs text-gray-600">{step.description}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-xs text-gray-500">Step {step.id}</span>
-                {getStatusTag(step)}
-              </div>
+              <div className="flex-shrink-0">{getStatusTag(step)}</div>
             </div>
 
             {/* Timestamps and Info */}
