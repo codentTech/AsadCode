@@ -1,4 +1,4 @@
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { useState } from "react";
 import CampaignDetails from "./components/campaign-detail/campaign-detail.component";
 import CompletedCampaignList from "./components/campaign-list/campaign-list.component";
@@ -18,6 +18,11 @@ const completedCampaigns = [
     deliverables: ["3 Instagram posts", "2 TikTok videos", "1 Story series"],
     productImage: avatar,
     hasReview: false,
+    deadline: "21/10/2020",
+    type: "UGC",
+    compensation: "compensation",
+    compensationAmount: "$500",
+    description: "some description",
   },
   {
     id: 2,
@@ -31,6 +36,11 @@ const completedCampaigns = [
     productImage: avatar,
     hasReview: true,
     review: { rating: 5, text: "Amazing work! Great engagement rates." },
+    deadline: "21/10/2020",
+    type: "UGC",
+    compensation: "compensation",
+    compensationAmount: "$500",
+    description: "some description",
   },
   {
     id: 3,
@@ -43,6 +53,11 @@ const completedCampaigns = [
     deliverables: ["2 YouTube videos", "4 TikTok videos", "Unboxing content"],
     productImage: avatar,
     hasReview: false,
+    deadline: "21/10/2020",
+    type: "UGC",
+    compensation: "compensation",
+    compensationAmount: "$500",
+    description: "some description",
   },
 ];
 

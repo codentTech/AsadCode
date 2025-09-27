@@ -5,7 +5,7 @@ import PricingOptions from "./components/pricing-options/pricing-options.compone
 import usePricingHook from "./use-pricing.hook";
 
 export default function PricingPage() {
-  const { isCreatorMode, animateTable } = usePricingHook();
+  const { creatorMode, animateTable } = usePricingHook();
 
   return (
     <HeaderFooterLayout>
@@ -13,7 +13,7 @@ export default function PricingPage() {
         {/* Banner Section */}
         <header className="bg-gradient-to-br from-primary to-primary text-white text-left md:text-center">
           <div className="max-w-8xl mx-auto py-4 md:py-8 px-4 sm:px-6 lg:px-8 text-sm md:text-lg xl:text-xl text-white">
-            {isCreatorMode ? (
+            {creatorMode ? (
               <div className="flex flex-col gap-3">
                 <p>
                   Unlike most platforms that take 15–30% or inflate your rate, CleerCut charges
@@ -31,7 +31,7 @@ export default function PricingPage() {
         </header>
 
         <div className="flex flex-col gap-6 p-3 md:p-12">
-          {!isCreatorMode && <PricingOptions />}
+          {!creatorMode && <PricingOptions />}
 
           <div
             className={`container transition-all duration-500 transform ${animateTable ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
@@ -39,7 +39,7 @@ export default function PricingPage() {
             <h2 className="text-sm md:text-lg xl:text-xl font-bold text-center py-6 text-indigo-900">
               How CleerCut Compares to Other Platforms
             </h2>
-            {isCreatorMode ? <CreatorPricing /> : <BrandPricing />}
+            {creatorMode ? <CreatorPricing /> : <BrandPricing />}
           </div>
         </div>
       </div>

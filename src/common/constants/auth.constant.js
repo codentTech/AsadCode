@@ -13,10 +13,10 @@ export const avatar =
 export const cover = "https://www.prodraw.net/fb_cover/images/fb_cover_65.jpg";
 
 export const sortOptions = [
-  { value: "followers", label: "Follower Count" },
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
   { value: "rating", label: "Highest Rated" },
-  { value: "reviews", label: "Most Reviewed" },
-  { value: "engagement", label: "Engagement Rate" },
+  { value: "followers", label: "Most Followers" },
 ];
 
 export const product =

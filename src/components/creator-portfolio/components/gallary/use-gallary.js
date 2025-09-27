@@ -1,79 +1,88 @@
 import { avatar } from "@/common/constants/auth.constant";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import useCreatorData from "../../use-creator-data.hook";
 
-const portfolioItems = [
-  {
-    id: 1,
-    image: avatar,
-    caption: "Summer Collection with @FashionBrand",
-    type: "video",
-  },
-  {
-    id: 2,
-    image: avatar,
-    caption: "Skincare Routine with @GlowCo",
-    type: "image",
-  },
-  {
-    id: 3,
-    image: avatar,
-    caption: "Travel Diary: Barcelona Edition",
-    type: "video",
-  },
-  {
-    id: 4,
-    image: avatar,
-    caption: "Sustainable Fashion Haul",
-    type: "video",
-  },
-  {
-    id: 5,
-    image: avatar,
-    caption: "Morning Routine Partnership with @WellnessBrand",
-    type: "image",
-  },
-  {
-    id: 6,
-    image: avatar,
-    caption: "Home Decor Tips",
-    type: "image",
-  },
-  {
-    id: 7,
-    image: avatar,
-    caption: "Fitness Challenge with @ActiveWear",
-    type: "video",
-  },
-  {
-    id: 8,
-    image: avatar,
-    caption: "Makeup Tutorial Collab",
-    type: "video",
-  },
-  {
-    id: 9,
-    image: avatar,
-    caption: "Healthy Recipes with @OrganicFoods",
-    type: "image",
-  },
-  {
-    id: 10,
-    image: avatar,
-    caption: "Weekend Getaway",
-    type: "video",
-  },
-];
-
-function useGallary() {
+function useGallary(refreshKey = 0, creatorId = null) {
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedNiche, setSelectedNiche] = useState("all");
+  const [portfolioItems, setPortfolioItems] = useState([]);
+  const { isLoading, error, getCreatorGallery, getCreatorCategories, refreshData } = useCreatorData(
+    creatorId,
+    refreshKey
+  );
 
-  // Filter portfolio items based on active tab
-  const filteredPortfolio =
-    activeTab === "all"
-      ? portfolioItems
-      : portfolioItems.filter((item) => item.type === activeTab);
+  const transformGalleryData = useCallback((gallery) => {
+    if (!gallery || !Array.isArray(gallery)) {
+      return [];
+    }
 
-  return { activeTab, setActiveTab, filteredPortfolio, portfolioItems };
+    const transformedItems = [];
+
+    gallery.forEach((niche) => {
+      if (niche.media && Array.isArray(niche.media)) {
+        niche.media.forEach((mediaUrl, index) => {
+          const isVideo =
+            mediaUrl.includes(".mp4") ||
+            mediaUrl.includes(".mov") ||
+            mediaUrl.includes(".avi") ||
+            mediaUrl.includes(".webm");
+          const isImage =
+            mediaUrl.includes(".jpg") ||
+            mediaUrl.includes(".jpeg") ||
+            mediaUrl.includes(".png") ||
+            mediaUrl.includes(".gif") ||
+            mediaUrl.includes(".webp");
+
+          if (isVideo || isImage) {
+            transformedItems.push({
+              id: `${niche.niche}-${index}`,
+              image: mediaUrl,
+              caption: `${niche.niche} - ${isVideo ? "Video" : "Image"}`,
+              type: isVideo ? "video" : "image",
+              niche: niche.niche,
+              url: mediaUrl,
+            });
+          }
+        });
+      }
+    });
+
+    return transformedItems;
+  }, []);
+
+  // Transform gallery data when it changes
+  useEffect(() => {
+    if (!isLoading && !error) {
+      const gallery = getCreatorGallery();
+      const transformedItems = transformGalleryData(gallery);
+      setPortfolioItems(transformedItems);
+    }
+  }, [isLoading, error, getCreatorGallery, transformGalleryData]);
+
+  const refreshGallery = useCallback(() => {
+    refreshData();
+  }, [refreshData]);
+
+  const filteredPortfolio = useMemo(() => {
+    return portfolioItems.filter((item) => {
+      const matchesTab = activeTab === "all" || item.type === activeTab;
+      const matchesNiche = selectedNiche === "all" || item.niche === selectedNiche;
+      return matchesTab && matchesNiche;
+    });
+  }, [portfolioItems, activeTab, selectedNiche]);
+
+  return {
+    activeTab,
+    setActiveTab,
+    selectedNiche,
+    setSelectedNiche,
+    filteredPortfolio,
+    portfolioItems,
+    creatorCategories: getCreatorCategories(),
+    isLoading,
+    error,
+    refreshGallery,
+  };
 }
 
 export default useGallary;

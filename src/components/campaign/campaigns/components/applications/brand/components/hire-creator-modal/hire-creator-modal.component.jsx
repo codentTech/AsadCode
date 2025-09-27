@@ -2,8 +2,9 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
+import useHireCreator from "./use-hire-creator.hook";
 
 export default function HireCreatorModal({
   show,
@@ -11,31 +12,50 @@ export default function HireCreatorModal({
   creatorData,
   campaignData,
   onSendOffer,
+  isLoading = false,
+  isSuccess = false,
+  isError = false,
 }) {
-  const [contractData, setContractData] = useState({
-    // General Information (auto-filled)
-    campaignTitle: campaignData?.title || "",
-    partiesInvolved: campaignData?.brandName || "",
-    contractId: `CC-${Date.now()}`, // Auto-generated
-    startDate: "",
-
-    // Deliverables (auto-filled from campaign)
-    contentFormat: campaignData?.deliverables || "",
-    firstDraftDeadline: "",
-    completionDeadline: "",
-    revisionsLimit: 2,
-
-    // Payment Terms
-    compensationType: "fixed",
-    totalCompensation: "",
-
-    // Legal & Compliance
-    exclusivityClause: "none",
-    usageRights: "no_usage",
-    usageMonths: 0,
-  });
-
   const [showPreview, setShowPreview] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    errors,
+    onSubmit,
+    watch,
+    setValue,
+    reset,
+    initializeForm,
+    getCompensationInputLabel,
+    isCompensationRequired,
+    isSubmitting,
+    trigger,
+    isValid,
+    createEnrichedContractData,
+  } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
+
+  // Debug: Log errors to see what's happening
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("Form errors:", errors);
+    }
+  }, [errors]);
+
+  // Initialize form when modal opens
+  useEffect(() => {
+    if (show && campaignData && creatorData) {
+      initializeForm();
+    }
+  }, [show, campaignData, creatorData, initializeForm]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!show) {
+      reset();
+      setShowPreview(false);
+    }
+  }, [show, reset]);
 
   const compensationOptions = [
     { value: "fixed", label: "Fixed Payment" },
@@ -50,36 +70,53 @@ export default function HireCreatorModal({
     { value: "12", label: "12 Months" },
   ];
 
-  const handleInputChange = (field, value) => {
-    setContractData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const usageRightsOptions = [
+    { value: "no_usage", label: "No Usage Rights" },
+    { value: "3", label: "3 Months Usage" },
+    { value: "6", label: "6 Months Usage" },
+    { value: "12", label: "12 Months Usage" },
+    { value: "permanent", label: "Permanent Usage" },
+  ];
+
+  const revisionOptions = [
+    { value: "0", label: "0 Revisions" },
+    { value: "1", label: "1 Revision" },
+    { value: "2", label: "2 Revisions" },
+    { value: "3", label: "3 Revisions" },
+    { value: "4", label: "4 Revisions" },
+    { value: "5", label: "5 Revisions" },
+  ];
 
   const handlePreviewContract = () => {
     setShowPreview(true);
   };
 
-  const handleSendOffer = () => {
-    onSendOffer(contractData);
-    onClose();
+  const handleFormSubmit = async (data) => {
+    // Trigger validation for all fields
+    await trigger();
+    onSubmit(data);
   };
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         {/* General Information */}
         <div>
           <h3 className="font-bold mb-2">General Information</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <CustomInput label="Campaign Title" value={contractData.campaignTitle} />
-            <CustomInput label="Contract ID" value={contractData.contractId} disabled />
+            <CustomInput
+              label="Campaign Title"
+              value={campaignData?.campaign_title || ""}
+              disabled
+            />
+            <CustomInput label="Contract ID" value="DRAFT" disabled />
             <CustomInput
               label="Start Date"
               type="date"
-              value={contractData.startDate}
-              onChange={(e) => handleInputChange("startDate", e.target.value)}
+              register={register}
+              name="startDate"
+              errors={errors}
+              isRequired={true}
             />
           </div>
         </div>
@@ -90,35 +127,34 @@ export default function HireCreatorModal({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <CustomInput
               label="Content Format(s)"
-              value={contractData.contentFormat}
-              onChange={(e) => handleInputChange("contentFormat", e.target.value)}
+              register={register}
+              name="contentFormat"
+              errors={errors}
               placeholder="e.g., 1 TikTok, 3 Instagram Stories"
+              isRequired={true}
             />
             <CustomInput
               label="1st Draft Deadline (Optional)"
               type="date"
-              value={contractData.firstDraftDeadline}
-              onChange={(e) => handleInputChange("firstDraftDeadline", e.target.value)}
+              register={register}
+              name="firstDraftDeadline"
+              errors={errors}
             />
             <CustomInput
               label="Completion Deadline"
               type="date"
-              value={contractData.completionDeadline}
-              onChange={(e) => handleInputChange("completionDeadline", e.target.value)}
+              register={register}
+              name="completionDeadline"
+              errors={errors}
+              isRequired={true}
             />
             <div>
               <SimpleSelect
                 label="Revisions Limit"
-                value={contractData.revisionsLimit}
-                options={[
-                  { value: 0, label: "0" },
-                  { value: 1, label: "1" },
-                  { value: 2, label: "2" },
-                  { value: 3, label: "3" },
-                  { value: 4, label: "4" },
-                  { value: 5, label: "5" },
-                ]}
-                onChange={(value) => handleInputChange("revisionsLimit", value)}
+                value={watch.revisionsLimit}
+                options={revisionOptions}
+                onChange={(option) => setValue("revisionsLimit", option.value)}
+                error={errors.revisionsLimit?.message}
               />
             </div>
           </div>
@@ -131,27 +167,32 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Compensation Type"
-                value={contractData.compensationType}
+                value={watch.compensationType}
                 options={compensationOptions}
-                onChange={(value) => handleInputChange("compensationType", value)}
+                onChange={(option) => setValue("compensationType", option.value)}
+                error={errors.compensationType?.message}
               />
             </div>
-            {contractData.compensationType === "fixed" && (
+            {isCompensationRequired() && (
               <CustomInput
-                label="Total Compensation ($)"
+                label={getCompensationInputLabel()}
                 type="number"
-                value={contractData.totalCompensation}
-                onChange={(e) => handleInputChange("totalCompensation", e.target.value)}
+                register={register}
+                name="totalCompensation"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
-            {contractData.compensationType === "commission" && (
+            {watch.compensationType === "commission" && (
               <CustomInput
-                label="Commission Rate (%)"
+                label="Product Price ($)"
                 type="number"
-                value={contractData.totalCompensation}
-                onChange={(e) => handleInputChange("totalCompensation", e.target.value)}
+                register={register}
+                name="productPrice"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
           </div>
@@ -164,17 +205,21 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
-                value={contractData.exclusivityClause}
+                value={watch.exclusivityClause}
                 options={exclusivityOptions}
-                onChange={(value) => handleInputChange("exclusivityClause", value)}
+                onChange={(option) => setValue("exclusivityClause", option.value)}
+                error={errors.exclusivityClause?.message}
               />
             </div>
-            <CustomInput
-              label="Usage Rights"
-              value={contractData.usageRights}
-              onChange={(e) => handleInputChange("usageRights", e.target.value)}
-              placeholder="No usage or X months"
-            />
+            <div>
+              <SimpleSelect
+                label="Usage Rights"
+                value={watch.usageRights}
+                options={usageRightsOptions}
+                onChange={(option) => setValue("usageRights", option.value)}
+                error={errors.usageRights?.message}
+              />
+            </div>
           </div>
         </div>
 
@@ -183,25 +228,73 @@ export default function HireCreatorModal({
           <CustomButton
             text="Save Draft"
             className="btn-outline"
+            type="button"
             onClick={() => console.log("Save draft")}
           />
           <CustomButton
             text="Preview Contract"
             className="btn-secondary"
+            type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton text="Send Offer" className="btn-primary" onClick={handleSendOffer} />
+          <CustomButton
+            text="Send Offer"
+            className="btn-primary"
+            type="submit"
+            disabled={isSubmitting}
+          />
         </div>
-      </div>
+
+        {/* Contract Summary */}
+        {watch.startDate && watch.completionDeadline && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <h4 className="font-semibold text-blue-900 mb-2">Contract Summary</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-blue-800">Campaign:</span>{" "}
+                {campaignData?.campaign_title || ""}
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Creator:</span>{" "}
+                {`${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`}
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Start Date:</span>{" "}
+                {watch.startDate ? new Date(watch.startDate).toLocaleDateString() : ""}
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Deadline:</span>{" "}
+                {watch.completionDeadline
+                  ? new Date(watch.completionDeadline).toLocaleDateString()
+                  : ""}
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Compensation:</span>{" "}
+                {watch.compensationType === "fixed"
+                  ? `$${watch.totalCompensation || 0}`
+                  : watch.compensationType === "commission"
+                    ? `${watch.totalCompensation || 0}% commission`
+                    : "Gifted product"}
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Revisions:</span>{" "}
+                {watch.revisionsLimit || 2}
+              </div>
+            </div>
+          </div>
+        )}
+      </form>
 
       {/* Contract Preview Modal */}
       {showPreview && (
         <ContractPreviewModal
           show={showPreview}
           onClose={() => setShowPreview(false)}
-          contractData={contractData}
+          contractData={createEnrichedContractData(watch)}
           creatorData={creatorData}
           campaignData={campaignData}
+          onSendOffer={onSendOffer}
+          isLoading={isSubmitting}
         />
       )}
     </Modal>

@@ -1,6 +1,7 @@
 import { getOnboardingEmail } from "@/common/utils/users.util";
 import { setupBrandIdealCreator } from "@/provider/features/brand-profile/brand-profile.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -15,6 +16,7 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function useIdealCreator({ onNext }) {
+  const router = useRouter();
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
@@ -56,6 +58,7 @@ export default function useIdealCreator({ onNext }) {
         onNext && onNext();
         resetForm();
         localStorage.removeItem("email");
+        router.push("/login");
       }
     } catch (error) {
       console.error("Form submission error:", error.message);

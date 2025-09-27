@@ -49,6 +49,7 @@ export default function CustomInput({
   customRef = null,
   onBlur = null,
   onFocus = null,
+  autoFocus = false,
 }) {
   const {
     inputChangeHandler,
@@ -76,10 +77,10 @@ export default function CustomInput({
           {...(onKeyDown && { onKeyDown })}
           name={name}
           onFocus={onFocus}
-          autoFocus="true"
+          autoFocus={autoFocus}
           type={showPassword ? "text" : type}
           placeholder={placeholder}
-          className={`text-sm font-normal not-italic leading-[18px] text-text-ultra-light-gray 
+          className={`text-sm font-normal not-italic leading-[18px] text-black 
             ${type === "number" ? "numArrowNotShow" : ""} 
             ${type === "date" ? "bg-red-300" : ""} 
             input-field default-input hover:border-text-dark-gray 
@@ -142,6 +143,7 @@ CustomInput.propTypes = {
   labelClassName: PropTypes.string,
   readOnly: PropTypes.bool,
   customRef: PropTypes.object,
+  autoFocus: PropTypes.bool,
 };
 
 CustomInput.defaultProps = {

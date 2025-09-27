@@ -1,12 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { avatar } from "@/common/constants/auth.constant";
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
+import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
+import {
+  createCampaignNote,
+  deleteCampaignNote,
+  getCampaignNotes,
+  getCampaignNotesByCreatorProfile,
+  updateCampaignNote,
+} from "@/provider/features/campaign-notes/campaign-notes.slice";
+import {
+  createCampaignReview,
+  deleteCampaignReview,
+  getCampaignReviews,
+  getCampaignReviewsByCreatorProfile,
+  updateCampaignReview,
+} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 
-const useDeliverablesProgress = () => {
+const useDeliverablesProgress = (
+  campaignId = "temp-campaign-id",
+  selectedCampaign = null,
+  selectedCreator = null
+) => {
+  const dispatch = useDispatch();
   const { getStatusColor, getStatusIcon } = useCommonHelpers();
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [editForm, setEditForm] = useState({});
 
+  // ==================== REDUX SELECTORS ====================
+  const {
+    createCampaignReview: createReviewState,
+    getCampaignReviews: getReviewsState,
+    getCampaignReviewsByCreatorProfile: getReviewsByCreatorProfileState,
+    updateCampaignReview: updateReviewState,
+    deleteCampaignReview: deleteReviewState,
+  } = useSelector((state) => state.campaignReviews);
+
+  const {
+    createCampaignNote: createNoteState,
+    getCampaignNotes: getNotesState,
+    getCampaignNotesByCreatorProfile: getNotesByCreatorProfileState,
+    updateCampaignNote: updateNoteState,
+    deleteCampaignNote: deleteNoteState,
+  } = useSelector((state) => state.campaignNotes);
+
+  // ==================== STATE MANAGEMENT ====================
+
+  // Project Management State
   const [project, setProject] = useState({
     title: "Brand Identity Design Package",
     client: "TechStart Inc.",
@@ -53,18 +92,86 @@ const useDeliverablesProgress = () => {
     ],
   });
 
-  const privateNotes = [
-    {
-      text: "Mention the brand in the first 5 seconds",
-      timestamp: "2025-04-23 10:12 AM",
-    },
-    { text: "Use trending audio", timestamp: "2025-04-23 10:15 AM" },
-    {
-      text: "Tag the brand and use hashtag #SpringLaunch",
-      timestamp: "2025-04-23 10:18 AM",
-    },
-  ];
+  // Editing State
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
+  // Review State
+  const [editingReview, setEditingReview] = useState(null);
+  const [editReviewForm, setEditReviewForm] = useState({ review: "", rating: 5 });
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(5);
+
+  // Notes State
+  const [editingNote, setEditingNote] = useState(null);
+  const [editNoteForm, setEditNoteForm] = useState({ text: "" });
+  const [newNoteText, setNewNoteText] = useState("");
+
+  // ==================== CREATOR DATA ====================
+  const creator = {
+    id: "creator_sam_waters",
+    name: "Sam Waters",
+    avatar,
+    isOnline: true,
+    location: "Los Angeles, CA",
+    age: 27,
+    rating: 4.2,
+    reviewCount: 245,
+    platforms: {
+      instagram: { followers: 285000, verified: true },
+      youtube: { followers: 95000, verified: true },
+      twitter: { followers: 42000, verified: false },
+    },
+  };
+
+  // ==================== HOOKS ====================
+  const messageThreadHook = useMessageThread(creator.id);
+
+  // ==================== DATA FROM REDUX ====================
+  // Get creator profile ID from the selectedCreator object
+  // The selectedCreator.id is the creator profile ID from the applied creators API
+  const creatorProfileId = selectedCreator?.id;
+
+  // Use creator-specific notes if creator is selected, otherwise use all campaign notes
+  const privateNotes = creatorProfileId
+    ? getNotesByCreatorProfileState.data || []
+    : getNotesState.data || [];
+
+  // Use creator-specific reviews if creator is selected, otherwise use all campaign reviews
+  const campaignReviews = creatorProfileId
+    ? getReviewsByCreatorProfileState.data || []
+    : getReviewsState.data || [];
+
+  // ==================== EFFECTS ====================
+  useEffect(() => {
+    if (campaignId && campaignId !== "temp-campaign-id") {
+      // Fetch notes based on whether a creator is selected
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignNotesByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignNotes(campaignId));
+      }
+
+      // Fetch reviews based on whether a creator is selected
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignReviewsByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignReviews(campaignId));
+      }
+    }
+  }, [dispatch, campaignId, creatorProfileId]);
+
+  // ==================== PROJECT MANAGEMENT FUNCTIONS ====================
   const handleEdit = (type, item) => {
     setEditingItem({ type, id: item.id });
     if (type === "deliverable") {
@@ -118,11 +225,239 @@ const useDeliverablesProgress = () => {
     }));
   };
 
+  // ==================== REVIEW MANAGEMENT FUNCTIONS ====================
+  const handleEditReview = (reviewId) => {
+    const review = campaignReviews.find((r) => r.id === reviewId);
+    if (review) {
+      setEditingReview(reviewId);
+      setEditReviewForm({ review: review.review, rating: review.rating });
+      // Populate the new review text area with existing review data
+      setNewReviewText(review.review);
+      setNewReviewRating(review.rating);
+    }
+  };
+
+  const handleSaveEditReview = async (reviewId) => {
+    try {
+      await dispatch(
+        updateCampaignReview({
+          reviewId,
+          reviewData: {
+            review: newReviewText,
+            rating: newReviewRating,
+          },
+        })
+      ).unwrap();
+
+      // Clear form after successful update
+      setEditingReview(null);
+      setEditReviewForm({ review: "", rating: 5 });
+      setNewReviewText("");
+      setNewReviewRating(5);
+
+      // Refresh reviews after update
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignReviewsByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignReviews(campaignId));
+      }
+    } catch (error) {
+      console.error("Error updating review:", error);
+    }
+  };
+
+  const handleCancelEditReview = () => {
+    setEditingReview(null);
+    setEditReviewForm({ review: "", rating: 5 });
+    setNewReviewText("");
+    setNewReviewRating(5);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    await dispatch(deleteCampaignReview(reviewId)).unwrap();
+
+    // Refresh reviews after deletion
+    if (creatorProfileId) {
+      dispatch(
+        getCampaignReviewsByCreatorProfile({
+          campaignId,
+          creatorProfileId: creatorProfileId,
+        })
+      );
+    } else {
+      dispatch(getCampaignReviews(campaignId));
+    }
+  };
+
+  const handleSaveNewReview = async () => {
+    if (!newReviewText.trim()) {
+      return;
+    }
+
+    if (!creatorProfileId) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        createCampaignReview({
+          campaignId,
+          creatorProfileId: creatorProfileId,
+          reviewData: {
+            review: newReviewText.trim(),
+            rating: newReviewRating,
+          },
+        })
+      ).unwrap();
+
+      // Clear form after successful creation
+      setNewReviewText("");
+      setNewReviewRating(5);
+
+      // Refresh reviews after creation
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignReviewsByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignReviews(campaignId));
+      }
+    } catch (error) {
+      console.error("Error creating review:", error);
+    }
+  };
+
+  const handleCancelNewReview = () => {
+    setNewReviewText("");
+    setNewReviewRating(5);
+  };
+
+  // ==================== NOTES MANAGEMENT FUNCTIONS ====================
+  const handleEditNote = (noteId) => {
+    const note = privateNotes.find((n) => n.id === noteId);
+    if (note) {
+      setEditingNote(noteId);
+      setEditNoteForm({ text: note.text });
+      // Populate the new note text area with existing note data
+      setNewNoteText(note.text);
+    }
+  };
+
+  const handleSaveEditNote = async (noteId) => {
+    try {
+      await dispatch(
+        updateCampaignNote({
+          noteId,
+          noteData: { text: newNoteText },
+        })
+      ).unwrap();
+
+      // Clear form after successful update - use setTimeout to ensure state update
+      console.log("Clearing note text area after edit...");
+      setTimeout(() => {
+        setEditingNote(null);
+        setEditNoteForm({ text: "" });
+        setNewNoteText("");
+        console.log("Note text cleared after edit");
+      }, 0);
+
+      // Refresh notes after updating
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignNotesByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignNotes(campaignId));
+      }
+    } catch (error) {
+      console.error("Error updating note:", error);
+    }
+  };
+
+  const handleCancelEditNote = () => {
+    setEditingNote(null);
+    setEditNoteForm({ text: "" });
+    setNewNoteText("");
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    await dispatch(deleteCampaignNote(noteId)).unwrap();
+
+    // Refresh notes after deleting
+    if (creatorProfileId) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({
+          campaignId,
+          creatorProfileId: creatorProfileId,
+        })
+      );
+    } else {
+      dispatch(getCampaignNotes(campaignId));
+    }
+  };
+
+  const handleSaveNewNote = async () => {
+    if (!newNoteText.trim()) return;
+
+    if (!creatorProfileId) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        createCampaignNote({
+          campaignId,
+          creatorProfileId: creatorProfileId,
+          noteData: { text: newNoteText.trim() },
+        })
+      ).unwrap();
+
+      // Clear form after successful creation - use setTimeout to ensure state update
+      console.log("Clearing note text area...");
+      setTimeout(() => {
+        setNewNoteText("");
+        console.log("Note text cleared");
+      }, 0);
+
+      // Refresh notes after creating
+      if (creatorProfileId) {
+        dispatch(
+          getCampaignNotesByCreatorProfile({
+            campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      } else {
+        dispatch(getCampaignNotes(campaignId));
+      }
+    } catch (error) {
+      console.error("Error creating note:", error);
+    }
+  };
+
+  const handleCancelNewNote = () => {
+    setNewNoteText("");
+  };
+
+  // ==================== RETURN OBJECT ====================
   return {
-    getStatusColor,
-    getStatusIcon,
+    // Message thread integration
+    messageThreadHook,
+    creator,
+
+    // Project management
     project,
-    privateNotes,
     editingItem,
     editForm,
     setEditForm,
@@ -131,8 +466,54 @@ const useDeliverablesProgress = () => {
     handleCancel,
     toggleDeliverable,
     toggleTimelineStep,
-    messageDialogOpen,
-    setMessageDialogOpen,
+
+    // Reviews
+    campaignReviews,
+    editingReview,
+    editReviewForm,
+    setEditReviewForm,
+    newReviewText,
+    setNewReviewText,
+    newReviewRating,
+    setNewReviewRating,
+    handleEditReview,
+    handleSaveEditReview,
+    handleCancelEditReview,
+    handleDeleteReview,
+    handleSaveNewReview,
+    handleCancelNewReview,
+
+    // Notes
+    privateNotes,
+    editingNote,
+    editNoteForm,
+    setEditNoteForm,
+    newNoteText,
+    setNewNoteText,
+    handleEditNote,
+    handleSaveEditNote,
+    handleCancelEditNote,
+    handleDeleteNote,
+    handleSaveNewNote,
+    handleCancelNewNote,
+
+    // Loading states
+    isReviewsLoading: creatorProfileId
+      ? getReviewsByCreatorProfileState.isLoading
+      : getReviewsState.isLoading,
+    isCreateReviewLoading: createReviewState.isLoading,
+    isUpdateReviewLoading: updateReviewState.isLoading,
+    isDeleteReviewLoading: deleteReviewState.isLoading,
+    isNotesLoading: creatorProfileId
+      ? getNotesByCreatorProfileState.isLoading
+      : getNotesState.isLoading,
+    isCreateNoteLoading: createNoteState.isLoading,
+    isUpdateNoteLoading: updateNoteState.isLoading,
+    isDeleteNoteLoading: deleteNoteState.isLoading,
+
+    // Helper functions
+    getStatusColor,
+    getStatusIcon,
   };
 };
 

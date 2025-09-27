@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useState } from "react";
+import { isCreatorMode } from "@/common/utils/users.util";
 
 export default function useChatInbox() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode = isCreatorMode();
 
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(4);
   const [activeSection, setActiveSection] = useState(1);
   const [openQuickHire, setOpenQuickHire] = useState(false);
 
@@ -17,23 +17,20 @@ export default function useChatInbox() {
   };
 
   const mainTabs = [
-    { id: 1, label: 'Active Campaigns' },
-    { id: 2, label: 'Completed Campaigns' },
-    { id: 3, label: 'Applications' },
-    { id: 4, label: 'My Network' },
-    { id: 5, label: 'Message Requests' },
+    // { id: 1, label: 'Active Campaigns' },
+    // { id: 2, label: 'Completed Campaigns' },
+    // { id: 3, label: 'Applications' },
+    { id: 4, label: "My Network" },
+    { id: 5, label: "Message Requests" },
   ];
 
   const sections = [
-    { id: 1, label: 'Creators' },
-    { id: 2, label: 'Brands' },
-    { id: 3, label: 'Groups' },
-    { id: 4, label: 'Events' },
-    { id: 5, label: 'Other' },
+    { id: 1, label: "Creators" },
+    { id: 2, label: "Brands" },
   ];
 
   return {
-    isCreatorMode,
+    creatorMode,
     activeTab,
     setActiveTab,
     activeSection,

@@ -1,171 +1,139 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 
-export const useCreatorSpendAnalysis = () => {
+function useCreatorSpendAnalysis() {
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
 
-  const creators = [
+  // Get applied creators state from Redux
+  const {
+    data: appliedCreatorsData,
+    isLoading: appliedCreatorsLoading,
+    isSuccess: appliedCreatorsSuccess,
+    isError: appliedCreatorsError,
+  } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+
+  // Function to fetch applied creators for a campaign
+  const fetchAppliedCreators = useCallback(
+    (campaignId, filters = {}) => {
+      if (campaignId) {
+        dispatch(getAppliedCreators({ campaignId, filters }));
+      }
+    },
+    [dispatch]
+  );
+
+  // Mock creators data for now (will be replaced with real API data)
+  const mockCreators = [
     {
       id: 1,
-      name: "Sarah Martinez",
+      name: "Sam Waters",
+      email: "sam@example.com",
       image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      rating: 4.8,
+      reviewCount: 127,
+      age: "28",
       location: "Los Angeles, CA",
-      totalSpent: "12,500",
-      rating: 4.9,
-      reviewCount: 47,
+      appliedDate: "2 days ago",
+      followers: 125000,
       platforms: {
-        instagram: { followers: 285000, verified: true },
-        youtube: { followers: 95000, verified: true },
-        twitter: { followers: 42000, verified: false },
+        instagram: { followers: 85000 },
+        tiktok: { followers: 40000 },
       },
-      appliedDate: "2024-05-15",
-      followers: "10000",
       portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=200&h=200&fit=crop",
       ],
     },
     {
       id: 2,
-      name: "Marcus Thompson",
+      name: "Emma Chen",
+      email: "emma@example.com",
       image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      rating: 4.9,
+      reviewCount: 89,
+      age: "24",
       location: "New York, NY",
-      totalSpent: "9,800",
-      rating: 4.7,
-      reviewCount: 32,
+      appliedDate: "1 day ago",
+      followers: 89000,
       platforms: {
-        instagram: { followers: 150000, verified: true },
-        youtube: { followers: 180000, verified: true },
-        twitter: { followers: 67000, verified: true },
+        instagram: { followers: 65000 },
+        youtube: { followers: 24000 },
       },
-      appliedDate: "2024-05-15",
-      followers: "10000",
       portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=200&h=200&fit=crop",
       ],
     },
     {
       id: 3,
-      name: "Emma Chen",
+      name: "Alex Rodriguez",
+      email: "alex@example.com",
       image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      location: "San Francisco, CA",
-      totalSpent: "8,200",
-      rating: 4.8,
-      reviewCount: 28,
-      platforms: {
-        instagram: { followers: 92000, verified: false },
-        youtube: { followers: 145000, verified: true },
-        twitter: { followers: 28000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 4,
-      name: "David Rodriguez",
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      rating: 4.7,
+      reviewCount: 156,
+      age: "31",
       location: "Miami, FL",
-      totalSpent: "6,500",
-      rating: 4.6,
-      reviewCount: 19,
+      appliedDate: "3 days ago",
+      followers: 210000,
       platforms: {
-        instagram: { followers: 75000, verified: false },
-        youtube: { followers: 52000, verified: false },
-        twitter: { followers: 15000, verified: false },
+        instagram: { followers: 150000 },
+        tiktok: { followers: 60000 },
       },
-      appliedDate: "2024-05-15",
-      followers: "10000",
       portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 5,
-      name: "Jessica Park",
-      image:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-      location: "Austin, TX",
-      totalSpent: "4,800",
-      rating: 4.9,
-      reviewCount: 25,
-      platforms: {
-        instagram: { followers: 68000, verified: false },
-        youtube: { followers: 89000, verified: true },
-        twitter: { followers: 22000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 6,
-      name: "Alex Kim",
-      image:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-      location: "Seattle, WA",
-      totalSpent: "3,200",
-      rating: 4.5,
-      reviewCount: 14,
-      platforms: {
-        instagram: { followers: 45000, verified: false },
-        youtube: { followers: 78000, verified: false },
-        twitter: { followers: 31000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=200&h=200&fit=crop",
+        "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=200&h=200&fit=crop",
       ],
     },
   ];
 
-  const formatFollowers = (count) => {
-    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
-    return count.toString();
+  const formatFollowers = (followers) => {
+    if (followers >= 1000000) {
+      return `${(followers / 1000000).toFixed(1)}M`;
+    } else if (followers >= 1000) {
+      return `${(followers / 1000).toFixed(0)}K`;
+    }
+    return followers.toString();
   };
 
   const getPlatformColor = (platform) => {
     const colors = {
-      instagram: "text-pink-600",
-      youtube: "text-red-600",
-      twitter: "text-blue-600",
+      instagram: "bg-gradient-to-br from-purple-500 to-pink-500",
+      tiktok: "bg-black",
+      youtube: "bg-red-500",
+      facebook: "bg-blue-600",
+      twitter: "bg-blue-400",
     };
-    return colors[platform] || "text-gray-600";
+    return colors[platform] || "bg-gray-100";
   };
 
-  const handleOpenModal = () => setOpen(true);
+  const handleOpenModal = () => {
+    setOpen(true);
+  };
 
-  const handleCloseModal = () => setOpen(false);
+  const handleCloseModal = () => {
+    setOpen(false);
+  };
 
   return {
-    creators,
+    creators: mockCreators,
     formatFollowers,
     getPlatformColor,
-    messageDialogOpen,
-    setMessageDialogOpen,
     open,
     handleOpenModal,
     handleCloseModal,
+    appliedCreatorsData,
+    appliedCreatorsLoading,
+    appliedCreatorsSuccess,
+    appliedCreatorsError,
+    fetchAppliedCreators,
   };
-};
+}
+
+export default useCreatorSpendAnalysis;

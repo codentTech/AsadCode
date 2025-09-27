@@ -1,3 +1,4 @@
+import { isCreatorMode } from "@/common/utils/users.util";
 import {
   BarChart3,
   Clipboard,
@@ -9,10 +10,9 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { useSelector } from "react-redux";
 
 function useSolution() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode = isCreatorMode();
 
   // Feature sections based on user type
   const brandFeatures = [
@@ -167,8 +167,8 @@ function useSolution() {
   ];
 
   // Get active feature list based on mode
-  const features = isCreatorMode ? creatorFeatures : brandFeatures;
-  return { isCreatorMode, features };
+  const features = creatorMode ? creatorFeatures : brandFeatures;
+  return { creatorMode, features };
 }
 
 export default useSolution;

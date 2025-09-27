@@ -33,13 +33,7 @@ export default function TextArea({
           : "flex flex-col gap-[8px] text-xs font-medium capitalize not-italic leading-6 text-text-black"
       }`}
     >
-      {label && (
-        <FieldLabel
-          label={label}
-          isRequired={isRequired}
-          className={labelClassName}
-        />
-      )}
+      {label && <FieldLabel label={label} isRequired={isRequired} className={labelClassName} />}
 
       <div className="w-full">
         <TextareaAutosize
@@ -52,19 +46,16 @@ export default function TextArea({
           className={`input-field default-input min hover:border-text-dark-gray focus:border-[1px] focus:border-text-dark-gray ${
             errors && errors[name] && "error-field"
           } ${className} ${!disabled || "disabled-input"} `}
-          {...(defaultValue && { defaultValue })}
-          {...(value && { value })}
-          onChange={onChange}
+          {...(!register && defaultValue && { defaultValue })}
+          {...(!register && value && { value })}
+          {...(!register && onChange && { onChange })}
           onKeyDown={onKeyDown} // Add this line to handle key events
           readOnly={readOnly}
           disabled={disabled}
           {...(onBlur && { onBlur })}
         />
         {errors && errors[name] && (
-          <FieldError
-            className="mt-1 normal-case"
-            error={errors[name].message}
-          />
+          <FieldError className="mt-1 normal-case" error={errors[name].message} />
         )}
       </div>
     </div>

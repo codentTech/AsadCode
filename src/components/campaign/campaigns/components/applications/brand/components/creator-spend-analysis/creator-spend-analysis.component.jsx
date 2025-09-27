@@ -1,37 +1,61 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Loader from "@/common/components/loader/loader.component";
 import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
-import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-get-social-platform.hook";
-import { Star, Bookmark, Mail } from "lucide-react";
-import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import NoResultFound from "@/common/components/no-result-found/no-result-found";
+import { avatar } from "@/common/constants/auth.constant";
+import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import { Filter } from "lucide-react";
+import React from "react";
+import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
+import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
-const CreatorSpendAnalysis = () => {
-  const {
-    creators,
-    formatFollowers,
-    getPlatformColor,
-    messageDialogOpen,
-    setMessageDialogOpen,
-    open,
-    handleOpenModal,
-    handleCloseModal,
-  } = useCreatorSpendAnalysis();
+const CreatorSpendAnalysis = ({
+  selectedCampaign,
+  appliedCreatorsData,
+  appliedCreatorsLoading,
+  onCreatorSelect,
+  selectedCreator,
+  filters,
+  onCampaignSelect,
+  onFilterChange,
+  onClearFilters,
+  onMessageClick,
+}) => {
+  const { creators, formatFollowers, getPlatformColor, open, handleOpenModal, handleCloseModal } =
+    useCreatorSpendAnalysis();
 
-  const { getPlatformIcon } = useGetplatform();
+  const [showFilterModal, setShowFilterModal] = React.useState(false);
+  const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
+  const hasAutoSelected = React.useRef(false);
+
+  // Auto-select first campaign and notify parent once
+  React.useEffect(() => {
+    if (
+      !selectedCampaign &&
+      !hasAutoSelected.current &&
+      Array.isArray(campaignsData?.data) &&
+      campaignsData.data.length > 0 &&
+      typeof onCampaignSelect === "function"
+    ) {
+      onCampaignSelect(campaignsData.data[0]);
+      hasAutoSelected.current = true;
+    }
+  }, [selectedCampaign, campaignsData, onCampaignSelect]);
+
+  // Note: We don't need to fetch data here since it's passed from parent component
+  // The parent Applications component handles all API calls and passes the data down
 
   const handleCreatorPreview = (creator) => {
-    console.log("Preview creator:", creator);
+    if (onCreatorSelect) {
+      onCreatorSelect(creator);
+    }
   };
 
   const handleSaveToShortlist = (creator) => {
     console.log("Save to shortlist:", creator);
-  };
-
-  const handleMessageCreator = (creator) => {
-    setMessageDialogOpen(true);
   };
 
   const handleInviteClick = (creator, e) => {
@@ -39,146 +63,68 @@ const CreatorSpendAnalysis = () => {
     console.log("Invite creator:", creator);
   };
 
-  const CreatorCard = ({ creator, isRecommended = false }) => (
-    <div
-      className="group relative flex-shrink-0 snap-start w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden"
-      onClick={() => handleCreatorPreview(creator)}
-    >
-      <div className="relative h-32 bg-gray-100 overflow-hidden">
-        {creator.portfolioImages && creator.portfolioImages.length >= 3 ? (
-          <div className="flex h-full">
-            {creator.portfolioImages.slice(0, 3).map((image, index) => (
-              <div key={index} className="flex-1 relative">
-                <img
-                  src={image}
-                  alt={`Portfolio ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                {index < 2 && (
-                  <div className="absolute right-0 top-0 w-px h-full bg-white/30"></div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="w-full h-full bg-gray-200"></div>
-        )}
-
-        {/* Recommended Badge */}
-        {isRecommended && (
-          <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-md font-medium">
-            Rec
-          </div>
-        )}
-      </div>
-
-      {/* Content Section */}
-      <div className="relative px-4 pb-4 space-y-3">
-        {/* Profile Image - positioned at base of cover images */}
-        <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2">
-          <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
-            <img src={creator.image} alt={creator.name} className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        {/* Name, Rating and Location */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <h4 className="text-gray-900 font-semibold text-sm">{creator.name}</h4>
-            <div className="flex items-center space-x-1">
-              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-              <span className="text-xs text-gray-500">{creator.rating}</span>
-              <span className="text-xs text-gray-400">({creator.reviewCount || 0})</span>
-            </div>
-          </div>
-          <p className="text-gray-500 text-xs">
-            {creator.age} • {creator.location}
-          </p>
-        </div>
-
-        {/* Status badges */}
-        <div className="flex flex-col justify-center items-center text-center gap-1.5">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-            Applied on {creator.appliedDate}
-          </span>
-        </div>
-
-        {/* Stats - just total followers */}
-        <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
-          <span className="font-medium">
-            {creator.followers >= 1000000
-              ? `${(creator.followers / 1000000).toFixed(1)}M Total Followers`
-              : `${(creator.followers / 1000).toFixed(0)}K Total Followers`}
-          </span>
-        </div>
-
-        {/* Compact Social Icons with follower counts */}
-        <div className="flex justify-center space-x-4">
-          {Object.entries(creator.platforms).map(([platform, data]) => (
-            <div key={platform} className="flex flex-col items-center space-y-1">
-              <div
-                className={`w-8 h-8 flex items-center justify-center rounded ${getPlatformColor(platform)} bg-gray-100`}
-                title={`${platform}: ${formatFollowers(data.followers)} followers`}
-              >
-                <div className="scale-75">{getPlatformIcon(platform)}</div>
-              </div>
-              <span className="text-xs text-gray-500">{formatFollowers(data.followers)}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {isRecommended ? (
-            <CustomButton
-              text="Invite to Apply"
-              className="btn-outline rounded-lg"
-              onClick={(e) => handleInviteClick(creator, e)}
-            />
-          ) : (
-            <>
-              <CustomButton
-                text="Save"
-                className="btn-secondary rounded-lg"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSaveToShortlist(creator);
-                }}
-              />
-              <CustomButton
-                text="Message"
-                className="btn-outline rounded-lg"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMessageCreator(creator);
-                }}
-              />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // Map API data to shared CreatorCard shape
+  const mapCreatorForCard = (creator) => {
+    const creatorData = creator.creator;
+    const profile = creatorData?.creator_profile;
+    return {
+      id: creator.id,
+      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
+      profileImage: profile?.profile_photo_url || avatar,
+      age: creatorData?.date_of_birth
+        ? Math.floor(
+            (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
+          )
+        : "N/A",
+      location:
+        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
+        "Location not specified",
+      rating: 4.5,
+      reviewCount: 12,
+      followers: 0,
+      platforms: (profile?.social_platforms || []).map(({ platform }) => platform).filter(Boolean),
+      platformStats: {},
+      portfolioImages: profile?.mini_profile_pictures || [],
+      niches: profile?.categories || [],
+      tagline: creator.pitch || "",
+      appliedDate: new Date(creator.applied_at).toLocaleDateString(),
+    };
+  };
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gray-100 pb-10">
+    <div className="flex-1 flex flex-col h-screen bg-gray-100">
       {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Creator Analysis</h1>
-              <p className="text-xs text-gray-500">Discover top creators for your campaigns</p>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div className="flex-1 max-w-sm">
-              <SimpleSelect
-                placeHolder="Select an option"
-                options={sortOptions}
-                className="w-full max-w-[400px]"
-              />
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2 w-full">
+              <div className="min-w-[240px] w-[260px]">
+                <SimpleSelect
+                  placeHolder="Select a campaign"
+                  options={campaignOptions}
+                  isSearchable={true}
+                  isMulti={false}
+                  isLoading={campaignsLoading}
+                  value={
+                    selectedCampaign
+                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
+                      : null
+                  }
+                  onChange={(opt) => {
+                    const id = opt?.value;
+                    const campaign = campaignsData?.data?.find((c) => c.id === id);
+                    if (onCampaignSelect && campaign) onCampaignSelect(campaign);
+                  }}
+                />
+              </div>
+              <div className="relative">
+                <CustomButton
+                  text="Filters"
+                  onClick={() => setShowFilterModal(true)}
+                  startIcon={<Filter size={18} />}
+                  className="btn-outline !h-10"
+                />
+              </div>
             </div>
             <div className="w-full max-w-[200px]">
               <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
@@ -188,52 +134,227 @@ const CreatorSpendAnalysis = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Main Creator Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
-          {creators.map((creator) => (
-            <CreatorCard key={creator.id} creator={creator} />
-          ))}
-        </div>
+        {selectedCampaign ? (
+          <>
+            {/* Campaign Info */}
+            <div className="mb-6 p-4 bg-white rounded-lg border">
+              <h2 className="text-sm font-semibold text-gray-900 mb-2">
+                Applied Creators for "{selectedCampaign.campaign_title}"
+              </h2>
+              <p className="text-xs text-gray-600">
+                {appliedCreatorsData?.data?.length || 0} creators have applied to this campaign
+              </p>
+            </div>
 
-        {/* Compact Divider */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm rounded-full font-medium text-gray-600 bg-gray-200 px-4 py-2">
-            Recommended
-          </span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
+            {/* Loading State */}
+            {selectedCampaign && appliedCreatorsLoading && (
+              <div className="text-center py-8 flex flex-col items-center">
+                <Loader loading={true} color="blue" size={32} />
+              </div>
+            )}
 
-        {/* Recommended Creators */}
-        <div>
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Recommended Creators</h3>
-            <p className="text-sm text-gray-600">Similar niches and high engagement rates</p>
-          </div>
+            {/* Applied Creators Grid */}
+            {!appliedCreatorsLoading &&
+              Array.isArray(appliedCreatorsData?.data) &&
+              appliedCreatorsData.data.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                  {appliedCreatorsData.data.map((creator) => {
+                    const mapped = mapCreatorForCard(creator);
+                    return (
+                      <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
+                        <CreatorCard
+                          creator={mapped}
+                          tab="applications"
+                          appliedDate={mapped.appliedDate}
+                          onCreatorPreview={handleCreatorPreview}
+                          onSaveToShortlist={handleSaveToShortlist}
+                          onRemoveFromShortlist={() => {}}
+                          onMessageCreator={onMessageClick}
+                          onInviteClick={() => {}}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
-            {creators.map((creator) => (
-              <CreatorCard key={`rec-${creator.id}`} creator={creator} isRecommended={true} />
-            ))}
-          </div>
-        </div>
+            {/* No Creators Found */}
+            {!appliedCreatorsLoading &&
+              (!Array.isArray(appliedCreatorsData?.data) ||
+                appliedCreatorsData.data.length === 0) && (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <NoResultFound
+                    message="No Creators Found"
+                    subMessage="Try adjusting filters or selecting a different campaign."
+                  />
+                </div>
+              )}
+          </>
+        ) : null}
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
 
-      <Modal
-        title={`Message to Sam Waters`}
-        show={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
-      >
-        <TextArea label="Your Message" />
-        <div className="w-full flex justify-end gap-3">
-          <CustomButton
-            text="Cancel"
-            className="btn-cancel"
-            onClick={() => setMessageDialogOpen(false)}
-          />
-          <CustomButton text="Send Message" className="btn-primary" />
+      {/* Filters Modal */}
+      <Modal title="Filters" show={showFilterModal} onClose={() => setShowFilterModal(false)}>
+        <div className="space-y-6">
+          {/* Follower Count */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Follower Count</label>
+            <div className="flex gap-2">
+              <CustomInput
+                type="number"
+                placeholder="Min"
+                value={filters?.min_followers || ""}
+                onChange={(e) => onFilterChange && onFilterChange("min_followers", e.target.value)}
+              />
+              <CustomInput
+                type="number"
+                placeholder="Max"
+                value={filters?.max_followers || ""}
+                onChange={(e) => onFilterChange && onFilterChange("max_followers", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Categories (Niches) */}
+          <div className="p-2 bg-gray-50 rounded-lg border">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Categories</h4>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Beauty",
+                "Skincare",
+                "Fitness",
+                "Fashion",
+                "Travel",
+                "Food",
+                "Finance",
+                "Business",
+                "Health",
+              ].map((niche) => (
+                <button
+                  key={niche}
+                  onClick={() => {
+                    const current = filters?.niches || [];
+                    const next = current.includes(niche)
+                      ? current.filter((n) => n !== niche)
+                      : [...current, niche];
+                    onFilterChange && onFilterChange("niches", next);
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-xs border ${
+                    filters?.niches?.includes(niche)
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {niche}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Minimum Rating */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Minimum Rating</h4>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              step="0.1"
+              value={filters?.min_rating || 1}
+              onChange={(e) => onFilterChange && onFilterChange("min_rating", e.target.value)}
+              className="w-full accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>1.0</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          {/* Countries */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Countries</h4>
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+              {["United States", "Canada", "United Kingdom", "Australia"].map((country) => (
+                <label key={country} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={filters?.country === country}
+                    onChange={(e) =>
+                      onFilterChange && onFilterChange("country", e.target.checked ? country : "")
+                    }
+                  />
+                  <span>{country}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Platforms */}
+          <div className="bg-white border rounded-lg p-2 shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">Social Platforms</h4>
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+              {["Instagram", "TikTok", "YouTube"].map((platform) => (
+                <label key={platform} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={filters?.platforms?.includes(platform)}
+                    onChange={(e) => {
+                      const current = filters?.platforms || [];
+                      const next = e.target.checked
+                        ? [...current, platform]
+                        : current.filter((p) => p !== platform);
+                      onFilterChange && onFilterChange("platforms", next);
+                    }}
+                  />
+                  <span>{platform}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <SimpleSelect
+              placeHolder="Sort by"
+              options={[
+                { value: "newest", label: "Newest First" },
+                { value: "oldest", label: "Oldest First" },
+                { value: "rating", label: "Highest Rating" },
+                { value: "followers", label: "Most Followers" },
+              ]}
+              value={
+                filters?.sort
+                  ? {
+                      value: filters.sort,
+                      label:
+                        filters.sort === "newest"
+                          ? "Newest First"
+                          : filters.sort === "oldest"
+                            ? "Oldest First"
+                            : filters.sort === "rating"
+                              ? "Highest Rating"
+                              : "Most Followers",
+                    }
+                  : null
+              }
+              onChange={(option) =>
+                onFilterChange && onFilterChange("sort", option?.value || "newest")
+              }
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <CustomButton text="Clear" className="btn-outline" onClick={onClearFilters} />
+            <CustomButton
+              text="Apply"
+              className="btn-primary"
+              onClick={() => setShowFilterModal(false)}
+            />
+          </div>
         </div>
       </Modal>
     </div>

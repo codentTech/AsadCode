@@ -7,7 +7,7 @@ import useChatInbox from "./use-chat-inbox";
 
 export default function ChatInbox() {
   const {
-    isCreatorMode,
+    creatorMode,
     activeTab,
     setActiveTab,
     activeSection,
@@ -19,30 +19,34 @@ export default function ChatInbox() {
     handleCloseQuickHire,
   } = useChatInbox();
 
+  console.log("activeTab", activeTab);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-200 to-white">
       <div className="container mx-auto max-w-7xl h-screen rounded-xl overflow-hidden shadow-xl border border-gray-200 bg-white">
         <main className="h-full flex flex-col">
           {/* Top navigation - streamlined and modern */}
-          <div className="flex justify-between items-center bg-white border-b">
-            <div className="py-3 flex items-center justify-between">
-              <nav className="hidden md:flex">
-                {mainTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-2 py-2 mx-1 text-sm font-bold transition-all relative ${
-                      activeTab === tab.id
-                        ? "text-primary"
-                        : "text-gray-600 hover:text-primary"
-                    }`}
-                  >
-                    {tab.label}
-                    {activeTab === tab.id && (
-                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary"></span>
-                    )}
-                  </button>
-                ))}
+          <div className="bg-primary border-b">
+            <div className="flex items-center h-12">
+              <nav className="flex items-center space-x-3 px-4">
+                {mainTabs.map((tab) => {
+                  const isActive = activeTab === tab.id;
+
+                  const baseStyles =
+                    "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";
+                  const activeStyles = "text-primary bg-white";
+                  const inactiveStyles = "text-white hover:text-primary hover:bg-gray-100";
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </nav>
             </div>
           </div>
@@ -65,7 +69,7 @@ export default function ChatInbox() {
                   </button>
                 ))}
               </div>
-              {[4, 5].includes(activeTab) && !isCreatorMode && (
+              {[4, 5].includes(activeTab) && !creatorMode && (
                 <CustomButton
                   onClick={handleOpenQuickHire}
                   text="Quick Hire"
@@ -76,21 +80,18 @@ export default function ChatInbox() {
           )}
 
           {openQuickHire && (
-            <QuickHire
-              openQuickHire={openQuickHire}
-              handleCloseQuickHire={handleCloseQuickHire}
-            />
+            <QuickHire openQuickHire={openQuickHire} handleCloseQuickHire={handleCloseQuickHire} />
           )}
 
           <div className="flex flex-1 overflow-hidden">
             {/* Chat list */}
-            <ChatList isCreatorMode={isCreatorMode} activeTab={activeTab} />
+            <ChatList isCreatorMode={creatorMode} activeTab={activeTab} />
 
             {/* Chat area */}
             <Inbox />
 
             {/* Right sidebar - Profile and connections */}
-            <Profile isCreatorMode={isCreatorMode} activeTab={activeTab} />
+            <Profile isCreatorMode={creatorMode} activeTab={activeTab} />
           </div>
         </main>
       </div>

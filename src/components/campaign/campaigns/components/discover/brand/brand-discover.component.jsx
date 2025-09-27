@@ -1,7 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
+import { avatar } from "@/common/constants/auth.constant";
+import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
+import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import CreatorPreview from "./components/creator-preview/creator-preview.component";
 import DiscoverCreators from "./components/discover-creators/discover-creators.component";
 import ShortlistSidebar from "./components/shortlist-sidebar/shortlist-sidebar.component";
@@ -36,8 +38,22 @@ function BrandDiscover() {
     mockNicheCategories,
     sortOptions,
     handleRemoveFromShortlist,
+    handleEditShortlist,
+    handleDeleteShortlist,
     handleSendMessage,
+    shortlistState,
   } = useDiscover();
+
+  const creator = {
+    id: creatorToMessage?.id,
+    name: creatorToMessage?.name,
+    avatar,
+    isOnline: true,
+  };
+
+  // ==================== HOOKS ====================
+  const messageThreadHook = useMessageThread(creator.id);
+
   return (
     <div className="flex bg-white w-full h-[calc(100vh-48px)]">
       {/* Left Column - Shortlists Sidebar */}
@@ -47,19 +63,25 @@ function BrandDiscover() {
         setSelectedShortlist={setSelectedShortlist}
         handleShortlistSelect={handleShortlistSelect}
         setIsNewShortlistDialogOpen={setIsNewShortlistDialogOpen}
+        handleEditShortlist={handleEditShortlist}
+        handleDeleteShortlist={handleDeleteShortlist}
+        handleCreateShortlist={handleCreateShortlist}
+        newShortlistName={newShortlistName}
+        setNewShortlistName={setNewShortlistName}
+        shortlistState={shortlistState}
       />
 
       {/* Center Column - Discovery Feed or Shortlist View */}
       <DiscoverCreators
-        sortOptions={sortOptions}
         selectedShortlist={selectedShortlist}
         setSelectedShortlist={setSelectedShortlist}
-        mockNicheCategories={mockNicheCategories}
         handleCreatorPreview={handleCreatorPreview}
         handleSaveToShortlist={handleSaveToShortlist}
         handleMessageCreator={handleMessageCreator}
         getSortedCreators={getSortedCreators}
         handleRemoveFromShortlist={handleRemoveFromShortlist}
+        handleInviteToApply={() => {}}
+        userCampaigns={[]}
       />
 
       {/* New Shortlist Dialog */}
@@ -118,35 +140,11 @@ function BrandDiscover() {
         </div>
       </Modal>
 
-      {/* Message Creator Dialog */}
-      <Modal
-        title={`Message to ${creatorToMessage?.name}`}
-        show={messageDialogOpen}
+      <MessageThreadModal
+        isOpen={messageDialogOpen}
         onClose={() => setMessageDialogOpen(false)}
-      >
-        {creatorToMessage && (
-          <>
-            <TextArea
-              label="Your Message"
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-            />
-            <div className="w-full flex justify-end gap-3">
-              <CustomButton
-                text="Cancel"
-                className="btn-cancel"
-                onClick={() => setMessageDialogOpen(false)}
-              />
-
-              <CustomButton
-                text="Send Message"
-                className="btn-primary"
-                onClick={() => handleSendMessage()}
-              />
-            </div>
-          </>
-        )}
-      </Modal>
+        creator={creator}
+      />
     </div>
   );
 }

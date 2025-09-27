@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { isCreatorMode } from "@/common/utils/users.util";
 
 function useCampaign() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
   const [activeTab, setActiveTab] = useState(1);
 
   const mainTabs = useMemo(() => {
@@ -14,12 +13,12 @@ function useCampaign() {
       { id: 5, label: "Rejected" },
     ];
 
-    if (isCreatorMode) {
+    if (isCreatorMode()) {
       return tabs.filter((tab) => tab.label !== "Rejected");
     }
 
     return tabs;
-  }, [isCreatorMode]);
+  }, [isCreatorMode()]);
 
   return {
     activeTab,

@@ -1,121 +1,21 @@
-import { useState, useMemo } from "react";
-
-const campaigns = [
-  {
-    id: 1,
-    brandLogo: "🏨",
-    brandName: "Luxury Hotels Co.",
-    title: "Summer Staycation Campaign",
-    type: "Sponsored Post",
-    compensation: "Paid",
-    compensationAmount: "$450",
-    compensationValue: 450, // For sorting
-    deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
-    niche: "Travel",
-    location: "US Creator Mandatory",
-    locationMandatory: true,
-    locationPreferred: false,
-    productImage: "🏖️",
-    language: "English Preferred",
-    followerMin: "5K Combined",
-    description:
-      "Create engaging content showcasing our luxury hotel experience during summer season.",
-    brief:
-      "Create engaging content showcasing our luxury hotel experience during summer season. Focus on amenities, views, and unique experiences.",
-    postedDate: new Date("2024-01-15"),
-  },
-  {
-    id: 2,
-    brandLogo: "🍕",
-    brandName: "Taste Buds Restaurant",
-    title: "New Menu Launch",
-    type: "UGC",
-    compensation: "Gifted",
-    compensationAmount: "Free Meal ($75 value)",
-    compensationValue: 75,
-    deliverables: ["3 TikTok videos", "2 Instagram posts"],
-    niche: "Food",
-    location: "New York, NY",
-    locationMandatory: true,
-    locationPreferred: false,
-    productImage: "🍽️",
-    language: "English Required",
-    followerMin: "3K Combined",
-    description:
-      "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
-    brief:
-      "Showcase our new seasonal menu items with authentic reactions and honest reviews. Focus on taste, presentation, and dining experience.",
-    postedDate: new Date("2024-01-16"),
-  },
-  {
-    id: 3,
-    brandLogo: "✈️",
-    brandName: "Sky Airlines",
-    title: "Business Class Experience",
-    type: "Affiliate",
-    compensation: "Commission",
-    compensationAmount: "15% Commission",
-    compensationValue: 1000, // Estimated value for sorting
-    deliverables: ["1 YouTube video", "2 Instagram posts", "3 Instagram Stories"],
-    niche: "Travel",
-    location: "Remote",
-    locationMandatory: false,
-    locationPreferred: false,
-    productImage: "🛫",
-    language: "English Preferred",
-    followerMin: "10K Combined",
-    description: "Create content highlighting our premium business class experience.",
-    brief:
-      "Create content highlighting our premium business class experience. Include booking process, onboard amenities, and overall journey.",
-    postedDate: new Date("2024-01-17"),
-  },
-  {
-    id: 4,
-    brandLogo: "💄",
-    brandName: "Beauty Co.",
-    title: "Skincare Routine Challenge",
-    type: "Gifted",
-    compensation: "Product",
-    compensationAmount: "Product Bundle ($120 value)",
-    compensationValue: 120,
-    deliverables: ["5 TikTok videos", "3 Instagram posts", "Daily Stories"],
-    niche: "Beauty",
-    location: "Canada Preferred",
-    locationMandatory: false,
-    locationPreferred: true,
-    productImage: "🧴",
-    language: "English/French",
-    followerMin: "8K Combined",
-    description: "Document your 30-day skincare journey using our complete product line.",
-    brief:
-      "Document your 30-day skincare journey using our complete product line. Show before/after results and daily routine.",
-    postedDate: new Date("2024-01-18"),
-  },
-  {
-    id: 5,
-    brandLogo: "🎮",
-    brandName: "GameTech Studios",
-    title: "New Game Launch Campaign",
-    type: "Sponsored Post",
-    compensation: "Paid",
-    compensationAmount: "$800",
-    compensationValue: 800,
-    deliverables: ["3 YouTube videos", "5 TikTok videos", "10 Instagram Stories"],
-    niche: "Gaming",
-    location: "Remote",
-    locationMandatory: false,
-    locationPreferred: false,
-    productImage: "🎯",
-    language: "English Required",
-    followerMin: "15K Combined",
-    description: "Showcase our new mobile game with gameplay footage and honest reviews.",
-    brief:
-      "Showcase our new mobile game with gameplay footage and honest reviews. Focus on unique features and gameplay mechanics.",
-    postedDate: new Date("2024-01-19"),
-  },
-];
+import { useState, useMemo, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  getAllCampaigns,
+  filterCampaigns,
+  resetFilteredCampaigns,
+  applyToCampaign,
+} from "@/provider/features/campaigns/campaigns.slice";
 
 export function useCampaignFeed() {
+  const dispatch = useDispatch();
+  const { data: allCampaignsData, isLoading: allCampaignsLoading } = useSelector(
+    (state) => state.campaigns.getAllCampaigns
+  );
+  const { data: filteredCampaignsData, isLoading: filteredCampaignsLoading } = useSelector(
+    (state) => state.campaigns.filterCampaigns
+  );
+
   const [showFullBrief, setShowFullBrief] = useState(false);
   const [briefCampaign, setBriefCampaign] = useState(null);
   const [showApplication, setShowApplication] = useState(false);
@@ -123,21 +23,190 @@ export function useCampaignFeed() {
   const [applicationPitch, setApplicationPitch] = useState("");
   const [sortBy, setSortBy] = useState("latest");
 
-  // Sort campaigns based on selected criteria
-  const sortedCampaigns = useMemo(() => {
-    const sorted = [...campaigns];
+  const [selectedNiche, setSelectedNiche] = useState("all");
 
-    switch (sortBy) {
-      case "latest":
-        return sorted.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+  // Get apply to campaign state
+  const {
+    isLoading: isApplying,
+    isSuccess: applySuccess,
+    isError: applyError,
+  } = useSelector((state) => state.campaigns.applyToCampaign);
 
-      case "highest-value":
-        return sorted.sort((a, b) => b.compensationValue - a.compensationValue);
+  // Determine which data to use (filtered or all campaigns)
+  const campaignsData = filteredCampaignsData?.data || allCampaignsData?.data;
+  const isLoading = filteredCampaignsLoading || allCampaignsLoading;
+  const isFiltering = filteredCampaignsLoading;
 
-      default:
-        return sorted;
+  // Handle success/error notifications for apply to campaign
+  useEffect(() => {
+    if (applySuccess) {
+      // Success notification is handled by the API interceptor
+      console.log("Application submitted successfully!");
     }
-  }, [sortBy]);
+  }, [applySuccess]);
+
+  // Handle niche filter change
+  const handleNicheChange = (niche) => {
+    // Extract value if niche is an object (from Niche component)
+    const nicheValue = typeof niche === "object" ? niche.value : niche;
+
+    setSelectedNiche(nicheValue);
+
+    if (nicheValue === "all") {
+      // Reset to show all campaigns without filters
+      // First clear the filtered campaigns state
+      dispatch(resetFilteredCampaigns());
+      // Then load all campaigns
+      dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
+    } else {
+      // Apply niche filter
+      const filters = {
+        page: 1,
+        limit: 10,
+        niches: nicheValue,
+        sort: sortBy, // Include sort parameter
+      };
+      dispatch(filterCampaigns(filters));
+    }
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSortBy) => {
+    // Extract value if newSortBy is an object (from SimpleSelect)
+    const sortValue = typeof newSortBy === "object" ? newSortBy.value : newSortBy;
+
+    setSortBy(sortValue);
+
+    // Always use filterCampaigns to ensure sort parameter is sent
+    const currentFilters = {
+      page: 1,
+      limit: 10,
+      niches: selectedNiche !== "all" ? selectedNiche : undefined,
+      sort: sortValue,
+    };
+    dispatch(filterCampaigns(currentFilters));
+  };
+
+  // Clear all filters and reset to default state
+  const clearAllFilters = () => {
+    setSelectedNiche("all");
+    setSortBy("latest");
+    // Reset to show all campaigns without filters
+    // First clear the filtered campaigns state
+    dispatch(resetFilteredCampaigns());
+    // Then load all campaigns
+    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
+  };
+
+  // Transform backend campaign data to frontend format
+  const transformedCampaigns = useMemo(() => {
+    if (!campaignsData?.campaigns) return [];
+
+    return campaignsData.campaigns.map((campaign) => ({
+      id: campaign.id,
+      brandLogo: campaign.created_by?.profile_image || "🏢",
+      brandName:
+        campaign.created_by?.company_name || campaign.created_by?.first_name || "Unknown Brand",
+      title: campaign.campaign_title,
+      type: campaign.campaign_type || "SPONSORED_POST",
+      compensation: getCompensationType(campaign),
+      compensationAmount: getCompensationAmount(campaign),
+      compensationValue: getCompensationValue(campaign),
+      deliverables: campaign.deliverables || [],
+      niche: campaign.niches,
+      location: campaign.remote ? "Remote" : "In-Person",
+      locationMandatory: campaign.in_person_required,
+      locationPreferred:
+        !campaign.in_person_required && (campaign.creator_country || campaign.creator_city),
+      productImage: campaign.campaign_image || "📦",
+      language: campaign.creator_language || "English",
+      followerMin: `${campaign.min_combined_followers || 0} Combined`,
+      description:
+        campaign.short_description || campaign.long_description || "No description available",
+      brief: campaign.long_description || campaign.short_description || "No brief available",
+      postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
+      // Backend fields for filtering
+      campaign_type: campaign.campaign_type,
+      compensation_type: getCompensationTypeKey(campaign),
+      required_platforms: campaign.required_platforms || [],
+      min_combined_followers: campaign.min_combined_followers,
+      remote: campaign.remote,
+      creator_country: campaign.creator_country,
+      creator_city: campaign.creator_city,
+      niches: campaign.niches || [],
+      // Additional fields for brief modal
+      creator_gender: campaign.creator_gender,
+      min_age: campaign.min_age,
+      max_age: campaign.max_age,
+      campaign_deadline: campaign.campaign_deadline,
+      budget: campaign.budget,
+      suggested_min: campaign.suggested_min,
+      suggested_max: campaign.suggested_max,
+      creator_fixed_price: campaign.creator_fixed_price,
+      product_value: campaign.product_value,
+      commission_percentage: campaign.commission_percentage,
+      platform_minimums: campaign.platform_minimums,
+      hashtags: campaign.hashtags,
+      do_donts: campaign.do_donts,
+      style_guide: campaign.style_guide,
+      questions: campaign.questions,
+    }));
+  }, [campaignsData]);
+
+  // Helper functions for compensation
+  function getCompensationType(campaign) {
+    if (campaign.creator_fixed_price) return "Paid";
+    if (campaign.commission_percentage) return "Commission";
+    if (campaign.product_value) return "Gifted";
+    return "Paid";
+  }
+
+  function getCompensationTypeKey(campaign) {
+    if (campaign.creator_fixed_price) return "fixed";
+    if (campaign.commission_percentage) return "commission";
+    if (campaign.product_value) return "gifted";
+    return "fixed";
+  }
+
+  function getCompensationAmount(campaign) {
+    if (campaign.creator_fixed_price) {
+      return `$${campaign.creator_fixed_price}`;
+    }
+    if (campaign.commission_percentage) {
+      return `${campaign.commission_percentage}% Commission`;
+    }
+    if (campaign.product_value) {
+      return `Product ($${campaign.product_value} value)`;
+    }
+    if (campaign.suggested_min && campaign.suggested_max) {
+      return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
+    }
+    return "$0";
+  }
+
+  function getCompensationValue(campaign) {
+    if (campaign.creator_fixed_price) return campaign.creator_fixed_price;
+    if (campaign.suggested_max) return campaign.suggested_max;
+    if (campaign.product_value) return campaign.product_value;
+    return 0;
+  }
+
+  // Use campaigns directly since backend handles sorting
+  const sortedCampaigns = transformedCampaigns;
+
+  // Load campaigns when component mounts
+  useEffect(() => {
+    if (!campaignsData) {
+      // Use filterCampaigns to ensure sort parameter is always included
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          sort: sortBy,
+        })
+      );
+    }
+  }, [dispatch, campaignsData, sortBy]);
 
   const handleOpenBrief = (campaign) => {
     setBriefCampaign(campaign);
@@ -160,11 +229,42 @@ export function useCampaignFeed() {
     setApplicationPitch("");
   };
 
+  const handleApply = async () => {
+    if (!applicationCampaign || !applicationPitch.trim()) {
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        applyToCampaign({
+          campaignId: applicationCampaign.id,
+          pitch: applicationPitch.trim(),
+        })
+      ).unwrap();
+
+      // Close modal and reset on success
+      closeApplication();
+
+      // Show success message (the API will handle the notification)
+      console.log("Successfully applied to campaign:", result);
+    } catch (error) {
+      console.error("Failed to apply to campaign:", error);
+      // Error notification is handled by the API interceptor
+    }
+  };
+
   return {
-    campaigns,
+    campaigns: transformedCampaigns,
+    sortedCampaigns,
+    isLoading,
+    isFiltering,
     sortBy,
     setSortBy,
-    sortedCampaigns,
+    handleSortChange,
+    selectedNiche,
+    setSelectedNiche,
+    handleNicheChange,
+    clearAllFilters,
     showFullBrief,
     briefCampaign,
     showApplication,
@@ -175,5 +275,11 @@ export function useCampaignFeed() {
     handleOpenApplication,
     closeBrief,
     closeApplication,
+    handleApply,
+    isApplying,
+    applySuccess,
+    applyError,
+    dispatch,
+    filteredCampaignsData,
   };
 }

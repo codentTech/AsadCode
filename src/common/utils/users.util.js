@@ -1,5 +1,6 @@
 "use client";
 
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import ROLES from "../constants/role.constant";
 
 /**
@@ -7,7 +8,8 @@ import ROLES from "../constants/role.constant";
  * @returns string | undefined
  */
 
-export const getUser = () => {
+export const getUser = (user) => {
+  user && localStorage.setItem("user", JSON.stringify(user));
   if (typeof window === "object" && window?.localStorage?.getItem("user")) {
     return JSON.parse(localStorage.getItem("user"));
   }
@@ -21,11 +23,21 @@ export const getOnboardingEmail = () => {
   return undefined;
 };
 
+export const isCreatorMode = () => {
+  const user = getUser();
+  return user?.role === ROLES.CREATOR;
+};
+
+export const isOnboardingCompleted = (user) => {
+  return user?.onboarding_step == ONBOARDING_STEPS.COMPLETED;
+};
+
 /**
  * Remove the user from local storage
  */
 export const removeUser = () => {
   if (typeof window === "object" && window.localStorage) {
+    localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("isOtpVerify");
     localStorage.removeItem("userId");
@@ -88,4 +100,8 @@ export const getEmailForURL = (email) => {
   // comment condition for production
   if (email?.includes("+")) return email.replace("+", "%2B");
   return email;
+};
+
+export const logout = () => {
+  localStorage.clear();
 };
