@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import shortlistService from "./shortlist.service";
 
+// Helper function to extract serializable error information
+const getSerializableError = (error, defaultMessage) => {
+  const errorMessage = error.response?.data?.message || error.message || defaultMessage;
+  return { message: errorMessage };
+};
+
 const generalState = {
   data: null,
   isError: false,
@@ -30,7 +36,7 @@ export const createShortlist = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create shortlist"));
     }
   }
 );
@@ -46,7 +52,7 @@ export const getAllShortlists = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch shortlists"));
     }
   }
 );
@@ -62,7 +68,7 @@ export const getShortlistById = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch shortlist"));
     }
   }
 );
@@ -78,7 +84,7 @@ export const updateShortlist = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to update shortlist"));
     }
   }
 );
@@ -94,7 +100,7 @@ export const deleteShortlist = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to delete shortlist"));
     }
   }
 );
@@ -110,7 +116,9 @@ export const addUserToShortlist = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to add user to shortlist")
+      );
     }
   }
 );
@@ -126,7 +134,9 @@ export const removeUserFromShortlist = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to remove user from shortlist")
+      );
     }
   }
 );
@@ -185,7 +195,7 @@ export const shortlistSlice = createSlice({
       .addCase(createShortlist.rejected, (state, action) => {
         state.createShortlist.isLoading = false;
         state.createShortlist.isError = true;
-        state.createShortlist.message = action.payload;
+        state.createShortlist.message = action.payload?.message || "Failed to create shortlist";
       })
       // Get all shortlists
       .addCase(getAllShortlists.pending, (state) => {
@@ -204,7 +214,7 @@ export const shortlistSlice = createSlice({
       .addCase(getAllShortlists.rejected, (state, action) => {
         state.getAllShortlists.isLoading = false;
         state.getAllShortlists.isError = true;
-        state.getAllShortlists.message = action.payload;
+        state.getAllShortlists.message = action.payload?.message || "Failed to fetch shortlists";
       })
       // Get shortlist by ID
       .addCase(getShortlistById.pending, (state) => {
@@ -218,7 +228,7 @@ export const shortlistSlice = createSlice({
       .addCase(getShortlistById.rejected, (state, action) => {
         state.getShortlistById.isLoading = false;
         state.getShortlistById.isError = true;
-        state.getShortlistById.message = action.payload;
+        state.getShortlistById.message = action.payload?.message || "Failed to fetch shortlist";
       })
       // Update shortlist
       .addCase(updateShortlist.pending, (state) => {
@@ -242,7 +252,7 @@ export const shortlistSlice = createSlice({
       .addCase(updateShortlist.rejected, (state, action) => {
         state.updateShortlist.isLoading = false;
         state.updateShortlist.isError = true;
-        state.updateShortlist.message = action.payload;
+        state.updateShortlist.message = action.payload?.message || "Failed to update shortlist";
       })
       // Delete shortlist
       .addCase(deleteShortlist.pending, (state) => {
@@ -262,7 +272,7 @@ export const shortlistSlice = createSlice({
       .addCase(deleteShortlist.rejected, (state, action) => {
         state.deleteShortlist.isLoading = false;
         state.deleteShortlist.isError = true;
-        state.deleteShortlist.message = action.payload;
+        state.deleteShortlist.message = action.payload?.message || "Failed to delete shortlist";
       })
       // Add user to shortlist
       .addCase(addUserToShortlist.pending, (state) => {
@@ -289,7 +299,8 @@ export const shortlistSlice = createSlice({
       .addCase(addUserToShortlist.rejected, (state, action) => {
         state.addUserToShortlist.isLoading = false;
         state.addUserToShortlist.isError = true;
-        state.addUserToShortlist.message = action.payload;
+        state.addUserToShortlist.message =
+          action.payload?.message || "Failed to add user to shortlist";
       })
       // Remove user from shortlist
       .addCase(removeUserFromShortlist.pending, (state) => {
@@ -316,7 +327,8 @@ export const shortlistSlice = createSlice({
       .addCase(removeUserFromShortlist.rejected, (state, action) => {
         state.removeUserFromShortlist.isLoading = false;
         state.removeUserFromShortlist.isError = true;
-        state.removeUserFromShortlist.message = action.payload;
+        state.removeUserFromShortlist.message =
+          action.payload?.message || "Failed to remove user from shortlist";
       });
   },
 });

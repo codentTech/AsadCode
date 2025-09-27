@@ -165,7 +165,9 @@ export default function CampaignOverview({ isCompleted = false, onCampaignSelect
           <hr />
 
           <div className="mb-1">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Audience Demographics</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              {isMultiCreator ? "Combined Audience Demographics" : "Audience Demographics"}
+            </h3>
             <AudienceDemographics className="flex flex-col" />
           </div>
 

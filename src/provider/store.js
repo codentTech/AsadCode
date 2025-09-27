@@ -14,6 +14,10 @@ import shortlistReducer from "./features/shortlist/shortlist.slice";
 import campaignsReducer from "./features/campaigns/campaigns.slice";
 import pitchesReducer from "./features/pitches/pitches.slice";
 import campaignTasksReducer from "./features/campaign-tasks/campaign-tasks.slice";
+import calendarTasksReducer from "./features/calendar-tasks/calendar-tasks.slice";
+import calendarCategoriesReducer from "./features/calendar-categories/calendar-categories.slice";
+import contentPlannerReducer from "./features/content-planner/content-planner.slice";
+import monthlyGoalReducer from "./features/monthly-goals/monthly-goal.slice";
 
 const persistConfig = {
   key: "root",
@@ -34,6 +38,10 @@ const rootReducer = combineReducers({
   pitches: pitchesReducer,
   campaignNotes: campaignNotesReducer,
   campaignTasks: campaignTasksReducer,
+  calendarTasks: calendarTasksReducer,
+  calendarCategories: calendarCategoriesReducer,
+  contentPlanner: contentPlannerReducer,
+  monthlyGoals: monthlyGoalReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

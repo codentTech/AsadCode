@@ -1,12 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loader from "@/common/components/loader/loader.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import NoResultFound from "@/common/components/no-result-found/no-result-found";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
-import { CheckCircle, CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
+import { CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
 import React from "react";
-import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import BrandTimelineSteps from "../brand-timeline/brand-timeline";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedCreator }) => {
@@ -86,6 +87,15 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
     <div className="flex flex-col items-center justify-center py-12 text-center px-3">
       <Loader loading={true} />
       <p className="text-sm text-gray-500 mt-3">Loading creators...</p>
+    </div>
+  );
+
+  const renderNoCreatorFound = () => (
+    <div className="flex flex-col items-center justify-center py-16 text-center px-3">
+      <NoResultFound
+        message="No Creator Found"
+        subMessage="No creators have applied to this campaign yet."
+      />
     </div>
   );
 
@@ -395,7 +405,10 @@ const DeliverablesProgress = ({ isCompleted = false, selectedCampaign, selectedC
       {!selectedCampaign && renderCampaignSelectionMessage()}
 
       {/* Creator Selection Message */}
-      {selectedCampaign && !selectedCreator && renderCreatorSelectionMessage()}
+      {/* {selectedCampaign && !selectedCreator && renderCreatorSelectionMessage()} */}
+
+      {/* No Creator Found Message */}
+      {selectedCampaign && selectedCreator === null && renderNoCreatorFound()}
 
       {/* Main Content - Only show when both campaign and creator are selected */}
       {selectedCampaign && selectedCreator && (

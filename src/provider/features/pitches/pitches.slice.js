@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import pitchesService from "./pitches.service";
 
+// Helper function to extract serializable error information
+const getSerializableError = (error, defaultMessage) => {
+  const errorMessage = error.response?.data?.message || error.message || defaultMessage;
+  return { message: errorMessage };
+};
+
 const generalState = {
   isLoading: false,
   isSuccess: false,
@@ -24,7 +30,7 @@ export const createPitch = createAsyncThunk("pitches/createPitch", async (payloa
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create pitch"));
   }
 });
 
@@ -35,7 +41,7 @@ export const getAllPitches = createAsyncThunk("pitches/getAllPitches", async (_,
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch pitches"));
   }
 });
 
@@ -46,7 +52,7 @@ export const getPitchById = createAsyncThunk("pitches/getPitchById", async (pitc
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch pitch"));
   }
 });
 
@@ -59,7 +65,7 @@ export const updatePitch = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to update pitch"));
     }
   }
 );
@@ -71,7 +77,7 @@ export const deletePitch = createAsyncThunk("pitches/deletePitch", async (pitchI
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to delete pitch"));
   }
 });
 

@@ -10,6 +10,7 @@ import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
 import React from "react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import NoResultFound from "@/common/components/no-result-found/no-result-found";
 
 const CreatorSpendAnalysis = ({
   isCompleted = false,
@@ -174,15 +175,10 @@ const CreatorSpendAnalysis = ({
           {/* No Creators Message */}
           {creatorsSuccess && creators.length === 0 && selectedCampaign && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Users className="w-16 h-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                {isCompleted ? "No Creators Found" : "No Creators Applied"}
-              </h3>
-              <p className="text-gray-500 max-w-md">
-                {isCompleted
-                  ? "This completed campaign doesn't have any creators associated with it."
-                  : "No creators have applied to this campaign yet. Share your campaign to attract creators."}
-              </p>
+              <NoResultFound
+                message="No Creators Found"
+                subMessage="Try adjusting filters or selecting a different campaign."
+              />
             </div>
           )}
 
@@ -391,7 +387,11 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
-      <CalendarModal show={showBrandCalendar} onClose={() => setShowBrandCalendar(false)} />
+      <CalendarModal
+        show={showBrandCalendar}
+        onClose={() => setShowBrandCalendar(false)}
+        selectedCampaign={selectedCampaign}
+      />
       <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
     </div>
   );

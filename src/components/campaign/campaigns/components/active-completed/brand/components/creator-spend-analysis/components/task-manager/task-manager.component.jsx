@@ -2,79 +2,34 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import {
-  createTask,
-  getAllTasks,
-  updateTask,
-} from "@/provider/features/campaign-tasks/campaign-tasks.slice";
-import { getAllCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { AddCircle } from "@mui/icons-material";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import useTaskManager from "./use-task-manager.hook";
 
 const TaskManagerModal = ({ show, onClose }) => {
-  const dispatch = useDispatch();
   const {
-    tasks,
-    createTask: createTaskState,
-    updateTask: updateTaskState,
-    deleteTask: deleteTaskState,
-    getAllTasks: getAllTasksState,
-  } = useSelector((state) => state.campaignTasks);
-  const { campaigns = [] } = useSelector((state) => state.campaigns);
+    // State
+    selectedCampaign,
+    showAddTask,
+    newTaskText,
+    newTaskCampaign,
+    filteredTasks,
+    campaignOptions,
+    campaignLookup,
 
-  const [selectedCampaign, setSelectedCampaign] = useState("all");
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [newTaskText, setNewTaskText] = useState("");
-  const [newTaskCampaign, setNewTaskCampaign] = useState("");
+    // Redux states
+    createTaskState,
+    updateTaskState,
+    getAllTasksState,
 
-  // Load data when modal opens
-  useEffect(() => {
-    if (show) {
-      dispatch(getAllTasks());
-      dispatch(getAllCampaigns());
-    }
-  }, [show, dispatch]);
-
-  // Transform campaigns for dropdown
-  const campaignOptions = [
-    { label: "All Campaigns", value: "all" },
-    ...(campaigns || []).map((campaign) => ({
-      label: campaign.campaign_title,
-      value: campaign.id,
-    })),
-  ];
-
-  // Filter tasks based on selected campaign
-  const filteredTasks = tasks.filter(
-    (task) => selectedCampaign === "all" || task.campaign_id === selectedCampaign
-  );
-
-  // Handle task action - mark as complete
-  const handleTaskAction = async (task) => {
-    await dispatch(
-      updateTask({
-        taskId: task.id,
-        updateData: { status: "complete" },
-      })
-    ).unwrap();
-  };
-
-  // Add custom task
-  const addCustomTask = async () => {
-    if (newTaskText.trim() && newTaskCampaign) {
-      await dispatch(
-        createTask({
-          task_name: newTaskText,
-          campaign_id: newTaskCampaign,
-        })
-      ).unwrap();
-
-      setNewTaskText("");
-      setNewTaskCampaign("");
-      setShowAddTask(false);
-    }
-  };
+    // Actions
+    handleTaskAction,
+    addCustomTask,
+    handleCampaignSelect,
+    handleNewTaskCampaignSelect,
+    handleNewTaskTextChange,
+    toggleAddTask,
+    cancelAddTask,
+  } = useTaskManager(show);
 
   return (
     <Modal show={show} title="Task Manager" onClose={onClose} size="lg">
@@ -94,11 +49,11 @@ const TaskManagerModal = ({ show, onClose }) => {
                 placeHolder="All Campaigns"
                 options={campaignOptions}
                 value={selectedCampaign}
-                onChange={({ value }) => setSelectedCampaign(value)}
+                onChange={handleCampaignSelect}
               />
             </div>
 
-            <button className="bg-gray-200 p-2 rounded-full" onClick={() => setShowAddTask(true)}>
+            <button className="bg-gray-200 p-2 rounded-full" onClick={toggleAddTask}>
               <AddCircle className="text-primary" />
             </button>
           </div>
@@ -108,18 +63,25 @@ const TaskManagerModal = ({ show, onClose }) => {
         {showAddTask && (
           <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="space-y-2">
+              {/* Error Message */}
+              {createTaskState.isError && createTaskState.message && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  {createTaskState.message}
+                </div>
+              )}
+
               <div className="flex justify-between gap-6">
                 <CustomInput
                   placeholder="What needs to be done?"
                   value={newTaskText}
-                  onChange={(e) => setNewTaskText(e.target.value)}
+                  onChange={handleNewTaskTextChange}
                   className="!bg-white"
                 />
                 <SimpleSelect
                   placeHolder="Select Campaign"
                   options={campaignOptions.filter((c) => c.value !== "all")}
                   value={newTaskCampaign}
-                  onChange={({ value }) => setNewTaskCampaign(value)}
+                  onChange={handleNewTaskCampaignSelect}
                 />
               </div>
               <div className="flex justify-end gap-2">
@@ -131,11 +93,7 @@ const TaskManagerModal = ({ show, onClose }) => {
                 />
                 <CustomButton
                   text="Cancel"
-                  onClick={() => {
-                    setShowAddTask(false);
-                    setNewTaskText("");
-                    setNewTaskCampaign("");
-                  }}
+                  onClick={cancelAddTask}
                   className="btn-outline text-sm px-3 py-1"
                 />
               </div>
@@ -172,7 +130,9 @@ const TaskManagerModal = ({ show, onClose }) => {
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs font-medium text-primary truncate">
-                          {task.campaign?.campaign_title || "Unknown Campaign"}
+                          {task.campaign?.campaign_title ||
+                            campaignLookup[task.campaign?.id] ||
+                            "Unknown Campaign"}
                         </span>
                         <span className="text-xs text-gray-500 flex-shrink-0">
                           {new Date(task.created_at).toLocaleDateString()}
@@ -196,14 +156,10 @@ const TaskManagerModal = ({ show, onClose }) => {
                         text="Mark Complete"
                         onClick={() => handleTaskAction(task)}
                         disabled={updateTaskState.isLoading}
-                        className="btn-primary text-xs px-3 py-1"
+                        className="btn-primary"
                       />
                     ) : (
-                      <CustomButton
-                        text="Completed"
-                        disabled
-                        className="btn-outline text-xs px-3 py-1 bg-green-50 text-green-700 border-green-200"
-                      />
+                      <CustomButton text="Completed" disabled className="btn-outline" />
                     )}
                   </div>
                 </div>

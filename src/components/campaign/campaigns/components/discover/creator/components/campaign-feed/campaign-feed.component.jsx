@@ -237,8 +237,8 @@ function CampaignFeed() {
                         <span className="flex items-center gap-2 text-gray-600">
                           <span className="font-medium">Niche:</span>{" "}
                           {Array.isArray(campaign.niche)
-                            ? campaign.niche.map((n) => `#${n}`).join(", ")
-                            : `#${campaign.niche}`}
+                            ? campaign.niche.map((n) => `${n}`).join(", ")
+                            : `${campaign.niche}`}
                         </span>
                         {(campaign.locationMandatory || campaign.locationPreferred) && (
                           <span className="flex items-center gap-2 text-gray-600">
@@ -427,7 +427,7 @@ function CampaignFeed() {
                         key={index}
                         className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-md"
                       >
-                        #{niche}
+                        {niche}
                       </span>
                     ))}
                   </div>

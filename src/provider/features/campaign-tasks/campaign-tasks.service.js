@@ -2,7 +2,10 @@ import api from "@/common/utils/api";
 
 // Create a new task
 const createTask = async (taskData) => {
-  const response = await api().post("/campaign-tasks", taskData);
+  const response = await api().post(`/campaign-tasks/campaign/${taskData.campaign_id}`, {
+    task_name: taskData.task_name,
+    status: taskData.status || "review",
+  });
   return response.data;
 };
 
