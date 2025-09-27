@@ -43,14 +43,27 @@ const CustomStepper = ({
   colors = {},
   showLabels = true,
   children,
+  // New props for validation and submission
+  onNext = null,
+  onSave = null,
+  isLoading = false,
+  canProceed = true,
 }) => {
-  const { nextStep, prevStep, editCampaign } = useCustomStepper({
+  const {
+    nextStep: defaultNextStep,
+    prevStep,
+    editCampaign: defaultEditCampaign,
+  } = useCustomStepper({
     steps,
     activeStep,
     setActiveStep,
     showPreview,
     setShowPreview,
   });
+
+  // Use custom handlers if provided, otherwise use defaults
+  const handleNext = onNext || defaultNextStep;
+  const handleSave = onSave || defaultEditCampaign;
   // Merge default colors with custom colors
   const defaultColors = {
     active: "#3b82f6", // blue-500
@@ -125,11 +138,7 @@ const CustomStepper = ({
                     : "bg-white border-gray-300 text-gray-400"
               }`}
             >
-              {index < activeStep ? (
-                <CheckIcon className="h-4 w-4" />
-              ) : (
-                index + 1
-              )}
+              {index < activeStep ? <CheckIcon className="h-4 w-4" /> : index + 1}
             </div>
 
             {/* Label */}
@@ -175,11 +184,7 @@ const CustomStepper = ({
                     : "bg-white border-gray-300 text-gray-400"
               }`}
             >
-              {index < activeStep ? (
-                <CheckIcon className="h-4 w-4" />
-              ) : (
-                index + 1
-              )}
+              {index < activeStep ? <CheckIcon className="h-4 w-4" /> : index + 1}
             </div>
 
             {/* Label and Description */}
@@ -197,9 +202,7 @@ const CustomStepper = ({
                   {step}
                 </span>
                 {step.description && (
-                  <p className="text-xs text-gray-500 mt-1 max-w-[250px]">
-                    {step}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1 max-w-[250px]">{step}</p>
                 )}
               </div>
             )}
@@ -210,29 +213,32 @@ const CustomStepper = ({
   );
 
   return (
-    <div className="flex flex-col justify-center">
-      {orientation === "vertical"
-        ? renderVerticalStepper()
-        : renderHorizontalStepper()}
+    <div className="flex flex-col h-full">
+      {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
 
-      {children}
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto">{children}</div>
 
-      {/* Navigation */}
-      <div className="w-[95%] absolute bottom-0 p-4 border-t flex justify-between">
+      {/* Sticky navigation at bottom */}
+      <div className="sticky bottom-0 bg-white p-4 border-t flex justify-between mt-auto shadow-lg">
         <CustomButton
           text="Previous"
           onClick={prevStep}
           disabled={activeStep === 0}
-          className={`flex items-center py-2 px-4 rounded-md btn-outline`}
+          className="flex items-center py-2 px-4 rounded-md btn-outline"
           startIcon={<ArrowBack className="h-4 w-4 mr-1" />}
         />
 
         <CustomButton
-          text={activeStep < steps.length - 1 ? "Next" : "Save"}
-          onClick={activeStep < steps.length - 1 ? nextStep : editCampaign}
-          className="btn-primary"
+          text={
+            isLoading ? "Processing..." : activeStep < steps.length - 1 ? "Next" : "Save Campaign"
+          }
+          onClick={activeStep < steps.length - 1 ? handleNext : handleSave}
+          disabled={!canProceed || isLoading}
+          className={`btn-primary ${!canProceed || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          startIcon={isLoading ? <SaveOutlined className="h-4 w-4 animate-spin" /> : null}
           endIcon={
-            activeStep < steps.length - 1 ? (
+            !isLoading && activeStep < steps.length - 1 ? (
               <ArrowForward className="h-4 w-4 ml-1" />
             ) : null
           }

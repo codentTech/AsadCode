@@ -11,11 +11,18 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       competitorNote: "No commission free options",
     },
     {
-      name: "8.5% Commission",
+      name: "Transparent Pricing",
       cleercut: true,
       competitor: false,
-      cleerCutNote: "Transparent, lower fees",
-      competitorNote: "15–30% commission or high monthly subscription",
+      cleerCutNote: "9.9%(<5k) / 7.9%(<10k) / 5.9%(>10k) service fee by spend tier",
+      competitorNote: "15–30% commission or inflated subscription fees",
+    },
+    {
+      name: "Flat Monthly Plans (no service fee)",
+      cleercut: true,
+      competitor: false,
+      cleerCutNote: "$525/month (up to $10K spend) $699/month (up to $20K spend)",
+      competitorNote: "$2,000–$5,000+/month (annual contracts required)",
     },
     {
       name: "All-in-One: CRM, Contracts & Payments",
@@ -91,18 +98,11 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
 
   const creatorFeatures = [
     {
-      name: "3 Commission-Free Collaborations",
+      name: "0% Commission",
       cleercut: true,
       competitor: false,
-      cleerCutNote: "Try the platform before committing",
-      competitorNote: "No commission free options",
-    },
-    {
-      name: "4.5% Commission",
-      cleercut: true,
-      competitor: false,
-      cleerCutNote: "Transparent, lower fees",
-      competitorNote: "10–30% on other platforms + agencies",
+      cleerCutNote: "Only the 3.2% payment processing fee deducted",
+      competitorNote: "10–30% commission on other platforms + agencies",
     },
     {
       name: "All-in-One Dashboard",
@@ -115,8 +115,7 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       name: "Smart Inbox",
       cleercut: true,
       competitor: "warning",
-      cleerCutNote:
-        "Messages grouped by pending, active, and completed campaigns",
+      cleerCutNote: "Messages grouped by pending, active, and completed campaigns",
       competitorNote: "Chaotic email threads or basic inboxes",
     },
     {
@@ -212,11 +211,8 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentFeatures.map((feature, index) => (
-                      <tr
-                        key={index}
-                        className={index % 2 === 0 ? "bg-blue-50" : "bg-white"}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr key={index} className={index % 2 === 0 ? "bg-blue-50" : "bg-white"}>
+                        <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {feature.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -240,9 +236,7 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
                             ) : (
                               <XCircleIcon className="h-5 w-5 text-red-500" />
                             )}
-                            <span className="ml-2">
-                              {feature.competitorNote}
-                            </span>
+                            <span className="ml-2">{feature.competitorNote}</span>
                           </div>
                         </td>
                       </tr>

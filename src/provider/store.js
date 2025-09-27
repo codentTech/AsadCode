@@ -1,68 +1,52 @@
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './features/auth/auth.slice';
-import businessDetailReducer from './features/business-detail/business-detail.slice';
-import financialDetailReducer from './features/financial-detail/financial-detail.slice';
-import profileFinancialBusinessReducer from './features/profile-financial-business/profile-financial-business.slice';
-import profileReducer from './features/profile/profile.slice';
-import priceGroupReducer from './features/price-group/price-group.slice';
-import discountGroupReducer from './features/discount-group/discount-group.slice';
-import faqReducer from './features/faq/faq.slice';
-import tagReducer from './features/tag/tag.slice';
-import productReducer from './features/product/product.slice';
-import customerReducer from './features/customer/customer.slice';
-import productCategoryReducer from './features/product-category/product-category.slice';
-import userReducer from './features/user/user.slice';
-import expenditureReducer from './features/expenditure/expenditure.slice';
-import expenditureCategoryReducer from './features/expenditure-category/expenditure-category.slice';
-import templateReducer from './features/template/template.slice';
-import orderReducer from './features/order/order.slice';
-import offerReducer from './features/offer/offer.slice';
-import creditNoteReducer from './features/credit-note/credit-note.slice';
-import invoiceReducer from './features/invoice/invoice.slice';
-import customerCommentReducer from './features/customer-comments/customer-comments.slice';
-import deliveryNotesReducer from './features/delivery-notes/delivery-notes.slice';
-import uploadFileReducer from './features/upload-file/upload-file.slice';
-import invoiceReminderReducer from './features/reminder/reminder.slice';
-import unitReducer from './features/unit/unit.slice';
-import taxRateReducer from './features/tax-rate/tax-rate.slice';
-import settingReducer from './features/setting/setting.slice';
-import contactReducer from './features/contact-id/contact.slice';
-import dashboardReducer from './features/dashboard/dashboard.service';
-import smtpReducer from './features/smtp/smtp.slice';
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import authReducer from "./features/auth/auth.slice";
+import onboardingReducer from "./features/onboarding/onboarding.slice";
+import usersReducer from "./features/users/users.slice";
+import brandProfileReducer from "./features/brand-profile/brand-profile.slice";
+import uploadFileReducer from "./features/upload-file/upload-file.slice";
+import analyticsReducer from "./features/analytics/analytics.slice";
+import campaignNotesReducer from "./features/campaign-notes/campaign-notes.slice";
 
-const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    user: userReducer,
-    businessDetail: businessDetailReducer,
-    financialDetail: financialDetailReducer,
-    profileFinancialBusiness: profileFinancialBusinessReducer,
-    profile: profileReducer,
-    priceGroup: priceGroupReducer,
-    discountGroup: discountGroupReducer,
-    faq: faqReducer,
-    product: productReducer,
-    customer: customerReducer,
-    productCategory: productCategoryReducer,
-    tag: tagReducer,
-    expenditure: expenditureReducer,
-    expenditureCategory: expenditureCategoryReducer,
-    template: templateReducer,
-    customerComment: customerCommentReducer,
-    offer: offerReducer,
-    'credit-note': creditNoteReducer,
-    order: orderReducer,
-    deliveryNotes: deliveryNotesReducer,
-    invoice: invoiceReducer,
-    uploadFile: uploadFileReducer,
-    invoiceReminder: invoiceReminderReducer,
-    unit: unitReducer,
-    taxRate: taxRateReducer,
-    setting: settingReducer,
-    contact: contactReducer,
-    dashboard: dashboardReducer,
-    smtp: smtpReducer
-  }
+import campaignReviewsReducer from "./features/campaign-reviews/campaign-reviews.slice";
+import shortlistReducer from "./features/shortlist/shortlist.slice";
+import campaignsReducer from "./features/campaigns/campaigns.slice";
+import pitchesReducer from "./features/pitches/pitches.slice";
+import campaignTasksReducer from "./features/campaign-tasks/campaign-tasks.slice";
+
+const persistConfig = {
+  key: "root",
+  storage,
+  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile", "shortlist"],
+};
+
+const rootReducer = combineReducers({
+  auth: authReducer,
+  onboarding: onboardingReducer,
+  users: usersReducer,
+  brandProfile: brandProfileReducer,
+  uploadFile: uploadFileReducer,
+  analytics: analyticsReducer,
+  campaignReviews: campaignReviewsReducer,
+  shortlist: shortlistReducer,
+  campaigns: campaignsReducer,
+  pitches: pitchesReducer,
+  campaignNotes: campaignNotesReducer,
+  campaignTasks: campaignTasksReducer,
 });
 
-export default store;
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ["persist/PERSIST"],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== "production",
+});
+
+export const persistor = persistStore(store);

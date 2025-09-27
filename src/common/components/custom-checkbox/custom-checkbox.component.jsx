@@ -42,20 +42,10 @@ export default function CustomCheckboxGroup({
   }, [setValue, name, selectedValues]);
 
   return (
-    <div className="flex flex-col gap-1">
-      {label && (
-        <FieldLabel
-          label={label}
-          isRequired={isRequired}
-          className={labelClassName}
-        />
-      )}
+    <div className="flex flex-col gap-2">
+      {label && <FieldLabel label={label} isRequired={isRequired} className={labelClassName} />}
 
-      <div
-        className={`flex flex-wrap gap-3 flex-row ${
-          inlineLabel ? "flex-col" : "flex-row"
-        }`}
-      >
+      <div className={`flex flex-wrap gap-3 flex-row ${inlineLabel ? "flex-row" : "flex-col"}`}>
         {options.map((option) => (
           <label key={option.value} className="flex items-center text-xs gap-2">
             <input
@@ -71,9 +61,7 @@ export default function CustomCheckboxGroup({
         ))}
       </div>
 
-      {errors && errors[name] && (
-        <FieldError className="mt-1" error={errors[name].message} />
-      )}
+      {errors && errors[name] && <FieldError className="mt-1" error={errors[name].message} />}
     </div>
   );
 }

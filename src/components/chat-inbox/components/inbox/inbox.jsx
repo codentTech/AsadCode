@@ -33,7 +33,7 @@ function Inbox() {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white">
       {/* Chat header - improved layout */}
       <div className="py-3 px-4 border-b bg-white flex items-center justify-between shadow-sm">
         <div className="flex items-center">
@@ -57,10 +57,7 @@ function Inbox() {
           </div>
         </div>
         <div className="flex items-center space-x-1">
-          <IconButton
-            size="small"
-            className="text-gray-600 hover:text-primary hover:bg-indigo-50"
-          >
+          <IconButton size="small" className="text-gray-600 hover:text-primary hover:bg-indigo-50">
             <MoreVertIcon fontSize="small" />
           </IconButton>
         </div>
@@ -76,14 +73,11 @@ function Inbox() {
             <div className="max-w-xs">
               <div className="bg-white rounded-2xl rounded-bl-none py-2 px-3 shadow-sm border border-gray-100">
                 <p className="text-sm text-gray-800">
-                  Hey, it was great meeting you at the event last night! As you
-                  were saying, we definitely should collab together for a
-                  morning run video soon!
+                  Hey, it was great meeting you at the event last night! As you were saying, we
+                  definitely should collab together for a morning run video soon!
                 </p>
               </div>
-              <span className="text-xs text-gray-500 ml-2 mt-1">
-                2025-04-23 10:18 AM
-              </span>
+              <span className="text-xs text-gray-500 ml-2 mt-1">2025-04-23 10:18 AM</span>
             </div>
           </div>
 
@@ -97,9 +91,7 @@ function Inbox() {
                   I think a lot of my followers would follow you and vice versa!
                 </p>
               </div>
-              <span className="text-xs text-gray-500 ml-2 mt-1">
-                2025-04-23 10:19 AM
-              </span>
+              <span className="text-xs text-gray-500 ml-2 mt-1">2025-04-23 10:19 AM</span>
             </div>
           </div>
 
@@ -107,26 +99,19 @@ function Inbox() {
             <div className="max-w-xs">
               <div className="bg-primary text-white rounded-2xl rounded-br-none py-2 px-3 shadow-sm">
                 <p className="text-sm">
-                  That sounds amazing! I'd love to collab on a morning routine
-                  video. My followers are always asking about my workout
-                  schedule.
+                  That sounds amazing! I'd love to collab on a morning routine video. My followers
+                  are always asking about my workout schedule.
                 </p>
               </div>
               <div className="flex justify-end">
-                <span className="text-xs text-gray-500 mr-2 mt-1">
-                  2025-04-23 10:20 AM
-                </span>
+                <span className="text-xs text-gray-500 mr-2 mt-1">2025-04-23 10:20 AM</span>
               </div>
             </div>
           </div>
 
           {isTyping && (
             <div className="flex items-end">
-              <Avatar
-                src={avatar}
-                alt="Sam Waters"
-                className="h-8 w-8 mr-2 mb-2"
-              >
+              <Avatar src={avatar} alt="Sam Waters" className="h-8 w-8 mr-2 mb-2">
                 S
               </Avatar>
               <div className="bg-white rounded-2xl rounded-bl-none p-3 shadow-sm border border-gray-100">
@@ -145,16 +130,10 @@ function Inbox() {
       <div className="p-4 bg-white border-t">
         <div className="flex items-center p-1 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex px-2">
-            <IconButton
-              size="small"
-              className="text-gray-500 hover:text-primary"
-            >
+            <IconButton size="small" className="text-gray-500 hover:text-primary">
               <AttachFileIcon fontSize="small" />
             </IconButton>
-            <IconButton
-              size="small"
-              className="text-gray-500 hover:text-primary"
-            >
+            <IconButton size="small" className="text-gray-500 hover:text-primary">
               <EmojiEmotionsIcon fontSize="small" />
             </IconButton>
           </div>
@@ -169,9 +148,7 @@ function Inbox() {
           <div className="pr-2">
             <button
               className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                message.trim()
-                  ? "bg-primary text-white shadow-sm"
-                  : "bg-gray-200 text-gray-400"
+                message.trim() ? "bg-primary text-white shadow-sm" : "bg-gray-200 text-gray-400"
               }`}
               onClick={handleSendMessage}
               disabled={!message.trim()}

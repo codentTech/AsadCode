@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Button } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 
 /**
  * Create custom button using mui button
@@ -19,13 +19,14 @@ export default function CustomButton({
   id = null,
   text,
   onClick = null,
-  className = "w-full py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-color",
+  className = "w-full py-1.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-color",
   type = "button",
   variant = "",
   disabled = false,
   href = null,
   endIcon = null,
   startIcon = null,
+  loading = false,
 }) {
   return (
     <Button
@@ -37,9 +38,9 @@ export default function CustomButton({
       disabled={disabled}
       endIcon={endIcon}
       startIcon={startIcon}
-      className={`btn font-dm  ${className}`}
+      className={`btn font-dm normal-case ${className}`}
     >
-      {text}
+      {loading ? <CircularProgress className="text-white" size={20} /> : text}
     </Button>
   );
 }

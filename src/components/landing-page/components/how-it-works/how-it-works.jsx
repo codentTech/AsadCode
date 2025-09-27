@@ -7,13 +7,12 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
   // Auto-rotate through steps every 5 seconds
   useEffect(() => {
-    // if (!disableAutoRotate) {
-    //   console.log(disableAutoRotate);
-    //   const interval = setInterval(() => {
-    //     setActiveStep((prev) => (prev + 1) % steps.length);
-    //   }, 5000);
-    //   return () => clearInterval(interval);
-    // }
+    if (!disableAutoRotate) {
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
   }, [disableAutoRotate]);
 
   const steps = [
@@ -21,56 +20,52 @@ function HowCleerCutWorks({ isCreatorMode }) {
       title: isCreatorMode ? "Set Up Your Portfolio" : "Create a Campaign",
       description: isCreatorMode
         ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
-        : "Create a campaign, set your budget, and define your goals in 5 quick steps.",
+        : "Set deliverables, and budget in minutes.",
       image: isCreatorMode
         ? "/assets/images/landing/portfolio Photoshopped.png"
         : "/assets/images/landing/create campaign on iphone perfected (1).png",
     },
     {
-      title: isCreatorMode
-        ? "Discover Campaigns you Love"
-        : "Find Top Creators",
+      title: isCreatorMode ? "Discover Campaigns you Love" : "Discover the Right Creators",
       description: isCreatorMode
         ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
-        : "Invite creators to apply or sort through applications easily with advanced filters for niche, audience, engagement and more.",
+        : "Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics",
       image: isCreatorMode
         ? "/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"
         : "/assets/images/landing/Discover Perfect.png",
     },
     {
-      title: isCreatorMode ? null : "Analyze Your Best Options",
+      title: isCreatorMode ? null : "Review & Compare",
       description:
-        "Preview creator's rates, past work, audience demographics, and reviews from previous collabs - in one powerful page.",
+        "Instantly view creator profiles, rates, content samples, audience data, and verified brand reviews — all in one place.",
       image: "/assets/images/landing/portfolio Photoshopped.png",
     },
     {
       title: isCreatorMode
         ? "Collaborate with Smart Campaign Management"
-        : "Collaborate Seamlessly",
+        : "Collaborate Inside the Smart Inbox",
       description: isCreatorMode
-        ? "Manage deadlines, track payments, and move all your communication to one organized place"
-        : "Keep all communication organized with the Smart Inbox, track deliverables, and manage your budget with ease.",
+        ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized inbox. With your new Smart Inbox, keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
+        : "Message creators, assign deliverables, track revisions, and manage deadlines — all within a single, campaign-organized thread. You can also sort through message requests from creators who cold-pitch you directly, making it easy to spot high-potential inbound talent.",
       image: isCreatorMode
         ? "/assets/images/landing/Creator inbox Completed.png"
-        : "/assets/images/landing/inbox on macbook office perfect (1).png",
+        : "/assets/images/landing/inbox on macbook office perfected.png",
     },
     {
-      title: isCreatorMode
-        ? "Get Paid with Peace of Mind"
-        : "Payment & Contracts Simplified",
+      title: isCreatorMode ? "Get Paid with Peace of Mind" : "Finalize, Protect, and Pay",
       description: isCreatorMode
-        ? "CleerCut holds payments in escrow — no more endless revisions, ghosting or chasing down payments"
-        : "Secure payments via escrow, auto-generate contracts, and streamlined dispute management.",
+        ? "CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps."
+        : "Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.",
       image: isCreatorMode
         ? "/assets/images/landing/hero-bg-3.jpeg"
-        : "/assets/images/landing/reports on mac Perfect (1).png",
+        : "/assets/images/landing/reports on mac Perfected.png",
     },
-  ];
+  ].filter((s) => s.title);
 
   return (
     <section className="py-24 bg-gradient-to-tr from-blue-300/30 to-transparent overflow-hidden">
       <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-6">
           <h2 className="text-xl md:text-4xl font-bold mb-4 inline-block relative text-primary">
             Collaborate in {isCreatorMode ? 4 : 5} easy steps
           </h2>
@@ -96,9 +91,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
                     >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                          activeStep === idx
-                            ? "bg-primary text-white"
-                            : "bg-primary text-white"
+                          activeStep === idx ? "bg-primary text-white" : "bg-primary text-white"
                         }`}
                       >
                         {activeStep === idx ? (
@@ -114,9 +107,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
                           {step.title}
                         </h4>
                         {activeStep === idx && (
-                          <p className="text-gray-600 text-sm">
-                            {step.description}
-                          </p>
+                          <p className="text-gray-600 text-sm">{step.description}</p>
                         )}
                       </div>
                     </div>
@@ -127,14 +118,12 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
           {/* Right side: Image showcase */}
           <div className="lg:w-3/4 relative">
-            <div className="bg-white p-4 rounded-2xl shadow-xl h-auto min-h-96">
+            <div className="bg-white p-4 rounded-lg shadow-xl h-auto min-h-96">
               {steps.map((step, idx) => (
                 <div
                   key={idx}
                   className={`absolute inset-0 transition-opacity duration-500 ${
-                    activeStep === idx
-                      ? "opacity-100"
-                      : "opacity-0 pointer-events-none"
+                    activeStep === idx ? "opacity-100" : "opacity-0 pointer-events-none"
                   }`}
                 >
                   <div className="h-full flex items-center justify-center">
@@ -179,8 +168,8 @@ function HowCleerCutWorks({ isCreatorMode }) {
                             <div className="flex items-center">
                               <div>
                                 <span className="text-[10px] text-white">
-                                  You received a new rating ⭐️⭐️⭐️⭐️⭐ It
-                                  was pleasure working with ..
+                                  You received a new rating ⭐️⭐️⭐️⭐️⭐ It was pleasure working
+                                  with ..
                                 </span>
                               </div>
                             </div>

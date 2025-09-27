@@ -1,19 +1,15 @@
-import Link from "next/link";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loader from "@/common/components/loader/loader.component";
-import useLogin from "./use-login.hook";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import Loader from "@/common/components/loader/loader.component";
+import Link from "next/link";
+import useLogin from "./use-login.hook";
 
 export default function Login() {
   // hooks
   const {
     onSubmit,
-    borderStyle,
-    borderSuc,
-    showPassword,
     isChecked,
     setIsChecked,
-    toggleShowPassword,
     router,
     loading,
     register,
@@ -27,18 +23,21 @@ export default function Login() {
     <div className="form-wrapper">
       <div className="form-container">
         <div className="form-card">
+          <Link href="/" className="flex justify-center mb-2">
+            <img
+              src="/assets/images/horizontal-logo.png"
+              alt="Logo"
+              className="h-[40px] sm:h-[60px]"
+            />
+          </Link>
           <div className="form-header">
-            <h1 className="form-header-h1">Login</h1>
-            <p className="form-header-p mt-2">
-              Welcome back! Please enter your details
+            {/* <h1 className="form-header-h1">Login</h1> */}
+            <p className="form-header-p">
+              Welcome back. <span className="text-primary">Login</span> to your account
             </p>
           </div>
           <div className="form-body">
-            <form
-              className="w-full"
-              onSubmit={handleSubmit(onSubmit)}
-              method="post"
-            >
+            <form className="w-full" onSubmit={handleSubmit(onSubmit)} method="post">
               <div className="form-fields">
                 <CustomInput
                   label="Email/Username"
@@ -61,10 +60,7 @@ export default function Login() {
               </div>
 
               <div className="mt-4 flex items-center justify-between">
-                <div
-                  className="flex gap-[6.5px]"
-                  onClick={() => setIsChecked(!isChecked)}
-                >
+                <div className="flex gap-[6.5px]" onClick={() => setIsChecked(!isChecked)}>
                   {isChecked ? (
                     <img src="/assets/icons/check.svg" alt="" />
                   ) : (
@@ -82,11 +78,7 @@ export default function Login() {
                 </div>
                 <Link
                   href="/forget-password"
-                  onClick={() =>
-                    router.push(
-                      "/forget-password?btnText=Password%20Recovery%20Link"
-                    )
-                  }
+                  onClick={() => router.push("/forget-password?btnText=Password%20Recovery%20Link")}
                   className="forgotText rounded-xl text-xs font-bold leading-[18px] "
                 >
                   Forgot Password?
@@ -102,7 +94,7 @@ export default function Login() {
                 />
               </div>
 
-              <div className="form-or-content mt-[24px]">
+              <div className="form-or-content mt-1">
                 <div className="form-or-content-line" />
                 <span className="form-or-content-span eading-[18px]">Or</span>
                 <div className="form-or-content-line" />
@@ -119,8 +111,8 @@ export default function Login() {
                     className="h-6 w-6"
                   />
                 </button>
-                {/* <button
-                  onClick={() => signInWithFacebook(loginWithOAuth)}
+                <button
+                  // onClick={() => signInWithFacebook(loginWithOAuth)}
                   className="login-provider-btn"
                   type="button"
                 >
@@ -131,7 +123,7 @@ export default function Login() {
                   />
                 </button>
                 <button
-                  onClick={() => signInWithMicrosoft(loginWithOAuth)}
+                  // onClick={() => signInWithMicrosoft(loginWithOAuth)}
                   className="login-provider-btn"
                   type="button"
                 >
@@ -140,12 +132,12 @@ export default function Login() {
                     alt="login with Microsoft"
                     className="h-[18px] w-[17.93px]"
                   />
-                </button> */}
+                </button>
               </div>
               <div className="text-xs font-normal leading-[18px] text-text-dark-gray">
-                <p className="login mt-[32px] text-center">
+                <p className="login mt-5 text-center">
                   Create an account?
-                  <Link href="/sign-up" className="span-link">
+                  <Link href="/onboarding" className="span-link">
                     Signup
                   </Link>
                 </p>

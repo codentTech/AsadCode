@@ -1,28 +1,40 @@
+import HeaderLayout from "@/common/layouts/header.layout";
 import AudienceAnalytics from "./components/audience-analytics/audience-analytics";
 import BioPricing from "./components/bio-pricing/bio-pricing";
 import Gallary from "./components/gallary/gallary";
 import ProfileOverview from "./components/profile-overview/profile-overview";
 import Reviews from "./components/reviews/reviews";
+import { useState, useCallback } from "react";
 
-export default function CreatorPortfolio() {
+export default function CreatorPortfolio({ creatorId = null }) {
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleProfileUpdate = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%]">
+    <HeaderLayout className="min-h-screen bg-gray-50">
+      <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%] bg-gray-50">
         {/* Profile Overview Section */}
-        <ProfileOverview />
+        <ProfileOverview
+          onProfileUpdate={handleProfileUpdate}
+          refreshKey={refreshKey}
+          creatorId={creatorId}
+        />
 
         {/* Bio & Pricing Section */}
-        <BioPricing />
+        <BioPricing refreshKey={refreshKey} creatorId={creatorId} />
 
         {/* Portfolio Gallery Section */}
-        <Gallary />
+        <Gallary refreshKey={refreshKey} creatorId={creatorId} />
 
         {/* Audience Analytics Section */}
-        <AudienceAnalytics />
+        <AudienceAnalytics creatorId={creatorId} />
 
         {/* Reviews Section */}
-        <Reviews />
+        <Reviews creatorId={creatorId} />
       </main>
-    </div>
+    </HeaderLayout>
   );
 }

@@ -2,15 +2,13 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import { ChevronDown, Star } from "lucide-react";
 import useReviews from "./use-reviews";
 
-function Reviews() {
+function Reviews({ creatorId = null }) {
   const { setReviewSort, options, sortedReviews } = useReviews();
   return (
     <section className="bg-white rounded-2xl shadow-md p-6 md:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h3 className="text-2xl font-bold text-gray-800">
-          Reviews from Brands
-        </h3>
+        <h3 className="text-2xl font-bold text-gray-800">Reviews from Brands</h3>
 
         <div className="relative w-full md:w-64">
           <SimpleSelect
@@ -18,15 +16,6 @@ function Reviews() {
             options={options}
             onChange={({ value }) => setReviewSort(value)}
           />
-          {/* <select
-            value={reviewSort}
-            onChange={(e) => setReviewSort(e.target.value)}
-            className="w-full appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 px-4 pr-10 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          >
-            <option value="newest">Newest First</option>
-            <option value="highest">Highest Rating</option>
-            <option value="lowest">Lowest Rating</option>
-          </select> */}
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
             <ChevronDown className="w-4 h-4" />
           </div>
@@ -62,9 +51,7 @@ function Reviews() {
                 <Star
                   key={i}
                   className={`w-4 h-4 ${
-                    i < review.rating
-                      ? "fill-current text-yellow-400"
-                      : "text-gray-300"
+                    i < review.rating ? "fill-current text-yellow-400" : "text-gray-300"
                   }`}
                 />
               ))}

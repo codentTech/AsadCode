@@ -1,19 +1,8 @@
 import { CancelOutlined } from "@mui/icons-material";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import PropTypes from "prop-types";
-import useModal from "./use-modal.hook";
 
-export default function Modal({
-  show = false,
-  title,
-  children,
-  onClose,
-  size,
-  height,
-}) {
-  const { open, register, handleSubmit, setValue, errors, handleClose } =
-    useModal(show);
-
+export default function Modal({ show = false, title, children, onClose, size, height }) {
   return (
     <Dialog
       open={show}
@@ -23,17 +12,12 @@ export default function Modal({
         className: "rounded-2xl",
         sx: {
           maxWidth:
-            size === "xl"
-              ? "1300px"
-              : size === "lg"
-                ? "800px"
-                : size === "md"
-                  ? "600px"
-                  : "420px",
+            size === "xl" ? "1300px" : size === "lg" ? "800px" : size === "md" ? "600px" : "420px",
           width: "100%",
           height: height ? "90vh" : "auto",
           display: "flex",
           flexDirection: "column",
+          maxHeight: "90vh",
         },
       }}
     >
@@ -58,6 +42,7 @@ export default function Modal({
           flex: 1,
           px: 2,
           pb: 2,
+          minHeight: 0,
         }}
       >
         {children}

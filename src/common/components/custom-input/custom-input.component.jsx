@@ -2,13 +2,11 @@
 
 "use client";
 
-import { IconButton, Input, InputAdornment } from "@mui/material";
-import PropTypes from "prop-types";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useCallback } from "react";
-import useCustomInput from "./use-custom-input.hook";
 import FieldError from "@/common/components/field-error/field-error.component";
+import { Input, InputAdornment } from "@mui/material";
+import PropTypes from "prop-types";
 import FieldLabel from "../field-label/field-label.component";
+import useCustomInput from "./use-custom-input.hook";
 
 /**
  * @param type - The type of input
@@ -46,10 +44,12 @@ export default function CustomInput({
   labelClassName = "",
   readOnly = false,
   onClick = null,
+  onKeyPress = null,
   onKeyDown = null,
   customRef = null,
   onBlur = null,
   onFocus = null,
+  autoFocus = false,
 }) {
   const {
     inputChangeHandler,
@@ -64,28 +64,23 @@ export default function CustomInput({
       className={`${
         inlineLabel
           ? "grid w-full grid-cols-[130px_1fr] items-center capitalize"
-          : "flex w-full flex-col gap-[8px] text-xs font-medium capitalize not-italic leading-6 text-text-black"
+          : "flex w-full flex-col gap-[6px] text-xs font-medium capitalize not-italic leading-6 text-text-black"
       }`}
     >
-      {label && (
-        <FieldLabel
-          label={label}
-          isRequired={isRequired}
-          className={labelClassName}
-        />
-      )}
+      {label && <FieldLabel label={label} isRequired={isRequired} className={labelClassName} />}
 
       <div className={`relative w-full ${disabled ? "bg-[#BBBBBB26]" : ""}`}>
         <Input
           {...(register && register(`${name}`))}
           {...(onClick && { onClick })}
+          {...(onKeyPress && { onKeyPress })}
           {...(onKeyDown && { onKeyDown })}
           name={name}
           onFocus={onFocus}
-          autoFocus="true"
+          autoFocus={autoFocus}
           type={showPassword ? "text" : type}
           placeholder={placeholder}
-          className={`text-sm font-normal not-italic leading-[18px] text-text-ultra-light-gray 
+          className={`text-sm font-normal not-italic leading-[18px] text-black 
             ${type === "number" ? "numArrowNotShow" : ""} 
             ${type === "date" ? "bg-red-300" : ""} 
             input-field default-input hover:border-text-dark-gray 
@@ -101,15 +96,11 @@ export default function CustomInput({
           disabled={disabled}
           variant="outlined"
           startAdornment={
-            startIcon ? (
-              <InputAdornment position="start">{startIcon}</InputAdornment>
-            ) : null
+            startIcon ? <InputAdornment position="start">{startIcon}</InputAdornment> : null
           }
           endAdornment={
             getInputEndAdornment() ? (
-              <InputAdornment position="end">
-                {getInputEndAdornment()}
-              </InputAdornment>
+              <InputAdornment position="end">{getInputEndAdornment()}</InputAdornment>
             ) : null
           }
           {...(onChange && { onChange: inputChangeHandler })}
@@ -119,10 +110,7 @@ export default function CustomInput({
         />
 
         {errors && errors[name] && (
-          <FieldError
-            className="mt-1 normal-case"
-            error={errors[name].message}
-          />
+          <FieldError className="mt-1 normal-case" error={errors[name].message} />
         )}
       </div>
     </div>
@@ -135,6 +123,7 @@ CustomInput.propTypes = {
   name: PropTypes.string.isRequired,
   onChange: PropTypes.func,
   onClick: PropTypes.func,
+  onKeyPress: PropTypes.func,
   onKeyDown: PropTypes.func,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   className: PropTypes.string,
@@ -154,6 +143,7 @@ CustomInput.propTypes = {
   labelClassName: PropTypes.string,
   readOnly: PropTypes.bool,
   customRef: PropTypes.object,
+  autoFocus: PropTypes.bool,
 };
 
 CustomInput.defaultProps = {

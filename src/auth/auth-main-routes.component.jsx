@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import PropTypes from 'prop-types';
-import { useEffect } from 'react';
-import { isLoginVerified } from '@/common/utils/access-token.util';
+import { isLoginVerified } from "@/common/utils/access-token.util";
+import { useRouter } from "next/navigation";
+import PropTypes from "prop-types";
+import { useEffect } from "react";
 
 /**
  * Return a component or return to home page if access token is verified
@@ -14,13 +14,19 @@ export default function AuthMainRoutes({ component }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoginVerified() && typeof window === 'object') {
-      router.push('/dashboard');
-    }
-  }, []);
+    const checkAuth = () => {
+      if (isLoginVerified()) {
+        router.push("admin/dashboard");
+        return;
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   return component;
 }
 
 AuthMainRoutes.propTypes = {
-  component: PropTypes.element.isRequired
+  component: PropTypes.element.isRequired,
 };

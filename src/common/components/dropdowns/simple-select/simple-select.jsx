@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import useSimpleSelect from "./use-simple-select";
 import CustomInput from "../../custom-input/custom-input.component";
 import FieldLabel from "../../field-label/field-label.component";
+import FieldError from "../../field-error/field-error.component";
 
 function Icon({ isOpen }) {
   return (
@@ -23,13 +24,18 @@ function Icon({ isOpen }) {
 
 export default function SimpleSelect({
   label,
-  placeHolder,
+  placeHolder = "Select an option",
   options,
   isMulti,
   isSearchable,
   onChange,
   defaultValue,
   className = "",
+  // New props for validation like CustomInput
+  name,
+  errors = null,
+  register = null,
+  isRequired = false,
 }) {
   const {
     inputRef,
@@ -52,55 +58,60 @@ export default function SimpleSelect({
   });
 
   return (
-    <div className={`relative w-full flex flex-col gap-2 ${className}`}>
-      {label && <FieldLabel label={label} />}
-      <div
-        ref={inputRef}
-        onClick={handleInputClick}
-        className="flex justify-between items-center px-3 py-[9px] rounded-md border border-text-dark-gray  bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors"
-      >
-        <div className="truncate">{getDisplay()}</div>
-        <Icon isOpen={showMenu} />
-      </div>
+    <div className="flex w-full flex-col gap-[6px] text-xs font-medium capitalize not-italic leading-6 text-text-black">
+      {label && <FieldLabel label={label} isRequired={isRequired} />}
 
-      {showMenu && (
+      <div className="relative w-full">
         <div
-          className={`absolute z-50 mt-1 ${isMulti ? "top-16" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+          ref={inputRef}
+          onClick={handleInputClick}
+          className={`flex justify-between items-center px-3 py-[9px] rounded-md border ${
+            errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
+          } bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors`}
         >
-          {isSearchable && (
-            <div className="p-2 border-b border-gray-100">
-              <CustomInput
-                ref={searchRef}
-                onChange={onSearch}
-                value={searchValue}
-                defaultValue={defaultValue}
-                placeholder="Type to search"
-                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none"
-              />
-            </div>
-          )}
-
-          {getOptions()?.length > 0 ? (
-            getOptions().map((option) => (
-              <div
-                key={option.value}
-                onClick={() => onItemClick(option)}
-                className={`cursor-pointer px-3 py-2 text-sm hover:bg-secondary-light-blue ${
-                  isSelected(option)
-                    ? "bg-secondary-light-blue font-medium"
-                    : ""
-                }`}
-              >
-                {option.label}
-              </div>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-sm text-gray-400">
-              No options found
-            </div>
-          )}
+          <div className="truncate">{getDisplay()}</div>
+          <Icon isOpen={showMenu} />
         </div>
-      )}
+
+        {showMenu && (
+          <div
+            className={`absolute z-50 mt-1 ${isSearchable && isMulti ? "top-10" : isSearchable ? "top-10" : label ? "top-10" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+          >
+            {isSearchable && (
+              <div className="p-2 border-b border-gray-100">
+                <CustomInput
+                  ref={searchRef}
+                  onChange={onSearch}
+                  value={searchValue}
+                  defaultValue={defaultValue}
+                  placeholder="Type to search"
+                  className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none"
+                />
+              </div>
+            )}
+
+            {getOptions()?.length > 0 ? (
+              getOptions().map((option) => (
+                <div
+                  key={option.value}
+                  onClick={() => onItemClick(option)}
+                  className={`cursor-pointer px-3 py-2 text-sm hover:bg-secondary-light-blue ${
+                    isSelected(option) ? "bg-secondary-light-blue font-medium" : ""
+                  }`}
+                >
+                  {option.label}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-400">No options found</div>
+            )}
+          </div>
+        )}
+
+        {errors && errors[name] && (
+          <FieldError className="mt-1 normal-case" error={errors[name].message} />
+        )}
+      </div>
     </div>
   );
 }
@@ -118,4 +129,10 @@ SimpleSelect.propTypes = {
   isSearchable: PropTypes.bool,
   onChange: PropTypes.func,
   defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  // New prop types for validation
+  name: PropTypes.string,
+  errors: PropTypes.object,
+  register: PropTypes.func,
+  label: PropTypes.string,
+  isRequired: PropTypes.bool,
 };

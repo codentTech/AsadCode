@@ -1,15 +1,19 @@
 "use client";
 
+import FullPageLoader from "@/common/components/full-page-loader/full-page-loader.component";
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
-
+import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
+import { Loader } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider } from "notistack";
 import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
-import store from "@/provider/store";
+import { PersistGate } from "redux-persist/integration/react";
 
 const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   "&.notistack-MuiContent-success": {
@@ -22,6 +26,31 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   },
 }));
 
+function LayoutWrapper({ children }) {
+  const pathname = usePathname();
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Next.js App Router doesn’t expose router events like Pages Router
+    // but we can use the usePathname hook to detect route changes
+
+    setLoading(true); // start loading on path change
+    // Delay hiding loading state a bit for smoothness
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
+  return (
+    <React.Fragment>
+      {loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
+    </React.Fragment>
+  );
+}
+
 /**
  * It is a root wrapper for all pages
  * @param {children} props
@@ -31,7 +60,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Font Awesome 4 CDN */}
+        <title>Cleercut</title>
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
@@ -48,7 +77,11 @@ export default function RootLayout({ children }) {
               error: StyledMaterialDesignContent,
             }}
           >
-            <Provider store={store}>{children}</Provider>
+            <Provider store={store}>
+              <PersistGate loading={null} persistor={persistor}>
+                <LayoutWrapper>{children}</LayoutWrapper>
+              </PersistGate>
+            </Provider>
           </SnackbarProvider>
         </StyledEngineProvider>
       </body>

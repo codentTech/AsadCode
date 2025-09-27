@@ -5,8 +5,7 @@ import { CheckCircle } from "lucide-react";
 import useJoinCleercut from "./use-join-cleercut";
 
 export default function JoinCleerCut({ closeModal }) {
-  const { loading, register, handleSubmit, onSubmit, errors, isSubmitted } =
-    useJoinCleercut();
+  const { loading, register, handleSubmit, onSubmit, errors, isSubmitted } = useJoinCleercut();
 
   return (
     <div className="relative w-full transform p-2 transition-all">
@@ -14,8 +13,8 @@ export default function JoinCleerCut({ closeModal }) {
         <form onSubmit={handleSubmit(onSubmit)} method="post">
           {/* Join Form */}
           <p className="text-sm mb-3 text-gray-600">
-            Be among the first to revolutionize your influencer marketing. Enter
-            your email to join our waitlist.
+            Be among the first to revolutionize your influencer marketing. Enter your email to join
+            our waitlist.
           </p>
 
           <div className="space-y-4">
@@ -68,43 +67,31 @@ export default function JoinCleerCut({ closeModal }) {
 
           <div className="text-left bg-blue-50 p-3 rounded-xl border border-gray-100">
             <p className="text-sm text-gray-600 mb-2">
-              Thank you for joining CleerCut — you've been added to our
-              waitlist. As an early access brand, you'll unlock exclusive perks:
+              Thank you for joining CleerCut — you've been added to our waitlist. As an early access
+              brand, you'll unlock exclusive perks:
             </p>
 
             <ul className="space-y-1">
               <li className="flex items-start">
                 <span className="text-primary mr-2">●</span>
                 <span className="text-sm text-gray-600">
-                  <span className="text-sm font-semibold">
-                    3 Commission-Free Campaigns
-                  </span>{" "}
-                  to kickstart creator partnerships
+                  <span className="text-sm font-semibold">3 Commission-Free Campaigns</span> to
+                  kickstart creator partnerships
                 </span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-2">●</span>
                 <span className="text-sm text-gray-600">
-                  <span className="text-sm font-semibold">
-                    Lifetime Discount
-                  </span>{" "}
-                  on future subscription plans
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-primary mr-2">●</span>
-                <span className="text-sm text-gray-600">
-                  <span className="text-sm font-semibold">Early Access</span> to
-                  premium tools (analytics, smart contracts, campaign insights
-                  and more)
+                  <span className="text-sm font-semibold">Lifetime Discount</span> on future
+                  subscription plans
                 </span>
               </li>
             </ul>
           </div>
 
           <p className="text-sm text-gray-600">
-            We're launching soon — keep an eye on your inbox for priority
-            onboarding and early setup.
+            We're launching soon — keep an eye on your inbox for priority onboarding and early
+            setup.
           </p>
 
           <p className="text-sm text-primary font-semibold">

@@ -4,16 +4,16 @@ import { BounceLoader } from "react-spinners";
 const override = {
   display: "block",
   margin: "0px 0 0 0px",
-  borderColor: "white",
 };
 
-function Loader({ loading }) {
+function Loader({ loading, color = "white", size = 18 }) {
   return (
     <BounceLoader
-      color="white"
+      color={color}
       loading={loading}
       cssOverride={override}
-      size={18}
+      className={`text-${color} rounded-full`}
+      size={size}
       aria-label="Loading Spinner"
       data-testid="loader"
     />

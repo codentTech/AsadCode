@@ -1,25 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { avatar } from "@/common/constants/auth.constant";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
-import {
-  PieChart,
-  Pie,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import React from "react";
 
-function Profile({ isCreaterInbox, activeTab }) {
-  const avatar =
-    "https://static.vecteezy.com/system/resources/previews/049/005/561/non_2x/profile-shot-of-a-beautiful-young-brunette-with-wind-swept-hair-against-a-white-backdrop-photo.jpg";
-
+function Profile({ isCreatorMode, activeTab }) {
   const suggestedConnections = [
     {
       name: "Michelle Clarke",
@@ -53,60 +41,20 @@ function Profile({ isCreaterInbox, activeTab }) {
     },
   ];
 
-  // Demographics data for charts
-  const genderData = [
-    { name: "Female", value: 73 },
-    { name: "Male", value: 27 },
-  ];
-
-  const ageData = [
-    { name: "0-18", value: 15 },
-    { name: "18-25", value: 30 },
-    { name: "25-32", value: 40 },
-    { name: "32-40", value: 10 },
-    { name: "40+", value: 5 },
-  ];
-
-  const locationData = [
-    { name: "US", value: 35 },
-    { name: "Canada", value: 28 },
-    { name: "UK", value: 22 },
-    { name: "Other", value: 15 },
-  ];
-
-  const GENDER_COLORS = ["#4F46E5", "#36CFC9"]; // Vibrant blue & mint
-
-  const AGE_COLORS = [
-    "#FF6F91", // Coral pink
-    "#FF9671", // Peach
-    "#4F46E5", // Blue
-    "#F9F871", // Lemon
-    "#D65DB1", // Purple pink
-  ];
-
-  const LOCATION_COLORS = [
-    "#845EC2", // Bright purple
-    "#00C9A7", // Aqua green
-    "#4F46E5", // Blue
-    "#FF6F91", // Coral pink
-  ];
-
   const reviews = [
     {
       avatar: "https://i.pravatar.cc/40?img=1",
       name: "Jane Doe",
       rating: 4,
       date: "2025-04-22",
-      message:
-        "Amazing collaboration! Delivered on time and exceeded expectations.",
+      message: "Amazing collaboration! Delivered on time and exceeded expectations.",
     },
     {
       avatar: "https://i.pravatar.cc/40?img=2",
       name: "John Smith",
       rating: 5,
       date: "2025-04-21",
-      message:
-        "Professional, creative, and very communicative. Highly recommend!",
+      message: "Professional, creative, and very communicative. Highly recommend!",
     },
   ];
 
@@ -147,7 +95,7 @@ function Profile({ isCreaterInbox, activeTab }) {
             </div>
           </div>
         )}
-        {[3].includes(activeTab) && !isCreaterInbox ? (
+        {[3].includes(activeTab) && !isCreatorMode ? (
           <div className="flex gap-2 mt-1 w-full">
             <CustomButton
               className="flex-1 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
@@ -160,11 +108,8 @@ function Profile({ isCreaterInbox, activeTab }) {
           </div>
         ) : (
           [3].includes(activeTab) &&
-          isCreaterInbox && (
-            <CustomButton
-              className="w-full btn-outline"
-              text="Withdraw application"
-            />
+          isCreatorMode && (
+            <CustomButton className="w-full btn-outline" text="Withdraw application" />
           )
         )}
       </div>
@@ -173,13 +118,8 @@ function Profile({ isCreaterInbox, activeTab }) {
       {![1, 2, 3, 5].includes(activeTab) && (
         <div className="p-4 overflow-y-auto flex-1">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-bold text-sm text-gray-700">
-              Suggested Connections
-            </h4>
-            <IconButton
-              size="small"
-              className="text-gray-400 hover:text-primary"
-            >
+            <h4 className="font-bold text-sm text-gray-700">Suggested Connections</h4>
+            <IconButton size="small" className="text-gray-400 hover:text-primary">
               <RefreshIcon fontSize="small" className="h-4 w-4" />
             </IconButton>
           </div>
@@ -189,11 +129,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                 key={connection.name}
                 className="flex items-center p-2 rounded-lg hover:bg-gray-50 border border-gray-100 shadow-sm"
               >
-                <Avatar
-                  src={connection.avatar}
-                  alt={connection.name}
-                  className="h-10 w-10"
-                >
+                <Avatar src={connection.avatar} alt={connection.name} className="h-10 w-10">
                   {connection.name.charAt(0)}
                 </Avatar>
                 <div className="ml-3 flex-1 min-w-0">
@@ -202,9 +138,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                   </div>
                   <div className="flex items-center">
                     <div className="text-yellow-500 text-xs mr-1">★★★★</div>
-                    <span className="text-xs text-gray-500">
-                      {connection.rating}
-                    </span>
+                    <span className="text-xs text-gray-500">{connection.rating}</span>
                   </div>
                 </div>
                 <button className="ml-2 text-xs bg-indigo-50 text-primary hover:bg-indigo-100 px-2 py-1 rounded-full font-medium">
@@ -220,91 +154,9 @@ function Profile({ isCreaterInbox, activeTab }) {
       )}
 
       {/* Demographics section */}
-      {[3, 5].includes(activeTab) && !isCreaterInbox && (
+      {[3, 5].includes(activeTab) && !isCreatorMode && (
         <div className="overflow-y-auto p-3">
-          <h5 className="font-bold mb-4">Audience Demographics</h5>
-
-          {/* Gender Chart */}
-          <div className="bg-white rounded-lg mb-4">
-            <h5 className="text-xs font-medium text-gray-600">
-              Gender Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={genderData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {genderData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={GENDER_COLORS[index % GENDER_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Age Chart */}
-          <div className="bg-white p-3 rounded-lg mb-4">
-            <h5 className="text-xs font-medium text-gray-600 mb-2">
-              Age Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={ageData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} unit="%" />
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Bar dataKey="value" fill="#8884d8">
-                  {ageData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={AGE_COLORS[index % AGE_COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Location Chart */}
-          <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-            <h5 className="text-xs font-medium text-gray-600 mb-2">
-              Location Distribution
-            </h5>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={locationData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10 }} unit="%" />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tick={{ fontSize: 10 }}
-                  width={40}
-                />
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Bar dataKey="value" fill="#8884d8">
-                  {locationData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={LOCATION_COLORS[index % LOCATION_COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <AudienceDemographics className="grid grid-cols-1" />
         </div>
       )}
 
@@ -317,21 +169,17 @@ function Profile({ isCreaterInbox, activeTab }) {
             </h4>
             <ul className="space-y-3 text-sm text-gray-700">
               <li className="flex items-start gap-2">
-                <span className="text-blue-500">🎥</span>
                 <span>1 Instagram video</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-pink-500">📸</span>
                 <span>2 Instagram stories</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-600">📅</span>
                 <span>
                   Deadline: <span className="font-semibold">20 May 2025</span>
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-yellow-600">💰</span>
                 <span>
                   Price: <span className="font-semibold">$600</span>
                 </span>
@@ -340,8 +188,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                 <li className="flex items-start gap-2">
                   <span className="text-yellow-600">✔️</span>
                   <span>
-                    Payment status:{" "}
-                    <span className="font-semibold">Completed</span>
+                    Payment status: <span className="font-semibold">Completed</span>
                   </span>
                 </li>
               )}
@@ -349,48 +196,47 @@ function Profile({ isCreaterInbox, activeTab }) {
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow border">
-            <h4 className="text-base font-medium text-gray-800 mb-2">Review</h4>
-            <ul className="space-y-3 text-sm text-gray-700 mb-4">
-              I had an amazing experience with this company! The customer
-              service was top-notch, and the product exceeded my expectations. I
-              highly recommend them to anyone looking for quality products and
-              excellent service
-            </ul>
-            <CustomInput placeholder="leave a review" />
+            <h4 className="text-base font-medium text-gray-800 mb-2">Leave a review</h4>
+            <TextArea placeholder="leave a review" />
+            <div className="flex gap-4">
+              <CustomButton text="Cancel" className="btn-cancel" />
+              <CustomButton text="Save" />
+            </div>
           </div>
 
           {/* Private Notes Section */}
-          <div className="bg-white rounded-lg p-4 shadow border">
-            <h4 className="text-base font-medium text-gray-800 mb-2">
-              Private Notes
-            </h4>
+          <div className="bg-white rounded-lg p-4 shadow">
+            <h4 className="text-base font-medium text-gray-800 mb-2">Private Notes</h4>
             <ul className="space-y-3 text-sm text-gray-700 mb-4">
               {privateNotes.map((note, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <span className="text-gray-500 mt-1">📝</span>
                   <div className="flex flex-col">
                     <span>{note.text}</span>
-                    <span className="text-xs text-gray-400 mt-1">
-                      {note.timestamp}
-                    </span>
+                    <span className="text-xs text-gray-400 mt-1">{note.timestamp}</span>
                   </div>
                 </li>
               ))}
             </ul>
-            {!isCreaterInbox && <TextArea label="Add a new note..." />}
+            {!isCreatorMode && (
+              <React.Fragment>
+                <TextArea label="Add a new note..." />
+                <div className="flex gap-4">
+                  <CustomButton text="Cancel" className="btn-cancel" />
+                  <CustomButton text="Save" />
+                </div>
+              </React.Fragment>
+            )}
           </div>
         </div>
       )}
 
-      {[5].includes(activeTab) && isCreaterInbox && (
+      {[5].includes(activeTab) && isCreatorMode && (
         <div className="overflow-y-auto space-y-2 px-2 bg-white">
           <h3 className="text-lg font-semibold text-gray-800 mt-2">Reviews</h3>
 
           {reviews.map((review, index) => (
-            <div
-              key={index}
-              className="border border-gray-100 rounded-lg p-4 shadow-lg transition"
-            >
+            <div key={index} className="border border-gray-100 rounded-lg p-4 shadow-lg transition">
               <div className="flex items-center gap-4 mb-2">
                 <img
                   src={review.avatar}
@@ -398,9 +244,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-800">
-                    {review.name}
-                  </span>
+                  <span className="font-semibold text-gray-800">{review.name}</span>
                   <span className="text-xs text-gray-500">
                     {new Date(review.date).toLocaleDateString()}
                   </span>
@@ -412,9 +256,7 @@ function Profile({ isCreaterInbox, activeTab }) {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-3 h-3 ${
-                      i < review.rating ? "text-yellow-400" : "text-gray-300"
-                    }`}
+                    className={`w-3 h-3 ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
