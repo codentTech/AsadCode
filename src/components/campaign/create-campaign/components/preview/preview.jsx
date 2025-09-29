@@ -138,7 +138,11 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
                         key={index}
                         className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
                       >
-                        {deliverable}
+                        {typeof deliverable === "string"
+                          ? deliverable
+                          : deliverable?.displayText ||
+                            deliverable?.text ||
+                            JSON.stringify(deliverable)}
                       </span>
                     ))}
                   </div>
