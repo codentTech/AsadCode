@@ -36,8 +36,8 @@ const validationSchema = Yup.object().shape({
   campaign_type: Yup.string().required("Campaign type is required"),
   compensation_type: Yup.string()
     .oneOf(
-      ["FIXED", "GIFTED", "COMMISSION"],
-      "Compensation type must be FIXED, GIFTED, or COMMISSION"
+      ["PAID", "GIFTED_PRODUCT", "COMMISSION"],
+      "Compensation type must be PAID, GIFTED_PRODUCT, or COMMISSION"
     )
     .required("Compensation type is required"),
   budget: Yup.number()
@@ -45,7 +45,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: (val) => ["Sponsored Post", "UGC"].includes(val),
+      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
       then: (schema) =>
         schema
           .typeError("Budget must be a valid number")
@@ -58,7 +58,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: (val) => ["Sponsored Post", "UGC"].includes(val),
+      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
       then: (schema) => schema.nullable(),
       otherwise: (schema) => schema.nullable(),
     }),
@@ -76,7 +76,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: (val) => ["Sponsored Post", "UGC"].includes(val),
+      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
       then: (schema) => schema.nullable(),
       otherwise: (schema) => schema.nullable(),
     }),
@@ -85,7 +85,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: "Gifted",
+      is: "GIFTED",
       then: (schema) =>
         schema
           .typeError("Product value must be a valid number")
@@ -98,7 +98,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: "Affiliate",
+      is: "AFFILIATE",
       then: (schema) =>
         schema
           .typeError("Commission percentage must be a valid number")
@@ -112,7 +112,7 @@ const validationSchema = Yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .when("campaign_type", {
-      is: "Affiliate",
+      is: "AFFILIATE",
       then: (schema) =>
         schema
           .typeError("Product price must be a valid number")
@@ -217,7 +217,7 @@ export default function useCreateCampaign(close) {
     required_platforms: [],
 
     // Compensation
-    compensation_type: "FIXED",
+    compensation_type: "PAID",
     budget: null,
     suggested_min: null,
     suggested_max: null,
@@ -447,7 +447,7 @@ export default function useCreateCampaign(close) {
       required_platforms: data.required_platforms || [],
 
       // Compensation
-      compensation_type: data.compensation_type || "FIXED",
+      compensation_type: data.compensation_type || "PAID",
       budget: data.budget ? parseFloat(data.budget) : null,
       suggested_min: data.suggested_min ? parseFloat(data.suggested_min) : null,
       suggested_max: data.suggested_max ? parseFloat(data.suggested_max) : null,

@@ -104,9 +104,8 @@ export function useCampaignFeed() {
 
     return campaignsData.campaigns.map((campaign) => ({
       id: campaign.id,
-      brandLogo: campaign.created_by?.profile_image || "🏢",
-      brandName:
-        campaign.created_by?.company_name || campaign.created_by?.first_name || "Unknown Brand",
+      brandLogo: campaign.created_by?.brand_profile?.brand_logo_url || "🏢",
+      brandName: campaign.created_by?.brand_profile?.brand_name || "Unknown Brand",
       title: campaign.campaign_title,
       type: campaign.campaign_type || "SPONSORED_POST",
       compensation: getCompensationType(campaign),

@@ -66,7 +66,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
     switch (option.value) {
       case "SPONSORED_POST":
       case "UGC":
-        compensationType = "FIXED"; // Default for these types
+        compensationType = "PAID"; // Default for these types
         break;
       case "GIFTED":
         compensationType = "GIFTED"; // No payment, just product
@@ -103,7 +103,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
           <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
             <p className="text-sm font-medium text-indigo-900 mb-1">Compensation Type</p>
             <p className="text-sm text-indigo-700">
-              {campaignData.compensation_type === "FIXED" && (
+              {campaignData.compensation_type === "PAID" && (
                 <>
                   <span className="font-semibold">Fixed Payment (Budget-based)</span>
                   <br />
