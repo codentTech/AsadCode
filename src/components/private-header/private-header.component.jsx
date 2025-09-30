@@ -1,19 +1,30 @@
 "use client";
 
+import { isCreatorMode } from "@/common/utils/users.util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 function Header() {
   const pathname = usePathname();
+  const isCreator = isCreatorMode();
 
-  const links = [
-    { href: "/admin/dashboard", label: "Dashboard" },
-    { href: "/campaign", label: "Campaigns" },
-    { href: "/creator-portfolio", label: "My Portfolio" },
-    { href: "/chat-inbox", label: "Inbox" },
-    { href: "/notifications", label: "Notifications" },
-    { href: "/admin/dashboard", label: "Settings" },
-  ];
+  const links = useMemo(() => {
+    const headerLinks = [
+      { href: "/admin/dashboard", label: "Dashboard" },
+      { href: "/campaign", label: "Campaigns" },
+      { href: "/creator-portfolio", label: "My Portfolio" },
+      { href: "/chat-inbox", label: "Inbox" },
+      { href: "/notifications", label: "Notifications" },
+      { href: "/admin/dashboard", label: "Settings" },
+    ];
+
+    if (!isCreator) {
+      return headerLinks.filter((link) => link.label !== "My Portfolio");
+    }
+
+    return headerLinks;
+  }, [isCreator]);
 
   const handleInboxClick = (e) => {
     e.preventDefault();

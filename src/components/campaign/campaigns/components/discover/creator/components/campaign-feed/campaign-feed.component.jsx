@@ -198,7 +198,7 @@ function CampaignFeed() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3">
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-                        {campaign.brandLogo}
+                        <img src={campaign.brandLogo} />
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 text-sm truncate">
@@ -223,7 +223,7 @@ function CampaignFeed() {
                       </div>
                       <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
-                        <div>{campaign.compensationAmount}</div>
+                        <div>{campaign.budget}</div>
                       </div>
                     </div>
                   </div>

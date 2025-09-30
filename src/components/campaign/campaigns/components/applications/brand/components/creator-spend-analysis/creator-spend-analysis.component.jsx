@@ -85,10 +85,11 @@ const CreatorSpendAnalysis = ({
 
   // Map API data to shared CreatorCard shape
   const mapCreatorForCard = (creator) => {
+    console.log(creator);
     const creatorData = creator.creator;
     const profile = creatorData?.creator_profile;
     return {
-      id: creator.id,
+      id: creatorData.id,
       name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
       profileImage: profile?.profile_photo_url || avatar,
       age: creatorData?.date_of_birth

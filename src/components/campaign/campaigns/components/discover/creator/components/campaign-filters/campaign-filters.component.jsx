@@ -42,17 +42,15 @@ function CampaignFilters() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600 bg-blue-100 px-2 py-1 rounded-full">
               {/* Count active filters */}
-              {
-                Object.values(filters).filter((value) =>
-                  Array.isArray(value)
-                    ? value.length > 0
-                    : typeof value === "string"
-                      ? value.trim() !== ""
-                      : typeof value === "number"
-                        ? value > 0
-                        : Boolean(value)
-                ).length
-              }{" "}
+              {Object.values(filters).filter((value) =>
+                Array.isArray(value)
+                  ? value.length > 0
+                  : typeof value === "string"
+                    ? value.trim() !== ""
+                    : typeof value === "number"
+                      ? value > 0
+                      : Boolean(value)
+              ).length - 1}{" "}
               active
             </span>
             <button
