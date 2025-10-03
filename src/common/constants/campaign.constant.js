@@ -1,0 +1,7 @@
+export const CAMPAIGN_STATUS = Object.freeze({
+  NEW: "NEW",
+  APPLICATION: "APPLICATION",
+  ACTIVE: "ACTIVE",
+  COMPLETED: "COMPLETED",
+  INACTIVE: "INACTIVE",
+});

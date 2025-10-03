@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
+import { avatar } from "@/common/constants/auth.constant";
 
 export default function useActiveCampaign() {
   const dispatch = useDispatch();
@@ -19,11 +20,6 @@ export default function useActiveCampaign() {
     dispatch(getCreatorApplications("HIRED"));
   }, [dispatch]);
 
-  // Filter active campaigns from applications
-  const activeCampaigns =
-    applications?.filter((app) => app.status === "HIRED" && app.campaign?.status === "ACTIVE") ||
-    [];
-
   // Format campaign data for display
   const formatCampaignData = useCallback((campaign) => {
     if (!campaign) return null;
@@ -31,8 +27,8 @@ export default function useActiveCampaign() {
     return {
       id: campaign.campaign?.id,
       title: campaign.campaign?.campaign_title,
-      brand: campaign.campaign?.brand_name || "Unknown Brand",
-      logo: "🌟", // Default logo, can be enhanced later
+      brand: campaign.campaign?.created_by?.brand_profile?.brand_name || "Unknown Brand",
+      logo: campaign.campaign?.created_by?.brand_profile?.brand_logo_url || avatar, // Default logo, can be enhanced later
       deadline: campaign.campaign?.application_date,
       platforms: campaign.campaign?.platforms || [],
       deliverables: campaign.campaign?.deliverables || [],
@@ -46,12 +42,7 @@ export default function useActiveCampaign() {
       completionRate: 0, // Will be calculated based on progress
       type: campaign.campaign?.campaign_type || "UGC",
       compensation: campaign.campaign?.compensation_type || "FIXED",
-      compensationAmount:
-        campaign.campaign?.compensation_type === "FIXED"
-          ? `$${campaign.campaign?.budget || 0}`
-          : campaign.campaign?.compensation_type === "GIFTED"
-            ? "Free Product"
-            : "Commission-based",
+      compensationAmount: campaign.campaign?.budget,
       description: campaign.campaign?.description || "No description available",
       progress: [
         { task: "Content recorded", completed: false },
@@ -64,12 +55,23 @@ export default function useActiveCampaign() {
     };
   }, []);
 
+  // Filter active campaigns from applications
+  const activeCampaigns =
+    applications?.filter((app) => app.status === "HIRED" && app.campaign?.status === "ACTIVE") ||
+    [];
+
   // Auto-select first campaign when campaigns are loaded
   useEffect(() => {
     if (activeCampaigns.length > 0 && !selectedCampaign) {
-      setSelectedCampaign(formatCampaignData(activeCampaigns[0]));
+      // Only select first campaign if no campaign is selected
+      const firstCampaign = formatCampaignData(activeCampaigns[0]);
+      setSelectedCampaign(firstCampaign);
+    } else if (activeCampaigns.length === 0 && selectedCampaign) {
+      // Clear selection when no campaigns are available
+      setSelectedCampaign(null);
     }
-  }, [activeCampaigns, selectedCampaign, formatCampaignData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applications]);
 
   // Handle campaign selection
   const handleCampaignSelect = useCallback((campaign) => {

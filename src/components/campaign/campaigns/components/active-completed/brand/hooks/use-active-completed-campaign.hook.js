@@ -45,23 +45,6 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
 
   // Process campaigns data and create options
   useEffect(() => {
-    console.log("Processing campaigns data:", {
-      campaignsSuccess,
-      campaignsData,
-      isCompleted,
-      hasData: !!campaignsData?.data,
-    });
-
-    // Debug the full API response structure
-    console.log("Full campaignsData object:", campaignsData);
-    console.log("campaignsData.data type:", typeof campaignsData?.data);
-    console.log("campaignsData.data is array:", Array.isArray(campaignsData?.data));
-    console.log("campaignsData.data.campaigns:", campaignsData?.data?.campaigns);
-    console.log(
-      "campaignsData.data.campaigns is array:",
-      Array.isArray(campaignsData?.data?.campaigns)
-    );
-
     if (campaignsSuccess && campaignsData?.data) {
       // Extract campaigns from the nested structure: data.campaigns
       const campaigns = Array.isArray(campaignsData.data.campaigns)
@@ -69,12 +52,6 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
         : Array.isArray(campaignsData.data)
           ? campaignsData.data
           : [];
-
-      console.log("Raw campaigns data:", campaigns);
-      console.log(
-        "Campaign statuses:",
-        campaigns.map((c) => ({ id: c.id, title: c.campaign_title, status: c.status }))
-      );
 
       // Filter campaigns based on completion status
       const filteredCampaigns = campaigns.filter((campaign) => {
@@ -86,9 +63,6 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
         }
       });
 
-      console.log("Filtered campaigns:", filteredCampaigns);
-      console.log("Filter criteria:", isCompleted ? "COMPLETED" : "ALL CAMPAIGNS");
-
       // Create options for dropdown
       const options = filteredCampaigns.map((campaign) => ({
         value: campaign.id,
@@ -96,36 +70,26 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
         campaign: campaign,
       }));
 
-      console.log("Campaign options for dropdown:", options);
       setCampaignOptions(options);
 
       // Auto-select first campaign if none is selected and campaigns are available
       if (filteredCampaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current) {
         const firstCampaign = filteredCampaigns[0];
-        console.log("Auto-selecting first campaign:", firstCampaign);
         setSelectedCampaign(firstCampaign);
         hasAutoSelected.current = true;
       }
     } else if (campaignsSuccess && !campaignsData?.data) {
       // Handle case where API returns success but no data
-      console.log("No campaigns data received");
       setCampaignOptions([]);
-    } else {
-      console.log("Campaigns not ready yet:", { campaignsSuccess, campaignsData });
     }
   }, [campaignsSuccess, campaignsData, isCompleted]);
 
   // Fetch applied creators when campaign is selected
   useEffect(() => {
-    console.log("Selected campaign changed:", selectedCampaign);
     if (selectedCampaign?.id) {
-      console.log("Fetching creators for campaign:", selectedCampaign.id);
       // For active tab, show only HIRED creators
       const filters = isCompleted ? {} : { status: "HIRED" };
-      console.log("Filters for creators:", filters);
       dispatch(getAppliedCreators({ campaignId: selectedCampaign.id, filters }));
-    } else {
-      console.log("No campaign selected or campaign has no ID");
     }
   }, [selectedCampaign, dispatch, isCompleted]);
 
@@ -134,8 +98,6 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
       // Ensure creatorsData.data is an array
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-
-      console.log("Creators data:", creators); // Debug log
 
       // Calculate budget metrics
       const totalBudget = selectedCampaign.budget || 0;
@@ -172,13 +134,13 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
       });
     } else if (creatorsSuccess && !creatorsData?.data && selectedCampaign) {
       // Handle case where API returns success but no creators data
-      console.log("No creators data received for campaign:", selectedCampaign.id);
       setBudgetData({
         totalBudget: selectedCampaign.budget || 0,
         spent: 0,
         remaining: selectedCampaign.budget || 0,
         saved: 0,
       });
+
       setDeliverables(selectedCampaign.deliverables || []);
       setPerformanceMetrics({
         totalViews: 0,
@@ -191,12 +153,9 @@ export default function useActiveCompletedCampaign(isCompleted = false) {
 
   // Handle campaign selection
   const handleCampaignSelect = useCallback((selectedOption) => {
-    console.log("Campaign selected:", selectedOption);
     if (selectedOption) {
-      console.log("Setting selected campaign:", selectedOption.campaign);
       setSelectedCampaign(selectedOption.campaign);
     } else {
-      console.log("Clearing selected campaign");
       setSelectedCampaign(null);
     }
   }, []);

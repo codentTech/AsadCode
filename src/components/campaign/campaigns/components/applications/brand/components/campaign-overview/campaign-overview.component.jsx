@@ -1,18 +1,17 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Loader from "@/common/components/loader/loader.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import Niche from "@/components/niche/niche";
-import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
+import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
 import { RefreshRounded } from "@mui/icons-material";
 import { ChevronDown, ChevronUp, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
 import HireCreatorModal from "../hire-creator-modal/hire-creator-modal.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
-import Loader from "@/common/components/loader/loader.component";
 
 export default function CampaignOverview({
   onCampaignSelect,
@@ -90,63 +89,59 @@ export default function CampaignOverview({
   };
 
   const handleSendOffer = async (contractData) => {
-    try {
-      // Prepare contract data for API
-      const contractPayload = {
-        campaignId: externalSelectedCampaign.id,
-        creatorId: selectedCreator.creator?.id || selectedCreator.id,
-        brandId: externalSelectedCampaign.created_by?.id,
-        startDate: contractData.startDate,
-        completionDeadline: contractData.completionDeadline,
-        contentFormat: contractData.contentFormat,
-        revisionsLimit: contractData.revisionsLimit,
-        compensationType: contractData.compensationType.toLowerCase(),
-        totalCompensation: contractData.totalCompensation
-          ? parseFloat(contractData.totalCompensation)
-          : undefined,
-        productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
-        usageRights:
-          contractData.usageRights === "no_usage"
-            ? "no_usage"
-            : contractData.usageRights === "permanent"
-              ? "permanent"
-              : `${contractData.usageRights}_months`,
-        exclusivityClause:
-          contractData.exclusivityClause === "none"
-            ? "none"
-            : `${contractData.exclusivityClause}_months`,
-        hashtags: contractData.hashtags,
-        mentions: contractData.mentions,
-        inPersonRequired: contractData.inPersonRequired,
-        eligibleCountry: contractData.eligibleCountry,
-        eligibleCity: contractData.eligibleCity,
-        ageRange: contractData.ageRange,
-        gender: contractData.gender,
-        language: contractData.language,
-      };
+    // Prepare contract data for API
+    const contractPayload = {
+      campaignId: externalSelectedCampaign.id,
+      creatorId: selectedCreator.creator?.id || selectedCreator.id,
+      brandId: externalSelectedCampaign.created_by?.id,
+      startDate: contractData.startDate,
+      completionDeadline: contractData.completionDeadline,
+      contentFormat: contractData.contentFormat,
+      revisionsLimit: contractData.revisionsLimit,
+      compensationType: contractData.compensationType.toLowerCase(),
+      totalCompensation: contractData.totalCompensation
+        ? parseFloat(contractData.totalCompensation)
+        : undefined,
+      productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
+      usageRights:
+        contractData.usageRights === "no_usage"
+          ? "no_usage"
+          : contractData.usageRights === "permanent"
+            ? "permanent"
+            : `${contractData.usageRights}_months`,
+      exclusivityClause:
+        contractData.exclusivityClause === "none"
+          ? "none"
+          : `${contractData.exclusivityClause}_months`,
+      hashtags: contractData.hashtags,
+      mentions: contractData.mentions,
+      inPersonRequired: contractData.inPersonRequired,
+      eligibleCountry: contractData.eligibleCountry,
+      eligibleCity: contractData.eligibleCity,
+      ageRange: contractData.ageRange,
+      gender: contractData.gender,
+      language: contractData.language,
+    };
 
-      // Create contract
-      const createResult = await dispatch(createContract(contractPayload)).unwrap();
+    // Create contract
+    const createResult = await dispatch(createContract(contractPayload)).unwrap();
 
-      if (createResult.success) {
-        // Send contract (this now auto-approves and hires the creator)
-        await dispatch(sendContract(createResult.data.id)).unwrap();
+    if (createResult.success) {
+      // Send contract (this now auto-approves and hires the creator)
+      await dispatch(sendContract(createResult.data.id)).unwrap();
 
-        // Close modal
-        setHireModalOpen(false);
-        setHireCreatorData(null);
-        setSelectedCampaignForHire(null);
+      // Close modal
+      setHireModalOpen(false);
+      setHireCreatorData(null);
+      setSelectedCampaignForHire(null);
 
-        // Add a small delay to ensure backend has updated the status
-        setTimeout(() => {
-          // Refresh applications list
-          if (onCampaignSelect) {
-            onCampaignSelect(externalSelectedCampaign);
-          }
-        }, 1000); // 1 second delay
-      }
-    } catch (error) {
-      console.error("Failed to create and send contract:", error);
+      // Add a small delay to ensure backend has updated the status
+      setTimeout(() => {
+        // Refresh applications list
+        if (onCampaignSelect) {
+          onCampaignSelect(externalSelectedCampaign);
+        }
+      }, 1000); // 1 second delay
     }
   };
 
