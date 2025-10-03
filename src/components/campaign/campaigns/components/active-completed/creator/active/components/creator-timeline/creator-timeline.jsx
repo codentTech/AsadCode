@@ -1,195 +1,79 @@
-import React, { useState } from "react";
-import {
-  CheckCircle,
-  Circle,
-  Clock,
-  AlertCircle,
-  Upload,
-  ExternalLink,
-  MessageSquare,
-  Eye,
-  Lock,
-  Loader2,
-} from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import Modal from "@/common/components/modal/modal.component";
+import {
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
+  Loader2,
+  Lock,
+  MessageSquare,
+  Upload,
+} from "lucide-react";
+import useCreatorTimeline from "./use-creator-timeline.hook";
 
 const CreatorTimelineSteps = ({
   campaignId,
   deadline = "2025-01-20T23:59:59Z",
   revisionsLimit = 3,
 }) => {
-  const [timelineSteps, setTimelineSteps] = useState([
-    {
-      id: 1,
-      title: "Content Recorded",
-      description: "Mark when content is filmed/captured",
-      status: "completed", // completed, in_progress, pending, revision_requested
-      completedAt: "2025-01-15T10:30:00Z",
-      requiresUpload: false,
-      manualAction: true,
-    },
-    {
-      id: 2,
-      title: "Draft Submitted for Review",
-      description: "Upload draft and submit for review",
-      status: "revision_requested",
-      submittedAt: "2025-01-16T14:20:00Z",
-      requiresUpload: true,
-      manualAction: true,
-      revisionCount: 1,
-      revisionNotes:
-        "Please adjust the lighting in the second half of the video and mention the SPF 30 benefit more prominently.",
-      draftFile: null,
-    },
-    {
-      id: 3,
-      title: "Final Post Published",
-      description: "Submit published post URL",
-      status: "pending",
-      publishedAt: null,
-      requiresUpload: false,
-      requiresUrl: true,
-      manualAction: true,
-      publishedUrl: "",
-    },
-  ]);
+  const {
+    // State
+    timelineSteps,
+    timelineLoading,
+    updateLoading,
+    showUploadModal,
+    showUrlModal,
+    publishedUrl,
+    selectedFile,
+    completionPercentage,
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showUrlModal, setShowUrlModal] = useState(false);
-  const [publishedUrl, setPublishedUrl] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+    // Actions
+    setShowUploadModal,
+    setShowUrlModal,
+    setPublishedUrl,
+    setSelectedFile,
+    handleMarkComplete,
+    handleFileUpload,
+    handlePublishUrl,
+    formatDate,
+    getTimeRemaining,
+    validateUrl,
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getTimeRemaining = (deadline) => {
-    const now = new Date();
-    const deadlineDate = new Date(deadline);
-    const diff = deadlineDate - now;
-
-    if (diff <= 0) return "Overdue";
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-    if (days > 0) return `${days}d ${hours}h left`;
-    return `${hours}h left`;
-  };
-
-  const validateUrl = (url) => {
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-    const socialPlatforms = ["instagram.com", "tiktok.com", "youtube.com", "twitter.com", "x.com"];
-
-    if (!urlPattern.test(url)) return false;
-    return socialPlatforms.some((platform) => url.includes(platform));
-  };
-
-  const handleMarkComplete = (stepId) => {
-    setTimelineSteps((prev) =>
-      prev.map((step) => {
-        if (step.id === stepId) {
-          return { ...step, status: "completed", completedAt: new Date().toISOString() };
-        }
-        if (step.id === stepId + 1) {
-          return { ...step, status: "in_progress" };
-        }
-        return step;
-      })
-    );
-  };
-
-  const handleFileUpload = () => {
-    if (!selectedFile) return;
-
-    setTimelineSteps((prev) =>
-      prev.map((step) => {
-        if (step.id === 2) {
-          return {
-            ...step,
-            status: "pending_approval",
-            submittedAt: new Date().toISOString(),
-            draftFile: selectedFile,
-            revisionCount: step.revisionCount || 0,
-          };
-        }
-        return step;
-      })
-    );
-
-    setShowUploadModal(false);
-    setSelectedFile(null);
-  };
-
-  const handlePublishUrl = () => {
-    if (!validateUrl(publishedUrl)) return;
-
-    setTimelineSteps((prev) =>
-      prev.map((step) => {
-        if (step.id === 3) {
-          return {
-            ...step,
-            status: "awaiting_brand_approval",
-            publishedAt: new Date().toISOString(),
-            publishedUrl: publishedUrl,
-          };
-        }
-        return step;
-      })
-    );
-
-    setShowUrlModal(false);
-    setPublishedUrl("");
-  };
+    // Constants
+    TIMELINE_STATUS,
+  } = useCreatorTimeline(campaignId, deadline, revisionsLimit);
 
   const getStepIcon = (step) => {
     switch (step.status) {
-      case "completed":
+      case TIMELINE_STATUS.COMPLETED:
         return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case "revision_requested":
+      case TIMELINE_STATUS.REVISION_REQUESTED:
         return <AlertCircle className="w-5 h-5 text-orange-600" />;
-      case "pending_approval":
-      case "awaiting_brand_approval":
-        return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
-      case "in_progress":
+      case TIMELINE_STATUS.SUBMITTED:
+      case TIMELINE_STATUS.IN_PROGRESS:
         return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
       default:
         return <Lock className="w-5 h-5 text-gray-400" />;
     }
   };
 
-  const getStepBorderColor = (step) => {
-    // Always use white background with subtle border
-    return "border-gray-200 bg-white";
-  };
-
   const getStatusTag = (step) => {
     const statusMap = {
-      completed: { text: "Completed", className: "bg-green-100 text-green-800" },
-      pending_approval: { text: "In Progress", className: "bg-orange-100 text-orange-800" },
-      awaiting_brand_approval: {
-        text: "In Progress",
-        className: "bg-orange-100 text-orange-800",
-      },
-      revision_requested: {
+      [TIMELINE_STATUS.COMPLETED]: { text: "Completed", className: "bg-green-100 text-green-800" },
+      [TIMELINE_STATUS.SUBMITTED]: { text: "Submitted", className: "bg-blue-100 text-blue-800" },
+      [TIMELINE_STATUS.REVISION_REQUESTED]: {
         text: "Revision Requested",
         className: "bg-orange-100 text-orange-800",
       },
-      in_progress: { text: "In Progress", className: "bg-orange-100 text-orange-800" },
-      pending: { text: "Pending", className: "bg-gray-100 text-gray-800" },
+      [TIMELINE_STATUS.IN_PROGRESS]: {
+        text: "In Progress",
+        className: "bg-orange-100 text-orange-800",
+      },
+      [TIMELINE_STATUS.PENDING]: { text: "Pending", className: "bg-gray-100 text-gray-800" },
     };
 
-    const status = statusMap[step.status] || statusMap.pending;
+    const status = statusMap[step.status] || statusMap[TIMELINE_STATUS.PENDING];
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.className}`}
@@ -199,8 +83,17 @@ const CreatorTimelineSteps = ({
     );
   };
 
-  const completedSteps = timelineSteps.filter((step) => step.status === "completed").length;
-  const completionPercentage = (completedSteps / timelineSteps.length) * 100;
+  // Loading state
+  if (timelineLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+          <div className="text-sm text-gray-500">Loading timeline...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -222,10 +115,10 @@ const CreatorTimelineSteps = ({
 
       {/* Timeline Steps */}
       <div className="space-y-3">
-        {timelineSteps.map((step, index) => (
+        {timelineSteps.map((step) => (
           <div
             key={step.id}
-            className={`relative p-3 rounded-lg border transition-all duration-200 ${getStepBorderColor(step)}`}
+            className="relative p-3 rounded-lg border border-gray-200 bg-white transition-all duration-200"
           >
             {/* Step Header */}
             <div className="flex items-start justify-between mb-2">
@@ -233,7 +126,7 @@ const CreatorTimelineSteps = ({
                 {getStepIcon(step)}
                 <div className="flex-1">
                   <h4 className="text-sm font-bold text-gray-900">
-                    Step {step.id}: {step.title}
+                    Step {step.step_number}: {step.title}
                   </h4>
                   <p className="text-xs text-gray-600">{step.description}</p>
                 </div>
@@ -243,12 +136,11 @@ const CreatorTimelineSteps = ({
 
             {/* Timestamps and Info */}
             <div className="flex items-center gap-4 mb-3 text-xs text-gray-500">
-              {step.completedAt && <span>Completed: {formatDate(step.completedAt)}</span>}
-              {step.submittedAt && !step.completedAt && (
-                <span>Submitted: {formatDate(step.submittedAt)}</span>
+              {step.completed_at && <span>Completed: {formatDate(step.completed_at)}</span>}
+              {step.submitted_at && !step.completed_at && (
+                <span>Submitted: {formatDate(step.submitted_at)}</span>
               )}
-              {step.publishedAt && <span>Published: {formatDate(step.publishedAt)}</span>}
-              {step.id === 3 && step.status !== "completed" && (
+              {step.step_number === 3 && step.status !== TIMELINE_STATUS.COMPLETED && (
                 <span
                   className={`${getTimeRemaining(deadline) === "Overdue" ? "text-red-600 font-medium" : ""}`}
                 >
@@ -258,37 +150,41 @@ const CreatorTimelineSteps = ({
             </div>
 
             {/* Revision Info */}
-            {step.revisionCount > 0 && (
+            {step.revision_count > 0 && (
               <div className="mb-3 text-xs text-orange-600">
-                Revisions: {step.revisionCount}/{revisionsLimit}
+                Revisions: {step.revision_count}/{revisionsLimit}
               </div>
             )}
 
             {/* Revision Notes */}
-            {step.status === "revision_requested" && step.revisionNotes && (
-              <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded">
-                <div className="flex items-start gap-2">
-                  <MessageSquare className="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-orange-800">Revision Requested</p>
-                    <p className="text-xs text-orange-700 mt-1">{step.revisionNotes}</p>
+            {step.status === TIMELINE_STATUS.REVISION_REQUESTED &&
+              step.revisions &&
+              step.revisions.length > 0 && (
+                <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded">
+                  <div className="flex items-start gap-2">
+                    <MessageSquare className="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-orange-800">Revision Requested</p>
+                      <p className="text-xs text-orange-700 mt-1">
+                        {step.revisions[0].revision_notes}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Published URL Display */}
-            {step.publishedUrl && (
+            {step.published_url && (
               <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
                 <div className="flex items-center gap-2">
                   <ExternalLink className="w-3 h-3 text-blue-600" />
                   <a
-                    href={step.publishedUrl}
+                    href={step.published_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:text-blue-700 underline truncate"
                   >
-                    {step.publishedUrl}
+                    {step.published_url}
                   </a>
                 </div>
               </div>
@@ -296,37 +192,45 @@ const CreatorTimelineSteps = ({
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-2">
-              {step.id === 1 && step.status === "completed" && (
+              {step.step === "CONTENT_RECORDED" && step.status === TIMELINE_STATUS.PENDING && (
                 <CustomButton
                   text="Mark as Recorded"
-                  onClick={() => handleMarkComplete(1)}
+                  onClick={() => handleMarkComplete(step.id)}
                   className="btn-success !h-7 text-xs"
+                  disabled={updateLoading}
                 />
               )}
 
-              {step.id === 2 &&
-                (step.status === "in_progress" || step.status === "revision_requested") &&
-                step.revisionCount < revisionsLimit && (
+              {step.step === "DRAFT_REVIEW" &&
+                (step.status === TIMELINE_STATUS.IN_PROGRESS ||
+                  step.status === TIMELINE_STATUS.REVISION_REQUESTED) &&
+                step.revision_count < revisionsLimit && (
                   <CustomButton
-                    text={step.status === "revision_requested" ? "Re-upload Draft" : "Upload Draft"}
+                    text={
+                      step.status === TIMELINE_STATUS.REVISION_REQUESTED
+                        ? "Re-upload Draft"
+                        : "Upload Draft"
+                    }
                     onClick={() => setShowUploadModal(true)}
                     className="btn-primary !h-7 text-xs"
+                    disabled={updateLoading}
                   />
                 )}
 
-              {step.id === 3 && step.status !== "in_progress" && (
+              {step.step === "FINAL_PUBLISHED" && step.status === TIMELINE_STATUS.IN_PROGRESS && (
                 <CustomButton
                   text="Submit Published URL"
                   onClick={() => setShowUrlModal(true)}
                   className="btn-primary !h-7 text-xs"
+                  disabled={updateLoading}
                 />
               )}
             </div>
 
             {/* Revision Limit Warning */}
-            {step.id === 2 &&
-              step.revisionCount >= revisionsLimit &&
-              step.status === "revision_requested" && (
+            {step.step === "DRAFT_REVIEW" &&
+              step.revision_count >= revisionsLimit &&
+              step.status === TIMELINE_STATUS.REVISION_REQUESTED && (
                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                   <p className="text-xs text-red-700 font-medium">
                     Revision limit reached. Please contact support for assistance.
@@ -367,14 +271,15 @@ const CreatorTimelineSteps = ({
           <div className="flex justify-end gap-2">
             <CustomButton
               text="Cancel"
+              type="button"
               className="btn-cancel"
               onClick={() => setShowUploadModal(false)}
             />
             <CustomButton
-              text="Submit for Review"
+              text={updateLoading ? "Uploading..." : "Submit for Review"}
               className="btn-primary"
               onClick={handleFileUpload}
-              disabled={!selectedFile}
+              disabled={!selectedFile || updateLoading}
             />
           </div>
         </div>
@@ -407,14 +312,15 @@ const CreatorTimelineSteps = ({
           <div className="flex justify-end gap-2">
             <CustomButton
               text="Cancel"
+              type="button"
               className="btn-cancel"
               onClick={() => setShowUrlModal(false)}
             />
             <CustomButton
-              text="Mark as Published"
+              text={updateLoading ? "Submitting..." : "Mark as Published"}
               className="btn-primary"
               onClick={handlePublishUrl}
-              //   disabled={!validateUrl(publishedUrl)}
+              disabled={!validateUrl(publishedUrl) || updateLoading}
             />
           </div>
         </div>

@@ -18,6 +18,7 @@ import calendarTasksReducer from "./features/calendar-tasks/calendar-tasks.slice
 import calendarCategoriesReducer from "./features/calendar-categories/calendar-categories.slice";
 import contentPlannerReducer from "./features/content-planner/content-planner.slice";
 import monthlyGoalReducer from "./features/monthly-goals/monthly-goal.slice";
+import campaignTimelineReducer from "./features/campaign-timeline/campaign-timeline.slice";
 
 const persistConfig = {
   key: "root",
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   calendarCategories: calendarCategoriesReducer,
   contentPlanner: contentPlannerReducer,
   monthlyGoals: monthlyGoalReducer,
+  campaignTimeline: campaignTimelineReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

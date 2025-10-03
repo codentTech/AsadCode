@@ -8,6 +8,8 @@ import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import { useEffect, useState } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
 export default function HireCreatorModal({
   show,

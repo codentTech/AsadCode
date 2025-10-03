@@ -115,18 +115,16 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-              <img
-                src={campaign?.brand?.logo}
-                alt={campaign?.brand?.logo}
-                className="object-cover"
-              />
+              {typeof campaign?.brand?.logo === "string" && campaign?.brand?.logo.length <= 2
+                ? campaign?.brand?.logo
+                : "🌟"}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{campaign?.brand?.name}</h2>
               <p className="text-sm text-gray-600">{campaign?.title}</p>
               <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                <span>{campaign?.deadline}</span>
+                <span>{campaign?.deadline || "N/A"}</span>
               </div>
             </div>
           </div>
