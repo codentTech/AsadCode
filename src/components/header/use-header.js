@@ -1,6 +1,8 @@
 import { notificationsMockData } from "@/common/constants/notifications.data.constant";
+import { getUser } from "@/common/utils/users.util";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 function useHeader() {
   const router = useRouter();
@@ -9,6 +11,10 @@ function useHeader() {
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Authentication state
+  const user = getUser();
+  const isAuthenticated = !!user;
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -27,6 +33,8 @@ function useHeader() {
     showDropdown,
     setShowDropdown,
     notifications,
+    isAuthenticated,
+    user,
   };
 }
 

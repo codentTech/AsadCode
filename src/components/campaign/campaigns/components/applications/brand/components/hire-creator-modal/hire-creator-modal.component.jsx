@@ -5,6 +5,8 @@ import Modal from "@/common/components/modal/modal.component";
 import { useState, useEffect } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
 export default function HireCreatorModal({
   show,
@@ -56,12 +58,6 @@ export default function HireCreatorModal({
       setShowPreview(false);
     }
   }, [show, reset]);
-
-  const compensationOptions = [
-    { value: "fixed", label: "Fixed Payment" },
-    { value: "gifted", label: "Gifted Product" },
-    { value: "commission", label: "Commission" },
-  ];
 
   const exclusivityOptions = [
     { value: "none", label: "None" },
@@ -126,14 +122,6 @@ export default function HireCreatorModal({
           <h3 className="font-bold mb-2">Deliverables</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <CustomInput
-              label="Content Format(s)"
-              register={register}
-              name="contentFormat"
-              errors={errors}
-              placeholder="e.g., 1 TikTok, 3 Instagram Stories"
-              isRequired={true}
-            />
-            <CustomInput
               label="1st Draft Deadline (Optional)"
               type="date"
               register={register}
@@ -148,15 +136,23 @@ export default function HireCreatorModal({
               errors={errors}
               isRequired={true}
             />
-            <div>
-              <SimpleSelect
-                label="Revisions Limit"
-                value={watch.revisionsLimit}
-                options={revisionOptions}
-                onChange={(option) => setValue("revisionsLimit", option.value)}
-                error={errors.revisionsLimit?.message}
-              />
-            </div>
+            <SimpleSelect
+              label="Revisions Limit"
+              value={watch.revisionsLimit}
+              options={revisionOptions}
+              onChange={(option) => setValue("revisionsLimit", option.value)}
+              error={errors.revisionsLimit?.message}
+            />
+          </div>
+          <div className="w-full mt-4">
+            <TextArea
+              label="Content Format(s)"
+              register={register}
+              name="contentFormat"
+              errors={errors}
+              placeholder="e.g., 1 TikTok, 3 Instagram Stories"
+              isRequired={true}
+            />
           </div>
         </div>
 
@@ -168,9 +164,9 @@ export default function HireCreatorModal({
               <SimpleSelect
                 label="Compensation Type"
                 value={watch.compensationType}
-                options={compensationOptions}
+                options={COMPENSATION_TYPE_OPTIONS}
                 onChange={(option) => setValue("compensationType", option.value)}
-                error={errors.compensationType?.message}
+                error={errors}
               />
             </div>
             {isCompensationRequired() && (
@@ -244,45 +240,6 @@ export default function HireCreatorModal({
             disabled={isSubmitting}
           />
         </div>
-
-        {/* Contract Summary */}
-        {watch.startDate && watch.completionDeadline && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h4 className="font-semibold text-blue-900 mb-2">Contract Summary</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-blue-800">Campaign:</span>{" "}
-                {campaignData?.campaign_title || ""}
-              </div>
-              <div>
-                <span className="font-medium text-blue-800">Creator:</span>{" "}
-                {`${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`}
-              </div>
-              <div>
-                <span className="font-medium text-blue-800">Start Date:</span>{" "}
-                {watch.startDate ? new Date(watch.startDate).toLocaleDateString() : ""}
-              </div>
-              <div>
-                <span className="font-medium text-blue-800">Deadline:</span>{" "}
-                {watch.completionDeadline
-                  ? new Date(watch.completionDeadline).toLocaleDateString()
-                  : ""}
-              </div>
-              <div>
-                <span className="font-medium text-blue-800">Compensation:</span>{" "}
-                {watch.compensationType === "fixed"
-                  ? `$${watch.totalCompensation || 0}`
-                  : watch.compensationType === "commission"
-                    ? `${watch.totalCompensation || 0}% commission`
-                    : "Gifted product"}
-              </div>
-              <div>
-                <span className="font-medium text-blue-800">Revisions:</span>{" "}
-                {watch.revisionsLimit || 2}
-              </div>
-            </div>
-          </div>
-        )}
       </form>
 
       {/* Contract Preview Modal */}

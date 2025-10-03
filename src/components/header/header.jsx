@@ -3,6 +3,7 @@ import useHeader from "./use-header";
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 
 function Header() {
   const {
@@ -13,6 +14,8 @@ function Header() {
     showDropdown,
     setShowDropdown,
     notifications,
+    isAuthenticated,
+    user,
   } = useHeader();
 
   return (
@@ -69,6 +72,33 @@ function Header() {
           >
             <Bell size={20} />
           </div>
+
+          {/* Authentication Buttons */}
+          {!isAuthenticated ? (
+            <div className="flex items-center space-x-3 ml-4">
+              <CustomButton
+                text="Login"
+                onClick={() => router.push("/login")}
+                className="btn-outline"
+              />
+              <CustomButton
+                text="Sign Up"
+                onClick={() => router.push("/onboarding")}
+                className="btn-primary"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center space-x-3 ml-4">
+              <CustomButton
+                text="Dashboard"
+                onClick={() => router.push("/admin/dashboard")}
+                className="btn-success"
+              />
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Hi, {user?.first_name || "User"}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -141,6 +171,33 @@ function Header() {
           >
             About
           </p>
+
+          {/* Mobile Authentication Buttons */}
+          <div className="border-t border-gray-200 pt-4">
+            {!isAuthenticated ? (
+              <div className="flex flex-col space-y-3">
+                <CustomButton
+                  text="Login"
+                  onClick={() => router.push("/auth/login")}
+                  className="btn-text w-full"
+                />
+                <CustomButton
+                  text="Sign Up"
+                  onClick={() => router.push("/auth/signup")}
+                  className="btn-primary w-full"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-3">
+                <CustomButton
+                  text="Dashboard"
+                  onClick={() => router.push("/dashboard")}
+                  className="btn-success w-full"
+                />
+                <div className="text-sm text-gray-600">Hi, {user?.first_name || "User"}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
