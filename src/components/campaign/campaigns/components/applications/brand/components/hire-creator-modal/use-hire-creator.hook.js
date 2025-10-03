@@ -41,9 +41,9 @@ const validationSchema = Yup.object().shape({
     .max(10, "Revisions limit cannot exceed 10"),
   compensationType: Yup.string()
     .required("Compensation type is required")
-    .oneOf(["fixed", "commission", "gifted"], "Invalid compensation type"),
+    .oneOf(["PAID", "COMMISSION", "GIFTED_PRODUCT"], "Invalid compensation type"),
   totalCompensation: Yup.mixed().when("compensationType", {
-    is: (val) => val === "fixed" || val === "commission",
+    is: (val) => val === "PAID" || val === "COMMISSION",
     then: (schema) =>
       schema
         .required("Compensation amount is required")
@@ -55,7 +55,7 @@ const validationSchema = Yup.object().shape({
     otherwise: (schema) => schema.notRequired(),
   }),
   productPrice: Yup.mixed().when("compensationType", {
-    is: "commission",
+    is: "COMMISSION",
     then: (schema) =>
       schema
         .required("Product price is required")
@@ -88,7 +88,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     mode: "onChange", // Real-time validation
     reValidateMode: "onChange",
     defaultValues: {
-      compensationType: "fixed",
+      compensationType: "PAID",
       revisionsLimit: 2,
       usageRights: "no_usage",
       exclusivityClause: "none",
@@ -100,6 +100,8 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     },
   });
 
+  console.log(errors);
+
   const watchedValues = watch();
 
   // Auto-populate fields when modal opens
@@ -109,7 +111,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       const profile = creator?.creator_profile;
 
       setValue("contentFormat", campaignData.deliverables?.join(", ") || "");
-      setValue("compensationType", campaignData.compensation_type?.toLowerCase() || "fixed");
+      setValue("compensationType", campaignData.compensation_type?.toLowerCase() || "PAID");
       setValue("productPrice", campaignData.product_value || "");
       setValue("hashtags", campaignData.hashtags || "");
       setValue("mentions", campaignData.do_donts || ""); // Using do_donts as mentions
@@ -176,11 +178,11 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
 
   const getCompensationInputLabel = useCallback(() => {
     switch (watchedValues.compensationType) {
-      case "fixed":
+      case "PAID":
         return "Total Compensation ($)";
-      case "commission":
+      case "COMMISSION":
         return "Commission Rate (%)";
-      case "gifted":
+      case "GIFTED_PRODUCT":
         return "Product Value ($)";
       default:
         return "Compensation";
@@ -188,7 +190,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
   }, [watchedValues.compensationType]);
 
   const isCompensationRequired = useCallback(() => {
-    return watchedValues.compensationType !== "gifted";
+    return watchedValues.compensationType !== "GIFTED_PRODUCT";
   }, [watchedValues.compensationType]);
 
   return {

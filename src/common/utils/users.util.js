@@ -39,10 +39,7 @@ export const removeUser = () => {
   if (typeof window === "object" && window.localStorage) {
     localStorage.clear();
     localStorage.removeItem("user");
-    localStorage.removeItem("isOtpVerify");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("phone");
-    localStorage.removeItem("userProfile");
+    localStorage.removeItem("token");
   }
 };
 
