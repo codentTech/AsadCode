@@ -4,9 +4,10 @@ export const CAMPAIGN_STATUS = Object.freeze({
   ACTIVE: "ACTIVE",
   COMPLETED: "COMPLETED",
   INACTIVE: "INACTIVE",
+});
 
 export const COMPENSATION_TYPE = Object.freeze({
   PAID: "PAID",
   GIFTED_PRODUCT: "GIFTED_PRODUCT",
   COMMISSION: "COMMISSION",
-
+});
