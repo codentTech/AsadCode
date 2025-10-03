@@ -2,6 +2,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useCallback } from "react";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const validationSchema = Yup.object().shape({
   startDate: Yup.string()
@@ -41,9 +42,12 @@ const validationSchema = Yup.object().shape({
     .max(10, "Revisions limit cannot exceed 10"),
   compensationType: Yup.string()
     .required("Compensation type is required")
-    .oneOf(["PAID", "COMMISSION", "GIFTED_PRODUCT"], "Invalid compensation type"),
+    .oneOf(
+      [COMPENSATION_TYPE.PAID, COMPENSATION_TYPE.COMMISSION, COMPENSATION_TYPE.GIFTED_PRODUCT],
+      "Invalid compensation type"
+    ),
   totalCompensation: Yup.mixed().when("compensationType", {
-    is: (val) => val === "PAID" || val === "COMMISSION",
+    is: (val) => val === COMPENSATION_TYPE.PAID || val === COMPENSATION_TYPE.COMMISSION,
     then: (schema) =>
       schema
         .required("Compensation amount is required")
@@ -55,7 +59,7 @@ const validationSchema = Yup.object().shape({
     otherwise: (schema) => schema.notRequired(),
   }),
   productPrice: Yup.mixed().when("compensationType", {
-    is: "COMMISSION",
+    is: COMPENSATION_TYPE.COMMISSION,
     then: (schema) =>
       schema
         .required("Product price is required")
@@ -88,7 +92,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     mode: "onChange", // Real-time validation
     reValidateMode: "onChange",
     defaultValues: {
-      compensationType: "PAID",
+      compensationType: COMPENSATION_TYPE.PAID,
       revisionsLimit: 2,
       usageRights: "no_usage",
       exclusivityClause: "none",
@@ -111,7 +115,10 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       const profile = creator?.creator_profile;
 
       setValue("contentFormat", campaignData.deliverables?.join(", ") || "");
-      setValue("compensationType", campaignData.compensation_type?.toLowerCase() || "PAID");
+      setValue(
+        "compensationType",
+        campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
+      );
       setValue("productPrice", campaignData.product_value || "");
       setValue("hashtags", campaignData.hashtags || "");
       setValue("mentions", campaignData.do_donts || ""); // Using do_donts as mentions
@@ -178,11 +185,11 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
 
   const getCompensationInputLabel = useCallback(() => {
     switch (watchedValues.compensationType) {
-      case "PAID":
+      case COMPENSATION_TYPE.PAID:
         return "Total Compensation ($)";
-      case "COMMISSION":
+      case COMPENSATION_TYPE.COMMISSION:
         return "Commission Rate (%)";
-      case "GIFTED_PRODUCT":
+      case COMPENSATION_TYPE.GIFTED_PRODUCT:
         return "Product Value ($)";
       default:
         return "Compensation";
@@ -190,7 +197,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
   }, [watchedValues.compensationType]);
 
   const isCompensationRequired = useCallback(() => {
-    return watchedValues.compensationType !== "GIFTED_PRODUCT";
+    return watchedValues.compensationType !== COMPENSATION_TYPE.GIFTED_PRODUCT;
   }, [watchedValues.compensationType]);
 
   return {

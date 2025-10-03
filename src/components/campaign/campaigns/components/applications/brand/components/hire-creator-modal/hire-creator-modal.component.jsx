@@ -2,11 +2,12 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import { useState, useEffect } from "react";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
+import { useEffect, useState } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
-import TextArea from "@/common/components/text-area/text-area.component";
-import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
 export default function HireCreatorModal({
   show,
@@ -36,13 +37,6 @@ export default function HireCreatorModal({
     isValid,
     createEnrichedContractData,
   } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
-
-  // Debug: Log errors to see what's happening
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      console.log("Form errors:", errors);
-    }
-  }, [errors]);
 
   // Initialize form when modal opens
   useEffect(() => {
@@ -180,7 +174,7 @@ export default function HireCreatorModal({
                 isRequired={true}
               />
             )}
-            {watch.compensationType === "commission" && (
+            {watch.compensationType === COMPENSATION_TYPE.COMMISSION && (
               <CustomInput
                 label="Product Price ($)"
                 type="number"
