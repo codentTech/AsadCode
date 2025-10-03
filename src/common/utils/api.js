@@ -4,6 +4,7 @@ import axios from "axios";
 import { enqueueSnackbar } from "notistack";
 import { getAccessToken } from "./access-token.util";
 import { delay } from "./generic.util";
+import { removeUser } from "./users.util";
 
 const api = (headers = null) => {
   const accessToken = getAccessToken();
@@ -54,11 +55,11 @@ const api = (headers = null) => {
       if (responseURL.includes("onboarding")) return null;
 
       // Handle unauthorized
-      // if (status === 401) {
-      //   removeUser();
-      //   window.location.href = "/";
-      //   return;
-      // }
+      if (error.response?.status === 401) {
+        removeUser();
+        window.location.href = "/login";
+        return;
+      }
 
       // Handle message display
       if (Array.isArray(message)) {

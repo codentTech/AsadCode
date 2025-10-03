@@ -98,7 +98,7 @@ export default function CampaignOverview({
       completionDeadline: contractData.completionDeadline,
       contentFormat: contractData.contentFormat,
       revisionsLimit: contractData.revisionsLimit,
-      compensationType: contractData.compensationType.toLowerCase(),
+      compensationType: contractData.compensationType.toUpperCase(),
       totalCompensation: contractData.totalCompensation
         ? parseFloat(contractData.totalCompensation)
         : undefined,
