@@ -3,109 +3,121 @@ import { useState } from "react";
 import CampaignDetails from "./components/campaign-detail/campaign-detail.component";
 import CompletedCampaignList from "./components/campaign-list/campaign-list.component";
 import FinanceDashboard from "./components/finance-dashboard/finance-dashboard.component";
-import { avatar } from "@/common/constants/auth.constant";
-
-// Mock data
-const completedCampaigns = [
-  {
-    id: 1,
-    title: "Summer Beauty Collection Launch",
-    brand: { name: "GlowCo", logo: avatar },
-    platforms: ["instagram", "tiktok"],
-    completedDate: "2025-06-05",
-    paymentStatus: "Paid",
-    totalEarned: 850,
-    deliverables: ["3 Instagram posts", "2 TikTok videos", "1 Story series"],
-    productImage: avatar,
-    hasReview: false,
-    deadline: "21/10/2020",
-    type: "UGC",
-    compensation: "compensation",
-    compensationAmount: "$500",
-    description: "some description",
-  },
-  {
-    id: 2,
-    title: "Sustainable Fashion Week",
-    brand: { name: "EcoWear", logo: avatar },
-    platforms: ["youtube", "instagram"],
-    completedDate: "2025-05-28",
-    paymentStatus: "In Escrow",
-    totalEarned: 1200,
-    deliverables: ["1 YouTube video", "5 Instagram posts", "Story highlights"],
-    productImage: avatar,
-    hasReview: true,
-    review: { rating: 5, text: "Amazing work! Great engagement rates." },
-    deadline: "21/10/2020",
-    type: "UGC",
-    compensation: "compensation",
-    compensationAmount: "$500",
-    description: "some description",
-  },
-  {
-    id: 3,
-    title: "Tech Gadget Review Series",
-    brand: { name: "TechFlow", logo: avatar },
-    platforms: ["youtube", "tiktok"],
-    completedDate: "2025-05-15",
-    paymentStatus: "Pending",
-    totalEarned: 2000,
-    deliverables: ["2 YouTube videos", "4 TikTok videos", "Unboxing content"],
-    productImage: avatar,
-    hasReview: false,
-    deadline: "21/10/2020",
-    type: "UGC",
-    compensation: "compensation",
-    compensationAmount: "$500",
-    description: "some description",
-  },
-];
-
-const upcomingPayments = [
-  { campaign: "Summer Beauty Collection Launch", amount: 850, date: "2025-06-15" },
-  { campaign: "Sustainable Fashion Week", amount: 1200, date: "2025-06-20" },
-  { campaign: "Tech Gadget Review Series", amount: 2000, date: "2025-06-25" },
-];
-
-const paymentHistory = {
-  "June 2025": {
-    total: 2750,
-    payments: [
-      { campaign: "Skincare Routine Campaign", amount: 950, date: "June 8" },
-      { campaign: "Fitness Gear Review", amount: 800, date: "June 12" },
-      { campaign: "Home Decor Showcase", amount: 1000, date: "June 18" },
-    ],
-  },
-  "May 2025": {
-    total: 3200,
-    payments: [
-      { campaign: "Spring Fashion Haul", amount: 1200, date: "May 5" },
-      { campaign: "Travel Essentials", amount: 900, date: "May 15" },
-      { campaign: "Beauty Basics", amount: 1100, date: "May 25" },
-    ],
-  },
-};
+import NotFound from "@/common/components/not-found/not-found.component";
+import useCompletedCampaign from "./use-completed-campaign.hook";
 
 const CompletedCampaign = () => {
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
-  const [selectedCampaign, setSelectedCampaign] = useState(completedCampaigns[0]);
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // Use the custom hook for completed campaign functionality
+  const {
+    selectedCampaign,
+    completedCampaigns,
+    searchQuery,
+    expandedMonths,
+    applicationsLoading,
+    applicationsSuccess,
+    applicationsError,
+    paymentHistory,
+    upcomingPayments,
+    handleCampaignSelect,
+    setSearchQuery,
+    setExpandedMonths,
+  } = useCompletedCampaign();
+
+  // Local state for reviews
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [expandedMonths, setExpandedMonths] = useState({});
 
-  const filteredCampaigns = completedCampaigns.filter(
-    (campaign) =>
-      campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      campaign.brand.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Show loading state
+  if (applicationsLoading) {
+    return (
+      <div className="relative flex h-screen">
+        <div className="w-[23%] bg-white border-r border-gray-200 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+            <div className="text-sm text-gray-500">Loading campaigns...</div>
+          </div>
+        </div>
+        <div className="flex-1 bg-white border-r border-gray-200 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+            <div className="text-sm text-gray-500">Loading campaign details...</div>
+          </div>
+        </div>
+        <div className="w-[27%] bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+            <div className="text-sm text-gray-500">Loading finance data...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (applicationsError) {
+    return (
+      <div className="relative flex h-screen">
+        <div className="w-[23%] bg-white border-r border-gray-200 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-red-500">Failed to load campaigns</div>
+          </div>
+        </div>
+        <div className="flex-1 bg-white border-r border-gray-200 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-red-500">Error loading campaign details</div>
+          </div>
+        </div>
+        <div className="w-[27%] bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-red-500">Error loading finance data</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state when no campaigns
+  if (!applicationsLoading && applicationsSuccess && completedCampaigns.length === 0) {
+    return (
+      <div className="relative flex h-screen">
+        {/* Left Column - Campaign List */}
+        <div className="w-[23%] bg-white border-r border-gray-200">
+          <NotFound
+            title="No Completed Campaigns"
+            description="No completed campaigns available."
+            className="h-full"
+          />
+        </div>
+
+        {/* Center Column - Campaign Details */}
+        <div className="flex-1 bg-white border-r border-gray-200">
+          <NotFound
+            title="No Campaign Selected"
+            description="Select a campaign to view details."
+            className="h-full"
+          />
+        </div>
+
+        {/* Right Column - Finance Dashboard */}
+        <div className="w-[27%] bg-white">
+          <NotFound
+            title="No Finance Data"
+            description="No payment data available."
+            className="h-full"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-1 overflow-hidden">
       <CompletedCampaignList
-        campaigns={filteredCampaigns}
+        campaigns={completedCampaigns}
         selectedCampaign={selectedCampaign}
-        onSelect={setSelectedCampaign}
+        onSelect={handleCampaignSelect}
         searchQuery={searchQuery}
         onSearch={setSearchQuery}
       />

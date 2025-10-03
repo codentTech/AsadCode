@@ -21,15 +21,10 @@ function CampaignTypeNiche({
   const selectedNiches = watchedValues.niches || [];
   const selectedDeliverables = watchedValues.deliverables || [];
 
-  console.log("Current form values:", watchedValues);
-  console.log("Selected niches from form:", selectedNiches);
-
   // Handle niche selection
   const handleNicheChange = (niches) => {
-    console.log("Parent handleNicheChange called with:", niches);
     if (!setValue) return;
     setValue("niches", niches);
-    console.log("Set niches in form:", niches);
   };
 
   // Handle deliverable selection

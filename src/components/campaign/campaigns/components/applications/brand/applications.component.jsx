@@ -1,21 +1,18 @@
+import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
+import { avatar } from "@/common/constants/auth.constant";
 import { isCreatorMode } from "@/common/utils/users.util";
-import { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import {
-  rejectCreator,
-  getAppliedCreators,
   createContract,
+  getAppliedCreators,
+  rejectCreator,
   sendContract,
 } from "@/provider/features/campaigns/campaigns.slice";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
-import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import Modal from "@/common/components/modal/modal.component";
-import TextArea from "@/common/components/text-area/text-area.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
-import { avatar } from "@/common/constants/auth.constant";
 
 function BrandApplications() {
   const dispatch = useDispatch();

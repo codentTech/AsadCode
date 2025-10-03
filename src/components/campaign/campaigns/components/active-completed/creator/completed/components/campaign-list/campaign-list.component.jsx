@@ -33,17 +33,20 @@ const CompletedCampaignList = ({
             }`}
           >
             <div className="flex items-start gap-3">
-              <img
-                src={campaign.brand.logo}
-                alt={campaign.brand.name}
-                className="w-10 h-10 rounded-lg object-cover"
-              />
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg border border-gray-200 flex-shrink-0">
+                {typeof campaign.brand.logo === "string" && campaign.brand.logo.length <= 2
+                  ? campaign.brand.logo
+                  : "🌟"}
+              </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 text-sm truncate">{campaign.title}</h3>
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-gray-600 mt-1">{campaign.brand.name}</p>
                   <span className="text-xs text-gray-500">
-                    Completed on {new Date(campaign.completedDate).toLocaleDateString()}
+                    Completed on{" "}
+                    {campaign.completedDate
+                      ? new Date(campaign.completedDate).toLocaleDateString()
+                      : "N/A"}
                   </span>
                 </div>
               </div>

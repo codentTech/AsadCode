@@ -2,13 +2,28 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  Copy,
+  X,
+  Upload,
+  ExternalLink,
+} from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [publishedUrl, setPublishedUrl] = useState("");
   const [expandedSections, setExpandedSections] = useState({
     dosdonts: false,
     styleGuide: false,
@@ -16,6 +31,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   });
 
   const campaign = selectedCampaign;
+  const router = useRouter();
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -35,6 +51,46 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
+  };
+
+  // Validate URL
+  const validateUrl = (url) => {
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    const socialPlatforms = ["instagram.com", "tiktok.com", "youtube.com", "twitter.com", "x.com"];
+
+    if (!urlPattern.test(url)) return false;
+    return socialPlatforms.some((platform) => url.includes(platform));
+  };
+
+  // Handle file upload
+  const handleFileUpload = () => {
+    if (!selectedFile) return;
+
+    // TODO: Integrate with actual file upload service
+    console.log("Uploading file:", selectedFile.name);
+
+    // For now, just close the modal
+    setShowUploadModal(false);
+    setSelectedFile(null);
+  };
+
+  // Handle published URL submission
+  const handlePublishUrl = () => {
+    if (!validateUrl(publishedUrl)) return;
+
+    // TODO: Integrate with timeline API
+    console.log("Submitting published URL:", publishedUrl);
+
+    setShowUrlModal(false);
+    setPublishedUrl("");
+  };
+
+  // Navigate to brand timeline for approval/revision
+  const handleUpdateProgress = () => {
+    if (campaign?.id) {
+      // Navigate to brand's campaign view where they can approve/revise
+      router.push(`/campaigns/brand/${campaign.id}`);
+    }
   };
 
   // Sample data for the information sections
@@ -148,7 +204,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
               <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-                {campaign.logo}
+                <img src={campaign.logo} alt="Brand Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{campaign.brand}</h2>
@@ -352,17 +408,24 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           </div>
 
           {/* Campaign Progress */}
-          <CreatorTimelineSteps />
+          <CreatorTimelineSteps
+            campaignId={campaign?.id}
+            deadline={campaign?.campaign_deadline || campaign?.application_deadline}
+          />
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-4 gap-2">
-            <CustomButton text="Upload Content" className="btn-primary" />
+          <div className="grid grid-cols-3 gap-2">
+            <CustomButton
+              text="Upload Content"
+              className="btn-primary"
+              onClick={() => setShowUploadModal(true)}
+              startIcon={<Upload className="w-4 h-4" />}
+            />
             <CustomButton
               text="Update Progress"
               className="btn-outline"
-              onClick={() => setShowProgressModal(true)}
+              onClick={handleUpdateProgress}
             />
-            <CustomButton text="Message" className="btn-outline" />
             <CustomButton
               text="View Brief"
               className="btn-outline"
@@ -433,6 +496,101 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               text="Save Changes"
               className="btn-primary"
               onClick={() => setShowProgressModal(false)}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Upload Content Modal */}
+      <Modal
+        show={showUploadModal}
+        title="Upload Content"
+        onClose={() => setShowUploadModal(false)}
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 mb-2">Choose file to upload</p>
+            <input
+              type="file"
+              accept="video/*,image/*"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+              className="hidden"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 cursor-pointer"
+            >
+              Select File
+            </label>
+            {selectedFile && (
+              <p className="text-xs text-green-600 mt-2">Selected: {selectedFile.name}</p>
+            )}
+          </div>
+
+          <div className="text-xs text-gray-500">
+            <p>Supported formats: MP4, MOV, AVI, JPG, PNG</p>
+            <p>Max file size: 100MB</p>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <CustomButton
+              text="Cancel"
+              type="button"
+              className="btn-cancel"
+              onClick={() => setShowUploadModal(false)}
+            />
+            <CustomButton
+              text="Upload & Submit"
+              className="btn-primary"
+              onClick={handleFileUpload}
+              disabled={!selectedFile}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Submit Published URL Modal */}
+      <Modal
+        show={showUrlModal}
+        title="Submit Published Post"
+        onClose={() => setShowUrlModal(false)}
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Published Post URL
+            </label>
+            <input
+              type="url"
+              value={publishedUrl}
+              onChange={(e) => setPublishedUrl(e.target.value)}
+              placeholder="https://instagram.com/p/..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Must be a valid URL from Instagram, TikTok, YouTube, or Twitter/X
+            </p>
+            {publishedUrl && !validateUrl(publishedUrl) && (
+              <p className="text-xs text-red-600 mt-1">Please enter a valid social media URL</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <CustomButton
+              text="Cancel"
+              type="button"
+              className="btn-cancel"
+              onClick={() => setShowUrlModal(false)}
+            />
+            <CustomButton
+              text="Submit"
+              className="btn-primary"
+              onClick={handlePublishUrl}
+              disabled={!validateUrl(publishedUrl)}
             />
           </div>
         </div>
