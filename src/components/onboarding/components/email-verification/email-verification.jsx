@@ -3,16 +3,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import useEmailVerification from "./use-email-verification.hook";
 
 const EmailVerification = ({ onNext, onBack }) => {
-  const {
-    email,
-    emailSent,
-    countdown,
-    handleResendEmail,
-    handleContinue,
-    onboardingStatusLoading,
-  } = useEmailVerification({
-    onNext,
-  });
+  const { email, emailSent, countdown, handleResendEmail, handleContinue, isLoading } =
+    useEmailVerification({
+      onNext,
+    });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
@@ -80,7 +74,8 @@ const EmailVerification = ({ onNext, onBack }) => {
               text="Continue to Profile Setup"
               className="btn-primary w-full"
               onClick={handleContinue}
-              loading={onboardingStatusLoading}
+              disabled={isLoading}
+              loading={isLoading}
             />
             <p className="text-sm text-center text-gray-400 hover:text-gray-600 transition">
               Having trouble? <span className="underline cursor-pointer">Contact Support</span>

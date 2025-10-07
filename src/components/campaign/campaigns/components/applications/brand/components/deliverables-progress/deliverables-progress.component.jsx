@@ -19,8 +19,6 @@ const DeliverablesProgress = ({
   const getCreatorData = () => {
     if (!selectedCreator) return null;
 
-    console.log(selectedCreator);
-
     // If it's the original API data structure
     if (selectedCreator.creator) {
       const creator = selectedCreator.creator;

@@ -19,8 +19,6 @@ export default function ChatInbox() {
     handleCloseQuickHire,
   } = useChatInbox();
 
-  console.log("activeTab", activeTab);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-200 to-white">
       <div className="container mx-auto max-w-7xl h-screen rounded-xl overflow-hidden shadow-xl border border-gray-200 bg-white">

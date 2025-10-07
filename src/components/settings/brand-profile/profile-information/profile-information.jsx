@@ -4,17 +4,18 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
+import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Camera, MapPin, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
   brandName: Yup.string().required("Brand name is required"),
   websiteUrl: Yup.string().url("Enter a valid URL").required("Website URL is required"),
-  brandLogoUrl: Yup.string().url("Enter a valid logo URL").nullable(),
+  brandLogoUrl: Yup.string().nullable(),
   city: Yup.string().required("City is required"),
   country: Yup.string().required("Country is required"),
   companyDescription: Yup.string().required("Description is required").max(300),
@@ -35,6 +36,10 @@ const ProfileInformation = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [brandLogoFile, setBrandLogoFile] = useState(null);
+  const [brandLogoPreview, setBrandLogoPreview] = useState(null);
+
+  const { uploadSingleFile: uploadState } = useSelector((state) => state.uploadFile);
 
   const {
     register,
@@ -80,42 +85,78 @@ const ProfileInformation = () => {
   const description = watch("companyDescription");
   const selectedCountry = watch("country");
 
-  const handleLogoUpload = () => {
-    // Simulate file upload (replace with real upload logic if needed)
-    setValue(
-      "brandLogoUrl",
-      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=center",
-      { shouldValidate: true }
+  const handleFileUpload = (file) => {
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+      if (file.size <= 5 * 1024 * 1024) {
+        // 5MB limit
+        setBrandLogoFile(file);
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBrandLogoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        setValue("brandLogoUrl", reader.result);
+      }
+    }
+  };
+
+  const uploadBrandLogo = async (file) => {
+    const response = await dispatch(
+      uploadSingleFile({
+        file,
+        folder: "brand",
+      })
     );
+
+    if (response.payload?.url) {
+      return response.payload.url;
+    }
+    return null;
+  };
+
+  const handleLogoUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+    };
+    input.click();
   };
 
   const onSubmit = async (data) => {
-    try {
-      setIsLoading(true);
+    setIsLoading(true);
 
-      if (!currentUser?.email) {
-        console.error("No user email found");
-        return;
-      }
-
-      const result = await dispatch(
-        setupBrandProfile({ payload: data, email: currentUser.email })
-      ).unwrap();
-
-      if (result.success) {
-        // Refresh user data from localStorage after successful update
-        getUser(result?.data);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error updating brand profile:", error);
-      // Show user-friendly error message
-      if (error.response?.data?.message) {
-        console.error("API Error:", error.response.data.message);
-      }
-    } finally {
+    if (!currentUser?.email) {
       setIsLoading(false);
+      return;
     }
+
+    let brandLogoUrl = data.brandLogoUrl;
+
+    if (brandLogoFile) {
+      brandLogoUrl = await uploadBrandLogo(brandLogoFile);
+    }
+
+    const payload = {
+      ...data,
+      brandLogoUrl: brandLogoUrl || data.brandLogoUrl,
+    };
+
+    const result = await dispatch(setupBrandProfile({ payload, email: currentUser.email }));
+
+    if (result.payload?.success) {
+      // Refresh user data from localStorage after successful update
+      getUser(result.payload?.data);
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -161,9 +202,9 @@ const ProfileInformation = () => {
               </h3>
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {brandLogo ? (
+                  {brandLogoPreview || brandLogo ? (
                     <img
-                      src={brandLogo}
+                      src={brandLogoPreview || brandLogo}
                       alt="Brand Logo"
                       className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                     />
@@ -172,9 +213,13 @@ const ProfileInformation = () => {
                       <Camera className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
-                  {brandLogo && (
+                  {(brandLogoPreview || brandLogo) && (
                     <button
-                      onClick={() => setValue("brandLogoUrl", "")}
+                      onClick={() => {
+                        setValue("brandLogoUrl", "");
+                        setBrandLogoFile(null);
+                        setBrandLogoPreview(null);
+                      }}
                       className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
                       type="button"
                     >
@@ -189,8 +234,12 @@ const ProfileInformation = () => {
                     icon={Upload}
                     onClick={handleLogoUpload}
                     type="button"
+                    disabled={isSubmitting || isLoading || uploadState.isLoading}
                   />
                   <p className="text-xs text-gray-600 mt-2">PNG or JPG, max 5MB</p>
+                  {uploadState.isError && (
+                    <p className="text-xs text-red-600 mt-2">{uploadState.message}</p>
+                  )}
                 </div>
               </div>
               {errors.brandLogoUrl && (
@@ -253,10 +302,10 @@ const ProfileInformation = () => {
         {/* Action Buttons */}
         <div className="flex justify-end mt-10">
           <CustomButton
-            text={isSubmitting || isLoading ? "Saving..." : "Save"}
+            text={isSubmitting || isLoading || uploadState.isLoading ? "Saving..." : "Save"}
             className="btn-primary"
             type="submit"
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting || isLoading || uploadState.isLoading}
           />
         </div>
       </form>

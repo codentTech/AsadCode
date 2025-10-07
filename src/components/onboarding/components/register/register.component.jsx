@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import useRegister from "./use-register.hook";
 
 const Register = ({ onNext, onBack }) => {
-  const { register, handleSubmit, errors, onSubmit, watch, setValue } = useRegister({
+  const { register, handleSubmit, errors, onSubmit, watch, setValue, isLoading } = useRegister({
     onNext,
   });
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
@@ -317,7 +317,13 @@ const Register = ({ onNext, onBack }) => {
             </div>
 
             {/* Submit Button */}
-            <CustomButton text="Create My Account" className="btn-primary w-full" type="submit" />
+            <CustomButton
+              text="Create My Account"
+              className="btn-primary w-full"
+              type="submit"
+              disabled={isLoading}
+              loading={isLoading}
+            />
           </form>
         </div>
       </div>

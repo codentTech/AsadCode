@@ -13,6 +13,8 @@ import MessageThreadModal from "../../message-thread-modal/message-thread-modal.
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
+import Loader from "@/common/components/loader/loader.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 
 function BrandApplications() {
   const dispatch = useDispatch();
@@ -68,7 +70,6 @@ function BrandApplications() {
 
   // Handle campaign selection from CampaignOverview
   const handleCampaignSelect = (campaign) => {
-    console.log("Refreshing campaign data for:", campaign.id);
     setSelectedCampaign(campaign);
     setSelectedCreator(null); // Reset selected creator when campaign changes
     autoSelectedForCampaignRef.current = null; // reset auto-select guard for new campaign
@@ -85,6 +86,7 @@ function BrandApplications() {
   // Auto-select first creator when creators list loads for the selected campaign
   useEffect(() => {
     const creators = appliedCreatorsData?.data;
+
     if (
       selectedCampaign &&
       appliedCreatorsSuccess &&
@@ -96,7 +98,14 @@ function BrandApplications() {
       setSelectedCreator(creators[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }
-  }, [appliedCreatorsSuccess, appliedCreatorsData, selectedCampaign, selectedCreator]);
+  }, [
+    appliedCreatorsSuccess,
+    appliedCreatorsData,
+    selectedCampaign,
+    selectedCreator,
+    appliedCreatorsLoading,
+    appliedCreatorsError,
+  ]);
 
   // Handle creator selection from CreatorSpendAnalysis
   const handleCreatorSelect = (creator) => {
@@ -237,6 +246,53 @@ function BrandApplications() {
     isOnline: true,
   };
 
+  const creators = Array.isArray(appliedCreatorsData?.data) ? appliedCreatorsData.data : [];
+
+  const renderRightPane = () => {
+    // Loading state for creators list
+    if (appliedCreatorsLoading) {
+      return (
+        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+          <Loader loading={true} />
+          <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
+        </div>
+      );
+    }
+
+    // No campaign selected -> show not found placeholder on right
+    if (!selectedCampaign) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
+        </div>
+      );
+    }
+
+    // Campaign selected but no creators for this campaign
+    if (selectedCampaign && creators.length === 0) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound
+            title="No Creators Found"
+            description="No creators have applied to this campaign yet."
+          />
+        </div>
+      );
+    }
+
+    // Default: show deliverables pane
+    return (
+      <DeliverablesProgress
+        isCreatorMode={isCreatorMode()}
+        selectedCampaign={selectedCampaign}
+        selectedCreator={selectedCreator}
+        onHireClick={handleHireClick}
+        onRejectClick={handleRejectClick}
+        onMessageClick={() => setMessageDialogOpen(true)}
+      />
+    );
+  };
+
   return (
     <div className="relative flex">
       <CreatorSpendAnalysis
@@ -252,14 +308,7 @@ function BrandApplications() {
         onMessageClick={() => setMessageDialogOpen(true)}
       />
 
-      <DeliverablesProgress
-        isCreatorMode={isCreatorMode()}
-        selectedCampaign={selectedCampaign}
-        selectedCreator={selectedCreator}
-        onHireClick={handleHireClick}
-        onRejectClick={handleRejectClick}
-        onMessageClick={() => setMessageDialogOpen(true)}
-      />
+      {renderRightPane()}
 
       {/* Hire Creator Modal */}
       <HireCreatorModal

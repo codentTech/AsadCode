@@ -36,6 +36,7 @@ const initialState = {
   createContract: { ...generalState },
   sendContract: { ...generalState },
   hireCreator: { ...generalState },
+  markCampaignComplete: { ...generalState },
 };
 
 // Create campaign
@@ -320,6 +321,21 @@ export const hireCreator = createAsyncThunk(
   }
 );
 
+export const markCampaignComplete = createAsyncThunk(
+  "campaigns/markCampaignComplete",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.markCampaignComplete(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to mark campaign complete")
+      );
+    }
+  }
+);
+
 export const campaignsSlice = createSlice({
   name: "campaigns",
   initialState,
@@ -342,6 +358,15 @@ export const campaignsSlice = createSlice({
     },
     resetFilteredCampaigns: (state) => {
       state.filterCampaigns = { ...generalState };
+    },
+    resetGetAllCampaigns: (state) => {
+      state.getAllCampaigns = { ...generalState };
+    },
+    resetGetBrandCampaignsExcludingCompleted: (state) => {
+      state.getBrandCampaignsExcludingCompleted = { ...generalState };
+    },
+    resetGetAppliedCreators: (state) => {
+      state.getAppliedCreators = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -732,10 +757,34 @@ export const campaignsSlice = createSlice({
         state.hireCreator.isLoading = false;
         state.hireCreator.isError = true;
         state.hireCreator.data = null;
+      })
+      // markCampaignComplete
+      .addCase(markCampaignComplete.pending, (state) => {
+        state.markCampaignComplete.isLoading = true;
+        state.markCampaignComplete.message = "";
+      })
+      .addCase(markCampaignComplete.fulfilled, (state, action) => {
+        state.markCampaignComplete.isLoading = false;
+        state.markCampaignComplete.isSuccess = true;
+        state.markCampaignComplete.data = action.payload;
+      })
+      .addCase(markCampaignComplete.rejected, (state, action) => {
+        state.markCampaignComplete.message =
+          action.payload?.message || "Failed to mark campaign complete";
+        state.markCampaignComplete.isLoading = false;
+        state.markCampaignComplete.isError = true;
+        state.markCampaignComplete.data = null;
       });
   },
 });
 
-export const { reset, resetCreateCampaign, resetUpdateCampaign, resetFilteredCampaigns } =
-  campaignsSlice.actions;
+export const {
+  reset,
+  resetCreateCampaign,
+  resetUpdateCampaign,
+  resetFilteredCampaigns,
+  resetGetAllCampaigns,
+  resetGetBrandCampaignsExcludingCompleted,
+  resetGetAppliedCreators,
+} = campaignsSlice.actions;
 export default campaignsSlice.reducer;

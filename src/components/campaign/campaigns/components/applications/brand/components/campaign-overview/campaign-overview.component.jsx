@@ -3,6 +3,7 @@ import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/C
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
@@ -317,7 +318,14 @@ export default function CampaignOverview({
         <div className="flex items-center justify-center py-8">
           <Loader loading={true} />
         </div>
-      ) : null}
+      ) : (
+        <div className="flex items-center justify-center py-8">
+          <NotFound
+            title="No Campaigns Found"
+            description="Create or select a campaign to get started."
+          />
+        </div>
+      )}
 
       <HireCreatorModal
         show={hireModalOpen}
