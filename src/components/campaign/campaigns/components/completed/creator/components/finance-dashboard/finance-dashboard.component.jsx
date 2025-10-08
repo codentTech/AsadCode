@@ -31,7 +31,7 @@ const FinanceDashboard = ({
 
   return (
     <div className="w-[27%] bg-white border-l border-gray-200 flex flex-col">
-      {/* Double-blind review unlocked message placeholder */}
+      {/* Double-blind review unlocked message placeholder
       {reviewStatus &&
         !reviewStatus.isUnlocked &&
         reviewStatus.hasBrandReview &&
@@ -60,7 +60,7 @@ const FinanceDashboard = ({
               </p>
             </div>
           </div>
-        )}
+        )} */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
         <div className="bg-gray-100 p-2 rounded-lg">
