@@ -6,6 +6,7 @@ import {
   createCalendarTask,
   getAllCalendarTasks,
   getCreatorTasksByMonth,
+  getTasksByCampaign,
   toggleCalendarTaskStatus,
 } from "@/provider/features/calendar-tasks/calendar-tasks.slice";
 import { useEffect, useState } from "react";
@@ -84,9 +85,9 @@ export default function useCalendarModal(show, selectedCampaign) {
       if (creatorMode) {
         dispatch(getCreatorTasksByMonth({ month: currentMonth.month, year: currentMonth.year }));
       }
-      // For brands: Load all tasks (campaign-specific loading happens elsewhere)
+      // For brands: Load tasks for the selected campaign ONLY
       else if (selectedCampaign?.id) {
-        dispatch(getAllCalendarTasks());
+        dispatch(getTasksByCampaign(selectedCampaign.id));
       }
 
       // Load categories for both
@@ -205,6 +206,8 @@ export default function useCalendarModal(show, selectedCampaign) {
       // Refresh tasks after creating
       if (creatorMode) {
         dispatch(getCreatorTasksByMonth({ month: currentMonth.month, year: currentMonth.year }));
+      } else if (selectedCampaign?.id) {
+        dispatch(getTasksByCampaign(selectedCampaign.id));
       }
     }
   };
