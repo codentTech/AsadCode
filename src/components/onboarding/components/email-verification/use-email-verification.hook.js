@@ -12,7 +12,7 @@ export default function useEmailVerification({ onNext }) {
   const [emailSent, setEmailSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const { onboardingStatusLoading } = useSelector((state) => state.onboarding || {});
+  const { isLoading } = useSelector((state) => state.auth.verifyEmail);
 
   useEffect(() => {
     let timer;
@@ -48,6 +48,6 @@ export default function useEmailVerification({ onNext }) {
     countdown,
     handleResendEmail,
     handleContinue,
-    onboardingStatusLoading,
+    isLoading,
   };
 }

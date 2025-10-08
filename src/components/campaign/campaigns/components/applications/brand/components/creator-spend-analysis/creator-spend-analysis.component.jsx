@@ -2,8 +2,8 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
-import NoResultFound from "@/common/components/no-result-found/no-result-found";
 import { avatar } from "@/common/constants/auth.constant";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
@@ -62,13 +62,10 @@ const CreatorSpendAnalysis = ({
     }
   };
 
-  const handleSaveToShortlist = (creator) => {
-    console.log("Save to shortlist:", creator);
-  };
+  const handleSaveToShortlist = (creator) => {};
 
   const handleInviteClick = (creator, e) => {
     e.stopPropagation();
-    console.log("Invite creator:", creator);
   };
 
   // FilterButton component for consistent styling
@@ -85,7 +82,6 @@ const CreatorSpendAnalysis = ({
 
   // Map API data to shared CreatorCard shape
   const mapCreatorForCard = (creator) => {
-    console.log(creator);
     const creatorData = creator.creator;
     const profile = creatorData?.creator_profile;
     return {
@@ -155,6 +151,25 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
+        {/* Campaigns Loading */}
+        {campaignsLoading && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Loader loading={true} />
+            <p className="text-xs text-gray-500 mt-2">Loading campaigns...</p>
+          </div>
+        )}
+
+        {/* No Campaigns Found */}
+        {!campaignsLoading &&
+          (!Array.isArray(campaignsData?.data) || campaignsData.data.length === 0) && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <NotFound
+                title="No Campaigns Found"
+                description="Create a campaign to see applications here."
+              />
+            </div>
+          )}
+
         {selectedCampaign ? (
           <>
             {/* Campaign Info */}
@@ -170,7 +185,8 @@ const CreatorSpendAnalysis = ({
             {/* Loading State */}
             {selectedCampaign && appliedCreatorsLoading && (
               <div className="text-center py-8 flex flex-col items-center">
-                <Loader loading={true} color="blue" size={32} />
+                <Loader loading={true} />
+                <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
               </div>
             )}
 
@@ -204,9 +220,9 @@ const CreatorSpendAnalysis = ({
               (!Array.isArray(appliedCreatorsData?.data) ||
                 appliedCreatorsData.data.length === 0) && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <NoResultFound
-                    message="No Creators Found"
-                    subMessage="Try adjusting filters or selecting a different campaign."
+                  <NotFound
+                    title="No Creators Found"
+                    description="Try adjusting filters or selecting a different campaign."
                   />
                 </div>
               )}

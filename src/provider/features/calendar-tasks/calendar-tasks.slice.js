@@ -46,12 +46,26 @@ export const getAllCalendarTasks = createAsyncThunk(
   }
 );
 
-// Get tasks by month
+// Get tasks by month (for brands - all tasks)
 export const getTasksByMonth = createAsyncThunk(
   "calendarTasks/getTasksByMonth",
   async ({ month, year }, thunkAPI) => {
     try {
       const response = await calendarTaskService.getTasksByMonth(month, year);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get tasks by month for creator (user-wide across all campaigns)
+export const getCreatorTasksByMonth = createAsyncThunk(
+  "calendarTasks/getCreatorTasksByMonth",
+  async ({ month, year }, thunkAPI) => {
+    try {
+      const response = await calendarTaskService.getCreatorTasksByMonth(month, year);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -177,6 +191,25 @@ export const calendarTasksSlice = createSlice({
         state.getAllTasks.isLoading = false;
         state.getAllTasks.isError = true;
         state.getAllTasks.data = null;
+      })
+
+      // Get creator tasks by month (user-wide)
+      .addCase(getCreatorTasksByMonth.pending, (state) => {
+        state.getAllTasks.isLoading = true;
+        state.getAllTasks.message = "";
+        state.getAllTasks.isError = false;
+        state.getAllTasks.isSuccess = false;
+      })
+      .addCase(getCreatorTasksByMonth.fulfilled, (state, action) => {
+        state.getAllTasks.isLoading = false;
+        state.getAllTasks.isSuccess = true;
+        state.getAllTasks.data = action.payload.data;
+        state.tasks = action.payload.data;
+      })
+      .addCase(getCreatorTasksByMonth.rejected, (state, action) => {
+        state.getAllTasks.message = action.payload.message;
+        state.getAllTasks.isLoading = false;
+        state.getAllTasks.isError = true;
       })
 
       // Update task

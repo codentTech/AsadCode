@@ -3,6 +3,7 @@
 import { getOnboardingEmail } from "@/common/utils/users.util";
 import { reset } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
+import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -38,6 +39,7 @@ export default function useProfileSetup({ onNext }) {
 
   const { isLoading, updateProfile: updateProfileState } = useSelector((state) => state.auth);
   const { isSuccess, isError, message } = updateProfileState || {};
+  const { uploadSingleFile: uploadState } = useSelector((state) => state.uploadFile);
 
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
@@ -85,29 +87,17 @@ export default function useProfileSetup({ onNext }) {
   };
 
   const uploadProfilePhoto = async (file) => {
-    // This would typically upload to your file storage service
-    // For now, returning a mock URL
-    const formData = new FormData();
-    formData.append("profilePhoto", file);
+    const response = await dispatch(
+      uploadSingleFile({
+        file,
+        folder: "creator",
+      })
+    );
 
-    // try {
-    //   // Replace with your actual upload endpoint
-    //   const response = await fetch("/api/upload/profile-photo", {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-
-    //   if (!response.ok) {
-    //     throw new Error("Upload failed");
-    //   }
-
-    //   const data = await response.json();
-    //   return data.url;
-    // } catch (error) {
-    //   console.error("Photo upload error:", error);
-    //   // Return mock URL for development
-    //   return `https://example.com/profile-photos/${Date.now()}.jpg`;
-    // }
+    if (response.payload?.url) {
+      return response.payload.url;
+    }
+    return null;
   };
 
   const updateSocialPlatforms = (platforms, usernames) => {
@@ -158,30 +148,27 @@ export default function useProfileSetup({ onNext }) {
   ];
 
   const onSubmit = async (values) => {
-    try {
-      let profilePhotoUrl = null;
+    let profilePhotoUrl = null;
 
-      //   if (profilePhotoFile) {
-      //     profilePhotoUrl = await uploadProfilePhoto(profilePhotoFile);
-      //   }
+    if (profilePhotoFile) {
+      profilePhotoUrl = await uploadProfilePhoto(profilePhotoFile);
+    }
+    console.log(profilePhotoUrl);
 
-      const payload = {
-        profilePhotoUrl,
-        bio: values.bio.trim(),
-        socialPlatforms: values.socialPlatforms,
-        categories: values.categories,
-        keywordTags: values.keywordTags,
-        contentRates: values.contentRates,
-      };
+    const payload = {
+      profilePhotoUrl,
+      bio: values.bio.trim(),
+      socialPlatforms: values.socialPlatforms,
+      categories: values.categories,
+      keywordTags: values.keywordTags,
+      contentRates: values.contentRates,
+    };
 
-      const response = await dispatch(setupCreatorProfile({ payload, email }));
-      if (response.payload.success) {
-        onNext();
-        resetForm();
-        dispatch(reset());
-      }
-    } catch (error) {
-      console.error("Form submission error:", error.message);
+    const response = await dispatch(setupCreatorProfile({ payload, email }));
+    if (response.payload.success) {
+      onNext();
+      resetForm();
+      dispatch(reset());
     }
   };
 
@@ -193,9 +180,9 @@ export default function useProfileSetup({ onNext }) {
     watch,
     setValue,
     getValues,
-    isLoading: isLoading || isSubmitting,
-    isError,
-    errorMessage: message,
+    isLoading: isLoading || isSubmitting || uploadState.isLoading,
+    isError: isError || uploadState.isError,
+    errorMessage: message || uploadState.message,
     resetForm,
     // File upload methods
     handleFileUpload,

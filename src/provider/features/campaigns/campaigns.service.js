@@ -36,6 +36,12 @@ const publishCampaign = async (campaignId) => {
   return response.data;
 };
 
+// Mark campaign as complete
+const markCampaignComplete = async (campaignId) => {
+  const response = await api().post(`/campaigns/${campaignId}/complete`);
+  return response.data;
+};
+
 // Filter campaigns (now consolidated with getAllCampaigns)
 const filterCampaigns = async (filters) => {
   const response = await api().get("/campaigns", { params: filters });
@@ -131,6 +137,7 @@ const campaignsService = {
   createContract,
   sendContract,
   hireCreator,
+  markCampaignComplete,
 };
 
 export default campaignsService;
