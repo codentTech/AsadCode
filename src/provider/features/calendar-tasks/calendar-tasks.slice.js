@@ -212,6 +212,25 @@ export const calendarTasksSlice = createSlice({
         state.getAllTasks.isError = true;
       })
 
+      // Get tasks by campaign (brand - campaign-specific)
+      .addCase(getTasksByCampaign.pending, (state) => {
+        state.getAllTasks.isLoading = true;
+        state.getAllTasks.message = "";
+        state.getAllTasks.isError = false;
+        state.getAllTasks.isSuccess = false;
+      })
+      .addCase(getTasksByCampaign.fulfilled, (state, action) => {
+        state.getAllTasks.isLoading = false;
+        state.getAllTasks.isSuccess = true;
+        state.getAllTasks.data = action.payload.data;
+        state.tasks = action.payload.data;
+      })
+      .addCase(getTasksByCampaign.rejected, (state, action) => {
+        state.getAllTasks.message = action.payload.message;
+        state.getAllTasks.isLoading = false;
+        state.getAllTasks.isError = true;
+      })
+
       // Update task
       .addCase(updateCalendarTask.pending, (state) => {
         state.updateTask.isLoading = true;
