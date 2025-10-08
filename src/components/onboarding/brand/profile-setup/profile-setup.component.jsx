@@ -7,20 +7,36 @@ import useBrandProfileSetup from "./use-profile-setup.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
 
 const BrandProfile = ({ onNext, onBack }) => {
-  const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
-    useBrandProfileSetup({ onNext });
+  const {
+    register,
+    handleSubmit,
+    errors,
+    onSubmit,
+    setValue,
+    getValues,
+    watch,
+    isLoading,
+    isError,
+    errorMessage,
+    handleFileUpload,
+    brandLogoPreview,
+  } = useBrandProfileSetup({ onNext });
 
   const brandLogo = watch("brandLogoUrl");
   const description = watch("companyDescription");
   const selectedCountry = watch("country");
 
   const handleLogoUpload = () => {
-    // Simulate file upload
-    setValue(
-      "brandLogoUrl",
-      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=center",
-      { shouldValidate: true }
-    );
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+    };
+    input.click();
   };
 
   const countries = [
@@ -102,9 +118,9 @@ const BrandProfile = ({ onNext, onBack }) => {
                 </h3>
                 <div className="flex items-center space-x-6">
                   <div className="relative">
-                    {brandLogo ? (
+                    {brandLogoPreview || brandLogo ? (
                       <img
-                        src={brandLogo}
+                        src={brandLogoPreview || brandLogo}
                         alt="Brand Logo"
                         className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                       />
@@ -113,9 +129,12 @@ const BrandProfile = ({ onNext, onBack }) => {
                         <Camera className="h-8 w-8 text-gray-400" />
                       </div>
                     )}
-                    {brandLogo && (
+                    {(brandLogoPreview || brandLogo) && (
                       <button
-                        onClick={() => setValue("brandLogoUrl", "")}
+                        onClick={() => {
+                          setValue("brandLogoUrl", "");
+                          // Reset file state would need to be handled in hook
+                        }}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
                         type="button"
                       >
@@ -130,8 +149,10 @@ const BrandProfile = ({ onNext, onBack }) => {
                       icon={Upload}
                       onClick={handleLogoUpload}
                       type="button"
+                      disabled={isLoading}
                     />
                     <p className="text-xs text-gray-600 mt-2">PNG or JPG, max 5MB</p>
+                    {isError && <p className="text-xs text-red-600 mt-2">{errorMessage}</p>}
                   </div>
                 </div>
                 {errors.brandLogoUrl && (
@@ -180,9 +201,9 @@ const BrandProfile = ({ onNext, onBack }) => {
                 {/* Brand Profile Card Preview */}
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 text-center">
                   <div className="relative inline-block mb-4">
-                    {brandLogo ? (
+                    {brandLogoPreview || brandLogo ? (
                       <img
-                        src={brandLogo}
+                        src={brandLogoPreview || brandLogo}
                         alt="Brand Logo"
                         className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
                       />

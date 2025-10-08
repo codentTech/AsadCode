@@ -2,6 +2,20 @@ import { getUser } from "@/common/utils/users.util";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import authService from "./auth.service";
 
+// Helper function to extract serializable error information
+const getSerializableError = (error) => {
+  if (error?.response?.data?.message) {
+    return { message: error.response.data.message };
+  }
+  if (error?.message) {
+    return { message: error.message };
+  }
+  if (typeof error === "string") {
+    return { message: error };
+  }
+  return { message: "An unexpected error occurred" };
+};
+
 const generalState = {
   isLoading: false,
   isSuccess: false,
@@ -33,7 +47,7 @@ export const login = createAsyncThunk("auth/login", async (payload, thunkAPI) =>
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error));
   }
 });
 
@@ -45,7 +59,7 @@ export const signUp = createAsyncThunk("auth/register", async (payload, thunkAPI
 
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error));
   }
 });
 
@@ -55,7 +69,7 @@ export const verifyEmail = createAsyncThunk("auth/verifyEmail", async (payload, 
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error));
   }
 });
 
@@ -65,7 +79,7 @@ export const resendEmail = createAsyncThunk("auth/resendEmail", async (payload, 
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
-    return thunkAPI.rejectWithValue({ payload: error });
+    return thunkAPI.rejectWithValue(getSerializableError(error));
   }
 });
 
@@ -110,7 +124,7 @@ export const authSlice = createSlice({
         state.login.data = action.payload;
       })
       .addCase(login.rejected, (state, action) => {
-        state.login.message = action.payload.message;
+        state.login.message = action.payload?.message || "Login failed";
         state.login.isLoading = false;
         state.login.isError = true;
         state.login.data = null;
@@ -121,7 +135,7 @@ export const authSlice = createSlice({
         state.signUp.data = action.payload;
       })
       .addCase(signUp.rejected, (state, action) => {
-        state.signUp.message = action.payload.message;
+        state.signUp.message = action.payload?.message || "Sign up failed";
         state.signUp.isLoading = false;
         state.signUp.isError = true;
         state.signUp.data = null;
@@ -146,7 +160,7 @@ export const authSlice = createSlice({
         state.verifyEmail.data = action.payload;
       })
       .addCase(verifyEmail.rejected, (state, action) => {
-        state.verifyEmail.message = action.payload.message;
+        state.verifyEmail.message = action.payload?.message || "Email verification failed";
         state.verifyEmail.isLoading = false;
         state.verifyEmail.isError = true;
         state.verifyEmail.data = null;
@@ -164,7 +178,7 @@ export const authSlice = createSlice({
         state.resendEmail.data = action.payload;
       })
       .addCase(resendEmail.rejected, (state, action) => {
-        state.resendEmail.message = action.payload.message;
+        state.resendEmail.message = action.payload?.message || "Resend email failed";
         state.resendEmail.isLoading = false;
         state.resendEmail.isError = true;
         state.resendEmail.data = null;

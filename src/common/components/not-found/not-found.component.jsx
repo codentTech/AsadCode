@@ -22,7 +22,9 @@ const NotFound = ({
   }, [showAnimation]);
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full bg-white p-6 ${className}`}>
+    <div
+      className={`flex flex-col items-center justify-center h-full bg-transparent p-6 ${className}`}
+    >
       {/* Animated background elements */}
       {showAnimation && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

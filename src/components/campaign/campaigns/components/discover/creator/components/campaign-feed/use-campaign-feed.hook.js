@@ -4,6 +4,7 @@ import {
   getAllCampaigns,
   filterCampaigns,
   resetFilteredCampaigns,
+  resetGetAllCampaigns,
   applyToCampaign,
 } from "@/provider/features/campaigns/campaigns.slice";
 
@@ -33,7 +34,9 @@ export function useCampaignFeed() {
   } = useSelector((state) => state.campaigns.applyToCampaign);
 
   // Determine which data to use (filtered or all campaigns)
-  const campaignsData = filteredCampaignsData?.data || allCampaignsData?.data;
+  // Use filtered data if it exists (even if empty array), otherwise use all campaigns
+  const campaignsData =
+    filteredCampaignsData?.data !== undefined ? filteredCampaignsData.data : allCampaignsData?.data;
   const isLoading = filteredCampaignsLoading || allCampaignsLoading;
   const isFiltering = filteredCampaignsLoading;
 
@@ -41,7 +44,6 @@ export function useCampaignFeed() {
   useEffect(() => {
     if (applySuccess) {
       // Success notification is handled by the API interceptor
-      console.log("Application submitted successfully!");
     }
   }, [applySuccess]);
 
@@ -244,8 +246,21 @@ export function useCampaignFeed() {
       // Close modal and reset on success
       closeApplication();
 
-      // Show success message (the API will handle the notification)
-      console.log("Successfully applied to campaign:", result);
+      // Refresh the campaigns list after successful application
+      if (selectedNiche === "all") {
+        // Reset state first, then fetch new data
+        dispatch(resetGetAllCampaigns());
+        dispatch(resetFilteredCampaigns());
+        await dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy })).unwrap();
+      } else {
+        // Reset state first, then re-apply the current filter
+        dispatch(resetFilteredCampaigns());
+        dispatch(resetGetAllCampaigns());
+        const filters = {
+          categories: [selectedNiche],
+        };
+        await dispatch(filterCampaigns({ filters, page: 1, limit: 10, sort: sortBy })).unwrap();
+      }
     } catch (error) {
       console.error("Failed to apply to campaign:", error);
       // Error notification is handled by the API interceptor

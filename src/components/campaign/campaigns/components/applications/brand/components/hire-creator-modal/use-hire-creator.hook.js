@@ -104,8 +104,6 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     },
   });
 
-  console.log(errors);
-
   const watchedValues = watch();
 
   // Auto-populate fields when modal opens
@@ -170,7 +168,6 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       // Trigger validation for all fields to ensure errors are shown
       const isValid = await trigger();
       if (!isValid) {
-        console.log("Form validation failed:", errors);
         return;
       }
 

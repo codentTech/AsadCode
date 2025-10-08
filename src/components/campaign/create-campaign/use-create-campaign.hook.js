@@ -492,7 +492,6 @@ export default function useCreateCampaign(close) {
   const handleCampaignSubmit = async (data) => {
     // Transform and submit data
     const apiData = await transformDataForAPI(data);
-    console.log("Submitting campaign data:", apiData);
 
     const result = await dispatch(createCampaign(apiData));
 
@@ -533,12 +532,6 @@ export default function useCreateCampaign(close) {
     // Trigger validation for current step fields only
     const currentStepFields = stepFields[currentStep] || [];
     const isStepValid = await trigger(currentStepFields);
-
-    console.log(`Step ${currentStep} validation:`, {
-      fields: currentStepFields,
-      isValid: isStepValid,
-      errors: Object.keys(errors).filter((key) => currentStepFields.includes(key)),
-    });
 
     if (isStepValid) {
       setCurrentStep(Math.min(currentStep + 1, steps.length - 1));

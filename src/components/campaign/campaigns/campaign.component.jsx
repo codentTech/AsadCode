@@ -1,6 +1,7 @@
 import HeaderLayout from "@/common/layouts/header.layout";
-import ActiveCompleted from "./components/active-completed/active-completed.component";
+import Active from "./components/active/active.component";
 import CampaignApplication from "./components/applications/applications.component";
+import Completed from "./components/completed/completed.component";
 import Discover from "./components/discover/discover.component";
 import Rejected from "./components/rejected/rejected.component";
 import useCampaign from "./use-campaign.hook";
@@ -38,9 +39,9 @@ export default function Campaign() {
           {activeTab === 1 ? (
             <Discover />
           ) : activeTab === 2 ? (
-            <ActiveCompleted />
+            <Active />
           ) : activeTab === 3 ? (
-            <ActiveCompleted isCompleted={true} />
+            <Completed />
           ) : activeTab === 4 ? (
             <CampaignApplication />
           ) : activeTab === 5 ? (

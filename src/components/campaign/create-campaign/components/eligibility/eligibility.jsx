@@ -22,8 +22,6 @@ function Eligibility({
   const [citySearch, setCitySearch] = useState(campaignData.creatorCity || "");
   const [languageSearch, setLanguageSearch] = useState(campaignData.creatorLanguage || "");
 
-  console.log(errors);
-
   const platformOptions = [
     { label: "Instagram", value: "Instagram" },
     { label: "TikTok", value: "TikTok" },

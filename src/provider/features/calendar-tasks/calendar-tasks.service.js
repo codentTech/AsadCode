@@ -18,9 +18,15 @@ const getAllTasks = async () => {
   return response.data;
 };
 
-// Get tasks by month
+// Get tasks by month (for brands - all tasks)
 const getTasksByMonth = async (month, year) => {
   const response = await api().get(`/calendar-tasks/month/${month}/${year}`);
+  return response.data;
+};
+
+// Get tasks by month for creator (user-wide across all campaigns)
+const getCreatorTasksByMonth = async (month, year) => {
+  const response = await api().get(`/calendar-tasks/creator/month/${month}/${year}`);
   return response.data;
 };
 
@@ -52,6 +58,7 @@ const calendarTaskService = {
   createTask,
   getAllTasks,
   getTasksByMonth,
+  getCreatorTasksByMonth,
   getTasksByCampaign,
   updateTask,
   toggleTaskStatus,

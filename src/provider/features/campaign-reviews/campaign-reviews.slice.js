@@ -15,6 +15,7 @@ const initialState = {
   getCampaignReviewsByCreatorProfile: { ...generalState },
   updateCampaignReview: { ...generalState },
   deleteCampaignReview: { ...generalState },
+  getReviewStatus: { ...generalState },
 };
 
 // Create campaign review
@@ -67,6 +68,24 @@ export const getCampaignReviewsByCreatorProfile = createAsyncThunk(
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+// Double-blind review status
+export const getReviewStatus = createAsyncThunk(
+  "campaignReviews/getReviewStatus",
+  async ({ campaignId, creatorProfileId }, thunkAPI) => {
+    try {
+      const response = await campaignReviewsService.getReviewStatus(campaignId, creatorProfileId);
+      if (response.success) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        message: error.response?.data?.message || error.message || "Failed to fetch review status",
+      });
     }
   }
 );
@@ -177,6 +196,23 @@ export const campaignReviewsSlice = createSlice({
         state.getCampaignReviewsByCreatorProfile.isError = true;
         state.getCampaignReviewsByCreatorProfile.message =
           action.payload?.message || "Failed to fetch reviews";
+      })
+
+      // getReviewStatus
+      .addCase(getReviewStatus.pending, (state) => {
+        state.getReviewStatus.isLoading = true;
+        state.getReviewStatus.isError = false;
+        state.getReviewStatus.isSuccess = false;
+      })
+      .addCase(getReviewStatus.fulfilled, (state, action) => {
+        state.getReviewStatus.isLoading = false;
+        state.getReviewStatus.isSuccess = true;
+        state.getReviewStatus.data = action.payload;
+      })
+      .addCase(getReviewStatus.rejected, (state, action) => {
+        state.getReviewStatus.isLoading = false;
+        state.getReviewStatus.isError = true;
+        state.getReviewStatus.message = action.payload?.message || "Failed to fetch review status";
       })
 
       // updateCampaignReview

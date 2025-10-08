@@ -19,11 +19,12 @@ import calendarCategoriesReducer from "./features/calendar-categories/calendar-c
 import contentPlannerReducer from "./features/content-planner/content-planner.slice";
 import monthlyGoalReducer from "./features/monthly-goals/monthly-goal.slice";
 import campaignTimelineReducer from "./features/campaign-timeline/campaign-timeline.slice";
+import contractsReducer from "./features/contracts/contracts.slice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile", "shortlist"],
+  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile", "shortlist", "contracts"],
 };
 
 const rootReducer = combineReducers({
@@ -44,6 +45,7 @@ const rootReducer = combineReducers({
   contentPlanner: contentPlannerReducer,
   monthlyGoals: monthlyGoalReducer,
   campaignTimeline: campaignTimelineReducer,
+  contracts: contractsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

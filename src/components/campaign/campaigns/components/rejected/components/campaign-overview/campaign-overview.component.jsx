@@ -61,7 +61,6 @@ export default function CampaignOverview({
   };
 
   const handleSendOffer = (contractData) => {
-    console.log("Contract data:", contractData);
     // Here you'll make API call to backend
     // createContract(contractData);
   };

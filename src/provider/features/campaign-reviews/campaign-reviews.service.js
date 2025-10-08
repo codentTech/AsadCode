@@ -20,6 +20,14 @@ const getCampaignReviewsByCreatorProfile = async (campaignId, creatorProfileId) 
   return response.data;
 };
 
+// Get double-blind review status
+const getReviewStatus = async (campaignId, creatorProfileId) => {
+  const response = await api().get(
+    `/campaign-reviews/campaign/${campaignId}/creator-profile/${creatorProfileId}/status`
+  );
+  return response.data;
+};
+
 // Update campaign review
 const updateCampaignReview = async (reviewId, reviewData) => {
   const response = await api().put(`/campaign-reviews/${reviewId}`, reviewData);
@@ -36,6 +44,7 @@ const campaignReviewsService = {
   createCampaignReview,
   getCampaignReviews,
   getCampaignReviewsByCreatorProfile,
+  getReviewStatus,
   updateCampaignReview,
   deleteCampaignReview,
 };

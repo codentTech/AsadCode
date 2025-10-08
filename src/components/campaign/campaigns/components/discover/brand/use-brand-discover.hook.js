@@ -559,7 +559,6 @@ function useDiscover() {
   // Handle inviting creator to apply
   const handleInviteToApply = (creator, campaign) => {
     // Invite logic would go here
-    console.log(`Inviting ${creator.name} to apply for ${campaign.name}`);
   };
 
   // Transform backend user data to frontend creator format

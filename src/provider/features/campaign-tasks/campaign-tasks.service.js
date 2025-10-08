@@ -1,10 +1,11 @@
 import api from "@/common/utils/api";
+import { TASK_STATUS } from "@/common/constants/campaign.constant";
 
 // Create a new task
 const createTask = async (taskData) => {
   const response = await api().post(`/campaign-tasks/campaign/${taskData.campaign_id}`, {
     task_name: taskData.task_name,
-    status: taskData.status || "review",
+    status: taskData.status || TASK_STATUS.REVIEW,
   });
   return response.data;
 };
