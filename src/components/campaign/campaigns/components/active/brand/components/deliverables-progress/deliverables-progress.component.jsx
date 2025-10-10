@@ -106,9 +106,9 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator }) => {
         </Avatar>
         <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
-      <h3>{creator.name}</h3>
+      <h3 className="text-sm font-semibold text-gray-900">{creator.name}</h3>
 
-      <p className="primary-text text-center">Fitness and lifestyle creator based in Los Angeles</p>
+      <p className="text-xs text-gray-600 text-center line-clamp-2 px-2">{creator.bio}</p>
 
       <div className="flex items-center">
         {[...Array(5)].map((_, i) => (

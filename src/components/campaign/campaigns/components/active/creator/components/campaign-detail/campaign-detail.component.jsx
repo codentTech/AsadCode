@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
-import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
+import { SOURCE_PLATFORM, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
   BarChart3,
@@ -37,7 +37,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     campaign?.sourcePlatform === SOURCE_PLATFORM.CLEERCUT || !campaign?.sourcePlatform; // Default to true if not set
 
   // Get timeline data to sync with progress (only for CleerCut campaigns)
-  const { timelineSteps, TIMELINE_STATUS } = useCreatorTimeline(
+  const { timelineSteps } = useCreatorTimeline(
     isCleerCutCampaign ? campaign?.id : null,
     campaign?.campaign_deadline || campaign?.application_deadline
   );

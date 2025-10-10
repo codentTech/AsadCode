@@ -32,7 +32,7 @@ const api = (headers = null) => {
         (method === "get" && endpoint === "generate-otp") ||
         (["post", "patch", "delete", "put"].includes(method) &&
           !["get", "get-all"].includes(endpoint) &&
-          !["/upload/single", "/upload/multiple"].includes(response.config.url));
+          !["/upload", "/upload/multiple"].includes(response.config.url));
 
       if (isSuccessResponse) {
         enqueueSnackbar(response.data?.message || "Success", { variant: "success" });

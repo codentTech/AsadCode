@@ -1,6 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
+import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 import {
   AlertCircle,
   CheckCircle,
@@ -39,9 +40,6 @@ const CreatorTimelineSteps = ({
     formatDate,
     getTimeRemaining,
     validateUrl,
-
-    // Constants
-    TIMELINE_STATUS,
   } = useCreatorTimeline(campaignId, deadline, revisionsLimit);
 
   const getStepIcon = (step) => {

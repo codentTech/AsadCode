@@ -2,14 +2,12 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
-import React from "react";
+import { CheckCircle2, MapPin, Star } from "lucide-react";
+import useDeliverablesProgress from "../../../../active/brand/components/deliverables-progress/use-deliverables-progress.hook";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
-import useDeliverablesProgress from "../../../../active/brand/components/deliverables-progress/use-deliverables-progress.hook";
 
 const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) => {
   // ==================== HOOK USAGE ====================
@@ -128,9 +126,9 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
         </Avatar>
         <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
-      <h3>{creator.name}</h3>
+      <h3 className="text-sm font-semibold text-gray-900">{creator.name}</h3>
 
-      <p className="primary-text text-center">Fitness and lifestyle creator based in Los Angeles</p>
+      <p className="text-xs text-gray-600 text-center line-clamp-2 px-2">{creator.bio}</p>
 
       <div className="flex items-center">
         {[...Array(5)].map((_, i) => (

@@ -25,6 +25,8 @@ export default function useBrandCampaign(isCompleted = false) {
       : state.campaigns.getBrandCampaignsExcludingCompleted || {}
   );
 
+  console.log(campaignsData);
+
   const {
     isLoading: creatorsLoading,
     isSuccess: creatorsSuccess,
@@ -96,6 +98,8 @@ export default function useBrandCampaign(isCompleted = false) {
         // No filtering needed - backend already excludes completed campaigns
       }
 
+      console.log(campaigns);
+
       // Create options for dropdown
       const options = campaigns.map((campaign) => ({
         value: campaign.id,
@@ -119,6 +123,7 @@ export default function useBrandCampaign(isCompleted = false) {
       // Auto-select first campaign if none is selected and campaigns are available
       if (campaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current) {
         const firstCampaign = campaigns[0];
+        console.log(firstCampaign);
         setSelectedCampaign(firstCampaign);
         hasAutoSelected.current = true;
       }
@@ -197,6 +202,7 @@ export default function useBrandCampaign(isCompleted = false) {
 
   // Handle campaign selection
   const handleCampaignSelect = useCallback((selectedOption) => {
+    console.log(selectedOption);
     if (selectedOption) {
       setSelectedCampaign(selectedOption.campaign);
     } else {
