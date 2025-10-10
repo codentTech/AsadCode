@@ -14,27 +14,37 @@ const initializeTimeline = async (campaignId) => {
 
 // Update timeline step (mark complete, upload draft, submit URL)
 const updateTimelineStep = async (campaignId, step, data) => {
-  const response = await api().patch(`/campaigns/${campaignId}/timeline/${step}`, data);
+  const response = await api().patch(
+    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}`,
+    data
+  );
   return response.data;
 };
 
 // Approve draft (Brand only)
 const approveDraft = async (campaignId, step) => {
-  const response = await api().post(`/campaigns/${campaignId}/timeline/${step}/approve`);
+  const response = await api().post(
+    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/approve`
+  );
   return response.data;
 };
 
 // Request revision (Brand only)
 const requestRevision = async (campaignId, step, revisionNotes) => {
-  const response = await api().post(`/campaigns/${campaignId}/timeline/${step}/request-revision`, {
-    revision_notes: revisionNotes,
-  });
+  const response = await api().post(
+    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/request-revision`,
+    {
+      revision_notes: revisionNotes,
+    }
+  );
   return response.data;
 };
 
 // Mark final as complete (Brand only)
 const markFinalComplete = async (campaignId, step) => {
-  const response = await api().post(`/campaigns/${campaignId}/timeline/${step}/mark-complete`);
+  const response = await api().post(
+    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/mark-complete`
+  );
   return response.data;
 };
 

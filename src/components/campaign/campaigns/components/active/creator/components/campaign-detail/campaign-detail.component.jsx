@@ -1,29 +1,28 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
+import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
+  BarChart3,
   Calendar,
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Circle,
   Copy,
-  X,
-  Upload,
   ExternalLink,
+  MessageCircle,
+  X,
 } from "lucide-react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
+import useCreatorTimeline from "../creator-timeline/use-creator-timeline.hook";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showUrlModal, setShowUrlModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [publishedUrl, setPublishedUrl] = useState("");
+  const [showMessageModal, setShowMessageModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     dosdonts: false,
     styleGuide: false,
@@ -32,6 +31,16 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
 
   const campaign = selectedCampaign;
   const router = useRouter();
+
+  // Only load timeline for CleerCut campaigns
+  const isCleerCutCampaign =
+    campaign?.sourcePlatform === SOURCE_PLATFORM.CLEERCUT || !campaign?.sourcePlatform; // Default to true if not set
+
+  // Get timeline data to sync with progress (only for CleerCut campaigns)
+  const { timelineSteps, TIMELINE_STATUS } = useCreatorTimeline(
+    isCleerCutCampaign ? campaign?.id : null,
+    campaign?.campaign_deadline || campaign?.application_deadline
+  );
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -53,41 +62,9 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     navigator.clipboard.writeText(text);
   };
 
-  // Validate URL
-  const validateUrl = (url) => {
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-    const socialPlatforms = ["instagram.com", "tiktok.com", "youtube.com", "twitter.com", "x.com"];
-
-    if (!urlPattern.test(url)) return false;
-    return socialPlatforms.some((platform) => url.includes(platform));
-  };
-
-  // Handle file upload
-  const handleFileUpload = () => {
-    if (!selectedFile) return;
-
-    // TODO: Integrate with actual file upload service
-    // For now, just close the modal
-    setShowUploadModal(false);
-    setSelectedFile(null);
-  };
-
-  // Handle published URL submission
-  const handlePublishUrl = () => {
-    if (!validateUrl(publishedUrl)) return;
-
-    // TODO: Integrate with timeline API
-
-    setShowUrlModal(false);
-    setPublishedUrl("");
-  };
-
-  // Navigate to brand timeline for approval/revision
+  // Open progress modal
   const handleUpdateProgress = () => {
-    if (campaign?.id) {
-      // Navigate to brand's campaign view where they can approve/revise
-      router.push(`/campaigns/brand/${campaign.id}`);
-    }
+    setShowProgressModal(true);
   };
 
   // Sample data for the information sections
@@ -404,29 +381,46 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             </p>
           </div>
 
-          {/* Campaign Progress */}
-          <CreatorTimelineSteps
-            campaignId={campaign?.id}
-            deadline={campaign?.campaign_deadline || campaign?.application_deadline}
-          />
+          {/* Campaign Progress - Only for CleerCut campaigns */}
+          {isCleerCutCampaign && (
+            <>
+              {/* Helpful Note */}
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <p className="font-medium">📌 Quick Tip:</p>
+                <p className="mt-1">
+                  Use the timeline steps below to track progress. "Upload Content" opens your brief
+                  for reference.
+                </p>
+              </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2">
+              <CreatorTimelineSteps
+                campaignId={campaign?.id}
+                deadline={campaign?.campaign_deadline || campaign?.application_deadline}
+              />
+            </>
+          )}
+
+          {/* Action Buttons Row - As per requirements */}
+          <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+            {isCleerCutCampaign && (
+              <CustomButton
+                text="Update Progress"
+                className="btn-outline text-xs"
+                onClick={handleUpdateProgress}
+                startIcon={<BarChart3 className="w-3 h-3" />}
+              />
+            )}
             <CustomButton
-              text="Upload Content"
-              className="btn-primary"
-              onClick={() => setShowUploadModal(true)}
-              startIcon={<Upload className="w-4 h-4" />}
-            />
-            <CustomButton
-              text="Update Progress"
-              className="btn-outline"
-              onClick={handleUpdateProgress}
+              text="Message"
+              className="btn-outline text-xs"
+              onClick={() => setShowMessageModal(true)}
+              startIcon={<MessageCircle className="w-3 h-3" />}
             />
             <CustomButton
               text="View Brief"
-              className="btn-outline"
+              className="btn-outline text-xs"
               onClick={() => setShowContentBrief(true)}
+              startIcon={<ExternalLink className="w-3 h-3" />}
             />
           </div>
         </div>
@@ -465,129 +459,161 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
       {/* Progress Update Modal */}
       <Modal
         show={showProgressModal}
-        title="Update Progress"
+        title="Campaign Progress"
         onClose={() => setShowProgressModal(false)}
+        size="md"
       >
-        <div>
-          <div className="space-y-3 mb-4">
-            {campaign.progress.map((item, index) => (
-              <div key={index} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={item.completed}
-                  className="w-4 h-4 text-indigo-600 rounded mr-3"
-                  readOnly
-                />
-                <span className="text-sm text-gray-700">{item.task}</span>
+        <div className="space-y-4">
+          {/* Overall Progress */}
+          <div className="bg-gray-50 rounded p-3 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Progress</span>
+              <span className="text-sm font-medium text-gray-900">
+                {timelineSteps
+                  ? Math.round(
+                      (timelineSteps.filter(
+                        (s) =>
+                          s.status === TIMELINE_STATUS.COMPLETED ||
+                          s.status === TIMELINE_STATUS.APPROVED
+                      ).length /
+                        timelineSteps.length) *
+                        100
+                    )
+                  : 0}
+                %
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${
+                    timelineSteps
+                      ? (timelineSteps.filter(
+                          (s) =>
+                            s.status === TIMELINE_STATUS.COMPLETED ||
+                            s.status === TIMELINE_STATUS.APPROVED
+                        ).length /
+                          timelineSteps.length) *
+                        100
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Timeline Steps */}
+          <div className="space-y-3">
+            {timelineSteps && timelineSteps.length > 0 ? (
+              timelineSteps.map((step, index) => {
+                const isCompleted =
+                  step.status === TIMELINE_STATUS.COMPLETED ||
+                  step.status === TIMELINE_STATUS.APPROVED;
+                const isSubmitted = step.status === TIMELINE_STATUS.SUBMITTED;
+                const isInProgress = step.status === TIMELINE_STATUS.IN_PROGRESS;
+                const isRevisionRequested = step.status === TIMELINE_STATUS.REVISION_REQUESTED;
+
+                return (
+                  <div
+                    key={step.id || index}
+                    className="p-3 rounded border border-gray-200 bg-white hover:border-gray-300 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <div className="mt-0.5">
+                        <input
+                          type="checkbox"
+                          checked={isCompleted}
+                          readOnly
+                          className="w-4 h-4 text-primary rounded border-gray-300"
+                        />
+                      </div>
+
+                      {/* Step Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="text-sm font-medium text-gray-900">{step.title}</h4>
+                          <span className="text-xs text-gray-500">
+                            {isCompleted
+                              ? "Completed"
+                              : isSubmitted
+                                ? "Pending Review"
+                                : isRevisionRequested
+                                  ? "Revision Needed"
+                                  : isInProgress
+                                    ? "In Progress"
+                                    : "Not Started"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">{step.description}</p>
+                        {step.submitted_at && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Submitted {new Date(step.submitted_at).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Revision Feedback */}
+                    {isRevisionRequested && step.revisions && step.revisions.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-gray-200">
+                        <p className="text-xs text-gray-700">
+                          <span className="font-medium">Feedback:</span>{" "}
+                          {step.revisions[0].revision_notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-500">Loading progress...</p>
               </div>
-            ))}
-          </div>
-          <hr />
-          <div className="mt-4 flex justify-end space-x-3">
-            <CustomButton
-              text="Cancel"
-              className="btn-cancel"
-              onClick={() => setShowProgressModal(false)}
-            />
-            <CustomButton
-              text="Save Changes"
-              className="btn-primary"
-              onClick={() => setShowProgressModal(false)}
-            />
-          </div>
-        </div>
-      </Modal>
-
-      {/* Upload Content Modal */}
-      <Modal
-        show={showUploadModal}
-        title="Upload Content"
-        onClose={() => setShowUploadModal(false)}
-        size="md"
-      >
-        <div className="space-y-4">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-2">Choose file to upload</p>
-            <input
-              type="file"
-              accept="video/*,image/*"
-              onChange={(e) => setSelectedFile(e.target.files[0])}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 cursor-pointer"
-            >
-              Select File
-            </label>
-            {selectedFile && (
-              <p className="text-xs text-green-600 mt-2">Selected: {selectedFile.name}</p>
             )}
           </div>
 
-          <div className="text-xs text-gray-500">
-            <p>Supported formats: MP4, MOV, AVI, JPG, PNG</p>
-            <p>Max file size: 100MB</p>
-          </div>
-
-          <div className="flex justify-end gap-2">
+          {/* Footer */}
+          <div className="flex justify-end pt-2 border-t border-gray-200">
             <CustomButton
-              text="Cancel"
-              type="button"
-              className="btn-cancel"
-              onClick={() => setShowUploadModal(false)}
-            />
-            <CustomButton
-              text="Upload & Submit"
+              text="Close"
               className="btn-primary"
-              onClick={handleFileUpload}
-              disabled={!selectedFile}
+              onClick={() => setShowProgressModal(false)}
             />
           </div>
         </div>
       </Modal>
 
-      {/* Submit Published URL Modal */}
+      {/* Message Modal */}
       <Modal
-        show={showUrlModal}
-        title="Submit Published Post"
-        onClose={() => setShowUrlModal(false)}
+        show={showMessageModal}
+        title="Message Brand"
+        onClose={() => setShowMessageModal(false)}
         size="md"
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Published Post URL
-            </label>
-            <input
-              type="url"
-              value={publishedUrl}
-              onChange={(e) => setPublishedUrl(e.target.value)}
-              placeholder="https://instagram.com/p/..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be a valid URL from Instagram, TikTok, YouTube, or Twitter/X
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Contact the brand directly about this campaign.</p>
+          <div className="p-3 bg-gray-50 rounded border border-gray-200">
+            <p className="text-xs text-gray-500">
+              <strong>Note:</strong> For full messaging functionality, please use the Chat/Inbox
+              feature.
             </p>
-            {publishedUrl && !validateUrl(publishedUrl) && (
-              <p className="text-xs text-red-600 mt-1">Please enter a valid social media URL</p>
-            )}
           </div>
-
           <div className="flex justify-end gap-2">
             <CustomButton
-              text="Cancel"
-              type="button"
+              text="Close"
               className="btn-cancel"
-              onClick={() => setShowUrlModal(false)}
+              onClick={() => setShowMessageModal(false)}
             />
             <CustomButton
-              text="Submit"
+              text="Go to Inbox"
               className="btn-primary"
-              onClick={handlePublishUrl}
-              disabled={!validateUrl(publishedUrl)}
+              onClick={() => {
+                setShowMessageModal(false);
+                router.push("/chat-inbox");
+              }}
             />
           </div>
         </div>

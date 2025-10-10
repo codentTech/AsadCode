@@ -52,11 +52,22 @@ export default function useBrandTimeline(campaignId) {
   // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
 
-  // Load timeline on mount
+  // Load timeline on mount and when campaignId changes
   useEffect(() => {
     if (campaignId) {
       dispatch(getTimeline(campaignId));
     }
+  }, [campaignId, dispatch]);
+
+  // Auto-refresh timeline every 10 seconds to show creator updates
+  useEffect(() => {
+    if (!campaignId) return;
+
+    const interval = setInterval(() => {
+      dispatch(getTimeline(campaignId));
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
   }, [campaignId, dispatch]);
 
   // Format date
@@ -85,45 +96,67 @@ export default function useBrandTimeline(campaignId) {
     return `${hours}h`;
   }, []);
 
-  // Approve draft
+  // Approve draft (Step 2 only)
   const handleApproveDraft = useCallback(async () => {
-    await dispatch(
-      approveDraft({
-        campaignId,
-        step: TIMELINE_STEPS.DRAFT_REVIEW,
-      })
-    );
+    try {
+      await dispatch(
+        approveDraft({
+          campaignId,
+          step: TIMELINE_STEPS.DRAFT_REVIEW,
+        })
+      ).unwrap();
+
+      // Refresh timeline
+      await dispatch(getTimeline(campaignId));
+    } catch (error) {
+      console.error("Failed to approve draft:", error);
+      alert(`Approval failed: ${error.message || "Unknown error"}`);
+    }
   }, [campaignId, dispatch]);
 
-  // Request revision
+  // Request revision (Step 2 only)
   const handleRequestRevision = useCallback(async () => {
     if (!revisionNotes.trim()) return;
 
-    await dispatch(
-      requestRevision({
-        campaignId,
-        step: TIMELINE_STEPS.DRAFT_REVIEW,
-        revisionNotes,
-      })
-    );
+    try {
+      await dispatch(
+        requestRevision({
+          campaignId,
+          step: TIMELINE_STEPS.DRAFT_REVIEW,
+          revisionNotes,
+        })
+      ).unwrap();
 
-    setShowRevisionModal(false);
-    setRevisionNotes("");
+      // Refresh timeline
+      await dispatch(getTimeline(campaignId));
+
+      setShowRevisionModal(false);
+      setRevisionNotes("");
+    } catch (error) {
+      console.error("Failed to request revision:", error);
+    }
   }, [revisionNotes, campaignId, dispatch]);
 
-  // Mark as complete
+  // Mark as complete (Step 3 only)
   const handleMarkAsComplete = useCallback(async () => {
-    await dispatch(
-      markFinalComplete({
-        campaignId,
-        step: TIMELINE_STEPS.FINAL_PUBLISHED,
-      })
-    );
+    try {
+      await dispatch(
+        markFinalComplete({
+          campaignId,
+          step: TIMELINE_STEPS.FINAL_PUBLISHED,
+        })
+      ).unwrap();
+
+      // Refresh timeline
+      await dispatch(getTimeline(campaignId));
+    } catch (error) {
+      console.error("Failed to mark complete:", error);
+    }
   }, [campaignId, dispatch]);
 
   // Calculate completion percentage
   const completedSteps = timelineSteps.filter(
-    (step) => step.status === TIMELINE_STATUS.COMPLETED
+    (step) => step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
   ).length;
   const completionPercentage =
     timelineSteps.length > 0 ? (completedSteps / timelineSteps.length) * 100 : 0;

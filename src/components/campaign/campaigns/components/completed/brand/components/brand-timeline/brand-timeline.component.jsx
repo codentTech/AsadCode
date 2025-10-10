@@ -218,17 +218,6 @@ const BrandTimelineSteps = ({ campaignId }) => {
           </div>
         </div>
       </Modal>
-
-      {/* Auto-complete Notice */}
-      <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-blue-800">
-            <p className="font-medium">Auto-completion</p>
-            <p className="mt-1">Steps auto-complete 48hrs after deadline unless disputed.</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

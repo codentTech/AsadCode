@@ -4,8 +4,8 @@ import Modal from "@/common/components/modal/modal.component";
 import {
   AlertCircle,
   CheckCircle,
+  Circle,
   ExternalLink,
-  Loader2,
   Lock,
   MessageSquare,
   Upload,
@@ -47,12 +47,14 @@ const CreatorTimelineSteps = ({
   const getStepIcon = (step) => {
     switch (step.status) {
       case TIMELINE_STATUS.COMPLETED:
+      case TIMELINE_STATUS.APPROVED:
         return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case TIMELINE_STATUS.SUBMITTED:
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
       case TIMELINE_STATUS.REVISION_REQUESTED:
         return <AlertCircle className="w-5 h-5 text-orange-600" />;
-      case TIMELINE_STATUS.SUBMITTED:
       case TIMELINE_STATUS.IN_PROGRESS:
-        return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
+        return <Circle className="w-5 h-5 text-orange-600" />;
       default:
         return <Lock className="w-5 h-5 text-gray-400" />;
     }
@@ -61,6 +63,7 @@ const CreatorTimelineSteps = ({
   const getStatusTag = (step) => {
     const statusMap = {
       [TIMELINE_STATUS.COMPLETED]: { text: "Completed", className: "bg-green-100 text-green-800" },
+      [TIMELINE_STATUS.APPROVED]: { text: "Approved", className: "bg-green-100 text-green-800" },
       [TIMELINE_STATUS.SUBMITTED]: { text: "Submitted", className: "bg-blue-100 text-blue-800" },
       [TIMELINE_STATUS.REVISION_REQUESTED]: {
         text: "Revision Requested",
@@ -68,7 +71,7 @@ const CreatorTimelineSteps = ({
       },
       [TIMELINE_STATUS.IN_PROGRESS]: {
         text: "In Progress",
-        className: "bg-orange-100 text-orange-800",
+        className: "bg-blue-100 text-blue-800",
       },
       [TIMELINE_STATUS.PENDING]: { text: "Pending", className: "bg-gray-100 text-gray-800" },
     };
@@ -83,8 +86,8 @@ const CreatorTimelineSteps = ({
     );
   };
 
-  // Loading state
-  if (timelineLoading) {
+  // Loading state - only show on initial load, not on refresh
+  if (timelineLoading && (!timelineSteps || timelineSteps.length === 0)) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -192,6 +195,7 @@ const CreatorTimelineSteps = ({
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-2">
+              {/* Step 1: Mark as Complete (NO UPLOAD) */}
               {step.step === "CONTENT_RECORDED" && step.status === TIMELINE_STATUS.PENDING && (
                 <CustomButton
                   text="Mark as Recorded"
@@ -201,6 +205,7 @@ const CreatorTimelineSteps = ({
                 />
               )}
 
+              {/* Step 2: Upload Draft (FILE UPLOAD) */}
               {step.step === "DRAFT_REVIEW" &&
                 (step.status === TIMELINE_STATUS.IN_PROGRESS ||
                   step.status === TIMELINE_STATUS.REVISION_REQUESTED) &&
@@ -217,6 +222,7 @@ const CreatorTimelineSteps = ({
                   />
                 )}
 
+              {/* Step 3: Submit URL (URL INPUT ONLY) */}
               {step.step === "FINAL_PUBLISHED" && step.status === TIMELINE_STATUS.IN_PROGRESS && (
                 <CustomButton
                   text="Submit Published URL"
@@ -325,20 +331,6 @@ const CreatorTimelineSteps = ({
           </div>
         </div>
       </Modal>
-
-      {/* Auto-approval Notice */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-blue-800">
-            <p className="font-medium">Auto-approval Policy</p>
-            <p className="mt-1">
-              Final posts auto-approve 48 hours after deadline unless disputed by brand. Revisions
-              allowed: {revisionsLimit} per step.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

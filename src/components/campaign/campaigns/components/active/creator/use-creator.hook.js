@@ -23,7 +23,7 @@ export default function useActiveCampaign() {
   // Format campaign data for display
   const formatCampaignData = useCallback((campaign) => {
     if (!campaign) return null;
-
+    console.log(campaign);
     return {
       id: campaign.campaign?.id,
       title: campaign.campaign?.campaign_title,
@@ -43,7 +43,7 @@ export default function useActiveCampaign() {
       type: campaign.campaign?.campaign_type || "UGC",
       compensation: campaign.campaign?.compensation_type || "PAID",
       compensationAmount: campaign.campaign?.budget,
-      description: campaign.campaign?.description || "No description available",
+      description: campaign.campaign?.short_description || "No description available",
       progress: [
         { task: "Content recorded", completed: false },
         { task: "1st draft sent", completed: false },
@@ -52,6 +52,7 @@ export default function useActiveCampaign() {
       // Additional campaign data
       campaign: campaign.campaign,
       application: campaign,
+      sourcePlatform: campaign.campaign?.source_platform || "CLEERCUT",
     };
   }, []);
 

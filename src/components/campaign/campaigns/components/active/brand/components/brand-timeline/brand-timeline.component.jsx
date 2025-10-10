@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { AlertCircle, CheckCircle, Loader2, Lock, MessageSquare } from "lucide-react";
+import { AlertCircle, CheckCircle, Circle, Lock, MessageSquare } from "lucide-react";
 import React from "react";
 import useBrandTimeline from "./use-brand-timeline.hook";
 
@@ -33,11 +33,14 @@ const BrandTimelineSteps = ({ campaignId }) => {
   const getStepIcon = (step) => {
     switch (step.status) {
       case TIMELINE_STATUS.COMPLETED:
+      case TIMELINE_STATUS.APPROVED:
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case TIMELINE_STATUS.SUBMITTED:
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
+      case TIMELINE_STATUS.REVISION_REQUESTED:
         return <AlertCircle className="w-5 h-5 text-orange-600" />;
       case TIMELINE_STATUS.IN_PROGRESS:
-        return <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />;
+        return <Circle className="w-5 h-5 text-orange-600" />;
       default:
         return <Lock className="w-5 h-5 text-gray-400" />;
     }
@@ -46,13 +49,18 @@ const BrandTimelineSteps = ({ campaignId }) => {
   const getStatusTag = (step) => {
     const statusMap = {
       [TIMELINE_STATUS.COMPLETED]: { text: "Completed", className: "bg-green-100 text-green-800" },
+      [TIMELINE_STATUS.APPROVED]: { text: "Approved", className: "bg-green-100 text-green-800" },
       [TIMELINE_STATUS.SUBMITTED]: {
         text: "Action Required",
         className: "bg-orange-100 text-orange-800",
       },
+      [TIMELINE_STATUS.REVISION_REQUESTED]: {
+        text: "Revision Requested",
+        className: "bg-orange-100 text-orange-800",
+      },
       [TIMELINE_STATUS.IN_PROGRESS]: {
         text: "In Progress",
-        className: "bg-orange-100 text-orange-800",
+        className: "bg-blue-100 text-blue-800",
       },
       [TIMELINE_STATUS.PENDING]: { text: "Pending", className: "bg-gray-100 text-gray-800" },
     };
@@ -67,8 +75,8 @@ const BrandTimelineSteps = ({ campaignId }) => {
     );
   };
 
-  // Loading state
-  if (timelineLoading) {
+  // Loading state - only show on initial load, not on refresh
+  if (timelineLoading && (!timelineSteps || timelineSteps.length === 0)) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -135,7 +143,10 @@ const BrandTimelineSteps = ({ campaignId }) => {
               )}
             </div>
 
-            {/* Action Buttons for Draft Review */}
+            {/* Step 1: Content Recorded - NO ACTION NEEDED (View Only) */}
+            {/* Brand just sees status, no buttons */}
+
+            {/* Step 2: Draft Review - View/Approve/Revise */}
             {step.step === "DRAFT_REVIEW" && step.status === TIMELINE_STATUS.SUBMITTED && (
               <div className="space-y-1">
                 <CustomButton
@@ -163,14 +174,26 @@ const BrandTimelineSteps = ({ campaignId }) => {
               </div>
             )}
 
-            {/* Action Button for Final Published */}
+            {/* Step 3: Final Published - Mark Complete Only */}
             {step.step === "FINAL_PUBLISHED" && step.status === TIMELINE_STATUS.SUBMITTED && (
-              <CustomButton
-                text={completeLoading ? "Completing..." : "Mark Complete"}
-                onClick={handleMarkAsComplete}
-                className="btn-success w-full !h-7 text-xs"
-                disabled={completeLoading}
-              />
+              <div className="space-y-1">
+                {step.published_url && (
+                  <a
+                    href={step.published_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline block mb-1"
+                  >
+                    View Published Post →
+                  </a>
+                )}
+                <CustomButton
+                  text={completeLoading ? "Completing..." : "Mark Complete"}
+                  onClick={handleMarkAsComplete}
+                  className="btn-success w-full !h-7 text-xs"
+                  disabled={completeLoading}
+                />
+              </div>
             )}
 
             {/* Revision Notes Display */}
@@ -218,17 +241,6 @@ const BrandTimelineSteps = ({ campaignId }) => {
           </div>
         </div>
       </Modal>
-
-      {/* Auto-complete Notice */}
-      <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-blue-800">
-            <p className="font-medium">Auto-completion</p>
-            <p className="mt-1">Steps auto-complete 48hrs after deadline unless disputed.</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
