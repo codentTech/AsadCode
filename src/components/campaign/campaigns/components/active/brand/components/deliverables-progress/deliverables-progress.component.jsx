@@ -4,6 +4,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
+import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { Avatar } from "@mui/material";
 import { CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
 import React from "react";
@@ -256,12 +257,19 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator }) => {
     );
   };
 
-  const renderTimeline = () => (
-    <div className="bg-white rounded border p-3">
-      <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-      <BrandTimelineSteps />
-    </div>
-  );
+  const renderTimeline = () => {
+    // Only show timeline for CleerCut campaigns
+    if (selectedCampaign?.source_platform !== SOURCE_PLATFORM.CLEERCUT) {
+      return null;
+    }
+
+    return (
+      <div className="bg-white rounded border p-3">
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
+        <BrandTimelineSteps campaignId={selectedCampaign?.id} />
+      </div>
+    );
+  };
 
   const renderNotes = () => (
     <div className="bg-white rounded border p-3">

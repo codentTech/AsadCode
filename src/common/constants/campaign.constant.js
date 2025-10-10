@@ -13,3 +13,8 @@ export const TASK_STATUS = Object.freeze({
   REVIEW: "REVIEW",
   COMPLETE: "COMPLETE",
 });
+
+export const SOURCE_PLATFORM = Object.freeze({
+  CLEERCUT: "CLEERCUT",
+  OTHER: "OTHER",
+});

@@ -4,6 +4,7 @@ import {
   getTimeline,
   updateTimelineStep,
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
+import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 
 const TIMELINE_STEPS = {
   CONTENT_RECORDED: "CONTENT_RECORDED",
@@ -35,6 +36,10 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     (state) => state.campaignTimeline.updateTimelineStep || {}
   );
 
+  const { isLoading: uploadLoading } = useSelector(
+    (state) => state.uploadFile.uploadSingleFile || {}
+  );
+
   // Local state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showUrlModal, setShowUrlModal] = useState(false);
@@ -44,11 +49,22 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
   // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
 
-  // Load timeline on mount
+  // Load timeline on mount and when campaignId changes
   useEffect(() => {
     if (campaignId) {
       dispatch(getTimeline(campaignId));
     }
+  }, [campaignId, dispatch]);
+
+  // Auto-refresh timeline every 10 seconds to show brand updates
+  useEffect(() => {
+    if (!campaignId) return;
+
+    const interval = setInterval(() => {
+      dispatch(getTimeline(campaignId));
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
   }, [campaignId, dispatch]);
 
   // Format date
@@ -87,65 +103,103 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     return socialPlatforms.some((platform) => url.includes(platform));
   };
 
-  // Mark content as recorded (Step 1)
+  // Step 1: Mark content as recorded (NO UPLOAD)
   const handleMarkComplete = useCallback(
     async (stepId) => {
-      await dispatch(
-        updateTimelineStep({
-          campaignId,
-          step: TIMELINE_STEPS.CONTENT_RECORDED,
-          data: { status: TIMELINE_STATUS.COMPLETED },
-        })
-      );
+      try {
+        await dispatch(
+          updateTimelineStep({
+            campaignId,
+            step: TIMELINE_STEPS.CONTENT_RECORDED,
+            data: { status: TIMELINE_STATUS.COMPLETED },
+          })
+        ).unwrap();
+
+        // Refresh timeline
+        await dispatch(getTimeline(campaignId));
+      } catch (error) {
+        console.error("Failed to mark complete:", error);
+      }
     },
     [campaignId, dispatch]
   );
 
-  // Upload draft file (Step 2)
+  // Step 2: Upload draft file (FILE UPLOAD)
   const handleFileUpload = useCallback(async () => {
     if (!selectedFile) return;
 
-    // TODO: Upload file to storage first, then get URL
-    const fileUrl = "https://example.com/draft.mp4"; // Placeholder
+    try {
+      // Upload file to storage
+      const uploadResult = await dispatch(
+        uploadSingleFile({
+          file: selectedFile,
+          folder: "campaign",
+        })
+      ).unwrap();
 
-    await dispatch(
-      updateTimelineStep({
-        campaignId,
-        step: TIMELINE_STEPS.DRAFT_REVIEW,
-        data: {
-          status: TIMELINE_STATUS.SUBMITTED,
-          file_url: fileUrl,
-        },
-      })
-    );
+      const fileUrl = uploadResult.url || uploadResult.file_url;
 
-    setShowUploadModal(false);
-    setSelectedFile(null);
+      if (!fileUrl) {
+        alert("Upload failed: No file URL received");
+        return;
+      }
+
+      // Update timeline with file URL
+      await dispatch(
+        updateTimelineStep({
+          campaignId,
+          step: TIMELINE_STEPS.DRAFT_REVIEW,
+          data: {
+            status: TIMELINE_STATUS.SUBMITTED,
+            file_url: fileUrl,
+          },
+        })
+      ).unwrap();
+
+      // Refresh timeline
+      await dispatch(getTimeline(campaignId));
+
+      setShowUploadModal(false);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("Failed to upload draft:", error);
+      alert(`Upload failed: ${error.message || "Unknown error"}`);
+      setShowUploadModal(false);
+      setSelectedFile(null);
+    }
   }, [selectedFile, campaignId, dispatch]);
 
-  // Submit published URL (Step 3)
+  // Step 3: Submit published URL (URL INPUT ONLY)
   const handlePublishUrl = useCallback(async () => {
     if (!validateUrl(publishedUrl)) return;
 
-    await dispatch(
-      updateTimelineStep({
-        campaignId,
-        step: TIMELINE_STEPS.FINAL_PUBLISHED,
-        data: {
-          status: TIMELINE_STATUS.SUBMITTED,
-          published_url: publishedUrl,
-        },
-      })
-    );
+    try {
+      await dispatch(
+        updateTimelineStep({
+          campaignId,
+          step: TIMELINE_STEPS.FINAL_PUBLISHED,
+          data: {
+            status: TIMELINE_STATUS.SUBMITTED,
+            published_url: publishedUrl,
+          },
+        })
+      ).unwrap();
 
-    setShowUrlModal(false);
-    setPublishedUrl("");
+      // Refresh timeline
+      await dispatch(getTimeline(campaignId));
+
+      setShowUrlModal(false);
+      setPublishedUrl("");
+    } catch (error) {
+      console.error("Failed to submit URL:", error);
+    }
   }, [publishedUrl, campaignId, dispatch]);
 
   // Calculate completion percentage
   const completedSteps = timelineSteps.filter(
-    (step) => step.status === TIMELINE_STATUS.COMPLETED
+    (step) => step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
   ).length;
+
   const completionPercentage =
     timelineSteps.length > 0 ? (completedSteps / timelineSteps.length) * 100 : 0;
 
@@ -155,7 +209,7 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     timelineLoading,
     timelineSuccess,
     timelineError,
-    updateLoading,
+    updateLoading: updateLoading || uploadLoading,
     showUploadModal,
     showUrlModal,
     publishedUrl,
