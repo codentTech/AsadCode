@@ -25,6 +25,7 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
         name:
           `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||
           "Unknown Creator",
+        bio: creator.creator?.creator_profile?.bio || "No bio available",
         image: creator.creator?.creator_profile?.profile_photo_url,
         location:
           `${creator.creator?.city || ""}, ${creator.creator?.country || ""}`.replace(

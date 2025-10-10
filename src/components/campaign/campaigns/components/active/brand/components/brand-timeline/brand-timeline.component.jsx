@@ -1,6 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 import { AlertCircle, CheckCircle, Circle, Lock, MessageSquare } from "lucide-react";
 import React from "react";
 import useBrandTimeline from "./use-brand-timeline.hook";
@@ -25,9 +26,6 @@ const BrandTimelineSteps = ({ campaignId }) => {
     handleMarkAsComplete,
     formatDate,
     getTimeRemaining,
-
-    // Constants
-    TIMELINE_STATUS,
   } = useBrandTimeline(campaignId);
 
   const getStepIcon = (step) => {

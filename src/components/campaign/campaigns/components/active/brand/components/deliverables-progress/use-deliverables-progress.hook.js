@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { avatar } from "@/common/constants/auth.constant";
 import useCommonHelpers from "@/common/hooks/use-common-helper.hook";
-import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
+import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import {
   createCampaignNote,
   deleteCampaignNote,
@@ -18,14 +16,15 @@ import {
   getReviewStatus,
   updateCampaignReview,
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
-import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
 import {
-  updateCampaign,
-  markCampaignComplete,
-  getBrandCampaignsExcludingCompleted,
   getAllCampaigns,
+  getBrandCampaignsExcludingCompleted,
+  markCampaignComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { getUser, isCreatorMode } from "@/common/utils/users.util";
+import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const useDeliverablesProgress = (
   campaignId = "temp-campaign-id",
@@ -135,21 +134,28 @@ const useDeliverablesProgress = (
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
   // ==================== CREATOR DATA ====================
-  const creator = {
-    id: "creator_sam_waters",
-    name: "Sam Waters",
-    avatar,
-    isOnline: true,
-    location: "Los Angeles, CA",
-    age: 27,
-    rating: 4.2,
-    reviewCount: 245,
-    platforms: {
-      instagram: { followers: 285000, verified: true },
-      youtube: { followers: 95000, verified: true },
-      twitter: { followers: 42000, verified: false },
-    },
-  };
+  // Use real creator data from selectedCreator (matches applications tab structure)
+  const creator = selectedCreator
+    ? {
+        id: selectedCreator.id,
+        name: `${selectedCreator.name || ""}`.trim() || "Creator",
+        image: selectedCreator.image || avatar,
+        avatar: selectedCreator.image || avatar,
+        isOnline: true,
+        location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
+        rating: selectedCreator.rating || 0,
+        bio: selectedCreator.bio || "No bio available",
+      }
+    : {
+        id: "unknown",
+        name: "Creator",
+        image: avatar,
+        avatar,
+        isOnline: false,
+        location: "Location not specified",
+        rating: 0,
+        bio: "No bio available",
+      };
 
   // ==================== HOOKS ====================
   const messageThreadHook = useMessageThread(creator.id);

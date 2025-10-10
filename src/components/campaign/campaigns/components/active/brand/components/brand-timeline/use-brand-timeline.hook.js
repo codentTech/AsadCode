@@ -6,21 +6,7 @@ import {
   requestRevision,
   markFinalComplete,
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
-
-const TIMELINE_STEPS = {
-  CONTENT_RECORDED: "CONTENT_RECORDED",
-  DRAFT_REVIEW: "DRAFT_REVIEW",
-  FINAL_PUBLISHED: "FINAL_PUBLISHED",
-};
-
-const TIMELINE_STATUS = {
-  PENDING: "PENDING",
-  IN_PROGRESS: "IN_PROGRESS",
-  SUBMITTED: "SUBMITTED",
-  APPROVED: "APPROVED",
-  REVISION_REQUESTED: "REVISION_REQUESTED",
-  COMPLETED: "COMPLETED",
-};
+import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 
 export default function useBrandTimeline(campaignId) {
   const dispatch = useDispatch();
@@ -182,9 +168,5 @@ export default function useBrandTimeline(campaignId) {
     handleMarkAsComplete,
     formatDate,
     getTimeRemaining,
-
-    // Constants
-    TIMELINE_STEPS,
-    TIMELINE_STATUS,
   };
 }

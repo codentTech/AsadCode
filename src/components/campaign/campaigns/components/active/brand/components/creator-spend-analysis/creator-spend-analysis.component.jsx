@@ -7,10 +7,10 @@ import InstagramIcon from "@/common/icons/instagram";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { MapPin, Star, Users, TrendingDown } from "lucide-react";
+import { MapPin, Star, Users } from "lucide-react";
+import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
-import React from "react";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
