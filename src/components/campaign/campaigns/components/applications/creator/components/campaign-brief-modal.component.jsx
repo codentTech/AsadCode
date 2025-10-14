@@ -1,17 +1,18 @@
 import React from "react";
 import Modal from "@/common/components/modal/modal.component";
 import { Calendar, DollarSign, MapPin, Users, Package } from "lucide-react";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const CampaignBriefModal = ({ show, onClose, campaign }) => {
   if (!campaign) return null;
 
   const formatCompensationType = (type) => {
     switch (type) {
-      case "FIXED":
+      case COMPENSATION_TYPE.PAID:
         return "Fixed Payment";
-      case "GIFTED":
+      case COMPENSATION_TYPE.GIFTED:
         return "Gifted Product";
-      case "COMMISSION":
+      case COMPENSATION_TYPE.COMMISSION:
         return "Commission Based";
       default:
         return type;
