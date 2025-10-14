@@ -17,6 +17,8 @@ export default function ChatInbox() {
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
+    selectedChatId,
+    setSelectedChatId,
   } = useChatInbox();
 
   return (
@@ -83,13 +85,22 @@ export default function ChatInbox() {
 
           <div className="flex flex-1 overflow-hidden">
             {/* Chat list */}
-            <ChatList isCreatorMode={creatorMode} activeTab={activeTab} />
+            <ChatList
+              isCreatorMode={creatorMode}
+              activeTab={activeTab}
+              selectedChatId={selectedChatId}
+              setSelectedChatId={setSelectedChatId}
+            />
 
             {/* Chat area */}
-            <Inbox />
+            <Inbox selectedChatId={selectedChatId} setSelectedChatId={setSelectedChatId} />
 
             {/* Right sidebar - Profile and connections */}
-            <Profile isCreatorMode={creatorMode} activeTab={activeTab} />
+            <Profile
+              isCreatorMode={creatorMode}
+              activeTab={activeTab}
+              selectedChatId={selectedChatId}
+            />
           </div>
         </main>
       </div>

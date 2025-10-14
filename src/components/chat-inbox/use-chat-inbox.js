@@ -7,6 +7,7 @@ export default function useChatInbox() {
   const [activeTab, setActiveTab] = useState(4);
   const [activeSection, setActiveSection] = useState(1);
   const [openQuickHire, setOpenQuickHire] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState(null);
 
   const handleOpenQuickHire = () => {
     setOpenQuickHire(true);
@@ -40,5 +41,7 @@ export default function useChatInbox() {
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
+    selectedChatId,
+    setSelectedChatId,
   };
 }

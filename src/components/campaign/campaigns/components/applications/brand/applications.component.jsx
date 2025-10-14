@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
+import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
@@ -239,14 +240,22 @@ function BrandApplications() {
     }
   }, [rejectSuccess, selectedCampaign, dispatch, filters]);
 
+  // Message thread hook
+  const messageThreadHook = useMessageThread(selectedCreator?.creator?.id || null);
+
   const creator = {
     id: selectedCreator?.creator?.id,
     name: selectedCreator?.creator?.first_name + " " + selectedCreator?.creator?.last_name,
-    avatar,
+    avatar: selectedCreator?.creator?.creator_profile?.profile_photo_url || avatar,
     isOnline: true,
   };
 
   const creators = Array.isArray(appliedCreatorsData?.data) ? appliedCreatorsData.data : [];
+
+  // Handle message click - open modal via hook
+  const handleMessageClick = () => {
+    messageThreadHook.openMessageModal();
+  };
 
   const renderRightPane = () => {
     // Loading state for creators list
@@ -288,7 +297,7 @@ function BrandApplications() {
         selectedCreator={selectedCreator}
         onHireClick={handleHireClick}
         onRejectClick={handleRejectClick}
-        onMessageClick={() => setMessageDialogOpen(true)}
+        onMessageClick={handleMessageClick}
       />
     );
   };
@@ -305,7 +314,7 @@ function BrandApplications() {
         filters={filters}
         onFilterChange={handleFilterChange}
         onClearFilters={clearFilters}
-        onMessageClick={() => setMessageDialogOpen(true)}
+        onMessageClick={handleMessageClick}
       />
 
       {renderRightPane()}
@@ -323,9 +332,19 @@ function BrandApplications() {
       />
 
       <MessageThreadModal
-        isOpen={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
+        isOpen={messageThreadHook.isModalOpen}
+        onClose={messageThreadHook.closeMessageModal}
         creator={creator}
+        messages={messageThreadHook.messages || []}
+        newMessage={messageThreadHook.newMessage || ""}
+        setNewMessage={messageThreadHook.setNewMessage}
+        sendMessage={messageThreadHook.sendMessage}
+        isSending={messageThreadHook.isSending}
+        isLoading={messageThreadHook.isLoading}
+        isCreatorOnline={messageThreadHook.isCreatorOnline}
+        isCreatorTyping={messageThreadHook.isCreatorTyping}
+        messagesEndRef={messageThreadHook.messagesEndRef}
+        messagesContainerRef={messageThreadHook.messagesContainerRef}
       />
 
       {/* Reject Confirmation Modal */}
