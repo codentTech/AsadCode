@@ -20,10 +20,13 @@ function useInbox(selectedChatId) {
   const typingTimeoutRef = useRef(null);
 
   // Get data from Redux
-  const { messages, conversations, typingUsers, onlineUsers } = useSelector((state) => state.chat);
-  const { getConversationMessages: messagesState, sendMessage: sendMessageState } = useSelector(
-    (state) => state.chat
-  );
+  const chatState = useSelector((state) => state.chat) || {};
+  const messages = chatState.messages || {};
+  const conversations = chatState.conversations || [];
+  const typingUsers = chatState.typingUsers || {};
+  const onlineUsers = chatState.onlineUsers || [];
+  const messagesState = chatState.getConversationMessages || {};
+  const sendMessageState = chatState.sendMessage || {};
 
   // Get current conversation
   const currentConversation = conversations.find((c) => c.id === selectedChatId);

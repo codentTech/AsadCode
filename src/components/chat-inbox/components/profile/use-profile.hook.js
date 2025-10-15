@@ -6,7 +6,9 @@ function useProfile(selectedChatId) {
   const user = getUser();
 
   // Get data from Redux
-  const { conversations, onlineUsers } = useSelector((state) => state.chat);
+  const chatState = useSelector((state) => state.chat) || {};
+  const conversations = chatState.conversations || [];
+  const onlineUsers = chatState.onlineUsers || [];
 
   // Get current conversation
   const currentConversation = conversations.find((c) => c.id === selectedChatId);

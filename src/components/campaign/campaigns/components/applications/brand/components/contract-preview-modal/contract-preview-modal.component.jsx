@@ -1,6 +1,7 @@
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { useState } from "react";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 export default function ContractPreviewModal({
   show,
@@ -10,212 +11,226 @@ export default function ContractPreviewModal({
   campaignData,
   onSendOffer,
   isLoading = false,
-  contractId = null, // Real contract ID from backend (optional)
+  contractId = null,
 }) {
   // Generate stable timestamp when modal opens
   const [signatureTimestamp] = useState(() => new Date().toISOString());
   const [dateSigned] = useState(() => new Date().toLocaleDateString());
 
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return "[enter date]";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Helper function to get deliverables
+  const getDeliverables = () => {
+    if (contractData.contentFormat) return contractData.contentFormat;
+    if (campaignData?.deliverables && Array.isArray(campaignData.deliverables)) {
+      return campaignData.deliverables.join(", ");
+    }
+    return "[enter deliverables]";
+  };
+
+  // Helper function to format compensation section
+  const getCompensationSection = () => {
+    const compensationType = (
+      contractData.compensationType || COMPENSATION_TYPE.PAID
+    ).toUpperCase();
+
+    let compensationText = "The Brand agrees to compensate the Creator as follows:\n";
+
+    switch (compensationType) {
+      case COMPENSATION_TYPE.PAID:
+        compensationText += `• Compensation Type: Fixed Payment\n`;
+        compensationText += `• Amount: $${contractData.totalCompensation || "[enter amount]"}\n\n`;
+        break;
+
+      case COMPENSATION_TYPE.COMMISSION:
+        const productPrice = parseFloat(contractData.productPrice) || 0;
+        const commissionRate = parseFloat(contractData.totalCompensation) || 0;
+        const payoutPerSale =
+          productPrice && commissionRate ? ((productPrice * commissionRate) / 100).toFixed(2) : "0";
+
+        compensationText += `• Compensation Type: Commission-Based\n`;
+        compensationText += `• Commission Rate: ${contractData.totalCompensation || "[enter rate]"}% per sale\n`;
+        compensationText += `• Product Price: $${contractData.productPrice || "[enter price]"}\n`;
+        compensationText += `• Creator Payout Per Sale: $${payoutPerSale}\n\n`;
+        break;
+
+      case COMPENSATION_TYPE.GIFTED_PRODUCT:
+        compensationText += `• Compensation Type: Gifted Product\n`;
+        compensationText += `• Product Value: $${campaignData?.product_value || contractData.productValue || "[enter value]"}\n`;
+        compensationText += `• Note: No monetary compensation will be provided\n\n`;
+        break;
+
+      default:
+        compensationText += `• Compensation Type: [enter compensation type]\n`;
+        compensationText += `• Amount: [enter amount]\n\n`;
+    }
+
+    compensationText +=
+      "Compensation will be disbursed via CleerCut's payment system, subject to approval of deliverables in accordance with Section 5.";
+
+    return compensationText;
+  };
+
+  // Helper function to get eligibility information
+  const getEligibilitySection = () => {
+    const eligibilityItems = [];
+
+    // In-person requirement
+    if (campaignData?.in_person_required !== undefined) {
+      eligibilityItems.push(
+        `• In-person content requirement: ${campaignData.in_person_required ? "Yes" : "No"}`
+      );
+    }
+
+    // Geographic requirements
+    if (campaignData?.country_requirement && campaignData?.creator_country) {
+      const country = campaignData.creator_country;
+      const city =
+        campaignData?.city_requirement && campaignData?.creator_city
+          ? `, ${campaignData.creator_city}`
+          : "";
+      eligibilityItems.push(`• Geographic requirements: ${country}${city}`);
+    } else if (!campaignData?.country_requirement) {
+      eligibilityItems.push(`• Geographic requirements: Not Applicable`);
+    }
+
+    // Age range
+    if (campaignData?.age_requirement && campaignData?.min_age && campaignData?.max_age) {
+      eligibilityItems.push(`• Age range: ${campaignData.min_age} - ${campaignData.max_age}`);
+    } else if (!campaignData?.age_requirement) {
+      eligibilityItems.push(`• Age range: Not Applicable`);
+    }
+
+    // Gender
+    if (campaignData?.gender_requirement && campaignData?.creator_gender) {
+      const gender =
+        campaignData.creator_gender.charAt(0).toUpperCase() + campaignData.creator_gender.slice(1);
+      eligibilityItems.push(`• Gender: ${gender}`);
+    } else if (!campaignData?.gender_requirement) {
+      eligibilityItems.push(`• Gender: Not Applicable`);
+    }
+
+    // Language
+    if (campaignData?.language_requirement && campaignData?.creator_language) {
+      eligibilityItems.push(`• Language: ${campaignData.creator_language}`);
+    } else if (!campaignData?.language_requirement) {
+      eligibilityItems.push(`• Language: Not Applicable`);
+    }
+
+    return eligibilityItems.length > 0
+      ? eligibilityItems.join("\n")
+      : "• No specific eligibility requirements";
+  };
+
   const generateContractText = () => {
-    // Calculate creator payout per sale for commission-based campaigns
-    const creatorPayoutPerSale =
-      contractData.compensationType === "commission" &&
-      contractData.productPrice &&
-      contractData.totalCompensation
-        ? (
-            (parseFloat(contractData.productPrice) * parseFloat(contractData.totalCompensation)) /
-            100
-          ).toFixed(2)
-        : "0";
+    const brandName = contractData.brandName || campaignData?.brand_name || "[Brand Name]";
+    const creatorName =
+      contractData.creatorName ||
+      (creatorData?.first_name && creatorData?.last_name
+        ? `${creatorData.first_name} ${creatorData.last_name}`
+        : "[Creator Name]");
+    const campaignTitle =
+      contractData.campaignTitle || campaignData?.campaign_title || "[Campaign Title]";
+    const startDate = formatDate(contractData.startDate);
+    const deadline = formatDate(contractData.completionDeadline);
+    const revisionsLimit = contractData.revisionsLimit || "2";
+    const deliverables = getDeliverables();
+    const compensationSection = getCompensationSection();
+    const eligibilitySection = getEligibilitySection();
 
-    // Format usage rights text
-    const getUsageRightsText = () => {
-      if (contractData.usageRights === "no_usage") return "No usage rights";
-      if (contractData.usageRights === "permanent") return "Permanent usage rights";
-      return `${contractData.usageRights} months usage rights`;
-    };
+    // Usage rights
+    const usageRights =
+      contractData.usageRights === "no_usage"
+        ? "No usage rights"
+        : contractData.usageRights === "permanent"
+          ? "Permanent usage rights"
+          : `${contractData.usageRights} months usage rights`;
 
-    // Format exclusivity text
-    const getExclusivityText = () => {
-      if (contractData.exclusivityClause === "none") return "None";
-      return `${contractData.exclusivityClause} months`;
-    };
+    // Exclusivity
+    const exclusivity =
+      contractData.exclusivityClause === "none"
+        ? "None"
+        : `${contractData.exclusivityClause} months`;
 
-    // Format compensation text
-    const getCompensationText = () => {
-      switch (contractData.compensationType) {
-        case "fixed":
-          return `Fixed Payment: $${contractData.totalCompensation || "[enter amount]"}`;
-        case "commission":
-          return `Commission-Based: ${contractData.totalCompensation || "[enter rate]"}% per sale`;
-        case "gifted":
-          return "Gifted Product: Product only (no monetary compensation)";
-        default:
-          return "[enter compensation type]";
-      }
-    };
+    const contractIdText = contractId || contractData.contractId || "DRAFT";
 
-    return (
-      "CleerCut Collaboration Agreement\n\n" +
-      'This Creator Collaboration Agreement ("Agreement") is entered into as of {{StartDate}}, by and between {{BrandName}} ("Brand") and {{CreatorName}} ("Creator"), collectively referred to as the "Parties."\n\n' +
-      "This Agreement governs the scope, terms, and compensation for the Creator's participation in the {{CampaignTitle}} campaign.\n\n" +
-      "1. Scope of Work\n\n" +
-      "The Creator agrees to produce and publish the following deliverables: {{Deliverables}}. All content must comply with the creative direction, tone, and brand messaging as outlined in the campaign brief.\n\n" +
-      "All deliverables must be completed and posted by {{Deadline}}. The Creator is permitted up to {{RevisionsAllowed}} revision(s) if requested by the Brand, provided feedback is given within a reasonable timeframe.\n\n" +
-      "2. Compensation\n\n" +
-      "The Brand agrees to compensate the Creator as follows:\n" +
-      "• Compensation Type: {{CompensationType}}\n" +
-      "• Amount:\n" +
-      "  - If Fixed: ${{FixedAmount}}\n" +
-      "  - If Commission-Based: {{CommissionRate}}% per sale\n" +
-      "  - If Gifted: Product only (no monetary compensation)\n\n" +
-      "For affiliate campaigns, the product price is ${{ProductPrice}}, resulting in a per-sale payout of ${{CreatorPayoutPerSale}}.\n\n" +
-      "Compensation will be disbursed via CleerCut's payment system, subject to approval of deliverables in accordance with Section 5.\n\n" +
-      "3. Usage Rights and Exclusivity\n\n" +
-      "The Creator grants the Brand the following rights to the content:\n" +
-      "• Usage Rights: {{UsageRights}}\n" +
-      "• Exclusivity: {{Exclusivity}}\n\n" +
-      "The Creator shall not promote competing brands within the same category during the exclusivity period, if applicable.\n\n" +
-      "4. Content Requirements\n\n" +
-      "The Creator agrees to comply with the content requirements outlined in the campaign brief, which is incorporated into this Agreement by reference. These requirements include, but are not limited to:\n" +
-      "• Required hashtags: {{Hashtags}}\n" +
-      "• Required brand mentions or tags: {{Mentions}}\n" +
-      "• Creative direction, tone, messaging, and formatting guidelines as provided by the Brand\n\n" +
-      "Collaboration Tagging:\n" +
-      "The Creator agrees to tag both CleerCut (@cleercut) and the Brand as collaborators on each applicable deliverable using the native platform's collaboration feature (e.g., Instagram's \"Invite Collaborator\" function). This ensures full visibility and attribution. Failure to do so may result in delayed payment or revision requests.\n\n" +
-      "5. Payment Conditions and Approval\n\n" +
-      "Payment will be released upon completion and approval of all deliverables. The Brand shall review submitted content within five (5) business days of submission. If no feedback is provided within this window, the deliverables shall be deemed approved.\n\n" +
-      "In the event of non-compliance with the agreed-upon deliverables or deadlines, payment may be withheld or adjusted at CleerCut's discretion.\n\n" +
-      "6. Eligibility Confirmation\n\n" +
-      "By accepting this Agreement, the Creator confirms they met all campaign eligibility criteria at the time of application, including but not limited to:\n" +
-      "• In-person content requirement: {{InPersonRequired}}\n" +
-      "• Geographic requirements: {{EligibleCountry}}, {{EligibleCity}}\n" +
-      "• Age range: {{AgeRange}}\n" +
-      "• Gender: {{Gender}}\n" +
-      "• Language: {{Language}}\n\n" +
-      "7. Cancellation and Dispute Resolution\n\n" +
-      "This Agreement may be cancelled by either party prior to the start of deliverable work. After deliverables have been submitted, cancellation may result in partial payment as determined by CleerCut's fair use policy.\n\n" +
-      "Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Brand if no deliverables are completed.\n\n" +
-      "8. Agreement and Signatures\n\n" +
-      'By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.\n\n' +
-      "Contract ID: {{ContractId}}\n" +
-      "Signed by Brand: {{BrandName}}\n" +
-      "Signed by Creator: {{CreatorName}}\n" +
-      "Date Signed: {{DateSigned}}\n" +
-      "Timestamp Recorded: {{SignatureTimestamp}}"
-    );
+    return `CleerCut Collaboration Agreement
+
+This Creator Collaboration Agreement ("Agreement") is entered into as of ${startDate}, by and between ${brandName} ("Brand") and ${creatorName} ("Creator"), collectively referred to as the "Parties."
+
+This Agreement governs the scope, terms, and compensation for the Creator's participation in the ${campaignTitle} campaign.
+
+1. Scope of Work
+
+The Creator agrees to produce and publish the following deliverables: ${deliverables}. All content must comply with the creative direction, tone, and brand messaging as outlined in the campaign brief.
+
+All deliverables must be completed and posted by ${deadline}. The Creator is permitted up to ${revisionsLimit} revision(s) if requested by the Brand, provided feedback is given within a reasonable timeframe.
+
+2. Compensation
+
+${compensationSection}
+
+3. Usage Rights and Exclusivity
+
+The Creator grants the Brand the following rights to the content:
+• Usage Rights: ${usageRights}
+• Exclusivity: ${exclusivity}
+
+The Creator shall not promote competing brands within the same category during the exclusivity period, if applicable.
+
+4. Content Requirements
+
+The Creator agrees to comply with the content requirements outlined in the campaign brief. These requirements include, but are not limited to:
+
+• Any required hashtags outlined by the brand in the campaign brief
+• Any brand mentions or tags outlined in the campaign brief
+• The creative direction, tone, messaging and format guidelines as provided by the brand
+
+Collaboration Tagging:
+The Creator agrees to tag both CleerCut (@cleercut) and the Brand as collaborators on each applicable deliverable using the native platform's collaboration feature (e.g., Instagram's "Invite Collaborator" function). This ensures full visibility and attribution. Failure to do so may result in delayed payment or revision requests.
+
+5. Payment Conditions and Approval
+
+Payment will be released upon completion and approval of all deliverables. The Brand shall review submitted content within five (5) business days of submission. If no feedback is provided within this window, the deliverables shall be deemed approved.
+
+In the event of non-compliance with the agreed-upon deliverables or deadlines, payment may be withheld or adjusted at CleerCut's discretion.
+
+6. Eligibility Confirmation
+
+By accepting this Agreement, the Creator confirms they met all campaign eligibility criteria at the time of application, including but not limited to:
+
+${eligibilitySection}
+
+7. Cancellation and Dispute Resolution
+
+This Agreement may be cancelled by either party prior to the start of deliverable work. After deliverables have been submitted, cancellation may result in partial payment as determined by CleerCut's fair use policy.
+
+Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Brand if no deliverables are completed.
+
+8. Agreement and Signatures
+
+By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.
+
+Contract ID: ${contractIdText}
+Signed by Brand: ${brandName}
+Signed by Creator: ${creatorName}
+Date Signed: ${dateSigned}
+Timestamp Recorded: ${signatureTimestamp}`;
   };
 
-  // Replace template variables with actual data
-  const replaceTemplateVariables = (template) => {
-    // Format dates properly
-    const formatDate = (dateString) => {
-      if (!dateString) return "[enter date]";
-      try {
-        return new Date(dateString).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-      } catch (error) {
-        return dateString;
-      }
-    };
-
-    // Get deliverables from campaign data
-    const getDeliverables = () => {
-      if (contractData.contentFormat) return contractData.contentFormat;
-      if (campaignData?.deliverables) return campaignData.deliverables;
-      return "Feed Post, Story: 3+";
-    };
-
-    // Get campaign eligibility data
-    const getEligibilityData = () => {
-      return {
-        inPersonRequired: campaignData?.in_person_required ? "Yes" : "No",
-        eligibleCountry: campaignData?.creator_country || "[enter country]",
-        eligibleCity: campaignData?.creator_city || "[enter city]",
-        ageRange:
-          campaignData?.min_age && campaignData?.max_age
-            ? `${campaignData.min_age} - ${campaignData.max_age}`
-            : "[enter age range]",
-        gender: campaignData?.creator_gender || "[enter gender]",
-        language: campaignData?.creator_language || "[enter language]",
-      };
-    };
-
-    const eligibility = getEligibilityData();
-
-    return template
-      .replace(/{{StartDate}}/g, formatDate(contractData.startDate))
-      .replace(/{{BrandName}}/g, contractData.brandName || "[Brand Name]")
-      .replace(/{{CreatorName}}/g, contractData.creatorName || "[Creator Name]")
-      .replace(/{{CampaignTitle}}/g, contractData.campaignTitle || "[Campaign Title]")
-      .replace(/{{Deliverables}}/g, getDeliverables())
-      .replace(/{{Deadline}}/g, formatDate(contractData.completionDeadline))
-      .replace(/{{RevisionsAllowed}}/g, contractData.revisionsLimit || 2)
-      .replace(
-        /{{CompensationType}}/g,
-        contractData.compensationType
-          ? contractData.compensationType.charAt(0).toUpperCase() +
-              contractData.compensationType.slice(1)
-          : "Fixed"
-      )
-      .replace(
-        /{{FixedAmount}}/g,
-        contractData.compensationType === "fixed"
-          ? `$${contractData.totalCompensation || "[Amount]"}`
-          : "[Amount]"
-      )
-      .replace(
-        /{{CommissionRate}}/g,
-        contractData.compensationType === "commission"
-          ? `${contractData.totalCompensation || "[Rate]"}%`
-          : "[Rate]"
-      )
-      .replace(
-        /{{ProductPrice}}/g,
-        contractData.productPrice ? `$${contractData.productPrice}` : "[Product Price]"
-      )
-      .replace(
-        /{{CreatorPayoutPerSale}}/g,
-        contractData.compensationType === "commission" &&
-          contractData.productPrice &&
-          contractData.totalCompensation
-          ? `$${(
-              (parseFloat(contractData.productPrice) * parseFloat(contractData.totalCompensation)) /
-              100
-            ).toFixed(2)}`
-          : "$0"
-      )
-      .replace(
-        /{{UsageRights}}/g,
-        contractData.usageRights === "no_usage"
-          ? "No usage rights"
-          : contractData.usageRights === "permanent"
-            ? "Permanent usage rights"
-            : `${contractData.usageRights} months usage rights`
-      )
-      .replace(
-        /{{Exclusivity}}/g,
-        contractData.exclusivityClause === "none"
-          ? "None"
-          : `${contractData.exclusivityClause} months`
-      )
-      .replace(/{{Hashtags}}/g, contractData.hashtags || "[enter hashtags]")
-      .replace(/{{Mentions}}/g, contractData.mentions || "[enter mentions]")
-      .replace(/{{InPersonRequired}}/g, eligibility.inPersonRequired)
-      .replace(/{{EligibleCountry}}/g, eligibility.eligibleCountry)
-      .replace(/{{EligibleCity}}/g, eligibility.eligibleCity)
-      .replace(/{{AgeRange}}/g, eligibility.ageRange)
-      .replace(/{{Gender}}/g, eligibility.gender)
-      .replace(/{{Language}}/g, eligibility.language)
-      .replace(/{{ContractId}}/g, contractId || contractData.contractId || "DRAFT")
-      .replace(/{{DateSigned}}/g, dateSigned)
-      .replace(/{{SignatureTimestamp}}/g, signatureTimestamp);
-  };
-
-  const contractText = replaceTemplateVariables(generateContractText());
+  const contractText = generateContractText();
 
   return (
     <Modal title="Contract Preview" show={show} onClose={onClose} size="xl" height={true}>

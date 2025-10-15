@@ -1,16 +1,16 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Modal from "@/common/components/modal/modal.component";
+import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 import SearchIcon from "@/common/icons/search-icon";
+import Niche from "@/components/niche/niche";
+import { RefreshRounded } from "@mui/icons-material";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import DoneOutlinedIcon from "@mui/icons-material/DoneOutlined";
+import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
 import { Avatar } from "@mui/material";
 import useChatList from "./use-chat-list";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import DoneOutlinedIcon from "@mui/icons-material/DoneOutlined";
-import DoneAllIcon from "@mui/icons-material/DoneAll";
-import FilterListAltIcon from "@mui/icons-material/FilterListAlt";
-import Modal from "@/common/components/modal/modal.component";
-import { RefreshRounded } from "@mui/icons-material";
-import Niche from "@/components/niche/niche";
-import useCampaignList from "@/common/hooks/use-campaign-list.hook";
 
 export default function ChatList({ isCreatorMode, activeTab, selectedChatId, setSelectedChatId }) {
   const {
@@ -30,32 +30,12 @@ export default function ChatList({ isCreatorMode, activeTab, selectedChatId, set
     handleResetFilters,
     handleApplyFilters,
     activeFilterCount,
-  } = useChatList(selectedChatId, setSelectedChatId);
+  } = useChatList(selectedChatId, setSelectedChatId, activeTab);
 
   const { options, handleChange } = useCampaignList();
 
   return (
     <div className="w-1/4 border-r flex flex-col overflow-hidden bg-white">
-      {[3, 5].includes(activeTab) && !isCreatorMode && (
-        <div className="bg-white border-b px-4">
-          <div className="flex space-x-4 overflow-x-auto">
-            {filterOptions.map((option) => (
-              <button
-                key={option}
-                onClick={() => setActiveFilter(option)}
-                className={`whitespace-nowrap px-3 py-2 text-sm font-medium border-b-2 transition-all ${
-                  activeFilter === option
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-primary hover:border-primary"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {[1, 2, 3].includes(activeTab) && !isCreatorMode && (
         <div>
           <div className="p-2">

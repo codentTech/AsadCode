@@ -56,6 +56,12 @@ const useMessageThread = (creatorId) => {
     setIsModalOpen(true);
     setError(null);
 
+    // Prevent self-conversations
+    if (user.id === creatorId) {
+      console.warn("Cannot create conversation with yourself");
+      return;
+    }
+
     // Create or get conversation
     const conversationData = {
       brand_id: user.id,
