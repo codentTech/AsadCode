@@ -7,6 +7,13 @@ export default function useChatInbox() {
   const [activeTab, setActiveTab] = useState(4);
   const [activeSection, setActiveSection] = useState(1);
   const [openQuickHire, setOpenQuickHire] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState(null);
+
+  // Clear selected chat when switching tabs
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSelectedChatId(null); // Clear selected chat when switching tabs
+  };
 
   const handleOpenQuickHire = () => {
     setOpenQuickHire(true);
@@ -25,14 +32,14 @@ export default function useChatInbox() {
   ];
 
   const sections = [
-    { id: 1, label: "Creators" },
-    { id: 2, label: "Brands" },
+    { id: 1, label: "Saved" },
+    { id: 2, label: "Rejected" },
   ];
 
   return {
     creatorMode,
     activeTab,
-    setActiveTab,
+    setActiveTab: handleTabChange,
     activeSection,
     setActiveSection,
     mainTabs,
@@ -40,5 +47,7 @@ export default function useChatInbox() {
     handleOpenQuickHire,
     openQuickHire,
     handleCloseQuickHire,
+    selectedChatId,
+    setSelectedChatId,
   };
 }

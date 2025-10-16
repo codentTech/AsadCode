@@ -1,234 +1,205 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createOrGetConversation,
+  getConversationMessages,
+  sendMessage,
+  markConversationMessagesAsSeen,
+} from "@/provider/features/chat/chat.slice";
+import chatSocketService from "@/provider/features/chat/chat-socket.service";
+import chatService from "@/provider/features/chat/chat.service";
+import { getUser } from "@/common/utils/users.util";
 
 /**
- * Custom hook for managing message thread functionality
- * Handles loading messages, pagination, sending new messages, and scroll behavior
+ * Custom hook for managing message thread functionality with real chat integration
+ * Handles loading messages, pagination, sending new messages, and real-time updates
  */
 const useMessageThread = (creatorId) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const user = getUser();
 
-  // Pagination
-  const [page, setPage] = useState(1);
-  const [totalMessages, setTotalMessages] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [conversationId, setConversationId] = useState(null);
+  const [error, setError] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
 
   // Refs
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const sendingRef = useRef(false); // Prevent duplicate sends
+  const fileInputRef = useRef(null);
+
+  // Get data from Redux
+  const { messages: allMessages, onlineUsers, typingUsers } = useSelector((state) => state.chat);
+  const {
+    createOrGetConversation: conversationState,
+    getConversationMessages: messagesState,
+    sendMessage: sendMessageState,
+  } = useSelector((state) => state.chat);
+
+  // Get messages for current conversation
+  const messages = conversationId ? allMessages[conversationId] || [] : [];
+
+  // Check if creator is online
+  const isCreatorOnline = creatorId ? onlineUsers.includes(creatorId) : false;
+
+  // Check if creator is typing
+  const isCreatorTyping = conversationId ? typingUsers[conversationId]?.includes(creatorId) : false;
 
   /**
-   * Opens the message modal and loads initial messages
+   * Opens the message modal and loads conversation
    */
   const openMessageModal = useCallback(async () => {
+    if (!creatorId || !user?.id) {
+      setError("Unable to start conversation");
+      return;
+    }
+
     setIsModalOpen(true);
     setError(null);
-    await loadMessages(true); // Load initial messages
-  }, [creatorId]);
+
+    // Prevent self-conversations
+    if (user.id === creatorId) {
+      console.warn("Cannot create conversation with yourself");
+      return;
+    }
+
+    // Create or get conversation
+    const conversationData = {
+      brand_id: user.id,
+      creator_id: creatorId,
+    };
+
+    const result = await dispatch(createOrGetConversation(conversationData)).unwrap();
+    const convId = result.data.id;
+    setConversationId(convId);
+
+    // Load messages
+    await dispatch(
+      getConversationMessages({
+        conversationId: convId,
+        limit: 50,
+        offset: 0,
+      })
+    ).unwrap();
+
+    // Mark messages as seen
+    await dispatch(markConversationMessagesAsSeen(convId)).unwrap();
+
+    // Scroll to bottom
+    scrollToBottom();
+  }, [creatorId, user, dispatch]);
 
   /**
    * Closes the message modal and resets state
    */
   const closeMessageModal = useCallback(() => {
     setIsModalOpen(false);
-    setMessages([]);
     setNewMessage("");
-    setPage(1);
-    setHasMoreMessages(true);
+    setConversationId(null);
     setError(null);
+
+    // Clear typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
   }, []);
 
   /**
-   * Loads messages with pagination support
-   * @param {boolean} isInitial - Whether this is the initial load
-   */
-  const loadMessages = useCallback(
-    async (isInitial = false) => {
-      if (isLoading && !isInitial) return;
-
-      setIsLoading(true);
-
-      try {
-        // TODO: Replace with actual API call
-        // const response = await messageApi.getMessages(creatorId, page);
-
-        // Mock API response for demonstration
-        const mockResponse = await simulateApiCall(isInitial ? 1 : page);
-
-        if (isInitial) {
-          setMessages(mockResponse.messages);
-          setPage(2);
-          scrollToBottom();
-        } else {
-          // Prepend older messages for lazy loading
-          setMessages((prev) => [...mockResponse.messages, ...prev]);
-          setPage((prev) => prev + 1);
-        }
-
-        setTotalMessages(mockResponse.total);
-        setHasMoreMessages(mockResponse.hasMore);
-      } catch (err) {
-        setError("Failed to load messages. Please try again.");
-        console.error("Error loading messages:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [creatorId, page, isLoading]
-  );
-
-  /**
-   * Mock API call - Replace with actual API implementation
-   */
-  const simulateApiCall = async (pageNum) => {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const allMessages = [
-      {
-        id: 1,
-        text: "Thanks for accepting our collaboration proposal! We're excited to work with you.",
-        sender: "brand",
-        timestamp: "2025-01-14T16:00:00Z",
-        status: "read",
-      },
-      {
-        id: 2,
-        text: "Hi Sam! Looking forward to working with you on this campaign. When can we schedule a call to discuss the details?",
-        sender: "brand",
-        timestamp: "2025-01-15T10:00:00Z",
-        status: "read",
-      },
-      {
-        id: 3,
-        text: "Hello! Great to connect with you. I'm available for a call tomorrow afternoon or Thursday morning. What works best for your schedule?",
-        sender: "creator",
-        timestamp: "2025-01-15T10:30:00Z",
-        status: "read",
-      },
-      {
-        id: 4,
-        text: "Perfect! Let's do Thursday morning at 10 AM. I'll send you the meeting link shortly.",
-        sender: "brand",
-        timestamp: "2025-01-15T11:00:00Z",
-        status: "read",
-      },
-      {
-        id: 5,
-        text: "Sounds great! I'll be ready. Also, I had a few creative ideas for the Instagram video that I'd love to share with you during our call.",
-        sender: "creator",
-        timestamp: "2025-01-15T11:15:00Z",
-        status: "read",
-      },
-      {
-        id: 6,
-        text: "That's exactly what I was hoping to hear! Your creativity is why we chose to work with you. See you Thursday!",
-        sender: "brand",
-        timestamp: "2025-01-15T11:20:00Z",
-        status: "read",
-      },
-      {
-        id: 7,
-        text: "Just finished recording the first draft of the Instagram video! It turned out better than expected. I'll send you the preview link in a few minutes.",
-        sender: "creator",
-        timestamp: "2025-01-18T14:30:00Z",
-        status: "read",
-      },
-      {
-        id: 8,
-        text: "Wow! I just watched it and it's absolutely perfect! The lighting, the messaging, everything is spot on. No revisions needed - this is exactly what we envisioned.",
-        sender: "brand",
-        timestamp: "2025-01-18T15:45:00Z",
-        status: "delivered",
-      },
-    ];
-
-    const messagesPerPage = 6;
-    const startIndex = (pageNum - 1) * messagesPerPage;
-    const endIndex = startIndex + messagesPerPage;
-    const pageMessages = allMessages.slice(startIndex, endIndex);
-
-    return {
-      messages: pageMessages,
-      total: allMessages.length,
-      hasMore: endIndex < allMessages.length,
-      page: pageNum,
-    };
-  };
-
-  /**
    * Sends a new message
-   * @param {string} messageText - The message to send
    */
-  const sendMessage = useCallback(
-    async (messageText) => {
-      if (!messageText.trim() || isSending) return;
+  const sendMessageHandler = useCallback(async () => {
+    // Prevent duplicate sends
+    if (
+      (!newMessage.trim() && !attachmentPreview) ||
+      !conversationId ||
+      sendMessageState.isLoading ||
+      sendingRef.current
+    ) {
+      return;
+    }
 
-      const tempMessage = {
-        id: `temp_${Date.now()}`,
-        text: messageText.trim(),
-        sender: "brand",
-        timestamp: new Date().toISOString(),
-        status: "sending",
-      };
+    // Set sending flag
+    sendingRef.current = true;
 
-      // Optimistically add message to UI
-      setMessages((prev) => [...prev, tempMessage]);
+    const messageData = {
+      conversation_id: conversationId,
+      receiver_id: creatorId,
+      content: newMessage.trim() || (attachmentPreview ? attachmentPreview.filename : ""),
+      message_type: attachmentPreview
+        ? attachmentPreview.mimetype.startsWith("image/")
+          ? "IMAGE"
+          : "FILE"
+        : "TEXT",
+      attachment_url: attachmentPreview?.url || null,
+    };
+
+    try {
+      await dispatch(sendMessage(messageData)).unwrap();
       setNewMessage("");
-      setIsSending(true);
+      setAttachmentPreview(null);
+
+      // Stop typing indicator
+      chatSocketService.stopTyping(conversationId, user.id, creatorId);
+
+      // Scroll to bottom
       scrollToBottom();
-
-      try {
-        // TODO: Replace with actual API call
-        // const response = await messageApi.sendMessage(creatorId, messageText);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Replace temp message with actual message
-        const actualMessage = {
-          ...tempMessage,
-          id: Date.now(), // Would be from API response
-          status: "delivered",
-        };
-
-        setMessages((prev) => prev.map((msg) => (msg.id === tempMessage.id ? actualMessage : msg)));
-
-        // Simulate message being read after a delay
-        setTimeout(() => {
-          setMessages((prev) =>
-            prev.map((msg) => (msg.id === actualMessage.id ? { ...msg, status: "read" } : msg))
-          );
-        }, 2000);
-      } catch (err) {
-        // Remove failed message and show error
-        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id));
-        setError("Failed to send message. Please try again.");
-        console.error("Error sending message:", err);
-      } finally {
-        setIsSending(false);
-      }
-    },
-    [creatorId, isSending]
-  );
+    } catch (err) {
+      setError("Failed to send message. Please try again.");
+      console.error("Error sending message:", err);
+    } finally {
+      // Reset sending flag after a short delay
+      setTimeout(() => {
+        sendingRef.current = false;
+      }, 500);
+    }
+  }, [
+    newMessage,
+    attachmentPreview,
+    conversationId,
+    creatorId,
+    user,
+    dispatch,
+    sendMessageState.isLoading,
+  ]);
 
   /**
-   * Handles scroll to load more messages (lazy loading)
+   * Handles message input change with typing indicator
    */
-  const handleScroll = useCallback(
-    (e) => {
-      const { scrollTop } = e.target;
+  const handleMessageChange = useCallback(
+    (value) => {
+      // Handle both string values and function values
+      if (typeof value === "function") {
+        setNewMessage(value);
+      } else {
+        setNewMessage(value);
+      }
 
-      // Load more messages when scrolled to top
-      if (scrollTop === 0 && hasMoreMessages && !isLoading) {
-        loadMessages(false);
+      if (!conversationId || !creatorId) return;
+
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Start typing - ensure value is a string before calling trim
+      const stringValue = typeof value === "function" ? "" : String(value || "");
+      if (stringValue.trim()) {
+        chatSocketService.startTyping(conversationId, user.id, creatorId);
+
+        // Stop typing after 2 seconds of inactivity
+        typingTimeoutRef.current = setTimeout(() => {
+          chatSocketService.stopTyping(conversationId, user.id, creatorId);
+        }, 2000);
+      } else {
+        chatSocketService.stopTyping(conversationId, user.id, creatorId);
       }
     },
-    [hasMoreMessages, isLoading, loadMessages]
+    [conversationId, creatorId, user]
   );
 
   /**
@@ -238,34 +209,6 @@ const useMessageThread = (creatorId) => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
-  }, []);
-
-  /**
-   * Marks messages as read (when modal is opened)
-   */
-  const markMessagesAsRead = useCallback(async () => {
-    try {
-      // TODO: Replace with actual API call
-      // await messageApi.markAsRead(creatorId);
-
-      setMessages((prev) => prev.map((msg) => ({ ...msg, status: "read" })));
-    } catch (err) {
-      console.error("Error marking messages as read:", err);
-    }
-  }, [creatorId]);
-
-  /**
-   * Clears error state
-   */
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  /**
-   * Handles message input change
-   */
-  const handleMessageChange = useCallback((value) => {
-    setNewMessage(value);
   }, []);
 
   /**
@@ -301,6 +244,129 @@ const useMessageThread = (creatorId) => {
     }
   }, []);
 
+  /**
+   * Clears error state
+   */
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  /**
+   * Handle emoji selection
+   */
+  const handleEmojiClick = useCallback((emojiData) => {
+    // emoji-picker-react v4+ uses emojiData.emoji
+    const emoji = emojiData.emoji || emojiData.native || emojiData;
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  }, []);
+
+  /**
+   * Toggle emoji picker
+   */
+  const toggleEmojiPicker = useCallback(() => {
+    setShowEmojiPicker((prev) => !prev);
+  }, []);
+
+  /**
+   * Handle file selection
+   */
+  const handleFileSelect = useCallback(async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (50MB - matches backend)
+    if (file.size > 50 * 1024 * 1024) {
+      setError("File size must be less than 50MB");
+      return;
+    }
+
+    // Validate file type (matches backend allowed types)
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "File type not supported. Please upload images (JPEG, PNG, GIF, WebP) or documents (PDF, DOC, DOCX)."
+      );
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Upload file
+      const response = await chatService.uploadAttachment(file);
+
+      // Set preview - response structure from /upload endpoint
+      setAttachmentPreview({
+        url: response.data.url,
+        filename: file.originalname || file.name,
+        mimetype: file.type,
+        size: file.size,
+      });
+
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (err) {
+      setError("Failed to upload file. Please try again.");
+      console.error("Error uploading file:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  /**
+   * Remove attachment preview
+   */
+  const removeAttachment = useCallback(() => {
+    setAttachmentPreview(null);
+  }, []);
+
+  /**
+   * Open file picker
+   */
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Join conversation room when conversationId changes and modal is open
+  useEffect(() => {
+    if (conversationId && isModalOpen) {
+      chatSocketService.joinConversation(conversationId);
+
+      return () => {
+        chatSocketService.leaveConversation(conversationId);
+      };
+    }
+  }, [conversationId, isModalOpen]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length, scrollToBottom]);
+
   return {
     // Modal state
     isModalOpen,
@@ -313,19 +379,32 @@ const useMessageThread = (creatorId) => {
     setNewMessage: handleMessageChange,
 
     // Loading states
-    isLoading,
-    isSending,
-    hasMoreMessages,
+    isLoading: messagesState.isLoading || conversationState.isLoading,
+    isSending: sendMessageState.isLoading,
+
+    // Online/Typing status
+    isCreatorOnline,
+    isCreatorTyping,
 
     // Error handling
     error,
     clearError,
 
     // Actions
-    sendMessage,
-    loadMessages,
-    handleScroll,
-    markMessagesAsRead,
+    sendMessage: sendMessageHandler,
+
+    // Emoji
+    showEmojiPicker,
+    toggleEmojiPicker,
+    handleEmojiClick,
+
+    // Attachments
+    isUploading,
+    attachmentPreview,
+    handleFileSelect,
+    removeAttachment,
+    openFilePicker,
+    fileInputRef,
 
     // Refs
     messagesEndRef,
@@ -335,9 +414,8 @@ const useMessageThread = (creatorId) => {
     formatMessageTime,
     scrollToBottom,
 
-    // Pagination info
-    page,
-    totalMessages,
+    // Conversation info
+    conversationId,
   };
 };
 

@@ -5,6 +5,7 @@ import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
 import { persistor, store } from "@/provider/store";
+import ChatProvider from "@/provider/chat-provider";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { Loader } from "lucide-react";
@@ -79,7 +80,9 @@ export default function RootLayout({ children }) {
           >
             <Provider store={store}>
               <PersistGate loading={null} persistor={persistor}>
-                <LayoutWrapper>{children}</LayoutWrapper>
+                <ChatProvider>
+                  <LayoutWrapper>{children}</LayoutWrapper>
+                </ChatProvider>
               </PersistGate>
             </Provider>
           </SnackbarProvider>

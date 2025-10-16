@@ -157,8 +157,14 @@ const useDeliverablesProgress = (
         bio: "No bio available",
       };
 
+  // Get the actual creator user ID
+  // Note: selectedCreator is already transformed, so we need to get the raw data
+  // The creatorUserId should be passed from the parent or we need to store it
+  // For now, we'll use the creator profile ID and handle it in the backend
+  const creatorUserId = selectedCreator?.creatorUserId || selectedCreator?.id;
+
   // ==================== HOOKS ====================
-  const messageThreadHook = useMessageThread(creator.id);
+  const messageThreadHook = useMessageThread(creatorUserId);
 
   // ==================== DATA FROM REDUX ====================
   // Get creator profile ID from the selectedCreator object

@@ -5,6 +5,7 @@ import {
   withdrawApplication,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { getUser } from "@/common/utils/users.util";
+import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 
 function useCreatorApplications() {
   const dispatch = useDispatch();
@@ -21,6 +22,13 @@ function useCreatorApplications() {
   const [showCampaignBrief, setShowCampaignBrief] = useState(false);
   const [showWithdrawConfirmation, setShowWithdrawConfirmation] = useState(false);
   const [campaignToWithdraw, setCampaignToWithdraw] = useState(null);
+
+  // Message thread state
+  const [messageModalState, setMessageModalState] = useState({
+    isOpen: false,
+    brandId: null,
+    application: null,
+  });
 
   // Get creator applications state from Redux
   const {
@@ -158,6 +166,27 @@ function useCreatorApplications() {
     setCampaignToWithdraw(null);
   };
 
+  // Handle message click
+  const handleMessageClick = (application) => {
+    const brandId = application.campaign?.created_by?.id;
+    if (brandId) {
+      setMessageModalState({
+        isOpen: true,
+        brandId: brandId,
+        application: application,
+      });
+    }
+  };
+
+  // Close message modal
+  const handleCloseMessageModal = () => {
+    setMessageModalState({
+      isOpen: false,
+      brandId: null,
+      application: null,
+    });
+  };
+
   return {
     // State
     activeTab,
@@ -185,6 +214,11 @@ function useCreatorApplications() {
     handleWithdraw,
     handleConfirmWithdraw,
     handleCancelWithdraw,
+    handleMessageClick,
+    handleCloseMessageModal,
+
+    // Message thread state
+    messageModalState,
 
     // Helper functions
     formatCompensationType,

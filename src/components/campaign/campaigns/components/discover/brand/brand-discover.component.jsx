@@ -8,6 +8,7 @@ import CreatorPreview from "./components/creator-preview/creator-preview.compone
 import DiscoverCreators from "./components/discover-creators/discover-creators.component";
 import ShortlistSidebar from "./components/shortlist-sidebar/shortlist-sidebar.component";
 import useDiscover from "./use-brand-discover.hook";
+import { useEffect, useRef } from "react";
 
 function BrandDiscover() {
   const {
@@ -44,15 +45,33 @@ function BrandDiscover() {
     shortlistState,
   } = useDiscover();
 
+  // ==================== HOOKS ====================
+  const lastOpenedCreatorIdRef = useRef(null);
+  const messageThreadHook = useMessageThread(creatorToMessage?.id || null);
+
   const creator = {
     id: creatorToMessage?.id,
     name: creatorToMessage?.name,
-    avatar,
+    avatar: creatorToMessage?.profileImage || avatar,
     isOnline: true,
   };
 
-  // ==================== HOOKS ====================
-  const messageThreadHook = useMessageThread(creator.id);
+  // ==================== EFFECTS ====================
+  // Auto-open modal when creatorToMessage changes
+  useEffect(() => {
+    if (creatorToMessage?.id && creatorToMessage.id !== lastOpenedCreatorIdRef.current) {
+      lastOpenedCreatorIdRef.current = creatorToMessage.id;
+      messageThreadHook.openMessageModal();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [creatorToMessage?.id]);
+
+  // ==================== HANDLERS ====================
+  const handleCloseModal = () => {
+    messageThreadHook.closeMessageModal();
+    setMessageDialogOpen(false);
+    lastOpenedCreatorIdRef.current = null;
+  };
 
   return (
     <div className="flex bg-white w-full h-[calc(100vh-48px)]">
@@ -141,9 +160,19 @@ function BrandDiscover() {
       </Modal>
 
       <MessageThreadModal
-        isOpen={messageDialogOpen}
-        onClose={() => setMessageDialogOpen(false)}
+        isOpen={messageThreadHook.isModalOpen}
+        onClose={handleCloseModal}
         creator={creator}
+        messages={messageThreadHook.messages || []}
+        newMessage={messageThreadHook.newMessage || ""}
+        setNewMessage={messageThreadHook.setNewMessage}
+        sendMessage={messageThreadHook.sendMessage}
+        isSending={messageThreadHook.isSending}
+        isLoading={messageThreadHook.isLoading}
+        isCreatorOnline={messageThreadHook.isCreatorOnline}
+        isCreatorTyping={messageThreadHook.isCreatorTyping}
+        messagesEndRef={messageThreadHook.messagesEndRef}
+        messagesContainerRef={messageThreadHook.messagesContainerRef}
       />
     </div>
   );

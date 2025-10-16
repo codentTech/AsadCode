@@ -20,6 +20,7 @@ import contentPlannerReducer from "./features/content-planner/content-planner.sl
 import monthlyGoalReducer from "./features/monthly-goals/monthly-goal.slice";
 import campaignTimelineReducer from "./features/campaign-timeline/campaign-timeline.slice";
 import contractsReducer from "./features/contracts/contracts.slice";
+import chatReducer from "./features/chat/chat.slice";
 
 const persistConfig = {
   key: "root",
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   monthlyGoals: monthlyGoalReducer,
   campaignTimeline: campaignTimelineReducer,
   contracts: contractsReducer,
+  chat: chatReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -55,7 +57,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/PERSIST"],
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
     }),
   devTools: process.env.NODE_ENV !== "production",

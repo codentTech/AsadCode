@@ -2,8 +2,21 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, Copy, X } from "lucide-react";
+import {
+  BarChart3,
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  Copy,
+  ExternalLink,
+  MessageCircle,
+  X,
+} from "lucide-react";
 import { useState } from "react";
+import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const CampaignDetail = ({ campaign, selectedCampaign }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
@@ -13,6 +26,28 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
     styleGuide: false,
     captions: false,
   });
+
+  // Message thread hook - use brand ID (campaign creator)
+  const brandId = campaign?.campaign?.created_by?.id;
+  const messageThreadHook = useMessageThread(brandId);
+
+  const creator = {
+    id: brandId,
+    name:
+      campaign?.campaign?.created_by?.first_name && campaign?.campaign?.created_by?.last_name
+        ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
+        : campaign?.brand || "Brand",
+    avatar: campaign?.campaign?.created_by?.profile_photo_url,
+    isOnline: true,
+  };
+
+  // Handle message click with validation
+  const handleMessageClick = () => {
+    if (!brandId) {
+      return;
+    }
+    messageThreadHook.openMessageModal();
+  };
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -356,21 +391,46 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-2">
-          <CustomButton text="Upload Content" className="btn-primary" />
+        <div className="grid grid-cols-2 gap-2">
           <CustomButton
-            text="Update Progress"
-            className="btn-outline"
-            onClick={() => setShowProgressModal(true)}
+            text="Message"
+            className="btn-outline text-xs"
+            onClick={handleMessageClick}
+            startIcon={<MessageCircle className="w-3 h-3" />}
           />
-          <CustomButton text="Message" className="btn-outline" />
           <CustomButton
             text="View Brief"
-            className="btn-outline"
+            className="btn-outline text-xs"
             onClick={() => setShowContentBrief(true)}
+            startIcon={<ExternalLink className="w-3 h-3" />}
           />
         </div>
       </div>
+
+      {/* <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+            {isCleerCutCampaign && (
+              <React.Fragment>
+                <CustomButton
+                  text="Update Progress"
+                  className="btn-outline text-xs"
+                  onClick={handleUpdateProgress}
+                  startIcon={<BarChart3 className="w-3 h-3" />}
+                />
+                <CustomButton
+                  text="Message"
+                  className="btn-outline text-xs"
+                  onClick={handleMessageClick}
+                  startIcon={<MessageCircle className="w-3 h-3" />}
+                />
+              </React.Fragment>
+            )}
+            <CustomButton
+              text="View Brief"
+              className="btn-outline text-xs"
+              onClick={() => setShowContentBrief(true)}
+              startIcon={<ExternalLink className="w-3 h-3" />}
+            />
+          </div> */}
 
       {/* Content Brief Modal */}
       {showContentBrief && (
@@ -437,6 +497,23 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
           </div>
         </div>
       </Modal>
+
+      {/* Message Thread Modal */}
+      <MessageThreadModal
+        isOpen={messageThreadHook.isModalOpen}
+        onClose={messageThreadHook.closeMessageModal}
+        creator={creator}
+        messages={messageThreadHook.messages || []}
+        newMessage={messageThreadHook.newMessage || ""}
+        setNewMessage={messageThreadHook.setNewMessage}
+        sendMessage={messageThreadHook.sendMessage}
+        isSending={messageThreadHook.isSending}
+        isLoading={messageThreadHook.isLoading}
+        isCreatorOnline={messageThreadHook.isCreatorOnline}
+        isCreatorTyping={messageThreadHook.isCreatorTyping}
+        messagesEndRef={messageThreadHook.messagesEndRef}
+        messagesContainerRef={messageThreadHook.messagesContainerRef}
+      />
     </div>
   );
 };
