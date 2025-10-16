@@ -45,6 +45,12 @@ const deleteConversation = async (conversationId) => {
   return response.data;
 };
 
+// Clear conversation (delete all messages)
+const clearConversation = async (conversationId) => {
+  const response = await api().delete(`/chat/conversations/${conversationId}/clear`);
+  return response.data;
+};
+
 // ==================== MESSAGE ENDPOINTS ====================
 
 // Send a new message
@@ -89,9 +95,31 @@ const deleteMessage = async (messageId) => {
   return response.data;
 };
 
+// Delete multiple messages (batch)
+const deleteMultipleMessages = async (messageIds) => {
+  const response = await api().post("/chat/messages/delete-multiple", { messageIds });
+  return response.data;
+};
+
 // Get total unread message count
 const getUnreadCount = async () => {
   const response = await api().get("/chat/unread-count");
+  return response.data;
+};
+
+// ==================== FILE UPLOAD ENDPOINTS ====================
+
+// Upload file attachment
+const uploadAttachment = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("folder", "chat"); // Upload to chat folder
+
+  const response = await api().post("/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
@@ -100,13 +128,16 @@ const chatService = {
   getUserConversations,
   getConversationById,
   deleteConversation,
+  clearConversation,
   sendMessage,
   getConversationMessages,
   markMessageAsDelivered,
   markMessageAsSeen,
   markConversationMessagesAsSeen,
   deleteMessage,
+  deleteMultipleMessages,
   getUnreadCount,
+  uploadAttachment,
 };
 
 export default chatService;

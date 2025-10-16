@@ -392,7 +392,12 @@ const chatSlice = createSlice({
         if (!state.messages[conversationId]) {
           state.messages[conversationId] = [];
         }
-        state.messages[conversationId].push(message);
+
+        // Check if message already exists to prevent duplicates
+        const exists = state.messages[conversationId].some((m) => m.id === message.id);
+        if (!exists) {
+          state.messages[conversationId].push(message);
+        }
 
         // Update conversation last message
         const conversation = state.conversations.find((c) => c.id === conversationId);

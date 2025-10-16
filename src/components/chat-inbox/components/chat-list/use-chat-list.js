@@ -100,7 +100,7 @@ function useChatList(selectedChatId, setSelectedChatId, activeTab) {
         id: conversation.id,
         name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "User",
         message: conversation.last_message || "No messages yet",
-        time: formatTime(conversation.last_message_at),
+        time: conversation.last_message_at ? formatTime(conversation.last_message_at) : "",
         avatar:
           otherUser.creator_profile?.profile_photo_url ||
           otherUser.brand_profile?.logo_url ||

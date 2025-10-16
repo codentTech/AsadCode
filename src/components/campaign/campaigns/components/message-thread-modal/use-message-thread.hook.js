@@ -7,6 +7,7 @@ import {
   markConversationMessagesAsSeen,
 } from "@/provider/features/chat/chat.slice";
 import chatSocketService from "@/provider/features/chat/chat-socket.service";
+import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
 
 /**
@@ -21,11 +22,16 @@ const useMessageThread = (creatorId) => {
   const [newMessage, setNewMessage] = useState("");
   const [conversationId, setConversationId] = useState(null);
   const [error, setError] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
 
   // Refs
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const sendingRef = useRef(false); // Prevent duplicate sends
+  const fileInputRef = useRef(null);
 
   // Get data from Redux
   const { messages: allMessages, onlineUsers, typingUsers } = useSelector((state) => state.chat);
@@ -84,9 +90,6 @@ const useMessageThread = (creatorId) => {
     // Mark messages as seen
     await dispatch(markConversationMessagesAsSeen(convId)).unwrap();
 
-    // Join conversation room via WebSocket
-    chatSocketService.joinConversation(convId);
-
     // Scroll to bottom
     scrollToBottom();
   }, [creatorId, user, dispatch]);
@@ -95,11 +98,6 @@ const useMessageThread = (creatorId) => {
    * Closes the message modal and resets state
    */
   const closeMessageModal = useCallback(() => {
-    // Leave conversation room
-    if (conversationId) {
-      chatSocketService.leaveConversation(conversationId);
-    }
-
     setIsModalOpen(false);
     setNewMessage("");
     setConversationId(null);
@@ -109,24 +107,41 @@ const useMessageThread = (creatorId) => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-  }, [conversationId]);
+  }, []);
 
   /**
    * Sends a new message
    */
   const sendMessageHandler = useCallback(async () => {
-    if (!newMessage.trim() || !conversationId || sendMessageState.isLoading) return;
+    // Prevent duplicate sends
+    if (
+      (!newMessage.trim() && !attachmentPreview) ||
+      !conversationId ||
+      sendMessageState.isLoading ||
+      sendingRef.current
+    ) {
+      return;
+    }
+
+    // Set sending flag
+    sendingRef.current = true;
 
     const messageData = {
       conversation_id: conversationId,
       receiver_id: creatorId,
-      content: newMessage.trim(),
-      message_type: "TEXT",
+      content: newMessage.trim() || (attachmentPreview ? attachmentPreview.filename : ""),
+      message_type: attachmentPreview
+        ? attachmentPreview.mimetype.startsWith("image/")
+          ? "IMAGE"
+          : "FILE"
+        : "TEXT",
+      attachment_url: attachmentPreview?.url || null,
     };
 
     try {
       await dispatch(sendMessage(messageData)).unwrap();
       setNewMessage("");
+      setAttachmentPreview(null);
 
       // Stop typing indicator
       chatSocketService.stopTyping(conversationId, user.id, creatorId);
@@ -136,15 +151,33 @@ const useMessageThread = (creatorId) => {
     } catch (err) {
       setError("Failed to send message. Please try again.");
       console.error("Error sending message:", err);
+    } finally {
+      // Reset sending flag after a short delay
+      setTimeout(() => {
+        sendingRef.current = false;
+      }, 500);
     }
-  }, [newMessage, conversationId, creatorId, user, dispatch, sendMessageState.isLoading]);
+  }, [
+    newMessage,
+    attachmentPreview,
+    conversationId,
+    creatorId,
+    user,
+    dispatch,
+    sendMessageState.isLoading,
+  ]);
 
   /**
    * Handles message input change with typing indicator
    */
   const handleMessageChange = useCallback(
     (value) => {
-      setNewMessage(value);
+      // Handle both string values and function values
+      if (typeof value === "function") {
+        setNewMessage(value);
+      } else {
+        setNewMessage(value);
+      }
 
       if (!conversationId || !creatorId) return;
 
@@ -153,8 +186,9 @@ const useMessageThread = (creatorId) => {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Start typing
-      if (value.trim()) {
+      // Start typing - ensure value is a string before calling trim
+      const stringValue = typeof value === "function" ? "" : String(value || "");
+      if (stringValue.trim()) {
         chatSocketService.startTyping(conversationId, user.id, creatorId);
 
         // Stop typing after 2 seconds of inactivity
@@ -217,6 +251,106 @@ const useMessageThread = (creatorId) => {
     setError(null);
   }, []);
 
+  /**
+   * Handle emoji selection
+   */
+  const handleEmojiClick = useCallback((emojiData) => {
+    // emoji-picker-react v4+ uses emojiData.emoji
+    const emoji = emojiData.emoji || emojiData.native || emojiData;
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  }, []);
+
+  /**
+   * Toggle emoji picker
+   */
+  const toggleEmojiPicker = useCallback(() => {
+    setShowEmojiPicker((prev) => !prev);
+  }, []);
+
+  /**
+   * Handle file selection
+   */
+  const handleFileSelect = useCallback(async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (50MB - matches backend)
+    if (file.size > 50 * 1024 * 1024) {
+      setError("File size must be less than 50MB");
+      return;
+    }
+
+    // Validate file type (matches backend allowed types)
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "File type not supported. Please upload images (JPEG, PNG, GIF, WebP) or documents (PDF, DOC, DOCX)."
+      );
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Upload file
+      const response = await chatService.uploadAttachment(file);
+
+      // Set preview - response structure from /upload endpoint
+      setAttachmentPreview({
+        url: response.data.url,
+        filename: file.originalname || file.name,
+        mimetype: file.type,
+        size: file.size,
+      });
+
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (err) {
+      setError("Failed to upload file. Please try again.");
+      console.error("Error uploading file:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  /**
+   * Remove attachment preview
+   */
+  const removeAttachment = useCallback(() => {
+    setAttachmentPreview(null);
+  }, []);
+
+  /**
+   * Open file picker
+   */
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Join conversation room when conversationId changes and modal is open
+  useEffect(() => {
+    if (conversationId && isModalOpen) {
+      chatSocketService.joinConversation(conversationId);
+
+      return () => {
+        chatSocketService.leaveConversation(conversationId);
+      };
+    }
+  }, [conversationId, isModalOpen]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -258,6 +392,19 @@ const useMessageThread = (creatorId) => {
 
     // Actions
     sendMessage: sendMessageHandler,
+
+    // Emoji
+    showEmojiPicker,
+    toggleEmojiPicker,
+    handleEmojiClick,
+
+    // Attachments
+    isUploading,
+    attachmentPreview,
+    handleFileSelect,
+    removeAttachment,
+    openFilePicker,
+    fileInputRef,
 
     // Refs
     messagesEndRef,

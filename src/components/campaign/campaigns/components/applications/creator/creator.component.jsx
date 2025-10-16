@@ -1,7 +1,10 @@
+import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import { Calendar, Package } from "lucide-react";
 import CampaignBriefModal from "./components/campaign-brief-modal.component";
+import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
+import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import useCreatorApplications from "./use-creator-applications.hook";
 
 const CreatorApplications = () => {
@@ -28,6 +31,11 @@ const CreatorApplications = () => {
     handleWithdraw,
     handleConfirmWithdraw,
     handleCancelWithdraw,
+    handleMessageClick,
+    handleCloseMessageModal,
+
+    // Message thread state
+    messageModalState,
 
     // Helper functions
     formatCompensationType,
@@ -145,6 +153,7 @@ const CreatorApplications = () => {
                   getBrandLogo={getBrandLogo}
                   handleViewCampaign={handleViewCampaign}
                   handleWithdraw={handleWithdraw}
+                  handleMessageClick={handleMessageClick}
                   withdrawLoading={withdrawLoading}
                 />
               ))}
@@ -176,6 +185,15 @@ const CreatorApplications = () => {
           </div>
         }
       />
+
+      {/* Message Thread Modal */}
+      {messageModalState.isOpen && messageModalState.brandId && (
+        <MessageThreadWithHook
+          brandId={messageModalState.brandId}
+          application={messageModalState.application}
+          onClose={handleCloseMessageModal}
+        />
+      )}
     </div>
   );
 };
@@ -199,6 +217,7 @@ const ApplicationCard = ({
   getBrandLogo,
   handleViewCampaign,
   handleWithdraw,
+  handleMessageClick,
   withdrawLoading,
 }) => (
   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
@@ -279,7 +298,11 @@ const ApplicationCard = ({
     {/* Card Footer */}
     <div className="p-4 border-t border-gray-100">
       <div className="flex flex-col space-y-2">
-        <CustomButton text="Message" className="btn-primary" />
+        <CustomButton
+          text="Message"
+          className="btn-primary"
+          onClick={() => handleMessageClick(application)}
+        />
         {application.status === "PENDING" && (
           <CustomButton
             text="Withdraw"
@@ -297,5 +320,63 @@ const ApplicationCard = ({
     </div>
   </div>
 );
+
+// Message Thread Component with Hook
+const MessageThreadWithHook = ({ brandId, onClose, application }) => {
+  const messageThreadHook = useMessageThread(brandId);
+  const hasOpenedRef = React.useRef(false);
+
+  // Open modal when component mounts
+  React.useEffect(() => {
+    if (brandId && messageThreadHook.openMessageModal && !hasOpenedRef.current) {
+      hasOpenedRef.current = true;
+      messageThreadHook.openMessageModal();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandId]); // Only depend on brandId, not the function
+
+  // Handle close
+  const handleClose = () => {
+    messageThreadHook.closeMessageModal();
+    onClose();
+  };
+
+  // Prepare brand/creator object for the modal
+  const brand = {
+    id: brandId,
+    name:
+      application?.campaign?.created_by?.first_name && application?.campaign?.created_by?.last_name
+        ? `${application.campaign.created_by.first_name} ${application.campaign.created_by.last_name}`
+        : application?.campaign?.created_by?.first_name || "Brand",
+    avatar: application?.campaign?.created_by?.brand_profile?.logo || null,
+  };
+
+  return (
+    <MessageThreadModal
+      isOpen={messageThreadHook.isModalOpen}
+      onClose={handleClose}
+      creator={brand}
+      messages={messageThreadHook.messages || []}
+      newMessage={messageThreadHook.newMessage || ""}
+      setNewMessage={messageThreadHook.setNewMessage}
+      sendMessage={messageThreadHook.sendMessage}
+      isSending={messageThreadHook.isSending}
+      isLoading={messageThreadHook.isLoading}
+      isCreatorOnline={messageThreadHook.isCreatorOnline}
+      isCreatorTyping={messageThreadHook.isCreatorTyping}
+      messagesEndRef={messageThreadHook.messagesEndRef}
+      messagesContainerRef={messageThreadHook.messagesContainerRef}
+      showEmojiPicker={messageThreadHook.showEmojiPicker}
+      toggleEmojiPicker={messageThreadHook.toggleEmojiPicker}
+      handleEmojiClick={messageThreadHook.handleEmojiClick}
+      isUploading={messageThreadHook.isUploading}
+      attachmentPreview={messageThreadHook.attachmentPreview}
+      handleFileSelect={messageThreadHook.handleFileSelect}
+      removeAttachment={messageThreadHook.removeAttachment}
+      openFilePicker={messageThreadHook.openFilePicker}
+      fileInputRef={messageThreadHook.fileInputRef}
+    />
+  );
+};
 
 export default CreatorApplications;

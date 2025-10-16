@@ -5,6 +5,7 @@ class ChatSocketService {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.joinedRooms = new Set(); // Track joined conversation rooms
   }
 
   // Initialize WebSocket connection
@@ -40,6 +41,9 @@ class ChatSocketService {
   setupEventListeners(dispatch) {
     if (!this.socket) return;
 
+    // Remove all existing listeners to prevent duplicates
+    this.socket.removeAllListeners();
+
     // Connection events
     this.socket.on("connect", () => {
       console.log("✅ Connected to chat server");
@@ -62,8 +66,12 @@ class ChatSocketService {
 
     this.socket.on("new_message", (message) => {
       if (dispatch) {
-        const { addMessageFromSocket } = require("./chat.slice");
-        dispatch(addMessageFromSocket(message));
+        const user = getUser();
+        // Only add messages from other users (sender's messages are already added via sendMessage.fulfilled)
+        if (message.sender_id !== user?.id) {
+          const { addMessageFromSocket } = require("./chat.slice");
+          dispatch(addMessageFromSocket(message));
+        }
       }
     });
 
@@ -169,14 +177,24 @@ class ChatSocketService {
   joinConversation(conversationId) {
     if (!this.socket || !this.isConnected) return;
 
+    // Prevent joining the same room multiple times
+    if (this.joinedRooms.has(conversationId)) {
+      console.log(`⚠️ Already joined conversation room: ${conversationId}`);
+      return;
+    }
+
+    console.log(`🔗 Joining conversation room: ${conversationId}`);
     this.socket.emit("join_conversation", { conversationId });
+    this.joinedRooms.add(conversationId);
   }
 
   // Leave conversation room
   leaveConversation(conversationId) {
     if (!this.socket || !this.isConnected) return;
 
+    console.log(`👋 Leaving conversation room: ${conversationId}`);
     this.socket.emit("leave_conversation", { conversationId });
+    this.joinedRooms.delete(conversationId);
   }
 
   // Disconnect socket
@@ -185,6 +203,7 @@ class ChatSocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.joinedRooms.clear(); // Clear joined rooms on disconnect
     }
   }
 
