@@ -393,6 +393,16 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator }) => {
             isOpen={messageThreadHook.isModalOpen}
             onClose={messageThreadHook.closeMessageModal}
             creator={creator}
+            messages={messageThreadHook.messages}
+            newMessage={messageThreadHook.newMessage}
+            setNewMessage={messageThreadHook.setNewMessage}
+            sendMessage={messageThreadHook.sendMessage}
+            isSending={messageThreadHook.isSending}
+            isLoading={messageThreadHook.isLoading}
+            isCreatorOnline={messageThreadHook.isCreatorOnline}
+            isCreatorTyping={messageThreadHook.isCreatorTyping}
+            messagesEndRef={messageThreadHook.messagesEndRef}
+            messagesContainerRef={messageThreadHook.messagesContainerRef}
           />
 
           {/* Mark Complete Confirmation Modal */}

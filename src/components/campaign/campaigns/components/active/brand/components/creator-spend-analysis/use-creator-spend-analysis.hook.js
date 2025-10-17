@@ -22,6 +22,7 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
         id: creator?.creator?.creator_profile?.id,
+        creatorUserId: creator?.creator?.id, // Add the actual user ID for chat
         name:
           `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||
           "Unknown Creator",

@@ -1,13 +1,11 @@
 "use client";
 
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { notificationsMockData } from "@/common/constants/notifications.data.constant";
 import ROLES from "@/common/constants/role.constant";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { Bell, Menu } from "lucide-react";
 import useHeader from "./use-header.hook";
 
-const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
+const DashboardHeader = ({ onMenuClick }) => {
   const {
     router,
     currentUser,
@@ -17,6 +15,9 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
     setShowProfileDropdown,
     getUserInitials,
     profileMenuItems,
+    notifications,
+    unreadCount,
+    handleNotificationClick,
   } = useHeader();
 
   return (
@@ -131,34 +132,49 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
 
       {/* Notifications Dropdown */}
       {showNotificationDropdown && (
-        <div className="absolute top-16 right-24 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-          <div className="py-2 px-4 border-b border-gray-200">
-            <h3 className="text-sm font-bold text-gray-900">Recent Notifications</h3>
-          </div>
-          <div className="max-h-64 overflow-y-auto">
-            {notificationsMockData["brand"].slice(0, 3).map((notification) => (
-              <div key={notification.id} className="p-3 border-b border-gray-100 hover:bg-gray-50">
-                <div className="flex items-start space-x-3">
-                  <span className="text-lg">{notification.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-gray-900 truncate">{notification.title}</p>
-                    <p className="text-xs text-gray-600 truncate">{notification.message}</p>
-                  </div>
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setShowNotificationDropdown(false)} />
+          <div className="absolute top-16 right-24 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+            <div className="py-2 px-4 border-b border-gray-200">
+              <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center">
+                  <Bell className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No notifications yet</p>
                 </div>
-              </div>
-            ))}
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-3 border-b border-gray-100 cursor-pointer transition-colors ${
+                      notification.is_read
+                        ? "bg-white hover:bg-gray-50"
+                        : "bg-blue-50 hover:bg-blue-100"
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900">{notification.title}</p>
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.is_read && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-          <div className="p-2 border-t border-gray-200">
-            <CustomButton
-              text="View All Notifications"
-              className="w-full btn-secondary"
-              onClick={() => {
-                router.push("notifications");
-                setShowNotificationDropdown(false);
-              }}
-            />
-          </div>
-        </div>
+        </>
       )}
     </header>
   );

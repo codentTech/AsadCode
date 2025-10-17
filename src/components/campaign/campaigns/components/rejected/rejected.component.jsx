@@ -1,151 +1,154 @@
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  rejectCreator,
-  reinstateCreator,
-  getRejectedCreators,
-} from "@/provider/features/campaigns/campaigns.slice";
-import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
+import Loader from "@/common/components/loader/loader.component";
+import NotFound from "@/common/components/not-found/not-found.component";
+import Modal from "@/common/components/modal/modal.component";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import useRejected from "./use-rejected.hook";
 
 function Rejected() {
-  const dispatch = useDispatch();
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [selectedCreator, setSelectedCreator] = useState(null);
-  const [filters, setFilters] = useState({});
+  const [showShortlistModalForDetails, setShowShortlistModalForDetails] = useState(false);
 
-  // Get rejected creators state from Redux
   const {
-    data: rejectedCreatorsData,
-    isLoading: rejectedCreatorsLoading,
-    isSuccess: rejectedCreatorsSuccess,
-    isError: rejectedCreatorsError,
-  } = useSelector((state) => state.campaigns.getRejectedCreators || {});
+    selectedCampaign,
+    selectedCreator,
+    filters,
+    sortBy,
+    creators,
+    rejectedCreatorsLoading,
+    reinstateLoading,
+    rejectedCreatorsData,
+    handleCampaignSelect,
+    handleCreatorSelect,
+    handleFilterChange,
+    handleClearFilters,
+    handleSortChange,
+    handleReinstateCreator,
+    handleSaveToShortlist,
+  } = useRejected();
 
-  // Get reject creator state from Redux
-  const {
-    isLoading: rejectLoading,
-    isSuccess: rejectSuccess,
-    isError: rejectError,
-  } = useSelector((state) => state.campaigns.rejectCreator || {});
+  const { data: shortlistsData, isLoading: shortlistsLoading } = useSelector(
+    (state) => state.shortlist.getAllShortlists
+  );
 
-  // Get reinstate creator state from Redux
-  const {
-    isLoading: reinstateLoading,
-    isSuccess: reinstateSuccess,
-    isError: reinstateError,
-  } = useSelector((state) => state.campaigns.reinstateCreator || {});
+  const shortlists = Array.isArray(shortlistsData) ? shortlistsData : [];
 
-  // Handle campaign selection
-  const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
-    setSelectedCreator(null); // Reset selected creator when campaign changes
+  const renderRightPane = () => {
+    if (rejectedCreatorsLoading) {
+      return (
+        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+          <Loader loading={true} />
+          <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
+        </div>
+      );
+    }
 
-    // Fetch rejected creators for this campaign
-    dispatch(
-      getRejectedCreators({
-        campaignId: campaign.id,
-        filters: { ...filters, status: "REJECTED" },
-      })
+    if (!selectedCampaign) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
+        </div>
+      );
+    }
+
+    if (selectedCampaign && creators.length === 0) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound
+            title="No Rejected Creators"
+            description="No rejected creators found for this campaign."
+          />
+        </div>
+      );
+    }
+
+    return (
+      <DeliverablesProgress
+        selectedCampaign={selectedCampaign}
+        selectedCreator={selectedCreator}
+        onReinstateClick={() =>
+          handleReinstateCreator(selectedCampaign.id, selectedCreator.creator.id)
+        }
+        onViewNotesClick={() => {}}
+        onSaveToShortlistClick={() => setShowShortlistModalForDetails(true)}
+      />
     );
   };
 
-  // Handle creator selection
-  const handleCreatorSelect = (creator) => {
-    setSelectedCreator(creator);
-  };
-
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-
-    // Refetch creators with new filters if campaign is selected
-    if (selectedCampaign) {
-      dispatch(
-        getRejectedCreators({
-          campaignId: selectedCampaign.id,
-          filters: { ...newFilters, status: "REJECTED" },
-        })
-      );
-    }
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    setFilters({});
-    if (selectedCampaign) {
-      dispatch(
-        getRejectedCreators({
-          campaignId: selectedCampaign.id,
-          filters: { status: "REJECTED" },
-        })
-      );
-    }
-  };
-
-  // Handle reject creator
-  const handleRejectCreator = (campaignId, creatorId) => {
-    dispatch(rejectCreator({ campaignId, creatorId }));
-  };
-
-  // Handle reinstate creator
-  const handleReinstateCreator = (campaignId, creatorId) => {
-    dispatch(reinstateCreator({ campaignId, creatorId }));
-  };
-
-  // Listen for reject success from application tab and refresh rejected creators
-  useEffect(() => {
-    if (rejectSuccess && selectedCampaign) {
-      // Refresh the rejected creators list to show the newly rejected creator
-      dispatch(
-        getRejectedCreators({
-          campaignId: selectedCampaign.id,
-          filters: { ...filters, status: "REJECTED" },
-        })
-      );
-    }
-  }, [rejectSuccess, selectedCampaign, dispatch, filters]);
-
-  // Listen for reinstate success and refresh rejected creators
-  useEffect(() => {
-    if (reinstateSuccess && selectedCampaign) {
-      // Refresh the rejected creators list to remove the reinstated creator
-      dispatch(
-        getRejectedCreators({
-          campaignId: selectedCampaign.id,
-          filters: { ...filters, status: "REJECTED" },
-        })
-      );
-      // Reset selected creator since it's no longer in the rejected list
-      setSelectedCreator(null);
-    }
-  }, [reinstateSuccess, selectedCampaign, dispatch, filters]);
-
   return (
-    <div className="relative flex">
-      <CampaignOverview
-        onCampaignSelect={handleCampaignSelect}
-        selectedCampaign={selectedCampaign}
-        selectedCreator={selectedCreator}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-        onReinstateCreator={handleReinstateCreator}
-      />
+    <>
+      <div className="relative flex">
+        <CreatorSpendAnalysis
+          onCampaignSelect={handleCampaignSelect}
+          selectedCampaign={selectedCampaign}
+          selectedCreator={selectedCreator}
+          appliedCreatorsData={rejectedCreatorsData}
+          appliedCreatorsLoading={rejectedCreatorsLoading}
+          onCreatorSelect={handleCreatorSelect}
+          onReinstateCreator={handleReinstateCreator}
+          reinstateLoading={reinstateLoading}
+          filters={filters}
+          sortBy={sortBy}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          onSortChange={handleSortChange}
+          onSaveToShortlist={handleSaveToShortlist}
+        />
 
-      <CreatorSpendAnalysis
-        selectedCampaign={selectedCampaign}
-        appliedCreatorsData={rejectedCreatorsData}
-        appliedCreatorsLoading={rejectedCreatorsLoading}
-        onCreatorSelect={handleCreatorSelect}
-        onReinstateCreator={handleReinstateCreator}
-        reinstateLoading={reinstateLoading}
-      />
+        {renderRightPane()}
+      </div>
 
-      <DeliverablesProgress selectedCampaign={selectedCampaign} selectedCreator={selectedCreator} />
-    </div>
+      {/* Shortlist Modal for Details Panel */}
+      <Modal
+        title="Save to Shortlist"
+        show={showShortlistModalForDetails}
+        onClose={() => setShowShortlistModalForDetails(false)}
+      >
+        <div className="space-y-4">
+          {shortlistsLoading ? (
+            <div className="text-center py-8">
+              <Loader loading={true} />
+              <p className="text-sm text-gray-500 mt-2">Loading shortlists...</p>
+            </div>
+          ) : shortlists.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-2">No shortlists available</p>
+              <p className="text-sm text-gray-500">Create a shortlist first to save creators</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600">
+                Select a shortlist to save {selectedCreator?.creator?.first_name || "this creator"}:
+              </p>
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {shortlists.map((shortlist) => (
+                  <button
+                    key={shortlist.id}
+                    onClick={() => {
+                      handleSaveToShortlist(selectedCreator.creator, shortlist.id);
+                      setShowShortlistModalForDetails(false);
+                    }}
+                    className="w-full p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-indigo-50 transition-all text-left"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{shortlist.name}</p>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {shortlist.user_count || 0} creator
+                        {(shortlist.user_count || 0) !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+    </>
   );
 }
 

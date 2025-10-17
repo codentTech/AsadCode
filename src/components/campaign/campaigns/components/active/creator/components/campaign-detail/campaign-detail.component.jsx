@@ -15,14 +15,15 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 import useCreatorTimeline from "../creator-timeline/use-creator-timeline.hook";
+import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const [showContentBrief, setShowContentBrief] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     dosdonts: false,
     styleGuide: false,
@@ -41,6 +42,29 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     isCleerCutCampaign ? campaign?.id : null,
     campaign?.campaign_deadline || campaign?.application_deadline
   );
+
+  // Message thread hook - use brand ID (campaign creator)
+  const brandId = campaign?.campaign?.created_by?.id;
+
+  const messageThreadHook = useMessageThread(brandId);
+
+  const creator = {
+    id: brandId,
+    name:
+      campaign?.campaign?.created_by?.first_name && campaign?.campaign?.created_by?.last_name
+        ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
+        : campaign?.brand || "Brand",
+    avatar: campaign?.campaign?.created_by?.profile_photo_url,
+    isOnline: true,
+  };
+
+  // Handle message click with validation
+  const handleMessageClick = () => {
+    if (!brandId) {
+      return;
+    }
+    messageThreadHook.openMessageModal();
+  };
 
   const { getPlatformIcon } = useGetplatform();
 
@@ -403,19 +427,21 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           {/* Action Buttons Row - As per requirements */}
           <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
             {isCleerCutCampaign && (
-              <CustomButton
-                text="Update Progress"
-                className="btn-outline text-xs"
-                onClick={handleUpdateProgress}
-                startIcon={<BarChart3 className="w-3 h-3" />}
-              />
+              <React.Fragment>
+                <CustomButton
+                  text="Update Progress"
+                  className="btn-outline text-xs"
+                  onClick={handleUpdateProgress}
+                  startIcon={<BarChart3 className="w-3 h-3" />}
+                />
+                <CustomButton
+                  text="Message"
+                  className="btn-outline text-xs"
+                  onClick={handleMessageClick}
+                  startIcon={<MessageCircle className="w-3 h-3" />}
+                />
+              </React.Fragment>
             )}
-            <CustomButton
-              text="Message"
-              className="btn-outline text-xs"
-              onClick={() => setShowMessageModal(true)}
-              startIcon={<MessageCircle className="w-3 h-3" />}
-            />
             <CustomButton
               text="View Brief"
               className="btn-outline text-xs"
@@ -586,38 +612,22 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
         </div>
       </Modal>
 
-      {/* Message Modal */}
-      <Modal
-        show={showMessageModal}
-        title="Message Brand"
-        onClose={() => setShowMessageModal(false)}
-        size="md"
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600">Contact the brand directly about this campaign.</p>
-          <div className="p-3 bg-gray-50 rounded border border-gray-200">
-            <p className="text-xs text-gray-500">
-              <strong>Note:</strong> For full messaging functionality, please use the Chat/Inbox
-              feature.
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <CustomButton
-              text="Close"
-              className="btn-cancel"
-              onClick={() => setShowMessageModal(false)}
-            />
-            <CustomButton
-              text="Go to Inbox"
-              className="btn-primary"
-              onClick={() => {
-                setShowMessageModal(false);
-                router.push("/chat-inbox");
-              }}
-            />
-          </div>
-        </div>
-      </Modal>
+      {/* Message Thread Modal */}
+      <MessageThreadModal
+        isOpen={messageThreadHook.isModalOpen}
+        onClose={messageThreadHook.closeMessageModal}
+        creator={creator}
+        messages={messageThreadHook.messages || []}
+        newMessage={messageThreadHook.newMessage || ""}
+        setNewMessage={messageThreadHook.setNewMessage}
+        sendMessage={messageThreadHook.sendMessage}
+        isSending={messageThreadHook.isSending}
+        isLoading={messageThreadHook.isLoading}
+        isCreatorOnline={messageThreadHook.isCreatorOnline}
+        isCreatorTyping={messageThreadHook.isCreatorTyping}
+        messagesEndRef={messageThreadHook.messagesEndRef}
+        messagesContainerRef={messageThreadHook.messagesContainerRef}
+      />
     </div>
   );
 };
