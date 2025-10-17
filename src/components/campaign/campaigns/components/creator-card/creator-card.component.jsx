@@ -11,8 +11,12 @@ const CreatorCard = ({
   onRemoveFromShortlist,
   onMessageCreator,
   onInviteClick,
-  tab = "discover", // "discover" | "applications"
+  tab = "discover", // "discover" | "applications" | "rejected"
   appliedDate,
+  rejectedDate,
+  onReinstateClick,
+  onViewNotesClick,
+  isReinstateLoading = false,
 }) => {
   const router = useRouter();
   const { getPlatformIcon } = useGetplatform();
@@ -34,6 +38,20 @@ const CreatorCard = ({
   const handleInviteClickInternal = (e) => {
     e.stopPropagation();
     onInviteClick(creator, e);
+  };
+
+  const handleReinstateClickInternal = (e) => {
+    e.stopPropagation();
+    if (onReinstateClick) {
+      onReinstateClick(creator, e);
+    }
+  };
+
+  const handleViewNotesClickInternal = (e) => {
+    e.stopPropagation();
+    if (onViewNotesClick) {
+      onViewNotesClick(creator, e);
+    }
   };
 
   const formatFollowers = (followers) => {
@@ -125,6 +143,20 @@ const CreatorCard = ({
           </div>
         )}
 
+        {/* Rejected Status (Rejected tab) */}
+        {tab === "rejected" && (
+          <div className="flex flex-col justify-center items-center text-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">
+              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+              Applied on {appliedDate}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-100 text-red-600 text-xs font-medium">
+              <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
+              Rejected on {rejectedDate}
+            </span>
+          </div>
+        )}
+
         {/* Short tagline bio */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
@@ -193,6 +225,20 @@ const CreatorCard = ({
               text="Invite to Apply"
               onClick={handleInviteClickInternal}
               className="btn-outline w-full rounded-lg"
+            />
+          </div>
+        ) : tab === "rejected" ? (
+          <div className="flex flex-col items-center gap-3">
+            <CustomButton
+              text="Reinstate to Applications"
+              className="w-full btn-secondary rounded-lg"
+              onClick={handleReinstateClickInternal}
+              disabled={isReinstateLoading}
+            />
+            <CustomButton
+              text="View Notes"
+              className="w-full btn-outline rounded-lg"
+              onClick={handleViewNotesClickInternal}
             />
           </div>
         ) : (

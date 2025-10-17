@@ -1,19 +1,47 @@
-const useDeliverablesProgress = () => {
+import { useState, useCallback } from "react";
+
+function useDeliverablesProgress({ onReinstateClick }) {
+  // State
+  const [showReinstateConfirmation, setShowReinstateConfirmation] = useState(false);
+
   const privateNotes = [
     {
-      text: "Mention the brand in the first 5 seconds",
-      timestamp: "2025-04-23 10:12 AM",
+      text: "Creator has good engagement but content quality needs improvement",
+      timestamp: "2 hours ago",
     },
-    { text: "Use trending audio", timestamp: "2025-04-23 10:15 AM" },
     {
-      text: "Tag the brand and use hashtag #SpringLaunch",
-      timestamp: "2025-04-23 10:18 AM",
+      text: "Requested additional portfolio samples for review",
+      timestamp: "1 day ago",
+    },
+    {
+      text: "Initial assessment completed - not suitable for current campaign",
+      timestamp: "3 days ago",
     },
   ];
 
+  // Handlers
+  const handleReinstateClick = useCallback(() => {
+    setShowReinstateConfirmation(true);
+  }, []);
+
+  const handleConfirmReinstate = useCallback(() => {
+    if (onReinstateClick) {
+      onReinstateClick();
+    }
+    setShowReinstateConfirmation(false);
+  }, [onReinstateClick]);
+
+  const handleCancelReinstate = useCallback(() => {
+    setShowReinstateConfirmation(false);
+  }, []);
+
   return {
     privateNotes,
+    showReinstateConfirmation,
+    handleReinstateClick,
+    handleConfirmReinstate,
+    handleCancelReinstate,
   };
-};
+}
 
 export default useDeliverablesProgress;

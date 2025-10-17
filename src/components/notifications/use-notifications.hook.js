@@ -1,25 +1,34 @@
-import { notificationsMockData } from "@/common/constants/notifications.data.constant";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getMyNotifications } from "@/provider/features/notification/notification.slice";
+import notificationService from "@/provider/features/notification/notification.service";
 
 function useNotifications() {
-  const [notifications, setNotifications] = useState(notificationsMockData);
+  const dispatch = useDispatch();
 
-  const markAsRead = (id) => {
-    setNotifications((prev) => ({
-      ...prev,
-      ["brand"]: prev["brand"].map((notif) =>
-        notif.id === id ? { ...notif, unread: false } : notif
-      ),
-    }));
+  const notificationsState = useSelector((state) => state.notification?.getMyNotifications);
+  const notifications = notificationsState?.data?.data || [];
+
+  useEffect(() => {
+    dispatch(getMyNotifications());
+  }, [dispatch]);
+
+  const markAsRead = async (id) => {
+    await notificationService.markAsRead(id);
+    dispatch(getMyNotifications());
   };
 
-  const removeNotification = (id) => {
-    setNotifications((prev) => ({
-      ...prev,
-      ["brand"]: prev["brand"].filter((notif) => notif.id !== id),
-    }));
+  const removeNotification = async (id) => {
+    await notificationService.deleteNotification(id);
+    dispatch(getMyNotifications());
   };
-  return { notifications, markAsRead, removeNotification };
+
+  const markAllAsRead = async () => {
+    await notificationService.markAllAsRead();
+    dispatch(getMyNotifications());
+  };
+
+  return { notifications, markAsRead, removeNotification, markAllAsRead };
 }
 
 export default useNotifications;

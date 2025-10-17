@@ -21,6 +21,8 @@ import monthlyGoalReducer from "./features/monthly-goals/monthly-goal.slice";
 import campaignTimelineReducer from "./features/campaign-timeline/campaign-timeline.slice";
 import contractsReducer from "./features/contracts/contracts.slice";
 import chatReducer from "./features/chat/chat.slice";
+import invitationReducer from "./features/invitation/invitation.slice";
+import notificationReducer from "./features/notification/notification.slice";
 
 const persistConfig = {
   key: "root",
@@ -48,6 +50,8 @@ const rootReducer = combineReducers({
   campaignTimeline: campaignTimelineReducer,
   contracts: contractsReducer,
   chat: chatReducer,
+  invitation: invitationReducer,
+  notification: notificationReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

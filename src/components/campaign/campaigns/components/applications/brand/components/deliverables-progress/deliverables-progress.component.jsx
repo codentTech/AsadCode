@@ -1,11 +1,11 @@
-import ReadMore from "@/common/components/readmore/readmore.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import Loader from "@/common/components/loader/loader.component";
+import ReadMore from "@/common/components/readmore/readmore.component";
 import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import CampaignHistory from "../campaign-history/campaign-history.component";
-import Loader from "@/common/components/loader/loader.component";
 
 const DeliverablesProgress = ({
   isCompleted = false,
@@ -18,11 +18,12 @@ const DeliverablesProgress = ({
   // Extract creator data from the selectedCreator object
   const getCreatorData = () => {
     if (!selectedCreator) return null;
+    console.log(selectedCreator);
 
     // If it's the original API data structure
     if (selectedCreator.creator) {
-      const creator = selectedCreator.creator;
-      const profile = creator.creator_profile;
+      const creator = selectedCreator?.creator;
+      const profile = creator?.creator_profile;
 
       return {
         id: selectedCreator.id,
@@ -30,11 +31,12 @@ const DeliverablesProgress = ({
         image: profile?.profile_photo_url || avatar,
         location:
           `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
-        rating: 4.5, // Mock rating
+        rating: profile?.rating, // Mock rating
         appliedDate: new Date(selectedCreator.applied_at).toLocaleDateString(),
         pitch: selectedCreator.pitch,
         status: selectedCreator.status,
         profile: profile,
+        bio: profile?.bio,
       };
     }
 
@@ -75,9 +77,7 @@ const DeliverablesProgress = ({
         </div>
         <h3>{creatorData.name}</h3>
 
-        <p className="primary-text text-center">
-          Fitness and lifestyle creator based in Los Angeles
-        </p>
+        <p className="primary-text text-center">{creatorData?.bio}</p>
 
         <div className="flex items-center">
           {[...Array(5)].map((_, i) => (

@@ -7,7 +7,7 @@ import CampaignCreationWizard from "@/components/campaign/create-campaign/create
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import ActiveFilters from "./components/active-filters.component";
 import FilterModal from "./components/filter-modal.component";
-import InviteModal from "./components/invite-modal.component";
+import InvitationModal from "@/components/campaign/campaigns/components/invitation-modal/invitation-modal.component";
 import useDiscoverCreators from "./use-discover-creators.hook";
 
 import { SORT_BY_OPTIONS } from "@/common/constants/options.constant";
@@ -347,12 +347,12 @@ function DiscoverCreators({
         onApplyFilters={handleApplyFilters}
       />
 
-      <InviteModal
-        show={showInviteModal}
+      <InvitationModal
+        isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         selectedCreator={selectedCreator}
         userCampaigns={userCampaigns}
-        onInviteToApply={handleInviteToApply}
+        onInviteSent={handleInviteToApply}
       />
 
       <CampaignCreationWizard open={open} close={() => setOpen(false)} />
