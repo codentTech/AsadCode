@@ -8,9 +8,17 @@ import CreatorPreview from "./components/creator-preview/creator-preview.compone
 import DiscoverCreators from "./components/discover-creators/discover-creators.component";
 import ShortlistSidebar from "./components/shortlist-sidebar/shortlist-sidebar.component";
 import useDiscover from "./use-brand-discover.hook";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 
 function BrandDiscover() {
+  const dispatch = useDispatch();
+  const campaignsState = useSelector(
+    (state) => state.campaigns?.getBrandCampaignsExcludingCompleted
+  );
+  const [userCampaigns, setUserCampaigns] = useState([]);
+
   const {
     shortlists,
     selectedShortlist,
@@ -57,6 +65,18 @@ function BrandDiscover() {
   };
 
   // ==================== EFFECTS ====================
+  // Fetch user campaigns on component mount
+  useEffect(() => {
+    dispatch(getBrandCampaignsExcludingCompleted());
+  }, [dispatch]);
+
+  // Update userCampaigns when campaigns are fetched
+  useEffect(() => {
+    if (campaignsState?.data?.data && Array.isArray(campaignsState.data.data)) {
+      setUserCampaigns(campaignsState.data.data);
+    }
+  }, [campaignsState]);
+
   // Auto-open modal when creatorToMessage changes
   useEffect(() => {
     if (creatorToMessage?.id && creatorToMessage.id !== lastOpenedCreatorIdRef.current) {
@@ -71,6 +91,11 @@ function BrandDiscover() {
     messageThreadHook.closeMessageModal();
     setMessageDialogOpen(false);
     lastOpenedCreatorIdRef.current = null;
+  };
+
+  const handleInviteToApply = (creator, campaign) => {
+    console.log("Invitation sent to:", creator.name, "for campaign:", campaign.title);
+    // You can add additional logic here like showing a success message
   };
 
   return (
@@ -99,8 +124,8 @@ function BrandDiscover() {
         handleMessageCreator={handleMessageCreator}
         getSortedCreators={getSortedCreators}
         handleRemoveFromShortlist={handleRemoveFromShortlist}
-        handleInviteToApply={() => {}}
-        userCampaigns={[]}
+        handleInviteToApply={handleInviteToApply}
+        userCampaigns={userCampaigns}
       />
 
       {/* New Shortlist Dialog */}

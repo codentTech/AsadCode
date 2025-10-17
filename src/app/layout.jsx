@@ -10,7 +10,7 @@ import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { Loader } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { MaterialDesignContent, SnackbarProvider } from "notistack";
+import { MaterialDesignContent, SnackbarProvider, useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
@@ -27,13 +27,26 @@ const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
   },
 }));
 
+function SnackbarExposer() {
+  const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    window.enqueueSnackbar = enqueueSnackbar;
+    return () => {
+      delete window.enqueueSnackbar;
+    };
+  }, [enqueueSnackbar]);
+
+  return null;
+}
+
 function LayoutWrapper({ children }) {
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Next.js App Router doesn’t expose router events like Pages Router
+    // Next.js App Router doesn't expose router events like Pages Router
     // but we can use the usePathname hook to detect route changes
 
     setLoading(true); // start loading on path change
@@ -47,6 +60,7 @@ function LayoutWrapper({ children }) {
 
   return (
     <React.Fragment>
+      <SnackbarExposer />
       {loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
     </React.Fragment>
   );
@@ -70,9 +84,9 @@ export default function RootLayout({ children }) {
       <body>
         <StyledEngineProvider injectFirst>
           <SnackbarProvider
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
-            autoHideDuration={3000}
-            maxSnack={2}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            autoHideDuration={8000}
+            maxSnack={3}
             Components={{
               success: StyledMaterialDesignContent,
               error: StyledMaterialDesignContent,

@@ -123,6 +123,30 @@ class ChatSocketService {
     this.socket.on("mark_seen_error", ({ error }) => {
       console.error("❌ Mark seen error:", error);
     });
+
+    // Notification events
+    this.socket.on("new_notification", (notification) => {
+      console.log("🔔 New notification received:", notification);
+
+      if (dispatch) {
+        // Play notification sound
+        const { playNotificationSound } = require("@/common/utils/notification-sound");
+        playNotificationSound();
+
+        // Show snackbar
+        if (window.enqueueSnackbar) {
+          window.enqueueSnackbar(notification.message || notification.title, {
+            variant: "info",
+            autoHideDuration: 10000,
+            persist: false,
+          });
+        }
+
+        // Refresh unread count
+        const { getUnreadCount } = require("../notification/notification.slice");
+        dispatch(getUnreadCount());
+      }
+    });
   }
 
   // Send message via WebSocket
