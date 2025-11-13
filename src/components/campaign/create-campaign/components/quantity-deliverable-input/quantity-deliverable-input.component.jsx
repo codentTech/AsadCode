@@ -21,7 +21,7 @@ function QuantityDeliverableInput({ deliverables = [], onDeliverablesChange, err
     const newDeliverable = {
       quantity: quantity,
       text: deliverableText.trim(),
-      displayText: `Quantity (${quantity}) Deliverable '${deliverableText.trim()}'`,
+      deliverable: `${quantity} ${deliverableText.trim()}`,
     };
 
     const newDeliverables = [...deliverables, newDeliverable];
@@ -80,7 +80,7 @@ function QuantityDeliverableInput({ deliverables = [], onDeliverablesChange, err
           </div>
 
           {/* Add Button */}
-          <div className="flex items-end">
+          {/* <div className="flex items-end">
             <button
               className="bg-gray-200 p-2 rounded-full"
               disabled={deliverableText.trim() === ""}
@@ -88,8 +88,17 @@ function QuantityDeliverableInput({ deliverables = [], onDeliverablesChange, err
             >
               <AddCircle className="text-primary" />
             </button>
-          </div>
+          </div> */}
         </div>
+      </div>
+
+      {/* Help Text */}
+      <div className="text-xs text-gray-500 space-y-1">
+        <p>
+          • Enter quantity and deliverable type (e.g., "Instagram Reel", "Story Post") and hit enter
+          to add
+        </p>
+        <p>• Add multiple deliverables with different quantities</p>
       </div>
 
       {/* Selected Deliverables */}
@@ -103,7 +112,7 @@ function QuantityDeliverableInput({ deliverables = [], onDeliverablesChange, err
                 className="inline-flex items-center gap-1 px-2 bg-gray-100 text-black text-xs rounded-lg border border-primary"
               >
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-[4px] text-center border bg-primary text-white text-xs rounded-full font-medium">
+                  <span className="px-2 py-[4px] text-center border bg-primary text-white text-xs rounded-lg font-medium">
                     {deliverable.quantity}
                   </span>
                   <span className="text-xs text-gray-600">{deliverable.text}</span>
@@ -119,12 +128,6 @@ function QuantityDeliverableInput({ deliverables = [], onDeliverablesChange, err
           </div>
         </div>
       )}
-
-      {/* Help Text */}
-      <div className="text-xs text-gray-500 space-y-1">
-        <p>• Enter quantity and deliverable type (e.g., "Instagram Reel", "Story Post")</p>
-        <p>• Add multiple deliverables with different quantities</p>
-      </div>
     </div>
   );
 }

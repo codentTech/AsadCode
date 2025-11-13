@@ -3,6 +3,13 @@ export const CAMPAIGN_STATUS = Object.freeze({
   COMPLETE: "COMPLETE",
 });
 
+export const CAMPAIGN_TYPE = Object.freeze({
+  GIFTED: "GIFTED",
+  SPONSORED_POST: "SPONSORED_POST",
+  AFFILIATE: "AFFILIATE",
+  UGC: "UGC",
+});
+
 export const COMPENSATION_TYPE = Object.freeze({
   PAID: "PAID",
   GIFTED_PRODUCT: "GIFTED_PRODUCT",

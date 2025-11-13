@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 
 // When used on completed tab, pass isCompleted=true so it reads from getAppliedCreators
 export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) => {
-  const [open, setOpen] = useState(false);
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
@@ -87,12 +86,7 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
     return "text-orange-600 bg-orange-50";
   };
 
-  const handleOpenModal = () => setOpen(true);
-
-  const handleCloseModal = () => setOpen(false);
-
   return {
-    open,
     creators,
     creatorsLoading,
     creatorsSuccess,
@@ -100,8 +94,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
     formatFollowers,
     getPlatformColor,
     getSuccessRateColor,
-    handleOpenModal,
-    handleCloseModal,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,

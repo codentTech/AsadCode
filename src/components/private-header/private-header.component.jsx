@@ -13,14 +13,14 @@ function Header() {
     const headerLinks = [
       { href: "/admin/dashboard", label: "Dashboard" },
       { href: "/campaign", label: "Campaigns" },
-      { href: "/creator-portfolio", label: "My Portfolio" },
+      { href: "/creator-portfolio", label: "Portfolio" },
       { href: "/chat-inbox", label: "Inbox" },
       { href: "/notifications", label: "Notifications" },
       { href: "/admin/dashboard", label: "Settings" },
     ];
 
     if (!isCreator) {
-      return headerLinks.filter((link) => link.label !== "My Portfolio");
+      return headerLinks.filter((link) => link.label !== "Portfolio");
     }
 
     return headerLinks;

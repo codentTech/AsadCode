@@ -58,7 +58,7 @@ function AudienceRequirementsExperience({ campaignData, errors = {}, register, s
       <div className="space-y-3">
         <h4 className="text-sm font-bold text-gray-800">
           Platform-Specific Minimums
-          <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+          <span className="text-xs text-gray-500 font-normal ml-1">(Optional)</span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {platformMinimums.map((platform) => (

@@ -1,544 +1,338 @@
-import React from "react";
+import { campiagnDeliverable } from "@/common/utils/campaign.utils";
+import { ClipboardList, FileText, HelpCircle, Layers3, Target } from "lucide-react";
+import usePreview from "./use-preview.hook";
 
 function Preview({ campaignData, handleChange, isError = false, message = "", errors = {} }) {
-  // Calculate commission payment if applicable
-  const commissionPayment =
-    campaignData.campaign_type === "Affiliate" &&
-    campaignData.product_price &&
-    campaignData.commission_percentage
-      ? (
-          (parseFloat(campaignData.product_price) *
-            parseFloat(campaignData.commission_percentage)) /
-          100
-        ).toFixed(2)
-      : 0;
-
-  // Helper function to format currency
-  const formatCurrency = (amount) => {
-    return amount ? `$${parseFloat(amount).toLocaleString()}` : "";
-  };
-
-  // Helper function to format numbers
-  const formatNumber = (num) => {
-    return num ? parseInt(num).toLocaleString() : "";
-  };
-
-  // Helper function to get compensation display
-  const getCompensationDisplay = () => {
-    switch (campaignData.campaign_type) {
-      case "Sponsored Post":
-      case "UGC":
-        if (campaignData.suggested_min && campaignData.suggested_max) {
-          return `Suggested Range: ${formatCurrency(campaignData.suggested_min)} - ${formatCurrency(campaignData.suggested_max)}`;
-        } else if (campaignData.fixed_price) {
-          return `Fixed Payment: ${formatCurrency(campaignData.fixed_price)}`;
-        } else if (campaignData.budget) {
-          return `Total Budget: ${formatCurrency(campaignData.budget)} (Private)`;
-        }
-        return "Fixed Payment";
-      case "Gifted":
-        return `Product Gifting Only (Value: ${formatCurrency(campaignData.product_value)})`;
-      case "Affiliate":
-        return `Commission: ${campaignData.commission_percentage}% per sale (${formatCurrency(commissionPayment)} per ${formatCurrency(campaignData.product_price)} item)`;
-      default:
-        return "Not specified";
-    }
-  };
+  const {
+    title,
+    imageSrc,
+    heroStats,
+    nicheTags,
+    deliverableTags,
+    requiredPlatforms,
+    platformMinimums,
+    contentSections,
+    trimmedQuestions,
+    styleGuideFileUrl,
+    styleGuideFileName,
+    termsAgreed,
+    quickFields,
+    guidelineGroups,
+  } = usePreview(campaignData);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Campaign Title */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {campaignData.campaign_title || "Untitled Campaign"}
-        </h1>
-        <div className="h-1 bg-indigo-600 rounded-full w-24"></div>
-      </div>
-
-      {/* Campaign Image - Simple */}
-      {campaignData.campaignImage && (
-        <div className="flex justify-center mb-6">
-          <img
-            src={
-              typeof campaignData.campaignImage === "string"
-                ? campaignData.campaignImage
-                : URL.createObjectURL(campaignData.campaignImage)
-            }
-            alt="Campaign"
-            className="h-32 w-32 object-cover rounded-lg border border-gray-200"
-          />
+    <div className="max-w-5xl mx-auto space-y-4 text-gray-900">
+      {isError && message && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {message}
         </div>
       )}
 
-      {/* Main Content - Compact Campaign Overview */}
-      <div className="space-y-3">
-        {/* Campaign Overview Card */}
-        {campaignData.campaign_type && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Campaign Overview
-            </h3>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Campaign Type</span>
-              <span className="text-sm font-medium text-indigo-600">
-                {campaignData.campaign_type}
-              </span>
-            </div>
-            {campaignData.applicationDeadline && (
-              <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-                <span className="text-sm text-gray-600">Application Deadline</span>
-                <span className="text-sm text-gray-900 font-medium">
-                  {new Date(campaignData.applicationDeadline).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
+      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1 space-y-3">
+            <h1 className="text-lg uppercase font-bold leading-snug text-indigo-900 sm:text-xl truncate">
+              ----- {title} -----
+            </h1>
+
+            {quickFields.length > 0 && (
+              <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                {quickFields.map((field) => (
+                  <div key={field.label} className="space-y-1">
+                    <dt className="text-xs uppercase tracking-wide text-gray-500">{field.label}</dt>
+                    <dd className="font-medium text-gray-900">{field.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            {heroStats.length > 0 && (
+              <div className="grid gap-2 text-xs sm:grid-cols-4">
+                {heroStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2"
+                  >
+                    <div className="text-indigo-500">{stat.label}</div>
+                    <div className="text-sm font-semibold text-indigo-700">{stat.value}</div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        )}
 
-        {/* Niches & Deliverables Card - Only show if data exists */}
-        {((campaignData.niches && campaignData.niches.length > 0) ||
-          (campaignData.deliverables && campaignData.deliverables.length > 0)) && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Content & Niches
-            </h3>
-            <div className="space-y-3">
-              {/* Niches */}
-              {campaignData.niches && campaignData.niches.length > 0 && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Target Niches
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {campaignData.niches.map((niche, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                      >
-                        {niche}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Deliverables */}
-              {campaignData.deliverables && campaignData.deliverables.length > 0 && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Required Deliverables
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {campaignData.deliverables.map((deliverable, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                      >
-                        {typeof deliverable === "string"
-                          ? deliverable
-                          : deliverable?.displayText ||
-                            deliverable?.text ||
-                            JSON.stringify(deliverable)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {imageSrc && (
+            <div className="flex justify-end sm:pl-6">
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow">
+                <img
+                  src={imageSrc}
+                  alt="Campaign visual"
+                  className="h-28 w-28 rounded-lg object-cover sm:h-32 sm:w-32"
+                />
+              </div>
             </div>
-          </div>
-        )}
-        {/* Audience Requirements Card - Only show if data exists */}
-        {(campaignData.min_combined_followers ||
-          (campaignData.required_platforms && campaignData.required_platforms.length > 0) ||
-          Object.entries(campaignData.platformMinimums || {}).some(([_, value]) => value)) && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Audience Requirements
-            </h3>
-            <div className="space-y-3">
-              {/* Min Combined Followers */}
-              {campaignData.min_combined_followers && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Min Combined Followers</span>
-                  <span className="text-sm font-medium text-indigo-600">
-                    {formatNumber(campaignData.min_combined_followers)}
-                  </span>
-                </div>
-              )}
+          )}
+        </div>
+      </section>
 
-              {/* Required Platforms */}
-              {campaignData.required_platforms && campaignData.required_platforms.length > 0 && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Required Platforms
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {campaignData.required_platforms.map((platform, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                      >
-                        {platform}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Platform Minimums */}
-              {Object.entries(campaignData.platformMinimums || {}).some(([_, value]) => value) && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Platform Minimums
-                  </div>
-                  <div className="space-y-1">
-                    {Object.entries(campaignData.platformMinimums).map(([platform, value]) =>
-                      value ? (
-                        <div key={platform} className="flex justify-between py-1">
-                          <span className="text-xs text-gray-600 capitalize">{platform}</span>
-                          <span className="text-xs text-gray-900 font-medium">
-                            {formatNumber(value)}
-                          </span>
-                        </div>
-                      ) : null
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Compensation Card - Only show if data exists */}
-        {(campaignData.budget ||
-          (campaignData.suggested_min && campaignData.suggested_max) ||
-          campaignData.fixed_price ||
-          campaignData.product_value ||
-          campaignData.commission_percentage ||
-          campaignData.product_price) && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Compensation & Budget
-            </h3>
-            <div className="space-y-3">
-              {/* Campaign Type */}
-              {campaignData.campaign_type && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Campaign Type</span>
-                  <span className="text-sm font-medium text-indigo-600">
-                    {campaignData.campaign_type}
-                  </span>
-                </div>
-              )}
-
-              {/* Budget Details */}
-              {campaignData.budget && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Total Budget</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {formatCurrency(campaignData.budget)}{" "}
-                    <span className="text-xs text-gray-500">(Private)</span>
-                  </span>
-                </div>
-              )}
-
-              {/* Suggested Range */}
-              {campaignData.suggested_min && campaignData.suggested_max && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Suggested Range</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {formatCurrency(campaignData.suggested_min)} -{" "}
-                    {formatCurrency(campaignData.suggested_max)}
-                  </span>
-                </div>
-              )}
-
-              {/* Fixed Price */}
-              {campaignData.fixed_price && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Fixed Payment</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {formatCurrency(campaignData.fixed_price)}
-                  </span>
-                </div>
-              )}
-
-              {/* Product Value for Gifted */}
-              {campaignData.product_value && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Product Value</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {formatCurrency(campaignData.product_value)}
-                  </span>
-                </div>
-              )}
-
-              {/* Commission Details for Affiliate */}
-              {campaignData.commission_percentage && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Commission Rate</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {campaignData.commission_percentage}%
-                  </span>
-                </div>
-              )}
-
-              {campaignData.product_price && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Product Price</span>
-                  <span className="text-sm text-gray-900 font-medium">
-                    {formatCurrency(campaignData.product_price)}
-                  </span>
-                </div>
-              )}
-
-              {/* Commission Calculation */}
-              {commissionPayment > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Earnings per Sale</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {formatCurrency(commissionPayment)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Eligibility & Location Card - Only show if data exists */}
-        {(campaignData.isRemote ||
-          campaignData.inPersonRequired ||
-          campaignData.location_details ||
-          campaignData.creator_country ||
-          campaignData.creator_city ||
-          campaignData.min_age ||
-          campaignData.max_age ||
-          campaignData.creator_gender ||
-          campaignData.creator_language) && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Eligibility & Location Requirements
-            </h3>
-            <div className="space-y-3">
-              {/* Location Requirements */}
-              {(campaignData.isRemote || campaignData.inPersonRequired) && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">Location</div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Work Type</span>
-                    <span className="text-sm text-indigo-600 font-medium">
-                      {[
-                        campaignData.isRemote && "Remote",
-                        campaignData.inPersonRequired && "In-Person",
-                      ]
-                        .filter(Boolean)
-                        .join(" & ")}
-                    </span>
-                  </div>
-
-                  {campaignData.inPersonRequired && campaignData.location_details && (
-                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-                      <span className="text-sm text-gray-600">Location Details</span>
-                      <span className="text-sm text-gray-900 text-right max-w-xs">
-                        {campaignData.location_details}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Creator Requirements */}
-              {[
-                campaignData.creator_country,
-                campaignData.creator_city,
-                campaignData.min_age,
-                campaignData.max_age,
-                campaignData.creator_gender,
-                campaignData.creator_language,
-              ].some(Boolean) && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Creator Requirements
-                  </div>
-                  <div className="space-y-2">
-                    {[
-                      {
-                        label: "Country",
-                        value: campaignData.creator_country,
-                        required: campaignData.countryRequirement === "mandatory",
-                      },
-                      {
-                        label: "City",
-                        value: campaignData.creator_city,
-                        required: campaignData.cityRequirement === "mandatory",
-                      },
-                      {
-                        label: "Age Range",
-                        value:
-                          campaignData.min_age || campaignData.max_age
-                            ? `${campaignData.min_age || "Any"} - ${campaignData.max_age || "Any"}`
-                            : null,
-                        required: campaignData.ageRequirement === "mandatory",
-                      },
-                      {
-                        label: "Gender",
-                        value: campaignData.creator_gender,
-                        required: campaignData.genderRequirement === "mandatory",
-                      },
-                      {
-                        label: "Language",
-                        value: campaignData.creator_language,
-                        required: campaignData.languageRequirement === "mandatory",
-                      },
-                    ]
-                      .filter((item) => item.value)
-                      .map((item, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600">{item.label}</span>
-                          <span className="text-xs text-gray-900 font-medium">
-                            {item.value}
-                            {item.required && (
-                              <span className="text-indigo-600 ml-1">(Required)</span>
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Campaign Description & Content Card - Only show if data exists */}
-        {(campaignData.short_description ||
-          campaignData.long_description ||
-          campaignData.hashtags ||
-          campaignData.nonNegotiables ||
-          (campaignData.questions &&
-            campaignData.questions.filter((q) => q.trim()).length > 0)) && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b border-indigo-600">
-              Campaign Brief & Content
-            </h3>
-            <div className="space-y-3">
-              {/* Short Description */}
-              {campaignData.short_description && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Campaign Overview
-                  </div>
-                  <p className="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded">
-                    {campaignData.short_description}
-                  </p>
-                </div>
-              )}
-
-              {/* Long Description */}
-              {campaignData.long_description && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Detailed Brief
-                  </div>
-                  <div className="text-sm text-gray-800 leading-relaxed max-h-32 overflow-y-auto bg-gray-50 p-3 rounded border">
-                    {campaignData.long_description}
-                  </div>
-                </div>
-              )}
-
-              {/* Hashtags */}
-              {campaignData.hashtags && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Required Hashtags
-                  </div>
-                  <p className="text-sm text-indigo-600 font-mono bg-indigo-50 p-2 rounded">
-                    {campaignData.hashtags}
-                  </p>
-                </div>
-              )}
-
-              {/* Guidelines */}
-              {campaignData.nonNegotiables && (
-                <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Content Guidelines
-                  </div>
-                  <div className="text-sm text-gray-800 leading-relaxed bg-amber-50 p-3 rounded border-l-4 border-amber-400">
-                    {campaignData.nonNegotiables}
-                  </div>
-                </div>
-              )}
-
-              {/* Questions for Creators */}
-              {campaignData.questions &&
-                campaignData.questions.filter((q) => q.trim()).length > 0 && (
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
+        <div className="space-y-4">
+          {(nicheTags.length > 0 || deliverableTags.length > 0) && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <header className="flex items-center gap-2">
+                <Layers3 className="h-4 w-4 text-indigo-600" />
+                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
+                  Campaign Niches & Deliverables
+                </h2>
+              </header>
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {nicheTags.length > 0 && (
                   <div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                      Application Questions
-                    </div>
-                    <div className="space-y-2 bg-blue-50 p-3 rounded">
-                      {campaignData.questions
-                        .filter((q) => q.trim())
-                        .map((question, index) => (
-                          <div key={index} className="text-sm text-gray-800 flex">
-                            <span className="text-indigo-600 font-medium mr-2 flex-shrink-0">
-                              {index + 1}.
-                            </span>
-                            <span>{question}</span>
-                          </div>
-                        ))}
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Niches
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {nicheTags.map((item) => (
+                        <span
+                          key={item.id}
+                          className="rounded-lg bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700"
+                        >
+                          {item.label}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
+                {deliverableTags.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Deliverables
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {deliverableTags.map((item) => (
+                        <span
+                          key={item.id}
+                          className="rounded-lg bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
+                        >
+                          {campiagnDeliverable(item.label)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Terms and Conditions */}
-      <div className="mt-6 bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">
-          Final Agreement
-        </h3>
+          {(contentSections.length > 0 ||
+            guidelineGroups.length > 0 ||
+            trimmedQuestions.length > 0) && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <header className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-indigo-600" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-900">
+                  Description
+                </h2>
+              </header>
 
-        <div className="space-y-3">
-          <div className="flex items-start space-x-3">
+              <div className="mt-3 space-y-4">
+                {contentSections.map((section) => {
+                  const baseClasses = "rounded-lg border px-3 py-2 text-sm";
+                  const toneClasses = {
+                    muted: "border-gray-200 bg-gray-50",
+                    rich: "border-gray-200 bg-white",
+                    accent: "border-indigo-100 bg-indigo-50 text-indigo-700",
+                    warning: "border-amber-200 bg-amber-50 text-amber-800",
+                  };
+                  return (
+                    <div key={section.title}>
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        {section.title}
+                      </p>
+                      <p
+                        className={`${baseClasses} ${toneClasses[section.tone] || toneClasses.muted} mt-2 leading-relaxed whitespace-pre-line`}
+                      >
+                        {section.body}
+                      </p>
+                    </div>
+                  );
+                })}
+
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Style Guide File
+                </p>
+                {styleGuideFileUrl && (
+                  <a
+                    href={styleGuideFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group w-full flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100"
+                  >
+                    <span className="truncate">{styleGuideFileName || "View style guide"}</span>
+                  </a>
+                )}
+
+                {guidelineGroups.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Content Guidelines
+                    </p>
+                    <div className="mt-2 grid gap-3">
+                      {guidelineGroups.map((group) => (
+                        <div
+                          key={group.title}
+                          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                        >
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-700">
+                            {group.title}
+                          </p>
+                          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-800">
+                            {group.items.map((item, index) => (
+                              <li key={`${group.title}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {trimmedQuestions.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Application Questions
+                    </p>
+                    <div className="mt-2 space-y-2 rounded-lg border border-blue-100 p-3 text-sm text-gray-500">
+                      {trimmedQuestions.map((question, index) => (
+                        <div key={question} className="flex items-start gap-2.5">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-blue-600">
+                            {index + 1}
+                          </span>
+                          <span>{question}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {(campaignData.min_combined_followers ||
+            requiredPlatforms.length > 0 ||
+            platformMinimums.length > 0) && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <header className="flex items-center gap-2">
+                <Target className="h-4 w-4  -indigo-600" />
+                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
+                  Audience Requirements
+                </h2>
+              </header>
+              <div className="mt-3 space-y-3 text-sm text-gray-700">
+                {campaignData.min_combined_followers && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Min Followers</span>
+                    <span className="font-medium text-gray-900">
+                      {parseInt(campaignData.min_combined_followers, 10).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {requiredPlatforms.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                      Required Platforms
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {requiredPlatforms.map((platform) => (
+                        <span
+                          key={platform.id}
+                          className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                        >
+                          {platform.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {platformMinimums.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                      Platform Minimums
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {platformMinimums.map((minimum) => (
+                        <div
+                          key={minimum.id}
+                          className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2"
+                        >
+                          <span className="text-xs uppercase text-gray-500">
+                            {minimum.platform}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900">{minimum.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <header className="flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-indigo-600" />
+          <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
+            Preview & Publish
+          </h2>
+        </header>
+        <div className="mt-3 space-y-3 text-sm text-gray-700">
+          <label htmlFor="terms" className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
               id="terms"
               name="termsAgreed"
-              checked={campaignData.termsAgreed || false}
+              checked={termsAgreed}
               onChange={handleChange}
-              className="mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
-              I agree to the{" "}
-              <a href="#" className="text-indigo-600 hover:text-indigo-800 underline">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="#" className="text-indigo-600 hover:text-indigo-800 underline">
-                Privacy Policy
-              </a>
-            </label>
-          </div>
-
-          {!campaignData.termsAgreed && (
-            <div className="text-sm text-amber-600">
-              Please agree to the terms to create your campaign
-            </div>
-          )}
-
-          {campaignData.termsAgreed && (
-            <div className="text-sm text-green-600">✓ Ready to create campaign</div>
+            <span>
+              I confirm that the information above is accurate and I agree to the
+              <span className="ml-1 text-indigo-600 underline">Terms of Service</span>
+              <span className="mx-1">&</span>
+              <span className="text-indigo-600 underline">Privacy Policy</span>.
+            </span>
+          </label>
+          {!termsAgreed && (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+              Please accept the terms to publish your campaign.
+            </p>
           )}
         </div>
       </div>
+
+      {errors && Object.keys(errors).length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm text-sm text-amber-800">
+          <header className="mb-3 flex items-center gap-2 font-semibold uppercase tracking-wide">
+            <HelpCircle className="h-4 w-4" />
+            Validation Notes
+          </header>
+          <ul className="space-y-2">
+            {Object.entries(errors).map(([field, error]) => (
+              <li key={field} className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-600" />
+                <span>
+                  <span className="font-medium capitalize">{field.replace(/_/g, " ")}: </span>
+                  {error?.message || String(error)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

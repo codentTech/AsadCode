@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useCallback } from "react";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { campiagnDeliverable } from "@/common/utils/campaign.utils";
 
 const validationSchema = Yup.object().shape({
   startDate: Yup.string()
@@ -93,7 +94,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     reValidateMode: "onChange",
     defaultValues: {
       compensationType: COMPENSATION_TYPE.PAID,
-      revisionsLimit: 2,
+      revisionsLimit: "2",
       usageRights: "no_usage",
       exclusivityClause: "none",
       startDate: "",
@@ -112,7 +113,10 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       const creator = creatorData.creator;
       const profile = creator?.creator_profile;
 
-      setValue("contentFormat", campaignData.deliverables?.join(", ") || "");
+      setValue(
+        "contentFormat",
+        campaignData.deliverables?.map((deliverable) => campiagnDeliverable(deliverable)) || ""
+      );
       setValue(
         "compensationType",
         campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID

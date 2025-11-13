@@ -1,15 +1,15 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import Loader from "@/common/components/loader/loader.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import InstagramIcon from "@/common/icons/instagram";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
-import { MapPin, Star, Users } from "lucide-react";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import { MapPin, Star } from "lucide-react";
 import React from "react";
 import { useCreatorSpendAnalysis } from "../../../../active/brand/components/creator-spend-analysis/use-creator-spend-analysis.hook";
-import Loader from "@/common/components/loader/loader.component";
-import NotFound from "@/common/components/not-found/not-found.component";
-import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import CalendarModal from "../../../../active/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "../../../../task-manager/task-manager.component";
 
@@ -70,6 +70,24 @@ const CreatorSpendAnalysisCompleted = ({
     }
     return Object.entries(platforms || {});
   };
+
+  // Helper function to determine if performance is above or below average
+  const getPerformanceComparison = (metricType) => {
+    // Simulate random performance data - in real app this would come from your data
+    const isAboveAverage = Math.random() > 0.5;
+    const difference = Math.floor(Math.random() * 5000) + 100; // Random difference
+
+    return {
+      isAboveAverage,
+      difference: formatFollowers(difference),
+      textColor: isAboveAverage ? "text-green-600" : "text-red-600",
+    };
+  };
+
+  const totalViews = "10,000";
+  const totalEngagement = "10,000";
+  const engagementRate = "10,000";
+  const costPerEngagement = "10,000";
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -153,6 +171,10 @@ const CreatorSpendAnalysisCompleted = ({
           <div className="space-y-3">
             {creators.map((creator) => {
               const isSelected = selectedCreator?.id === creator.id;
+              const viewsComparison = getPerformanceComparison("views");
+              const engagementComparison = getPerformanceComparison("engagement");
+              const rateComparison = getPerformanceComparison("rate");
+              const costComparison = getPerformanceComparison("cost");
               return (
                 <div
                   key={creator.id}
@@ -206,7 +228,7 @@ const CreatorSpendAnalysisCompleted = ({
                               <MapPin className="w-4 h-4" />
                               <span>{creator.location}</span>
                             </div>
-                            <span className="text-xs text-gray-600">(27 Years)</span>
+                            <span className="text-xs text-gray-600">(27 Years Old)</span>
                           </div>
                         </div>
                       </div>
@@ -225,7 +247,7 @@ const CreatorSpendAnalysisCompleted = ({
                             />
                           ))}
                         </div>
-                        <span className="text-xs font-medium text-gray-900">{creator.rating}</span>
+                        <span className="text-xs text-gray-600">{creator.rating}</span>
                         <span className="text-xs text-gray-600">
                           ({creator.reviewCount} reviews)
                         </span>
@@ -251,26 +273,62 @@ const CreatorSpendAnalysisCompleted = ({
                         </div>
                       </div>
 
-                      {/* Enhanced Platform Stats Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                        {getPlatformEntries(creator.platforms).map(([platform, data]) => (
-                          <div
-                            key={platform}
-                            className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3 hover:bg-gray-100/80 transition-colors duration-200"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
-                                {getPlatformIcon(platform)}
-                              </span>
-                              <span className="text-xs capitalize font-semibold text-gray-700">
-                                {platform}
-                              </span>
-                            </div>
-                            <div className="text-sm font-bold text-gray-900">
-                              {formatFollowers((data && data.followers) || 0)}
-                            </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                        {/* Total Views Dashboard Card */}
+                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-700">Total Views</span>
                           </div>
-                        ))}
+                          <div className="text-xs font-bold text-gray-900 mb-1">{totalViews}</div>
+                          <div className={`text-xs ${viewsComparison.textColor}`}>
+                            {`+${viewsComparison.difference} above campaign average`}
+                          </div>
+                        </div>
+
+                        {/* Total Engagement Dashboard Card */}
+                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-700">
+                              Total Engagement
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-gray-900 mb-1">
+                            {totalEngagement}
+                          </div>
+                          <div className={`text-xs ${engagementComparison.textColor}`}>
+                            {`+${engagementComparison.difference} above campaign average`}
+                          </div>
+                        </div>
+
+                        {/* Engagement Rate Dashboard Card */}
+                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-700">
+                              Engagement Rate
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-gray-900 mb-1">
+                            {engagementRate}%
+                          </div>
+                          <div className={`text-xs ${rateComparison.textColor}`}>
+                            {`+${rateComparison.difference} above campaign average`}
+                          </div>
+                        </div>
+
+                        {/* Cost Per Engagement Dashboard Card */}
+                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-700">
+                              Cost Per Engagement
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-gray-900 mb-1">
+                            ${costPerEngagement}
+                          </div>
+                          <div className={`text-xs ${costComparison.textColor}`}>
+                            {`+${costComparison.difference} above campaign average`}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

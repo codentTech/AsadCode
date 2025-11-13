@@ -1,3 +1,5 @@
+import { CAMPAIGN_TYPE } from "./campaign.constant";
+
 // Platform options for social media platforms
 export const PLATFORM_OPTIONS = [
   { value: "instagram", label: "Instagram" },
@@ -21,8 +23,6 @@ export const FOLLOWER_OPTIONS = [
 export const GENDER_OPTIONS = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
-  { value: "non-binary", label: "Non-binary" },
-  { value: "other", label: "Other" },
 ];
 
 // Age range options for creator filtering
@@ -110,14 +110,52 @@ export const COMPENSATION_TYPE_OPTIONS = [
 
 // Campaign type options
 export const CAMPAIGN_TYPE_OPTIONS = [
-  { label: "Sponsored Post", value: "SPONSORED_POST" },
-  { label: "UGC", value: "UGC" },
-  { label: "Gifted", value: "GIFTED" },
-  { label: "Affiliate", value: "AFFILIATE" },
+  { label: "Sponsored Post", value: CAMPAIGN_TYPE.SPONSORED_POST },
+  { label: "UGC", value: CAMPAIGN_TYPE.UGC },
+  { label: "Gifted", value: CAMPAIGN_TYPE.GIFTED },
+  { label: "Affiliate", value: CAMPAIGN_TYPE.AFFILIATE },
+];
+
+export const CREATOR_COMPENSATION_OPTIONS = [
+  { label: "Suggested Range", value: "suggested" },
+  { label: "Set Fixed Price", value: "set-price" },
 ];
 
 // Location options for campaign filtering
 export const LOCATION_OPTIONS = [
   { value: "Remote", label: "Remote" },
   { value: "On Location", label: "On Location" },
+];
+
+export const USAGE_RIGHTS_OPTIONS = [
+  { value: "no_usage", label: "No Usage Rights" },
+  { value: "3", label: "3 Months Usage" },
+  { value: "6", label: "6 Months Usage" },
+  { value: "12", label: "12 Months Usage" },
+  { value: "permanent", label: "Permanent Usage" },
+];
+
+export const EXCLUSIVITY_CLAUSE_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "3", label: "3 Months" },
+  { value: "6", label: "6 Months" },
+  { value: "12", label: "12 Months" },
+];
+
+export const REVISION_LIMIT_OPTIONS = [
+  { value: "0", label: "0 Revisions" },
+  { value: "1", label: "1 Revision" },
+  { value: "2", label: "2 Revisions" },
+  { value: "3", label: "3 Revisions" },
+  { value: "4", label: "4 Revisions" },
+  { value: "5", label: "5 Revisions" },
+];
+
+export const NEGOTIATION_TOGGLE_OPTIONS = [
+  { value: "negotiable", label: "Negotiable", activeClasses: "bg-indigo-100 text-indigo-700" },
+  {
+    value: "non_negotiable",
+    label: "Non Negotiable",
+    activeClasses: "bg-orange-100 text-orange-700",
+  },
 ];

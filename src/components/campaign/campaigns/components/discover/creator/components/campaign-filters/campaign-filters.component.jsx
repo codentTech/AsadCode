@@ -1,6 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import {
   CAMPAIGN_TYPE_OPTIONS,
   COMPENSATION_TYPE_OPTIONS,
@@ -165,6 +168,39 @@ function CampaignFilters() {
           )}
         </div>
 
+        {/* Eligibility Filter */}
+        <div className="mb-4">
+          <button
+            onClick={() => toggleFilter("eligibility")}
+            className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
+          >
+            Eligibility
+            {expandedFilters.eligibility ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+          {expandedFilters.eligibility && (
+            <div className="mt-2">
+              <div
+                className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
+                title="Filters campaigns to only show those you qualify for based on your country, city, follower count, connected platforms, and gender."
+              >
+                <CustomSwitch
+                  name="eligibleOnly"
+                  checked={filters.eligibleOnly}
+                  onChange={(event) =>
+                    setFilters({ ...filters, eligibleOnly: Boolean(event.target.checked) })
+                  }
+                  label="Display campaigns I am eligible for"
+                  labelRight={false}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Location Filter */}
         <div className="mb-4">
           <button
@@ -179,12 +215,30 @@ function CampaignFilters() {
             )}
           </button>
           {expandedFilters.location && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-3">
               <SimpleSelect
                 placeHolder="Select location"
                 options={LOCATION_OPTIONS}
                 value={filters.location}
                 onChange={(value) => setFilters({ ...filters, location: value })}
+              />
+
+              <CountrySelect
+                label="Country (of brand)"
+                value={filters.brandCountry}
+                onChange={(selection) =>
+                  setFilters({ ...filters, brandCountry: selection, brandCity: null })
+                }
+                autoDetect={false}
+                isRequired={false}
+              />
+
+              <CitySelect
+                label="City (optional)"
+                countryCode={filters.brandCountry?.countryCode}
+                value={filters.brandCity}
+                onChange={(selection) => setFilters({ ...filters, brandCity: selection })}
+                isRequired={false}
               />
             </div>
           )}

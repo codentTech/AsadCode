@@ -3,7 +3,6 @@ import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
-  BarChart3,
   Calendar,
   CheckCircle,
   ChevronDown,
@@ -26,6 +25,8 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
     styleGuide: false,
     captions: false,
   });
+
+  console.log(campaign);
 
   // Message thread hook - use brand ID (campaign creator)
   const brandId = campaign?.campaign?.created_by?.id;
@@ -150,9 +151,11 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-              {typeof campaign?.brand?.logo === "string" && campaign?.brand?.logo.length <= 2
-                ? campaign?.brand?.logo
-                : "🌟"}
+              <img
+                src={campaign?.brand?.logo}
+                alt={campaign?.brand?.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{campaign?.brand?.name}</h2>
@@ -165,7 +168,6 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
           </div>
 
           {/* UGC Post Badge and Product */}
-
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             <div
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
@@ -243,32 +245,24 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-900">Style Guide</span>
                 </div>
-                {expandedSections.styleGuide ? (
+                {campaign?.campiagn?.style_guide ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {expandedSections.styleGuide && (
+              {campaign?.campiagn?.style_guide && (
                 <div className="p-3 bg-white border-t border-gray-200 space-y-2">
                   <div>
                     <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Colors</h4>
-                    <div className="flex gap-1">
-                      {campaignInfo.styleGuide.colors.map((color, index) => (
-                        <div key={index} className="flex flex-col items-center gap-1">
-                          <div
-                            className="w-6 h-6 rounded border border-gray-200"
-                            style={{ backgroundColor: color }}
-                          />
-                          <span className="text-xs text-gray-500">{color}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <span className="text-xs text-gray-500">{color}</span>
                   </div>
                   <div>
                     <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Tone</h4>
-                    <p className="text-xs text-gray-600">{campaignInfo.styleGuide.tone}</p>
+                    <p className="text-xs text-gray-600">
+                      {campaign?.campiagn?.style_guide.style_guide_file}
+                    </p>
                   </div>
                 </div>
               )}
@@ -283,34 +277,16 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-900">Captions & Hashtags</span>
                 </div>
-                {expandedSections.captions ? (
+                {campaign?.campiagn?.hashtags ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {expandedSections.captions && (
+              {campaign?.campiagn?.hashtags && (
                 <div className="p-3 bg-white border-t border-gray-200 space-y-2">
-                  {campaignInfo.captions.map((item, index) => (
-                    <div key={index} className="border border-gray-100 rounded p-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-xs font-medium text-gray-900 flex items-center gap-1">
-                          <div className="w-3 h-3">{getPlatformIcon(item.platform)}</div>
-                          {item.platform}
-                        </h4>
-                        <button
-                          onClick={() => copyToClipboard(item.caption)}
-                          className="text-blue-600 hover:text-blue-700"
-                          title="Copy caption"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-1 line-clamp-2">{item.caption}</p>
-                      <p className="text-xs text-blue-600">{item.hashtags}</p>
-                    </div>
-                  ))}
+                  <p className="text-xs text-blue-600">{campaign?.campiagn?.hashtags}</p>
                 </div>
               )}
             </div>
@@ -348,6 +324,22 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
           <p className="text-xs text-gray-600 line-clamp-2 ml-2">
             <span className="font-bold">Description:</span> {campaign?.description}
           </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <CustomButton
+            text="Message"
+            className="btn-primary text-xs"
+            onClick={handleMessageClick}
+            startIcon={<MessageCircle className="w-4 h-4" />}
+          />
+          <CustomButton
+            text="View Brief"
+            className="btn-outline text-xs"
+            onClick={() => setShowContentBrief(true)}
+            startIcon={<ExternalLink className="w-4 h-4" />}
+          />
         </div>
 
         {/* Campaign Progress */}
@@ -388,22 +380,6 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <CustomButton
-            text="Message"
-            className="btn-outline text-xs"
-            onClick={handleMessageClick}
-            startIcon={<MessageCircle className="w-3 h-3" />}
-          />
-          <CustomButton
-            text="View Brief"
-            className="btn-outline text-xs"
-            onClick={() => setShowContentBrief(true)}
-            startIcon={<ExternalLink className="w-3 h-3" />}
-          />
         </div>
       </div>
 

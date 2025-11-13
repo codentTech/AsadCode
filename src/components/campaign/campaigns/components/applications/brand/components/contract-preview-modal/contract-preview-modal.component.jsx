@@ -85,6 +85,7 @@ export default function ContractPreviewModal({
 
   // Helper function to get eligibility information
   const getEligibilitySection = () => {
+    console.log(campaignData);
     const eligibilityItems = [];
 
     // In-person requirement
@@ -95,35 +96,30 @@ export default function ContractPreviewModal({
     }
 
     // Geographic requirements
-    if (campaignData?.country_requirement && campaignData?.creator_country) {
-      const country = campaignData.creator_country;
-      const city =
-        campaignData?.city_requirement && campaignData?.creator_city
-          ? `, ${campaignData.creator_city}`
-          : "";
-      eligibilityItems.push(`• Geographic requirements: ${country}${city}`);
-    } else if (!campaignData?.country_requirement) {
+    if (campaignData?.creator_city || campaignData?.creator_country) {
+      eligibilityItems.push(
+        `• Geographic requirements: ${campaignData.creator_city}, ${campaignData.creator_country}`
+      );
+    } else {
       eligibilityItems.push(`• Geographic requirements: Not Applicable`);
     }
 
     // Age range
-    if (campaignData?.age_requirement && campaignData?.min_age && campaignData?.max_age) {
+    if (campaignData?.min_age && campaignData?.max_age) {
       eligibilityItems.push(`• Age range: ${campaignData.min_age} - ${campaignData.max_age}`);
     } else if (!campaignData?.age_requirement) {
       eligibilityItems.push(`• Age range: Not Applicable`);
     }
 
     // Gender
-    if (campaignData?.gender_requirement && campaignData?.creator_gender) {
-      const gender =
-        campaignData.creator_gender.charAt(0).toUpperCase() + campaignData.creator_gender.slice(1);
-      eligibilityItems.push(`• Gender: ${gender}`);
-    } else if (!campaignData?.gender_requirement) {
+    if (campaignData?.creator_gender) {
+      eligibilityItems.push(`• Gender: ${campaignData.creator_gender}`);
+    } else {
       eligibilityItems.push(`• Gender: Not Applicable`);
     }
 
     // Language
-    if (campaignData?.language_requirement && campaignData?.creator_language) {
+    if (campaignData?.creator_language) {
       eligibilityItems.push(`• Language: ${campaignData.creator_language}`);
     } else if (!campaignData?.language_requirement) {
       eligibilityItems.push(`• Language: Not Applicable`);
