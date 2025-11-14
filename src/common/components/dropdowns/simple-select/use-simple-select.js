@@ -41,11 +41,38 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
     setShowMenu(!showMenu);
   };
 
+  useEffect(() => {
+    if (!options) return;
+
+    if (isMulti) {
+      if (Array.isArray(defaultValue) && defaultValue.length) {
+        const selectedOptions = options.filter((option) => defaultValue.includes(option.value));
+        setSelectedValue(selectedOptions);
+      } else if (!defaultValue || defaultValue.length === 0) {
+        setSelectedValue([]);
+      }
+      return;
+    }
+
+    if (!defaultValue) {
+      setSelectedValue(null);
+      return;
+    }
+
+    if (typeof defaultValue === "object" && defaultValue?.value) {
+      setSelectedValue(defaultValue);
+      return;
+    }
+
+    const defaultOption = options.find((option) => option.value === defaultValue);
+    if (defaultOption) {
+      setSelectedValue(defaultOption);
+    }
+  }, [defaultValue, options, isMulti]);
+
   const getDisplay = () => {
-    if (defaultValue) {
-      // If defaultValue is provided, find the corresponding option and return its label
-      const defaultOption = options && options.find((option) => option.value === defaultValue);
-      return defaultOption ? defaultOption.label : placeHolder || "";
+    if (selectedValue && !isMulti) {
+      return selectedValue.label;
     }
 
     if (!selectedValue || selectedValue.length === 0) {
@@ -66,6 +93,10 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
           ))}
         </div>
       );
+    }
+
+    if (!selectedValue) {
+      return placeHolder || "";
     }
 
     return selectedValue.label;

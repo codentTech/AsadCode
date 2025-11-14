@@ -4,13 +4,22 @@ import FacebookIcon from "@/common/icons/facebook";
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
-import Niche from "@/components/niche/niche";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
-import { BookmarkPlus, Edit, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
-import { useSelector, useDispatch } from "react-redux";
+import Niche from "@/components/niche/niche";
 import { getCreatorById } from "@/provider/features/creator-profile/creator-profile.slice";
+import {
+  BookmarkPlus,
+  Edit,
+  Heart,
+  MapPin,
+  MessageCircle,
+  Share2,
+  Star,
+  StarHalf,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 
 const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,7 +42,7 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
               creatorData.city && creatorData.country
                 ? `${creatorData.city}, ${creatorData.country}`
                 : creatorData.city || creatorData.country || "Location not set",
-            rating: 4.8, // Default rating since not in API
+            rating: creatorData.creator_profile?.rating || 0, // Default rating since not in API
             reviewCount: 0, // Default since not in API
             followers: 0, // Default since not in API
             following: 0, // Default since not in API
@@ -64,7 +73,7 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
             user.city && user.country
               ? `${user.city}, ${user.country}`
               : user.city || user.country || "Location not set",
-          rating: 4.8, // Default rating since not in API
+          rating: user.creator_profile?.rating || 0, // Default rating since not in API
           reviewCount: 0, // Default since not in API
           followers: 0, // Default since not in API
           following: 0, // Default since not in API
@@ -134,6 +143,24 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
     }
   };
 
+  const renderRatingStars = () => {
+    const ratingValue = Number(creator.rating) || 0;
+    const fullStars = Math.floor(ratingValue);
+    const hasHalfStar = ratingValue - fullStars >= 0.5;
+
+    return Array.from({ length: 5 }).map((_, index) => {
+      if (index < fullStars) {
+        return <Star key={index} className="w-4 h-4 text-yellow-500 fill-current" />;
+      }
+
+      if (hasHalfStar && index === fullStars) {
+        return <StarHalf key={index} className="w-4 h-4 text-yellow-500 fill-current" />;
+      }
+
+      return <Star key={index} className="w-4 h-4 text-gray-300" />;
+    });
+  };
+
   return (
     <>
       <section className="bg-white rounded-lg shadow-md p-6">
@@ -170,12 +197,8 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
               <p className="text-gray-500">{creator.handle}</p>
 
               {/* Rating */}
-              <div className="flex items-center justify-center md:justify-start text-yellow-500 mb-1">
-                <Star className="w-3 h-3 fill-current" />
-                <Star className="w-3 h-3 fill-current" />
-                <Star className="w-3 h-3 fill-current" />
-                <Star className="w-3 h-3 fill-current" />
-                <Star className="w-3 h-3 fill-current" />
+              <div className="flex items-center justify-center md:justify-start gap-1 mb-1">
+                {renderRatingStars()}
                 <span className="text-sm m-1 text-gray-700">
                   {creator.rating} ({creator.reviewCount})
                 </span>
@@ -195,7 +218,7 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
               </div>
 
               {/* Niche Tags */}
-              <Niche categories={creator.categories} selectedNiche="all" />
+              <Niche categories={creator.categories} />
             </div>
           </div>
 
@@ -228,24 +251,34 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-2 w-full md:w-auto">
-              <CustomButton text="Follow" startIcon={<Heart className="w-4 h-4" />} />
+            {creatorId ? (
+              <div className="flex flex-col gap-2 w-full md:w-auto">
+                <CustomButton text="Follow" startIcon={<Heart className="w-4 h-4" />} />
 
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <CustomButton
+                    text="Message"
+                    className="btn-outline"
+                    startIcon={<MessageCircle className="w-4 h-4" />}
+                  />
+                  <CustomButton text="Shortlist" startIcon={<BookmarkPlus className="w-4 h-4" />} />
+
+                  <CustomButton
+                    text="share"
+                    className="btn-outline"
+                    startIcon={<Share2 className="w-4 h-4" />}
+                  />
+                </div>
+              </div>
+            ) : (
               <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <CustomButton
-                  text="Message"
-                  className="btn-outline"
-                  startIcon={<MessageCircle className="w-4 h-4" />}
-                />
-                <CustomButton text="Shortlist" startIcon={<BookmarkPlus className="w-4 h-4" />} />
-
-                <CustomButton
-                  text="share"
+                  text="Share Your Profile"
                   className="btn-outline"
                   startIcon={<Share2 className="w-4 h-4" />}
                 />
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

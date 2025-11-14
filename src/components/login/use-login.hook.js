@@ -66,7 +66,7 @@ export default function useLogin() {
   const onSubmit = async (values) => {
     setLoading(true);
     const response = await dispatch(login(values));
-    if (response.payload.success) router.push("admin/dashboard");
+    if (response.payload.success) router.push("campaign");
     response && setLoading(false);
     if (typeof window === "object" && isChecked) {
       // Check if the browser supports localStorage

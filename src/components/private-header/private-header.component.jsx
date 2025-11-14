@@ -10,20 +10,17 @@ function Header() {
   const isCreator = isCreatorMode();
 
   const links = useMemo(() => {
-    const headerLinks = [
-      { href: "/admin/dashboard", label: "Dashboard" },
+    const portfolioLink = isCreator
+      ? { href: "/creator-portfolio", label: "Portfolio" }
+      : { href: "/brand-portfolio", label: "Profile" };
+
+    return [
       { href: "/campaign", label: "Campaigns" },
-      { href: "/creator-portfolio", label: "My Portfolio" },
+      portfolioLink,
       { href: "/chat-inbox", label: "Inbox" },
       { href: "/notifications", label: "Notifications" },
       { href: "/admin/dashboard", label: "Settings" },
     ];
-
-    if (!isCreator) {
-      return headerLinks.filter((link) => link.label !== "My Portfolio");
-    }
-
-    return headerLinks;
   }, [isCreator]);
 
   const handleInboxClick = (e) => {
@@ -39,7 +36,8 @@ function Header() {
           {links.map(({ href, label, openInNewTab }) => {
             const isActive =
               pathname === href ||
-              (href.includes("creator-portfolio") && pathname.includes("/creator-profile"));
+              (href.includes("creator-portfolio") && pathname.includes("/creator-profile")) ||
+              (href.includes("brand-portfolio") && pathname.includes("/brand-portfolio"));
 
             const baseStyles =
               "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";

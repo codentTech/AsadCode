@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { getUser } from "@/common/utils/users.util";
 
-function Niche({ categories = [], onNicheChange, selectedNiche = "all" }) {
+function Niche({ categories = [], onNicheChange, selectedNiche = null }) {
   const [localCategories, setLocalCategories] = useState([]);
 
   // Memoize categories to prevent unnecessary re-renders
@@ -39,7 +39,7 @@ function Niche({ categories = [], onNicheChange, selectedNiche = "all" }) {
   };
 
   // Add "All" option at the beginning
-  const displayCategories = ["all", ...localCategories];
+  const displayCategories = [...localCategories];
 
   // Don't render if no categories available
   if (localCategories.length === 0) {
@@ -55,10 +55,10 @@ function Niche({ categories = [], onNicheChange, selectedNiche = "all" }) {
           className={`px-2 py-1.5 rounded-lg text-xs border transition-colors ${
             selectedNiche === category
               ? "bg-primary text-white shadow-sm"
-              : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
+              : "bg-white border border-primary text-gray-700 hover:border-primary hover:text-primary"
           }`}
         >
-          {category === "all" ? "All Niches" : category}
+          {category}
         </button>
       ))}
     </div>

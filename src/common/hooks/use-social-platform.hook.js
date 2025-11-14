@@ -28,23 +28,27 @@ function useGetplatform() {
     const value = platform?.toLowerCase();
     switch (value) {
       case "facebook":
-        return "bg-blue-100 text-green-800";
+        return "bg-blue-50 text-blue-700";
       case "instagram":
-        return "bg-pink-100 text-pink-800";
+        return "bg-pink-50 text-pink-700";
       case "youtube":
-        return "bg-red-100 text-red-800";
+        return "bg-red-50 text-red-700";
       case "twitter":
-        return "bg-blue-100 text-green-800";
+        return "bg-sky-50 text-sky-700";
       case "tiktok":
-        return "bg-gray-100 text-green-800";
+        return "bg-gray-100 text-gray-700";
       default:
-        return "bg-gray-100 text-green-800";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   const formatFollowers = (count) => {
+    if (typeof count !== "number" || Number.isNaN(count)) {
+      return count ? count.toString() : "—";
+    }
+
     if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
+    if (count >= 1_000) return `${Math.round(count / 1_000)}K`;
     return count.toString();
   };
 
