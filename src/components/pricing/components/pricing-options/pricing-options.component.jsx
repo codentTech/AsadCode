@@ -3,33 +3,41 @@ import { Check } from "lucide-react";
 import { useState } from "react";
 
 const payAsYouGoFeatures = [
-  { title: "9.9% service fee on monthly spend up to $5,000" },
-  { title: "7.9% service fee on spend between $5,001–$10,000" },
-  { title: "5.9% service fee on spend over $10,000" },
+  { title: "9.9% commission per creator payment" },
   { title: "3 free gifted or affiliate collaborations per month" },
 ];
 
 const unlimitedPlanFeatures = [
   { title: "Run unlimited gifting and affiliate campaigns" },
-  { title: "No platform service fees on gifting or affiliate campaigns" },
-  { title: "Sponsored/UGC campaigns available at standard pay-as-you-go rates" },
+  { title: "Zero commission on gifting or affiliate campaigns" },
+  { title: "Sponsored and UGC campaigns available at standard pay-as-you-go rates" },
 ];
 
 const flatRatePlans = [
   {
-    name: "Growth Plan – $525/month",
+    name: "Zero Commission Starter Plan – $399/month",
     features: [
-      "$0 commission on monthly spend of up to $10,000",
-      "Best for brands running consistent campaigns",
+      "$0 commission on creator payments up to $5,000 per month",
+      "Save up to 20% vs pay-as-you-go rates",
+      "Unlimited gifted and affiliate campaigns",
+      "Best for brands with a predictable budget",
+    ],
+  },
+  {
+    name: "Zero Commission Growth Plan – $525/month",
+    features: [
+      "$0 commission on creator payments up to $10,000 per month",
+      "Save up to 47% vs pay-as-you-go rates",
       "Unlimited gifted and affiliate campaigns",
     ],
   },
   {
-    name: "Enterprise Plan – $699/month",
+    name: "Zero Commission Enterprise Plan – $699/month",
     features: [
-      "$0 commission on monthly spend of up to $20,000",
-      "Ideal for high-volume teams seeking predictable costs",
+      "$0 commission on creator payments up to $20,000 per month",
+      "Save up to 65% vs pay-as-you-go rates",
       "Unlimited gifted and affiliate campaigns",
+      "Ideal for high-volume teams seeking predictable costs",
     ],
   },
 ];
@@ -76,7 +84,7 @@ export default function PricingOptions() {
               </div>
 
               <h3 className="text-[16px] font-bold text-gray-600 mb-2">
-                Unlimited Gifting & Affiliate Plan – $69.99/month
+                Unlimited Gifting & Affiliate Add On – $69.99/month
               </h3>
 
               <div className="text-xs md:text-sm space-y-3 mb-8">
@@ -131,7 +139,7 @@ export default function PricingOptions() {
 
               <div className="py-4 px-5 bg-indigo-50 rounded-lg text-xs md:text-sm">
                 <p className="text-primary font-medium">
-                  3% service fee applies to spend exceeding plan limits.
+                  5% commission applies to campaign spend exceeding plan limits.
                 </p>
               </div>
 
