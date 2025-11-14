@@ -1,5 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { AddCircle } from "@mui/icons-material";
 import { ArrowLeft, Camera, DollarSign, Link, Upload, X } from "lucide-react";
@@ -20,6 +21,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
     updateContentRates,
     getStandardContentTypes,
     isLoading,
+    name,
   } = useProfileSetup({ onNext });
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
@@ -33,16 +35,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
   const fileInputRef = useRef(null);
 
   const platforms = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook"];
-  const categories = [
-    "Fashion",
-    "Fitness",
-    "Food",
-    "Travel",
-    "Tech",
-    "Beauty",
-    "Lifestyle",
-    "Gaming",
-  ];
 
   const standardContentTypes = getStandardContentTypes();
 
@@ -72,18 +64,16 @@ const ProfileSetup = ({ onNext, onBack }) => {
     updateSocialPlatforms(selectedPlatforms, newUsernames);
   };
 
-  const toggleCategory = (category) => {
-    let newSelectedCategories;
-    if (selectedCategories.includes(category)) {
-      newSelectedCategories = selectedCategories.filter((c) => c !== category);
-    } else if (selectedCategories.length < 5) {
-      newSelectedCategories = [...selectedCategories, category];
-    } else {
-      return; // Don't allow more than 5
-    }
+  const handleCategoryChange = (niches) => {
+    const limited = Array.isArray(niches) ? niches.slice(0, 5) : [];
+    setSelectedCategories(limited);
+    updateCategories(limited);
+  };
 
-    setSelectedCategories(newSelectedCategories);
-    updateCategories(newSelectedCategories);
+  const handleCategoryRemove = (nicheToRemove) => {
+    const filtered = selectedCategories.filter((niche) => niche !== nicheToRemove);
+    setSelectedCategories(filtered);
+    updateCategories(filtered);
   };
 
   const addKeywordTag = (tag) => {
@@ -294,7 +284,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       </div>
                     )}
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-1">@username</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">{name}</h4>
                   <p className="text-xs text-gray-600 mb-3">
                     {bio || "Your bio will appear here."}
                   </p>
@@ -330,31 +320,31 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Creator Categories <span className="text-red-500">*</span>
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      onClick={() => toggleCategory(category)}
-                      disabled={
-                        !selectedCategories.includes(category) && selectedCategories.length >= 5
-                      }
-                      className={`
-                        p-2 rounded-lg border-2 text-xs font-medium transition-all duration-200
-                        ${
-                          selectedCategories.includes(category)
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 text-gray-700 hover:border-indigo-200 disabled:opacity-50"
-                        }
-                      `}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  Select up to 5 categories ({selectedCategories.length}/5)
-                </p>
+                <SearchableNicheInput
+                  selectedNiches={selectedCategories}
+                  onNichesChange={handleCategoryChange}
+                  handleNicheRemove={handleCategoryRemove}
+                  placeholder="Search and add categories"
+                />
+                {selectedCategories.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedCategories.map((category) => (
+                      <span
+                        key={category}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                      >
+                        {category}
+                        <button
+                          type="button"
+                          onClick={() => handleCategoryRemove(category)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {errors.categories && (
                   <p className="text-xs text-red-600 mt-2">{errors.categories.message}</p>
                 )}
@@ -379,17 +369,18 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     }}
                   />
                 </div>
+                <p className="text-xs text-gray-600 mt-2">Type and press enter to add a keyword</p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   {keywordTags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
+                      className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeKeywordTag(index)}
-                        className="ml-2 text-indigo-500 hover:text-indigo-700"
+                        className="text-gray-500 hover:text-gray-700"
                       >
                         <X className="h-3 w-3" />
                       </button>

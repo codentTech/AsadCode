@@ -10,7 +10,14 @@ const validationSchema = Yup.object().shape({
   min_followers: Yup.string().required("Minimum followers is required"),
   gender: Yup.array().min(1, "Select at least one gender"),
   countries: Yup.array().min(1, "Select at least one country"),
-  city: Yup.string(),
+  cities: Yup.array()
+    .of(
+      Yup.object().shape({
+        name: Yup.string().required(),
+        countryCode: Yup.string().required(),
+      })
+    )
+    .optional(),
   age_ranges: Yup.array().min(1, "Select at least one age range"),
   platforms: Yup.array().min(1, "Select at least one platform"),
 });
@@ -37,7 +44,7 @@ export default function useIdealCreator({ onNext }) {
       min_followers: "",
       gender: [],
       countries: [],
-      city: "",
+      cities: [],
       age_ranges: [],
       platforms: [],
     },
@@ -45,11 +52,19 @@ export default function useIdealCreator({ onNext }) {
 
   const onSubmit = async (values) => {
     try {
+      const normalizedCities = Array.isArray(values.cities)
+        ? values.cities.map((city) => ({
+            name: city.name,
+            countryCode: city.countryCode,
+          }))
+        : [];
+
       const payload = {
         min_followers: values.min_followers,
         gender: values.gender,
         countries: values.countries,
-        city: values.city,
+        cities: normalizedCities,
+        city: normalizedCities[0]?.name || undefined,
         age_ranges: values.age_ranges,
         platforms: values.platforms,
       };

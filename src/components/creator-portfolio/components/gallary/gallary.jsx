@@ -96,45 +96,38 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
 
       {/* Portfolio Grid */}
       {filteredPortfolio.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPortfolio.map((item) => (
             <div
               key={item.id}
-              className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-white"
             >
-              <div className="relative">
+              <div className="relative aspect-[9/16] w-full bg-gray-900 flex items-center justify-center">
                 {item.type === "video" ? (
                   <video
+                    key={item.id}
                     src={item.url}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-full object-contain bg-black"
                     preload="metadata"
                     controls
+                    playsInline
+                    poster={item.thumbnail || undefined}
+                    style={{
+                      pointerEvents: "auto",
+                    }}
                   />
                 ) : (
-                  <img src={item.url} alt={item.caption} className="w-full h-48 object-cover" />
-                )}
-
-                {item.type === "video" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 pointer-events-none">
-                    <div className="w-12 h-12 bg-white bg-opacity-75 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-gray-800"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </div>
+                  <img
+                    src={item.url}
+                    alt={item.caption}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 )}
               </div>
-              <div className="p-2">
-                <p className="text-xs text-gray-600 truncate">{item.caption}</p>
-                <p className="text-xs text-gray-400 truncate">{item.niche}</p>
+              <div className="p-3 space-y-1">
+                <p className="text-sm font-medium text-gray-800 truncate">{item.caption}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">{item.niche}</p>
               </div>
             </div>
           ))}

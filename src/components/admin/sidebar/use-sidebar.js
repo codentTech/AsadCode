@@ -38,12 +38,6 @@ import { Campaign } from "@mui/icons-material";
 
 const commonNavItems = [
   {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    isActive: true,
-    href: "/admin/dashboard",
-  },
-  {
     label: "Notifications",
     icon: Bell,
     isActive: false,
@@ -53,6 +47,12 @@ const commonNavItems = [
 
 // Define nav items for Admin users
 const adminNavItems = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+    href: "/admin/dashboard",
+  },
   ...commonNavItems,
   {
     label: "Users",

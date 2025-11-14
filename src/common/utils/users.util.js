@@ -23,6 +23,13 @@ export const getOnboardingEmail = () => {
   return undefined;
 };
 
+export const getOnboardingName = () => {
+  if (typeof window === "object" && window?.localStorage?.getItem("name")) {
+    return localStorage.getItem("name");
+  }
+  return undefined;
+};
+
 export const isCreatorMode = () => {
   const user = getUser();
   return user?.role === ROLES.CREATOR;

@@ -249,17 +249,9 @@ const ProfileInformation = () => {
             {/* Location */}
             <div className="bg-white rounded-lg shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                HQ Location <span className="text-red-500">*</span>
+                Location <span className="text-red-500">*</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CustomInput
-                  label="City"
-                  name="city"
-                  placeholder="Enter your city"
-                  icon={MapPin}
-                  register={register}
-                  errors={errors}
-                />
                 <SimpleSelect
                   label="Country"
                   placeHolder="Select an option"
@@ -267,6 +259,14 @@ const ProfileInformation = () => {
                   value={selectedCountry}
                   onChange={({ value }) => setValue("country", value, { shouldValidate: true })}
                   error={errors.country?.message}
+                />
+                <CustomInput
+                  label="City"
+                  name="city"
+                  placeholder="Enter your city"
+                  icon={MapPin}
+                  register={register}
+                  errors={errors}
                 />
               </div>
             </div>

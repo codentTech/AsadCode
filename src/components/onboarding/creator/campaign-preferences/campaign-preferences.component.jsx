@@ -1,6 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import { ArrowLeft, Camera, CheckCircle, DollarSign, Gift, MapPin, Percent, X } from "lucide-react";
+import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Camera, CheckCircle, DollarSign, Gift, MapPin, Percent } from "lucide-react";
 import useCampaignPreferences from "./use-campaign-preferences.hook";
 
 const CampaignPreferences = ({ onNext, onBack }) => {
@@ -34,22 +38,49 @@ const CampaignPreferences = ({ onNext, onBack }) => {
     },
   ];
 
-  const languages = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Chinese",
-    "Japanese",
-  ];
-
   // Use hook state for controlled fields
   const selectedCampaignTypes = watch("campaignTypes");
   const selectedLanguages = watch("languages");
   const inPersonOpportunities = watch("inPersonOpportunities");
   const shippingAddress = watch("shippingAddress");
+
+  const [countrySelection, setCountrySelection] = useState(null);
+  const [citySelection, setCitySelection] = useState(null);
+
+  const countryCode = countrySelection?.countryCode || shippingAddress?.country_code || "";
+
+  useEffect(() => {
+    if (shippingAddress?.country && shippingAddress?.country_code) {
+      setCountrySelection((prev) =>
+        prev?.countryCode === shippingAddress.country_code
+          ? prev
+          : {
+              name: shippingAddress.country,
+              countryCode: shippingAddress.country_code,
+              code: shippingAddress.country_code,
+            }
+      );
+    } else if (!shippingAddress?.country) {
+      setCountrySelection(null);
+    }
+  }, [shippingAddress?.country, shippingAddress?.country_code]);
+
+  useEffect(() => {
+    if (shippingAddress?.city) {
+      setCitySelection((prev) =>
+        prev?.name === shippingAddress.city
+          ? prev
+          : {
+              name: shippingAddress.city,
+              cityName: shippingAddress.city,
+              countryCode:
+                shippingAddress?.city_country_code || shippingAddress?.country_code || "",
+            }
+      );
+    } else {
+      setCitySelection(null);
+    }
+  }, [shippingAddress?.city, shippingAddress?.city_country_code, shippingAddress?.country_code]);
 
   const toggleCampaignType = (type) => {
     const prev = getValues("campaignTypes") || [];
@@ -64,17 +95,70 @@ const CampaignPreferences = ({ onNext, onBack }) => {
     }
   };
 
-  const toggleLanguage = (language) => {
-    const prev = getValues("languages") || [];
-    if (prev.includes(language)) {
-      setValue(
-        "languages",
-        prev.filter((l) => l !== language),
-        { shouldValidate: true }
-      );
-    } else {
-      setValue("languages", [...prev, language], { shouldValidate: true });
+  const handleLanguagesChange = (languages) => {
+    setValue("languages", languages, { shouldValidate: true });
+  };
+
+  const handleCountrySelect = (country) => {
+    if (!country) {
+      setCountrySelection(null);
+      setValue("shippingAddress.country", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.country_code", "", { shouldValidate: true, shouldDirty: true });
+      setCitySelection(null);
+      setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.city_country_code", "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return;
     }
+
+    const normalized = {
+      name: country.countryName || country.label || country.name || "",
+      countryCode: country.countryCode || country.value || country.code || "",
+    };
+
+    setCountrySelection(normalized);
+    setValue("shippingAddress.country", normalized.name, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue("shippingAddress.country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    setCitySelection(null);
+    setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+    setValue("shippingAddress.city_country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleCitySelect = (city) => {
+    if (!city) {
+      setCitySelection(null);
+      setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.city_country_code", "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return;
+    }
+
+    const normalized = {
+      name: city.cityName || city.label || city.name || "",
+      countryCode: city.countryCode || city.country || countryCode || "",
+      cityName: city.cityName || city.label || city.name || "",
+    };
+
+    setCitySelection(normalized);
+    setValue("shippingAddress.city", normalized.name, { shouldValidate: true, shouldDirty: true });
+    setValue("shippingAddress.city_country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
   const handleInPersonChange = (value) => {
@@ -169,27 +253,14 @@ const CampaignPreferences = ({ onNext, onBack }) => {
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Languages */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Languages</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {languages.map((language) => (
-                    <button
-                      key={language}
-                      type="button"
-                      onClick={() => toggleLanguage(language)}
-                      className={
-                        `p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 ` +
-                        (selectedLanguages?.includes(language)
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                          : "border-gray-200 text-gray-600 hover:border-indigo-200")
-                      }
-                    >
-                      {language}
-                    </button>
-                  ))}
-                </div>
-                {errors.languages && (
-                  <p className="text-xs text-red-600 mt-2">{errors.languages.message}</p>
-                )}
+                <LanguageSelect
+                  label="Languages"
+                  name="languages"
+                  value={selectedLanguages || []}
+                  onChange={handleLanguagesChange}
+                  errors={errors}
+                  maxSelections={8}
+                />
               </div>
 
               {/* In-Person Opportunities */}
@@ -250,11 +321,18 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                   onChange={(e) => handleShippingChange("street", e.target.value)}
                 />
                 <CustomInput
-                  label="City"
-                  name="city"
-                  placeholder="Enter city"
-                  value={shippingAddress?.city || ""}
-                  onChange={(e) => handleShippingChange("city", e.target.value)}
+                  label="Address Line 2"
+                  name="addressLine2"
+                  placeholder="Apartment, suite, unit, etc."
+                  value={shippingAddress?.line2 || ""}
+                  onChange={(e) => handleShippingChange("line2", e.target.value)}
+                />
+                <CustomInput
+                  label="Address Line 3"
+                  name="addressLine3"
+                  placeholder="Building, floor, landmark"
+                  value={shippingAddress?.line3 || ""}
+                  onChange={(e) => handleShippingChange("line3", e.target.value)}
                 />
                 <CustomInput
                   label="State/Province"
@@ -269,6 +347,26 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                   placeholder="Enter ZIP code"
                   value={shippingAddress?.zipCode || ""}
                   onChange={(e) => handleShippingChange("zipCode", e.target.value)}
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <CountrySelect
+                  label="Country"
+                  name="country"
+                  value={countrySelection}
+                  onChange={handleCountrySelect}
+                  isRequired={false}
+                  errors={errors?.shippingAddress || {}}
+                />
+                <CitySelect
+                  label="City"
+                  name="city"
+                  countryCode={countryCode}
+                  countryCodes={countryCode ? [countryCode] : []}
+                  value={citySelection}
+                  onChange={handleCitySelect}
+                  isRequired={false}
+                  errors={errors?.shippingAddress || {}}
                 />
               </div>
             </div>
