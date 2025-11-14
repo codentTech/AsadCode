@@ -1,10 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import { ArrowLeft, Calendar, Lock, Mail, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import useRegister from "./use-register.hook";
+import COUNTRIES from "@/common/constants/countries.constant";
 
 const Register = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, watch, setValue, isLoading } = useRegister({
@@ -14,8 +16,8 @@ const Register = ({ onNext, onBack }) => {
 
   // Separate states for different selection types
   const [selectedAccountType, setSelectedAccountType] = useState("");
-  const [selectedCreatorType, setSelectedCreatorType] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const password = watch("password");
@@ -38,17 +40,110 @@ const Register = ({ onNext, onBack }) => {
     }
   }, [selectedAccountType, setValue]);
 
-  useEffect(() => {
-    if (selectedCreatorType) {
-      setValue("creator_type", selectedCreatorType);
-    }
-  }, [selectedCreatorType, setValue]);
+  const countryLookup = useMemo(() => {
+    return COUNTRIES.reduce((acc, country) => {
+      acc[country.code] = country;
+      return acc;
+    }, {});
+  }, []);
+
+  const handleCountrySelect = useCallback(
+    (country) => {
+      if (!country) {
+        setSelectedCountry(null);
+        setValue("country", "", { shouldValidate: true });
+        setValue("country_code", "", { shouldValidate: true });
+        setSelectedCity(null);
+        setValue("city", "", { shouldValidate: true });
+        setValue("city_country_code", "", { shouldValidate: true });
+        return;
+      }
+
+      const normalizedCountry = {
+        name: country.countryName || country.label || country.name || "",
+        code: country.countryCode || country.value || country.code || "",
+        countryCode: country.countryCode || country.value || country.code || "",
+        dialCode: country.phoneCode || country.phone || "",
+      };
+
+      setSelectedCountry(normalizedCountry);
+      setValue("country", normalizedCountry.name, { shouldValidate: true });
+      setValue("country_code", normalizedCountry.code, { shouldValidate: true });
+
+      setSelectedCity(null);
+      setValue("city", "", { shouldValidate: true });
+      setValue("city_country_code", normalizedCountry.code || "", { shouldValidate: true });
+    },
+    [setValue]
+  );
+
+  const handleCitySelect = useCallback(
+    (city) => {
+      if (!city) {
+        setSelectedCity(null);
+        setValue("city", "", { shouldValidate: true });
+        setValue("city_country_code", selectedCountry?.code || "", { shouldValidate: true });
+        return;
+      }
+
+      const normalizedCity = {
+        name: city.cityName || city.label || city.name || "",
+        cityName: city.cityName || city.label || city.name || "",
+        countryCode: city.countryCode || selectedCountry?.code || "",
+        region: city.region || "",
+        geonameId: city.geonameId || null,
+        latitude: city.latitude ?? null,
+        longitude: city.longitude ?? null,
+      };
+
+      setSelectedCity(normalizedCity);
+      setValue("city", normalizedCity.name, { shouldValidate: true });
+      setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+    },
+    [selectedCountry?.code, setValue]
+  );
 
   useEffect(() => {
-    if (selectedCountry) {
-      setValue("country", selectedCountry);
-    }
-  }, [selectedCountry, setValue]);
+    const autoDetectLocation = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
+        if (!data) return;
+
+        const isoCode = data?.country_code;
+        if (!isoCode || selectedCountry) return;
+
+        const countryMatch = countryLookup[isoCode];
+        if (!countryMatch) return;
+
+        const normalizedCountry = {
+          name: countryMatch.label,
+          code: countryMatch.code,
+          dialCode: countryMatch.phone,
+        };
+        handleCountrySelect(normalizedCountry);
+
+        if (data.city) {
+          const normalizedCity = {
+            name: data.city,
+            cityName: data.city,
+            countryCode: countryMatch.code,
+            region: data.region || "",
+            latitude: data.latitude || null,
+            longitude: data.longitude || null,
+            geonameId: null,
+          };
+          setSelectedCity(normalizedCity);
+          setValue("city", normalizedCity.name, { shouldValidate: true });
+          setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+        }
+      } catch (error) {
+        // ignore auto-detect errors silently
+      }
+    };
+
+    autoDetectLocation();
+  }, [countryLookup, handleCountrySelect, selectedCountry, setValue]);
 
   const getStrengthColor = () => {
     if (passwordStrength < 50) return "bg-red-400";
@@ -116,20 +211,30 @@ const Register = ({ onNext, onBack }) => {
               />
             </div>
 
-            {/* Email */}
-            <CustomInput
-              label="Email Address"
-              name="email"
-              type="email"
-              register={register}
-              errors={errors}
-              placeholder="Enter your email address"
-              isRequired={true}
-              icon={Mail}
-            />
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Email */}
+              <CustomInput
+                label="Email Address"
+                name="email"
+                type="email"
+                register={register}
+                errors={errors}
+                placeholder="Enter your email address"
+                isRequired={true}
+                icon={Mail}
+              />
+              <CustomInput
+                label="Date of Birth"
+                name="date_of_birth"
+                type="date"
+                register={register}
+                errors={errors}
+                isRequired={true}
+                icon={Calendar}
+              />
+            </div>
             {/* Enhanced Password */}
-            <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CustomInput
                 label="Password"
                 name="password"
@@ -141,10 +246,20 @@ const Register = ({ onNext, onBack }) => {
                 icon={Lock}
               />
 
+              <CustomInput
+                label="Confirm Password"
+                name="confirm_password"
+                type="password"
+                register={register}
+                errors={errors}
+                placeholder="Re-enter your password"
+                isRequired={true}
+              />
+
               {/* Password Strength Indicator */}
-              {password && (
+              {/* {password && (
                 <div className="my-4">
-                  <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="flex items-center justify_between text-xs mb-1">
                     <span className="text-gray-600">Password strength:</span>
                     <span
                       className={`font-medium ${
@@ -165,51 +280,38 @@ const Register = ({ onNext, onBack }) => {
                     ></div>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Date of Birth */}
-            <CustomInput
-              label="Date of Birth"
-              name="date_of_birth"
-              type="date"
-              register={register}
-              errors={errors}
-              isRequired={true}
-              icon={Calendar}
-            />
 
             {/* Country & City */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-full">
-                <SimpleSelect
-                  placeHolder="Select"
-                  label="Select country"
-                  options={[
-                    { value: "us", label: "United States" },
-                    { value: "uk", label: "United Kingdom" },
-                    { value: "ca", label: "Canada" },
-                    { value: "au", label: "Australia" },
-                    { value: "de", label: "Germany" },
-                    { value: "fr", label: "France" },
-                  ]}
-                  onChange={({ value }) => setSelectedCountry(value)}
-                  name="country"
-                  register={register}
-                  errors={errors}
-                  isRequired={true}
-                />
-              </div>
-
-              <CustomInput
-                label="City"
-                name="city"
-                register={register}
-                placeholder="Enter your city"
-                isRequired={true}
+              <CountrySelect
+                label="Select country"
+                value={selectedCountry}
+                onChange={handleCountrySelect}
                 errors={errors}
+                isRequired
+                name="country"
+              />
+
+              <CitySelect
+                label="City"
+                countryName={selectedCountry?.name}
+                countryCode={selectedCountry?.code}
+                value={selectedCity}
+                onChange={handleCitySelect}
+                errors={errors}
+                isRequired
+                name="city"
               />
             </div>
+
+            <input type="hidden" {...register("country")} />
+            <input type="hidden" {...register("country_code")} />
+            <input type="hidden" {...register("city")} />
+            <input type="hidden" {...register("city_country_code")} />
 
             {/* Account Type - Only for Brand/Agency Mode */}
             {!isCreatorMode && (
@@ -242,42 +344,7 @@ const Register = ({ onNext, onBack }) => {
                 {errors.account_type && (
                   <p className="text-xs text-red-600 mt-2">{errors.account_type.message}</p>
                 )}
-              </div>
-            )}
-
-            {/* Creator Type - Only for Creator Mode */}
-            {!isCreatorMode && (
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Creator Type <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { value: "solo", label: "Solo Creator" },
-                    { value: "couple", label: "Couple" },
-                    { value: "family", label: "Family" },
-                    { value: "pet", label: "Pet" },
-                  ].map((type) => (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setSelectedCreatorType(type.value)}
-                      className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200 hover:scale-105
-                      ${
-                        selectedCreatorType === type.value
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                          : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                      }
-                    `}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
-                {errors.creator_type && (
-                  <p className="text-xs text-red-600 mt-2">{errors.creator_type.message}</p>
-                )}
+                <input type="hidden" {...register("account_type")} />
               </div>
             )}
 

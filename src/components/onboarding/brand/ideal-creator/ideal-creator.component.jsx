@@ -1,22 +1,16 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import COUNTRIES from "@/common/constants/countries.constant";
 import FacebookIcon from "@/common/icons/facebook";
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
 import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
-import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle,
-  Globe,
-  Hash,
-  MapPin,
-  Search,
-  UserCheck,
-} from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, Globe, Hash, MapPin, UserCheck, X } from "lucide-react";
 import useIdealCreator from "./use-ideal-creator.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
+import { useEffect, useMemo, useState } from "react";
 
 const IdealCreator = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
@@ -25,25 +19,161 @@ const IdealCreator = ({ onNext, onBack }) => {
   const minFollowers = watch("min_followers");
   const selectedGender = watch("gender");
   const selectedCountries = watch("countries");
+  const selectedCities = watch("cities") || [];
   const selectedAgeRanges = watch("age_ranges");
   const selectedPlatforms = watch("platforms");
-  const citySearch = watch("city");
+
+  const [countrySelectValue, setCountrySelectValue] = useState(null);
+  const [citySelectValue, setCitySelectValue] = useState(null);
+
+  const selectedCountryDetails = useMemo(() => {
+    if (!Array.isArray(selectedCountries)) return [];
+    return selectedCountries
+      .map((code) => {
+        const countryMeta = COUNTRIES.find(
+          (country) => country.code.toUpperCase() === String(code).toUpperCase()
+        );
+        return {
+          code,
+          name: countryMeta?.label || code,
+        };
+      })
+      .filter((country) => Boolean(country.code));
+  }, [selectedCountries]);
+
+  const allowedCountryCodes = useMemo(
+    () => selectedCountryDetails.map((country) => String(country.code).toUpperCase()),
+    [selectedCountryDetails]
+  );
+
+  const primaryCountryCode = selectedCountryDetails[0]?.code || null;
+
+  const handleCountrySelect = (country) => {
+    if (!country) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const code = country.countryCode || country.value || country.code || "";
+    if (!code) return;
+
+    const normalizedCode = String(code).toUpperCase();
+    const existing = selectedCountries || [];
+
+    if (existing.includes(normalizedCode)) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const updated = [...existing, normalizedCode];
+    setValue("countries", updated, { shouldValidate: true });
+    setCountrySelectValue(null);
+  };
+
+  const handleCountryRemove = (code) => {
+    const updated = (selectedCountries || []).filter(
+      (existingCode) => existingCode.toUpperCase() !== String(code).toUpperCase()
+    );
+    setValue("countries", updated, { shouldValidate: true });
+
+    if (
+      citySelectValue?.countryCode &&
+      citySelectValue.countryCode.toUpperCase() === String(code).toUpperCase()
+    ) {
+      setCitySelectValue(null);
+    }
+
+    if (Array.isArray(selectedCities) && selectedCities.length) {
+      const filteredCities = selectedCities.filter(
+        (city) => city.countryCode?.toUpperCase() !== String(code).toUpperCase()
+      );
+      if (filteredCities.length !== selectedCities.length) {
+        setValue("cities", filteredCities, { shouldValidate: true });
+      }
+    }
+  };
+
+  const handleCitySelect = (city) => {
+    if (!city) {
+      setCitySelectValue(null);
+      return;
+    }
+
+    const name = city.cityName || city.label || city.name || "";
+    const resolvedCountryCode =
+      city.countryCode || city.country || citySelectValue?.countryCode || primaryCountryCode || "";
+    const normalizedCountryCode = resolvedCountryCode
+      ? String(resolvedCountryCode).toUpperCase()
+      : "";
+    const normalizedCity = {
+      name,
+      cityName: name,
+      countryCode: normalizedCountryCode,
+    };
+
+    const existingCities = Array.isArray(selectedCities) ? [...selectedCities] : [];
+    const alreadyExists = existingCities.some(
+      (existingCity) =>
+        existingCity.name.toLowerCase() === normalizedCity.name.toLowerCase() &&
+        (existingCity.countryCode || "") === normalizedCountryCode
+    );
+
+    if (!alreadyExists) {
+      setValue("cities", [...existingCities, normalizedCity], { shouldValidate: true });
+    }
+
+    setCitySelectValue(null);
+  };
+
+  useEffect(() => {
+    if (!allowedCountryCodes.length) {
+      if (citySelectValue) {
+        setCitySelectValue(null);
+      }
+      if (Array.isArray(selectedCities) && selectedCities.length) {
+        setValue("cities", [], { shouldValidate: true });
+      }
+      return;
+    }
+
+    if (
+      citySelectValue?.countryCode &&
+      !allowedCountryCodes.includes(citySelectValue.countryCode.toUpperCase())
+    ) {
+      setCitySelectValue(null);
+    }
+
+    if (Array.isArray(selectedCities) && selectedCities.length) {
+      const filtered = selectedCities.filter((city) =>
+        city.countryCode ? allowedCountryCodes.includes(city.countryCode.toUpperCase()) : true
+      );
+      if (filtered.length !== selectedCities.length) {
+        setValue("cities", filtered, { shouldValidate: true });
+      }
+    }
+  }, [allowedCountryCodes, citySelectValue, selectedCities, setValue]);
+
+  const handleCityRemove = (cityToRemove) => {
+    const filtered = selectedCities.filter(
+      (city) =>
+        !(
+          city.name === cityToRemove.name &&
+          (city.countryCode || "") === (cityToRemove.countryCode || "")
+        )
+    );
+    setValue("cities", filtered, { shouldValidate: true });
+    if (
+      citySelectValue?.name === cityToRemove.name &&
+      citySelectValue?.countryCode === cityToRemove.countryCode
+    ) {
+      setCitySelectValue(null);
+    }
+  };
 
   const genderOptions = [
     { id: "male", label: "Male", icon: "👨" },
     { id: "female", label: "Female", icon: "👩" },
     { id: "mixed", label: "Mixed/Any", icon: "👥" },
-  ];
-
-  const countries = [
-    { id: "us", label: "United States", flag: "🇺🇸", creators: "2.1M" },
-    { id: "uk", label: "United Kingdom", flag: "🇬🇧", creators: "450K" },
-    { id: "ca", label: "Canada", flag: "🇨🇦", creators: "380K" },
-    { id: "au", label: "Australia", flag: "🇦🇺", creators: "290K" },
-    { id: "de", label: "Germany", flag: "🇩🇪", creators: "520K" },
-    { id: "fr", label: "France", flag: "🇫🇷", creators: "410K" },
-    { id: "br", label: "Brazil", flag: "🇧🇷", creators: "680K" },
-    { id: "in", label: "India", flag: "🇮🇳", creators: "1.8M" },
   ];
 
   const ageRanges = [
@@ -209,30 +339,33 @@ const IdealCreator = ({ onNext, onBack }) => {
               {/* Countries */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">Select Countries</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {countries.map((country) => {
-                    const isSelected = selectedCountries?.includes(country.id);
-                    return (
-                      <button
-                        key={country.id}
-                        type="button"
-                        onClick={() => toggleSelection(country.id, selectedCountries, "countries")}
-                        className={`
-                        p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
-                          ${
-                            isSelected
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                          }
-                        `}
+                <CountrySelect
+                  label="Add country"
+                  name="countries_selector"
+                  value={countrySelectValue}
+                  onChange={handleCountrySelect}
+                  isRequired={false}
+                  errors={errors}
+                />
+                {selectedCountryDetails.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedCountryDetails.map((country) => (
+                      <span
+                        key={country.code}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
                       >
-                        <div className="text-lg mb-1">{country.flag}</div>
-                        <div className="text-xs">{country.label}</div>
-                        <div className="text-xs text-gray-500">{country.creators}</div>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {country.name}
+                        <button
+                          type="button"
+                          onClick={() => handleCountryRemove(country.code)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {errors.countries && (
                   <p className="text-xs text-red-600 mt-2">{errors.countries.message}</p>
                 )}
@@ -241,12 +374,35 @@ const IdealCreator = ({ onNext, onBack }) => {
               {/* City Search */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Specific City (Optional)</h4>
-                <CustomInput
-                  placeholder="Search for specific cities..."
-                  value={citySearch}
-                  onChange={(e) => setValue("city", e.target.value, { shouldValidate: true })}
-                  icon={Search}
+                <CitySelect
+                  label="Search for cities"
+                  name="city_selector"
+                  countryCode={citySelectValue?.countryCode || primaryCountryCode}
+                  countryCodes={allowedCountryCodes}
+                  value={citySelectValue}
+                  onChange={handleCitySelect}
+                  isRequired={false}
+                  errors={errors}
                 />
+                {selectedCities.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedCities.map((city) => (
+                      <span
+                        key={`${city.name}-${city.countryCode || ""}`}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                      >
+                        {city.name}
+                        <button
+                          type="button"
+                          onClick={() => handleCityRemove(city)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

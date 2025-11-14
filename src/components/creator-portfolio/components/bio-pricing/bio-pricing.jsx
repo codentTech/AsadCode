@@ -80,20 +80,26 @@ const BioPricing = ({ refreshKey, creatorId = null }) => {
         {/* Pricing */}
         <div className="md:w-2/5 md:border-l border-gray-200 md:pl-8">
           <h3 className="mb-3 border-b pb-1">Starting Rates</h3>
-          <div className="space-y-4">
-            {creator.pricing.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-1 bg-gray-50 rounded-lg hover:bg-indigo-50 transition"
-              >
-                <div className="flex items-center gap-2 text-gray-700">
-                  <DollarSign className="w-4 h-4 text-indigo-500" />
-                  <span className="text-sm font-medium">{item.type}</span>
+          {creator.pricing.length > 0 ? (
+            <div className="space-y-4">
+              {creator.pricing.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-1 bg-gray-50 rounded-lg hover:bg-indigo-50 transition"
+                >
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <DollarSign className="w-4 h-4 text-indigo-500" />
+                    <span className="text-sm font-medium">{item.type}</span>
+                  </div>
+                  <span className="font-semibold">{item.price}</span>
                 </div>
-                <span className="font-semibold">{item.price}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <p className="text-gray-600 leading-relaxed"> Available upon request</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

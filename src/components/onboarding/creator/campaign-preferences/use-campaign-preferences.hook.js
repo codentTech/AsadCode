@@ -12,10 +12,14 @@ const validationSchema = Yup.object().shape({
   inPersonOpportunities: Yup.boolean().required("Select an option"),
   shippingAddress: Yup.object().shape({
     street: Yup.string(),
+    line2: Yup.string(),
+    line3: Yup.string(),
     city: Yup.string(),
+    city_country_code: Yup.string(),
     state: Yup.string(),
     zipCode: Yup.string(),
-    zipCode: Yup.string(),
+    country: Yup.string(),
+    country_code: Yup.string(),
   }),
 });
 
@@ -43,9 +47,14 @@ export default function useCampaignPreferences({ onNext }) {
       inPersonOpportunities: false,
       shippingAddress: {
         street: "",
+        line2: "",
+        line3: "",
         city: "",
+        city_country_code: "",
         state: "",
         zipCode: "",
+        country: "",
+        country_code: "",
       },
     },
   });

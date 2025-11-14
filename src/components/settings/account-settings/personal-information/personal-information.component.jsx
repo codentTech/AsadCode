@@ -22,11 +22,6 @@ const schema = yup.object().shape({
   city: yup.string().required("City is required"),
   country: yup.string().required("Country is required"),
   account_type: yup.string().required("Account type is required"),
-  creator_type: yup.string().when("account_type", {
-    is: !isCreatorMode(),
-    then: (schema) => schema.required("Creator type is required"),
-    otherwise: (schema) => schema.optional(),
-  }),
 });
 
 export default function PersonalInformationPage() {
@@ -53,7 +48,6 @@ export default function PersonalInformationPage() {
       city: "",
       country: "",
       account_type: "",
-      creator_type: "",
     },
   });
 
@@ -79,7 +73,6 @@ export default function PersonalInformationPage() {
       setValue("country", user.country || "");
       setSelectedCountry(user.country || "");
       setValue("account_type", user.account_type || "");
-      setValue("creator_type", user.creator_type || "");
     }
     setIsLoading(false);
   }, [setValue]);
@@ -87,13 +80,6 @@ export default function PersonalInformationPage() {
   const accountTypeOptions = [
     { value: "creator", label: "Creator" },
     { value: "brand", label: "Brand" },
-  ];
-
-  const creatorTypeOptions = [
-    { value: "Solo Creator", label: "Solo Creator" },
-    { value: "Couple", label: "Couple" },
-    { value: "Family", label: "Family" },
-    { value: "Pet", label: "Pet" },
   ];
 
   const countryOptions = [
@@ -280,16 +266,6 @@ export default function PersonalInformationPage() {
                     placeholder="Select your account type"
                     isRequired={true}
                   />
-
-                  <SimpleSelect
-                    label="Creator Type"
-                    name="creator_type"
-                    register={register}
-                    errors={errors}
-                    options={creatorTypeOptions}
-                    placeholder="Select your creator type"
-                    isRequired={true}
-                  />
                 </div>
               </div>
             </>
@@ -316,7 +292,6 @@ export default function PersonalInformationPage() {
                   setValue("country", user.country || "");
                   setSelectedCountry(user.country || "");
                   setValue("account_type", user.account_type || "");
-                  setValue("creator_type", user.creator_type || "");
                 }
               }}
             />

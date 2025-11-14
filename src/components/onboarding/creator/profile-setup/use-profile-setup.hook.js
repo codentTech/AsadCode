@@ -1,6 +1,6 @@
 "use client";
 
-import { getOnboardingEmail } from "@/common/utils/users.util";
+import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util";
 import { reset } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
@@ -36,6 +36,7 @@ const validationSchema = Yup.object().shape({
 export default function useProfileSetup({ onNext }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
+  const name = getOnboardingName();
 
   const { isLoading, updateProfile: updateProfileState } = useSelector((state) => state.auth);
   const { isSuccess, isError, message } = updateProfileState || {};
@@ -194,5 +195,6 @@ export default function useProfileSetup({ onNext }) {
     updateKeywordTags,
     updateContentRates,
     getStandardContentTypes,
+    name,
   };
 }

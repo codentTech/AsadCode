@@ -12,10 +12,13 @@ import {
   Users,
   TrendingUp,
   MapPin,
+  X,
+  Globe,
 } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBrandCampaignPreferences from "./use-campaign-preferences.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
+import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 
 const BrandCampaignPreferences = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
@@ -86,46 +89,42 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
     },
   ];
 
-  const niches = [
-    { name: "Fashion", icon: "👗", color: "bg-pink-100 text-pink-700" },
-    { name: "Food", icon: "🍕", color: "bg-orange-100 text-orange-700" },
-    { name: "Beauty", icon: "💄", color: "bg-purple-100 text-purple-700" },
-    { name: "Fitness", icon: "💪", color: "bg-green-100 text-green-700" },
-    { name: "Travel", icon: "✈️", color: "bg-blue-100 text-blue-700" },
-    { name: "Tech", icon: "💻", color: "bg-gray-100 text-gray-700" },
-    { name: "Lifestyle", icon: "🌟", color: "bg-yellow-100 text-yellow-700" },
-    { name: "Gaming", icon: "🎮", color: "bg-indigo-100 text-indigo-700" },
-    { name: "Home & Decor", icon: "🏠", color: "bg-emerald-100 text-emerald-700" },
-    { name: "Automotive", icon: "🚗", color: "bg-red-100 text-red-700" },
-  ];
-
   const creatorSizes = [
     {
       id: "micro",
       label: "Micro (1k–10k)",
-      desc: "High engagement, niche audiences",
       icon: Users,
-      benefits: ["Higher engagement", "More affordable", "Authentic connections"],
+      points: [
+        "Lower reach, but often higher engagement rates",
+        "More likely to accept gifted product vs. paid collabs",
+        "Good for niche or grassroots campaigns",
+      ],
     },
     {
       id: "mid",
       label: "Mid (10k–100k)",
-      desc: "Balance of reach and engagement",
       icon: TrendingUp,
-      benefits: ["Good reach", "Professional content", "Proven track record"],
+      points: [
+        "Strong balance of reach + engagement",
+        "Typically expect monetary compensation",
+        "Good content quality + proven track record",
+      ],
     },
     {
       id: "macro",
       label: "Macro (100k+)",
-      desc: "Maximum reach and brand awareness",
       icon: Globe2,
-      benefits: ["Massive reach", "Brand recognition", "Viral potential"],
+      points: [
+        "Maximum reach + brand awareness",
+        "Higher costs, less likely to accept gifted product",
+        "Best for large campaigns + viral potential",
+      ],
     },
   ];
 
   const geographicFocus = [
     { id: "local", label: "Local", desc: "Specific cities/regions", icon: MapPin },
-    { id: "national", label: "National", desc: "Country-wide campaigns", icon: "🇺🇸" },
+    { id: "national", label: "National", desc: "Country-wide campaigns", icon: Globe },
     { id: "global", label: "Global", desc: "International reach", icon: Globe2 },
   ];
 
@@ -140,6 +139,16 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
     } else {
       setValue(field, [...prev, item], { shouldValidate: true });
     }
+  };
+
+  const handleTargetNichesChange = (niches) => {
+    setValue("target_niches", niches, { shouldValidate: true });
+  };
+
+  const handleTargetNicheRemove = (niche) => {
+    const current = getValues("target_niches") || [];
+    const updated = current.filter((item) => item !== niche);
+    setValue("target_niches", updated, { shouldValidate: true });
   };
 
   return (
@@ -263,8 +272,6 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs font-medium text-primary">{type.avgCost}</div>
-                            <div className="text-xs text-gray-600">{type.popularity}% use</div>
                             {isSelected && (
                               <CheckCircle className="h-4 w-4 text-indigo-500 ml-auto mt-1" />
                             )}
@@ -337,34 +344,37 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               {/* Target Niches */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Target Niches</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {niches.map((niche) => {
-                    const isSelected = selectedNiches?.includes(niche.name);
-                    return (
-                      <button
-                        key={niche.name}
-                        type="button"
-                        onClick={() => toggleSelection(niche.name, selectedNiches, "target_niches")}
-                        className={`
-                          p-2 rounded-lg border-2 text-sm font-medium transition-all duration-200
-                          ${
-                            isSelected
-                              ? `border-indigo-500 ${niche.color}`
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                          }
-                        `}
-                      >
-                        <div className="flex items-center justify-center text-xs space-x-2">
-                          <span>{niche.name}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-xs font-bold text-gray-600 mt-3">
-                  Selected: {selectedNiches?.length || 0} niche
-                  {selectedNiches?.length !== 1 ? "s" : ""}
-                </p>
+                <SearchableNicheInput
+                  selectedNiches={selectedNiches || []}
+                  onNichesChange={handleTargetNichesChange}
+                  handleNicheRemove={handleTargetNicheRemove}
+                  placeholder="Search and add target niches"
+                />
+                {selectedNiches?.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-bold text-gray-600 mb-2">
+                      Selected: {selectedNiches.length} niche
+                      {selectedNiches.length !== 1 ? "s" : ""}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedNiches.map((niche) => (
+                        <span
+                          key={niche}
+                          className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 border border-indigo-200 text-xs text-gray-700 rounded-lg"
+                        >
+                          {niche}
+                          <button
+                            type="button"
+                            onClick={() => handleTargetNicheRemove(niche)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {errors.target_niches && (
                   <p className="text-xs text-red-600 mt-2">{errors.target_niches.message}</p>
                 )}
@@ -404,17 +414,13 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                             </div>
                             <div>
                               <h4 className="text-sm font-bol text-gray-900">{size.label}</h4>
-                              <p className="text-xs text-gray-600 mb-2">{size.desc}</p>
-                              <div className="flex flex-wrap gap-1">
-                                {size.benefits.map((benefit, index) => (
-                                  <span
-                                    key={index}
-                                    className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg"
-                                  >
-                                    {benefit}
-                                  </span>
+                              <ul className="mt-2 space-y-1 text-xs text-gray-600 list-disc list-inside">
+                                {size.points.map((point, index) => (
+                                  <li key={index} className="leading-snug">
+                                    {point}
+                                  </li>
                                 ))}
-                              </div>
+                              </ul>
                             </div>
                           </div>
                           {isSelected && (
