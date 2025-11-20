@@ -25,7 +25,7 @@ const mapUserToCreator = (user) => {
     const birthDate = new Date(user.date_of_birth);
     const today = new Date();
     const ageInYears = today.getFullYear() - birthDate.getFullYear();
-    age = `${ageInYears} years`;
+    age = `${ageInYears}`;
   }
 
   const location =

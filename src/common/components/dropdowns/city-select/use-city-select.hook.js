@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import COUNTRIES from "@/common/constants/countries.constant";
 import MAJOR_WORLD_CITIES from "@/common/constants/cities-fallback.constant";
-
-const GEONAMES_ENDPOINT = "https://secure.geonames.org/searchJSON";
-const GEO_USERNAME = process.env.NEXT_PUBLIC_GEONAMES_USERNAME;
+import { autocompletePlaces, fetchPlaceDetails } from "@/common/utils/places-api-new";
 
 const countryNameLookup = COUNTRIES.reduce((acc, country) => {
   acc[country.code] = country.label;
@@ -42,35 +40,16 @@ const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
         latitude: city.latitude ?? null,
         longitude: city.longitude ?? null,
         geonameId: null,
+        placeId: null,
       };
     });
 };
 
-const normalizeGeoNamesCities = (geonames = []) => {
-  return geonames.map((entry) => {
-    const countryCode = entry.countryCode || entry.countryId;
-    const countryName = entry.countryName || countryNameLookup[countryCode] || countryCode;
-    const adminName = entry.adminName1?.length ? entry.adminName1 : "";
-    const suffix = adminName ? `${adminName}, ${countryName}` : countryName;
-
-    return {
-      value: entry.geonameId,
-      label: `${entry.name}, ${suffix}`,
-      cityName: entry.name,
-      countryCode,
-      region: adminName,
-      latitude: entry.lat ? Number(entry.lat) : null,
-      longitude: entry.lng ? Number(entry.lng) : null,
-      geonameId: entry.geonameId,
-    };
-  });
-};
+const FALLBACK_LIMIT = 15;
 
 export default function useCitySelect({ countryCode, countryCodes = [] }) {
   const [options, setOptions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasNetworkFallback, setHasNetworkFallback] = useState(false);
-  const latestQueryRef = useRef({ term: "", countryCode: "" });
+  const [isSearching, setIsSearching] = useState(false);
 
   const normalizedAllowedCodes = useMemo(() => {
     const codes = [];
@@ -88,110 +67,132 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
     return codes;
   }, [countryCode, countryCodes]);
 
-  const clearOptions = useCallback(() => {
-    setOptions([]);
-  }, []);
+  const fallbackSearch = useCallback(
+    (term) =>
+      normalizeFallbackCities(MAJOR_WORLD_CITIES, term, normalizedAllowedCodes).slice(
+        0,
+        FALLBACK_LIMIT
+      ),
+    [normalizedAllowedCodes]
+  );
 
   const searchCities = useCallback(
     async (rawTerm) => {
       const term = rawTerm?.trim() ?? "";
 
-      const effectiveCodes = normalizedAllowedCodes;
-      const effectiveCountryCode =
-        effectiveCodes.length === 1
-          ? effectiveCodes[0]
-          : countryCode
-            ? String(countryCode).toUpperCase()
-            : "";
-
-      latestQueryRef.current = {
-        term,
-        countryCode: effectiveCountryCode,
-      };
-
       if (term.length < 2) {
-        clearOptions();
+        setOptions([]);
         return;
       }
 
-      if (!GEO_USERNAME) {
-        const fallbackResults = normalizeFallbackCities(
-          MAJOR_WORLD_CITIES,
-          term,
-          effectiveCodes
-        ).slice(0, 15);
-        setOptions(fallbackResults);
-        setHasNetworkFallback(true);
-        return;
-      }
+      const localResults = fallbackSearch(term);
+      setOptions(localResults);
 
-      setIsLoading(true);
-
-      const params = new URLSearchParams({
-        name_startsWith: term,
-        maxRows: "20",
-        featureClass: "P",
-        username: GEO_USERNAME,
-        orderby: "relevance",
-      });
-
-      if (effectiveCountryCode) {
-        params.append("country", effectiveCountryCode);
-      }
+      setIsSearching(true);
 
       try {
-        const response = await fetch(`${GEONAMES_ENDPOINT}?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error(`GeoNames responded with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        const normalized = normalizeGeoNamesCities(data?.geonames || []).filter((city) => {
-          if (!normalizedAllowedCodes.length) return true;
-          return normalizedAllowedCodes.includes(String(city.countryCode).toUpperCase());
+        const suggestions = await autocompletePlaces({
+          input: term,
+          includedPrimaryTypes: ["locality"],
+          includedRegionCodes: normalizedAllowedCodes,
+          languageCode: process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en",
         });
 
-        // Only update if this response is the latest query
-        if (
-          latestQueryRef.current.term === term &&
-          latestQueryRef.current.countryCode === effectiveCountryCode
-        ) {
-          if (!normalized.length) {
-            const fallbackResults = normalizeFallbackCities(
-              MAJOR_WORLD_CITIES,
-              term,
-              normalizedAllowedCodes
-            ).slice(0, 15);
-            setOptions(fallbackResults);
-            setHasNetworkFallback(true);
-          } else {
-            setOptions(normalized);
-            setHasNetworkFallback(false);
-          }
+        const normalized = suggestions
+          .map((suggestion) => {
+            const prediction = suggestion?.placePrediction;
+            if (!prediction?.placeId) return null;
+
+            const mainText =
+              prediction?.structuredFormat?.mainText?.text || prediction?.text?.text || "";
+            const secondary =
+              prediction?.structuredFormat?.secondaryText?.text ||
+              prediction?.text?.secondaryText ||
+              "";
+            const label = secondary ? `${mainText}, ${secondary}` : mainText;
+
+            return {
+              label,
+              value: prediction.placeId,
+              placeId: prediction.placeId,
+              cityName: mainText,
+            };
+          })
+          .filter(Boolean);
+
+        if (!normalized.length) {
+          setOptions(localResults);
+        } else {
+          const deduped = [...normalized, ...localResults].filter(
+            (option, index, arr) => index === arr.findIndex((item) => item.label === option.label)
+          );
+          setOptions(deduped.slice(0, FALLBACK_LIMIT));
         }
       } catch (error) {
-        const fallbackResults = normalizeFallbackCities(
-          MAJOR_WORLD_CITIES,
-          term,
-          normalizedAllowedCodes
-        ).slice(0, 15);
-        setOptions(fallbackResults);
-        setHasNetworkFallback(true);
+        setOptions(localResults);
       } finally {
-        setIsLoading(false);
+        setIsSearching(false);
       }
     },
-    [clearOptions, normalizedAllowedCodes]
+    [fallbackSearch, normalizedAllowedCodes]
   );
 
-  const resolvedOptions = useMemo(() => options, [options]);
+  const resolveCityDetails = useCallback(async (option) => {
+    if (!option) return null;
+
+    if (!option.placeId) {
+      return {
+        cityName: option.cityName || option.label,
+        countryCode: option.countryCode || "",
+        region: option.region || "",
+        latitude: option.latitude ?? null,
+        longitude: option.longitude ?? null,
+        geonameId: option.geonameId || null,
+      };
+    }
+
+    try {
+      const place = await fetchPlaceDetails(option.placeId);
+
+      if (!place) {
+        return {
+          cityName: option.cityName || option.label,
+          countryCode: option.countryCode || "",
+          region: option.region || "",
+        };
+      }
+
+      const components = place.addressComponents || [];
+      const cityComponent =
+        components.find((component) => component.types?.includes("locality")) ||
+        components.find((component) => component.types?.includes("postal_town")) ||
+        components.find((component) => component.types?.includes("administrative_area_level_1"));
+      const countryComponent = components.find((component) => component.types?.includes("country"));
+      const regionComponent = components.find((component) =>
+        component.types?.includes("administrative_area_level_1")
+      );
+
+      return {
+        cityName: cityComponent?.longText || place.displayName?.text || option.label,
+        countryCode: countryComponent?.shortText || "",
+        region: regionComponent?.longText || "",
+        latitude: place.location?.latitude ?? null,
+        longitude: place.location?.longitude ?? null,
+        placeId: option.placeId,
+      };
+    } catch (error) {
+      return {
+        cityName: option.cityName || option.label,
+        countryCode: option.countryCode || "",
+        region: option.region || "",
+      };
+    }
+  }, []);
 
   return {
-    options: resolvedOptions,
-    isLoading,
+    options,
+    isLoading: isSearching,
     searchCities,
-    clearOptions,
-    hasNetworkFallback,
-    allowedCountryCodes: normalizedAllowedCodes,
+    resolveCityDetails,
   };
 }

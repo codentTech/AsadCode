@@ -175,7 +175,7 @@ const CreatorSpendAnalysis = ({
             {/* Campaign Info */}
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h2 className="text-sm font-semibold text-gray-900 mb-2">
-                Applied Creators for "{selectedCampaign.campaign_title}"
+                Applied for "{selectedCampaign.campaign_title}"
               </h2>
               <p className="text-xs text-gray-600">
                 {appliedCreatorsData?.data?.length || 0} creators have applied to this campaign

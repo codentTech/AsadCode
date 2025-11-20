@@ -35,7 +35,10 @@ const api = (headers = null) => {
           !["/upload", "/upload/multiple"].includes(response.config.url) &&
           !response.config.url?.includes("/chat"));
 
-      if (isSuccessResponse) {
+      const skipToast =
+        response.config.headers?.["x-skip-toast"] ?? response.config.headers?.["X-Skip-Toast"];
+
+      if (isSuccessResponse && !skipToast) {
         enqueueSnackbar(response.data?.message || "Success", { variant: "success" });
         await delay(700);
       }

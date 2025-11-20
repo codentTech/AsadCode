@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { getAge } from "@/common/utils/date.utils";
 
 // When used on completed tab, pass isCompleted=true so it reads from getAppliedCreators
 export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) => {
@@ -22,6 +23,7 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
         id: creator?.creator?.creator_profile?.id,
+        age: getAge(creator?.creator?.date_of_birth),
         creatorUserId: creator?.creator?.id, // Add the actual user ID for chat
         name:
           `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||

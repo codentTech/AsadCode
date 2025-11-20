@@ -43,7 +43,6 @@ function BrandApplications() {
   const [hireCreatorData, setHireCreatorData] = useState(null);
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
 
   // Contract creation/sending state
   const {

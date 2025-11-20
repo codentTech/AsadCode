@@ -115,7 +115,7 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
   );
 
   const renderCreatorProfile = () => (
-    <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
+    <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
       <div className="relative">
         <Avatar
           src={creator?.image || avatar}
@@ -126,26 +126,17 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
         </Avatar>
         <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
-      <h3 className="text-sm font-semibold text-gray-900">{creator.name}</h3>
+      <h3>
+        {creator.name}
+        <span className="text-lg text-gray-500 ml-1">({creator.rating})</span>
+      </h3>
+      <p className="flex items-center text-sm text-gray-500 -mt-1">
+        {creator.age} • <span className="ml-1">{creator.location}</span>
+      </p>
 
-      <p className="text-xs text-gray-600 text-center line-clamp-2 px-2">{creator.bio}</p>
+      <p className="text-sm text-gray-500 -mt-1">{creator?.bio}</p>
 
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`w-4 h-4 ${
-              i < Math.floor(creator.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-      <div className="flex items-center space-x-2 text-sm text-gray-600">
-        <MapPin className="w-4 h-4" />
-        <span>{creator.location}</span>
-      </div>
-
-      <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+      <div className="mt-2 px-3 py-1 bg-green-900 text-white rounded-lg text-xs">
         Campaign Completed
       </div>
     </div>

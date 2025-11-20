@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getAllCampaigns,
@@ -10,12 +10,14 @@ import {
 
 export function useCampaignFeed() {
   const dispatch = useDispatch();
+
   const { data: allCampaignsData, isLoading: allCampaignsLoading } = useSelector(
     (state) => state.campaigns.getAllCampaigns
   );
   const { data: filteredCampaignsData, isLoading: filteredCampaignsLoading } = useSelector(
     (state) => state.campaigns.filterCampaigns
   );
+  const { isLoading: isApplying } = useSelector((state) => state.campaigns.applyToCampaign);
 
   const [showFullBrief, setShowFullBrief] = useState(false);
   const [briefCampaign, setBriefCampaign] = useState(null);
@@ -23,84 +25,49 @@ export function useCampaignFeed() {
   const [applicationCampaign, setApplicationCampaign] = useState(null);
   const [applicationPitch, setApplicationPitch] = useState("");
   const [sortBy, setSortBy] = useState("latest");
-
   const [selectedNiche, setSelectedNiche] = useState("all");
 
-  // Get apply to campaign state
-  const {
-    isLoading: isApplying,
-    isSuccess: applySuccess,
-    isError: applyError,
-  } = useSelector((state) => state.campaigns.applyToCampaign);
-
-  // Determine which data to use (filtered or all campaigns)
-  // Use filtered data if it exists (even if empty array), otherwise use all campaigns
   const campaignsData =
     filteredCampaignsData?.data !== undefined ? filteredCampaignsData.data : allCampaignsData?.data;
   const isLoading = filteredCampaignsLoading || allCampaignsLoading;
-  const isFiltering = filteredCampaignsLoading;
 
-  // Handle success/error notifications for apply to campaign
-  useEffect(() => {
-    if (applySuccess) {
-      // Success notification is handled by the API interceptor
+  const getCompensationType = (campaign) => {
+    if (campaign.creator_fixed_price) return "Paid";
+    if (campaign.commission_percentage) return "Commission";
+    if (campaign.product_value) return "Gifted";
+    return "Paid";
+  };
+
+  const getCompensationTypeKey = (campaign) => {
+    if (campaign.creator_fixed_price) return "fixed";
+    if (campaign.commission_percentage) return "commission";
+    if (campaign.product_value) return "gifted";
+    return "fixed";
+  };
+
+  const getCompensationAmount = (campaign) => {
+    if (campaign.creator_fixed_price) {
+      return `$${campaign.creator_fixed_price}`;
     }
-  }, [applySuccess]);
-
-  // Handle niche filter change
-  const handleNicheChange = (niche) => {
-    // Extract value if niche is an object (from Niche component)
-    const nicheValue = typeof niche === "object" ? niche.value : niche;
-
-    setSelectedNiche(nicheValue);
-
-    if (nicheValue === "all") {
-      // Reset to show all campaigns without filters
-      // First clear the filtered campaigns state
-      dispatch(resetFilteredCampaigns());
-      // Then load all campaigns
-      dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
-    } else {
-      // Apply niche filter
-      const filters = {
-        page: 1,
-        limit: 10,
-        niches: nicheValue,
-        sort: sortBy, // Include sort parameter
-      };
-      dispatch(filterCampaigns(filters));
+    if (campaign.commission_percentage) {
+      return `${campaign.commission_percentage}% Commission`;
     }
+    if (campaign.product_value) {
+      return `Product ($${campaign.product_value} value)`;
+    }
+    if (campaign.suggested_min && campaign.suggested_max) {
+      return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
+    }
+    return "$0";
   };
 
-  // Handle sort change
-  const handleSortChange = (newSortBy) => {
-    // Extract value if newSortBy is an object (from SimpleSelect)
-    const sortValue = typeof newSortBy === "object" ? newSortBy.value : newSortBy;
-
-    setSortBy(sortValue);
-
-    // Always use filterCampaigns to ensure sort parameter is sent
-    const currentFilters = {
-      page: 1,
-      limit: 10,
-      niches: selectedNiche !== "all" ? selectedNiche : undefined,
-      sort: sortValue,
-    };
-    dispatch(filterCampaigns(currentFilters));
+  const getCompensationValue = (campaign) => {
+    if (campaign.creator_fixed_price) return campaign.creator_fixed_price;
+    if (campaign.suggested_max) return campaign.suggested_max;
+    if (campaign.product_value) return campaign.product_value;
+    return 0;
   };
 
-  // Clear all filters and reset to default state
-  const clearAllFilters = () => {
-    setSelectedNiche("all");
-    setSortBy("latest");
-    // Reset to show all campaigns without filters
-    // First clear the filtered campaigns state
-    dispatch(resetFilteredCampaigns());
-    // Then load all campaigns
-    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
-  };
-
-  // Transform backend campaign data to frontend format
   const transformedCampaigns = useMemo(() => {
     if (!campaignsData?.campaigns) return [];
 
@@ -109,7 +76,7 @@ export function useCampaignFeed() {
       brandLogo: campaign.created_by?.brand_profile?.brand_logo_url || "🏢",
       brandName: campaign.created_by?.brand_profile?.brand_name || "Unknown Brand",
       title: campaign.campaign_title,
-      type: campaign.campaign_type || "SPONSORED_POST",
+      type: campaign.campaign_type,
       compensation: getCompensationType(campaign),
       compensationAmount: getCompensationAmount(campaign),
       compensationValue: getCompensationValue(campaign),
@@ -126,7 +93,6 @@ export function useCampaignFeed() {
         campaign.short_description || campaign.long_description || "No description available",
       brief: campaign.long_description || campaign.short_description || "No brief available",
       postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
-      // Backend fields for filtering
       campaign_type: campaign.campaign_type,
       compensation_type: getCompensationTypeKey(campaign),
       required_platforms: campaign.required_platforms || [],
@@ -135,7 +101,6 @@ export function useCampaignFeed() {
       creator_country: campaign.creator_country,
       creator_city: campaign.creator_city,
       niches: campaign.niches || [],
-      // Additional fields for brief modal
       creator_gender: campaign.creator_gender,
       min_age: campaign.min_age,
       max_age: campaign.max_age,
@@ -154,51 +119,10 @@ export function useCampaignFeed() {
     }));
   }, [campaignsData]);
 
-  // Helper functions for compensation
-  function getCompensationType(campaign) {
-    if (campaign.creator_fixed_price) return "Paid";
-    if (campaign.commission_percentage) return "Commission";
-    if (campaign.product_value) return "Gifted";
-    return "Paid";
-  }
-
-  function getCompensationTypeKey(campaign) {
-    if (campaign.creator_fixed_price) return "fixed";
-    if (campaign.commission_percentage) return "commission";
-    if (campaign.product_value) return "gifted";
-    return "fixed";
-  }
-
-  function getCompensationAmount(campaign) {
-    if (campaign.creator_fixed_price) {
-      return `$${campaign.creator_fixed_price}`;
-    }
-    if (campaign.commission_percentage) {
-      return `${campaign.commission_percentage}% Commission`;
-    }
-    if (campaign.product_value) {
-      return `Product ($${campaign.product_value} value)`;
-    }
-    if (campaign.suggested_min && campaign.suggested_max) {
-      return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
-    }
-    return "$0";
-  }
-
-  function getCompensationValue(campaign) {
-    if (campaign.creator_fixed_price) return campaign.creator_fixed_price;
-    if (campaign.suggested_max) return campaign.suggested_max;
-    if (campaign.product_value) return campaign.product_value;
-    return 0;
-  }
-
-  // Use campaigns directly since backend handles sorting
   const sortedCampaigns = transformedCampaigns;
 
-  // Load campaigns when component mounts
   useEffect(() => {
     if (!campaignsData) {
-      // Use filterCampaigns to ensure sort parameter is always included
       dispatch(
         filterCampaigns({
           page: 1,
@@ -209,74 +133,113 @@ export function useCampaignFeed() {
     }
   }, [dispatch, campaignsData, sortBy]);
 
-  const handleOpenBrief = (campaign) => {
+  const handleNicheChange = useCallback(
+    (niche) => {
+      const nicheValue = typeof niche === "object" ? niche.value : niche;
+      setSelectedNiche(nicheValue);
+
+      if (nicheValue === "all") {
+        dispatch(resetFilteredCampaigns());
+        dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
+        return;
+      }
+
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          niches: nicheValue,
+          sort: sortBy,
+        })
+      );
+    },
+    [dispatch, sortBy]
+  );
+
+  const handleSortChange = useCallback(
+    (newSortBy) => {
+      const sortValue = typeof newSortBy === "object" ? newSortBy.value : newSortBy;
+      setSortBy(sortValue);
+
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          niches: selectedNiche !== "all" ? selectedNiche : undefined,
+          sort: sortValue,
+        })
+      );
+    },
+    [dispatch, selectedNiche]
+  );
+
+  const clearAllFilters = useCallback(() => {
+    setSelectedNiche("all");
+    setSortBy("latest");
+    dispatch(resetFilteredCampaigns());
+    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
+  }, [dispatch]);
+
+  const handleOpenBrief = useCallback((campaign) => {
     setBriefCampaign(campaign);
     setShowFullBrief(true);
-  };
+  }, []);
 
-  const handleOpenApplication = (campaign) => {
+  const handleOpenApplication = useCallback((campaign) => {
     setApplicationCampaign(campaign);
     setShowApplication(true);
-  };
+  }, []);
 
-  const closeBrief = () => {
+  const closeBrief = useCallback(() => {
     setShowFullBrief(false);
     setBriefCampaign(null);
-  };
+  }, []);
 
-  const closeApplication = () => {
+  const closeApplication = useCallback(() => {
     setShowApplication(false);
     setApplicationCampaign(null);
     setApplicationPitch("");
-  };
+  }, []);
 
-  const handleApply = async () => {
-    if (!applicationCampaign || !applicationPitch.trim()) {
-      return;
-    }
+  const handleApply = useCallback(() => {
+    if (!applicationCampaign) return;
 
-    try {
-      const result = await dispatch(
-        applyToCampaign({
-          campaignId: applicationCampaign.id,
-          pitch: applicationPitch.trim(),
-        })
-      ).unwrap();
+    dispatch(
+      applyToCampaign({
+        campaignId: applicationCampaign.id,
+        pitch: applicationPitch.trim(),
+      })
+    )
+      .unwrap()
+      .then(() => {
+        closeApplication();
 
-      // Close modal and reset on success
-      closeApplication();
-
-      // Refresh the campaigns list after successful application
-      if (selectedNiche === "all") {
-        // Reset state first, then fetch new data
-        dispatch(resetGetAllCampaigns());
-        dispatch(resetFilteredCampaigns());
-        await dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy })).unwrap();
-      } else {
-        // Reset state first, then re-apply the current filter
-        dispatch(resetFilteredCampaigns());
-        dispatch(resetGetAllCampaigns());
-        const filters = {
-          categories: [selectedNiche],
-        };
-        await dispatch(filterCampaigns({ filters, page: 1, limit: 10, sort: sortBy })).unwrap();
-      }
-    } catch (error) {
-      console.error("Failed to apply to campaign:", error);
-      // Error notification is handled by the API interceptor
-    }
-  };
+        if (selectedNiche === "all") {
+          dispatch(resetGetAllCampaigns());
+          dispatch(resetFilteredCampaigns());
+          dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
+        } else {
+          dispatch(resetFilteredCampaigns());
+          dispatch(resetGetAllCampaigns());
+          dispatch(
+            filterCampaigns({
+              page: 1,
+              limit: 10,
+              sort: sortBy,
+              niches: selectedNiche,
+            })
+          );
+        }
+      });
+  }, [applicationCampaign, applicationPitch, closeApplication, dispatch, selectedNiche, sortBy]);
 
   return {
     campaigns: transformedCampaigns,
     sortedCampaigns,
     isLoading,
-    isFiltering,
     sortBy,
-    setSortBy,
     handleSortChange,
     selectedNiche,
-    setSelectedNiche,
     handleNicheChange,
     clearAllFilters,
     showFullBrief,
@@ -291,9 +254,6 @@ export function useCampaignFeed() {
     closeApplication,
     handleApply,
     isApplying,
-    applySuccess,
-    applyError,
-    dispatch,
     filteredCampaignsData,
   };
 }

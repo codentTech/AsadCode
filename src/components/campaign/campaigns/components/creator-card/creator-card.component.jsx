@@ -159,9 +159,7 @@ const CreatorCard = ({
 
         {/* Short tagline bio */}
         <div className="text-center">
-          <p className="text-xs text-gray-500">
-            {creator.tagline || "Creating authentic content that resonates with audiences"}
-          </p>
+          <p className="text-xs text-gray-500 truncate">{creator.tagline}</p>
         </div>
 
         {/* Stats */}
