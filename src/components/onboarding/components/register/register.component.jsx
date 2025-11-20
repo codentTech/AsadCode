@@ -3,10 +3,10 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import { ArrowLeft, Calendar, Lock, Mail, User } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import useRegister from "./use-register.hook";
-import COUNTRIES from "@/common/constants/countries.constant";
+import api from "@/common/utils/api";
 
 const Register = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, watch, setValue, isLoading } = useRegister({
@@ -14,11 +14,12 @@ const Register = ({ onNext, onBack }) => {
   });
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
 
-  // Separate states for different selection types
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [hasManualLocationOverride, setHasManualLocationOverride] = useState(false);
+  const hasAutoDetectedLocation = useRef(false);
 
   const password = watch("password");
 
@@ -33,22 +34,16 @@ const Register = ({ onNext, onBack }) => {
     }
   }, [password]);
 
-  // Update form values when selections change
   useEffect(() => {
     if (selectedAccountType) {
       setValue("account_type", selectedAccountType);
     }
   }, [selectedAccountType, setValue]);
 
-  const countryLookup = useMemo(() => {
-    return COUNTRIES.reduce((acc, country) => {
-      acc[country.code] = country;
-      return acc;
-    }, {});
-  }, []);
-
   const handleCountrySelect = useCallback(
     (country) => {
+      setHasManualLocationOverride(true);
+
       if (!country) {
         setSelectedCountry(null);
         setValue("country", "", { shouldValidate: true });
@@ -56,6 +51,8 @@ const Register = ({ onNext, onBack }) => {
         setSelectedCity(null);
         setValue("city", "", { shouldValidate: true });
         setValue("city_country_code", "", { shouldValidate: true });
+        setValue("latitude", "", { shouldValidate: false });
+        setValue("longitude", "", { shouldValidate: false });
         return;
       }
 
@@ -73,16 +70,22 @@ const Register = ({ onNext, onBack }) => {
       setSelectedCity(null);
       setValue("city", "", { shouldValidate: true });
       setValue("city_country_code", normalizedCountry.code || "", { shouldValidate: true });
+      setValue("latitude", "", { shouldValidate: false });
+      setValue("longitude", "", { shouldValidate: false });
     },
     [setValue]
   );
 
   const handleCitySelect = useCallback(
     (city) => {
+      setHasManualLocationOverride(true);
+
       if (!city) {
         setSelectedCity(null);
         setValue("city", "", { shouldValidate: true });
         setValue("city_country_code", selectedCountry?.code || "", { shouldValidate: true });
+        setValue("latitude", "", { shouldValidate: false });
+        setValue("longitude", "", { shouldValidate: false });
         return;
       }
 
@@ -99,68 +102,88 @@ const Register = ({ onNext, onBack }) => {
       setSelectedCity(normalizedCity);
       setValue("city", normalizedCity.name, { shouldValidate: true });
       setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+      setValue("latitude", normalizedCity.latitude ?? "", { shouldValidate: false });
+      setValue("longitude", normalizedCity.longitude ?? "", { shouldValidate: false });
     },
     [selectedCountry?.code, setValue]
   );
 
   useEffect(() => {
+    let isMounted = true;
+
+    if (
+      hasManualLocationOverride ||
+      hasAutoDetectedLocation.current ||
+      selectedCountry ||
+      selectedCity
+    ) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const autoDetectLocation = async () => {
       try {
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
-        if (!data) return;
+        const client = api({ "x-skip-toast": "true" });
+        const response = await client.get("/auth/location/auto-detect");
+        const data = response.data?.data;
+        if (!isMounted || !data) return;
 
-        const isoCode = data?.country_code;
-        if (!isoCode || selectedCountry) return;
+        hasAutoDetectedLocation.current = true;
 
-        const countryMatch = countryLookup[isoCode];
-        if (!countryMatch) return;
+        if (data.countryName && data.countryCode && !selectedCountry) {
+          const normalizedCountry = {
+            name: data.countryName,
+            code: data.countryCode,
+            countryCode: data.countryCode,
+            dialCode: data.dialCode || "",
+          };
+          setSelectedCountry(normalizedCountry);
+          setValue("country", normalizedCountry.name, { shouldValidate: true });
+          setValue("country_code", normalizedCountry.code, { shouldValidate: true });
+          setValue("city_country_code", normalizedCountry.code, { shouldValidate: true });
+        }
 
-        const normalizedCountry = {
-          name: countryMatch.label,
-          code: countryMatch.code,
-          dialCode: countryMatch.phone,
-        };
-        handleCountrySelect(normalizedCountry);
-
-        if (data.city) {
+        if (data.city && !selectedCity) {
           const normalizedCity = {
             name: data.city,
             cityName: data.city,
-            countryCode: countryMatch.code,
-            region: data.region || "",
-            latitude: data.latitude || null,
-            longitude: data.longitude || null,
-            geonameId: null,
+            countryCode: data.cityCountryCode || data.countryCode || "",
+            latitude: typeof data.latitude === "number" ? data.latitude : null,
+            longitude: typeof data.longitude === "number" ? data.longitude : null,
           };
           setSelectedCity(normalizedCity);
           setValue("city", normalizedCity.name, { shouldValidate: true });
           setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+          if (normalizedCity.latitude !== null) {
+            setValue("latitude", normalizedCity.latitude, { shouldValidate: false });
+          }
+          if (normalizedCity.longitude !== null) {
+            setValue("longitude", normalizedCity.longitude, { shouldValidate: false });
+          }
+        } else {
+          if (typeof data.latitude === "number") {
+            setValue("latitude", data.latitude, { shouldValidate: false });
+          }
+          if (typeof data.longitude === "number") {
+            setValue("longitude", data.longitude, { shouldValidate: false });
+          }
         }
       } catch (error) {
-        // ignore auto-detect errors silently
+        // Silent failover
       }
     };
 
     autoDetectLocation();
-  }, [countryLookup, handleCountrySelect, selectedCountry, setValue]);
 
-  const getStrengthColor = () => {
-    if (passwordStrength < 50) return "bg-red-400";
-    if (passwordStrength < 75) return "bg-yellow-400";
-    return "bg-green-400";
-  };
-
-  const getStrengthText = () => {
-    if (passwordStrength < 50) return "Weak";
-    if (passwordStrength < 75) return "Medium";
-    return "Strong";
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [hasManualLocationOverride, selectedCountry, selectedCity, setValue]);
 
   return (
     <div className="py-8 px-4 bg-gray-100">
       <div className="max-w-xl mx-auto">
-        {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
             <button
@@ -178,7 +201,6 @@ const Register = ({ onNext, onBack }) => {
           </div>
         </div>
 
-        {/* Header */}
         <div className="text-center mb-5">
           <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">Create Your Account</h1>
           <p className="text-sm lg:text-lg text-gray-600">
@@ -186,10 +208,8 @@ const Register = ({ onNext, onBack }) => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-            {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CustomInput
                 label="First Name"
@@ -212,7 +232,6 @@ const Register = ({ onNext, onBack }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Email */}
               <CustomInput
                 label="Email Address"
                 name="email"
@@ -233,7 +252,7 @@ const Register = ({ onNext, onBack }) => {
                 icon={Calendar}
               />
             </div>
-            {/* Enhanced Password */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CustomInput
                 label="Password"
@@ -255,37 +274,8 @@ const Register = ({ onNext, onBack }) => {
                 placeholder="Re-enter your password"
                 isRequired={true}
               />
-
-              {/* Password Strength Indicator */}
-              {/* {password && (
-                <div className="my-4">
-                  <div className="flex items-center justify_between text-xs mb-1">
-                    <span className="text-gray-600">Password strength:</span>
-                    <span
-                      className={`font-medium ${
-                        passwordStrength >= 75
-                          ? "text-green-600"
-                          : passwordStrength >= 50
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                      }`}
-                    >
-                      {getStrengthText()}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${getStrengthColor()}`}
-                      style={{ width: `${passwordStrength}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )} */}
             </div>
 
-            {/* Date of Birth */}
-
-            {/* Country & City */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CountrySelect
                 label="Select country"
@@ -294,6 +284,7 @@ const Register = ({ onNext, onBack }) => {
                 errors={errors}
                 isRequired
                 name="country"
+                autoDetect
               />
 
               <CitySelect
@@ -312,8 +303,9 @@ const Register = ({ onNext, onBack }) => {
             <input type="hidden" {...register("country_code")} />
             <input type="hidden" {...register("city")} />
             <input type="hidden" {...register("city_country_code")} />
+            <input type="hidden" {...register("latitude")} />
+            <input type="hidden" {...register("longitude")} />
 
-            {/* Account Type - Only for Brand/Agency Mode */}
             {!isCreatorMode && (
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -348,7 +340,6 @@ const Register = ({ onNext, onBack }) => {
               </div>
             )}
 
-            {/* Checkboxes */}
             <div className="space-y-4 bg-gray-100 p-4 rounded-xl">
               <label className="flex items-start space-x-3 cursor-pointer">
                 <input
@@ -383,7 +374,6 @@ const Register = ({ onNext, onBack }) => {
               )}
             </div>
 
-            {/* Submit Button */}
             <CustomButton
               text="Create My Account"
               className="btn-primary w-full"

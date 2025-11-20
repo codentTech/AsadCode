@@ -273,8 +273,6 @@ const DefaultCampaignRequirements = () => {
     { id: "instagram", label: "Instagram", icon: InstagramIcon },
     { id: "tiktok", label: "TikTok", icon: TikTokIcon },
     { id: "youtube", label: "YouTube", icon: YoutubeIcon },
-    { id: "twitter", label: "Twitter", icon: TwitterIcon },
-    { id: "facebook", label: "Facebook", icon: FacebookIcon },
   ];
 
   const followerRanges = [

@@ -31,6 +31,12 @@ const createValidationSchema = (isCreatorMode) => {
     city_country_code: Yup.string().required("City is required"),
     agree_terms: Yup.boolean().oneOf([true], "You must accept the terms and conditions"),
     marketing_emails: Yup.boolean().default(false),
+    latitude: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === "" ? null : value)),
+    longitude: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === "" ? null : value)),
   };
 
   // Add conditional fields based on mode
@@ -65,6 +71,8 @@ export default function useRegister({ onNext }) {
       country_code: "",
       city_country_code: "",
       confirm_password: "",
+      latitude: "",
+      longitude: "",
     },
   });
 
@@ -82,6 +90,10 @@ export default function useRegister({ onNext }) {
         country: values.country,
         country_code: values.country_code,
         city_country_code: values.city_country_code,
+        latitude:
+          values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
+        longitude:
+          values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
         role: isCreatorMode ? "CREATOR" : "BRAND",
         marketing_emails: values.marketing_emails || false,
         agree_terms: values.agree_terms,

@@ -118,10 +118,7 @@ const DeliverablesProgress = ({
         <div className="bg-white border rounded-lg p-3">
           <h4 className="text-sm font-bold text-gray-800 mb-2">Application Message</h4>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <ReadMore
-              text={creatorData.pitch || "No application message provided."}
-              maxLength={100}
-            />
+            <ReadMore text={creatorData.pitch || "No application message."} maxLength={100} />
           </div>
         </div>
 

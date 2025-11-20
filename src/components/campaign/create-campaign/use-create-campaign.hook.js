@@ -50,7 +50,9 @@ const validationSchema = Yup.object().shape({
         schema
           .typeError("Budget must be a valid number")
           .positive("Budget must be a positive number")
-          .required("Total budget is required for sponsored posts and UGC campaigns"),
+          .required(
+            "Enter your planned campaign budget. This amount is not charged or publicly visible to creators. It is only used to track your planned budget and remaining spend."
+          ),
       otherwise: (schema) => schema.nullable(),
     }),
   suggested_min: Yup.number()

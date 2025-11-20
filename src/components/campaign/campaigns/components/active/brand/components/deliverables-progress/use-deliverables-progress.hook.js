@@ -25,6 +25,7 @@ import { getContractsByCampaign } from "@/provider/features/contracts/contracts.
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
+import { getAge } from "@/common/utils/date.utils";
 
 const useDeliverablesProgress = (
   campaignId = "temp-campaign-id",
@@ -145,6 +146,7 @@ const useDeliverablesProgress = (
         location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
         rating: selectedCreator.rating || 0,
         bio: selectedCreator.bio || "No bio available",
+        age: selectedCreator.age,
       }
     : {
         id: "unknown",

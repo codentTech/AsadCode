@@ -14,162 +14,9 @@ import {
   RefreshCw,
   PlusCircle,
 } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { updateCampaignDefaults } from "@/provider/features/users/users.slice";
-import {
-  uploadSingleFile,
-  uploadMultipleFiles,
-} from "@/provider/features/upload-file/upload-file.slice";
-import { getUser } from "@/common/utils/users.util";
-import { updateUser } from "@/provider/features/users/users.slice";
+import useEditProfileModal from "./use-edit-profile-modal.hook";
 
 const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
-  const dispatch = useDispatch();
-  const [activeTab, setActiveTab] = useState("profile");
-  const [newNiche, setNewNiche] = useState("");
-  const [showNicheInput, setShowNicheInput] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [profileData, setProfileData] = useState({
-    name: "",
-    handle: "",
-    location: "",
-    bio: "",
-    profilePic: null,
-    profilePicLoading: false,
-    miniCards: [null, null, null],
-    miniCardsLoading: [false, false, false],
-    niches: [],
-    startingRates: {},
-  });
-
-  const [galleries, setGalleries] = useState({
-    nicheContent: {},
-    uploadingNiches: {}, // Track loading state per niche
-  });
-
-  // Content rates state
-  const [contentRates, setContentRates] = useState([]);
-  const [customRates, setCustomRates] = useState([]);
-
-  // Initialize profile data when creator prop changes
-  useEffect(() => {
-    if (creator) {
-      setProfileData({
-        name: creator.name || "",
-        handle: creator.handle || "",
-        location: creator.location || "",
-        bio: creator.bio || "",
-        profilePic: creator.profilePic || null,
-        miniCards: (() => {
-          const miniPics = creator?.miniProfilePictures || [];
-          // Ensure we always have exactly 3 slots
-          const result = [null, null, null];
-          if (Array.isArray(miniPics)) {
-            miniPics.forEach((pic, index) => {
-              if (index < 3 && pic) {
-                result[index] = pic;
-              }
-            });
-          }
-          return result;
-        })(),
-        miniCardsLoading: [false, false, false],
-        niches: creator.categories || [],
-        startingRates:
-          creator?.creator_profile?.content_rates?.map((rate) => ({
-            type: rate.contentType,
-            price: `$${rate.price || 0}`,
-          })) || [],
-      });
-
-      // Initialize galleries from creator data
-      if (creator?.gallery && Array.isArray(creator.gallery)) {
-        const galleryData = {};
-        creator.gallery.forEach((niche) => {
-          if (niche.media && Array.isArray(niche.media)) {
-            // Separate videos and images based on URL extensions
-            const videos = niche.media
-              .filter((mediaItem) => {
-                const url =
-                  typeof mediaItem === "string" ? mediaItem : mediaItem.src || mediaItem.url;
-                return (
-                  url &&
-                  (url.includes(".mp4") ||
-                    url.includes(".mov") ||
-                    url.includes(".avi") ||
-                    url.includes(".webm"))
-                );
-              })
-              .map((mediaItem) => {
-                // Ensure consistent structure - convert to URL string if it's an object
-                return typeof mediaItem === "string" ? mediaItem : mediaItem.src || mediaItem.url;
-              });
-
-            const images = niche.media
-              .filter((mediaItem) => {
-                const url =
-                  typeof mediaItem === "string" ? mediaItem : mediaItem.src || mediaItem.url;
-                return (
-                  url &&
-                  (url.includes(".jpg") ||
-                    url.includes(".jpeg") ||
-                    url.includes(".png") ||
-                    url.includes(".gif") ||
-                    url.includes(".webp"))
-                );
-              })
-              .map((mediaItem) => {
-                // Ensure consistent structure - convert to URL string if it's an object
-                return typeof mediaItem === "string" ? mediaItem : mediaItem.src || mediaItem.url;
-              });
-
-            galleryData[niche.niche] = {
-              videos: videos,
-              images: images,
-            };
-          }
-        });
-        setGalleries({
-          nicheContent: galleryData,
-          uploadingNiches: {},
-        });
-      }
-
-      // Initialize content rates
-      if (creator?.contentRates && creator.contentRates.length > 0) {
-        // Use the existing content rates from the API
-        setContentRates(creator.contentRates);
-        setCustomRates([{ contentType: "", price: "" }]);
-      }
-    }
-  }, [creator]);
-
-  const fileInputRef = useRef(null);
-
-  // Content rates handlers
-  const handleRateChange = (index, value) => {
-    const newRates = [...contentRates];
-    newRates[index] = { ...newRates[index], price: parseFloat(value) || 0 };
-    setContentRates(newRates);
-  };
-
-  const handleCustomRateChange = (idx, field, value) => {
-    const updated = [...customRates];
-    updated[idx][field] = field === "price" ? parseFloat(value) || 0 : value;
-    setCustomRates(updated);
-  };
-
-  const addCustomRateRow = () => {
-    setCustomRates([...customRates, { contentType: "", price: 0 }]);
-  };
-
-  const removeCustomRate = (idx) => {
-    const updated = customRates.filter((_, i) => i !== idx);
-    setCustomRates(updated.length ? updated : [{ contentType: "", price: 0 }]);
-  };
-
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "pricing", label: "Pricing", icon: DollarSign },
@@ -177,349 +24,33 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
     { id: "niches", label: "Niches", icon: Tag },
   ];
 
-  const handleProfilePicChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Set loading state
-      setProfileData((prev) => ({ ...prev, profilePicLoading: true }));
-
-      const response = await dispatch(
-        uploadSingleFile({
-          file: file,
-          folder: "creator",
-        })
-      ).unwrap();
-
-      if (response?.url) {
-        // Update profile picture with the uploaded URL
-        setProfileData((prev) => ({
-          ...prev,
-          profilePic: response.url,
-          profilePicLoading: false,
-        }));
-      }
-    }
-  };
-
-  const handleMiniCardRemove = (index) => {
-    setProfileData((prev) => {
-      const newMiniCards = [...prev.miniCards];
-      newMiniCards[index] = null;
-      return { ...prev, miniCards: newMiniCards };
-    });
-  };
-
-  const handleMiniCardUpload = async (index) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.multiple = false;
-
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      // Set loading state
-      setProfileData((prev) => {
-        const newLoading = [...prev.miniCardsLoading];
-        newLoading[index] = true;
-        return { ...prev, miniCardsLoading: newLoading };
-      });
-
-      // Upload file using the upload service
-      const response = await dispatch(
-        uploadSingleFile({
-          file: file,
-          folder: "creator",
-        })
-      ).unwrap();
-
-      if (response?.url) {
-        // Update mini card with the uploaded URL
-        setProfileData((prev) => {
-          const newMiniCards = [...prev.miniCards];
-          newMiniCards[index] = response.url;
-          return { ...prev, miniCards: newMiniCards };
-        });
-      } else {
-        setProfileData((prev) => {
-          const newLoading = [...prev.miniCardsLoading];
-          newLoading[index] = false;
-          return { ...prev, miniCardsLoading: newLoading };
-        });
-      }
-    };
-
-    input.click();
-  };
-
-  const addNiche = () => {
-    if (newNiche.trim() && !profileData.niches.includes(newNiche.trim())) {
-      const newNicheName = newNiche.trim();
-      setProfileData((prev) => ({
-        ...prev,
-        niches: [...prev.niches, newNicheName],
-      }));
-      setNewNiche("");
-      setShowNicheInput(false);
-    }
-  };
-
-  const removeNiche = (niche) => {
-    setProfileData((prev) => ({
-      ...prev,
-      niches: prev.niches.filter((n) => n !== niche),
-    }));
-
-    setGalleries((prev) => {
-      const newNicheContent = { ...prev.nicheContent };
-      delete newNicheContent[niche];
-      return {
-        ...prev,
-        nicheContent: newNicheContent,
-      };
-    });
-  };
-
-  const addGalleryItem = async (type, niche) => {
-    const input = document.createElement("input");
-    input.type = "file";
-
-    // Set accept based on type
-    if (type === "video") {
-      input.accept = "video/*";
-    } else if (type === "image") {
-      input.accept = "image/*";
-    } else if (type === "mixed") {
-      input.accept = "image/*,video/*";
-    }
-
-    input.multiple = true;
-
-    input.onchange = async (e) => {
-      const files = Array.from(e.target.files);
-
-      if (files.length === 0) return;
-
-      const MAX_FILE_SIZE = 50 * 1024 * 1024;
-      const oversizedFiles = files.filter((file) => file.size > MAX_FILE_SIZE);
-
-      if (oversizedFiles.length > 0) {
-        return;
-      }
-
-      setGalleries((prev) => ({
-        ...prev,
-        uploadingNiches: {
-          ...prev.uploadingNiches,
-          [niche]: true,
-        },
-      }));
-
-      if (files.length === 1) {
-        const result = await dispatch(uploadSingleFile({ file: files[0], folder: "creator" }));
-        const uploadedUrl = result?.payload?.url;
-
-        if (uploadedUrl) {
-          setGalleries((prev) => {
-            const currentNicheContent = prev.nicheContent[niche] || { videos: [], images: [] };
-            const fileType = files[0].type.startsWith("video/") ? "videos" : "images";
-
-            return {
-              ...prev,
-              nicheContent: {
-                ...prev.nicheContent,
-                [niche]: {
-                  ...currentNicheContent,
-                  [fileType]: [...currentNicheContent[fileType], uploadedUrl],
-                },
-              },
-              uploadingNiches: {
-                ...prev.uploadingNiches,
-                [niche]: false,
-              },
-            };
-          });
-        }
-      } else {
-        const result = await dispatch(uploadMultipleFiles({ files, folder: "creator" })).unwrap();
-        const uploadedUrls = result?.urls;
-
-        if (uploadedUrls && Array.isArray(uploadedUrls)) {
-          setGalleries((prev) => {
-            const currentNicheContent = prev.nicheContent[niche] || { videos: [], images: [] };
-
-            const videos = [];
-            const images = [];
-
-            uploadedUrls.forEach((url, index) => {
-              const fileType = files[index].type.startsWith("video/") ? "video" : "image";
-              if (fileType === "video") {
-                videos.push(url);
-              } else {
-                images.push(url);
-              }
-            });
-
-            return {
-              ...prev,
-              nicheContent: {
-                ...prev.nicheContent,
-                [niche]: {
-                  ...currentNicheContent,
-                  videos: [...currentNicheContent.videos, ...videos],
-                  images: [...currentNicheContent.images, ...images],
-                },
-              },
-              uploadingNiches: {
-                ...prev.uploadingNiches,
-                [niche]: false,
-              },
-            };
-          });
-        }
-      }
-
-      setGalleries((prev) => ({
-        ...prev,
-        uploadingNiches: {
-          ...prev.uploadingNiches,
-          [niche]: false,
-        },
-      }));
-    };
-
-    input.click();
-  };
-
-  // Utility function to ensure gallery data consistency
-  const ensureCleanGalleryData = (galleryData) => {
-    const cleaned = {};
-    Object.entries(galleryData).forEach(([niche, content]) => {
-      if (content && typeof content === "object") {
-        const cleanVideos = (content.videos || [])
-          .map((item) => (typeof item === "string" ? item : item.src || item.url || item))
-          .filter((url) => url && typeof url === "string");
-
-        const cleanImages = (content.images || [])
-          .map((item) => (typeof item === "string" ? item : item.src || item.url || item))
-          .filter((url) => url && typeof url === "string");
-
-        cleaned[niche] = {
-          videos: cleanVideos,
-          images: cleanImages,
-        };
-      }
-    });
-    return cleaned;
-  };
-
-  const removeGalleryItem = (type, index, niche) => {
-    setGalleries((prev) => {
-      const currentNicheContent = prev.nicheContent[niche];
-      if (!currentNicheContent) return prev;
-
-      return {
-        ...prev,
-        nicheContent: {
-          ...prev.nicheContent,
-          [niche]: {
-            ...currentNicheContent,
-            [type === "video" ? "videos" : "images"]: currentNicheContent[
-              type === "video" ? "videos" : "images"
-            ].filter((_, i) => i !== index),
-          },
-        },
-      };
-    });
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-
-      // Clean gallery data to ensure consistency
-      const cleanGalleryData = ensureCleanGalleryData(galleries.nicheContent);
-
-      const galleryData = Object.entries(cleanGalleryData).map(([niche, content]) => {
-        const allMedia = [...(content.videos || []), ...(content.images || [])];
-
-        return {
-          niche,
-          media: allMedia,
-        };
-      });
-
-      // Prepare content rates from editable state
-      const allContentRates = [
-        ...contentRates.filter((rate) => rate.contentType && rate.price > 0),
-        ...customRates.filter((rate) => rate.contentType && rate.price > 0),
-      ];
-      const userUpdateData = {
-        first_name: profileData.name.split(" ")[0] || "",
-        last_name: profileData.name.split(" ").slice(1).join(" ") || "",
-        city: profileData.location.split(",")[0]?.trim() || "",
-        country: profileData.location.split(",")[1]?.trim() || "",
-      };
-
-      const creatorProfileData = {
-        profilePhotoUrl: profileData.profilePic,
-        miniProfilePictures: profileData.miniCards.filter((card) => card !== null),
-        bio: profileData.bio,
-        socialPlatforms: creator.user?.creator_profile?.social_platforms || [],
-        categories: profileData.niches,
-        keywordTags: creator.user?.creator_profile?.keyword_tags || [],
-        contentRates: allContentRates,
-        gallery: galleryData,
-      };
-
-      const user = getUser();
-      if (!user || !user.email) {
-        throw new Error("User not found or email missing");
-      }
-
-      if (activeTab === "profile") {
-        await dispatch(updateUser(userUpdateData)).unwrap();
-      }
-
-      // Always update creator profile data (includes content rates, gallery, etc.)
-      const creatorResult = await dispatch(updateCampaignDefaults(creatorProfileData)).unwrap();
-
-      if (creatorResult.success) {
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        if (currentUser.creator_profile) {
-          // Update creator profile data
-          currentUser.creator_profile.gallery = galleryData;
-          currentUser.creator_profile.content_rates = allContentRates;
-          currentUser.creator_profile.mini_profile_pictures = profileData.miniCards.filter(
-            (card) => card !== null
-          );
-          currentUser.creator_profile.profile_photo_url = profileData.profilePic;
-          currentUser.creator_profile.bio = profileData.bio;
-          currentUser.creator_profile.categories = profileData.niches;
-
-          // Also update the root level for backward compatibility
-          currentUser.miniProfilePictures = profileData.miniCards.filter((card) => card !== null);
-          currentUser.profilePic = profileData.profilePic;
-          currentUser.gallery = galleryData; // Add gallery at root level for immediate access
-
-          localStorage.setItem("user", JSON.stringify(currentUser));
-        }
-
-        if (onSave) {
-          onSave();
-        }
-
-        onClose();
-      } else {
-        throw new Error(creatorResult.message || "Failed to update creator profile");
-      }
-    } catch (error) {
-      console.error("Error saving profile:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    fileInputRef,
+    activeTab,
+    setActiveTab,
+    profileData,
+    handleProfileFieldChange,
+    handleProfilePicChange,
+    handleMiniCardUpload,
+    handleMiniCardRemove,
+    contentRates,
+    handleRateChange,
+    customRates,
+    handleCustomRateChange,
+    addCustomRateRow,
+    removeCustomRate,
+    showNicheInput,
+    setShowNicheInput,
+    newNiche,
+    setNewNiche,
+    addNiche,
+    removeNiche,
+    galleries,
+    addGalleryItem,
+    removeGalleryItem,
+    handleSave,
+    isSaving,
+  } = useEditProfileModal({ creator, onClose, onSave });
 
   if (!isOpen) return null;
 
@@ -670,7 +201,7 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                     label="Tell us about yourself"
                     name="bio"
                     value={profileData.bio}
-                    onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
+                    onChange={(e) => handleProfileFieldChange("bio", e.target.value)}
                     placeholder="Share your story, passion, and what makes you unique..."
                     rows={4}
                   />
@@ -686,9 +217,7 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                           label="Full Name"
                           name="name"
                           value={profileData.name}
-                          onChange={(e) =>
-                            setProfileData((prev) => ({ ...prev, name: e.target.value }))
-                          }
+                          onChange={(e) => handleProfileFieldChange("name", e.target.value)}
                           placeholder="Enter your full name"
                           className="w-full"
                         />
@@ -698,9 +227,7 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                           label="Handle"
                           name="handle"
                           value={profileData.handle}
-                          onChange={(e) =>
-                            setProfileData((prev) => ({ ...prev, handle: e.target.value }))
-                          }
+                          onChange={(e) => handleProfileFieldChange("handle", e.target.value)}
                           placeholder="@yourusername"
                           className="w-full"
                         />
@@ -711,9 +238,7 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                         label="Location"
                         name="location"
                         value={profileData.location}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({ ...prev, location: e.target.value }))
-                        }
+                        onChange={(e) => handleProfileFieldChange("location", e.target.value)}
                         placeholder="City, Country"
                         className="w-full"
                       />

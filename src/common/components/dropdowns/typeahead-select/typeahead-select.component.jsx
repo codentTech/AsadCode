@@ -17,6 +17,7 @@ export default function TypeaheadSelect({
   placeholder = "Type to search",
   value = null,
   onChange,
+  onClear,
   options = [],
   onSearch,
   isLoading = false,
@@ -106,6 +107,12 @@ export default function TypeaheadSelect({
           closeMenu();
           resetInputToValue();
           break;
+        case "Backspace":
+          if (!searchTerm && value) {
+            handleOptionSelect(null);
+            onClear?.();
+          }
+          break;
         default:
           break;
       }
@@ -118,8 +125,11 @@ export default function TypeaheadSelect({
       highlightPrevious,
       highlightedIndex,
       isOpen,
+      onClear,
       openMenu,
       resetInputToValue,
+      searchTerm,
+      value,
     ]
   );
 
@@ -178,7 +188,10 @@ export default function TypeaheadSelect({
         {value && !disabled && (
           <button
             type="button"
-            onClick={() => handleOptionSelect(null)}
+            onClick={() => {
+              handleOptionSelect(null);
+              onClear?.();
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 hover:text-gray-700"
           >
             <X className="w-4 h-4" />
@@ -203,8 +216,10 @@ TypeaheadSelect.propTypes = {
   placeholder: PropTypes.string,
   value: PropTypes.any,
   onChange: PropTypes.func,
+  onClear: PropTypes.func,
   options: PropTypes.arrayOf(PropTypes.any),
   onSearch: PropTypes.func,
+  onClear: PropTypes.func,
   isLoading: PropTypes.bool,
   isRequired: PropTypes.bool,
   disabled: PropTypes.bool,

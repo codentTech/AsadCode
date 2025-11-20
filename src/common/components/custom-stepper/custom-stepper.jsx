@@ -231,7 +231,7 @@ const CustomStepper = ({
 
         <CustomButton
           text={
-            isLoading ? "Processing..." : activeStep < steps.length - 1 ? "Next" : "Save Campaign"
+            isLoading ? "Processing..." : activeStep < steps.length - 1 ? "Next" : "Launch Campaign"
           }
           onClick={activeStep < steps.length - 1 ? handleNext : handleSave}
           disabled={!canProceed || isLoading}

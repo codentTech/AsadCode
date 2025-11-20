@@ -6,6 +6,7 @@ import AudienceDemographics from "@/components/audience-demographics/audience-de
 import { Avatar } from "@mui/material";
 import { MapPin, Star } from "lucide-react";
 import CampaignHistory from "../campaign-history/campaign-history.component";
+import { getAge } from "@/common/utils/date.utils";
 
 const DeliverablesProgress = ({
   isCompleted = false,
@@ -37,6 +38,8 @@ const DeliverablesProgress = ({
         status: selectedCreator.status,
         profile: profile,
         bio: profile?.bio,
+        age: getAge(creator.date_of_birth),
+        reviewCount: profile?.review_count,
       };
     }
 
@@ -64,7 +67,7 @@ const DeliverablesProgress = ({
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
       {/* Sticky Profile Section */}
-      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
+      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
             src={creatorData?.image || avatar}
@@ -75,26 +78,15 @@ const DeliverablesProgress = ({
           </Avatar>
           <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
         </div>
-        <h3>{creatorData.name}</h3>
+        <h3>
+          {creatorData.name}
+          <span className="text-lg text-gray-500 ml-1">({creatorData.rating})</span>
+        </h3>
+        <p className="flex items-center text-sm text-gray-500 -mt-1">
+          {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
+        </p>
 
-        <p className="primary-text text-center">{creatorData?.bio}</p>
-
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 ${
-                i < Math.floor(creatorData.rating || 0)
-                  ? "text-yellow-400 fill-current"
-                  : "text-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <MapPin className="w-4 h-4" />
-          <span>{creatorData.location}</span>
-        </div>
+        <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
 
         {isCompleted && (
           <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
@@ -150,10 +142,7 @@ const DeliverablesProgress = ({
         <div className="bg-white border rounded-lg p-3">
           <h4 className="text-sm font-bold text-gray-800 mb-2">Application Message</h4>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <ReadMore
-              text={creatorData.pitch || "No application message provided."}
-              maxLength={100}
-            />
+            <ReadMore text={creatorData.pitch || "No application message."} maxLength={100} />
           </div>
         </div>
 
