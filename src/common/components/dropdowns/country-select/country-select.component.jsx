@@ -1,7 +1,7 @@
 "use client";
 
 import PropTypes from "prop-types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import TypeaheadSelect from "@/common/components/dropdowns/typeahead-select/typeahead-select.component";
 import useCountrySelect from "./use-country-select.hook";
 
@@ -16,50 +16,80 @@ export default function CountrySelect({
   helperText = "",
   disabled = false,
 }) {
-  const handleSelection = useCallback(
-    (option) => {
-      if (!option) {
-        onChange?.(null);
-        return;
-      }
+  const [isResolving, setIsResolving] = useState(false);
 
+  const {
+    options,
+    searchCountries,
+    resolveCountryDetails,
+    isDetecting,
+    isSearching,
+    markManualOverride,
+  } = useCountrySelect({
+    autoDetect,
+    onAutoDetect: (option) => {
       onChange?.({
-        countryName: option.label,
-        countryCode: option.value,
-        phoneCode: option.phone,
+        countryName: option.countryName || option.label,
+        countryCode: option.countryCode || option.value,
+        phoneCode: option.phoneCode || "",
       });
     },
-    [onChange]
-  );
-
-  const { options, detectCountry, isDetecting } = useCountrySelect({
-    autoDetect,
-    onAutoDetect: handleSelection,
     enabled: !disabled,
+    hasInitialValue: Boolean(value),
   });
 
-  const selectedOption = useMemo(() => {
+  const selectedValue = useMemo(() => {
     if (!value) return null;
+    const countryName = value.countryName || value.name || value.label || "";
+    const countryCode = value.countryCode || value.code || value.value || "";
+    const phoneCode = value.phoneCode || value.dialCode || "";
 
-    const code = value.countryCode || value.code || value.value;
-    if (!code) {
-      return null;
-    }
-
-    return options.find((option) => option.value === code) || null;
-  }, [options, value]);
+    return {
+      ...value,
+      label: countryName,
+      value: countryCode || countryName,
+      countryName,
+      countryCode,
+      phoneCode,
+    };
+  }, [value]);
 
   const helper = useMemo(() => {
-    if (isDetecting) {
+    if (isDetecting || isResolving) {
       return "Detecting your country...";
     }
     if (helperText) {
       return helperText;
     }
-    return autoDetect
-      ? "We attempt to detect your country automatically. You can change it anytime."
-      : null;
-  }, [autoDetect, helperText, isDetecting]);
+    return autoDetect ? "" : null;
+  }, [autoDetect, helperText, isDetecting, isResolving]);
+
+  const handleSelection = useCallback(
+    async (option) => {
+      if (!option) {
+        markManualOverride();
+        onChange?.(null);
+        return;
+      }
+
+      markManualOverride();
+      setIsResolving(true);
+      try {
+        const result = await resolveCountryDetails(option);
+        if (result) {
+          onChange?.(result);
+        }
+      } finally {
+        setIsResolving(false);
+      }
+    },
+    [markManualOverride, onChange, resolveCountryDetails]
+  );
+
+  const handleClear = useCallback(() => {
+    markManualOverride();
+    onChange?.(null);
+  }, [markManualOverride, onChange]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -67,31 +97,22 @@ export default function CountrySelect({
         label={label}
         name={name}
         placeholder="Search countries"
-        value={selectedOption}
+        value={selectedValue}
         onChange={handleSelection}
+        onClear={handleClear}
         options={options}
-        isLoading={isDetecting}
+        onSearch={searchCountries}
+        isLoading={isDetecting || isSearching || isResolving}
         isRequired={isRequired}
         errors={errors}
-        // helperText={helper}
+        helperText={helper}
         disabled={disabled}
-        getOptionLabel={(option) => option.label}
-        getOptionValue={(option) => option.value}
-        allowCustomSearch={true}
+        getOptionLabel={(option) =>
+          option?.label || option?.countryName || option?.countryCode || ""
+        }
+        getOptionValue={(option) => option?.value || option?.countryCode || option?.label || ""}
+        allowCustomSearch={false}
       />
-
-      {/* {autoDetect && !disabled && (
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            onClick={detectCountry}
-            disabled={isDetecting}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 disabled:text-gray-400"
-          >
-            {isDetecting ? "Detecting..." : "Detect automatically"}
-          </button>
-        </div>
-      )} */}
     </div>
   );
 }

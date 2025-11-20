@@ -1,7 +1,7 @@
 "use client";
 
 import PropTypes from "prop-types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import TypeaheadSelect from "@/common/components/dropdowns/typeahead-select/typeahead-select.component";
 import useCitySelect from "./use-city-select.hook";
 
@@ -17,35 +17,14 @@ export default function CitySelect({
   helperText = "",
   disabled = false,
 }) {
+  const [isResolving, setIsResolving] = useState(false);
   const normalizedCodes = Array.isArray(countryCodes) ? countryCodes.filter(Boolean) : [];
   const hasAnyCountry = Boolean(countryCode) || normalizedCodes.length > 0;
 
-  const { options, isLoading, searchCities, hasNetworkFallback } = useCitySelect({
+  const { options, isLoading, searchCities, resolveCityDetails } = useCitySelect({
     countryCode,
     countryCodes: normalizedCodes,
   });
-
-  const selectedOption = useMemo(() => {
-    if (!value) return null;
-
-    const matchByGeoId = value.geonameId
-      ? options.find((option) => option.geonameId === value.geonameId)
-      : null;
-
-    if (matchByGeoId) return matchByGeoId;
-
-    if (value.cityName && value.countryCode) {
-      return (
-        options.find(
-          (option) =>
-            option.cityName.toLowerCase() === value.cityName.toLowerCase() &&
-            option.countryCode === value.countryCode
-        ) || null
-      );
-    }
-
-    return null;
-  }, [options, value]);
 
   const handleSearch = useCallback(
     (term) => {
@@ -56,47 +35,67 @@ export default function CitySelect({
   );
 
   const handleSelection = useCallback(
-    (option) => {
+    async (option) => {
       if (!option) {
         onChange?.(null);
         return;
       }
 
-      onChange?.({
-        cityName: option.cityName,
-        countryCode: option.countryCode,
-        region: option.region,
-        latitude: option.latitude,
-        longitude: option.longitude,
-        geonameId: option.geonameId,
-      });
+      setIsResolving(true);
+      try {
+        const result = await resolveCityDetails(option);
+        if (result) {
+          onChange?.(result);
+        }
+      } finally {
+        setIsResolving(false);
+      }
     },
-    [onChange]
+    [onChange, resolveCityDetails]
   );
+
+  const handleClear = useCallback(() => {
+    onChange?.(null);
+  }, [onChange]);
 
   const helper = useMemo(() => {
     if (helperText) return helperText;
-    if (!hasAnyCountry) return "Select a country first to enable city search.";
+    if (!hasAnyCountry) return "";
 
-    return "Begin typing to search for verified cities.";
-  }, [helperText, hasAnyCountry, hasNetworkFallback]);
+    return "";
+  }, [helperText, hasAnyCountry]);
+
+  const selectedValue = useMemo(() => {
+    if (!value) return null;
+    const parts = [value.cityName, value.region, value.countryCode].filter(Boolean);
+    return {
+      label: parts.join(", "),
+      value: value.cityName || parts.join(", "),
+      cityName: value.cityName,
+      countryCode: value.countryCode,
+    };
+  }, [value]);
 
   return (
     <TypeaheadSelect
       label={label}
       name={name}
       placeholder={hasAnyCountry ? "Search cities" : "Select a country first"}
-      value={selectedOption}
+      value={selectedValue}
       onChange={handleSelection}
+      onClear={handleClear}
       options={options}
       onSearch={handleSearch}
-      isLoading={isLoading}
+      isLoading={isLoading || isResolving}
       isRequired={isRequired}
       errors={errors}
       helperText={helper}
       disabled={disabled || !hasAnyCountry}
-      getOptionLabel={(option) => option.label}
-      getOptionValue={(option) => option.value}
+      getOptionLabel={(option) =>
+        option?.label ||
+        [option?.cityName, option?.region, option?.countryCode].filter(Boolean).join(", ")
+      }
+      getOptionValue={(option) => option?.value || option?.cityName || option?.label || ""}
       allowCustomSearch={false}
     />
   );

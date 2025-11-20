@@ -228,13 +228,10 @@ const InvoicesReceiptsPage = () => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        console.log("View document:", row);
         break;
       case "download":
-        console.log("Download document:", row);
         break;
       case "email":
-        console.log("Email document:", row);
         break;
       default:
         break;
@@ -251,7 +248,6 @@ const InvoicesReceiptsPage = () => {
   };
 
   const downloadSelected = () => {
-    console.log("Downloading selected items:", selectedItems);
     // Implement download logic
   };
 
