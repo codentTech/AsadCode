@@ -1,6 +1,8 @@
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import {
   PLATFORM_OPTIONS,
   FOLLOWER_OPTIONS,
@@ -175,17 +177,45 @@ const FilterModal = ({
 
             {/* Location */}
             <div className="grid grid-cols-2 gap-4">
-              <CustomInput
+              <CountrySelect
                 label="Country"
-                placeholder="Enter country"
-                value={filters.country}
-                onChange={(e) => onFiltersChange({ ...filters, country: e.target.value })}
+                value={
+                  filters.country
+                    ? {
+                        countryName: filters.country,
+                        countryCode: filters.country_code || "",
+                      }
+                    : null
+                }
+                onChange={(option) =>
+                  onFiltersChange({
+                    ...filters,
+                    country: option?.countryName || "",
+                    country_code: option?.countryCode || "",
+                    city: "",
+                    city_country_code: "",
+                  })
+                }
               />
-              <CustomInput
+              <CitySelect
                 label="City"
-                placeholder="Enter city"
-                value={filters.city}
-                onChange={(e) => onFiltersChange({ ...filters, city: e.target.value })}
+                countryCode={filters.country_code || ""}
+                value={
+                  filters.city
+                    ? {
+                        cityName: filters.city,
+                        countryCode: filters.city_country_code || filters.country_code || "",
+                      }
+                    : null
+                }
+                onChange={(option) =>
+                  onFiltersChange({
+                    ...filters,
+                    city: option?.cityName || "",
+                    city_country_code: option?.countryCode || "",
+                  })
+                }
+                disabled={!filters.country}
               />
             </div>
           </div>
