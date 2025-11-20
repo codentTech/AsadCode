@@ -1,5 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
@@ -374,17 +376,41 @@ const CreatorSpendAnalysis = ({
 
               {/* Location */}
               <div className="grid grid-cols-2 gap-4">
-                <CustomInput
+                <CountrySelect
                   label="Country"
-                  placeholder="Enter country"
-                  value={filters?.country || ""}
-                  onChange={(e) => onFilterChange && onFilterChange("country", e.target.value)}
+                  value={
+                    filters?.country
+                      ? {
+                          countryName: filters.country,
+                          countryCode: filters?.countryCode || "",
+                        }
+                      : null
+                  }
+                  onChange={(option) => {
+                    if (!onFilterChange) return;
+                    onFilterChange("country", option?.countryName || "");
+                    onFilterChange("countryCode", option?.countryCode || "");
+                    onFilterChange("city", "");
+                    onFilterChange("cityCountryCode", "");
+                  }}
+                  helperText=""
                 />
-                <CustomInput
+                <CitySelect
                   label="City"
-                  placeholder="Enter city"
-                  value={filters?.city || ""}
-                  onChange={(e) => onFilterChange && onFilterChange("city", e.target.value)}
+                  countryCode={filters?.countryCode || ""}
+                  value={
+                    filters?.city
+                      ? {
+                          cityName: filters.city,
+                          countryCode: filters?.cityCountryCode || filters?.countryCode || "",
+                        }
+                      : null
+                  }
+                  onChange={(option) => {
+                    onFilterChange && onFilterChange("city", option?.cityName || "");
+                    onFilterChange && onFilterChange("cityCountryCode", option?.countryCode || "");
+                  }}
+                  disabled={!filters?.country}
                 />
               </div>
             </div>
