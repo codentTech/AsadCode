@@ -1,24 +1,26 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import contentPlannerService from "./content-planner.service";
 
-const generalState = {
+const createGeneralState = () => ({
   isLoading: false,
   isSuccess: false,
   isError: false,
   message: "",
   data: null,
-};
+});
 
 const initialState = {
   contentPlanners: [],
-  createContentPlanner: generalState,
-  updateContentPlanner: generalState,
-  deleteContentPlanner: generalState,
-  getContentPlannerByCampaign: generalState,
-  getAllContentPlanners: generalState,
+  createContentPlanner: createGeneralState(),
+  updateContentPlanner: createGeneralState(),
+  deleteContentPlanner: createGeneralState(),
+  getContentPlannerByCampaign: createGeneralState(),
+  getAllContentPlanners: createGeneralState(),
+  createContentPlannerSection: createGeneralState(),
+  updateContentPlannerSection: createGeneralState(),
+  deleteContentPlannerSection: createGeneralState(),
 };
 
-// Create content planner
 export const createContentPlanner = createAsyncThunk(
   "contentPlanner/createContentPlanner",
   async ({ campaignId, contentPlannerData }, thunkAPI) => {
@@ -35,7 +37,6 @@ export const createContentPlanner = createAsyncThunk(
   }
 );
 
-// Get all content planners
 export const getAllContentPlanners = createAsyncThunk(
   "contentPlanner/getAllContentPlanners",
   async (_, thunkAPI) => {
@@ -49,7 +50,6 @@ export const getAllContentPlanners = createAsyncThunk(
   }
 );
 
-// Get content planner by campaign
 export const getContentPlannerByCampaign = createAsyncThunk(
   "contentPlanner/getContentPlannerByCampaign",
   async (campaignId, thunkAPI) => {
@@ -63,7 +63,6 @@ export const getContentPlannerByCampaign = createAsyncThunk(
   }
 );
 
-// Update content planner
 export const updateContentPlanner = createAsyncThunk(
   "contentPlanner/updateContentPlanner",
   async ({ id, updateData }, thunkAPI) => {
@@ -77,13 +76,12 @@ export const updateContentPlanner = createAsyncThunk(
   }
 );
 
-// Delete content planner
 export const deleteContentPlanner = createAsyncThunk(
   "contentPlanner/deleteContentPlanner",
   async (id, thunkAPI) => {
     try {
       const response = await contentPlannerService.deleteContentPlanner(id);
-      if (response.success) return response;
+      if (response.success) return { ...response, plannerId: id };
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue({ payload: error });
@@ -91,16 +89,72 @@ export const deleteContentPlanner = createAsyncThunk(
   }
 );
 
+export const createContentPlannerSection = createAsyncThunk(
+  "contentPlanner/createContentPlannerSection",
+  async ({ plannerId, payload }, thunkAPI) => {
+    try {
+      const response = await contentPlannerService.createContentPlannerSection(plannerId, payload);
+      if (response.success) {
+        return { ...response, plannerId };
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+export const updateContentPlannerSection = createAsyncThunk(
+  "contentPlanner/updateContentPlannerSection",
+  async ({ sectionId, payload }, thunkAPI) => {
+    try {
+      const response = await contentPlannerService.updateContentPlannerSection(sectionId, payload);
+      if (response.success) {
+        return { ...response, sectionId };
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+export const deleteContentPlannerSection = createAsyncThunk(
+  "contentPlanner/deleteContentPlannerSection",
+  async (sectionId, thunkAPI) => {
+    try {
+      const response = await contentPlannerService.deleteContentPlannerSection(sectionId);
+      if (response.success) {
+        return { ...response, sectionId };
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+const updatePlannerInCollection = (collection, plannerId, updater) => {
+  if (!Array.isArray(collection)) return collection;
+  return collection.map((planner) => {
+    if (planner.id !== plannerId) return planner;
+    return updater(planner);
+  });
+};
+
 export const contentPlannerSlice = createSlice({
   name: "contentPlanner",
   initialState,
   reducers: {
     reset: (state) => {
-      state.createContentPlanner = generalState;
-      state.updateContentPlanner = generalState;
-      state.deleteContentPlanner = generalState;
-      state.getContentPlannerByCampaign = generalState;
-      state.getAllContentPlanners = generalState;
+      state.createContentPlanner = createGeneralState();
+      state.updateContentPlanner = createGeneralState();
+      state.deleteContentPlanner = createGeneralState();
+      state.getContentPlannerByCampaign = createGeneralState();
+      state.getAllContentPlanners = createGeneralState();
+      state.createContentPlannerSection = createGeneralState();
+      state.updateContentPlannerSection = createGeneralState();
+      state.deleteContentPlannerSection = createGeneralState();
     },
     clearContentPlanners: (state) => {
       state.contentPlanners = [];
@@ -114,137 +168,293 @@ export const contentPlannerSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Create content planner
       .addCase(createContentPlanner.pending, (state) => {
-        state.createContentPlanner.isLoading = true;
-        state.createContentPlanner.message = "";
-        state.createContentPlanner.isError = false;
-        state.createContentPlanner.isSuccess = false;
-        state.createContentPlanner.data = null;
+        state.createContentPlanner = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
       })
       .addCase(createContentPlanner.fulfilled, (state, action) => {
-        state.createContentPlanner.isLoading = false;
-        state.createContentPlanner.isSuccess = true;
-        state.createContentPlanner.data = action.payload.data;
-        // Add to both arrays for consistency
-        state.contentPlanners.unshift(action.payload.data);
-        state.getAllContentPlanners.data = [
-          action.payload.data,
-          ...(state.getAllContentPlanners.data || []),
-        ];
+        state.createContentPlanner = {
+          ...state.createContentPlanner,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
+
+        const planner = action.payload.data;
+        if (planner) {
+          state.contentPlanners = [planner, ...state.contentPlanners];
+          state.getAllContentPlanners.data = [planner, ...(state.getAllContentPlanners.data || [])];
+        }
       })
       .addCase(createContentPlanner.rejected, (state, action) => {
-        state.createContentPlanner.message = action.payload.message;
-        state.createContentPlanner.isLoading = false;
-        state.createContentPlanner.isError = true;
-        state.createContentPlanner.data = null;
+        state.createContentPlanner = {
+          ...state.createContentPlanner,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+          data: null,
+        };
       })
 
-      // Get all content planners
       .addCase(getAllContentPlanners.pending, (state) => {
-        state.getAllContentPlanners.isLoading = true;
-        state.getAllContentPlanners.message = "";
-        state.getAllContentPlanners.isError = false;
-        state.getAllContentPlanners.isSuccess = false;
-        state.getAllContentPlanners.data = null;
+        state.getAllContentPlanners = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
       })
       .addCase(getAllContentPlanners.fulfilled, (state, action) => {
-        state.getAllContentPlanners.isLoading = false;
-        state.getAllContentPlanners.isSuccess = true;
-        state.getAllContentPlanners.data = action.payload.data;
-        state.contentPlanners = action.payload.data;
+        const planners = action.payload.data || [];
+        state.getAllContentPlanners = {
+          ...state.getAllContentPlanners,
+          isLoading: false,
+          isSuccess: true,
+          data: planners,
+        };
+        state.contentPlanners = planners;
       })
       .addCase(getAllContentPlanners.rejected, (state, action) => {
-        state.getAllContentPlanners.message = action.payload.message;
-        state.getAllContentPlanners.isLoading = false;
-        state.getAllContentPlanners.isError = true;
-        state.getAllContentPlanners.data = null;
+        state.getAllContentPlanners = {
+          ...state.getAllContentPlanners,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+          data: null,
+        };
       })
 
-      // Get content planner by campaign
       .addCase(getContentPlannerByCampaign.pending, (state) => {
-        state.getContentPlannerByCampaign.isLoading = true;
-        state.getContentPlannerByCampaign.message = "";
-        state.getContentPlannerByCampaign.isError = false;
-        state.getContentPlannerByCampaign.isSuccess = false;
-        state.getContentPlannerByCampaign.data = null;
+        state.getContentPlannerByCampaign = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
       })
       .addCase(getContentPlannerByCampaign.fulfilled, (state, action) => {
-        state.getContentPlannerByCampaign.isLoading = false;
-        state.getContentPlannerByCampaign.isSuccess = true;
-        state.getContentPlannerByCampaign.data = action.payload.data;
+        state.getContentPlannerByCampaign = {
+          ...state.getContentPlannerByCampaign,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
       })
       .addCase(getContentPlannerByCampaign.rejected, (state, action) => {
-        state.getContentPlannerByCampaign.message = action.payload.message;
-        state.getContentPlannerByCampaign.isLoading = false;
-        state.getContentPlannerByCampaign.isError = true;
-        state.getContentPlannerByCampaign.data = null;
+        state.getContentPlannerByCampaign = {
+          ...state.getContentPlannerByCampaign,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+          data: null,
+        };
       })
 
-      // Update content planner
       .addCase(updateContentPlanner.pending, (state) => {
-        state.updateContentPlanner.isLoading = true;
-        state.updateContentPlanner.message = "";
-        state.updateContentPlanner.isError = false;
-        state.updateContentPlanner.isSuccess = false;
-        state.updateContentPlanner.data = null;
+        state.updateContentPlanner = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
       })
       .addCase(updateContentPlanner.fulfilled, (state, action) => {
-        state.updateContentPlanner.isLoading = false;
-        state.updateContentPlanner.isSuccess = true;
-        state.updateContentPlanner.data = action.payload.data;
-        // Update content planner in both arrays
-        if (action.payload.data && action.payload.data.id) {
-          const plannerIndex = state.contentPlanners.findIndex(
-            (planner) => planner.id === action.payload.data.id
-          );
-          if (plannerIndex !== -1) {
-            state.contentPlanners[plannerIndex] = action.payload.data;
-          }
+        state.updateContentPlanner = {
+          ...state.updateContentPlanner,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
 
-          // Also update in getAllContentPlanners.data
-          const allPlannersIndex = (state.getAllContentPlanners.data || []).findIndex(
-            (planner) => planner.id === action.payload.data.id
+        const planner = action.payload.data;
+        if (!planner?.id) return;
+
+        state.contentPlanners = updatePlannerInCollection(
+          state.contentPlanners,
+          planner.id,
+          () => planner
+        );
+
+        if (Array.isArray(state.getAllContentPlanners.data)) {
+          state.getAllContentPlanners.data = updatePlannerInCollection(
+            state.getAllContentPlanners.data,
+            planner.id,
+            () => planner
           );
-          if (allPlannersIndex !== -1) {
-            state.getAllContentPlanners.data[allPlannersIndex] = action.payload.data;
-          }
         }
       })
       .addCase(updateContentPlanner.rejected, (state, action) => {
-        state.updateContentPlanner.message = action.payload.message;
-        state.updateContentPlanner.isLoading = false;
-        state.updateContentPlanner.isError = true;
-        state.updateContentPlanner.data = null;
+        state.updateContentPlanner = {
+          ...state.updateContentPlanner,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+          data: null,
+        };
       })
 
-      // Delete content planner
       .addCase(deleteContentPlanner.pending, (state) => {
-        state.deleteContentPlanner.isLoading = true;
-        state.deleteContentPlanner.message = "";
-        state.deleteContentPlanner.isError = false;
-        state.deleteContentPlanner.isSuccess = false;
-        state.deleteContentPlanner.data = null;
+        state.deleteContentPlanner = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
       })
       .addCase(deleteContentPlanner.fulfilled, (state, action) => {
-        state.deleteContentPlanner.isLoading = false;
-        state.deleteContentPlanner.isSuccess = true;
-        state.deleteContentPlanner.data = action.payload.data;
-        // Remove content planner from both arrays
-        if (action.payload.id) {
-          state.contentPlanners = state.contentPlanners.filter(
-            (planner) => planner.id !== action.payload.id
-          );
-          state.getAllContentPlanners.data = (state.getAllContentPlanners.data || []).filter(
-            (planner) => planner.id !== action.payload.id
+        state.deleteContentPlanner = {
+          ...state.deleteContentPlanner,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
+
+        const plannerId = action.payload.plannerId;
+        if (!plannerId) return;
+
+        state.contentPlanners = state.contentPlanners.filter((planner) => planner.id !== plannerId);
+        if (Array.isArray(state.getAllContentPlanners.data)) {
+          state.getAllContentPlanners.data = state.getAllContentPlanners.data.filter(
+            (planner) => planner.id !== plannerId
           );
         }
       })
       .addCase(deleteContentPlanner.rejected, (state, action) => {
-        state.deleteContentPlanner.message = action.payload.message;
-        state.deleteContentPlanner.isLoading = false;
-        state.deleteContentPlanner.isError = true;
-        state.deleteContentPlanner.data = null;
+        state.deleteContentPlanner = {
+          ...state.deleteContentPlanner,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+          data: null,
+        };
+      })
+
+      .addCase(createContentPlannerSection.pending, (state) => {
+        state.createContentPlannerSection = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
+      })
+      .addCase(createContentPlannerSection.fulfilled, (state, action) => {
+        state.createContentPlannerSection = {
+          ...state.createContentPlannerSection,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
+
+        const plannerId = action.payload.plannerId;
+        const newSection = action.payload.data;
+        if (!plannerId || !newSection) return;
+
+        const addSection = (planner) => {
+          const sections = planner.sections || [];
+          return {
+            ...planner,
+            sections: [...sections, newSection].sort(
+              (a, b) => (a.position ?? 0) - (b.position ?? 0)
+            ),
+          };
+        };
+
+        state.contentPlanners = updatePlannerInCollection(
+          state.contentPlanners,
+          plannerId,
+          addSection
+        );
+        if (Array.isArray(state.getAllContentPlanners.data)) {
+          state.getAllContentPlanners.data = updatePlannerInCollection(
+            state.getAllContentPlanners.data,
+            plannerId,
+            addSection
+          );
+        }
+      })
+      .addCase(createContentPlannerSection.rejected, (state, action) => {
+        state.createContentPlannerSection = {
+          ...state.createContentPlannerSection,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+        };
+      })
+
+      .addCase(updateContentPlannerSection.pending, (state) => {
+        state.updateContentPlannerSection = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
+      })
+      .addCase(updateContentPlannerSection.fulfilled, (state, action) => {
+        state.updateContentPlannerSection = {
+          ...state.updateContentPlannerSection,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
+
+        const updatedSection = action.payload.data;
+        if (!updatedSection?.id) return;
+
+        const updateSection = (planner) => {
+          if (!planner.sections) return planner;
+          const hasSection = planner.sections.some((section) => section.id === updatedSection.id);
+          if (!hasSection) return planner;
+          return {
+            ...planner,
+            sections: planner.sections
+              .map((section) => (section.id === updatedSection.id ? updatedSection : section))
+              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+          };
+        };
+
+        state.contentPlanners = state.contentPlanners.map(updateSection);
+        if (Array.isArray(state.getAllContentPlanners.data)) {
+          state.getAllContentPlanners.data = state.getAllContentPlanners.data.map(updateSection);
+        }
+      })
+      .addCase(updateContentPlannerSection.rejected, (state, action) => {
+        state.updateContentPlannerSection = {
+          ...state.updateContentPlannerSection,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+        };
+      })
+
+      .addCase(deleteContentPlannerSection.pending, (state) => {
+        state.deleteContentPlannerSection = {
+          ...createGeneralState(),
+          isLoading: true,
+        };
+      })
+      .addCase(deleteContentPlannerSection.fulfilled, (state, action) => {
+        state.deleteContentPlannerSection = {
+          ...state.deleteContentPlannerSection,
+          isLoading: false,
+          isSuccess: true,
+          data: action.payload.data,
+        };
+
+        const sectionId = action.payload.sectionId || action.meta?.arg || null;
+        if (!sectionId) return;
+
+        const removeSection = (planner) => {
+          if (!planner.sections) return planner;
+          const hasSection = planner.sections.some((section) => section.id === sectionId);
+          if (!hasSection) return planner;
+          return {
+            ...planner,
+            sections: planner.sections.filter((section) => section.id !== sectionId),
+          };
+        };
+
+        state.contentPlanners = state.contentPlanners.map(removeSection);
+        if (Array.isArray(state.getAllContentPlanners.data)) {
+          state.getAllContentPlanners.data = state.getAllContentPlanners.data.map(removeSection);
+        }
+      })
+      .addCase(deleteContentPlannerSection.rejected, (state, action) => {
+        state.deleteContentPlannerSection = {
+          ...state.deleteContentPlannerSection,
+          isLoading: false,
+          isError: true,
+          message: action.payload.message,
+        };
       });
   },
 });

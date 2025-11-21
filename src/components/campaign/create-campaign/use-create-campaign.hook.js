@@ -1,12 +1,13 @@
-import { createCampaign, resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
 // Import step components
+import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import AudienceRequirementsExperience from "./components/audience-requirements-experience/audience-requirements-experience";
 import CampaignTypeNiche from "./components/campaign-type-niche.component/campaign-type-niche.component";
 import Compensation from "./components/compensation/compensation";
@@ -36,16 +37,23 @@ const validationSchema = Yup.object().shape({
   campaign_type: Yup.string().required("Campaign type is required"),
   compensation_type: Yup.string()
     .oneOf(
-      ["PAID", "GIFTED_PRODUCT", "COMMISSION"],
-      "Compensation type must be PAID, GIFTED_PRODUCT, or COMMISSION"
+      ["PAID", "GIFTED_PRODUCT", "COMMISSION", ""],
+      "Compensation type must be PAID, GIFTED_PRODUCT, COMMISSION or empty"
     )
     .required("Compensation type is required"),
+  creator_compensation_option: Yup.string().when(["campaign_type", "compensation_type"], {
+    is: (campaignType, compensationType) =>
+      ["SPONSORED_POST", "UGC"].includes(campaignType) && compensationType === "PAID",
+    then: (schema) => schema.required("Select how the creator will be compensated"),
+    otherwise: (schema) => schema.nullable(),
+  }),
   budget: Yup.number()
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
     })
-    .when("campaign_type", {
-      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
+    .when(["campaign_type", "compensation_type"], {
+      is: (campaignType, compensationType) =>
+        ["SPONSORED_POST", "UGC"].includes(campaignType) && compensationType === "PAID",
       then: (schema) =>
         schema
           .typeError("Budget must be a valid number")
@@ -59,27 +67,43 @@ const validationSchema = Yup.object().shape({
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
     })
-    .when("campaign_type", {
-      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
-      then: (schema) => schema.nullable(),
+    .when(["campaign_type", "creator_compensation_option"], {
+      is: (campaignType, creatorCompOption) =>
+        ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "suggested",
+      then: (schema) =>
+        schema
+          .typeError("Suggested minimum must be a valid number")
+          .positive("Suggested minimum must be a positive number")
+          .required("Suggested minimum is required when using a range"),
       otherwise: (schema) => schema.nullable(),
     }),
   suggested_max: Yup.number()
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
     })
-    .when("campaign_type", {
-      is: (val) => ["Sponsored Post", "UGC"].includes(val),
-      then: (schema) => schema.nullable(),
+    .when(["campaign_type", "creator_compensation_option", "suggested_min"], {
+      is: (campaignType, creatorCompOption) =>
+        ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "suggested",
+      then: (schema) =>
+        schema
+          .typeError("Suggested maximum must be a valid number")
+          .positive("Suggested maximum must be a positive number")
+          .required("Suggested maximum is required when using a range")
+          .min(Yup.ref("suggested_min"), "Maximum must be greater than minimum"),
       otherwise: (schema) => schema.nullable(),
     }),
-  fixed_price: Yup.number()
+  creator_fixed_price: Yup.number()
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
     })
-    .when("campaign_type", {
-      is: (val) => ["SPONSORED_POST", "UGC"].includes(val),
-      then: (schema) => schema.nullable(),
+    .when(["campaign_type", "creator_compensation_option"], {
+      is: (campaignType, creatorCompOption) =>
+        ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "set-price",
+      then: (schema) =>
+        schema
+          .typeError("Fixed creator payment must be a valid number")
+          .positive("Fixed creator payment must be a positive number")
+          .required("Fixed creator payment is required when choosing set price"),
       otherwise: (schema) => schema.nullable(),
     }),
   product_value: Yup.number()
@@ -124,11 +148,6 @@ const validationSchema = Yup.object().shape({
     }),
 
   // Step 3: Eligibility (conditional validation)
-  location_details: Yup.string().when("inPersonRequired", {
-    is: true,
-    then: (schema) => schema.required("Location details are required for in-person campaigns"),
-    otherwise: (schema) => schema.nullable(),
-  }),
   creator_country: Yup.string().when("countryRequirement", {
     is: "mandatory",
     then: (schema) => schema.required("Country is required when set to mandatory"),
@@ -177,9 +196,23 @@ const validationSchema = Yup.object().shape({
     then: (schema) => schema.required("Language is required when set to mandatory"),
     otherwise: (schema) => schema.nullable(),
   }),
+  application_deadline: Yup.date()
+    .required("Application deadline is required")
+    .transform((value, originalValue) => {
+      return originalValue === "" ? undefined : value;
+    }),
 
   // Step 4: Description
   short_description: Yup.string().required("Short description is required"),
+  campaignImage: Yup.string()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (originalValue === "" || originalValue === null || originalValue === undefined) {
+        return null;
+      }
+      return value;
+    })
+    .required("Campaign image is required"),
 
   // Step 5: Terms
   termsAgreed: Yup.boolean().oneOf([true], "You must agree to the Terms of Service"),
@@ -201,11 +234,13 @@ export default function useCreateCampaign(close) {
     // Basic Campaign Info
     campaign_title: "",
     campaign_type: "",
-    campaignTypes: [], // For backward compatibility
-    otherCampaignType: "",
     niches: [],
     deliverables: [],
-    applicationDeadline: "",
+    usageRights: "no_usage",
+    usageRightsRequirement: "negotiable",
+    exclusivityClause: "none",
+    exclusivityClauseRequirement: "negotiable",
+    creator_compensation_option: "",
 
     // Audience Requirements
     min_combined_followers: null,
@@ -223,15 +258,13 @@ export default function useCreateCampaign(close) {
     budget: null,
     suggested_min: null,
     suggested_max: null,
-    fixed_price: null,
+    creator_fixed_price: null,
     product_value: null,
     commission_percentage: null,
     product_price: null,
 
     // Location & Eligibility
-    isRemote: true,
-    inPersonRequired: false,
-    location_details: "",
+    locationOptions: [],
     creator_country: "",
     creator_city: "",
     countryRequirement: "none",
@@ -243,13 +276,14 @@ export default function useCreateCampaign(close) {
     genderRequirement: "none",
     creator_language: "",
     languageRequirement: "none",
-
+    application_deadline: "",
     // Campaign Content
     short_description: "",
     long_description: "",
-    campaignImage: null,
+    campaignImage: "",
     hashtags: "",
-    nonNegotiables: "",
+    nonNegotiablesDo: [""],
+    nonNegotiablesDont: [""],
     styleGuide: "",
     styleGuideFile: null,
     questions: [""],
@@ -266,6 +300,7 @@ export default function useCreateCampaign(close) {
     setValue,
     trigger,
     reset,
+    control,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
@@ -273,8 +308,9 @@ export default function useCreateCampaign(close) {
     mode: "onChange", // Only validate on submit/trigger, not on every change
   });
 
-  // Watch all form values (replaces campaignData state)
   const campaignData = watch();
+
+  const getWatchedValue = useCallback((fieldName) => watch(fieldName), [watch]);
 
   // Steps configuration
   const steps = [
@@ -304,32 +340,20 @@ export default function useCreateCampaign(close) {
   // ===== EVENT HANDLERS =====
 
   // Main form field change handler
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = useCallback(
+    (event) => {
+      if (!event?.target?.name) return;
+      const { name, value, type, checked } = event.target;
 
-    if (type === "checkbox") {
-      // Handle array checkboxes (multi-select)
-      if (name === "campaignType" || name === "niche" || name === "required_platforms") {
-        const fieldNameMap = {
-          campaignType: "campaignTypes",
-          niche: "niches",
-          required_platforms: "required_platforms",
-        };
-        const fieldName = fieldNameMap[name];
-        const currentValues = [...(campaignData[fieldName] || [])];
-        const newValues = checked
-          ? [...currentValues, value]
-          : currentValues.filter((item) => item !== value);
-        setValue(fieldName, newValues);
-      } else {
-        // Handle single checkboxes
-        setValue(name, checked);
+      if (type === "checkbox") {
+        setValue(name, Boolean(checked), { shouldDirty: true, shouldValidate: true });
+        return;
       }
-    } else {
-      // Handle regular inputs
-      setValue(name, value);
-    }
-  };
+
+      setValue(name, value, { shouldDirty: true, shouldValidate: true });
+    },
+    [setValue]
+  );
 
   // Checkbox toggle helper for arrays
   const handleCheckboxToggle = (fieldName, value) => {
@@ -346,21 +370,6 @@ export default function useCreateCampaign(close) {
       ? currentValues.filter((item) => item !== value)
       : [...currentValues, value];
     setValue(actualFieldName, newValues);
-  };
-
-  // File upload handlers
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setValue("campaignImage", file);
-    }
-  };
-
-  const handleStyleGuideUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setValue("styleGuideFile", file);
-    }
   };
 
   // Requirement level toggle (for eligibility)
@@ -392,99 +401,111 @@ export default function useCreateCampaign(close) {
     setValue("deliverables", currentDeliverables);
   };
 
-  // Question management
-  const addQuestion = () => {
-    const currentQuestions = [...(campaignData.questions || [""]), ""];
-    setValue("questions", currentQuestions);
-  };
-
-  const removeQuestion = (index) => {
-    if ((campaignData.questions || []).length > 1) {
-      const currentQuestions = (campaignData.questions || []).filter((_, i) => i !== index);
-      setValue("questions", currentQuestions);
-    }
-  };
-
-  const handleQuestionChange = (index, value) => {
-    const newQuestions = [...(campaignData.questions || [""])];
-    newQuestions[index] = value;
-    setValue("questions", newQuestions);
-  };
-
   // ===== API INTEGRATION =====
 
   // Transform frontend data to backend format (snake_case → snake_case for API)
   const transformDataForAPI = async (data) => {
-    // Transform deliverables from new format to expected format
-    const transformedDeliverables = (data.deliverables || []).map((deliverable) => {
-      // If it's already a string (old format), return as is
-      if (typeof deliverable === "string") {
-        return deliverable;
-      }
-      // If it's the new format with quantity and text, return the display text
-      if (deliverable && typeof deliverable === "object" && deliverable.displayText) {
-        return deliverable.displayText;
-      }
-      // Fallback to text if available
-      return deliverable?.text || deliverable;
-    });
+    console.log(data);
+    const trim = (value) => (typeof value === "string" ? value.trim() : "");
+    const toNumber = (value) => {
+      if (value === "" || value === null || value === undefined) return null;
+      const parsed = Number(value);
+      return Number.isNaN(parsed) ? null : parsed;
+    };
+    const toInteger = (value) => {
+      if (value === "" || value === null || value === undefined) return null;
+      const parsed = parseInt(value, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    };
+    const sanitizeArray = (items) =>
+      Array.isArray(items) ? items.filter((item) => item !== null && item !== undefined) : [];
+    const sanitizeStrings = (items) =>
+      sanitizeArray(items)
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter(Boolean);
+
+    const transformedDeliverables = sanitizeArray(data.deliverables)
+      .map((deliverable) => {
+        if (typeof deliverable === "string") return deliverable;
+        if (deliverable?.displayText) return deliverable.displayText;
+        if (deliverable?.text) return deliverable.text;
+        return "";
+      })
+      .filter(Boolean);
+
+    const doItems = sanitizeStrings(data.nonNegotiablesDo);
+    const dontItems = sanitizeStrings(data.nonNegotiablesDont);
+
+    const commissionPercentage = Number(data.commission_percentage || 0);
+    const productPrice = Number(data.product_price || 0);
+    const commissionPayment = (commissionPercentage / 100) * productPrice;
+
+    const creator_fee =
+      data?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+      data?.campaign_type === CAMPAIGN_TYPE.UGC
+        ? data.compensation_type == COMPENSATION_TYPE.PAID
+          ? data.creator_fixed_price || 0
+          : `${data.suggested_min || 0} - ${data.suggested_max || 0} (Range)` || 0
+        : data.campaign_type === CAMPAIGN_TYPE.GIFTED
+          ? data.product_value || 0
+          : data.campaign_type === CAMPAIGN_TYPE.AFFILIATE
+            ? commissionPayment || 0
+            : 0;
 
     return {
-      // Basic Campaign Info
-      campaign_title: data.campaign_title?.trim() || "",
-      campaign_type: data.campaign_type || data.campaignTypes?.[0] || "",
-      niches: data.niches || [],
+      campaign_title: trim(data.campaign_title) || "",
+      campaign_type: data.campaign_type || "",
+      niches: sanitizeStrings(data.niches),
       deliverables: transformedDeliverables,
-      application_deadline: data.applicationDeadline || null,
+      usage_rights: data.usageRights || null,
+      usage_rights_requirement: data.usageRightsRequirement || "negotiable",
+      exclusivity_clause: data.exclusivityClause || null,
+      exclusivity_clause_requirement: data.exclusivityClauseRequirement || "negotiable",
+      application_deadline: data.application_deadline || null,
 
-      // Audience Requirements
-      min_combined_followers: data.min_combined_followers?.toString() || "0",
+      min_combined_followers: toNumber(data.min_combined_followers),
       platform_minimums: {
-        instagram: data.platformMinimums?.instagram || "",
-        tiktok: data.platformMinimums?.tiktok || "",
-        youtube: data.platformMinimums?.youtube || "",
-        facebook: data.platformMinimums?.facebook || "",
-        pinterest: data.platformMinimums?.pinterest || "",
+        instagram: trim(data.platformMinimums?.instagram) || null,
+        tiktok: trim(data.platformMinimums?.tiktok) || null,
+        youtube: trim(data.platformMinimums?.youtube) || null,
+        facebook: trim(data.platformMinimums?.facebook) || null,
+        pinterest: trim(data.platformMinimums?.pinterest) || null,
       },
-      required_platforms: data.required_platforms || [],
+      required_platforms: sanitizeStrings(data.required_platforms),
 
-      // Compensation
-      compensation_type: data.compensation_type || "PAID",
-      budget: data.budget ? parseFloat(data.budget) : null,
-      suggested_min: data.suggested_min ? parseFloat(data.suggested_min) : null,
-      suggested_max: data.suggested_max ? parseFloat(data.suggested_max) : null,
-      creator_fixed_price: data.fixed_price ? parseFloat(data.fixed_price) : null,
-      product_value: data.product_value ? parseFloat(data.product_value) : null,
-      commission_percentage: data.commission_percentage
-        ? parseFloat(data.commission_percentage)
-        : null,
-      product_price: data.product_price ? parseFloat(data.product_price) : null,
+      compensation_type: data.compensation_type || null,
+      budget: toNumber(data.budget),
+      suggested_min: toNumber(data.suggested_min),
+      suggested_max: toNumber(data.suggested_max),
+      creator_fixed_price: toNumber(data.creator_fixed_price),
+      product_value: toNumber(data.product_value),
+      commission_percentage: toNumber(data.commission_percentage),
+      product_price: toNumber(data.product_price),
 
-      // Location & Eligibility
-      is_remote: Boolean(data.isRemote),
-      in_person_required: Boolean(data.inPersonRequired),
-      location_details: data.location_details?.trim() || "",
-      creator_country: data.creator_country?.trim() || "",
-      creator_city: data.creator_city?.trim() || "",
+      location_options: data.locationOptions || "",
+      creator_country: trim(data.creator_country),
+      creator_city: trim(data.creator_city),
       country_requirement: data.countryRequirement || "none",
       city_requirement: data.cityRequirement || "none",
-      min_age: data.min_age ? parseInt(data.min_age) : null,
-      max_age: data.max_age ? parseInt(data.max_age) : null,
+      min_age: toInteger(data.min_age),
+      max_age: toInteger(data.max_age),
       age_requirement: data.ageRequirement || "none",
-      creator_gender: data.creator_gender?.trim() || "",
+      creator_gender: trim(data.creator_gender),
       gender_requirement: data.genderRequirement || "none",
-      creator_language: data.creator_language?.trim() || "",
+      creator_language: trim(data.creator_language),
       language_requirement: data.languageRequirement || "none",
 
-      // Campaign Content
-      short_description: data.short_description?.trim() || "",
-      long_description: data.long_description?.trim() || "",
-      campaign_image: data.campaignImage,
-      hashtags: data.hashtags?.trim() || "",
-      non_negotiables: data.nonNegotiables?.trim() || "",
-      style_guide: data.styleGuide?.trim() || "",
-      style_guide_file: data.styleGuideFile,
-      questions: (data.questions || []).filter((q) => q.trim() !== ""),
+      short_description: trim(data.short_description),
+      long_description: trim(data.long_description),
+      campaign_image: data.campaignImage || "",
+      hashtags: trim(data.hashtags),
+      non_negotiables_do: doItems,
+      non_negotiables_dont: dontItems,
+      style_guide: trim(data.styleGuide),
+      style_guide_file: data.styleGuideFile || "",
+      questions: sanitizeStrings(data.questions),
+
+      creator_fee: Number(creator_fee),
     };
   };
 
@@ -494,12 +515,13 @@ export default function useCreateCampaign(close) {
   const handleCampaignSubmit = async (data) => {
     // Transform and submit data
     const apiData = await transformDataForAPI(data);
+    console.log(apiData);
+    // const result = await dispatch(createCampaign(apiData));
 
-    const result = await dispatch(createCampaign(apiData));
-
-    if (createCampaign.fulfilled.match(result)) {
-      close();
-    }
+    // if (createCampaign.fulfilled.match(result)) {
+    //   close();
+    //   setCurrentStep(0);
+    // }
   };
 
   // Step navigation with validation
@@ -513,21 +535,22 @@ export default function useCreateCampaign(close) {
         "budget",
         "suggested_min",
         "suggested_max",
-        "fixed_price",
+        "creator_fixed_price",
         "product_value",
         "commission_percentage",
         "product_price",
+        "creator_compensation_option",
       ], // Compensation
       3: [
-        "location_details",
         "creator_country",
         "creator_city",
         "min_age",
         "max_age",
         "creator_gender",
         "creator_language",
+        "application_deadline",
       ], // Eligibility
-      4: ["short_description"], // Description
+      4: ["short_description", "campaignImage"], // Description
       5: ["termsAgreed"], // Terms
     };
 
@@ -556,6 +579,8 @@ export default function useCreateCampaign(close) {
       register,
       watch,
       setValue,
+      getWatchedValue,
+      control,
     };
 
     const stepComponents = {
@@ -568,17 +593,14 @@ export default function useCreateCampaign(close) {
       ),
       1: <AudienceRequirementsExperience {...commonProps} />,
       2: <Compensation {...commonProps} />,
-      3: <Eligibility {...commonProps} handleRequirementToggle={handleRequirementToggle} />,
-      4: (
-        <Description
+      3: (
+        <Eligibility
           {...commonProps}
-          handleImageUpload={handleImageUpload}
-          handleStyleGuideUpload={handleStyleGuideUpload}
-          addQuestion={addQuestion}
-          removeQuestion={removeQuestion}
-          handleQuestionChange={handleQuestionChange}
+          handleRequirementToggle={handleRequirementToggle}
+          getWatchedValue={getWatchedValue}
         />
       ),
+      4: <Description {...commonProps} />,
       5: (
         <Preview
           {...commonProps}
@@ -614,20 +636,16 @@ export default function useCreateCampaign(close) {
 
     // Campaign Data
     campaignData,
+    getWatchedValue,
 
     // Event Handlers
     handleChange,
     handleCheckboxToggle,
-    handleImageUpload,
-    handleStyleGuideUpload,
     handleRequirementToggle,
 
     // Array Management
     addDeliverable,
     removeDeliverable,
-    addQuestion,
-    removeQuestion,
-    handleQuestionChange,
 
     // Navigation
     handleNextStep,

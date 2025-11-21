@@ -39,6 +39,7 @@ export default function useCompletedCampaign() {
     if (!campaign) return null;
 
     return {
+      ...campaign,
       id: campaign.campaign?.id,
       title: campaign.campaign?.campaign_title,
       brand: {

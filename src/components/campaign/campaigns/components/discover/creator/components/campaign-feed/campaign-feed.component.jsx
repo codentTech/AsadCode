@@ -3,9 +3,10 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { product } from "@/common/constants/auth.constant";
+import { campaignTitle, campiagnDeliverable } from "@/common/utils/campaign.utils";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
-import { Globe, DollarSign, Gift, Users, Zap, Loader2 } from "lucide-react";
+import { DollarSign, Gift, Globe, Loader2, Users, Zap } from "lucide-react";
 import { useCampaignFeed } from "./use-campaign-feed.hook";
 
 function CampaignFeed() {
@@ -40,13 +41,6 @@ function CampaignFeed() {
   // Campaign type color mapping
   const getCampaignTypeStyle = (type) => {
     const styles = {
-      // Legacy support for old format
-      SPONSORED_POST: {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        border: "border-green-200",
-        icon: <DollarSign size={12} />,
-      },
       UGC: {
         bg: "bg-blue-100",
         text: "text-blue-800",
@@ -58,6 +52,12 @@ function CampaignFeed() {
         text: "text-yellow-800",
         border: "border-yellow-200",
         icon: <Gift size={12} />,
+      },
+      SPONSORED_POST: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-200",
+        icon: <DollarSign size={12} />,
       },
       AFFILIATE: {
         bg: "bg-purple-100",
@@ -149,11 +149,12 @@ function CampaignFeed() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {/* Campaign Type and Payment Info */}
+                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
                       <div
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
                       >
-                        {campaign.type}
+                        {campaignTitle(campaign.type)}
                       </div>
                       <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
@@ -193,7 +194,7 @@ function CampaignFeed() {
                               key={item}
                               className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
                             >
-                              {item}
+                              {campiagnDeliverable(item)}
                             </span>
                           ))}
                         </div>
@@ -240,7 +241,11 @@ function CampaignFeed() {
         <div className="space-y-5">
           <div className="flex gap-4">
             <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
-              {briefCampaign?.brandLogo}
+              <img
+                src={briefCampaign?.brandLogo}
+                alt="Brand Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-xl font-bold text-gray-900 truncate">
@@ -425,7 +430,7 @@ function CampaignFeed() {
               {briefCampaign?.deliverables?.map((deliverable, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">{deliverable}</span>
+                  <span className="text-sm text-gray-700">{campiagnDeliverable(deliverable)}</span>
                 </div>
               ))}
             </div>

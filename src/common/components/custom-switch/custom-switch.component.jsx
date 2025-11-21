@@ -9,7 +9,6 @@ export default function CustomSwitch({
   onChange = null,
   parentDivClassName = "",
   className = "",
-  size = null,
   disabled = false,
   errors = null,
   register = null,
@@ -26,16 +25,12 @@ export default function CustomSwitch({
       <div
         className={` ${
           inlineLabel
-            ? "flex w-full flex-row-reverse flex-wrap items-center justify-end gap-3 text-xs font-medium not-italic leading-6 leading-[18px] text-text-dark-gray"
+            ? "flex w-full  items-center justify-end gap-3 text-xs font-medium not-italic leading-6 text-text-dark-gray"
             : "text-xs font-medium not-italic leading-6 text-text-black"
         } ${parentDivClassName} `}
       >
         {label && !labelRight && (
-          <FieldLabel
-            label={label}
-            isRequired={isRequired}
-            className={` ${labelClassName}`}
-          />
+          <FieldLabel label={label} isRequired={isRequired} className={` ${labelClassName}`} />
         )}
 
         <input
@@ -58,9 +53,7 @@ export default function CustomSwitch({
         )}
       </div>
 
-      {errors && errors[name] && (
-        <FieldError className="mt-1" error={errors[name].message} />
-      )}
+      {errors && errors[name] && <FieldError className="mt-1" error={errors[name].message} />}
     </div>
   );
 }

@@ -405,40 +405,21 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             </p>
           </div>
 
-          {/* Campaign Progress - Only for CleerCut campaigns */}
-          {isCleerCutCampaign && (
-            <>
-              {/* Helpful Note */}
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <p className="font-medium">📌 Quick Tip:</p>
-                <p className="mt-1">
-                  Use the timeline steps below to track progress. "Upload Content" opens your brief
-                  for reference.
-                </p>
-              </div>
-
-              <CreatorTimelineSteps
-                campaignId={campaign?.id}
-                deadline={campaign?.campaign_deadline || campaign?.application_deadline}
-              />
-            </>
-          )}
-
           {/* Action Buttons Row - As per requirements */}
-          <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+          <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2 pt-2`}>
             {isCleerCutCampaign && (
               <React.Fragment>
                 <CustomButton
                   text="Update Progress"
                   className="btn-outline text-xs"
                   onClick={handleUpdateProgress}
-                  startIcon={<BarChart3 className="w-3 h-3" />}
+                  startIcon={<BarChart3 className="w-4 h-4" />}
                 />
                 <CustomButton
                   text="Message"
-                  className="btn-outline text-xs"
+                  className="btn-primary text-xs"
                   onClick={handleMessageClick}
-                  startIcon={<MessageCircle className="w-3 h-3" />}
+                  startIcon={<MessageCircle className="w-4 h-4" />}
                 />
               </React.Fragment>
             )}
@@ -446,9 +427,17 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               text="View Brief"
               className="btn-outline text-xs"
               onClick={() => setShowContentBrief(true)}
-              startIcon={<ExternalLink className="w-3 h-3" />}
+              startIcon={<ExternalLink className="w-4 h-4" />}
             />
           </div>
+
+          {/* Campaign Progress - Only for CleerCut campaigns */}
+          {isCleerCutCampaign && (
+            <CreatorTimelineSteps
+              campaignId={campaign?.id}
+              deadline={campaign?.campaign_deadline || campaign?.application_deadline}
+            />
+          )}
         </div>
       </div>
 

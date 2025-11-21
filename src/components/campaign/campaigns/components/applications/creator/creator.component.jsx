@@ -6,6 +6,7 @@ import CampaignBriefModal from "./components/campaign-brief-modal.component";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
 import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import useCreatorApplications from "./use-creator-applications.hook";
+import { campiagnDeliverable } from "@/common/utils/campaign.utils";
 
 const CreatorApplications = () => {
   const {
@@ -276,21 +277,13 @@ const ApplicationCard = ({
       {/* Deliverables */}
       <div className="flex-1">
         <h5 className="text-xs font-semibold text-gray-600 mb-2">Deliverables</h5>
+
         <div className="flex flex-wrap gap-1">
-          {application.campaign?.deliverables?.slice(0, 3).map((item, index) => (
-            <span
-              key={index}
-              className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md flex items-center gap-1"
-            >
-              <div className="w-1 h-1 bg-indigo-600 rounded-full" />
-              {item}
+          {application.campaign?.deliverables.map((item) => (
+            <span key={item} className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs">
+              {campiagnDeliverable(item)}
             </span>
           ))}
-          {application.campaign?.deliverables?.length > 3 && (
-            <span className="text-xs text-gray-500 px-2 py-1">
-              +{application.campaign.deliverables.length - 3} more
-            </span>
-          )}
         </div>
       </div>
     </div>
