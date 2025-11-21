@@ -42,6 +42,12 @@ const markCampaignComplete = async (campaignId) => {
   return response.data;
 };
 
+// Get campaign history
+const getCampaignHistory = async (campaignId) => {
+  const response = await api().get(`/campaigns/${campaignId}/history`);
+  return response.data;
+};
+
 // Filter campaigns (now consolidated with getAllCampaigns)
 const filterCampaigns = async (filters) => {
   const response = await api().get("/campaigns", { params: filters });
@@ -138,6 +144,7 @@ const campaignsService = {
   sendContract,
   hireCreator,
   markCampaignComplete,
+  getCampaignHistory,
 };
 
 export default campaignsService;

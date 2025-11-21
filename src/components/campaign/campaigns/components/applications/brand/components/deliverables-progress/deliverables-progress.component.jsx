@@ -19,7 +19,6 @@ const DeliverablesProgress = ({
   // Extract creator data from the selectedCreator object
   const getCreatorData = () => {
     if (!selectedCreator) return null;
-    console.log(selectedCreator);
 
     // If it's the original API data structure
     if (selectedCreator.creator) {
@@ -79,7 +78,7 @@ const DeliverablesProgress = ({
           <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
         </div>
         <h3>
-          {creatorData.name}
+          {/* {creatorData.name} */}
           <span className="text-lg text-gray-500 ml-1">({creatorData.rating})</span>
         </h3>
         <p className="flex items-center text-sm text-gray-500 -mt-1">
@@ -146,7 +145,7 @@ const DeliverablesProgress = ({
           </div>
         </div>
 
-        <CampaignHistory />
+        {/* <CampaignHistory /> */}
       </div>
     </div>
   );

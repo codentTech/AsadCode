@@ -1,4 +1,4 @@
-import { resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
+import { createCampaign, resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -405,7 +405,6 @@ export default function useCreateCampaign(close) {
 
   // Transform frontend data to backend format (snake_case → snake_case for API)
   const transformDataForAPI = async (data) => {
-    console.log(data);
     const trim = (value) => (typeof value === "string" ? value.trim() : "");
     const toNumber = (value) => {
       if (value === "" || value === null || value === undefined) return null;
@@ -515,13 +514,12 @@ export default function useCreateCampaign(close) {
   const handleCampaignSubmit = async (data) => {
     // Transform and submit data
     const apiData = await transformDataForAPI(data);
-    console.log(apiData);
-    // const result = await dispatch(createCampaign(apiData));
+    const result = await dispatch(createCampaign(apiData));
 
-    // if (createCampaign.fulfilled.match(result)) {
-    //   close();
-    //   setCurrentStep(0);
-    // }
+    if (createCampaign.fulfilled.match(result)) {
+      close();
+      setCurrentStep(0);
+    }
   };
 
   // Step navigation with validation

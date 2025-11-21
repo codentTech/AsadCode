@@ -37,6 +37,7 @@ const initialState = {
   sendContract: { ...generalState },
   hireCreator: { ...generalState },
   markCampaignComplete: { ...generalState },
+  getCampaignHistory: { ...generalState },
 };
 
 // Create campaign
@@ -331,6 +332,22 @@ export const markCampaignComplete = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to mark campaign complete")
+      );
+    }
+  }
+);
+
+// Get campaign history
+export const getCampaignHistory = createAsyncThunk(
+  "campaigns/getCampaignHistory",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.getCampaignHistory(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get campaign history")
       );
     }
   }
@@ -774,6 +791,26 @@ export const campaignsSlice = createSlice({
         state.markCampaignComplete.isLoading = false;
         state.markCampaignComplete.isError = true;
         state.markCampaignComplete.data = null;
+      })
+      // getCampaignHistory
+      .addCase(getCampaignHistory.pending, (state) => {
+        state.getCampaignHistory.isLoading = true;
+        state.getCampaignHistory.message = "";
+        state.getCampaignHistory.isError = false;
+        state.getCampaignHistory.isSuccess = false;
+        state.getCampaignHistory.data = null;
+      })
+      .addCase(getCampaignHistory.fulfilled, (state, action) => {
+        state.getCampaignHistory.isLoading = false;
+        state.getCampaignHistory.isSuccess = true;
+        state.getCampaignHistory.data = action.payload;
+      })
+      .addCase(getCampaignHistory.rejected, (state, action) => {
+        state.getCampaignHistory.message =
+          action.payload?.message || "Failed to get campaign history";
+        state.getCampaignHistory.isLoading = false;
+        state.getCampaignHistory.isError = true;
+        state.getCampaignHistory.data = null;
       });
   },
 });
