@@ -1,6 +1,6 @@
 "use client";
 
-import { FormControl, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { FormControl, FormLabel } from "@mui/material";
 import PropTypes from "prop-types";
 
 /**
@@ -15,26 +15,34 @@ export default function CustomRadioGroup({
   value = null,
   inlineRadioButtons = false,
   onChange,
+  errorMessage = "",
 }) {
+  const registerProps = register ? register(name) : {};
+  const combinedOnChange = (event) => {
+    registerProps?.onChange?.(event);
+    onChange?.(event.target.value);
+  };
+
   return (
     <FormControl className="w-full">
       {label && <FormLabel className="text-sm font-medium text-gray-700 mb-1">{label}</FormLabel>}
       <div className={`flex gap-4 ${inlineRadioButtons ? "flex-row" : "flex-col"}`}>
         {radioOptions?.map((option) => (
-          <label key={option.value} className="flex items-center text-xs gap-1 cursor-pointer">
+          <label key={option.value} className="flex items-center text-xs gap-2 cursor-pointer">
             <input
               type="radio"
               value={option.value}
               checked={value ? value === option.value : defaultValue === option.value}
-              {...(register && register(name))}
-              className="w-4 h-4 accent-blue-600"
+              {...registerProps}
               name={name}
-              onChange={(e) => onChange?.(e.target.value)}
+              onChange={combinedOnChange}
+              className="w-4 h-4 accent-blue-600"
             />
             {option.label}
           </label>
         ))}
       </div>
+      {errorMessage ? <p className="mt-1 text-xs text-red-500">{errorMessage}</p> : null}
     </FormControl>
   );
 }
@@ -53,4 +61,5 @@ CustomRadioGroup.propTypes = {
   register: PropTypes.func,
   inlineRadioButtons: PropTypes.bool,
   onChange: PropTypes.func,
+  errorMessage: PropTypes.string,
 };

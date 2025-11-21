@@ -16,6 +16,9 @@ function useCampaignFilter() {
     compensationType: "",
     location: "Remote",
     minPayment: 0,
+    eligibleOnly: false,
+    brandCountry: null,
+    brandCity: null,
   });
 
   const [expandedFilters, setExpandedFilters] = useState({
@@ -24,6 +27,8 @@ function useCampaignFilter() {
     compensation: false,
     location: false,
     payment: false,
+    eligibility: false,
+    brandLocation: false,
   });
 
   const toggleFilter = (section) => {
@@ -40,6 +45,9 @@ function useCampaignFilter() {
       compensationType: "",
       location: "Remote",
       minPayment: 0,
+      eligibleOnly: false,
+      brandCountry: null,
+      brandCity: null,
     });
     // Reset to show all campaigns without filters
     // First clear the filtered campaigns state
@@ -67,6 +75,9 @@ function useCampaignFilter() {
       age_range: undefined,
       gender: undefined,
       language: undefined,
+      eligible_only: filters.eligibleOnly || undefined,
+      brand_country: filters.brandCountry?.countryCode || undefined,
+      brand_city: filters.brandCity?.cityName || undefined,
     };
 
     // Add campaign type filter if selected

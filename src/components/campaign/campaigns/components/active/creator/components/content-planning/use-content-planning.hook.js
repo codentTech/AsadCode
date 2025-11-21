@@ -1,347 +1,297 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createContentPlanner,
   getAllContentPlanners,
   updateContentPlanner,
   deleteContentPlanner,
+  createContentPlannerSection,
+  updateContentPlannerSection,
+  deleteContentPlannerSection,
 } from "@/provider/features/content-planner/content-planner.slice";
+
+const DEFAULT_SECTION_NAMES = ["Hook Ideas", "Script", "Shot Ideas", "General Notes"];
 
 export default function useContentPlanning(selectedCampaign) {
   const dispatch = useDispatch();
 
-  // Redux state
   const {
+    contentPlanners: storedPlanners,
     getAllContentPlanners: getAllContentPlannersState,
     createContentPlanner: createContentPlannerState,
     updateContentPlanner: updateContentPlannerState,
     deleteContentPlanner: deleteContentPlannerState,
+    createContentPlannerSection: createContentPlannerSectionState,
+    updateContentPlannerSection: updateContentPlannerSectionState,
+    deleteContentPlannerSection: deleteContentPlannerSectionState,
   } = useSelector((state) => state.contentPlanner);
 
-  // Local state
   const [showContentPlanner, setShowContentPlanner] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
-  const [activePlannerTab, setActivePlannerTab] = useState("Hook Ideas");
   const [showAddTitle, setShowAddTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [selectedPlanner, setSelectedPlanner] = useState(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [selectedPlannerId, setSelectedPlannerId] = useState(null);
+  const [activeSectionId, setActiveSectionId] = useState(null);
 
-  // Ref to track current content for auto-save
-  const plannerContentRef = useRef({
-    "Hook Ideas": "",
-    Script: "",
-    "Shot Ideas": "",
-    "General Notes": "",
-  });
+  const [sectionContent, setSectionContent] = useState({});
+  const sectionContentRef = useRef({});
 
-  // Ref to store timeout ID for cleanup
-  const saveTimeoutRef = useRef(null);
-
-  // Content planners data
-  const contentPlanners = getAllContentPlannersState.data || [];
-
-  // Load content planners when campaign is selected
   useEffect(() => {
     dispatch(getAllContentPlanners());
   }, [dispatch, selectedCampaign?.id]);
 
-  // Filter planners for the selected campaign
-  const campaignPlanners = (contentPlanners || []).filter(
-    (planner) => planner.campaign?.id === selectedCampaign?.id
+  const campaignPlanners = useMemo(
+    () => (storedPlanners || []).filter((planner) => planner.campaign?.id === selectedCampaign?.id),
+    [storedPlanners, selectedCampaign?.id]
   );
 
-  // Initialize planner content from API data or defaults
-  const getPlannerContent = useCallback(() => {
-    if (selectedPlanner) {
-      return {
-        "Hook Ideas": selectedPlanner.hook_ideas || "",
-        Script: selectedPlanner.script || "",
-        "Shot Ideas": selectedPlanner.shot_ideas || "",
-        "General Notes": selectedPlanner.general_notes || "",
-      };
+  useEffect(() => {
+    if (!selectedPlannerId && campaignPlanners.length > 0) {
+      setSelectedPlannerId(campaignPlanners[0].id);
+    } else if (
+      selectedPlannerId &&
+      !campaignPlanners.some((planner) => planner.id === selectedPlannerId)
+    ) {
+      setSelectedPlannerId(campaignPlanners[0]?.id ?? null);
     }
-    return {
-      "Hook Ideas": "",
-      Script: "",
-      "Shot Ideas": "",
-      "General Notes": "",
-    };
-  }, [selectedPlanner]);
+  }, [campaignPlanners, selectedPlannerId]);
 
-  const [plannerContent, setPlannerContent] = useState(getPlannerContent());
+  const selectedPlanner = useMemo(() => {
+    if (!selectedPlannerId) return null;
+    return campaignPlanners.find((planner) => planner.id === selectedPlannerId) || null;
+  }, [campaignPlanners, selectedPlannerId]);
 
-  // Update planner content when API data changes
   useEffect(() => {
-    setPlannerContent(getPlannerContent());
-  }, [getPlannerContent]);
+    if (!selectedPlanner) {
+      setSectionContent({});
+      sectionContentRef.current = {};
+      setActiveSectionId(null);
+      return;
+    }
 
-  // Sync ref with planner content state
-  useEffect(() => {
-    plannerContentRef.current = plannerContent;
-  }, [plannerContent]);
+    const contentMap = {};
+    (selectedPlanner.sections || []).forEach((section) => {
+      contentMap[section.id] = section.content || "";
+    });
 
-  // Update ref whenever planner content changes
-  const updateRef = useCallback((newContent) => {
-    plannerContentRef.current = newContent;
-  }, []);
+    setSectionContent(contentMap);
+    sectionContentRef.current = contentMap;
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Create content planner
-  const handleCreateContentPlanner = useCallback(
-    async (contentData) => {
-      if (!selectedCampaign?.id) return;
-
-      const contentPlannerData = {
-        title: contentData.title,
-        hook_ideas: contentData.hook_ideas || "",
-        script: contentData.script || "",
-        shot_ideas: contentData.shot_ideas || "",
-        general_notes: contentData.general_notes || "",
-      };
-
-      await dispatch(
-        createContentPlanner({
-          campaignId: selectedCampaign.id,
-          contentPlannerData,
-        })
+    if (selectedPlanner.sections?.length) {
+      const hasCurrentActive = selectedPlanner.sections.some(
+        (section) => section.id === activeSectionId
       );
-    },
-    [dispatch, selectedCampaign]
-  );
+      setActiveSectionId(hasCurrentActive ? activeSectionId : selectedPlanner.sections[0].id);
+    } else {
+      setActiveSectionId(null);
+    }
+  }, [selectedPlanner, activeSectionId]);
 
-  // Update content planner
-  const handleUpdateContentPlanner = useCallback(
-    async (contentData) => {
-      if (!selectedPlanner?.id) {
-        // Create new content planner if it doesn't exist
-        await handleCreateContentPlanner(contentData);
-        return;
-      }
-
-      const updateData = {
-        title: contentData.title || selectedPlanner.title,
-        hook_ideas: contentData.hook_ideas || selectedPlanner.hook_ideas || "",
-        script: contentData.script || selectedPlanner.script || "",
-        shot_ideas: contentData.shot_ideas || selectedPlanner.shot_ideas || "",
-        general_notes: contentData.general_notes || selectedPlanner.general_notes || "",
-      };
-
-      await dispatch(
-        updateContentPlanner({
-          id: selectedPlanner.id,
-          updateData,
-        })
-      );
-    },
-    [dispatch, selectedPlanner, handleCreateContentPlanner]
-  );
-
-  // Handle content change and auto-save
-  const handleContentChangeAndSave = useCallback(
-    async (tab, content) => {
-      // Update local state
-      setPlannerContent((prev) => ({
-        ...prev,
-        [tab]: content,
-      }));
-
-      // Clear any existing timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      // Auto-save to backend after a small delay to ensure state is updated
-      if (selectedCampaign?.id && selectedPlanner?.id) {
-        saveTimeoutRef.current = setTimeout(async () => {
-          // Get the current state from the ref (which should be updated by now)
-          const currentContent = plannerContentRef.current;
-
-          const contentData = {
-            title: selectedPlanner.title,
-            hook_ideas: currentContent["Hook Ideas"] || "",
-            script: currentContent["Script"] || "",
-            shot_ideas: currentContent["Shot Ideas"] || "",
-            general_notes: currentContent["General Notes"] || "",
-          };
-
-          try {
-            await handleUpdateContentPlanner(contentData);
-          } catch (error) {
-            console.error("Error saving content:", error);
-          }
-        }, 100); // Small delay to ensure state is updated
-      }
-    },
-    [selectedCampaign, selectedPlanner, handleUpdateContentPlanner]
-  );
-
-  // Handle content change
-  const handleContentChange = useCallback((tab, content) => {
-    setPlannerContent((prev) => {
-      const updatedContent = {
-        ...prev,
-        [tab]: content,
-      };
-      plannerContentRef.current = updatedContent;
-      return updatedContent;
+  const handleSectionContentChange = useCallback((sectionId, content) => {
+    setSectionContent((prev) => {
+      const next = { ...prev, [sectionId]: content };
+      sectionContentRef.current = next;
+      return next;
     });
   }, []);
 
-  // Auto-save content
-  const handleAutoSave = useCallback(
-    async (tab, content) => {
-      if (!selectedCampaign?.id || !selectedPlanner?.id) return;
-
-      const contentData = {
-        title: selectedPlanner.title, // Use the existing planner's title
-        hook_ideas: tab === "Hook Ideas" ? content : plannerContent["Hook Ideas"] || "",
-        script: tab === "Script" ? content : plannerContent["Script"] || "",
-        shot_ideas: tab === "Shot Ideas" ? content : plannerContent["Shot Ideas"] || "",
-        general_notes: tab === "General Notes" ? content : plannerContent["General Notes"] || "",
-      };
-
-      await handleUpdateContentPlanner(contentData);
-    },
-    [selectedCampaign, selectedPlanner, plannerContent, handleUpdateContentPlanner]
-  );
-
-  // Modal handlers
-  const openContentPlanner = useCallback(() => {
-    setShowContentPlanner(true);
-  }, []);
-
-  const closeContentPlanner = useCallback(() => {
-    setShowContentPlanner(false);
-  }, []);
-
-  const openCalendar = useCallback(() => {
-    setShowCalendar(true);
-  }, []);
-
-  const closeCalendar = useCallback(() => {
-    setShowCalendar(false);
-  }, []);
-
-  const openGoals = useCallback(() => {
-    setShowGoals(true);
-  }, []);
-
-  const closeGoals = useCallback(() => {
-    setShowGoals(false);
-  }, []);
-
-  // Add title functionality
-  const handleAddTitle = useCallback(() => {
-    setShowAddTitle(true);
-  }, []);
-
-  const handleSaveTitle = useCallback(async () => {
-    if (newTitle.trim()) {
-      const contentData = {
-        title: newTitle.trim(),
-        hook_ideas: "",
-        script: "",
-        shot_ideas: "",
-        general_notes: "",
-      };
-      await handleCreateContentPlanner(contentData);
-      setNewTitle("");
-      setShowAddTitle(false);
-      // Refresh the planners list
-      dispatch(getAllContentPlanners());
-    }
-  }, [newTitle, handleCreateContentPlanner, dispatch]);
-
-  const handleCancelAddTitle = useCallback(() => {
-    setNewTitle("");
-    setShowAddTitle(false);
-  }, []);
-
-  const handleSelectPlanner = useCallback((planner) => {
-    setSelectedPlanner(planner);
-    setActivePlannerTab("Hook Ideas");
-    setShowContentPlanner(true);
-  }, []);
-
-  const handleNewTitleChange = useCallback((e) => {
-    setNewTitle(e.target.value);
-  }, []);
-
-  // Delete content planner
-  const handleDeletePlanner = useCallback(
-    async (plannerId) => {
-      await dispatch(deleteContentPlanner(plannerId));
-      // Refresh the planners list
-      dispatch(getAllContentPlanners());
+  const handleSectionContentSave = useCallback(
+    async (sectionId, content) => {
+      if (!sectionId) return;
+      await dispatch(
+        updateContentPlannerSection({
+          sectionId,
+          payload: { content },
+        })
+      );
     },
     [dispatch]
   );
 
-  // Edit title functionality
-  const handleEditTitle = useCallback((planner) => {
-    setSelectedPlanner(planner);
-    setNewTitle(planner.title);
-    setShowAddTitle(true);
-  }, []);
+  const handleCreateContentPlanner = useCallback(
+    async (title) => {
+      if (!selectedCampaign?.id || !title.trim()) return null;
+      const response = await dispatch(
+        createContentPlanner({
+          campaignId: selectedCampaign.id,
+          contentPlannerData: {
+            title: title.trim(),
+          },
+        })
+      ).unwrap();
+      return response?.data ?? null;
+    },
+    [dispatch, selectedCampaign]
+  );
 
-  // Update title
-  const handleUpdateTitle = useCallback(async () => {
-    if (newTitle.trim() && selectedPlanner) {
-      const updateData = {
-        title: newTitle.trim(),
-        hook_ideas: selectedPlanner.hook_ideas || "",
-        script: selectedPlanner.script || "",
-        shot_ideas: selectedPlanner.shot_ideas || "",
-        general_notes: selectedPlanner.general_notes || "",
-      };
-
+  const handleUpdatePlannerTitle = useCallback(
+    async (plannerId, title) => {
+      if (!plannerId || !title.trim()) return;
       await dispatch(
         updateContentPlanner({
-          id: selectedPlanner.id,
-          updateData,
+          id: plannerId,
+          updateData: { title: title.trim() },
         })
       );
+    },
+    [dispatch]
+  );
 
-      setNewTitle("");
-      setShowAddTitle(false);
-      setSelectedPlanner(null);
-      // Refresh the planners list
-      dispatch(getAllContentPlanners());
+  const handleAddSection = useCallback(async () => {
+    if (!selectedPlanner?.id) return null;
+
+    const existingTitles = new Set(
+      (selectedPlanner.sections || []).map((section) => section.title.toLowerCase())
+    );
+
+    const fallbackTitle = `New Section ${(selectedPlanner.sections?.length || 0) + 1}`;
+
+    const defaultTitle =
+      DEFAULT_SECTION_NAMES.find((name) => !existingTitles.has(name.toLowerCase())) ||
+      fallbackTitle;
+
+    const result = await dispatch(
+      createContentPlannerSection({
+        plannerId: selectedPlanner.id,
+        payload: {
+          title: defaultTitle,
+          content: "",
+          position: selectedPlanner.sections?.length || 0,
+        },
+      })
+    ).unwrap();
+
+    const newSection = result?.data;
+    if (newSection?.id) {
+      setActiveSectionId(newSection.id);
     }
-  }, [newTitle, selectedPlanner, dispatch]);
+    return newSection;
+  }, [dispatch, selectedPlanner]);
+
+  const handleDeleteSection = useCallback(
+    async (sectionId) => {
+      if (!sectionId) return;
+      await dispatch(deleteContentPlannerSection(sectionId)).unwrap();
+      if (sectionId === activeSectionId) {
+        setActiveSectionId(null);
+      }
+    },
+    [dispatch, activeSectionId]
+  );
+
+  const handleRenameSection = useCallback(
+    async (sectionId, title) => {
+      if (!sectionId || !title.trim()) return;
+      await dispatch(
+        updateContentPlannerSection({
+          sectionId,
+          payload: { title: title.trim() },
+        })
+      ).unwrap();
+    },
+    [dispatch]
+  );
+
+  const openContentPlanner = useCallback(() => setShowContentPlanner(true), []);
+  const closeContentPlanner = useCallback(() => setShowContentPlanner(false), []);
+  const openCalendar = useCallback(() => setShowCalendar(true), []);
+  const closeCalendar = useCallback(() => setShowCalendar(false), []);
+  const openGoals = useCallback(() => setShowGoals(true), []);
+  const closeGoals = useCallback(() => setShowGoals(false), []);
+
+  const handleAddTitle = useCallback(() => {
+    setShowAddTitle(true);
+    setIsEditingTitle(false);
+    setNewTitle("");
+  }, []);
+
+  const handleSaveTitle = useCallback(async () => {
+    if (!newTitle.trim()) return;
+    const newPlanner = await handleCreateContentPlanner(newTitle.trim());
+    setNewTitle("");
+    setShowAddTitle(false);
+    setIsEditingTitle(false);
+    if (newPlanner?.id) {
+      setSelectedPlannerId(newPlanner.id);
+      setShowContentPlanner(true);
+    }
+  }, [handleCreateContentPlanner, newTitle]);
+
+  const handleCancelAddTitle = useCallback(() => {
+    setNewTitle("");
+    setShowAddTitle(false);
+    setIsEditingTitle(false);
+  }, []);
+
+  const handleSelectPlanner = useCallback((planner) => {
+    if (!planner?.id) return;
+    setSelectedPlannerId(planner.id);
+    setShowContentPlanner(true);
+    setShowAddTitle(false);
+    setIsEditingTitle(false);
+  }, []);
+
+  const handleNewTitleChange = useCallback((event) => {
+    setNewTitle(event.target.value);
+  }, []);
+
+  const handleDeletePlanner = useCallback(
+    async (plannerId) => {
+      if (!plannerId) return;
+      await dispatch(deleteContentPlanner(plannerId)).unwrap();
+      if (plannerId === selectedPlannerId) {
+        setSelectedPlannerId(null);
+        setActiveSectionId(null);
+      }
+    },
+    [dispatch, selectedPlannerId]
+  );
+
+  const handleEditTitle = useCallback((planner) => {
+    if (!planner) return;
+    setSelectedPlannerId(planner.id);
+    setNewTitle(planner.title);
+    setShowAddTitle(true);
+    setIsEditingTitle(true);
+  }, []);
+
+  const handleUpdateTitle = useCallback(async () => {
+    if (!isEditingTitle || !newTitle.trim() || !selectedPlannerId) return;
+    await handleUpdatePlannerTitle(selectedPlannerId, newTitle.trim());
+    setNewTitle("");
+    setShowAddTitle(false);
+    setIsEditingTitle(false);
+  }, [handleUpdatePlannerTitle, isEditingTitle, newTitle, selectedPlannerId]);
+
+  const plannerSections = selectedPlanner?.sections || [];
 
   return {
-    // State
     showContentPlanner,
     showCalendar,
     showGoals,
-    activePlannerTab,
-    plannerContent,
     contentPlanners: campaignPlanners,
+    selectedPlanner,
+    plannerSections,
+    activeSectionId,
+    sectionContent,
     showAddTitle,
     newTitle,
-    selectedPlanner,
-
-    // Redux states
+    isEditingTitle,
     getAllContentPlannersState,
     createContentPlannerState,
     updateContentPlannerState,
     deleteContentPlannerState,
-
-    // Actions
-    setActivePlannerTab,
-    handleContentChange,
-    handleContentChangeAndSave,
-    handleAutoSave,
+    createContentPlannerSectionState,
+    updateContentPlannerSectionState,
+    deleteContentPlannerSectionState,
+    setActiveSectionId,
+    handleSectionContentChange,
+    handleSectionContentSave,
+    handleAddSection,
+    handleDeleteSection,
+    handleRenameSection,
     openContentPlanner,
     closeContentPlanner,
     openCalendar,

@@ -4,10 +4,7 @@ import api from "@/common/utils/api";
 const createContentPlanner = async (campaignId, contentPlannerData) => {
   const response = await api().post(`/content-planner/campaign/${campaignId}`, {
     title: contentPlannerData.title,
-    hook_ideas: contentPlannerData.hook_ideas || "",
-    script: contentPlannerData.script || "",
-    shot_ideas: contentPlannerData.shot_ideas || "",
-    general_notes: contentPlannerData.general_notes || "",
+    sections: contentPlannerData.sections,
   });
   return response.data;
 };
@@ -34,10 +31,6 @@ const getContentPlannerById = async (id) => {
 const updateContentPlanner = async (id, updateData) => {
   const response = await api().put(`/content-planner/${id}`, {
     title: updateData.title,
-    hook_ideas: updateData.hook_ideas || "",
-    script: updateData.script || "",
-    shot_ideas: updateData.shot_ideas || "",
-    general_notes: updateData.general_notes || "",
   });
   return response.data;
 };
@@ -48,6 +41,29 @@ const deleteContentPlanner = async (id) => {
   return response.data;
 };
 
+const createContentPlannerSection = async (plannerId, payload) => {
+  const response = await api().post(`/content-planner/${plannerId}/sections`, {
+    title: payload.title,
+    content: payload.content,
+    position: payload.position,
+  });
+  return response.data;
+};
+
+const updateContentPlannerSection = async (sectionId, payload) => {
+  const response = await api().patch(`/content-planner/sections/${sectionId}`, {
+    title: payload.title,
+    content: payload.content,
+    position: payload.position,
+  });
+  return response.data;
+};
+
+const deleteContentPlannerSection = async (sectionId) => {
+  const response = await api().delete(`/content-planner/sections/${sectionId}`);
+  return response.data;
+};
+
 const contentPlannerService = {
   createContentPlanner,
   getAllContentPlanners,
@@ -55,6 +71,9 @@ const contentPlannerService = {
   getContentPlannerById,
   updateContentPlanner,
   deleteContentPlanner,
+  createContentPlannerSection,
+  updateContentPlannerSection,
+  deleteContentPlannerSection,
 };
 
 export default contentPlannerService;

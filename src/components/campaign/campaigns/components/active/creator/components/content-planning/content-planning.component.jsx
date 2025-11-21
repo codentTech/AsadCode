@@ -1,10 +1,8 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import {
   Bold,
-  CheckSquare,
   ChevronLeft,
   ChevronRight,
   Edit3,
@@ -14,13 +12,12 @@ import {
   Paperclip,
   Plus,
   Redo,
-  Square,
   Underline,
   Undo,
   Trash2,
   Pencil,
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useContentPlanning from "./use-content-planning.hook";
 import useMonthlyGoals from "./use-monthly-goals.hook";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
@@ -57,20 +54,27 @@ const ContentPlanning = ({ selectedCampaign }) => {
     showContentPlanner,
     showCalendar,
     showGoals,
-    activePlannerTab,
-    plannerContent,
     contentPlanners,
+    plannerSections,
+    activeSectionId,
+    sectionContent,
     showAddTitle,
     newTitle,
     selectedPlanner,
+    isEditingTitle,
     getAllContentPlannersState,
     createContentPlannerState,
     updateContentPlannerState,
     deleteContentPlannerState,
-    setActivePlannerTab,
-    handleContentChange,
-    handleContentChangeAndSave,
-    handleAutoSave,
+    createContentPlannerSectionState,
+    updateContentPlannerSectionState,
+    deleteContentPlannerSectionState,
+    setActiveSectionId,
+    handleSectionContentChange,
+    handleSectionContentSave,
+    handleAddSection,
+    handleDeleteSection,
+    handleRenameSection,
     openContentPlanner,
     closeContentPlanner,
     openCalendar,
@@ -102,99 +106,13 @@ const ContentPlanning = ({ selectedCampaign }) => {
     deleteGoal,
   } = useMonthlyGoals(selectedCampaign);
 
-  // Local state for other functionality
-  const [selectedDate, setSelectedDate] = useState(25);
-  const [currentMonth, setCurrentMonth] = useState({ month: 6, year: 2025 });
+  // Local state
   const [addingGoalToWeek, setAddingGoalToWeek] = useState(null);
   const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [renamingSectionId, setRenamingSectionId] = useState(null);
+  const [renameInput, setRenameInput] = useState("");
 
-  // Calendar data structure for tasks
-  const [calendarTasks, setCalendarTasks] = useState({
-    15: [
-      {
-        id: 1,
-        text: "Draft skincare video script",
-        completed: false,
-        tag: { label: "Campaign Deadline", value: "bg-red-100 text-red-800" },
-      },
-      {
-        id: 2,
-        text: "Research trending skincare topics",
-        completed: true,
-        tag: { label: "Research", value: "bg-yellow-100 text-yellow-800" },
-      },
-    ],
-    18: [
-      {
-        id: 3,
-        text: "Film fitness equipment review",
-        completed: false,
-        tag: { label: "Campaign Deadline", value: "bg-red-100 text-red-800" },
-      },
-      {
-        id: 4,
-        text: "Edit previous video",
-        completed: false,
-        tag: { label: "Post Production", value: "bg-purple-100 text-purple-800" },
-      },
-    ],
-    22: [
-      {
-        id: 5,
-        text: "Unbox tech gadgets",
-        completed: false,
-        tag: { label: "Campaign Deadline", value: "bg-red-100 text-red-800" },
-      },
-      {
-        id: 6,
-        text: "Prepare lighting setup",
-        completed: true,
-        tag: { label: "Preparation", value: "bg-orange-100 text-orange-800" },
-      },
-    ],
-    25: [
-      {
-        id: 7,
-        text: "Record fashion haul intro",
-        completed: false,
-        tag: { label: "Record clips for Loreal", value: "bg-blue-100 text-blue-800" },
-      },
-      {
-        id: 8,
-        text: "Style outfits for shoot",
-        completed: false,
-        tag: { label: "Preparation", value: "bg-orange-100 text-orange-800" },
-      },
-      {
-        id: 9,
-        text: "Upload to social platforms",
-        completed: true,
-        tag: { label: "Distribution", value: "bg-teal-100 text-teal-800" },
-      },
-    ],
-  });
-
-  // Color tags for calendar
-  const [colorTags, setColorTags] = useState([
-    { label: "Campaign Deadline", value: "bg-red-100 text-red-800" },
-    { label: "Record clips for Loreal", value: "bg-blue-100 text-blue-800" },
-    { label: "Content Creation", value: "bg-green-100 text-green-800" },
-    { label: "Post Production", value: "bg-purple-100 text-purple-800" },
-    { label: "Research", value: "bg-yellow-100 text-yellow-800" },
-    { label: "Preparation", value: "bg-orange-100 text-orange-800" },
-    { label: "Distribution", value: "bg-teal-100 text-teal-800" },
-  ]);
-
-  const [newTaskText, setNewTaskText] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
-  const [showAddTag, setShowAddTag] = useState(false);
-  const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("bg-gray-100 text-gray-800");
-
-  const plannerTabs = ["Hook Ideas", "Script", "Shot Ideas", "General Notes"];
   const editorRef = useRef(null);
-  const idCounter = useRef(0);
-  const getNextId = () => ++idCounter.current;
 
   const monthNames = [
     "January",
@@ -210,66 +128,6 @@ const ContentPlanning = ({ selectedCampaign }) => {
     "November",
     "December",
   ];
-
-  const colorOptions = [
-    "bg-red-100 text-red-800",
-    "bg-blue-100 text-blue-800",
-    "bg-green-100 text-green-800",
-    "bg-purple-100 text-purple-800",
-    "bg-yellow-100 text-yellow-800",
-    "bg-orange-100 text-orange-800",
-    "bg-teal-100 text-teal-800",
-    "bg-pink-100 text-pink-800",
-  ];
-
-  const handleDateClick = (day) => {
-    setSelectedDate(day);
-  };
-
-  const addTask = () => {
-    if (newTaskText.trim()) {
-      const newTask = {
-        id: getNextId(),
-        text: newTaskText,
-        completed: false,
-        tag: selectedTag,
-      };
-
-      setCalendarTasks((prev) => ({
-        ...prev,
-        [selectedDate]: [...(prev[selectedDate] || []), newTask],
-      }));
-
-      setNewTaskText("");
-    }
-  };
-
-  const toggleTask = (taskId) => {
-    setCalendarTasks((prev) => ({
-      ...prev,
-      [selectedDate]:
-        prev[selectedDate]?.map((task) =>
-          task.id === taskId ? { ...task, completed: !task.completed } : task
-        ) || [],
-    }));
-  };
-
-  const addColorTag = () => {
-    if (newTagName.trim()) {
-      setColorTags((prev) => [...prev, { label: newTagName, value: newTagColor }]);
-      setNewTagName("");
-      setShowAddTag(false);
-    }
-  };
-
-  const getTagColor = (tagName) => {
-    const tag = colorTags.find((t) => t.label === tagName);
-    return tag ? tag.value : "bg-gray-100 text-gray-800";
-  };
-
-  const handleCampaignClick = (campaign) => {
-    // Navigate to campaign page
-  };
 
   // Handle adding new goal
   const handleAddGoalClick = (weekNumber) => {
@@ -320,17 +178,38 @@ const ContentPlanning = ({ selectedCampaign }) => {
     );
   };
 
-  // Get dot indicators for calendar dates
-  const getDateIndicators = (day) => {
-    const tasks = calendarTasks[day] || [];
-    const hasDeadline = tasks.some((task) => task.tag.label === "Campaign Deadline");
-    const hasDraft = tasks.some((task) => task.tag.label === "1st Draft Deadline");
-    const hasOther = tasks.some(
-      (task) => !["Campaign Deadline", "1st Draft Deadline"].includes(task.tag.label)
-    );
-
-    return { hasDeadline, hasDraft, hasOther };
+  const handleSectionRenameStart = (section) => {
+    setRenamingSectionId(section.id);
+    setRenameInput(section.title);
   };
+
+  const handleSectionRenameCancel = () => {
+    setRenamingSectionId(null);
+    setRenameInput("");
+  };
+
+  const handleSectionRenameSubmit = async () => {
+    if (!renamingSectionId || !renameInput.trim()) {
+      handleSectionRenameCancel();
+      return;
+    }
+    await handleRenameSection(renamingSectionId, renameInput.trim());
+    handleSectionRenameCancel();
+  };
+
+  const activeSection = plannerSections.find((section) => section.id === activeSectionId) || null;
+
+  useEffect(() => {
+    if (!showContentPlanner) {
+      setRenamingSectionId(null);
+      setRenameInput("");
+    }
+  }, [showContentPlanner]);
+
+  useEffect(() => {
+    setRenamingSectionId(null);
+    setRenameInput("");
+  }, [selectedPlanner, activeSectionId]);
 
   return (
     <div className="w-[27%] bg-white border-l border-gray-200">
@@ -397,11 +276,11 @@ const ContentPlanning = ({ selectedCampaign }) => {
                   />
                   <div className="flex gap-2">
                     <CustomButton
-                      text={selectedPlanner ? "Update" : "Save"}
-                      onClick={selectedPlanner ? handleUpdateTitle : handleSaveTitle}
+                      text={isEditingTitle ? "Update" : "Save"}
+                      onClick={isEditingTitle ? handleUpdateTitle : handleSaveTitle}
                       disabled={
                         !newTitle.trim() ||
-                        (selectedPlanner
+                        (isEditingTitle
                           ? updateContentPlannerState.isLoading
                           : createContentPlannerState.isLoading)
                       }
@@ -492,111 +371,211 @@ const ContentPlanning = ({ selectedCampaign }) => {
         size="xl"
       >
         <div className="flex h-[600px]">
-          <div className="w-48 border-r border-gray-200 pr-4">
+          <div className="w-64 border-r border-gray-200 pr-4">
             <div className="space-y-2">
-              {plannerTabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActivePlannerTab(tab)}
-                  className={`w-full p-3 rounded-lg text-sm text-left transition-colors ${
-                    activePlannerTab === tab
-                      ? "bg-slate-100 text-slate-900 border-l-2 border-slate-600"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+              {plannerSections.map((section) => {
+                const isActive = section.id === activeSectionId;
+                const isRenaming = renamingSectionId === section.id;
+
+                if (isRenaming) {
+                  return (
+                    <div
+                      key={section.id}
+                      className="rounded-lg border border-slate-300 bg-slate-50 p-3"
+                    >
+                      <input
+                        value={renameInput}
+                        onChange={(event) => setRenameInput(event.target.value)}
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:border-slate-500 focus:outline-none"
+                        autoFocus
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleSectionRenameSubmit();
+                          } else if (event.key === "Escape") {
+                            handleSectionRenameCancel();
+                          }
+                        }}
+                      />
+                      <div className="mt-2 flex justify-end gap-2 text-xs">
+                        <button
+                          type="button"
+                          onClick={handleSectionRenameCancel}
+                          className="rounded border border-slate-300 px-2 py-1 text-slate-600 hover:bg-slate-100"
+                          disabled={updateContentPlannerSectionState.isLoading}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSectionRenameSubmit}
+                          className="rounded bg-slate-700 px-2 py-1 text-white hover:bg-slate-800 disabled:opacity-60"
+                          disabled={
+                            updateContentPlannerSectionState.isLoading || !renameInput.trim()
+                          }
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={section.id}
+                    className={`group flex rounded-lg border transition-colors ${
+                      isActive
+                        ? "border-slate-400 bg-slate-100"
+                        : "border-transparent hover:bg-gray-100"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setActiveSectionId(section.id)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-sm text-left"
+                    >
+                      <span className="flex-1 truncate text-slate-800">{section.title}</span>
+                      <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleSectionRenameStart(section);
+                          }}
+                          className="rounded p-1 hover:bg-slate-200"
+                          title="Rename section"
+                          disabled={updateContentPlannerSectionState.isLoading}
+                        >
+                          <Pencil size={12} className="text-slate-700" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async (event) => {
+                            event.stopPropagation();
+                            await handleDeleteSection(section.id);
+                          }}
+                          className="rounded p-1 hover:bg-red-200"
+                          title="Delete section"
+                          disabled={
+                            deleteContentPlannerSectionState.isLoading ||
+                            plannerSections.length <= 1
+                          }
+                        >
+                          <Trash2 size={12} className="text-red-600" />
+                        </button>
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={handleAddSection}
+                disabled={!selectedPlanner || createContentPlannerSectionState.isLoading}
+                className={`w-full rounded-md border border-dashed px-3 py-2 text-xs transition-colors ${
+                  !selectedPlanner || createContentPlannerSectionState.isLoading
+                    ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                    : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                }`}
+              >
+                + Add Section
+              </button>
             </div>
           </div>
 
           <div className="flex-1 px-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">{activePlannerTab}</h3>
+            {activeSection ? (
+              <div className="mb-4">
+                <h3 className="mb-2 text-lg font-semibold">{activeSection.title}</h3>
 
-              {/* Rich Text Toolbar */}
-              <div className="border border-gray-200 flex items-center gap-2 p-2 rounded-t-lg bg-gray-50">
-                <button
-                  onClick={() => formatRichText("bold")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Bold"
-                >
-                  <Bold className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => formatRichText("italic")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Italic"
-                >
-                  <Italic className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => formatRichText("underline")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Underline"
-                >
-                  <Underline className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button
-                  onClick={() => formatRichText("insertUnorderedList")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Bullet List"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => formatRichText("insertOrderedList")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Numbered List"
-                >
-                  <ListOrdered className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button
-                  onClick={() => formatRichText("undo")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Undo"
-                >
-                  <Undo className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => formatRichText("redo")}
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Redo"
-                >
-                  <Redo className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                <button
-                  className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                  title="Add Image"
-                >
-                  <Paperclip className="w-4 h-4" />
-                </button>
+                {/* Rich Text Toolbar */}
+                <div className="border border-gray-200 flex items-center gap-2 p-2 rounded-t-lg bg-gray-50">
+                  <button
+                    onClick={() => formatRichText("bold")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Bold"
+                  >
+                    <Bold className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => formatRichText("italic")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Italic"
+                  >
+                    <Italic className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => formatRichText("underline")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Underline"
+                  >
+                    <Underline className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                  <button
+                    onClick={() => formatRichText("insertUnorderedList")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Bullet List"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => formatRichText("insertOrderedList")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Numbered List"
+                  >
+                    <ListOrdered className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                  <button
+                    onClick={() => formatRichText("undo")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Undo"
+                  >
+                    <Undo className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => formatRichText("redo")}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Redo"
+                  >
+                    <Redo className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                  <button
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    title="Add Image"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Rich Text Editor */}
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  className="border border-gray-200 w-full h-96 p-4 border-t-0 rounded-b-lg focus:outline-none bg-white overflow-y-auto focus:border-slate-300"
+                  style={{ minHeight: "400px" }}
+                  dangerouslySetInnerHTML={{
+                    __html: sectionContent[activeSectionId] || "",
+                  }}
+                  onInput={(event) =>
+                    handleSectionContentChange(activeSectionId, event.currentTarget.innerHTML)
+                  }
+                  onBlur={(event) =>
+                    handleSectionContentSave(activeSectionId, event.currentTarget.innerHTML)
+                  }
+                />
               </div>
-
-              {/* Rich Text Editor */}
-              <div
-                ref={editorRef}
-                contentEditable
-                className="border border-gray-200 w-full h-96 p-4 border-t-0 rounded-b-lg focus:outline-none bg-white overflow-y-auto focus:border-slate-300"
-                style={{ minHeight: "400px" }}
-                dangerouslySetInnerHTML={{ __html: plannerContent[activePlannerTab] }}
-                onBlur={(e) => {
-                  const content = e.target.innerHTML;
-                  handleContentChangeAndSave(activePlannerTab, content);
-                }}
-              />
-            </div>
-
-            <div className="flex justify-between items-center text-xs text-gray-500">
-              <span>Auto-saved • Last updated: just now</span>
-              <button className="flex items-center gap-1 text-slate-600 hover:text-slate-800">
-                <Paperclip className="w-3 h-3" />
-                Add Media
-              </button>
-            </div>
+            ) : (
+              <div className="flex h-full flex-1 items-center justify-center text-sm text-gray-500">
+                {selectedPlanner
+                  ? "No sections available. Add a section to get started."
+                  : "Select a content planner to view sections."}
+              </div>
+            )}
           </div>
         </div>
       </Modal>

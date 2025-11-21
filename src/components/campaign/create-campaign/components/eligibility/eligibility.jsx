@@ -1,8 +1,12 @@
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { useState } from "react";
+import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
+import { LOCATION_OPTIONS, GENDER_OPTIONS } from "@/common/constants/options.constant";
+import useEligibility from "./use-eligibility.hook";
 
 /**
  * Eligibility Component
@@ -16,144 +20,41 @@ function Eligibility({
   handleRequirementToggle,
   errors = {},
   register,
+  setValue,
+  getWatchedValue,
 }) {
-  // Local state for search inputs
-  const [countrySearch, setCountrySearch] = useState(campaignData.creatorCountry || "");
-  const [citySearch, setCitySearch] = useState(campaignData.creatorCity || "");
-  const [languageSearch, setLanguageSearch] = useState(campaignData.creatorLanguage || "");
+  const {
+    languageSearch,
+    filteredLanguages,
+    handleLanguageInputChange,
+    handleLanguageSelect,
+    showLanguageOptions,
+    countrySelectValue,
+    handleCountrySelect,
+    citySelectValue,
+    handleCitySelect,
+    isCityDisabled,
+  } = useEligibility({ campaignData, handleChange, setValue });
 
-  const platformOptions = [
-    { label: "Instagram", value: "Instagram" },
-    { label: "TikTok", value: "TikTok" },
-    { label: "YouTube", value: "YouTube" },
-    { label: "Facebook", value: "Facebook" },
-    { label: "Pinterest", value: "Pinterest" },
-    { label: "Other", value: "Other" },
+  const requirementOptions = [
+    { value: "preferred", label: "Preferred", activeClasses: "bg-blue-100 text-blue-700" },
+    { value: "mandatory", label: "Mandatory", activeClasses: "bg-orange-100 text-orange-700" },
   ];
 
-  const locationOptions = [
-    { label: "Remote (Default)", value: "isRemote" },
-    { label: "In-Person Required", value: "inPersonRequired" },
-  ];
-
-  const genderOptions = [
-    { label: "Male", value: "male" },
-    { label: "Female", value: "female" },
-    { label: "Non-binary", value: "non-binary" },
-    { label: "Other", value: "other" },
-    { label: "Prefer not to say", value: "prefer-not-to-say" },
-  ];
-
-  // Sample countries - in real app, you'd have a comprehensive list
-  const countries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "France",
-    "Italy",
-    "Spain",
-    "Netherlands",
-    "Sweden",
-    "Japan",
-    "South Korea",
-    "India",
-    "Brazil",
-    "Mexico",
-    "Argentina",
-    "Pakistan",
-    "Nigeria",
-    "Egypt",
-  ];
-
-  // Sample cities - in real app, you'd filter based on selected country
-  const cities = [
-    "New York",
-    "Los Angeles",
-    "London",
-    "Paris",
-    "Tokyo",
-    "Toronto",
-    "Sydney",
-    "Berlin",
-    "Madrid",
-    "Amsterdam",
-    "Stockholm",
-    "Seoul",
-    "Mumbai",
-    "São Paulo",
-    "Mexico City",
-    "Buenos Aires",
-    "Lahore",
-    "Lagos",
-  ];
-
-  // Sample languages
-  const languages = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Japanese",
-    "Korean",
-    "Mandarin",
-    "Hindi",
-    "Arabic",
-    "Dutch",
-    "Swedish",
-    "Norwegian",
-    "Russian",
-    "Polish",
-    "Turkish",
-    "Urdu",
-  ];
-
-  const filteredCountries = countries.filter((country) =>
-    country.toLowerCase().includes(countrySearch.toLowerCase())
-  );
-
-  const filteredCities = cities.filter((city) =>
-    city.toLowerCase().includes(citySearch.toLowerCase())
-  );
-
-  const filteredLanguages = languages.filter((language) =>
-    language.toLowerCase().includes(languageSearch.toLowerCase())
-  );
-
-  const RequirementToggle = ({ field, label }) => (
-    <div className="flex items-center gap-2 mt-2">
-      <span className="text-sm text-gray-600">Requirement:</span>
-      <button
-        type="button"
-        onClick={() => handleRequirementToggle(field, "preferred")}
-        className={`px-3 py-1 text-xs rounded ${
-          campaignData[`${field}Requirement`] === "preferred"
-            ? "bg-blue-100 text-blue-700"
-            : "bg-gray-100 text-gray-600"
-        }`}
-      >
-        Preferred
-      </button>
-      <button
-        type="button"
-        onClick={() => handleRequirementToggle(field, "mandatory")}
-        className={`px-3 py-1 text-xs rounded ${
-          campaignData[`${field}Requirement`] === "mandatory"
-            ? "bg-red-100 text-red-700"
-            : "bg-gray-100 text-gray-600"
-        }`}
-      >
-        Mandatory
-      </button>
-      {campaignData[`${field}Requirement`] === "mandatory" && (
-        <span className="text-xs text-red-600 ml-2">
-          ⚠️ Will prevent ineligible creators from applying
-        </span>
-      )}
-    </div>
+  const renderRequirementToggle = (field) => (
+    <RequirementToggle
+      prefix="Requirement:"
+      value={campaignData?.[`${field}Requirement`] ?? "preferred"}
+      options={requirementOptions}
+      onChange={(status) => handleRequirementToggle(field, status)}
+      helperContent={(currentValue) =>
+        currentValue === "mandatory" ? (
+          <span className="text-xs text-orange-600 ml-2">
+            ⚠️ Ineligible creators will be unable to apply.
+          </span>
+        ) : null
+      }
+    />
   );
 
   return (
@@ -163,17 +64,14 @@ function Eligibility({
         <CustomCheckboxGroup
           label="Location Requirements"
           name="locationOptions"
-          options={locationOptions}
-          values={[
-            ...(campaignData.isRemote ? ["isRemote"] : []),
-            ...(campaignData.inPersonRequired ? ["inPersonRequired"] : []),
-          ]}
+          options={LOCATION_OPTIONS}
+          values={getWatchedValue("locationOptions") || []}
+          setValue={setValue}
+          watch={getWatchedValue}
           onChange={(selectedValues) => {
-            // Handle location option changes
             const isRemote = selectedValues.includes("isRemote");
             const inPersonRequired = selectedValues.includes("inPersonRequired");
 
-            // Update both fields
             handleChange({
               target: { name: "isRemote", value: isRemote, type: "checkbox", checked: isRemote },
             });
@@ -208,92 +106,34 @@ function Eligibility({
 
       {/* Country Selection */}
       <div className="border rounded-lg p-4">
-        <div className="relative">
-          <CustomInput
-            label="Creator Country"
-            name="creator_country"
-            placeholder="Type to search countries"
-            value={countrySearch}
-            onChange={(e) => {
-              setCountrySearch(e.target.value);
-              // Also update the campaign data as user types
-              handleChange({ target: { name: "creatorCountry", value: e.target.value } });
-            }}
-            className="mb-2"
-            errors={errors}
-          />
-          {countrySearch && (
-            <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
-              {filteredCountries.map((country) => (
-                <button
-                  key={country}
-                  type="button"
-                  onClick={() => {
-                    handleChange({ target: { name: "creatorCountry", value: country } });
-                    setCountrySearch(country);
-                  }}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                >
-                  {country}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {campaignData.creatorCountry && (
-          <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-            Selected: <strong>{campaignData.creatorCountry}</strong>
-          </div>
-        )}
-        {errors.creator_country && (
-          <div className="text-sm text-red-600 mt-2">{errors.creator_country.message}</div>
-        )}
-        <RequirementToggle field="country" label="Country" />
+        <CountrySelect
+          label="Creator Country"
+          name="creator_country"
+          value={countrySelectValue}
+          onChange={handleCountrySelect}
+          autoDetect={!countrySelectValue}
+          isRequired={campaignData.countryRequirement === "mandatory"}
+          errors={errors}
+          disabled={false}
+        />
+
+        {renderRequirementToggle("country")}
       </div>
 
       {/* City Selection */}
       <div className="border rounded-lg p-4">
-        <div className="relative">
-          <CustomInput
-            label="Creator City (Optional)"
-            name="creator_city"
-            placeholder="Type to search cities"
-            value={citySearch}
-            onChange={(e) => {
-              setCitySearch(e.target.value);
-              // Also update the campaign data as user types
-              handleChange({ target: { name: "creatorCity", value: e.target.value } });
-            }}
-            className="mb-2"
-            errors={errors}
-          />
-          {citySearch && (
-            <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
-              {filteredCities.map((city) => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() => {
-                    handleChange({ target: { name: "creatorCity", value: city } });
-                    setCitySearch(city);
-                  }}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {campaignData.creatorCity && (
-          <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-            Selected: <strong>{campaignData.creatorCity}</strong>
-          </div>
-        )}
-        {errors.creator_city && (
-          <div className="text-sm text-red-600 mt-2">{errors.creator_city.message}</div>
-        )}
-        <RequirementToggle field="city" label="City" />
+        <CitySelect
+          label="Creator City (Optional)"
+          name="creator_city"
+          countryCode={countrySelectValue?.countryCode}
+          value={citySelectValue}
+          onChange={handleCitySelect}
+          isRequired={campaignData.cityRequirement === "mandatory"}
+          errors={errors}
+          disabled={isCityDisabled}
+        />
+
+        {renderRequirementToggle("city")}
       </div>
 
       {/* Age Range */}
@@ -324,7 +164,7 @@ function Eligibility({
           />
         </div>
 
-        <RequirementToggle field="age" label="Age Range" />
+        {renderRequirementToggle("age")}
       </div>
 
       {/* Gender Selection */}
@@ -333,19 +173,17 @@ function Eligibility({
           label="Creator Gender (Optional)"
           name="creator_gender"
           placeHolder="Select gender preference"
-          options={genderOptions}
+          options={GENDER_OPTIONS}
           value={campaignData.creatorGender}
           onChange={(selectedOption) =>
             handleChange({
-              target: { name: "creatorGender", value: selectedOption.value },
+              target: { name: "creator_gender", value: selectedOption.value },
             })
           }
           errors={errors}
         />
-        {errors.creator_gender && (
-          <div className="text-sm text-red-600 mt-2">{errors.creator_gender.message}</div>
-        )}
-        <RequirementToggle field="gender" label="Gender" />
+
+        {renderRequirementToggle("gender")}
       </div>
 
       {/* Language Selection */}
@@ -356,24 +194,17 @@ function Eligibility({
             name="creator_language"
             placeholder="Type to search languages"
             value={languageSearch}
-            onChange={(e) => {
-              setLanguageSearch(e.target.value);
-              // Also update the campaign data as user types
-              handleChange({ target: { name: "creatorLanguage", value: e.target.value } });
-            }}
+            onChange={(e) => handleLanguageInputChange(e.target.value)}
             className="mb-2"
             errors={errors}
           />
-          {languageSearch && (
+          {showLanguageOptions && (
             <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
               {filteredLanguages.map((language) => (
                 <button
                   key={language}
                   type="button"
-                  onClick={() => {
-                    handleChange({ target: { name: "creatorLanguage", value: language } });
-                    setLanguageSearch(language);
-                  }}
+                  onClick={() => handleLanguageSelect(language)}
                   className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
                 >
                   {language}
@@ -382,15 +213,8 @@ function Eligibility({
             </div>
           )}
         </div>
-        {campaignData.creatorLanguage && (
-          <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-            Selected: <strong>{campaignData.creatorLanguage}</strong>
-          </div>
-        )}
-        {errors.creator_language && (
-          <div className="text-sm text-red-600 mt-2">{errors.creator_language.message}</div>
-        )}
-        <RequirementToggle field="language" label="Language" />
+
+        {renderRequirementToggle("language")}
       </div>
 
       {/* Application Deadline */}
@@ -399,9 +223,10 @@ function Eligibility({
           <CustomInput
             label="Application Deadline"
             type="date"
-            name="applicationDeadline"
-            value={campaignData.applicationDeadline}
-            onChange={handleChange}
+            name="application_deadline"
+            errors={errors}
+            register={register}
+            isRequired={true}
           />
         </div>
       </div>

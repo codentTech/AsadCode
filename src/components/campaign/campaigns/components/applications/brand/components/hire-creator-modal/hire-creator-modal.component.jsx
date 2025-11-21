@@ -4,7 +4,12 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-import { COMPENSATION_TYPE_OPTIONS } from "@/common/constants/options.constant";
+import {
+  COMPENSATION_TYPE_OPTIONS,
+  EXCLUSIVITY_CLAUSE_OPTIONS,
+  REVISION_LIMIT_OPTIONS,
+  USAGE_RIGHTS_OPTIONS,
+} from "@/common/constants/options.constant";
 import { useEffect, useState } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
@@ -38,6 +43,10 @@ export default function HireCreatorModal({
     createEnrichedContractData,
   } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
 
+  const revisionsLimitValue = watch?.revisionsLimit?.toString?.() || "";
+  const usageRightsValue = watch?.usageRights || "no_usage";
+  const exclusivityValue = watch?.exclusivityClause || "none";
+
   // Initialize form when modal opens
   useEffect(() => {
     if (show && campaignData && creatorData) {
@@ -52,30 +61,6 @@ export default function HireCreatorModal({
       setShowPreview(false);
     }
   }, [show, reset]);
-
-  const exclusivityOptions = [
-    { value: "none", label: "None" },
-    { value: "3", label: "3 Months" },
-    { value: "6", label: "6 Months" },
-    { value: "12", label: "12 Months" },
-  ];
-
-  const usageRightsOptions = [
-    { value: "no_usage", label: "No Usage Rights" },
-    { value: "3", label: "3 Months Usage" },
-    { value: "6", label: "6 Months Usage" },
-    { value: "12", label: "12 Months Usage" },
-    { value: "permanent", label: "Permanent Usage" },
-  ];
-
-  const revisionOptions = [
-    { value: "0", label: "0 Revisions" },
-    { value: "1", label: "1 Revision" },
-    { value: "2", label: "2 Revisions" },
-    { value: "3", label: "3 Revisions" },
-    { value: "4", label: "4 Revisions" },
-    { value: "5", label: "5 Revisions" },
-  ];
 
   const handlePreviewContract = () => {
     setShowPreview(true);
@@ -132,10 +117,11 @@ export default function HireCreatorModal({
             />
             <SimpleSelect
               label="Revisions Limit"
-              value={watch.revisionsLimit}
-              options={revisionOptions}
+              options={REVISION_LIMIT_OPTIONS}
+              defaultValue={revisionsLimitValue}
               onChange={(option) => setValue("revisionsLimit", option.value)}
-              error={errors.revisionsLimit?.message}
+              errors={errors}
+              name="revisionsLimit"
             />
           </div>
           <div className="w-full mt-4">
@@ -157,10 +143,11 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Compensation Type"
-                value={watch.compensationType}
                 options={COMPENSATION_TYPE_OPTIONS}
+                defaultValue={watch?.compensationType || COMPENSATION_TYPE.PAID}
                 onChange={(option) => setValue("compensationType", option.value)}
-                error={errors}
+                errors={errors}
+                name="compensationType"
               />
             </div>
             {isCompensationRequired() && (
@@ -174,7 +161,7 @@ export default function HireCreatorModal({
                 isRequired={true}
               />
             )}
-            {watch.compensationType === COMPENSATION_TYPE.COMMISSION && (
+            {watch?.compensationType === COMPENSATION_TYPE.COMMISSION && (
               <CustomInput
                 label="Product Price ($)"
                 type="number"
@@ -195,19 +182,21 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
-                value={watch.exclusivityClause}
-                options={exclusivityOptions}
+                options={EXCLUSIVITY_CLAUSE_OPTIONS}
+                defaultValue={exclusivityValue}
                 onChange={(option) => setValue("exclusivityClause", option.value)}
-                error={errors.exclusivityClause?.message}
+                errors={errors}
+                name="exclusivityClause"
               />
             </div>
             <div>
               <SimpleSelect
                 label="Usage Rights"
-                value={watch.usageRights}
-                options={usageRightsOptions}
+                options={USAGE_RIGHTS_OPTIONS}
+                defaultValue={usageRightsValue}
                 onChange={(option) => setValue("usageRights", option.value)}
-                error={errors.usageRights?.message}
+                errors={errors}
+                name="usageRights"
               />
             </div>
           </div>
@@ -219,35 +208,22 @@ export default function HireCreatorModal({
             text="Save Draft"
             className="btn-outline"
             type="button"
-            onClick={() => console.log("Save draft")}
-          />
-          <CustomButton
-            text="Preview Contract"
-            className="btn-secondary"
-            type="button"
             onClick={handlePreviewContract}
           />
           <CustomButton
             text="Send Offer"
-            className="btn-primary"
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoading || !isValid}
           />
         </div>
       </form>
 
       {/* Contract Preview Modal */}
-      {showPreview && (
-        <ContractPreviewModal
-          show={showPreview}
-          onClose={() => setShowPreview(false)}
-          contractData={createEnrichedContractData(watch)}
-          creatorData={creatorData}
-          campaignData={campaignData}
-          onSendOffer={onSendOffer}
-          isLoading={isSubmitting}
-        />
-      )}
+      <ContractPreviewModal
+        show={showPreview}
+        onClose={() => setShowPreview(false)}
+        contractData={createEnrichedContractData(watch)}
+      />
     </Modal>
   );
 }
