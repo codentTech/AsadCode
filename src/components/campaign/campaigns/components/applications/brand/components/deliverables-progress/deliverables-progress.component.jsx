@@ -31,7 +31,7 @@ const DeliverablesProgress = ({
         image: profile?.profile_photo_url || avatar,
         location:
           `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
-        rating: profile?.rating, // Mock rating
+        rating: Number(profile?.rating), // Mock rating
         appliedDate: new Date(selectedCreator.applied_at).toLocaleDateString(),
         pitch: selectedCreator.pitch,
         status: selectedCreator.status,
@@ -78,7 +78,7 @@ const DeliverablesProgress = ({
           <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
         </div>
         <h3>
-          {/* {creatorData.name} */}
+          {creatorData.name}
           <span className="text-lg text-gray-500 ml-1">({creatorData.rating})</span>
         </h3>
         <p className="flex items-center text-sm text-gray-500 -mt-1">
@@ -145,7 +145,7 @@ const DeliverablesProgress = ({
           </div>
         </div>
 
-        {/* <CampaignHistory /> */}
+        <CampaignHistory campaignId={selectedCampaign?.id} />
       </div>
     </div>
   );
