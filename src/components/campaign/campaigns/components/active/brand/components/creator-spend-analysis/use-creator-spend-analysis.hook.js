@@ -21,6 +21,7 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
   // Process creators data from API
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
+        ...creator,
         id: creator?.creator?.creator_profile?.id,
         age: getAge(creator?.creator?.date_of_birth),
         creatorUserId: creator?.creator?.id, // Add the actual user ID for chat
@@ -67,21 +68,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
       }))
     : [];
 
-  const formatFollowers = (count) => {
-    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
-    return count.toString();
-  };
-
-  const getPlatformColor = (platform) => {
-    const colors = {
-      instagram: "text-pink-600",
-      youtube: "text-red-600",
-      twitter: "text-blue-600",
-    };
-    return colors[platform] || "text-gray-600";
-  };
-
   const getSuccessRateColor = (rate) => {
     if (rate >= 95) return "text-green-600 bg-green-50";
     if (rate >= 90) return "text-blue-600 bg-blue-50";
@@ -93,8 +79,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
     creatorsLoading,
     creatorsSuccess,
     creatorsError,
-    formatFollowers,
-    getPlatformColor,
     getSuccessRateColor,
     showBrandCalendar,
     setShowBrandCalendar,

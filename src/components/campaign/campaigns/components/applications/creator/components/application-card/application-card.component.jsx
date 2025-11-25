@@ -1,0 +1,172 @@
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { Globe } from "lucide-react";
+import { campaignTitle, campiagnDeliverable } from "@/common/utils/campaign.utils";
+import { formatTimeAgo } from "@/common/utils/helper.utils";
+import { product } from "@/common/constants/auth.constant";
+
+// Campaign type color mapping - matches campaign-feed component
+const getCampaignTypeStyle = (type) => {
+  const styles = {
+    UGC: {
+      bg: "bg-blue-100",
+      text: "text-blue-800",
+      border: "border-blue-200",
+    },
+    GIFTED: {
+      bg: "bg-yellow-100",
+      text: "text-yellow-800",
+      border: "border-yellow-200",
+    },
+    SPONSORED_POST: {
+      bg: "bg-green-100",
+      text: "text-green-800",
+      border: "border-green-200",
+    },
+    AFFILIATE: {
+      bg: "bg-purple-100",
+      text: "text-purple-800",
+      border: "border-purple-200",
+    },
+  };
+  return styles[type] || styles["SPONSORED_POST"];
+};
+
+const ApplicationCard = ({
+  application,
+  formatCompensationType,
+  handleViewCampaign,
+  handleWithdraw,
+  withdrawLoading,
+}) => {
+  const campaign = application.campaign;
+  const brand = campaign?.created_by;
+  const brandName =
+    brand?.first_name && brand?.last_name
+      ? `${brand.first_name} ${brand.last_name}`
+      : brand?.first_name || "Brand";
+  const brandLogo = brand?.brand_profile?.brand_logo_url;
+  const campaignType = campaign?.campaign_type || "UGC";
+  const typeStyle = getCampaignTypeStyle(campaignTitle(campaignType));
+  const compensation = formatCompensationType(campaign?.compensation_type);
+  const budget = campaign?.budget || campaign?.creator_fee || "N/A";
+  const niches = campaign?.niches || [];
+  const location = campaign?.location_options?.[0] || "Anywhere";
+  const language = campaign?.language_requirement || "Any";
+  const minFollowers = campaign?.min_combined_followers || "0";
+  const deliverables = campaign?.deliverables || [];
+  const description =
+    campaign?.short_description || campaign?.long_description || "No description available";
+  const productImage = campaign?.campaign_image || product;
+  const appliedDate = application.applied_at || application.created_at;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start gap-3">
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
+              <img
+                src={brandLogo}
+                alt={brandName}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-gray-900 text-sm truncate">{brandName}</h3>
+              <h4 className="text-sm text-gray-700 line-clamp-1 font-medium">
+                {campaign?.campaign_title || "Campaign Title"}
+              </h4>
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                <Globe className="h-3 w-3" />
+                <span>Applied {formatTimeAgo(appliedDate)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Campaign Type and Payment Info */}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
+            >
+              {campaignTitle(campaignType)}
+            </div>
+            <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
+              <div>{compensation} -</div>
+              <div>{typeof budget === "number" ? `$${budget}` : budget}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="flex items-center gap-2 text-gray-600">
+                <span className="font-medium">Niche:</span>{" "}
+                {Array.isArray(niches) ? niches.map((n) => `${n}`).join(", ") : `${niches}`}
+              </span>
+              {location && (
+                <span className="flex items-center gap-2 text-gray-600">
+                  <span className="font-medium">Location:</span> {location}
+                </span>
+              )}
+              <span className="flex items-center gap-2 text-gray-600">
+                <span className="font-medium">Language:</span> {language}
+              </span>
+              <span className="flex items-center gap-2 text-gray-600">
+                <span className="font-medium">Min Followers:</span> {minFollowers}
+              </span>
+            </div>
+
+            <div className="mt-2">
+              <h5 className="text-xs font-semibold text-gray-900 mb-2">Deliverables</h5>
+              <div className="flex flex-wrap gap-1">
+                {deliverables.map((item) => (
+                  <span
+                    key={item}
+                    className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
+                  >
+                    {campiagnDeliverable(item)}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-l-2 border-primary mt-3">
+              <p className="text-xs text-gray-600 line-clamp-2 ml-2">
+                <span className="font-bold">Description:</span> {description}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <img
+              src={productImage.startsWith("http") ? productImage : product}
+              alt="Campaign Product"
+              className="w-44 h-44 rounded-lg object-cover border border-gray-200"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
+        {application.status === "PENDING" && (
+          <CustomButton
+            text="Withdraw"
+            className="btn-outline flex-1 !h-8 !text-xs"
+            onClick={() => handleWithdraw(campaign.id)}
+            disabled={withdrawLoading}
+          />
+        )}
+        <CustomButton
+          text="View Brief"
+          className="btn-outline flex-1 !h-8 !text-xs"
+          onClick={() => handleViewCampaign(campaign)}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ApplicationCard;
+

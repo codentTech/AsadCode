@@ -1,10 +1,17 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { Bell, X, Sparkles } from "lucide-react";
+import { Bell, X, Sparkles, RefreshCw } from "lucide-react";
 import useNotifications from "./use-notifications.hook";
 
 function Notifications() {
-  const { notifications, markAsRead, removeNotification, markAllAsRead } = useNotifications();
+  const {
+    notifications,
+    isLoading,
+    isRefreshing,
+    refreshNotifications,
+    markAsRead,
+    removeNotification,
+    markAllAsRead,
+  } = useNotifications();
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -46,15 +53,30 @@ function Notifications() {
                 </div>
               </div>
 
-              {/* Right side - Mark all read */}
-              {unreadCount > 0 && (
+              {/* Right side - Actions */}
+              <div className="flex items-center gap-2">
+                {/* Refresh button */}
                 <button
-                  onClick={markAllAsRead}
-                  className="text-xs font-medium text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors backdrop-blur-sm"
+                  onClick={refreshNotifications}
+                  disabled={isRefreshing || isLoading}
+                  className="text-white bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition-colors backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Refresh notifications"
                 >
-                  Mark all read
+                  <RefreshCw
+                    className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    strokeWidth={2.5}
+                  />
                 </button>
-              )}
+                {/* Mark all read */}
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs font-medium text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors backdrop-blur-sm"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

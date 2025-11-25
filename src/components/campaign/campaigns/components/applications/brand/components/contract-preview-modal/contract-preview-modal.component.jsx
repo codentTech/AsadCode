@@ -12,6 +12,7 @@ export default function ContractPreviewModal({
   onSendOffer,
   isLoading = false,
   contractId = null,
+  customActions = null,
 }) {
   // Generate stable timestamp when modal opens
   const [signatureTimestamp] = useState(() => new Date().toISOString());
@@ -276,9 +277,13 @@ Timestamp Recorded: ${signatureTimestamp}`;
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4">
-          <CustomButton text="Back to Edit" className="btn-outline px-6 py-2" onClick={onClose} />
-        </div>
+        {customActions ? (
+          customActions
+        ) : (
+          <div className="flex justify-end gap-3 pt-4">
+            <CustomButton text="Back to Edit" className="btn-outline px-6 py-2" onClick={onClose} />
+          </div>
+        )}
       </div>
     </Modal>
   );

@@ -1,12 +1,13 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { Calendar, Package } from "lucide-react";
-import CampaignBriefModal from "./components/campaign-brief-modal.component";
+import { Package } from "lucide-react";
+import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
 import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import useCreatorApplications from "./use-creator-applications.hook";
-import { campiagnDeliverable } from "@/common/utils/campaign.utils";
+import OffersModal from "./components/offers-modal/offers-modal.component";
+import ApplicationCard from "./components/application-card/application-card.component";
 
 const CreatorApplications = () => {
   const {
@@ -16,6 +17,8 @@ const CreatorApplications = () => {
     selectedCampaign,
     showCampaignBrief,
     showWithdrawConfirmation,
+    showOffersModal,
+    setShowOffersModal,
 
     // Redux state
     applicationsLoading,
@@ -38,10 +41,11 @@ const CreatorApplications = () => {
     // Message thread state
     messageModalState,
 
+    // Functions
+    fetchAllApplications,
+
     // Helper functions
     formatCompensationType,
-    formatDate,
-    getBrandLogo,
   } = useCreatorApplications();
 
   return (
@@ -56,55 +60,65 @@ const CreatorApplications = () => {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex items-center space-x-1 bg-gray-100 p-1.5 rounded-xl shadow-inner">
+            <div className="flex items-center space-x-3">
+              {/* My Offers Button - Blue and Distinct */}
               <CustomButton
-                text={
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span>Responded</span>
-                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {allApplications.responded?.length || 0}
-                    </span>
-                  </div>
-                }
-                onClick={() => handleTabChange("responded")}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "responded"
-                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                }`}
+                text="My Offers"
+                onClick={() => setShowOffersModal(true)}
+                className="px-5 py-3 text-sm font-semibold rounded-lg transition-all duration-200 bg-primary text-white shadow-md hover:shadow-lg"
               />
-              <CustomButton
-                text={
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span>Pending</span>
-                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {allApplications.pending?.length || 0}
-                    </span>
-                  </div>
-                }
-                onClick={() => handleTabChange("pending")}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "pending"
-                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                }`}
-              />
-              <CustomButton
-                text={
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span>Rejected</span>
-                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {allApplications.rejected?.length || 0}
-                    </span>
-                  </div>
-                }
-                onClick={() => handleTabChange("rejected")}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "rejected"
-                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                }`}
-              />
+
+              {/* Other Tabs */}
+              <div className="flex items-center space-x-1 bg-gray-100 p-1.5 rounded-xl shadow-inner">
+                <CustomButton
+                  text={
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span>Responded</span>
+                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
+                        {allApplications.responded?.length || 0}
+                      </span>
+                    </div>
+                  }
+                  onClick={() => handleTabChange("responded")}
+                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    activeTab === "responded"
+                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
+                />
+                <CustomButton
+                  text={
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span>Pending</span>
+                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
+                        {allApplications.pending?.length || 0}
+                      </span>
+                    </div>
+                  }
+                  onClick={() => handleTabChange("pending")}
+                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    activeTab === "pending"
+                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
+                />
+                <CustomButton
+                  text={
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span>Rejected</span>
+                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
+                        {allApplications.rejected?.length || 0}
+                      </span>
+                    </div>
+                  }
+                  onClick={() => handleTabChange("rejected")}
+                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    activeTab === "rejected"
+                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -129,29 +143,31 @@ const CreatorApplications = () => {
             <EmptyState
               icon={<Package className="w-8 h-8 text-gray-400" />}
               title={`No ${
-                activeTab === "responded"
-                  ? "responded"
-                  : activeTab === "pending"
-                    ? "pending"
-                    : "rejected"
+                activeTab === "offers"
+                  ? "offers"
+                  : activeTab === "responded"
+                    ? "responded"
+                    : activeTab === "pending"
+                      ? "pending"
+                      : "rejected"
               } applications`}
               description={
-                activeTab === "responded"
-                  ? "Brands haven't started conversations about your applications yet."
-                  : activeTab === "pending"
-                    ? "You don't have any pending applications at the moment."
-                    : "You don't have any rejected applications."
+                activeTab === "offers"
+                  ? "You don't have any offers at the moment. Keep applying to campaigns!"
+                  : activeTab === "responded"
+                    ? "Brands haven't started conversations about your applications yet."
+                    : activeTab === "pending"
+                      ? "You don't have any pending applications at the moment."
+                      : "You don't have any rejected applications."
               }
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredData.map((application) => (
                 <ApplicationCard
                   key={application.id}
                   application={application}
                   formatCompensationType={formatCompensationType}
-                  formatDate={formatDate}
-                  getBrandLogo={getBrandLogo}
                   handleViewCampaign={handleViewCampaign}
                   handleWithdraw={handleWithdraw}
                   handleMessageClick={handleMessageClick}
@@ -195,6 +211,13 @@ const CreatorApplications = () => {
           onClose={handleCloseMessageModal}
         />
       )}
+
+      {/* Offers Modal */}
+      <OffersModal
+        show={showOffersModal}
+        onClose={() => setShowOffersModal(false)}
+        onContractAction={fetchAllApplications}
+      />
     </div>
   );
 };
@@ -208,109 +231,6 @@ const EmptyState = ({ icon, title, description }) => (
     </div>
     <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
     <p className="text-gray-600">{description}</p>
-  </div>
-);
-
-const ApplicationCard = ({
-  application,
-  formatCompensationType,
-  formatDate,
-  getBrandLogo,
-  handleViewCampaign,
-  handleWithdraw,
-  handleMessageClick,
-  withdrawLoading,
-}) => (
-  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
-    {/* Card Header */}
-    <div className="p-4 border-b border-gray-100">
-      <div className="flex items-center space-x-3 mb-1">
-        <img
-          src={getBrandLogo(application.campaign?.created_by)}
-          alt={`${application.campaign?.created_by?.first_name || "Brand"} logo`}
-          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-        />
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
-            {application.campaign?.created_by?.first_name || "Brand"}
-          </h3>
-          <h4 className="text-xs font-medium text-gray-600 leading-tight mb-3 line-clamp-2">
-            {application.campaign?.campaign_title || "Campaign Title"}
-          </h4>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mt-2">
-        <span
-          className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium ${
-            formatCompensationType(application.campaign?.compensation_type) === "Paid"
-              ? "bg-green-100 text-green-700"
-              : formatCompensationType(application.campaign?.compensation_type) === "Gifted"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-purple-100 text-purple-700"
-          }`}
-        >
-          <span>{formatCompensationType(application.campaign?.compensation_type)}</span>
-        </span>
-        <span
-          className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${
-            application.status === "PENDING"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {application.status === "PENDING" ? "Pending" : "Rejected"}
-        </span>
-      </div>
-    </div>
-
-    {/* Card Body */}
-    <div className="p-4 flex-1 flex flex-col">
-      {/* Date Applied */}
-      <div className="flex items-center space-x-1 text-xs text-gray-600 mb-3">
-        <Calendar className="w-3 h-3" />
-        <span className="text-xs text-gray-600 font-semibold">
-          Applied on {formatDate(application.applied_at)}
-        </span>
-      </div>
-
-      {/* Deliverables */}
-      <div className="flex-1">
-        <h5 className="text-xs font-semibold text-gray-600 mb-2">Deliverables</h5>
-
-        <div className="flex flex-wrap gap-1">
-          {application.campaign?.deliverables.map((item) => (
-            <span key={item} className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs">
-              {campiagnDeliverable(item)}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    {/* Card Footer */}
-    <div className="p-4 border-t border-gray-100">
-      <div className="flex flex-col space-y-2">
-        <CustomButton
-          text="Message"
-          className="btn-primary"
-          onClick={() => handleMessageClick(application)}
-        />
-        {application.status === "PENDING" && (
-          <CustomButton
-            text="Withdraw"
-            className="btn-secondary"
-            onClick={() => handleWithdraw(application.campaign.id)}
-            disabled={withdrawLoading}
-          />
-        )}
-        <CustomButton
-          text="View Campaign"
-          className="btn-outline"
-          onClick={() => handleViewCampaign(application.campaign)}
-        />
-      </div>
-    </div>
   </div>
 );
 
