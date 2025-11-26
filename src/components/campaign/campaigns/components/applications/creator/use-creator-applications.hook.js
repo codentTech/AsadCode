@@ -12,9 +12,9 @@ function useCreatorApplications() {
   const user = getUser();
 
   // State management
-  const [activeTab, setActiveTab] = useState("responded");
+  const [activeTab, setActiveTab] = useState("negotiations");
   const [allApplications, setAllApplications] = useState({
-    responded: [],
+    negotiations: [],
     pending: [],
     rejected: [],
   });
@@ -49,7 +49,7 @@ function useCreatorApplications() {
   // For now, using empty array so all applications stay in "pending"
   // const conversations = [];
 
-  // Function to fetch all applications (pending, rejected, and categorize responded)
+  // Function to fetch all applications (pending, rejected, and categorize negotiations)
   const fetchAllApplications = async () => {
     try {
       // Fetch pending applications
@@ -60,14 +60,14 @@ function useCreatorApplications() {
       const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
       const rejectedApps = rejectedResponse?.data || [];
 
-      // Categorize pending applications into "responded" and "pending"
+      // Categorize pending applications into "negotiations" and "pending"
       // TODO: When chat feature is integrated, uncomment the categorization logic
       // For now, since conversations is empty, all apps stay in pending
-      const respondedApps = [];
+      const negotiationsApps = [];
       const truePendingApps = pendingApps; // All pending apps stay in pending for now
 
       setAllApplications({
-        responded: respondedApps,
+        negotiations: negotiationsApps,
         pending: truePendingApps,
         rejected: rejectedApps,
       });
@@ -95,8 +95,8 @@ function useCreatorApplications() {
 
   // Filter data based on active tab - use local state for display
   const filteredData =
-    activeTab === "responded"
-      ? allApplications.responded
+    activeTab === "negotiations"
+      ? allApplications.negotiations
       : activeTab === "pending"
         ? allApplications.pending
         : allApplications.rejected;

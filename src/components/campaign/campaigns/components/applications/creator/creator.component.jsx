@@ -60,15 +60,15 @@ const CreatorApplications = () => {
               <CustomButton
                 text={
                   <div className="flex items-center space-x-2 text-xs">
-                    <span>Responded</span>
+                    <span>Negotiations</span>
                     <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {allApplications.responded?.length || 0}
+                      {allApplications.negotiations?.length || 0}
                     </span>
                   </div>
                 }
-                onClick={() => handleTabChange("responded")}
+                onClick={() => handleTabChange("negotiations")}
                 className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "responded"
+                  activeTab === "negotiations"
                     ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
                     : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                 }`}
@@ -129,14 +129,14 @@ const CreatorApplications = () => {
             <EmptyState
               icon={<Package className="w-8 h-8 text-gray-400" />}
               title={`No ${
-                activeTab === "responded"
-                  ? "responded"
+                activeTab === "negotiations"
+                  ? "negotiations"
                   : activeTab === "pending"
                     ? "pending"
                     : "rejected"
               } applications`}
               description={
-                activeTab === "responded"
+                activeTab === "negotiations"
                   ? "Brands haven't started conversations about your applications yet."
                   : activeTab === "pending"
                     ? "You don't have any pending applications at the moment."
