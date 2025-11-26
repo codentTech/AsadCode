@@ -203,18 +203,14 @@ export default function HireCreatorModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
           <CustomButton
             text="Save Draft"
             className="btn-outline"
             type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton
-            text="Send Offer"
-            type="submit"
-            disabled={isSubmitting || isLoading || !isValid}
-          />
+          <CustomButton text="Send Offer" className="btn-primary" type="submit" />
         </div>
       </form>
 

@@ -86,12 +86,6 @@ const DeliverablesProgress = ({
         </p>
 
         <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
-
-        {isCompleted && (
-          <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            Campaign Completed
-          </div>
-        )}
       </div>
 
       {/* Scrollable Content */}

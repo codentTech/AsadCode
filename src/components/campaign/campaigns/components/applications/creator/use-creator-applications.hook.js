@@ -12,8 +12,9 @@ function useCreatorApplications() {
   const user = getUser();
 
   // State management
-  const [activeTab, setActiveTab] = useState("responded");
+  const [activeTab, setActiveTab] = useState("pending");
   const [allApplications, setAllApplications] = useState({
+    offers: [],
     responded: [],
     pending: [],
     rejected: [],
@@ -22,6 +23,7 @@ function useCreatorApplications() {
   const [showCampaignBrief, setShowCampaignBrief] = useState(false);
   const [showWithdrawConfirmation, setShowWithdrawConfirmation] = useState(false);
   const [campaignToWithdraw, setCampaignToWithdraw] = useState(null);
+  const [showOffersModal, setShowOffersModal] = useState(false);
 
   // Message thread state
   const [messageModalState, setMessageModalState] = useState({
@@ -49,31 +51,32 @@ function useCreatorApplications() {
   // For now, using empty array so all applications stay in "pending"
   // const conversations = [];
 
-  // Function to fetch all applications (pending, rejected, and categorize responded)
+  // Function to fetch all applications (pending, rejected, hired/offers, and categorize responded)
   const fetchAllApplications = async () => {
-    try {
-      // Fetch pending applications
-      const pendingResponse = await dispatch(getCreatorApplications("PENDING")).unwrap();
-      const pendingApps = pendingResponse?.data || [];
+    // Fetch pending applications
+    const pendingResponse = await dispatch(getCreatorApplications("PENDING")).unwrap();
+    const pendingApps = pendingResponse?.data || [];
 
-      // Fetch rejected applications
-      const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
-      const rejectedApps = rejectedResponse?.data || [];
+    // Fetch rejected applications
+    const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
+    const rejectedApps = rejectedResponse?.data || [];
 
-      // Categorize pending applications into "responded" and "pending"
-      // TODO: When chat feature is integrated, uncomment the categorization logic
-      // For now, since conversations is empty, all apps stay in pending
-      const respondedApps = [];
-      const truePendingApps = pendingApps; // All pending apps stay in pending for now
+    // Fetch hired applications (offers)
+    const hiredResponse = await dispatch(getCreatorApplications("HIRED")).unwrap();
+    const hiredApps = hiredResponse?.data || [];
 
-      setAllApplications({
-        responded: respondedApps,
-        pending: truePendingApps,
-        rejected: rejectedApps,
-      });
-    } catch (error) {
-      console.error("Failed to fetch applications:", error);
-    }
+    // Categorize pending applications into "responded" and "pending"
+    // TODO: When chat feature is integrated, uncomment the categorization logic
+    // For now, since conversations is empty, all apps stay in pending
+    const respondedApps = [];
+    const truePendingApps = pendingApps; // All pending apps stay in pending for now
+
+    setAllApplications({
+      offers: hiredApps,
+      responded: respondedApps,
+      pending: truePendingApps,
+      rejected: rejectedApps,
+    });
   };
 
   // Function to withdraw application
@@ -95,11 +98,13 @@ function useCreatorApplications() {
 
   // Filter data based on active tab - use local state for display
   const filteredData =
-    activeTab === "responded"
-      ? allApplications.responded
-      : activeTab === "pending"
-        ? allApplications.pending
-        : allApplications.rejected;
+    activeTab === "offers"
+      ? allApplications.offers
+      : activeTab === "responded"
+        ? allApplications.responded
+        : activeTab === "pending"
+          ? allApplications.pending
+          : allApplications.rejected;
 
   // Helper functions
   const formatCompensationType = (type) => {
@@ -113,22 +118,6 @@ function useCreatorApplications() {
       default:
         return type;
     }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const getBrandLogo = (brand) => {
-    return (
-      brand?.profile_photo_url ||
-      "https://images.unsplash.com/photo-1549924231-f129b911e442?w=40&h=40&fit=crop&crop=center"
-    );
   };
 
   // Tab change handler
@@ -220,10 +209,15 @@ function useCreatorApplications() {
     // Message thread state
     messageModalState,
 
+    // Offers modal state
+    showOffersModal,
+    setShowOffersModal,
+
+    // Functions
+    fetchAllApplications,
+
     // Helper functions
     formatCompensationType,
-    formatDate,
-    getBrandLogo,
   };
 }
 
