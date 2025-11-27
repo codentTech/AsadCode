@@ -28,23 +28,18 @@ function Header() {
     return [
       { href: "/campaign", label: "Campaigns" },
       portfolioLink,
-      { href: "/chat-inbox", label: "Inbox", openInNewTab: true },
+      { href: "/chat-inbox", label: "Inbox" },
       { href: "/notifications", label: "Notifications" },
       { href: "/admin/dashboard", label: "Settings" },
     ];
   }, [isCreator]);
-
-  const handleInboxClick = (e) => {
-    e.preventDefault();
-    window.open("/chat-inbox", "_blank", "noopener,noreferrer");
-  };
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-primary shadow-sm border-b border-primary/30">
       <div className="flex items-center h-12 px-4">
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center space-x-3 flex-1">
-          {links.map(({ href, label, openInNewTab }) => {
+          {links.map(({ href, label }) => {
             const isActive =
               pathname === href ||
               (href.includes("creator-portfolio") && pathname.includes("/creator-profile")) ||
@@ -54,18 +49,6 @@ function Header() {
               "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";
             const activeStyles = "text-primary bg-white";
             const inactiveStyles = "text-white hover:text-primary hover:bg-gray-100";
-
-            if (openInNewTab) {
-              return (
-                <button
-                  key={label}
-                  onClick={handleInboxClick}
-                  className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles}`}
-                >
-                  {label}
-                </button>
-              );
-            }
 
             return (
               <Link

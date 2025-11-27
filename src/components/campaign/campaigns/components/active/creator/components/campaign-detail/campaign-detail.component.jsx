@@ -1,169 +1,52 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
-import { SOURCE_PLATFORM, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
   BarChart3,
   Calendar,
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Copy,
   ExternalLink,
   MessageCircle,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
-import useCreatorTimeline from "../creator-timeline/use-creator-timeline.hook";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
-import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
+import useCampaignDetail from "./use-campaign-detail.hook";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
-  const [showContentBrief, setShowContentBrief] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    dosdonts: false,
-    styleGuide: false,
-    captions: false,
-  });
+  const {
+    // State
+    showContentBrief,
+    showProgressModal,
+    expandedSections,
+    campaign,
+    campaignInfo,
 
-  const campaign = selectedCampaign;
-  const router = useRouter();
+    // Computed
+    isCleerCutCampaign,
+    typeStyle,
+    timelineSteps,
+    progressPercentage,
+    creator,
 
-  // Only load timeline for CleerCut campaigns
-  const isCleerCutCampaign =
-    campaign?.sourcePlatform === SOURCE_PLATFORM.CLEERCUT || !campaign?.sourcePlatform; // Default to true if not set
+    // Message thread
+    messageThreadHook,
 
-  // Get timeline data to sync with progress (only for CleerCut campaigns)
-  const { timelineSteps } = useCreatorTimeline(
-    isCleerCutCampaign ? campaign?.id : null,
-    campaign?.campaign_deadline || campaign?.application_deadline
-  );
+    // Handlers
+    handleMessageClick,
+    toggleSection,
+    handleUpdateProgress,
+    handleCloseContentBrief,
+    handleOpenContentBrief,
+    handleCloseProgressModal,
+    formatDate,
+    getStepStatus,
+  } = useCampaignDetail(selectedCampaign);
 
-  // Message thread hook - use brand ID (campaign creator)
-  const brandId = campaign?.campaign?.created_by?.id;
-
-  const messageThreadHook = useMessageThread(brandId);
-
-  const creator = {
-    id: brandId,
-    name:
-      campaign?.campaign?.created_by?.first_name && campaign?.campaign?.created_by?.last_name
-        ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
-        : campaign?.brand || "Brand",
-    avatar: campaign?.campaign?.created_by?.profile_photo_url,
-    isOnline: true,
-  };
-
-  // Handle message click with validation
-  const handleMessageClick = () => {
-    if (!brandId) {
-      return;
-    }
-    messageThreadHook.openMessageModal();
-  };
-
-  const { getPlatformIcon } = useGetplatform();
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  // Open progress modal
-  const handleUpdateProgress = () => {
-    setShowProgressModal(true);
-  };
-
-  // Sample data for the information sections
-  const campaignInfo = {
-    dosdonts: {
-      dos: [
-        "Use natural lighting when filming",
-        "Show product application process",
-        "Include before/after shots if possible",
-        "Mention the discount code: SUMMER20",
-        "Tag @GlowCoBeauty in all posts",
-      ],
-      donts: [
-        "Don't use heavy filters that alter skin tone",
-        "Avoid filming in poor lighting conditions",
-        "Don't make medical claims about the product",
-        "Avoid negative comparisons with competitors",
-        "Don't forget to disclose partnership (#ad)",
-      ],
-    },
-    styleGuide: {
-      colors: ["#FF6B9D", "#4ECDC4", "#FFE66D"],
-      fonts: ["Montserrat", "Open Sans"],
-      tone: "Fresh, authentic, and approachable",
-      aesthetics: [
-        "Clean, minimalist backgrounds",
-        "Bright, natural lighting",
-        "Focus on product textures and results",
-        "Include lifestyle elements (morning routine, skincare shelf)",
-      ],
-    },
-    captions: [
-      {
-        platform: "Instagram",
-        caption:
-          "Summer glow-up starts with the right skincare! ✨ This lightweight serum from @GlowCoBeauty has been a game-changer for my routine. The SPF 30 protection is perfect for these sunny days! 🌞 Use code SUMMER20 for 20% off! #GlowCoPartner #SummerSkincare #SPFProtection #ad",
-        hashtags: "#GlowCoPartner #SummerSkincare #SPFProtection #SkincareRoutine #GlowUp #ad",
-      },
-      {
-        platform: "TikTok",
-        caption:
-          "POV: You found the perfect summer skincare combo ☀️ This @GlowCoBeauty duo is giving me that healthy glow! Code SUMMER20 for 20% off 💕 #GlowCoPartner #SummerSkincare #SkincareHacks #ad",
-        hashtags: "#GlowCoPartner #SummerSkincare #SkincareHacks #GlowUp #SPF #ad",
-      },
-    ],
-  };
-
-  // Campaign type color mapping
-  const getCampaignTypeStyle = (type) => {
-    const styles = {
-      "Sponsored Post": {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        border: "border-green-200",
-      },
-      UGC: {
-        bg: "bg-blue-100",
-        text: "text-blue-800",
-        border: "border-blue-200",
-      },
-      Gifted: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
-        border: "border-yellow-200",
-      },
-      Affiliate: {
-        bg: "bg-purple-100",
-        text: "text-purple-800",
-        border: "border-purple-200",
-      },
-    };
-    return styles[type] || styles["Sponsored Post"];
-  };
-
-  // Show loading state
+  // Loading state
   if (isLoading) {
     return (
       <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
@@ -176,7 +59,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     );
   }
 
-  // Show no campaign selected state
+  // No campaign selected state
   if (!campaign) {
     return (
       <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
@@ -191,8 +74,6 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
       </div>
     );
   }
-
-  const typeStyle = getCampaignTypeStyle(campaign.type);
 
   return (
     <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
@@ -214,8 +95,8 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               </div>
             </div>
 
-            {/* UGC Post Badge and Product */}
-            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            {/* Campaign Type Badge and Compensation */}
+            <div className="flex flex-col items-center gap-2 flex-shrink-0">
               <div
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
               >
@@ -256,15 +137,19 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                           Do's
                         </h4>
                         <ul className="space-y-1">
-                          {campaignInfo.dosdonts.dos.map((item, index) => (
-                            <li
-                              key={index}
-                              className="text-xs text-gray-600 flex items-start gap-1"
-                            >
-                              <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-                              {item}
-                            </li>
-                          ))}
+                          {campaignInfo.dosdonts.dos.length > 0 ? (
+                            campaignInfo.dosdonts.dos.map((item, index) => (
+                              <li
+                                key={index}
+                                className="text-xs text-gray-600 flex items-start gap-1"
+                              >
+                                <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
+                                {item}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-xs text-gray-400 italic">No do's specified</li>
+                          )}
                         </ul>
                       </div>
                       <div>
@@ -273,15 +158,19 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                           Don'ts
                         </h4>
                         <ul className="space-y-1">
-                          {campaignInfo.dosdonts.donts.map((item, index) => (
-                            <li
-                              key={index}
-                              className="text-xs text-gray-600 flex items-start gap-1"
-                            >
-                              <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
-                              {item}
-                            </li>
-                          ))}
+                          {campaignInfo.dosdonts.donts.length > 0 ? (
+                            campaignInfo.dosdonts.donts.map((item, index) => (
+                              <li
+                                key={index}
+                                className="text-xs text-gray-600 flex items-start gap-1"
+                              >
+                                <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
+                                {item}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-xs text-gray-400 italic">No don'ts specified</li>
+                          )}
                         </ul>
                       </div>
                     </div>
@@ -307,36 +196,29 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
 
                 {expandedSections.styleGuide && (
                   <div className="p-3 bg-white border-t border-gray-200 space-y-2">
-                    <div>
-                      <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Colors</h4>
-                      <div className="flex gap-1">
-                        {campaignInfo.styleGuide.colors.map((color, index) => (
-                          <div key={index} className="flex flex-col items-center gap-1">
-                            <div
-                              className="w-6 h-6 rounded border border-gray-200"
-                              style={{ backgroundColor: color }}
-                            />
-                            <span className="text-xs text-gray-500">{color}</span>
-                          </div>
-                        ))}
+                    {campaignInfo.styleGuide.text ? (
+                      <div>
+                        <p className="text-xs text-gray-600 whitespace-pre-wrap">
+                          {campaignInfo.styleGuide.text}
+                        </p>
                       </div>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Tone</h4>
-                      <p className="text-xs text-gray-600">{campaignInfo.styleGuide.tone}</p>
-                    </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-xs text-gray-500">No style guide provided</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Captions and Hashtags */}
+              {/* Hashtags */}
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleSection("captions")}
                   className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-900">Captions & Hashtags</span>
+                    <span className="text-xs font-medium text-gray-900">Hashtags</span>
                   </div>
                   {expandedSections.captions ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -346,31 +228,20 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 </button>
 
                 {expandedSections.captions && (
-                  <div className="p-3 bg-white border-t border-gray-200 space-y-2">
-                    {campaignInfo.captions.map((item, index) => (
-                      <div key={index} className="border border-gray-100 rounded p-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-xs font-medium text-gray-900 flex items-center gap-1">
-                            <div className="w-3 h-3">{getPlatformIcon(item.platform)}</div>
-                            {item.platform}
-                          </h4>
-                          <button
-                            onClick={() => copyToClipboard(item.caption)}
-                            className="text-blue-600 hover:text-blue-700"
-                            title="Copy caption"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-600 mb-1 line-clamp-2">{item.caption}</p>
-                        <p className="text-xs text-blue-600">{item.hashtags}</p>
+                  <div className="p-3 bg-white border-t border-gray-200">
+                    {campaignInfo.hashtags ? (
+                      <p className="text-xs text-blue-600 break-words">{campaignInfo.hashtags}</p>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-xs text-gray-500">No hashtags provided</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
+            {/* Product Image */}
             <div className="flex-shrink-0">
               <img
                 src={product}
@@ -385,7 +256,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             <h3 className="text-sm font-medium text-gray-900 mb-2">Deliverables</h3>
             <div className="bg-gray-100 rounded-lg p-3">
               <div className="flex flex-wrap gap-1">
-                {campaign.deliverables.map((item, index) => (
+                {campaign.deliverables?.map((item, index) => (
                   <span
                     key={index}
                     className="bg-white text-xs text-gray-700 px-2 py-1 rounded border flex items-center gap-1"
@@ -405,7 +276,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             </p>
           </div>
 
-          {/* Action Buttons Row - As per requirements */}
+          {/* Action Buttons */}
           <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2 pt-2`}>
             {isCleerCutCampaign && (
               <React.Fragment>
@@ -413,21 +284,18 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                   text="Update Progress"
                   className="btn-outline text-xs"
                   onClick={handleUpdateProgress}
-                  startIcon={<BarChart3 className="w-4 h-4" />}
                 />
                 <CustomButton
                   text="Message"
                   className="btn-primary text-xs"
                   onClick={handleMessageClick}
-                  startIcon={<MessageCircle className="w-4 h-4" />}
                 />
               </React.Fragment>
             )}
             <CustomButton
               text="View Brief"
               className="btn-outline text-xs"
-              onClick={() => setShowContentBrief(true)}
-              startIcon={<ExternalLink className="w-4 h-4" />}
+              onClick={handleOpenContentBrief}
             />
           </div>
 
@@ -446,7 +314,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
         <Modal
           show={showContentBrief}
           title="Content Brief"
-          onClose={() => setShowContentBrief(false)}
+          onClose={handleCloseContentBrief}
           size="lg"
         >
           <div className="prose text-sm text-gray-600">
@@ -475,7 +343,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
       <Modal
         show={showProgressModal}
         title="Campaign Progress"
-        onClose={() => setShowProgressModal(false)}
+        onClose={handleCloseProgressModal}
         size="md"
       >
         <div className="space-y-4">
@@ -483,37 +351,12 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           <div className="bg-gray-50 rounded p-3 border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-medium text-gray-900">
-                {timelineSteps
-                  ? Math.round(
-                      (timelineSteps.filter(
-                        (s) =>
-                          s.status === TIMELINE_STATUS.COMPLETED ||
-                          s.status === TIMELINE_STATUS.APPROVED
-                      ).length /
-                        timelineSteps.length) *
-                        100
-                    )
-                  : 0}
-                %
-              </span>
+              <span className="text-sm font-medium text-gray-900">{progressPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${
-                    timelineSteps
-                      ? (timelineSteps.filter(
-                          (s) =>
-                            s.status === TIMELINE_STATUS.COMPLETED ||
-                            s.status === TIMELINE_STATUS.APPROVED
-                        ).length /
-                          timelineSteps.length) *
-                        100
-                      : 0
-                  }%`,
-                }}
+                style={{ width: `${progressPercentage}%` }}
               />
             </div>
           </div>
@@ -522,12 +365,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           <div className="space-y-3">
             {timelineSteps && timelineSteps.length > 0 ? (
               timelineSteps.map((step, index) => {
-                const isCompleted =
-                  step.status === TIMELINE_STATUS.COMPLETED ||
-                  step.status === TIMELINE_STATUS.APPROVED;
-                const isSubmitted = step.status === TIMELINE_STATUS.SUBMITTED;
-                const isInProgress = step.status === TIMELINE_STATUS.IN_PROGRESS;
-                const isRevisionRequested = step.status === TIMELINE_STATUS.REVISION_REQUESTED;
+                const stepStatus = getStepStatus(step);
 
                 return (
                   <div
@@ -539,7 +377,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                       <div className="mt-0.5">
                         <input
                           type="checkbox"
-                          checked={isCompleted}
+                          checked={stepStatus.isCompleted}
                           readOnly
                           className="w-4 h-4 text-primary rounded border-gray-300"
                         />
@@ -549,17 +387,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="text-sm font-medium text-gray-900">{step.title}</h4>
-                          <span className="text-xs text-gray-500">
-                            {isCompleted
-                              ? "Completed"
-                              : isSubmitted
-                                ? "Pending Review"
-                                : isRevisionRequested
-                                  ? "Revision Needed"
-                                  : isInProgress
-                                    ? "In Progress"
-                                    : "Not Started"}
-                          </span>
+                          <span className="text-xs text-gray-500">{stepStatus.statusText}</span>
                         </div>
                         <p className="text-xs text-gray-600">{step.description}</p>
                         {step.submitted_at && (
@@ -571,14 +399,16 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                     </div>
 
                     {/* Revision Feedback */}
-                    {isRevisionRequested && step.revisions && step.revisions.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-gray-200">
-                        <p className="text-xs text-gray-700">
-                          <span className="font-medium">Feedback:</span>{" "}
-                          {step.revisions[0].revision_notes}
-                        </p>
-                      </div>
-                    )}
+                    {stepStatus.isRevisionRequested &&
+                      step.revisions &&
+                      step.revisions.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-xs text-gray-700">
+                            <span className="font-medium">Feedback:</span>{" "}
+                            {step.revisions[0].revision_notes}
+                          </p>
+                        </div>
+                      )}
                   </div>
                 );
               })
@@ -592,11 +422,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
 
           {/* Footer */}
           <div className="flex justify-end pt-2 border-t border-gray-200">
-            <CustomButton
-              text="Close"
-              className="btn-primary"
-              onClick={() => setShowProgressModal(false)}
-            />
+            <CustomButton text="Close" className="btn-primary" onClick={handleCloseProgressModal} />
           </div>
         </div>
       </Modal>

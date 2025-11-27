@@ -4,43 +4,26 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import NotFound from "@/common/components/not-found/not-found.component";
-import { useEffect, useRef, useState } from "react";
-import useBrandCampaignCompleted from "../../use-brand.hook";
+import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
 
 export default function CampaignOverviewCompleted({ onCampaignSelect }) {
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
-
   const {
-    campaignOptions,
+    isMultiCreator,
+    filteredCampaignOptions,
+    isSelectedCampaignValid,
+    showMultiCreatorUI,
     selectedCampaign,
     budgetData,
-    deliverables,
     performanceMetrics,
-    handleCampaignSelect: internalHandleCampaignSelect,
     formatCurrency,
     formatNumber,
     isLoading,
     hasData,
-  } = useBrandCampaignCompleted();
-
-  const hasNotifiedParent = useRef(false);
-
-  useEffect(() => {
-    if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      onCampaignSelect(selectedCampaign);
-      hasNotifiedParent.current = true;
-    }
-  }, [selectedCampaign, onCampaignSelect]);
-
-  const handleCampaignSelect = (selectedOption) => {
-    internalHandleCampaignSelect(selectedOption);
-    if (onCampaignSelect && selectedOption) {
-      onCampaignSelect(selectedOption.campaign);
-    }
-  };
-
-  const handleExportData = () => {};
-  const handleViewAnalytics = () => {};
+    handleCampaignSelect,
+    handleToggleChange,
+    handleExportData,
+    handleViewAnalytics,
+  } = useCampaignOverviewCompleted(onCampaignSelect);
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -48,29 +31,32 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         <CustomSwitch
           label="Campaign Type"
           checked={isMultiCreator}
-          onChange={() => setIsMultiCreator(!isMultiCreator)}
+          onChange={handleToggleChange}
           rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
           parentDivClassName="justify-between"
         />
       </div>
 
-      <SimpleSelect
-        placeHolder={"Completed campaigns"}
-        options={campaignOptions}
-        isSearchable={true}
-        isMulti={false}
-        onChange={handleCampaignSelect}
-        isLoading={isLoading}
-        value={
-          selectedCampaign
-            ? {
-                value: selectedCampaign.id,
-                label: selectedCampaign.campaign_title,
-                campaign: selectedCampaign,
-              }
-            : null
-        }
-      />
+      {/* Campaign Dropdown - Only show for Multi Creator */}
+      {isMultiCreator && (
+        <SimpleSelect
+          placeHolder={isMultiCreator ? "Completed campaigns" : "Individual collaborations"}
+          options={filteredCampaignOptions}
+          isSearchable={true}
+          isMulti={false}
+          onChange={handleCampaignSelect}
+          isLoading={isLoading}
+          value={
+            isSelectedCampaignValid
+              ? {
+                  value: selectedCampaign.id,
+                  label: selectedCampaign.campaign_title,
+                  campaign: selectedCampaign,
+                }
+              : null
+          }
+        />
+      )}
 
       <hr />
 
@@ -81,16 +67,21 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         </div>
       )}
 
-      {!hasData && !isLoading && campaignOptions.length === 0 && (
+      {!hasData && !isLoading && filteredCampaignOptions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <NotFound
-            title="No Completed Campaigns"
-            description="You don't have any completed campaigns."
+            title={isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"}
+            description={
+              isMultiCreator
+                ? "You don't have any completed campaigns."
+                : "You don't have any completed individual collaborations."
+            }
           />
         </div>
       )}
 
-      {hasData && (
+      {/* Budget Summary - Only show for Multi Creator */}
+      {showMultiCreatorUI && hasData && (
         <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
           <div className="flex flex-col justify-between">
             <h5 className="text-primary text-sm">Budget Spent</h5>
@@ -103,7 +94,8 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         </div>
       )}
 
-      {hasData && (
+      {/* Performance Overview - Only show for Multi Creator */}
+      {showMultiCreatorUI && hasData && (
         <>
           <hr />
           <div className="bg-blue-50 rounded-lg p-4">
@@ -143,23 +135,26 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
           <hr />
           <div className="mb-1">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Combined Audience Demographics
+              {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
             </h3>
             <AudienceDemographics className="flex flex-col" />
           </div>
           <hr />
-          <div className="flex flex-col gap-2 mt-1">
-            <CustomButton
-              text="Export Campaign Data"
-              onClick={handleExportData}
-              className="w-full btn-primary"
-            />
-            <CustomButton
-              text="View Full Analytics"
-              onClick={handleViewAnalytics}
-              className="w-full btn-outline"
-            />
-          </div>
+          {/* Action Buttons - Only show for Multi Creator */}
+          {showMultiCreatorUI && (
+            <div className="flex flex-col gap-2 mt-1">
+              <CustomButton
+                text="Export Campaign Data"
+                onClick={handleExportData}
+                className="w-full btn-primary"
+              />
+              <CustomButton
+                text="View Full Analytics"
+                onClick={handleViewAnalytics}
+                className="w-full btn-outline"
+              />
+            </div>
+          )}
         </>
       )}
     </div>

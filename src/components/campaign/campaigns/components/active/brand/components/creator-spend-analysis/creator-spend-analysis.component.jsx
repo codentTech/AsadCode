@@ -3,10 +3,9 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import InstagramIcon from "@/common/icons/instagram";
-import TwitterIcon from "@/common/icons/twitter";
-import YoutubeIcon from "@/common/icons/youtube";
-import { MapPin, Star, Users } from "lucide-react";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { MapPin, Star } from "lucide-react";
 import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
@@ -24,14 +23,14 @@ const CreatorSpendAnalysis = ({
     creatorsLoading,
     creatorsSuccess,
     creatorsError,
-    formatFollowers,
-    getPlatformColor,
     getSuccessRateColor,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
   } = useCreatorSpendAnalysis(selectedCampaign);
+
+  const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
 
   // Handle sort change
   const handleSortChange = (option) => {
@@ -46,19 +45,6 @@ const CreatorSpendAnalysis = ({
       onCreatorSelect(creators[0]);
     }
   }, [creatorsSuccess, creators, selectedCreator, selectedCampaign, onCreatorSelect]);
-
-  const getPlatformIcon = (platform) => {
-    switch (platform) {
-      case "instagram":
-        return <InstagramIcon />;
-      case "youtube":
-        return <YoutubeIcon />;
-      case "twitter":
-        return <TwitterIcon />;
-      default:
-        return <Users className="w-4 h-4" />;
-    }
-  };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -151,6 +137,7 @@ const CreatorSpendAnalysis = ({
           {/* Creators List */}
           {creatorsSuccess && creators.length > 0 && selectedCampaign
             ? creators.map((creator) => {
+                console.log(creator);
                 const isSelected = selectedCreator?.id === creator.id;
 
                 return (
@@ -186,13 +173,16 @@ const CreatorSpendAnalysis = ({
                                   {creator.name}
                                 </h3>
                               </div>
-                              <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
-                                Creator Fee:
-                                <span className="font-bold text-primary">
-                                  {" "}
-                                  ${creator.totalSpent}
-                                </span>
-                              </div>
+                              {creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+                              creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
+                                <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                                  Creator Fee:
+                                  <span className="font-bold text-primary">
+                                    {" "}
+                                    ${creator?.campaign?.creator_fee}
+                                  </span>
+                                </div>
+                              ) : null}
                             </div>
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
                               <div className="flex items-center space-x-1 text-xs">
