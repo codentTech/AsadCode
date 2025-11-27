@@ -34,6 +34,7 @@ const CreatorSpendAnalysis = ({
   onFilterChange,
   onClearFilters,
   onMessageClick,
+  fetchIndividualCollaborations: fetchFromHook,
 }) => {
   const { open, handleOpenModal, handleCloseModal } = useCreatorSpendAnalysis();
 
@@ -71,16 +72,28 @@ const CreatorSpendAnalysis = ({
     setIndividualCollaborations(collaborations);
     setIndividualCollaborationsLoading(false);
 
-    if (collaborations.length > 0 && !selectedCampaign && onCampaignSelect) {
-      const firstCollaboration = {
-        id: `individual-${collaborations[0].id}`,
-        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
-        campaign_title: "Individual Collaboration",
-        brand: collaborations[0].brand,
-        created_by: collaborations[0].brand,
-        invitation: collaborations[0],
-      };
-      onCampaignSelect(firstCollaboration);
+    // Also trigger hook's fetch to keep state in sync for right pane
+    if (fetchFromHook) {
+      fetchFromHook();
+    }
+
+    // Auto-select first collaboration if none selected
+    if (collaborations.length > 0) {
+      const currentIsIndividual =
+        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+      if (!selectedCampaign || !currentIsIndividual) {
+        const firstCollaboration = {
+          id: `individual-${collaborations[0].id}`,
+          collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+          campaign_title: "Individual Collaboration",
+          brand: collaborations[0].brand,
+          created_by: collaborations[0].brand,
+          invitation: collaborations[0],
+        };
+        if (onCampaignSelect) {
+          onCampaignSelect(firstCollaboration);
+        }
+      }
     }
   };
 
@@ -103,6 +116,7 @@ const CreatorSpendAnalysis = ({
     }
 
     if (!newIsMultiCreator) {
+      // Always fetch when switching to individual creator
       fetchIndividualCollaborations();
     }
   };
@@ -124,7 +138,10 @@ const CreatorSpendAnalysis = ({
         }
       }
     } else {
-      if (!selectedCampaign && individualCollaborations.length === 0) {
+      // When switching to individual creator, always fetch if not already loaded or if selected campaign is not individual
+      const isSelectedIndividual =
+        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+      if (!isSelectedIndividual || individualCollaborations.length === 0) {
         fetchIndividualCollaborations();
       }
     }
@@ -164,6 +181,7 @@ const CreatorSpendAnalysis = ({
   const mapCreatorForCard = (creator) => {
     const creatorData = creator.creator;
     const profile = creatorData?.creator_profile;
+    const appliedDate = creator.applied_at || creator.created_at;
     return {
       id: creatorData.id,
       name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
@@ -184,7 +202,7 @@ const CreatorSpendAnalysis = ({
       portfolioImages: profile?.mini_profile_pictures || [],
       niches: profile?.categories || [],
       tagline: creator.pitch || "",
-      appliedDate: new Date(creator.applied_at).toLocaleDateString(),
+      appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
     };
   };
 
@@ -309,7 +327,7 @@ const CreatorSpendAnalysis = ({
                         <CreatorCard
                           creator={mapped}
                           tab="applications"
-                          appliedDate={invitation.created_at}
+                          appliedDate={mapped.appliedDate}
                           onCreatorPreview={handleCreatorPreview}
                           onSaveToShortlist={handleSaveToShortlist}
                           onRemoveFromShortlist={() => {}}

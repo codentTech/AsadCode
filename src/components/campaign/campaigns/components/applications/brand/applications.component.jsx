@@ -40,6 +40,7 @@ function BrandApplications() {
     handleFilterChange,
     clearFilters,
     handleMessageClick,
+    fetchIndividualCollaborations,
   } = useBrandApplications();
 
   const renderRightPane = () => {
@@ -60,19 +61,23 @@ function BrandApplications() {
       );
     }
 
+    const isIndividualCreator =
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
     if (selectedCampaign && creators.length === 0) {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
           <NotFound
             title="No Creators Found"
-            description="No creators have applied to this campaign yet."
+            description={
+              isIndividualCreator
+                ? "No individual collaborations found."
+                : "No creators have applied to this campaign yet."
+            }
           />
         </div>
       );
     }
-
-    const isIndividualCreator =
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
     return (
       <DeliverablesProgress
@@ -100,6 +105,7 @@ function BrandApplications() {
         onFilterChange={handleFilterChange}
         onClearFilters={clearFilters}
         onMessageClick={handleMessageClick}
+        fetchIndividualCollaborations={fetchIndividualCollaborations}
       />
 
       {renderRightPane()}
