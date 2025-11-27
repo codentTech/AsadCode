@@ -1,263 +1,48 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { avatar } from "@/common/constants/auth.constant";
 import { isCreatorMode } from "@/common/utils/users.util";
-import {
-  createContract,
-  getAppliedCreators,
-  rejectCreator,
-  sendContract,
-} from "@/provider/features/campaigns/campaigns.slice";
-import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
-import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import useBrandApplications from "./use-brand-applications.hook";
 
 function BrandApplications() {
-  const dispatch = useDispatch();
-
-  // Get Redux state for applied creators
   const {
-    data: appliedCreatorsData,
-    isLoading: appliedCreatorsLoading,
-    isSuccess: appliedCreatorsSuccess,
-    isError: appliedCreatorsError,
-  } = useSelector((state) => state.campaigns.getAppliedCreators || {});
-
-  // Get Redux state for reject creator
-  const {
-    isLoading: rejectLoading,
-    isSuccess: rejectSuccess,
-    isError: rejectError,
-  } = useSelector((state) => state.campaigns.rejectCreator || {});
-
-  // State to manage data flow between components
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [selectedCreator, setSelectedCreator] = useState(null);
-  const autoSelectedForCampaignRef = useRef(null);
-  const [hireModalOpen, setHireModalOpen] = useState(false);
-  const [hireCreatorData, setHireCreatorData] = useState(null);
-  const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
-  const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
-
-  // Contract creation/sending state
-  const {
-    isLoading: createContractLoading,
-    isSuccess: createContractSuccess,
-    isError: createContractError,
-  } = useSelector((state) => state.campaigns.createContract || {});
-  const {
-    isLoading: sendContractLoading,
-    isSuccess: sendContractSuccess,
-    isError: sendContractError,
-  } = useSelector((state) => state.campaigns.sendContract || {});
-  const [filters, setFilters] = useState({
-    min_followers: "",
-    max_followers: "",
-    min_rating: "",
-    max_rating: "",
-    country: "",
-    city: "",
-    niches: [],
-    platforms: [],
-    status: "PENDING", // Default to PENDING applications
-    sort: "newest",
-  });
-
-  // Handle campaign selection from CampaignOverview
-  const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
-    setSelectedCreator(null); // Reset selected creator when campaign changes
-    autoSelectedForCampaignRef.current = null; // reset auto-select guard for new campaign
-
-    // Fetch applied creators for this campaign
-    dispatch(
-      getAppliedCreators({
-        campaignId: campaign.id,
-        filters: filters,
-      })
-    );
-  };
-
-  // Auto-select first creator when creators list loads for the selected campaign
-  useEffect(() => {
-    const creators = appliedCreatorsData?.data;
-
-    if (
-      selectedCampaign &&
-      appliedCreatorsSuccess &&
-      Array.isArray(creators) &&
-      creators.length > 0 &&
-      !selectedCreator &&
-      autoSelectedForCampaignRef.current !== selectedCampaign.id
-    ) {
-      setSelectedCreator(creators[0]);
-      autoSelectedForCampaignRef.current = selectedCampaign.id;
-    }
-  }, [
-    appliedCreatorsSuccess,
     appliedCreatorsData,
+    appliedCreatorsLoading,
     selectedCampaign,
     selectedCreator,
-    appliedCreatorsLoading,
-    appliedCreatorsError,
-  ]);
-
-  // Handle creator selection from CreatorSpendAnalysis
-  const handleCreatorSelect = (creator) => {
-    setSelectedCreator(creator);
-  };
-
-  // Actions: Hire / Reject / Message
-  const handleHireClick = () => {
-    if (!selectedCreator || !selectedCampaign) return;
-    setHireCreatorData(selectedCreator);
-    setSelectedCampaignForHire(selectedCampaign);
-    setHireModalOpen(true);
-  };
-
-  const handleSendOffer = async (contractData) => {
-    // Prepare payload (aligns with previous implementation)
-    const contractPayload = {
-      campaignId: selectedCampaign.id,
-      creatorId: selectedCreator.creator?.id || selectedCreator.id,
-      brandId: selectedCampaign.created_by?.id,
-      startDate: contractData.startDate,
-      completionDeadline: contractData.completionDeadline,
-      contentFormat: contractData.contentFormat,
-      revisionsLimit: contractData.revisionsLimit,
-      compensationType: contractData.compensationType?.toUpperCase(),
-      totalCompensation: contractData.totalCompensation
-        ? parseFloat(contractData.totalCompensation)
-        : undefined,
-      productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
-      usageRights:
-        contractData.usageRights === "no_usage"
-          ? "no_usage"
-          : contractData.usageRights === "permanent"
-            ? "permanent"
-            : `${contractData.usageRights}_months`,
-      exclusivityClause:
-        contractData.exclusivityClause === "none"
-          ? "none"
-          : `${contractData.exclusivityClause}_months`,
-      hashtags: contractData.hashtags,
-      mentions: contractData.mentions,
-      inPersonRequired: contractData.inPersonRequired,
-      eligibleCountry: contractData.eligibleCountry,
-      eligibleCity: contractData.eligibleCity,
-      ageRange: contractData.ageRange,
-      gender: contractData.gender,
-      language: contractData.language,
-    };
-
-    const createResult = await dispatch(createContract(contractPayload)).unwrap();
-    if (createResult.success) {
-      await dispatch(sendContract(createResult.data.id)).unwrap();
-      setHireModalOpen(false);
-      setHireCreatorData(null);
-      setSelectedCampaignForHire(null);
-      setTimeout(() => {
-        if (selectedCampaign) {
-          handleCampaignSelect(selectedCampaign);
-        }
-      }, 1000);
-    }
-  };
-
-  const handleRejectClick = () => setShowRejectConfirmation(true);
-  const handleConfirmReject = () => {
-    if (selectedCampaign && selectedCreator) {
-      dispatch(rejectCreator({ campaignId: selectedCampaign.id, creatorId: selectedCreator.id }));
-    }
-    setShowRejectConfirmation(false);
-  };
-
-  // Handle filter changes from CampaignOverview
-  const handleFilterChange = (filterName, value) => {
-    const newFilters = { ...filters, [filterName]: value };
-    setFilters(newFilters);
-
-    // Refetch creators with new filters if campaign is selected
-    if (selectedCampaign) {
-      dispatch(
-        getAppliedCreators({
-          campaignId: selectedCampaign.id,
-          filters: newFilters,
-        })
-      );
-    }
-  };
-
-  const clearFilters = () => {
-    const clearedFilters = {
-      min_followers: "",
-      max_followers: "",
-      min_rating: "",
-      max_rating: "",
-      country: "",
-      city: "",
-      niches: [],
-      platforms: [],
-      status: "PENDING", // Reset to PENDING when clearing filters
-      sort: "newest",
-    };
-    setFilters(clearedFilters);
-
-    // Refetch creators with cleared filters if campaign is selected
-    if (selectedCampaign) {
-      dispatch(
-        getAppliedCreators({
-          campaignId: selectedCampaign.id,
-          filters: clearedFilters,
-        })
-      );
-    }
-  };
-
-  // Handle reject creator
-  const handleRejectCreator = (campaignId, creatorId) => {
-    dispatch(rejectCreator({ campaignId, creatorId }));
-  };
-
-  // Handle reject success - refresh the applied creators list
-  useEffect(() => {
-    if (rejectSuccess && selectedCampaign) {
-      // Refresh the applied creators list to remove the rejected creator
-      dispatch(
-        getAppliedCreators({
-          campaignId: selectedCampaign.id,
-          filters: { ...filters, status: "PENDING" },
-        })
-      );
-      // Reset selected creator since they're no longer in the list
-      setSelectedCreator(null);
-    }
-  }, [rejectSuccess, selectedCampaign, dispatch, filters]);
-
-  // Message thread hook
-  const messageThreadHook = useMessageThread(selectedCreator?.creator?.id || null);
-
-  const creator = {
-    id: selectedCreator?.creator?.id,
-    name: selectedCreator?.creator?.first_name + " " + selectedCreator?.creator?.last_name,
-    avatar: selectedCreator?.creator?.creator_profile?.profile_photo_url || avatar,
-    isOnline: true,
-  };
-
-  const creators = Array.isArray(appliedCreatorsData?.data) ? appliedCreatorsData.data : [];
-
-  // Handle message click - open modal via hook
-  const handleMessageClick = () => {
-    messageThreadHook.openMessageModal();
-  };
+    hireModalOpen,
+    setHireModalOpen,
+    hireCreatorData,
+    selectedCampaignForHire,
+    showRejectConfirmation,
+    setShowRejectConfirmation,
+    createContractLoading,
+    sendContractLoading,
+    createContractSuccess,
+    sendContractSuccess,
+    createContractError,
+    sendContractError,
+    filters,
+    creators,
+    creator,
+    messageThreadHook,
+    handleCampaignSelect,
+    handleCreatorSelect,
+    handleHireClick,
+    handleSendOffer,
+    handleRejectClick,
+    handleConfirmReject,
+    handleFilterChange,
+    clearFilters,
+    handleMessageClick,
+  } = useBrandApplications();
 
   const renderRightPane = () => {
-    // Loading state for creators list
     if (appliedCreatorsLoading) {
       return (
         <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
@@ -267,7 +52,6 @@ function BrandApplications() {
       );
     }
 
-    // No campaign selected -> show not found placeholder on right
     if (!selectedCampaign) {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
@@ -276,7 +60,6 @@ function BrandApplications() {
       );
     }
 
-    // Campaign selected but no creators for this campaign
     if (selectedCampaign && creators.length === 0) {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
@@ -288,7 +71,9 @@ function BrandApplications() {
       );
     }
 
-    // Default: show deliverables pane
+    const isIndividualCreator =
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
     return (
       <DeliverablesProgress
         isCreatorMode={isCreatorMode()}
@@ -297,6 +82,7 @@ function BrandApplications() {
         onHireClick={handleHireClick}
         onRejectClick={handleRejectClick}
         onMessageClick={handleMessageClick}
+        isIndividualCreator={isIndividualCreator}
       />
     );
   };
@@ -318,7 +104,6 @@ function BrandApplications() {
 
       {renderRightPane()}
 
-      {/* Hire Creator Modal */}
       <HireCreatorModal
         show={hireModalOpen}
         onClose={() => setHireModalOpen(false)}
@@ -346,7 +131,6 @@ function BrandApplications() {
         messagesContainerRef={messageThreadHook.messagesContainerRef}
       />
 
-      {/* Reject Confirmation Modal */}
       <ConfirmationDialog
         show={showRejectConfirmation}
         onClose={() => setShowRejectConfirmation(false)}

@@ -74,12 +74,30 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
     return "text-orange-600 bg-orange-50";
   };
 
+  const formatFollowers = (followers) => {
+    if (!followers || followers === 0) return "0";
+    if (followers >= 1000000) {
+      return `${(followers / 1000000).toFixed(1)}M`;
+    } else if (followers >= 1000) {
+      return `${(followers / 1000).toFixed(0)}K`;
+    }
+    return followers.toString();
+  };
+
+  const [open, setOpen] = useState(false);
+  const handleOpenModal = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false);
+
   return {
     creators,
     creatorsLoading,
     creatorsSuccess,
     creatorsError,
     getSuccessRateColor,
+    formatFollowers,
+    open,
+    handleOpenModal,
+    handleCloseModal,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,

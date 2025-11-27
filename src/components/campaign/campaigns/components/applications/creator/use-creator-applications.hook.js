@@ -4,128 +4,139 @@ import {
   getCreatorApplications,
   withdrawApplication,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { getUser } from "@/common/utils/users.util";
-import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
+import invitationService from "@/provider/features/invitation/invitation.service";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 function useCreatorApplications() {
   const dispatch = useDispatch();
-  const user = getUser();
 
-  // State management
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState("negotiations");
   const [allApplications, setAllApplications] = useState({
-    offers: [],
-    responded: [],
+    invites: [],
+    negotiations: [],
     pending: [],
     rejected: [],
+    offers: [],
   });
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showCampaignBrief, setShowCampaignBrief] = useState(false);
   const [showWithdrawConfirmation, setShowWithdrawConfirmation] = useState(false);
   const [campaignToWithdraw, setCampaignToWithdraw] = useState(null);
   const [showOffersModal, setShowOffersModal] = useState(false);
-
-  // Message thread state
   const [messageModalState, setMessageModalState] = useState({
     isOpen: false,
     brandId: null,
     application: null,
   });
 
-  // Get creator applications state from Redux
-  const {
-    data: applicationsData,
-    isLoading: applicationsLoading,
-    isSuccess: applicationsSuccess,
-    isError: applicationsError,
-  } = useSelector((state) => state.campaigns.getCreatorApplications || {});
+  const { isLoading: applicationsLoading, isError: applicationsError } = useSelector(
+    (state) => state.campaigns.getCreatorApplications || {}
+  );
 
-  // Get withdraw application state from Redux
-  const {
-    isLoading: withdrawLoading,
-    isSuccess: withdrawSuccess,
-    isError: withdrawError,
-  } = useSelector((state) => state.campaigns.withdrawApplication || {});
+  const { isLoading: withdrawLoading } = useSelector(
+    (state) => state.campaigns.withdrawApplication || {}
+  );
 
-  // Mock conversations data - TODO: Replace with real chat integration when available
-  // For now, using empty array so all applications stay in "pending"
-  // const conversations = [];
+  useEffect(() => {
+    fetchAllApplications();
+  }, []);
 
-  // Function to fetch all applications (pending, rejected, hired/offers, and categorize responded)
+  const normalizeInvitation = (invitation) => ({
+    ...invitation,
+    id: invitation.id,
+    status: invitation.status || "PENDING",
+    applied_at: invitation.created_at,
+    created_at: invitation.created_at,
+    campaign: invitation.campaign
+      ? {
+          ...invitation.campaign,
+          created_by: invitation.brand,
+        }
+      : {
+          id: null,
+          campaign_title: "Individual Collaboration",
+          campaign_type: null,
+          compensation_type: null,
+          budget: null,
+          creator_fee: null,
+          niches: [],
+          location_options: [],
+          language_requirement: null,
+          min_combined_followers: null,
+          deliverables: [],
+          short_description: invitation.custom_message || "",
+          long_description: invitation.custom_message || "",
+          campaign_image: null,
+          created_by: invitation.brand,
+        },
+    brand: invitation.brand,
+    custom_message: invitation.custom_message,
+    collaboration_type: invitation.collaboration_type,
+    isInvitation: true,
+  });
+
   const fetchAllApplications = async () => {
-    // Fetch pending applications
     const pendingResponse = await dispatch(getCreatorApplications("PENDING")).unwrap();
     const pendingApps = pendingResponse?.data || [];
 
-    // Fetch rejected applications
     const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
     const rejectedApps = rejectedResponse?.data || [];
 
-    // Fetch hired applications (offers)
     const hiredResponse = await dispatch(getCreatorApplications("HIRED")).unwrap();
     const hiredApps = hiredResponse?.data || [];
 
-    // Categorize pending applications into "responded" and "pending"
-    // TODO: When chat feature is integrated, uncomment the categorization logic
-    // For now, since conversations is empty, all apps stay in pending
-    const respondedApps = [];
-    const truePendingApps = pendingApps; // All pending apps stay in pending for now
+    let invites = [];
+    const invitesResponse = await invitationService
+      .getCreatorInvitations()
+      .catch(() => ({ data: [] }));
+    const rawInvites = invitesResponse?.data || [];
+    invites = rawInvites.map(normalizeInvitation);
+
+    const negotiationsApps = [];
+    const truePendingApps = pendingApps;
 
     setAllApplications({
-      offers: hiredApps,
-      responded: respondedApps,
+      invites,
+      negotiations: negotiationsApps,
       pending: truePendingApps,
       rejected: rejectedApps,
+      offers: hiredApps,
     });
   };
 
-  // Function to withdraw application
   const handleWithdrawApplication = async (campaignId) => {
-    try {
-      await dispatch(withdrawApplication(campaignId)).unwrap();
-      // Refresh all applications after successful withdrawal
-      await fetchAllApplications();
-    } catch (error) {
-      // Error handling is done globally in api.js
-      console.error("Withdrawal failed:", error);
-    }
+    await dispatch(withdrawApplication(campaignId)).unwrap();
+    await fetchAllApplications();
   };
 
-  // Fetch all applications on component mount only
-  useEffect(() => {
-    fetchAllApplications();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Filter data based on active tab - use local state for display
   const filteredData =
-    activeTab === "offers"
-      ? allApplications.offers
-      : activeTab === "responded"
-        ? allApplications.responded
-        : activeTab === "pending"
-          ? allApplications.pending
-          : allApplications.rejected;
+    activeTab === "invites"
+      ? allApplications.invites
+      : activeTab === "negotiations"
+        ? allApplications.negotiations
+        : activeTab === "offers"
+          ? allApplications.offers
+          : activeTab === "pending"
+            ? allApplications.pending
+            : allApplications.rejected;
 
-  // Helper functions
   const formatCompensationType = (type) => {
     switch (type) {
-      case "FIXED":
+      case COMPENSATION_TYPE.PAID:
         return "Paid";
-      case "GIFTED":
+      case COMPENSATION_TYPE.GIFTED_PRODUCT:
         return "Gifted";
-      case "COMMISSION":
+      case COMPENSATION_TYPE.COMMISSION:
         return "Commission";
       default:
         return type;
     }
   };
 
-  // Tab change handler
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
-  // Campaign brief handlers
   const handleViewCampaign = (campaign) => {
     setSelectedCampaign(campaign);
     setShowCampaignBrief(true);
@@ -136,7 +147,6 @@ function useCreatorApplications() {
     setSelectedCampaign(null);
   };
 
-  // Withdraw handlers
   const handleWithdraw = (campaignId) => {
     setCampaignToWithdraw(campaignId);
     setShowWithdrawConfirmation(true);
@@ -155,19 +165,17 @@ function useCreatorApplications() {
     setCampaignToWithdraw(null);
   };
 
-  // Handle message click
-  const handleMessageClick = (application) => {
-    const brandId = application.campaign?.created_by?.id;
+  const handleMessageClick = (item) => {
+    const brandId = item.brand?.id || item.campaign?.created_by?.id;
     if (brandId) {
       setMessageModalState({
         isOpen: true,
-        brandId: brandId,
-        application: application,
+        brandId,
+        application: item,
       });
     }
   };
 
-  // Close message modal
   const handleCloseMessageModal = () => {
     setMessageModalState({
       isOpen: false,
@@ -177,26 +185,17 @@ function useCreatorApplications() {
   };
 
   return {
-    // State
     activeTab,
     allApplications,
     selectedCampaign,
     showCampaignBrief,
     showWithdrawConfirmation,
-
-    // Redux state
-    applicationsData,
+    showOffersModal,
+    setShowOffersModal,
     applicationsLoading,
-    applicationsSuccess,
     applicationsError,
     withdrawLoading,
-    withdrawSuccess,
-    withdrawError,
-
-    // Computed data
     filteredData,
-
-    // Handlers
     handleTabChange,
     handleViewCampaign,
     handleCloseCampaignBrief,
@@ -205,18 +204,8 @@ function useCreatorApplications() {
     handleCancelWithdraw,
     handleMessageClick,
     handleCloseMessageModal,
-
-    // Message thread state
     messageModalState,
-
-    // Offers modal state
-    showOffersModal,
-    setShowOffersModal,
-
-    // Functions
     fetchAllApplications,
-
-    // Helper functions
     formatCompensationType,
   };
 }

@@ -15,6 +15,7 @@ const DeliverablesProgress = ({
   onHireClick,
   onRejectClick,
   onMessageClick,
+  isIndividualCreator = false,
 }) => {
   // Extract creator data from the selectedCreator object
   const getCreatorData = () => {
@@ -96,41 +97,44 @@ const DeliverablesProgress = ({
           <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
           <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
         </div>
-        {/* Compact Performance Metrics */}
-        <div className="bg-white rounded-lg border p-3">
-          <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="border rounded p-2">
-              <p className="text-[11px] text-gray-500">Engagement Rate</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {creatorData?.profile?.engagement_rate ?? "N/A"}
-              </p>
+        {!isIndividualCreator && (
+          <>
+            <div className="bg-white rounded-lg border p-3">
+              <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Engagement Rate</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {creatorData?.profile?.engagement_rate ?? "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Reach</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {creatorData?.profile?.average_reach ?? "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Views</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {creatorData?.profile?.average_views ?? "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Posting Frequency</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {creatorData?.profile?.posting_frequency ?? "N/A"}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="border rounded p-2">
-              <p className="text-[11px] text-gray-500">Average Reach</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {creatorData?.profile?.average_reach ?? "N/A"}
-              </p>
-            </div>
-            <div className="border rounded p-2">
-              <p className="text-[11px] text-gray-500">Average Views</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {creatorData?.profile?.average_views ?? "N/A"}
-              </p>
-            </div>
-            <div className="border rounded p-2">
-              <p className="text-[11px] text-gray-500">Posting Frequency</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {creatorData?.profile?.posting_frequency ?? "N/A"}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white border rounded-lg p-3">
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
-          <AudienceDemographics className="flex flex-col" />
-        </div>
+            <div className="bg-white border rounded-lg p-3">
+              <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
+              <AudienceDemographics className="flex flex-col" />
+            </div>
+          </>
+        )}
 
         <div className="bg-white border rounded-lg p-3">
           <h4 className="text-sm font-bold text-gray-800 mb-2">Application Message</h4>
