@@ -59,11 +59,16 @@ const useInvitationModal = () => {
       custom_message: customMessage.trim() || null,
     };
 
-    const result = await dispatch(sendInvitation(invitationData)).unwrap();
+    try {
+      const result = await dispatch(sendInvitation(invitationData)).unwrap();
 
-    if (result?.success && onSuccess) {
-      onSuccess(creator, selectedCampaign);
-      resetForm();
+      if (result?.success && onSuccess) {
+        onSuccess(creator, selectedCampaign);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      throw error; // Re-throw to handle in handleSubmit
     }
   };
 
@@ -80,16 +85,24 @@ const useInvitationModal = () => {
   };
 
   const handleSubmit = async (selectedCreator, onInviteSent, onClose, collaborationType) => {
-    await handleSendInvitation(
-      selectedCreator,
-      (creator, campaign) => {
-        if (onInviteSent) {
-          onInviteSent(creator, campaign);
-        }
-        handleClose(onClose);
-      },
-      collaborationType
-    );
+    try {
+      await handleSendInvitation(
+        selectedCreator,
+        (creator, campaign) => {
+          if (onInviteSent) {
+            onInviteSent(creator, campaign);
+          }
+        },
+        collaborationType
+      );
+      // Close modal after successful invitation
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      // Don't close modal on error - let user retry
+    }
   };
 
   return {
