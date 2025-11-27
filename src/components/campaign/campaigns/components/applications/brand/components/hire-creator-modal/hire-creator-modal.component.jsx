@@ -3,12 +3,17 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  COMPENSATION_TYPE,
+  COLLABORATION_TYPE,
+  CAMPAIGN_TYPE,
+} from "@/common/constants/campaign.constant";
 import {
   COMPENSATION_TYPE_OPTIONS,
   EXCLUSIVITY_CLAUSE_OPTIONS,
   REVISION_LIMIT_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
+  CAMPAIGN_TYPE_OPTIONS,
 } from "@/common/constants/options.constant";
 import { useEffect, useState } from "react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
@@ -46,6 +51,9 @@ export default function HireCreatorModal({
   const revisionsLimitValue = watch?.revisionsLimit?.toString?.() || "";
   const usageRightsValue = watch?.usageRights || "no_usage";
   const exclusivityValue = watch?.exclusivityClause || "none";
+  const campaignTypeValue = watch?.campaignType || "";
+  const isIndividualCollaboration =
+    campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
   // Initialize form when modal opens
   useEffect(() => {
@@ -81,7 +89,11 @@ export default function HireCreatorModal({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <CustomInput
               label="Campaign Title"
-              value={campaignData?.campaign_title || ""}
+              value={
+                isIndividualCollaboration
+                  ? "Individual Collaboration"
+                  : campaignData?.campaign_title || ""
+              }
               disabled
             />
             <CustomInput label="Contract ID" value="DRAFT" disabled />
@@ -94,6 +106,19 @@ export default function HireCreatorModal({
               isRequired={true}
             />
           </div>
+          {isIndividualCollaboration && (
+            <div className="mt-4">
+              <SimpleSelect
+                label="Campaign Type"
+                options={CAMPAIGN_TYPE_OPTIONS}
+                defaultValue={campaignTypeValue}
+                onChange={(option) => setValue("campaignType", option.value)}
+                errors={errors}
+                name="campaignType"
+                isRequired={true}
+              />
+            </div>
+          )}
         </div>
 
         {/* Deliverables */}
@@ -134,6 +159,18 @@ export default function HireCreatorModal({
               isRequired={true}
             />
           </div>
+          {isIndividualCollaboration && (
+            <div className="w-full mt-4">
+              <TextArea
+                label="Content Guidelines / Brief"
+                register={register}
+                name="contentGuidelines"
+                errors={errors}
+                placeholder="Enter content guidelines and brief for this collaboration..."
+                isRequired={true}
+              />
+            </div>
+          )}
         </div>
 
         {/* Payment Terms */}
@@ -203,18 +240,14 @@ export default function HireCreatorModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
           <CustomButton
             text="Save Draft"
             className="btn-outline"
             type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton
-            text="Send Offer"
-            type="submit"
-            disabled={isSubmitting || isLoading || !isValid}
-          />
+          <CustomButton text="Send Offer" className="btn-primary" type="submit" />
         </div>
       </form>
 

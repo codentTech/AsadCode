@@ -1,5 +1,6 @@
 import { isCreatorMode } from "@/common/utils/users.util";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
@@ -18,14 +19,35 @@ function ActiveBrandCampiagn() {
   const handleCampaignSelect = (campaign) => {
     setSelectedCampaign(campaign);
     // Reset creator selection when campaign changes
-    setSelectedCreator(null);
+    
+    // Determine default sort based on campaign type
+    const isPaidCampaign = 
+      campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST || 
+      campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+    const isGiftedOrAffiliate = 
+      campaign?.campaign_type === CAMPAIGN_TYPE.GIFTED || 
+      campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE;
+    
+    let defaultSort = "newest"; // Default fallback
+    if (isPaidCampaign) {
+      defaultSort = "most-expensive"; // Most expensive first for paid campaigns
+    } else if (isGiftedOrAffiliate) {
+      defaultSort = "newest"; // Newest first for gifted/affiliate
+    }
+    
+    // Update filters with default sort if not already set
+    const updatedFilters = {
+      ...filters,
+      sort: filters.sort || defaultSort,
+    };
+    setFilters(updatedFilters);
 
     // Fetch applied creators for this campaign (HIRED status for active-completed tab)
     if (campaign?.id) {
       dispatch(
         getHiredCreators({
           campaignId: campaign.id,
-          filters: filters,
+          filters: updatedFilters,
         })
       );
     }

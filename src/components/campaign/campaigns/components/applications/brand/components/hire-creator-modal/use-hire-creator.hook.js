@@ -2,84 +2,103 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useCallback } from "react";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { COMPENSATION_TYPE, COLLABORATION_TYPE, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { campiagnDeliverable } from "@/common/utils/campaign.utils";
 
-const validationSchema = Yup.object().shape({
-  startDate: Yup.string()
-    .required("Start date is required")
-    .test("is-valid-date", "Please select a valid date", function (value) {
-      if (!value) return false;
-      const date = new Date(value);
-      return date instanceof Date && !isNaN(date);
-    })
-    .test("is-future-date", "Start date cannot be in the past", function (value) {
-      if (!value) return false;
-      const date = new Date(value);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date >= today;
+const createValidationSchema = (isIndividual) => {
+  const baseSchema = {
+    startDate: Yup.string()
+      .required("Start date is required")
+      .test("is-valid-date", "Please select a valid date", function (value) {
+        if (!value) return false;
+        const date = new Date(value);
+        return date instanceof Date && !isNaN(date);
+      })
+      .test("is-future-date", "Start date cannot be in the past", function (value) {
+        if (!value) return false;
+        const date = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return date >= today;
+      }),
+    completionDeadline: Yup.string()
+      .required("Completion deadline is required")
+      .test("is-valid-date", "Please select a valid date", function (value) {
+        if (!value) return false;
+        const date = new Date(value);
+        return date instanceof Date && !isNaN(date);
+      })
+      .test("is-after-start", "Completion deadline must be after start date", function (value) {
+        const { startDate } = this.parent;
+        if (!value || !startDate) return false;
+        const completionDate = new Date(value);
+        const startDateObj = new Date(startDate);
+        return completionDate > startDateObj;
+      }),
+    contentFormat: Yup.string()
+      .required("Content format is required")
+      .min(5, "Content format must be at least 5 characters"),
+    revisionsLimit: Yup.number()
+      .required("Revisions limit is required")
+      .min(0, "Revisions limit cannot be negative")
+      .max(10, "Revisions limit cannot exceed 10"),
+    compensationType: Yup.string()
+      .required("Compensation type is required")
+      .oneOf(
+        [COMPENSATION_TYPE.PAID, COMPENSATION_TYPE.COMMISSION, COMPENSATION_TYPE.GIFTED_PRODUCT],
+        "Invalid compensation type"
+      ),
+    totalCompensation: Yup.mixed().when("compensationType", {
+      is: (val) => val === COMPENSATION_TYPE.PAID || val === COMPENSATION_TYPE.COMMISSION,
+      then: (schema) =>
+        schema
+          .required("Compensation amount is required")
+          .test("is-number", "Compensation must be a valid number", function (value) {
+            if (value === "" || value === null || value === undefined) return false;
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= 0;
+          }),
+      otherwise: (schema) => schema.notRequired(),
     }),
-  completionDeadline: Yup.string()
-    .required("Completion deadline is required")
-    .test("is-valid-date", "Please select a valid date", function (value) {
-      if (!value) return false;
-      const date = new Date(value);
-      return date instanceof Date && !isNaN(date);
-    })
-    .test("is-after-start", "Completion deadline must be after start date", function (value) {
-      const { startDate } = this.parent;
-      if (!value || !startDate) return false;
-      const completionDate = new Date(value);
-      const startDateObj = new Date(startDate);
-      return completionDate > startDateObj;
+    productPrice: Yup.mixed().when("compensationType", {
+      is: COMPENSATION_TYPE.COMMISSION,
+      then: (schema) =>
+        schema
+          .required("Product price is required")
+          .test("is-number", "Product price must be a valid number", function (value) {
+            if (value === "" || value === null || value === undefined) return false;
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= 0;
+          }),
+      otherwise: (schema) => schema.notRequired(),
     }),
-  contentFormat: Yup.string()
-    .required("Content format is required")
-    .min(5, "Content format must be at least 5 characters"),
-  revisionsLimit: Yup.number()
-    .required("Revisions limit is required")
-    .min(0, "Revisions limit cannot be negative")
-    .max(10, "Revisions limit cannot exceed 10"),
-  compensationType: Yup.string()
-    .required("Compensation type is required")
-    .oneOf(
-      [COMPENSATION_TYPE.PAID, COMPENSATION_TYPE.COMMISSION, COMPENSATION_TYPE.GIFTED_PRODUCT],
-      "Invalid compensation type"
-    ),
-  totalCompensation: Yup.mixed().when("compensationType", {
-    is: (val) => val === COMPENSATION_TYPE.PAID || val === COMPENSATION_TYPE.COMMISSION,
-    then: (schema) =>
-      schema
-        .required("Compensation amount is required")
-        .test("is-number", "Compensation must be a valid number", function (value) {
-          if (value === "" || value === null || value === undefined) return false;
-          const num = parseFloat(value);
-          return !isNaN(num) && num >= 0;
-        }),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  productPrice: Yup.mixed().when("compensationType", {
-    is: COMPENSATION_TYPE.COMMISSION,
-    then: (schema) =>
-      schema
-        .required("Product price is required")
-        .test("is-number", "Product price must be a valid number", function (value) {
-          if (value === "" || value === null || value === undefined) return false;
-          const num = parseFloat(value);
-          return !isNaN(num) && num >= 0;
-        }),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  usageRights: Yup.string()
-    .required("Usage rights is required")
-    .oneOf(["no_usage", "3", "6", "12", "permanent"], "Invalid usage rights"),
-  exclusivityClause: Yup.string()
-    .required("Exclusivity clause is required")
-    .oneOf(["none", "3", "6", "12"], "Invalid exclusivity clause"),
-});
+    usageRights: Yup.string()
+      .required("Usage rights is required")
+      .oneOf(["no_usage", "3", "6", "12", "permanent"], "Invalid usage rights"),
+    exclusivityClause: Yup.string()
+      .required("Exclusivity clause is required")
+      .oneOf(["none", "3", "6", "12"], "Invalid exclusivity clause"),
+  };
+
+  if (isIndividual) {
+    baseSchema.campaignType = Yup.string()
+      .required("Campaign type is required")
+      .oneOf(
+        [CAMPAIGN_TYPE.SPONSORED_POST, CAMPAIGN_TYPE.UGC, CAMPAIGN_TYPE.GIFTED, CAMPAIGN_TYPE.AFFILIATE],
+        "Invalid campaign type"
+      );
+    baseSchema.contentGuidelines = Yup.string()
+      .required("Content guidelines/brief is required")
+      .min(10, "Content guidelines must be at least 10 characters");
+  }
+
+  return Yup.object().shape(baseSchema);
+};
 
 export default function useHireCreator({ creatorData, campaignData, onSendOffer, isLoading }) {
+  const isIndividual = campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+  const validationSchema = createValidationSchema(isIndividual);
+
   const {
     register,
     handleSubmit,
@@ -102,6 +121,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       contentFormat: "",
       totalCompensation: "",
       productPrice: "",
+      ...(isIndividual ? { campaignType: "", contentGuidelines: "" } : {}),
     },
   });
 
@@ -113,30 +133,37 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
       const creator = creatorData.creator;
       const profile = creator?.creator_profile;
 
-      setValue(
-        "contentFormat",
-        campaignData.deliverables?.map((deliverable) => campiagnDeliverable(deliverable)) || ""
-      );
-      setValue(
-        "compensationType",
-        campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
-      );
-      setValue("productPrice", campaignData.product_value || "");
-      setValue("hashtags", campaignData.hashtags || "");
-      setValue("mentions", campaignData.do_donts || ""); // Using do_donts as mentions
-      setValue("inPersonRequired", campaignData.in_person_required || false);
-      setValue("eligibleCountry", campaignData.creator_country || "");
-      setValue("eligibleCity", campaignData.creator_city || "");
-      setValue(
-        "ageRange",
-        campaignData.min_age && campaignData.max_age
-          ? `${campaignData.min_age} - ${campaignData.max_age}`
-          : ""
-      );
-      setValue("gender", campaignData.creator_gender || "");
-      setValue("language", campaignData.creator_language || "");
+      if (isIndividual) {
+        setValue("contentFormat", "");
+        setValue("compensationType", COMPENSATION_TYPE.PAID);
+        setValue("campaignType", "");
+        setValue("contentGuidelines", "");
+      } else {
+        setValue(
+          "contentFormat",
+          campaignData.deliverables?.map((deliverable) => campiagnDeliverable(deliverable)) || ""
+        );
+        setValue(
+          "compensationType",
+          campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
+        );
+        setValue("productPrice", campaignData.product_value || "");
+        setValue("hashtags", campaignData.hashtags || "");
+        setValue("mentions", campaignData.do_donts || ""); // Using do_donts as mentions
+        setValue("inPersonRequired", campaignData.in_person_required || false);
+        setValue("eligibleCountry", campaignData.creator_country || "");
+        setValue("eligibleCity", campaignData.creator_city || "");
+        setValue(
+          "ageRange",
+          campaignData.min_age && campaignData.max_age
+            ? `${campaignData.min_age} - ${campaignData.max_age}`
+            : ""
+        );
+        setValue("gender", campaignData.creator_gender || "");
+        setValue("language", campaignData.creator_language || "");
+      }
     }
-  }, [campaignData, creatorData, setValue]);
+  }, [campaignData, creatorData, setValue, isIndividual]);
 
   // Function to create enriched contract data for preview/submission
   const createEnrichedContractData = useCallback(
@@ -149,22 +176,23 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
           : undefined,
         productPrice: values.productPrice ? parseFloat(values.productPrice) : undefined,
         // Add campaign and creator metadata
-        campaignTitle: campaignData?.campaign_title || "",
+        campaignTitle: isIndividual ? "Individual Collaboration" : (campaignData?.campaign_title || ""),
         brandName:
-          `${campaignData?.created_by?.first_name || ""} ${campaignData?.created_by?.last_name || ""}`.trim() ||
+          `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
           "[Brand Name]",
         creatorName:
           `${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`.trim() ||
           "[Creator Name]",
         contractId: "DRAFT", // Will be replaced with backend ID after creation
         partiesInvolved:
-          `${campaignData?.created_by?.first_name || ""} ${campaignData?.created_by?.last_name || ""}`.trim() ||
+          `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
           "[Brand Name]",
-        campaignDescription: campaignData?.short_description || campaignData?.description || "",
-        contentGuidelines: campaignData?.style_guide || campaignData?.content_guidelines || "",
+        campaignDescription: isIndividual ? (values.contentGuidelines || "") : (campaignData?.short_description || campaignData?.description || ""),
+        contentGuidelines: isIndividual ? (values.contentGuidelines || "") : (campaignData?.style_guide || campaignData?.content_guidelines || ""),
+        campaignType: isIndividual ? (values.campaignType || "") : (campaignData?.campaign_type || ""),
       };
     },
-    [campaignData, creatorData]
+    [campaignData, creatorData, isIndividual]
   );
 
   const onSubmit = async (values) => {

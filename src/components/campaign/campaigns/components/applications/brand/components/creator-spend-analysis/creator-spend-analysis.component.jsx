@@ -1,5 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
@@ -17,43 +18,124 @@ import {
   LANGUAGE_OPTIONS,
 } from "@/common/constants/options.constant";
 import { Filter } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import invitationService from "@/provider/features/invitation/invitation.service";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
   appliedCreatorsData,
   appliedCreatorsLoading,
   onCreatorSelect,
-  selectedCreator,
   filters,
   onCampaignSelect,
   onFilterChange,
   onClearFilters,
   onMessageClick,
 }) => {
-  const { creators, formatFollowers, getPlatformColor, open, handleOpenModal, handleCloseModal } =
-    useCreatorSpendAnalysis();
+  const { open, handleOpenModal, handleCloseModal } = useCreatorSpendAnalysis();
 
-  const [showFilterModal, setShowFilterModal] = React.useState(false);
-  const [filterType, setFilterType] = React.useState("creator");
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterType, setFilterType] = useState("creator");
+  const [isMultiCreator, setIsMultiCreator] = useState(true);
+  const [individualCollaborations, setIndividualCollaborations] = useState([]);
+  const [individualCollaborationsLoading, setIndividualCollaborationsLoading] = useState(false);
   const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
-  const hasAutoSelected = React.useRef(false);
+  const hasAutoSelected = useRef(false);
 
-  // Auto-select first campaign and notify parent once
-  React.useEffect(() => {
-    if (
-      !selectedCampaign &&
-      !hasAutoSelected.current &&
-      Array.isArray(campaignsData?.data) &&
-      campaignsData.data.length > 0 &&
-      typeof onCampaignSelect === "function"
-    ) {
-      onCampaignSelect(campaignsData.data[0]);
-      hasAutoSelected.current = true;
+  const filteredCampaignOptions = campaignOptions.filter((option) => {
+    if (!campaignsData?.data) return false;
+    const campaign = campaignsData.data.find((c) => c.id === option.value);
+    if (!campaign) return false;
+    const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+    return isMultiCreator
+      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+  });
+
+  const isSelectedCampaignValid =
+    selectedCampaign &&
+    (isMultiCreator
+      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+        COLLABORATION_TYPE.MULTI_CREATOR
+      : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+  const fetchIndividualCollaborations = async () => {
+    setIndividualCollaborationsLoading(true);
+    const response = await invitationService
+      .getBrandIndividualCollaborations()
+      .catch(() => ({ data: [] }));
+    const collaborations = response?.data || [];
+    setIndividualCollaborations(collaborations);
+    setIndividualCollaborationsLoading(false);
+
+    if (collaborations.length > 0 && !selectedCampaign && onCampaignSelect) {
+      const firstCollaboration = {
+        id: `individual-${collaborations[0].id}`,
+        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+        campaign_title: "Individual Collaboration",
+        brand: collaborations[0].brand,
+        created_by: collaborations[0].brand,
+        invitation: collaborations[0],
+      };
+      onCampaignSelect(firstCollaboration);
     }
-  }, [selectedCampaign, campaignsData, onCampaignSelect]);
+  };
+
+  const handleToggleChange = (event) => {
+    const newIsMultiCreator = event.target.checked;
+    setIsMultiCreator(newIsMultiCreator);
+    hasAutoSelected.current = false;
+
+    if (selectedCampaign) {
+      const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      const shouldReset =
+        (newIsMultiCreator && campaignType !== COLLABORATION_TYPE.MULTI_CREATOR) ||
+        (!newIsMultiCreator && campaignType !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+      if (shouldReset) {
+        if (onCampaignSelect) {
+          onCampaignSelect(null);
+        }
+      }
+    }
+
+    if (!newIsMultiCreator) {
+      fetchIndividualCollaborations();
+    }
+  };
+
+  useEffect(() => {
+    if (isMultiCreator) {
+      if (
+        !selectedCampaign &&
+        !hasAutoSelected.current &&
+        filteredCampaignOptions.length > 0 &&
+        typeof onCampaignSelect === "function"
+      ) {
+        const firstCampaign = campaignsData?.data?.find(
+          (c) => c.id === filteredCampaignOptions[0]?.value
+        );
+        if (firstCampaign) {
+          onCampaignSelect(firstCampaign);
+          hasAutoSelected.current = true;
+        }
+      }
+    } else {
+      if (!selectedCampaign && individualCollaborations.length === 0) {
+        fetchIndividualCollaborations();
+      }
+    }
+  }, [
+    isMultiCreator,
+    selectedCampaign,
+    filteredCampaignOptions,
+    campaignsData,
+    onCampaignSelect,
+    individualCollaborations.length,
+  ]);
 
   // Note: We don't need to fetch data here since it's passed from parent component
   // The parent Applications component handles all API calls and passes the data down
@@ -65,10 +147,6 @@ const CreatorSpendAnalysis = ({
   };
 
   const handleSaveToShortlist = (creator) => {};
-
-  const handleInviteClick = (creator, e) => {
-    e.stopPropagation();
-  };
 
   // FilterButton component for consistent styling
   const FilterButton = ({ active, onClick, children }) => (
@@ -117,25 +195,27 @@ const CreatorSpendAnalysis = ({
         <div className="p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 w-full">
-              <div className="min-w-[240px] w-[260px]">
-                <SimpleSelect
-                  placeHolder="Select a campaign"
-                  options={campaignOptions}
-                  isSearchable={true}
-                  isMulti={false}
-                  isLoading={campaignsLoading}
-                  value={
-                    selectedCampaign
-                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
-                      : null
-                  }
-                  onChange={(opt) => {
-                    const id = opt?.value;
-                    const campaign = campaignsData?.data?.find((c) => c.id === id);
-                    if (onCampaignSelect && campaign) onCampaignSelect(campaign);
-                  }}
-                />
-              </div>
+              {isMultiCreator && (
+                <div className="min-w-[240px] w-[260px]">
+                  <SimpleSelect
+                    placeHolder="Select a campaign"
+                    options={filteredCampaignOptions}
+                    isSearchable={true}
+                    isMulti={false}
+                    isLoading={campaignsLoading}
+                    defaultValue={
+                      isSelectedCampaignValid && selectedCampaign
+                        ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
+                        : null
+                    }
+                    onChange={(opt) => {
+                      const id = opt?.value;
+                      const campaign = campaignsData?.data?.find((c) => c.id === id);
+                      if (onCampaignSelect && campaign) onCampaignSelect(campaign);
+                    }}
+                  />
+                </div>
+              )}
               <div className="relative">
                 <CustomButton
                   text="Filters"
@@ -147,6 +227,15 @@ const CreatorSpendAnalysis = ({
             </div>
             <div className="w-full max-w-[200px]">
               <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
+            </div>
+            <div className="w-full max-w-[200px] bg-gray-100 rounded-lg p-3">
+              <CustomSwitch
+                label="Campaign Type"
+                checked={isMultiCreator}
+                onChange={handleToggleChange}
+                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+                parentDivClassName="justify-between"
+              />
             </div>
           </div>
         </div>
@@ -177,23 +266,65 @@ const CreatorSpendAnalysis = ({
             {/* Campaign Info */}
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h2 className="text-sm font-semibold text-gray-900 mb-2">
-                Applied for "{selectedCampaign.campaign_title}"
+                {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+                  ? "Individual Collaborations"
+                  : `Applied for "${selectedCampaign.campaign_title}"`}
               </h2>
               <p className="text-xs text-gray-600">
-                {appliedCreatorsData?.data?.length || 0} creators have applied to this campaign
+                {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+                  ? `${individualCollaborations.length} individual collaboration${individualCollaborations.length !== 1 ? "s" : ""}`
+                  : `${appliedCreatorsData?.data?.length || 0} creators have applied to this campaign`}
               </p>
             </div>
 
             {/* Loading State */}
-            {selectedCampaign && appliedCreatorsLoading && (
+            {selectedCampaign && (appliedCreatorsLoading || individualCollaborationsLoading) && (
               <div className="text-center py-8 flex flex-col items-center">
                 <Loader loading={true} />
                 <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
               </div>
             )}
 
+            {/* Individual Collaborations Grid */}
+            {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+              !individualCollaborationsLoading &&
+              individualCollaborations.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                  {individualCollaborations.map((invitation) => {
+                    const creatorData = invitation.creator;
+                    const mapped = mapCreatorForCard({
+                      ...invitation,
+                      creator: creatorData,
+                    });
+                    return (
+                      <div
+                        key={invitation.id}
+                        onClick={() =>
+                          handleCreatorPreview({
+                            ...invitation,
+                            creator: creatorData,
+                          })
+                        }
+                      >
+                        <CreatorCard
+                          creator={mapped}
+                          tab="applications"
+                          appliedDate={invitation.created_at}
+                          onCreatorPreview={handleCreatorPreview}
+                          onSaveToShortlist={handleSaveToShortlist}
+                          onRemoveFromShortlist={() => {}}
+                          onMessageCreator={onMessageClick}
+                          onInviteClick={() => {}}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
             {/* Applied Creators Grid */}
-            {!appliedCreatorsLoading &&
+            {selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+              !appliedCreatorsLoading &&
               Array.isArray(appliedCreatorsData?.data) &&
               appliedCreatorsData.data.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">

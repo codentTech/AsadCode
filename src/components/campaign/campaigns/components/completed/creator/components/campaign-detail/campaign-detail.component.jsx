@@ -1,148 +1,48 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import {
-  Calendar,
-  CheckCircle,
-  ChevronDown,
-  ChevronUp,
-  Circle,
-  Copy,
-  ExternalLink,
-  MessageCircle,
-  X,
-} from "lucide-react";
-import { useState } from "react";
+import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, X } from "lucide-react";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
-import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
+import useCampaignDetail from "./use-campaign-detail.hook";
 
-const CampaignDetail = ({ campaign, selectedCampaign }) => {
-  const [showContentBrief, setShowContentBrief] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    dosdonts: false,
-    styleGuide: false,
-    captions: false,
-  });
+const CampaignDetail = ({ campaign }) => {
+  const {
+    // State
+    showContentBrief,
+    showProgressModal,
+    expandedSections,
+    campaignInfo,
 
-  console.log(campaign);
+    // Computed
+    typeStyle,
+    creator,
 
-  // Message thread hook - use brand ID (campaign creator)
-  const brandId = campaign?.campaign?.created_by?.id;
-  const messageThreadHook = useMessageThread(brandId);
+    // Message thread
+    messageThreadHook,
 
-  const creator = {
-    id: brandId,
-    name:
-      campaign?.campaign?.created_by?.first_name && campaign?.campaign?.created_by?.last_name
-        ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
-        : campaign?.brand || "Brand",
-    avatar: campaign?.campaign?.created_by?.profile_photo_url,
-    isOnline: true,
-  };
+    // Handlers
+    handleMessageClick,
+    toggleSection,
+    handleOpenContentBrief,
+    handleCloseContentBrief,
+    handleCloseProgressModal,
+    formatDate,
+  } = useCampaignDetail(campaign);
 
-  // Handle message click with validation
-  const handleMessageClick = () => {
-    if (!brandId) {
-      return;
-    }
-    messageThreadHook.openMessageModal();
-  };
-
-  const { getPlatformIcon } = useGetplatform();
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  // Sample data for the information sections
-  const campaignInfo = {
-    dosdonts: {
-      dos: [
-        "Use natural lighting when filming",
-        "Show product application process",
-        "Include before/after shots if possible",
-        "Mention the discount code: SUMMER20",
-        "Tag @GlowCoBeauty in all posts",
-      ],
-      donts: [
-        "Don't use heavy filters that alter skin tone",
-        "Avoid filming in poor lighting conditions",
-        "Don't make medical claims about the product",
-        "Avoid negative comparisons with competitors",
-        "Don't forget to disclose partnership (#ad)",
-      ],
-    },
-    styleGuide: {
-      colors: ["#FF6B9D", "#4ECDC4", "#FFE66D"],
-      fonts: ["Montserrat", "Open Sans"],
-      tone: "Fresh, authentic, and approachable",
-      aesthetics: [
-        "Clean, minimalist backgrounds",
-        "Bright, natural lighting",
-        "Focus on product textures and results",
-        "Include lifestyle elements (morning routine, skincare shelf)",
-      ],
-    },
-    captions: [
-      {
-        platform: "Instagram",
-        caption:
-          "Summer glow-up starts with the right skincare! ✨ This lightweight serum from @GlowCoBeauty has been a game-changer for my routine. The SPF 30 protection is perfect for these sunny days! 🌞 Use code SUMMER20 for 20% off! #GlowCoPartner #SummerSkincare #SPFProtection #ad",
-        hashtags: "#GlowCoPartner #SummerSkincare #SPFProtection #SkincareRoutine #GlowUp #ad",
-      },
-      {
-        platform: "TikTok",
-        caption:
-          "POV: You found the perfect summer skincare combo ☀️ This @GlowCoBeauty duo is giving me that healthy glow! Code SUMMER20 for 20% off 💕 #GlowCoPartner #SummerSkincare #SkincareHacks #ad",
-        hashtags: "#GlowCoPartner #SummerSkincare #SkincareHacks #GlowUp #SPF #ad",
-      },
-    ],
-  };
-
-  // Campaign type color mapping
-  const getCampaignTypeStyle = (type) => {
-    const styles = {
-      "Sponsored Post": {
-        bg: "bg-green-100",
-        text: "text-green-800",
-        border: "border-green-200",
-      },
-      UGC: {
-        bg: "bg-blue-100",
-        text: "text-blue-800",
-        border: "border-blue-200",
-      },
-      Gifted: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-800",
-        border: "border-yellow-200",
-      },
-      Affiliate: {
-        bg: "bg-purple-100",
-        text: "text-purple-800",
-        border: "border-purple-200",
-      },
-    };
-    return styles[type] || styles["Sponsored Post"];
-  };
-
-  const typeStyle = getCampaignTypeStyle(campaign?.type);
+  if (!campaign) {
+    return (
+      <div className="w-full h-screen bg-white flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-sm text-gray-500 mb-2">No campaign selected</div>
+            <div className="text-xs text-gray-400">
+              Select a campaign from the list to view details.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-screen bg-white flex-1 flex flex-col overflow-y-auto">
@@ -152,22 +52,24 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
           <div className="flex items-start gap-3">
             <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
               <img
-                src={campaign?.brand?.logo}
-                alt={campaign?.brand?.name}
+                src={campaign?.brand?.logo || campaign?.logo}
+                alt={campaign?.brand?.name || campaign?.brand}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{campaign?.brand?.name}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {campaign?.brand?.name || campaign?.brand}
+              </h2>
               <p className="text-sm text-gray-600">{campaign?.title}</p>
               <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                <span>{campaign?.deadline || "N/A"}</span>
+                <span>{formatDate(campaign?.deadline)}</span>
               </div>
             </div>
           </div>
 
-          {/* UGC Post Badge and Product */}
+          {/* Campaign Type Badge and Compensation */}
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             <div
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
@@ -193,14 +95,14 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-900">Do's and Don'ts</span>
                 </div>
-                {expandedSections?.dosdonts ? (
+                {expandedSections.dosdonts ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {expandedSections?.dosdonts && (
+              {expandedSections.dosdonts && (
                 <div className="p-3 bg-white border-t border-gray-200">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -209,12 +111,19 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                         Do's
                       </h4>
                       <ul className="space-y-1">
-                        {campaignInfo?.dosdonts?.dos?.map((item, index) => (
-                          <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
-                            <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
+                        {campaignInfo.dosdonts.dos.length > 0 ? (
+                          campaignInfo.dosdonts.dos.map((item, index) => (
+                            <li
+                              key={index}
+                              className="text-xs text-gray-600 flex items-start gap-1"
+                            >
+                              <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-xs text-gray-400 italic">No do's specified</li>
+                        )}
                       </ul>
                     </div>
                     <div>
@@ -223,12 +132,19 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                         Don'ts
                       </h4>
                       <ul className="space-y-1">
-                        {campaignInfo?.dosdonts?.donts?.map((item, index) => (
-                          <li key={index} className="text-xs text-gray-600 flex items-start gap-1">
-                            <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
+                        {campaignInfo.dosdonts.donts.length > 0 ? (
+                          campaignInfo.dosdonts.donts.map((item, index) => (
+                            <li
+                              key={index}
+                              className="text-xs text-gray-600 flex items-start gap-1"
+                            >
+                              <div className="w-1 h-1 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-xs text-gray-400 italic">No don'ts specified</li>
+                        )}
                       </ul>
                     </div>
                   </div>
@@ -245,53 +161,61 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-900">Style Guide</span>
                 </div>
-                {campaign?.campiagn?.style_guide ? (
+                {expandedSections.styleGuide ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {campaign?.campiagn?.style_guide && (
+              {expandedSections.styleGuide && (
                 <div className="p-3 bg-white border-t border-gray-200 space-y-2">
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Colors</h4>
-                    <span className="text-xs text-gray-500">{color}</span>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-900 mb-1">Brand Tone</h4>
-                    <p className="text-xs text-gray-600">
-                      {campaign?.campiagn?.style_guide.style_guide_file}
-                    </p>
-                  </div>
+                  {campaignInfo.styleGuide.text ? (
+                    <div>
+                      <p className="text-xs text-gray-600 whitespace-pre-wrap">
+                        {campaignInfo.styleGuide.text}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-gray-500">No style guide provided</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Captions and Hashtags */}
+            {/* Hashtags */}
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => toggleSection("captions")}
                 className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-900">Captions & Hashtags</span>
+                  <span className="text-xs font-medium text-gray-900">Hashtags</span>
                 </div>
-                {campaign?.campiagn?.hashtags ? (
+                {expandedSections.captions ? (
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 )}
               </button>
 
-              {campaign?.campiagn?.hashtags && (
-                <div className="p-3 bg-white border-t border-gray-200 space-y-2">
-                  <p className="text-xs text-blue-600">{campaign?.campiagn?.hashtags}</p>
+              {expandedSections.captions && (
+                <div className="p-3 bg-white border-t border-gray-200">
+                  {campaignInfo.hashtags ? (
+                    <p className="text-xs text-blue-600 break-words">{campaignInfo.hashtags}</p>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-gray-500">No hashtags provided</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
+          {/* Product Image */}
           <div className="flex-shrink-0">
             <img
               src={product}
@@ -332,13 +256,11 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
             text="Message"
             className="btn-primary text-xs"
             onClick={handleMessageClick}
-            startIcon={<MessageCircle className="w-4 h-4" />}
           />
           <CustomButton
             text="View Brief"
             className="btn-outline text-xs"
-            onClick={() => setShowContentBrief(true)}
-            startIcon={<ExternalLink className="w-4 h-4" />}
+            onClick={handleOpenContentBrief}
           />
         </div>
 
@@ -350,10 +272,12 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
               <div className="w-24 bg-gray-200 rounded-full h-1.5">
                 <div
                   className="bg-primary h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${campaign?.completionRate}%` }}
+                  style={{ width: `${campaign?.completionRate || 0}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-gray-600">{campaign?.completionRate}%</span>
+              <span className="text-xs font-medium text-gray-600">
+                {campaign?.completionRate || 0}%
+              </span>
             </div>
           </div>
 
@@ -383,37 +307,12 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
         </div>
       </div>
 
-      {/* <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
-            {isCleerCutCampaign && (
-              <React.Fragment>
-                <CustomButton
-                  text="Update Progress"
-                  className="btn-outline text-xs"
-                  onClick={handleUpdateProgress}
-                  startIcon={<BarChart3 className="w-3 h-3" />}
-                />
-                <CustomButton
-                  text="Message"
-                  className="btn-outline text-xs"
-                  onClick={handleMessageClick}
-                  startIcon={<MessageCircle className="w-3 h-3" />}
-                />
-              </React.Fragment>
-            )}
-            <CustomButton
-              text="View Brief"
-              className="btn-outline text-xs"
-              onClick={() => setShowContentBrief(true)}
-              startIcon={<ExternalLink className="w-3 h-3" />}
-            />
-          </div> */}
-
       {/* Content Brief Modal */}
       {showContentBrief && (
         <Modal
           show={showContentBrief}
           title="Content Brief"
-          onClose={() => setShowContentBrief(false)}
+          onClose={handleCloseContentBrief}
           size="lg"
         >
           <div className="prose text-sm text-gray-600">
@@ -439,11 +338,7 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
       )}
 
       {/* Progress Update Modal */}
-      <Modal
-        show={showProgressModal}
-        title="Update Progress"
-        onClose={() => setShowProgressModal(false)}
-      >
+      <Modal show={showProgressModal} title="Update Progress" onClose={handleCloseProgressModal}>
         <div>
           <div className="space-y-3 mb-4">
             {campaign?.progress?.map((item, index) => (
@@ -460,15 +355,11 @@ const CampaignDetail = ({ campaign, selectedCampaign }) => {
           </div>
           <hr />
           <div className="mt-4 flex justify-end space-x-3">
-            <CustomButton
-              text="Cancel"
-              className="btn-cancel"
-              onClick={() => setShowProgressModal(false)}
-            />
+            <CustomButton text="Cancel" className="btn-cancel" onClick={handleCloseProgressModal} />
             <CustomButton
               text="Save Changes"
               className="btn-primary"
-              onClick={() => setShowProgressModal(false)}
+              onClick={handleCloseProgressModal}
             />
           </div>
         </div>

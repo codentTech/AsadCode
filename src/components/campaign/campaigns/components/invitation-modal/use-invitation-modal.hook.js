@@ -1,10 +1,17 @@
-import invitationService from "@/provider/features/invitation/invitation.service";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { sendInvitation } from "@/provider/features/invitation/invitation.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 const useInvitationModal = () => {
+  const dispatch = useDispatch();
+  const {
+    isLoading: isSending,
+    isSuccess,
+    isError,
+  } = useSelector((state) => state.invitation?.sendInvitation || {});
+
   const [customMessage, setCustomMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
   const formatCompensation = (campaign) => {
@@ -44,8 +51,6 @@ const useInvitationModal = () => {
       return;
     }
 
-    setIsSending(true);
-
     const invitationData = {
       creator_id: creator.id,
       collaboration_type: collaborationType,
@@ -54,15 +59,12 @@ const useInvitationModal = () => {
       custom_message: customMessage.trim() || null,
     };
 
-    await invitationService.sendInvitation(invitationData);
-    setIsSending(false);
+    const result = await dispatch(sendInvitation(invitationData)).unwrap();
 
-    if (onSuccess) {
+    if (result?.success && onSuccess) {
       onSuccess(creator, selectedCampaign);
+      resetForm();
     }
-
-    resetForm();
-    setIsSending(false);
   };
 
   const resetForm = () => {

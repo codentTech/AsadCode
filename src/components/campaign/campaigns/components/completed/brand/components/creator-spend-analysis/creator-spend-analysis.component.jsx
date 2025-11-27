@@ -3,9 +3,7 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
-import InstagramIcon from "@/common/icons/instagram";
-import TwitterIcon from "@/common/icons/twitter";
-import YoutubeIcon from "@/common/icons/youtube";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import { MapPin, Star } from "lucide-react";
 import React from "react";
@@ -27,7 +25,6 @@ const CreatorSpendAnalysisCompleted = ({
     creatorsSuccess,
     creatorsError,
     formatFollowers,
-    getPlatformColor,
     getSuccessRateColor,
     handleOpenModal,
     handleCloseModal,
@@ -50,19 +47,6 @@ const CreatorSpendAnalysisCompleted = ({
       onCreatorSelect(creators[0]);
     }
   }, [creatorsSuccess, creators, selectedCreator, selectedCampaign, onCreatorSelect]);
-
-  const getPlatformIcon = (platform) => {
-    switch ((platform || "").toLowerCase()) {
-      case "instagram":
-        return <InstagramIcon className="w-4 h-4" />;
-      case "youtube":
-        return <YoutubeIcon className="w-4 h-4" />;
-      case "twitter":
-        return <TwitterIcon className="w-4 h-4" />;
-      default:
-        return <div className="w-4 h-4 bg-gray-400 rounded"></div>;
-    }
-  };
 
   const getPlatformEntries = (platforms) => {
     if (Array.isArray(platforms)) {
@@ -215,13 +199,16 @@ const CreatorSpendAnalysisCompleted = ({
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
-                              Creator Fee:
-                              <span className="font-bold text-primary">
-                                {" "}
-                                ${creator.totalSpent || creator.total_spent || 0}
-                              </span>
-                            </div>
+                            {creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+                            creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
+                              <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                                Creator Fee:
+                                <span className="font-bold text-primary">
+                                  {" "}
+                                  ${creator.totalSpent || creator.total_spent || 0}
+                                </span>
+                              </div>
+                            ) : null}
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-1 text-xs">
