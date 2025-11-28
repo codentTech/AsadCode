@@ -106,19 +106,6 @@ export default function HireCreatorModal({
               isRequired={true}
             />
           </div>
-          {isIndividualCollaboration && (
-            <div className="mt-4">
-              <SimpleSelect
-                label="Campaign Type"
-                options={CAMPAIGN_TYPE_OPTIONS}
-                defaultValue={campaignTypeValue}
-                onChange={(option) => setValue("campaignType", option.value)}
-                errors={errors}
-                name="campaignType"
-                isRequired={true}
-              />
-            </div>
-          )}
         </div>
 
         {/* Deliverables */}
@@ -177,6 +164,19 @@ export default function HireCreatorModal({
         <div>
           <h3 className="font-bold mb-2">Payment Terms</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {isIndividualCollaboration && (
+              <div>
+                <SimpleSelect
+                  label="Campaign Type"
+                  options={CAMPAIGN_TYPE_OPTIONS}
+                  defaultValue={campaignTypeValue}
+                  onChange={(option) => setValue("campaignType", option.value)}
+                  errors={errors}
+                  name="campaignType"
+                  isRequired={true}
+                />
+              </div>
+            )}
             <div>
               <SimpleSelect
                 label="Compensation Type"

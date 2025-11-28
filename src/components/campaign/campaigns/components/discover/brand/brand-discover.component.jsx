@@ -94,7 +94,11 @@ function BrandDiscover() {
   };
 
   const handleInviteToApply = (creator, campaign) => {
-    console.log("Invitation sent to:", creator.name, "for campaign:", campaign.title);
+    if (campaign) {
+      console.log("Invitation sent to:", creator.name, "for campaign:", campaign.campaign_title || campaign.title);
+    } else {
+      console.log("Invitation sent to:", creator.name, "for individual collaboration");
+    }
     // You can add additional logic here like showing a success message
   };
 

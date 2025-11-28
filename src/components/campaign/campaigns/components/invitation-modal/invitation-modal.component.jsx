@@ -46,10 +46,11 @@ const InvitationModal = ({
   };
 
   const handleModalClose = () => {
-    handleClose(() => {
+    if (!isSending) {
+      resetForm();
       setInvitationType(COLLABORATION_TYPE.MULTI_CREATOR);
       onClose();
-    });
+    }
   };
 
   return (
@@ -245,7 +246,9 @@ const InvitationModal = ({
           <CustomButton
             text={isSending ? "Sending..." : "Send Invitation"}
             className="btn-primary"
-            onClick={() => handleSubmit(selectedCreator, onInviteSent, onClose, invitationType)}
+            onClick={async () => {
+              await handleSubmit(selectedCreator, onInviteSent, handleModalClose, invitationType);
+            }}
             disabled={isSending || !canSubmit()}
             startIcon={
               isSending ? <Loader loading={true} size="small" /> : <Send className="w-4 h-4" />

@@ -258,6 +258,19 @@ function useBrandApplications() {
       ? individualCreators
       : creators;
 
+  // Auto-select first creator for individual collaborations
+  useEffect(() => {
+    if (
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+      individualCreators.length > 0 &&
+      !selectedCreator &&
+      autoSelectedForCampaignRef.current !== selectedCampaign.id
+    ) {
+      setSelectedCreator(individualCreators[0]);
+      autoSelectedForCampaignRef.current = selectedCampaign.id;
+    }
+  }, [selectedCampaign, individualCreators, selectedCreator]);
+
   const handleMessageClick = () => {
     messageThreadHook.openMessageModal();
   };
