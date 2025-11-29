@@ -57,6 +57,7 @@ export default function useCampaignDetail(selectedCampaign) {
       ? campaignData.non_negotiables_dont
       : [];
     const styleGuideText = campaignData.style_guide || "";
+    const styleGuideFile = campaignData.style_guide_file || "";
     const hashtagsString = campaignData.hashtags || "";
 
     return {
@@ -66,6 +67,7 @@ export default function useCampaignDetail(selectedCampaign) {
       },
       styleGuide: {
         text: styleGuideText,
+        style_guide_file: styleGuideFile,
       },
       hashtags: hashtagsString,
     };

@@ -1,21 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import TrackExternalCampaignModal from "./components/track-external-campaign-modal/track-external-campaign-modal.component";
 import useTrackExternalCampaign from "./components/track-external-campaign-modal/use-track-external-campaign.hook";
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
-
-const getDaysUntilDeadline = (deadline) => {
-  const today = new Date();
-  const deadlineDate = new Date(deadline);
-  const diffTime = deadlineDate - today;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
+import { formatDate, getDaysUntilDeadline } from "@/common/utils/date.utils";
 
 const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading }) => {
   // Use track external campaign hook
@@ -53,7 +39,7 @@ const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading
           campaigns.map((campaign) => {
             if (!campaign) return null;
 
-            const daysLeft = getDaysUntilDeadline(campaign.deadline);
+            const daysLeft = getDaysUntilDeadline(campaign.application_deadline);
             const isSelected = selectedCampaign?.id === campaign.id;
 
             return (
@@ -75,7 +61,9 @@ const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 text-sm truncate">{campaign.title}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600">{formatDate(campaign.deadline)}</span>
+                      <span className="text-xs text-gray-600">
+                        {formatDate(campaign.application_deadline)}
+                      </span>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           daysLeft <= 3

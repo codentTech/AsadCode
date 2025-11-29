@@ -175,26 +175,34 @@ export default function usePreview(campaignData = {}) {
     campaignData.inPersonRequired && "In-Person",
   ].filter(Boolean);
 
+  // Format countries from creator_countries array
+  const countriesDisplay = useMemo(() => {
+    if (
+      campaignData?.creator_countries &&
+      Array.isArray(campaignData.creator_countries) &&
+      campaignData.creator_countries.length > 0
+    ) {
+      return campaignData.creator_countries
+        .map((country) => {
+          return country.country;
+        })
+        .join(", ");
+    }
+    return null;
+  }, [campaignData?.creator_countries]);
+
   const locationMeta = [
     campaignData.location_details && {
       label: "Location Details",
       value: campaignData.location_details,
     },
-    campaignData.creator_country && {
-      label: "Country",
-      value: `${campaignData.creator_country}${campaignData.creator_country_code ? ` (${campaignData.creator_country_code})` : ""}`,
-    },
-    campaignData.creator_country_phone_code && {
-      label: "Country Phone Code",
-      value: campaignData.creator_country_phone_code,
+    countriesDisplay && {
+      label: campaignData.creator_countries?.length > 1 ? "Countries" : "Country",
+      value: countriesDisplay,
     },
     campaignData.creator_city && {
       label: "City",
       value: `${campaignData.creator_city}${campaignData.creator_city_region ? `, ${campaignData.creator_city_region}` : ""}`,
-    },
-    (campaignData.creator_city_latitude || campaignData.creator_city_longitude) && {
-      label: "Coordinates",
-      value: `${campaignData.creator_city_latitude ?? "—"}, ${campaignData.creator_city_longitude ?? "—"}`,
     },
   ].filter(Boolean);
 
@@ -352,10 +360,8 @@ export default function usePreview(campaignData = {}) {
       { label: "Deadline", value: applicationDeadlineLabel },
       { label: "Work Mode", value: workMode.join(" • ") || null },
       {
-        label: "Country",
-        value: campaignData.creator_country
-          ? `${campaignData.creator_country}${campaignData.creator_country_code ? ` (${campaignData.creator_country_code})` : ""}`
-          : null,
+        label: campaignData.creator_countries?.length > 1 ? "Countries" : "Country",
+        value: countriesDisplay || null,
       },
       {
         label: "City",

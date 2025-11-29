@@ -15,6 +15,13 @@ const getPendingContractsForCreator = async () => {
   return response.data;
 };
 
+const getIndividualCollaborationContracts = async (isCompleted = false) => {
+  const response = await api().get("/contracts/brand/individual-collaborations", {
+    params: { completed: isCompleted },
+  });
+  return response.data;
+};
+
 const createContract = async (contractData) => {
   const response = await api().post("/contracts", contractData);
   return response.data;
@@ -39,6 +46,7 @@ const contractsService = {
   getContractById,
   getContractsByCampaign,
   getPendingContractsForCreator,
+  getIndividualCollaborationContracts,
   createContract,
   sendContract,
   signContract,

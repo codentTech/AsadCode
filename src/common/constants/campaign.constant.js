@@ -45,3 +45,9 @@ export const COLLABORATION_TYPE = Object.freeze({
   MULTI_CREATOR: "MULTI_CREATOR",
   INDIVIDUAL_CREATOR: "INDIVIDUAL_CREATOR",
 });
+
+export const REQUIREMENT_LEVEL = Object.freeze({
+  NONE: "none",
+  PREFERRED: "preferred",
+  MANDATORY: "mandatory",
+});

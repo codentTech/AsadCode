@@ -41,12 +41,14 @@ const validationSchema = Yup.object().shape({
       "Compensation type must be PAID, GIFTED_PRODUCT, COMMISSION or empty"
     )
     .required("Compensation type is required"),
-  creator_compensation_option: Yup.string().when(["campaign_type", "compensation_type"], {
-    is: (campaignType, compensationType) =>
-      ["SPONSORED_POST", "UGC"].includes(campaignType) && compensationType === "PAID",
-    then: (schema) => schema.required("Select how the creator will be compensated"),
-    otherwise: (schema) => schema.nullable(),
-  }),
+  creator_compensation_option: Yup.string()
+    .nullable()
+    .when(["campaign_type", "compensation_type"], {
+      is: (campaignType, compensationType) =>
+        ["SPONSORED_POST", "UGC"].includes(campaignType) && compensationType === "PAID",
+      then: (schema) => schema.nullable(), // Optional - brands can choose not to disclose compensation
+      otherwise: (schema) => schema.nullable(),
+    }),
   budget: Yup.number()
     .transform((value, originalValue) => {
       return originalValue === "" ? undefined : value;
@@ -72,9 +74,9 @@ const validationSchema = Yup.object().shape({
         ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "suggested",
       then: (schema) =>
         schema
+          .nullable()
           .typeError("Suggested minimum must be a valid number")
-          .positive("Suggested minimum must be a positive number")
-          .required("Suggested minimum is required when using a range"),
+          .positive("Suggested minimum must be a positive number"),
       otherwise: (schema) => schema.nullable(),
     }),
   suggested_max: Yup.number()
@@ -86,10 +88,15 @@ const validationSchema = Yup.object().shape({
         ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "suggested",
       then: (schema) =>
         schema
+          .nullable()
           .typeError("Suggested maximum must be a valid number")
           .positive("Suggested maximum must be a positive number")
-          .required("Suggested maximum is required when using a range")
-          .min(Yup.ref("suggested_min"), "Maximum must be greater than minimum"),
+          .when("suggested_min", {
+            is: (suggestedMin) => suggestedMin !== null && suggestedMin !== undefined,
+            then: (schema) =>
+              schema.min(Yup.ref("suggested_min"), "Maximum must be greater than minimum"),
+            otherwise: (schema) => schema,
+          }),
       otherwise: (schema) => schema.nullable(),
     }),
   creator_fixed_price: Yup.number()
@@ -101,9 +108,9 @@ const validationSchema = Yup.object().shape({
         ["SPONSORED_POST", "UGC"].includes(campaignType) && creatorCompOption === "set-price",
       then: (schema) =>
         schema
+          .nullable()
           .typeError("Fixed creator payment must be a valid number")
-          .positive("Fixed creator payment must be a positive number")
-          .required("Fixed creator payment is required when choosing set price"),
+          .positive("Fixed creator payment must be a positive number"),
       otherwise: (schema) => schema.nullable(),
     }),
   product_value: Yup.number()
@@ -148,11 +155,16 @@ const validationSchema = Yup.object().shape({
     }),
 
   // Step 3: Eligibility (conditional validation)
-  creator_country: Yup.string().when("countryRequirement", {
-    is: "mandatory",
-    then: (schema) => schema.required("Country is required when set to mandatory"),
-    otherwise: (schema) => schema.nullable(),
-  }),
+  creator_countries: Yup.array()
+    .of(
+      Yup.object().shape({
+        country: Yup.string().required(),
+        countryCode: Yup.string().required(),
+        phoneCode: Yup.string().nullable(),
+        requirement: Yup.string().oneOf(["preferred", "mandatory"]).required(),
+      })
+    )
+    .nullable(),
   creator_city: Yup.string().when("cityRequirement", {
     is: "mandatory",
     then: (schema) => schema.required("City is required when set to mandatory"),
@@ -265,7 +277,7 @@ export default function useCreateCampaign(close) {
 
     // Location & Eligibility
     locationOptions: [],
-    creator_country: "",
+    creator_countries: [],
     creator_city: "",
     countryRequirement: "none",
     cityRequirement: "none",
@@ -426,7 +438,14 @@ export default function useCreateCampaign(close) {
     const transformedDeliverables = sanitizeArray(data.deliverables)
       .map((deliverable) => {
         if (typeof deliverable === "string") return deliverable;
+        // Use the formatted deliverable string that includes quantity (e.g., "12 post")
+        if (deliverable?.deliverable) return deliverable.deliverable;
+        // Fallback to displayText or text
         if (deliverable?.displayText) return deliverable.displayText;
+        // If we have quantity and text, format it properly
+        if (deliverable?.quantity && deliverable?.text) {
+          return `${deliverable.quantity} ${deliverable.text}`;
+        }
         if (deliverable?.text) return deliverable.text;
         return "";
       })
@@ -482,7 +501,7 @@ export default function useCreateCampaign(close) {
       product_price: toNumber(data.product_price),
 
       location_options: data.locationOptions || "",
-      creator_country: trim(data.creator_country),
+      creator_countries: data.creator_countries || [],
       creator_city: trim(data.creator_city),
       country_requirement: data.countryRequirement || "none",
       city_requirement: data.cityRequirement || "none",
@@ -540,7 +559,7 @@ export default function useCreateCampaign(close) {
         "creator_compensation_option",
       ], // Compensation
       3: [
-        "creator_country",
+        "creator_countries",
         "creator_city",
         "min_age",
         "max_age",

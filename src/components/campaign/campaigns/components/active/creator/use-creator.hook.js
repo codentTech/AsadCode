@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
 import { avatar } from "@/common/constants/auth.constant";
+import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 
 export default function useActiveCampaign() {
   const dispatch = useDispatch();
@@ -23,25 +24,24 @@ export default function useActiveCampaign() {
   // Format campaign data for display
   const formatCampaignData = useCallback((campaign) => {
     if (!campaign) return null;
-    console.log(campaign);
     return {
       id: campaign.campaign?.id,
       title: campaign.campaign?.campaign_title,
-      brand: campaign.campaign?.created_by?.brand_profile?.brand_name || "Unknown Brand",
+      brand: campaign.campaign?.created_by?.brand_profile?.brand_name,
       logo: campaign.campaign?.created_by?.brand_profile?.brand_logo_url || avatar, // Default logo, can be enhanced later
-      deadline: campaign.campaign?.application_date,
+      application_deadline: campaign.campaign?.application_deadline,
       platforms: campaign.campaign?.platforms || [],
       deliverables: campaign.campaign?.deliverables || [],
       payment:
-        campaign.campaign?.compensation_type === "PAID"
+        campaign.campaign?.compensation_type === COMPENSATION_TYPE.PAID
           ? `$${campaign.campaign?.budget || 0}`
-          : campaign.campaign?.compensation_type === "GIFTED_PRODUCT"
+          : campaign.campaign?.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
             ? "Gifted"
             : "Commission",
-      productImage: "🧴", // Default product image
+      productImage: campaign.campaign?.campaign_image,
       completionRate: 0, // Will be calculated based on progress
-      type: campaign.campaign?.campaign_type || "UGC",
-      compensation: campaign.campaign?.compensation_type || "PAID",
+      type: campaign.campaign?.campaign_type,
+      compensation: campaign.campaign?.compensation_type || COMPENSATION_TYPE.PAID,
       compensationAmount: campaign.campaign?.budget,
       description: campaign.campaign?.short_description || "No description available",
       progress: [
@@ -52,7 +52,7 @@ export default function useActiveCampaign() {
       // Additional campaign data
       campaign: campaign.campaign,
       application: campaign,
-      sourcePlatform: campaign.campaign?.source_platform || "CLEERCUT",
+      sourcePlatform: campaign.campaign?.source_platform || SOURCE_PLATFORM.CLEERCUT,
     };
   }, []);
 

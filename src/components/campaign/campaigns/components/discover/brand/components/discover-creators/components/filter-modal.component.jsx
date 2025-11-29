@@ -3,13 +3,14 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
+import LanguageSelect from "@/components/campaign/create-campaign/components/language-select/language-select.component";
+import { X } from "lucide-react";
 import {
   PLATFORM_OPTIONS,
   FOLLOWER_OPTIONS,
   GENDER_OPTIONS,
   AGE_OPTIONS,
-  NICHE_OPTIONS,
-  LANGUAGE_OPTIONS,
   AUDIENCE_GENDER_OPTIONS,
   AUDIENCE_AGE_OPTIONS,
   COUNTRY_OPTIONS,
@@ -79,22 +80,6 @@ const FilterModal = ({
         {/* Creator Filters */}
         {filterType === "creator" && (
           <div className="space-y-6">
-            {/* Niche Categories */}
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Niche Categories</h4>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                {NICHE_OPTIONS.map((niche) => (
-                  <FilterButton
-                    key={niche.value}
-                    active={filters.niches.includes(niche.value)}
-                    onClick={() => onNicheToggle(niche.value)}
-                  >
-                    {niche.label}
-                  </FilterButton>
-                ))}
-              </div>
-            </div>
-
             {/* Platforms */}
             <div>
               <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
@@ -127,12 +112,11 @@ const FilterModal = ({
               </div>
             </div>
 
-            {/* Demographics */}
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {GENDER_OPTIONS.map((option) => (
+                  {GENDER_OPTIONS?.filter((option) => option.value !== "").map((option) => (
                     <FilterButton
                       key={option.value}
                       active={filters.gender === option.value}
@@ -152,21 +136,6 @@ const FilterModal = ({
                       key={option.value}
                       active={filters.ageRange === option.value}
                       onClick={() => onAgeSelect(option.value)}
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Language</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                  {LANGUAGE_OPTIONS.map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters.languages?.includes(option.value)}
-                      onClick={() => onLanguageToggle(option.value)}
                     >
                       {option.label}
                     </FilterButton>
@@ -218,6 +187,68 @@ const FilterModal = ({
                 disabled={!filters.country}
               />
             </div>
+
+            {/* Niche Categories and Language */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Niche Categories */}
+              <div>
+                <SearchableNicheInput
+                  selectedNiches={filters.niches || []}
+                  onNichesChange={(niches) => {
+                    onFiltersChange({ ...filters, niches });
+                  }}
+                  placeholder="Type to search niches..."
+                  handleNicheRemove={(niche) => {
+                    const updatedNiches = (filters.niches || []).filter((n) => n !== niche);
+                    onFiltersChange({ ...filters, niches: updatedNiches });
+                  }}
+                />
+
+                {filters.niches && filters.niches.length > 0 && (
+                  <div className="space-y-1 mt-2">
+                    <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
+                    <div className="flex flex-wrap gap-1">
+                      {filters.niches?.map((niche) => (
+                        <span
+                          key={niche}
+                          className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
+                        >
+                          {niche}
+                          <CustomButton
+                            text=""
+                            onClick={() => {
+                              const updatedNiches = filters.niches.filter((n) => n !== niche);
+                              onFiltersChange({ ...filters, niches: updatedNiches });
+                            }}
+                            className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
+                            startIcon={<X className="text-black w-3 h-3 ml-4" />}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Language */}
+              <div>
+                <h4 className=" text-xs font-bold leading-[17.5px] text-gray-700 mb-[6px]">
+                  Language
+                </h4>
+                <LanguageSelect
+                  selectedLanguage={
+                    filters.languages && filters.languages.length > 0 ? filters.languages[0] : null
+                  }
+                  onLanguageChange={(language) => {
+                    onFiltersChange({ ...filters, languages: language ? [language] : [] });
+                  }}
+                  placeholder="Type to search languages"
+                  handleLanguageRemove={() => {
+                    onFiltersChange({ ...filters, languages: [] });
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -262,38 +293,61 @@ const FilterModal = ({
               </div>
             </div>
 
-            {/* Top Audience Country */}
+            {/* Top Audience Location */}
             <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Country</h4>
+              <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Location</h4>
               <p className="text-xs text-gray-600 mb-3">
-                Select countries where the creator's audience is located
+                Select the country and city where the creator's audience is primarily located
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                {COUNTRY_OPTIONS.map((option) => (
-                  <FilterButton
-                    key={option.value}
-                    active={audienceFilters.audienceCountries.includes(option.value)}
-                    onClick={() => onAudienceCountryToggle(option.value)}
-                  >
-                    {option.label}
-                  </FilterButton>
-                ))}
+              <div className="grid grid-cols-2 gap-4">
+                <CountrySelect
+                  label="Country"
+                  value={
+                    audienceFilters.audienceCountries &&
+                    audienceFilters.audienceCountries.length > 0
+                      ? {
+                          countryName: audienceFilters.audienceCountries[0],
+                          countryCode: audienceFilters.audienceCountryCode || "",
+                        }
+                      : null
+                  }
+                  onChange={(option) =>
+                    onAudienceFiltersChange({
+                      ...audienceFilters,
+                      audienceCountries: option ? [option.countryName] : [],
+                      audienceCountryCode: option?.countryCode || "",
+                      audienceCity: "",
+                      audienceCityCountryCode: "",
+                    })
+                  }
+                />
+                <CitySelect
+                  label="City"
+                  countryCode={audienceFilters.audienceCountryCode || ""}
+                  value={
+                    audienceFilters.audienceCity
+                      ? {
+                          cityName: audienceFilters.audienceCity,
+                          countryCode:
+                            audienceFilters.audienceCityCountryCode ||
+                            audienceFilters.audienceCountryCode ||
+                            "",
+                        }
+                      : null
+                  }
+                  onChange={(option) =>
+                    onAudienceFiltersChange({
+                      ...audienceFilters,
+                      audienceCity: option?.cityName || "",
+                      audienceCityCountryCode: option?.countryCode || "",
+                    })
+                  }
+                  disabled={
+                    !audienceFilters.audienceCountries ||
+                    audienceFilters.audienceCountries.length === 0
+                  }
+                />
               </div>
-            </div>
-
-            {/* Top Audience City */}
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience City</h4>
-              <p className="text-xs text-gray-600 mb-3">
-                Useful for location-specific businesses like restaurants or hotels
-              </p>
-              <CustomInput
-                placeholder="Enter city (e.g., New York, Los Angeles)"
-                value={audienceFilters.audienceCity}
-                onChange={(e) =>
-                  onAudienceFiltersChange({ ...audienceFilters, audienceCity: e.target.value })
-                }
-              />
             </div>
           </div>
         )}

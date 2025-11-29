@@ -13,7 +13,6 @@ function SearchableNicheInput({
   selectedNiches = [],
   onNichesChange,
   placeholder = "Type to search niches",
-  handleNicheRemove,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);

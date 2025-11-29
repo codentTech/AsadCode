@@ -1,6 +1,6 @@
 import { isCreatorMode } from "@/common/utils/users.util";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
@@ -11,6 +11,7 @@ function ActiveBrandCampiagn() {
   const dispatch = useDispatch();
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
+  const [isMultiCreator, setIsMultiCreator] = useState(true); // Track toggle state from CampaignOverview
   const [filters, setFilters] = useState({
     status: "HIRED", // Default to HIRED applications for active-completed tab
     sort: "newest", // Default sort
@@ -18,7 +19,12 @@ function ActiveBrandCampiagn() {
 
   const handleCampaignSelect = (campaign) => {
     setSelectedCampaign(campaign);
-    // Reset creator selection when campaign changes
+    setSelectedCreator(null); // Reset creator selection when campaign changes
+    
+    // For individual collaborations, we don't need to fetch hired creators
+    if (campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+      return;
+    }
     
     // Determine default sort based on campaign type
     const isPaidCampaign = 
@@ -76,9 +82,19 @@ function ActiveBrandCampiagn() {
     handleFilterChange("sort", sortValue);
   };
 
+  const handleToggleChange = (newIsMultiCreator) => {
+    setIsMultiCreator(newIsMultiCreator);
+    // Reset selected campaign when toggle changes
+    setSelectedCampaign(null);
+    setSelectedCreator(null);
+  };
+
   return (
     <div className="relative flex">
-      <CampaignOverview onCampaignSelect={handleCampaignSelect} />
+      <CampaignOverview 
+        onCampaignSelect={handleCampaignSelect}
+        onToggleChange={handleToggleChange}
+      />
 
       <CreatorSpendAnalysis
         selectedCampaign={selectedCampaign}
@@ -86,12 +102,15 @@ function ActiveBrandCampiagn() {
         onCreatorSelect={handleCreatorSelect}
         onSortChange={handleSortChange}
         currentSort={filters.sort}
+        isMultiCreator={isMultiCreator}
+        isCompleted={false}
       />
 
       <DeliverablesProgress
         isCreatorMode={isCreatorMode()}
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
+        isIndividualCreator={!isMultiCreator || selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR}
       />
     </div>
   );
