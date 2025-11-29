@@ -13,12 +13,16 @@ export default function useCampaignHistory(campaignId) {
   } = useSelector((state) => state.campaigns.getCampaignHistory || {});
 
   useEffect(() => {
-    if (campaignId) {
+    // Skip API call for synthetic IDs (individual collaborations)
+    // Synthetic IDs start with "individual-" and are not valid UUIDs
+    if (campaignId && !campaignId.startsWith("individual-")) {
       dispatch(getCampaignHistory(campaignId));
     }
   }, [dispatch, campaignId]);
 
-  const history = historyData?.data?.data || [];
+  // The response structure is: { success: true, data: [...] }
+  // So historyData is the full response, and historyData.data is the array
+  const history = historyData?.data || [];
 
   const formatTimeAgo = (dateString) => {
     if (!dateString) return "";

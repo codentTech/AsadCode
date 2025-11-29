@@ -45,6 +45,7 @@ const CreatorSpendAnalysis = ({
   const [individualCollaborationsLoading, setIndividualCollaborationsLoading] = useState(false);
   const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
   const hasAutoSelected = useRef(false);
+  const hasFetchedIndividual = useRef(false);
 
   const filteredCampaignOptions = campaignOptions.filter((option) => {
     if (!campaignsData?.data) return false;
@@ -102,6 +103,11 @@ const CreatorSpendAnalysis = ({
     setIsMultiCreator(newIsMultiCreator);
     hasAutoSelected.current = false;
 
+    // Reset fetch flag when switching modes
+    if (newIsMultiCreator) {
+      hasFetchedIndividual.current = false;
+    }
+
     if (selectedCampaign) {
       const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
       const shouldReset =
@@ -115,14 +121,16 @@ const CreatorSpendAnalysis = ({
       }
     }
 
-    if (!newIsMultiCreator) {
-      // Always fetch when switching to individual creator
+    if (!newIsMultiCreator && !hasFetchedIndividual.current) {
+      // Fetch when switching to individual creator (only once)
+      hasFetchedIndividual.current = true;
       fetchIndividualCollaborations();
     }
   };
 
   useEffect(() => {
     if (isMultiCreator) {
+      hasFetchedIndividual.current = false; // Reset flag when switching back to multi-creator
       if (
         !selectedCampaign &&
         !hasAutoSelected.current &&
@@ -138,10 +146,14 @@ const CreatorSpendAnalysis = ({
         }
       }
     } else {
-      // When switching to individual creator, always fetch if not already loaded or if selected campaign is not individual
+      // When switching to individual creator, fetch only once if not already fetched
       const isSelectedIndividual =
         selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-      if (!isSelectedIndividual || individualCollaborations.length === 0) {
+      if (
+        !hasFetchedIndividual.current &&
+        (!isSelectedIndividual || individualCollaborations.length === 0)
+      ) {
+        hasFetchedIndividual.current = true;
         fetchIndividualCollaborations();
       }
     }
@@ -151,7 +163,7 @@ const CreatorSpendAnalysis = ({
     filteredCampaignOptions,
     campaignsData,
     onCampaignSelect,
-    individualCollaborations.length,
+    // Removed individualCollaborations.length from dependencies to prevent infinite loop
   ]);
 
   // Note: We don't need to fetch data here since it's passed from parent component
@@ -367,16 +379,28 @@ const CreatorSpendAnalysis = ({
               )}
 
             {/* No Creators Found */}
-            {!appliedCreatorsLoading &&
-              (!Array.isArray(appliedCreatorsData?.data) ||
-                appliedCreatorsData.data.length === 0) && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <NotFound
-                    title="No Creators Found"
-                    description="Try adjusting filters or selecting a different campaign."
-                  />
-                </div>
-              )}
+            {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+              ? // For individual collaborations
+                !individualCollaborationsLoading &&
+                individualCollaborations.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <NotFound
+                      title="No Creators Found"
+                      description="No individual collaborations found. Invite creators to start collaborating."
+                    />
+                  </div>
+                )
+              : // For multi-creator campaigns
+                !appliedCreatorsLoading &&
+                (!Array.isArray(appliedCreatorsData?.data) ||
+                  appliedCreatorsData.data.length === 0) && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <NotFound
+                      title="No Creators Found"
+                      description="Try adjusting filters or selecting a different campaign."
+                    />
+                  </div>
+                )}
           </>
         ) : null}
       </div>
