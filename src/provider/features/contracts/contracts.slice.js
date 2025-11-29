@@ -27,6 +27,7 @@ const initialState = {
   getContractById: generalState,
   getContractsByCampaign: generalState,
   getPendingContractsForCreator: generalState,
+  getIndividualCollaborationContracts: generalState,
   createContract: generalState,
   sendContract: generalState,
   signContract: generalState,
@@ -64,6 +65,19 @@ export const getPendingContractsForCreator = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await contractsService.getPendingContractsForCreator();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const getIndividualCollaborationContracts = createAsyncThunk(
+  "contracts/getIndividualCollaborations",
+  async (isCompleted = false, thunkAPI) => {
+    try {
+      const response = await contractsService.getIndividualCollaborationContracts(isCompleted);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -126,9 +140,9 @@ export const contractsSlice = createSlice({
   initialState,
   reducers: {
     reset: (state) => {
-      Object.keys(state).forEach((key) => {
-        state[key] = generalState;
-      });
+      return {
+        ...initialState,
+      };
     },
   },
   extraReducers: (builder) => {
@@ -191,6 +205,35 @@ export const contractsSlice = createSlice({
         state.getPendingContractsForCreator.message =
           action.payload?.message || "Failed to fetch pending contracts";
         state.getPendingContractsForCreator.data = null;
+      })
+      // Get Individual Collaboration Contracts
+      .addCase(getIndividualCollaborationContracts.pending, (state) => {
+        if (!state.getIndividualCollaborationContracts) {
+          state.getIndividualCollaborationContracts = { ...generalState };
+        }
+        state.getIndividualCollaborationContracts.isLoading = true;
+        state.getIndividualCollaborationContracts.isError = false;
+        state.getIndividualCollaborationContracts.isSuccess = false;
+        state.getIndividualCollaborationContracts.message = "";
+        state.getIndividualCollaborationContracts.data = null;
+      })
+      .addCase(getIndividualCollaborationContracts.fulfilled, (state, action) => {
+        if (!state.getIndividualCollaborationContracts) {
+          state.getIndividualCollaborationContracts = { ...generalState };
+        }
+        state.getIndividualCollaborationContracts.isLoading = false;
+        state.getIndividualCollaborationContracts.isSuccess = true;
+        state.getIndividualCollaborationContracts.data = action.payload.data;
+      })
+      .addCase(getIndividualCollaborationContracts.rejected, (state, action) => {
+        if (!state.getIndividualCollaborationContracts) {
+          state.getIndividualCollaborationContracts = { ...generalState };
+        }
+        state.getIndividualCollaborationContracts.isLoading = false;
+        state.getIndividualCollaborationContracts.isError = true;
+        state.getIndividualCollaborationContracts.message =
+          action.payload?.message || "Failed to fetch individual collaboration contracts";
+        state.getIndividualCollaborationContracts.data = null;
       })
       // Create Contract
       .addCase(createContract.pending, (state) => {

@@ -30,7 +30,8 @@ import { getAge } from "@/common/utils/date.utils";
 const useDeliverablesProgress = (
   campaignId = "temp-campaign-id",
   selectedCampaign = null,
-  selectedCreator = null
+  selectedCreator = null,
+  isIndividualCreator = false
 ) => {
   const creatorMode = isCreatorMode();
   const user = getUser();
@@ -135,7 +136,6 @@ const useDeliverablesProgress = (
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
   // ==================== CREATOR DATA ====================
-  // Use real creator data from selectedCreator (matches applications tab structure)
   const creator = selectedCreator
     ? {
         id: selectedCreator.id,
@@ -159,18 +159,8 @@ const useDeliverablesProgress = (
         bio: "No bio available",
       };
 
-  // Get the actual creator user ID
-  // Note: selectedCreator is already transformed, so we need to get the raw data
-  // The creatorUserId should be passed from the parent or we need to store it
-  // For now, we'll use the creator profile ID and handle it in the backend
   const creatorUserId = selectedCreator?.creatorUserId || selectedCreator?.id;
-
-  // ==================== HOOKS ====================
   const messageThreadHook = useMessageThread(creatorUserId);
-
-  // ==================== DATA FROM REDUX ====================
-  // Get creator profile ID from the selectedCreator object
-  // The selectedCreator.id is the creator profile ID from the applied creators API
   const creatorProfileId = selectedCreator?.id || user?.creator_profile?.id;
 
   // Use creator-specific notes if creator is selected, otherwise use all campaign notes
@@ -197,11 +187,15 @@ const useDeliverablesProgress = (
 
   // ==================== EFFECTS ====================
   useEffect(() => {
+    // Skip ALL API calls for individual collaborations
+    if (isIndividualCreator || campaignId?.startsWith("individual-")) {
+      return;
+    }
+
+    // Only fetch for real campaigns
     if (campaignId && campaignId !== "temp-campaign-id") {
-      // Fetch contracts for the campaign
       dispatch(getContractsByCampaign(campaignId));
 
-      // Fetch notes based on whether a creator is selected
       if (creatorProfileId && !creatorMode) {
         dispatch(
           getCampaignNotesByCreatorProfile({
@@ -213,7 +207,6 @@ const useDeliverablesProgress = (
         dispatch(getCampaignNotes(campaignId));
       }
 
-      // Fetch reviews based on whether a creator is selected
       if (creatorProfileId) {
         dispatch(
           getCampaignReviewsByCreatorProfile({
@@ -225,17 +218,19 @@ const useDeliverablesProgress = (
         dispatch(getCampaignReviews(campaignId));
       }
     }
-  }, [dispatch, campaignId, creatorProfileId]);
+  }, [dispatch, campaignId, creatorProfileId, isIndividualCreator, creatorMode]);
 
   // Fetch double-blind review status
   useEffect(() => {
     const fetchStatus = async () => {
+      // Skip for individual collaborations
+      if (isIndividualCreator || campaignId?.startsWith("individual-")) return;
       if (!campaignId || !creatorProfileId || campaignId === "temp-campaign-id") return;
       const res = await dispatch(getReviewStatus({ campaignId, creatorProfileId })).unwrap();
       setReviewStatus(res);
     };
     fetchStatus();
-  }, [dispatch, campaignId, creatorProfileId]);
+  }, [dispatch, campaignId, creatorProfileId, isIndividualCreator]);
 
   // ==================== PROJECT MANAGEMENT FUNCTIONS ====================
   const handleEdit = (type, item) => {

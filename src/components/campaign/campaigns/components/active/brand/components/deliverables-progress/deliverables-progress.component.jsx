@@ -12,7 +12,7 @@ import MessageThreadModal from "../../../../message-thread-modal/message-thread-
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
-const DeliverablesProgress = ({ selectedCampaign, selectedCreator }) => {
+const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualCreator = false }) => {
   // ==================== HOOK USAGE ====================
   const {
     // Message thread integration
@@ -66,7 +66,7 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator }) => {
     // Helper functions
     getStatusColor,
     getStatusIcon,
-  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign, selectedCreator);
+  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign, selectedCreator, isIndividualCreator);
 
   // ==================== RENDER HELPERS ====================
   const renderCampaignSelectionMessage = () => (

@@ -98,7 +98,9 @@ export default function useDiscoverCreators() {
     audienceGender: "",
     audienceAgeRanges: [],
     audienceCountries: [],
+    audienceCountryCode: "",
     audienceCity: "",
+    audienceCityCountryCode: "",
   });
 
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -209,7 +211,9 @@ export default function useDiscoverCreators() {
       audienceGender: "",
       audienceAgeRanges: [],
       audienceCountries: [],
+      audienceCountryCode: "",
       audienceCity: "",
+      audienceCityCountryCode: "",
     });
     // Don't reset hasInitialized - we want to keep track that we've initialized
     // The search clear effect will handle fetching all creators
@@ -330,7 +334,9 @@ export default function useDiscoverCreators() {
       audienceGender: "",
       audienceAgeRanges: [],
       audienceCountries: [],
+      audienceCountryCode: "",
       audienceCity: "",
+      audienceCityCountryCode: "",
     });
     setSearchKeyword("");
     setSelectedSort("");

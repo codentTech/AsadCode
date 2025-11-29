@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 // When used on completed tab, pass isCompleted=true so it reads from getAppliedCreators
-export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) => {
+export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, isMultiCreator = true) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
@@ -17,6 +18,72 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
     (state) =>
       (isCompleted ? state.campaigns.getAppliedCreators : state.campaigns.getHiredCreators) || {}
   );
+
+  // Redux state for individual collaboration contracts
+  const {
+    isLoading: individualContractsLoading,
+    isSuccess: individualContractsSuccess,
+    isError: individualContractsError,
+    data: individualContractsData,
+  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
+
+  // Check if we should use individual collaborations
+  const isIndividualMode = useMemo(() => {
+    // If toggle is set to Individual Creator, use individual mode
+    // OR if selected campaign is an individual collaboration
+    return !isMultiCreator || selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+  }, [isMultiCreator, selectedCampaign]);
+
+  // Process individual collaboration contracts
+  const individualCreators = useMemo(() => {
+    if (!isIndividualMode || !Array.isArray(individualContractsData)) {
+      return [];
+    }
+    
+    return individualContractsData
+      .filter((contract) => !contract.campaignId)
+      .map((contract) => {
+        const creator = contract.creator;
+        const creatorProfile = creator?.creator_profile;
+        
+        return {
+        id: contract.id,
+        contractId: contract.id,
+        age: getAge(creator?.date_of_birth),
+        creatorUserId: creator?.id,
+        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
+        bio: creatorProfile?.bio || "No bio available",
+        image: creatorProfile?.profile_photo_url,
+        location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
+        totalSpent: contract.totalCompensation || 0,
+        rating: creatorProfile?.rating || 0,
+        reviewCount: 0, // Not available in contract data
+        platforms: {
+          instagram: {
+            followers: 0, // Not available in contract data
+            verified: false,
+          },
+          youtube: {
+            followers: 0, // Not available in contract data
+            verified: false,
+          },
+          twitter: {
+            followers: 0, // Not available in contract data
+            verified: false,
+          },
+        },
+        projects: 0, // Not available in contract data
+        successRate: 0, // Not available in contract data
+        avgDeliveryTime: "N/A", // Not available in contract data
+        specialty: "General", // Not available in contract data
+        deadline: new Date(contract.completionDeadline) > new Date() ? "On time" : "Completed",
+        status: contract.status,
+        appliedAt: contract.createdAt,
+        hiredAt: contract.sentAt,
+        contract: contract,
+      };
+    });
+  }, [isIndividualMode, individualContractsData]);
 
   // Process creators data from API
   const creators = Array.isArray(creatorsData?.data)
@@ -88,11 +155,18 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false) =
   const handleOpenModal = () => setOpen(true);
   const handleCloseModal = () => setOpen(false);
 
+  // Determine which creators to use based on mode
+  const displayCreators = isIndividualMode ? individualCreators : creators;
+  const displayLoading = isIndividualMode ? individualContractsLoading : creatorsLoading;
+  const displaySuccess = isIndividualMode ? individualContractsSuccess : creatorsSuccess;
+  const displayError = isIndividualMode ? individualContractsError : creatorsError;
+
+
   return {
-    creators,
-    creatorsLoading,
-    creatorsSuccess,
-    creatorsError,
+    creators: displayCreators,
+    creatorsLoading: displayLoading,
+    creatorsSuccess: displaySuccess,
+    creatorsError: displayError,
     getSuccessRateColor,
     formatFollowers,
     open,

@@ -7,6 +7,7 @@ import {
   resetGetAllCampaigns,
   applyToCampaign,
 } from "@/provider/features/campaigns/campaigns.slice";
+import { formatDate } from "@/common/utils/date.utils";
 
 export function useCampaignFeed() {
   const dispatch = useDispatch();
@@ -72,9 +73,10 @@ export function useCampaignFeed() {
     if (!campaignsData?.campaigns) return [];
 
     return campaignsData.campaigns.map((campaign) => ({
+      ...campaign,
       id: campaign.id,
-      brandLogo: campaign.created_by?.brand_profile?.brand_logo_url || "🏢",
-      brandName: campaign.created_by?.brand_profile?.brand_name || "Unknown Brand",
+      brandLogo: campaign.created_by?.brand_profile?.brand_logo_url,
+      brandName: campaign.created_by?.brand_profile?.brand_name,
       title: campaign.campaign_title,
       type: campaign.campaign_type,
       compensation: getCompensationType(campaign),
@@ -86,8 +88,8 @@ export function useCampaignFeed() {
       locationMandatory: campaign.in_person_required,
       locationPreferred:
         !campaign.in_person_required && (campaign.creator_country || campaign.creator_city),
-      productImage: campaign.campaign_image || "📦",
-      language: campaign.creator_language || "English",
+      productImage: campaign.campaign_image,
+      language: campaign.creator_language,
       followerMin: `${campaign.min_combined_followers || 0} Combined`,
       description:
         campaign.short_description || campaign.long_description || "No description available",
@@ -104,7 +106,7 @@ export function useCampaignFeed() {
       creator_gender: campaign.creator_gender,
       min_age: campaign.min_age,
       max_age: campaign.max_age,
-      campaign_deadline: campaign.campaign_deadline,
+      application_deadline: formatDate(campaign.application_deadline),
       budget: campaign.budget,
       suggested_min: campaign.suggested_min,
       suggested_max: campaign.suggested_max,
@@ -113,7 +115,6 @@ export function useCampaignFeed() {
       commission_percentage: campaign.commission_percentage,
       platform_minimums: campaign.platform_minimums,
       hashtags: campaign.hashtags,
-      do_donts: campaign.do_donts,
       style_guide: campaign.style_guide,
       questions: campaign.questions,
     }));

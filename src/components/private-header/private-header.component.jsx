@@ -28,7 +28,7 @@ function Header() {
     return [
       { href: "/campaign", label: "Campaigns" },
       portfolioLink,
-      { href: "/chat-inbox", label: "Inbox" },
+      // { href: "/chat-inbox", label: "Inbox" },
       { href: "/notifications", label: "Notifications" },
       { href: "/admin/dashboard", label: "Settings" },
     ];

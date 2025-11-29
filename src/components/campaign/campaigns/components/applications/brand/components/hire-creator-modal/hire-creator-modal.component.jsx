@@ -70,6 +70,10 @@ export default function HireCreatorModal({
     }
   }, [show, reset]);
 
+  const handleSaveDraft = () => {
+    console.log("Save Draft");
+  };
+
   const handlePreviewContract = () => {
     setShowPreview(true);
   };
@@ -244,6 +248,12 @@ export default function HireCreatorModal({
           <CustomButton
             text="Save Draft"
             className="btn-outline"
+            type="button"
+            onClick={handleSaveDraft}
+          />
+          <CustomButton
+            text="Preview Contract"
+            className="btn-secondary"
             type="button"
             onClick={handlePreviewContract}
           />

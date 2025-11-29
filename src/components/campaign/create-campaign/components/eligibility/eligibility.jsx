@@ -6,6 +6,8 @@ import CitySelect from "@/common/components/dropdowns/city-select/city-select.co
 import TextArea from "@/common/components/text-area/text-area.component";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
 import { LOCATION_OPTIONS, GENDER_OPTIONS } from "@/common/constants/options.constant";
+import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
+import { X } from "lucide-react";
 import useEligibility from "./use-eligibility.hook";
 
 /**
@@ -34,21 +36,35 @@ function Eligibility({
     citySelectValue,
     handleCitySelect,
     isCityDisabled,
+    selectedCountries,
+    handleCountriesChange,
+    handleCountryRemove,
+    handleRequirementChange,
+    countrySelectValueForMulti,
+    handleCountrySelectForMulti,
   } = useEligibility({ campaignData, handleChange, setValue });
 
   const requirementOptions = [
-    { value: "preferred", label: "Preferred", activeClasses: "bg-blue-100 text-blue-700" },
-    { value: "mandatory", label: "Mandatory", activeClasses: "bg-orange-100 text-orange-700" },
+    {
+      value: REQUIREMENT_LEVEL.PREFERRED,
+      label: "Preferred",
+      activeClasses: "bg-blue-100 text-blue-700",
+    },
+    {
+      value: REQUIREMENT_LEVEL.MANDATORY,
+      label: "Mandatory",
+      activeClasses: "bg-orange-100 text-orange-700",
+    },
   ];
 
   const renderRequirementToggle = (field) => (
     <RequirementToggle
       prefix="Requirement:"
-      value={campaignData?.[`${field}Requirement`] ?? "preferred"}
+      value={campaignData?.[`${field}Requirement`] ?? REQUIREMENT_LEVEL.PREFERRED}
       options={requirementOptions}
       onChange={(status) => handleRequirementToggle(field, status)}
       helperContent={(currentValue) =>
-        currentValue === "mandatory" ? (
+        currentValue === REQUIREMENT_LEVEL.MANDATORY ? (
           <span className="text-xs text-orange-600 ml-2">
             ⚠️ Ineligible creators will be unable to apply.
           </span>
@@ -104,37 +120,82 @@ function Eligibility({
         )}
       </div>
 
-      {/* Country Selection */}
+      {/* Country Selection - Multi-Select */}
       <div className="border rounded-lg p-4">
         <CountrySelect
-          label="Creator Country"
-          name="creator_country"
-          value={countrySelectValue}
-          onChange={handleCountrySelect}
-          autoDetect={!countrySelectValue}
-          isRequired={campaignData.countryRequirement === "mandatory"}
+          label="Add country"
+          name="countries_selector"
+          value={countrySelectValueForMulti}
+          onChange={handleCountrySelectForMulti}
+          isRequired={false}
           errors={errors}
-          disabled={false}
         />
-
-        {renderRequirementToggle("country")}
+        {selectedCountries.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {selectedCountries.map((country) => (
+              <span
+                key={country.countryCode}
+                className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+              >
+                <div className="mt-1">{country.country}</div>
+                <RequirementToggle
+                  prefix=""
+                  value={country.requirement}
+                  options={requirementOptions}
+                  onChange={(status) => handleRequirementChange(country.countryCode, status)}
+                  disabled={
+                    selectedCountries.length > 1 &&
+                    country.requirement === REQUIREMENT_LEVEL.MANDATORY
+                  }
+                  helperContent={(currentValue) =>
+                    currentValue === REQUIREMENT_LEVEL.MANDATORY && selectedCountries.length > 1 ? (
+                      <span className="text-xs text-orange-600 ml-2">
+                        ⚠️ Mandatory is only available for single country selection
+                      </span>
+                    ) : currentValue === REQUIREMENT_LEVEL.MANDATORY ? (
+                      <span className="text-xs text-orange-600 ml-2">
+                        ⚠️ Ineligible creators will be unable to apply.
+                      </span>
+                    ) : null
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => handleCountryRemove(country.countryCode)}
+                  className="text-gray-500 hover:text-gray-700"
+                  aria-label={`Remove ${country.country}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        {selectedCountries.length > 1 && (
+          <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+            ℹ️ With multiple countries selected, all are treated as Preferred. Mandatory option is
+            only available for single country selection.
+          </div>
+        )}
       </div>
 
       {/* City Selection */}
-      <div className="border rounded-lg p-4">
-        <CitySelect
-          label="Creator City (Optional)"
-          name="creator_city"
-          countryCode={countrySelectValue?.countryCode}
-          value={citySelectValue}
-          onChange={handleCitySelect}
-          isRequired={campaignData.cityRequirement === "mandatory"}
-          errors={errors}
-          disabled={isCityDisabled}
-        />
+      {selectedCountries.length > 0 && (
+        <div className="border rounded-lg p-4">
+          <CitySelect
+            label="Creator City (Optional)"
+            name="creator_city"
+            countryCode={countrySelectValue?.countryCode || selectedCountries[0]?.countryCode}
+            value={citySelectValue}
+            onChange={handleCitySelect}
+            isRequired={campaignData.cityRequirement === REQUIREMENT_LEVEL.MANDATORY}
+            errors={errors}
+            disabled={isCityDisabled || selectedCountries.length === 0}
+          />
 
-        {renderRequirementToggle("city")}
-      </div>
+          {renderRequirementToggle("city")}
+        </div>
+      )}
 
       {/* Age Range */}
       <div className="border rounded-lg p-4">
@@ -169,19 +230,26 @@ function Eligibility({
 
       {/* Gender Selection */}
       <div className="border rounded-lg p-4">
-        <SimpleSelect
-          label="Creator Gender (Optional)"
-          name="creator_gender"
-          placeHolder="Select gender preference"
-          options={GENDER_OPTIONS}
-          value={campaignData.creatorGender}
-          onChange={(selectedOption) =>
-            handleChange({
-              target: { name: "creator_gender", value: selectedOption.value },
-            })
-          }
-          errors={errors}
-        />
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <SimpleSelect
+              label="Creator Gender (Optional)"
+              name="creator_gender"
+              placeHolder="Select gender preference"
+              options={GENDER_OPTIONS}
+              value={campaignData.creatorGender}
+              onChange={(selectedOption) =>
+                handleChange({
+                  target: {
+                    name: "creator_gender",
+                    value: selectedOption?.value || "",
+                  },
+                })
+              }
+              errors={errors}
+            />
+          </div>
+        </div>
 
         {renderRequirementToggle("gender")}
       </div>
@@ -189,15 +257,34 @@ function Eligibility({
       {/* Language Selection */}
       <div className="border rounded-lg p-4">
         <div className="relative">
-          <CustomInput
-            label="Creator Language (Optional)"
-            name="creator_language"
-            placeholder="Type to search languages"
-            value={languageSearch}
-            onChange={(e) => handleLanguageInputChange(e.target.value)}
-            className="mb-2"
-            errors={errors}
-          />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <CustomInput
+                label="Creator Language (Optional)"
+                name="creator_language"
+                placeholder="Type to search languages"
+                value={languageSearch}
+                onChange={(e) => handleLanguageInputChange(e.target.value)}
+                className="mb-2"
+                errors={errors}
+              />
+            </div>
+            {campaignData.creator_language && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleChange({
+                    target: { name: "creator_language", value: "" },
+                  });
+                  handleLanguageInputChange("");
+                }}
+                className="mt-3 bg-gray-500 rounded-full p-1 text-gray-100 hover:text-gray-50"
+                aria-label="Clear language selection"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
           {showLanguageOptions && (
             <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
               {filteredLanguages.map((language) => (

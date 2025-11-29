@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaign from "../../use-brand.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 
-export default function useCampaignOverview(onCampaignSelect) {
+export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
+  const dispatch = useDispatch();
   const [isMultiCreator, setIsMultiCreator] = useState(true); // Default to Multi-Creator
 
   const {
@@ -50,6 +53,65 @@ export default function useCampaignOverview(onCampaignSelect) {
     }
   }, [selectedCampaign, onCampaignSelect]);
 
+  // Fetch individual collaborations when switch is toggled to Individual Creator
+  useEffect(() => {
+    if (!isMultiCreator) {
+      dispatch(getIndividualCollaborationContracts(false)); // false = active (not completed)
+    }
+  }, [isMultiCreator, dispatch]);
+
+  // Auto-select first individual collaboration when contracts are loaded
+  const { 
+    data: individualContractsData, 
+    isSuccess: individualContractsSuccess,
+    isLoading: individualContractsLoading 
+  } = useSelector(
+    (state) => state.contracts.getIndividualCollaborationContracts || {}
+  );
+
+  const hasAutoSelectedIndividual = useRef(false);
+
+  // For individual creator mode, check if we have individual contracts
+  const hasIndividualData = !isMultiCreator && Array.isArray(individualContractsData) && individualContractsData.length > 0;
+  const isLoadingIndividual = !isMultiCreator && individualContractsLoading;
+
+  useEffect(() => {
+    // Reset flag when switching back to multi-creator
+    if (isMultiCreator) {
+      hasAutoSelectedIndividual.current = false;
+      return;
+    }
+
+    // Only auto-select once when data is loaded
+    if (
+      !isMultiCreator &&
+      !hasAutoSelectedIndividual.current &&
+      individualContractsSuccess &&
+      Array.isArray(individualContractsData) &&
+      individualContractsData.length > 0 &&
+      !selectedCampaign
+    ) {
+      hasAutoSelectedIndividual.current = true;
+      const firstContract = individualContractsData[0];
+      const individualCampaign = {
+        id: `individual-${firstContract.id}`,
+        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+        campaign_title: "Individual Collaboration",
+        contract: firstContract,
+        creator: firstContract.creator,
+      };
+      if (onCampaignSelect) {
+        onCampaignSelect(individualCampaign);
+      }
+    }
+  }, [
+    isMultiCreator,
+    individualContractsSuccess,
+    individualContractsData,
+    selectedCampaign,
+    onCampaignSelect,
+  ]);
+
   // Auto-select first campaign from filtered list when toggle changes or filtered list updates
   useEffect(() => {
     // Only auto-select for multi-creator mode
@@ -87,10 +149,15 @@ export default function useCampaignOverview(onCampaignSelect) {
   };
 
   // Handle toggle change - reset selected campaign if it doesn't match new filter
-  const handleToggleChange = () => {
-    const newIsMultiCreator = !isMultiCreator;
+  const handleToggleChange = (event) => {
+    const newIsMultiCreator = event?.target?.checked ?? !isMultiCreator;
     setIsMultiCreator(newIsMultiCreator);
     hasAutoSelectedFiltered.current = false; // Reset auto-selection flag
+
+    // Notify parent component about toggle change
+    if (onToggleChange) {
+      onToggleChange(newIsMultiCreator);
+    }
 
     // Reset selected campaign if it doesn't match the new filter
     if (selectedCampaign) {
@@ -123,8 +190,8 @@ export default function useCampaignOverview(onCampaignSelect) {
     performanceMetrics,
     formatCurrency,
     formatNumber,
-    isLoading,
-    hasData,
+    isLoading: isMultiCreator ? isLoading : isLoadingIndividual,
+    hasData: isMultiCreator ? hasData : hasIndividualData,
     // Handlers
     handleCampaignSelect,
     handleToggleChange,

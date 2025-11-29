@@ -1,7 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import {
@@ -187,15 +186,24 @@ function CampaignFilters() {
                 className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
                 title="Filters campaigns to only show those you qualify for based on your country, city, follower count, connected platforms, and gender."
               >
-                <CustomSwitch
-                  name="eligibleOnly"
-                  checked={filters.eligibleOnly}
-                  onChange={(event) =>
-                    setFilters({ ...filters, eligibleOnly: Boolean(event.target.checked) })
-                  }
-                  label="Display campaigns I am eligible for"
-                  labelRight={false}
-                />
+                <button
+                  type="button"
+                  onClick={() => setFilters({ ...filters, eligibleOnly: !filters.eligibleOnly })}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-medium transition-all duration-200 ${
+                    filters.eligibleOnly
+                      ? "bg-primary text-white shadow-sm hover:bg-primary/90"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span>Only Display campaigns I am eligible for</span>
+                  <span
+                    className={`ml-2 px-2 py-0.5 rounded text-[9px] font-semibold ${
+                      filters.eligibleOnly ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {filters.eligibleOnly ? "ON" : "OFF"}
+                  </span>
+                </button>
               </div>
             </div>
           )}

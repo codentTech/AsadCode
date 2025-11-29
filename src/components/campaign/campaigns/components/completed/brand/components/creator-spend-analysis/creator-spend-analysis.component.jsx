@@ -17,6 +17,8 @@ const CreatorSpendAnalysisCompleted = ({
   onCreatorSelect,
   onSortChange,
   currentSort = "newest",
+  isMultiCreator = true,
+  isCompleted = true,
 }) => {
   const {
     open,
@@ -32,7 +34,7 @@ const CreatorSpendAnalysisCompleted = ({
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-  } = useCreatorSpendAnalysis(selectedCampaign, true);
+  } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
 
   // Handle sort change
   const handleSortChange = (option) => {

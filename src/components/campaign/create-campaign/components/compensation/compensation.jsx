@@ -131,10 +131,10 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
             disabled={paymentType !== "paid"}
           />
 
-          {requireCreatorCompensation && (
+          {paymentType === "paid" && (
             <div className="space-y-4">
               <CustomRadioGroup
-                label="Creator compensation: (select one)"
+                label="Creator compensation (optional)"
                 name="creator_compensation_option"
                 radioOptions={creatorCompensationOptions}
                 inlineRadioButtons
@@ -148,22 +148,22 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
                 <div className="space-y-2">
                   <div className="flex gap-4">
                     <CustomInput
-                      label="Suggested Minimum"
+                      label="Suggested Minimum (optional)"
                       type="number"
                       name="suggested_min"
                       placeholder="e.g., 100"
                       errors={errors}
                       register={register}
-                      isRequired={true}
+                      isRequired={false}
                     />
                     <CustomInput
-                      label="Suggested Maximum"
+                      label="Suggested Maximum (optional)"
                       type="number"
                       name="suggested_max"
                       placeholder="e.g., 300"
                       errors={errors}
                       register={register}
-                      isRequired={true}
+                      isRequired={false}
                     />
                   </div>
                 </div>
@@ -172,13 +172,13 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
               {creatorCompOption === "set-price" && (
                 <div className="space-y-2">
                   <CustomInput
-                    label="Fixed Creator Payment"
+                    label="Fixed Creator Payment (optional)"
                     type="number"
                     name="creator_fixed_price"
                     placeholder="e.g., 200"
                     errors={errors}
                     register={register}
-                    isRequired={true}
+                    isRequired={false}
                   />
                 </div>
               )}
