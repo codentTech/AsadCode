@@ -40,6 +40,7 @@ const DeliverablesProgress = ({
         bio: profile?.bio,
         age: getAge(creator.date_of_birth),
         reviewCount: profile?.review_count,
+        rating: profile?.rating || 0,
       };
     }
 
@@ -136,7 +137,12 @@ const DeliverablesProgress = ({
           </>
         )}
 
-        <CampaignHistory campaignId={selectedCampaign?.id} />
+        {/* Only show campaign history for multi-creator campaigns */}
+        {!isIndividualCreator &&
+          selectedCampaign?.id &&
+          !selectedCampaign.id.startsWith("individual-") && (
+            <CampaignHistory campaignId={selectedCampaign.id} />
+          )}
       </div>
     </div>
   );
