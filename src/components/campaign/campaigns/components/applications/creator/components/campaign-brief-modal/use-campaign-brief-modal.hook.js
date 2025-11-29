@@ -1,10 +1,22 @@
-import { useMemo } from "react";
-import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-import { formatDate } from "@/common/utils/formate-date";
-import { campiagnDeliverable } from "@/common/utils/campaign.utils";
+import {
+  CAMPAIGN_TYPE_OPTIONS,
+  EXCLUSIVITY_CLAUSE_OPTIONS,
+  USAGE_RIGHTS_OPTIONS,
+} from "@/common/constants/options.constant";
+import { useMemo } from "react";
 
 const friendlyCampaignTypeMap = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
+  acc[option.value] = option.label;
+  return acc;
+}, {});
+
+const usageRightsMap = USAGE_RIGHTS_OPTIONS.reduce((acc, option) => {
+  acc[option.value] = option.label;
+  return acc;
+}, {});
+
+const exclusivityClauseMap = EXCLUSIVITY_CLAUSE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
   return acc;
 }, {});
@@ -61,7 +73,7 @@ export default function useCampaignBriefModal(campaign = {}) {
       product_price: campaign.product_price,
       commission_percentage: campaign.commission_percentage,
       creator_fee: campaign.creator_fixed_price,
-      application_deadline: campaign.campaign_deadline || campaign.application_deadline,
+      application_deadline: campaign.application_deadline,
       min_combined_followers: campaign.min_combined_followers,
       niches: campaign.niches || campaign.niche || [],
       deliverables: campaign.deliverables || [],
@@ -88,6 +100,8 @@ export default function useCampaignBriefModal(campaign = {}) {
       min_age: campaign.min_age,
       max_age: campaign.max_age,
       campaign_image: campaign.productImage || campaign.campaign_image,
+      usage_rights: campaign.usage_rights,
+      exclusivity_clause: campaign.exclusivity_clause,
     };
   }, [campaign]);
 
@@ -95,12 +109,6 @@ export default function useCampaignBriefModal(campaign = {}) {
     friendlyCampaignTypeMap[normalizedCampaign.campaign_type] ||
     normalizedCampaign.campaign_type ||
     "Not specified";
-
-  const applicationDeadline = normalizedCampaign.application_deadline
-    ? formatDate(normalizedCampaign.application_deadline)
-    : "—";
-  const applicationDeadlineLabel =
-    applicationDeadline === "—" ? "No deadline set" : applicationDeadline;
 
   const nicheTags = (normalizedCampaign.niches || []).map((niche, index) => ({
     id: `${niche}-${index}`,
@@ -210,7 +218,7 @@ export default function useCampaignBriefModal(campaign = {}) {
     const type = normalizedCampaign.compensation_type?.toUpperCase();
     switch (type) {
       case COMPENSATION_TYPE.PAID:
-        return "Fixed Payment";
+        return "Paid";
       case COMPENSATION_TYPE.GIFTED_PRODUCT:
         return "Gifted Product";
       case COMPENSATION_TYPE.COMMISSION:
@@ -230,7 +238,7 @@ export default function useCampaignBriefModal(campaign = {}) {
       label: "Earnings per Sale",
       value: formatCurrency(commissionPerSale),
     },
-    { label: "Deadline", value: applicationDeadlineLabel },
+    { label: "Deadline", value: normalizedCampaign.application_deadline || "No deadline set" },
     { label: "Work Mode", value: workMode.join(" • ") || null },
     {
       label: "Country",
@@ -253,6 +261,19 @@ export default function useCampaignBriefModal(campaign = {}) {
       value: normalizedCampaign.gender_requirement || normalizedCampaign.creator_gender || null,
     },
     { label: "Age Range", value: ageRangeSummary },
+    {
+      label: "Usage Rights",
+      value: normalizedCampaign.usage_rights
+        ? usageRightsMap[normalizedCampaign.usage_rights] || normalizedCampaign.usage_rights
+        : null,
+    },
+    {
+      label: "Exclusivity Clause",
+      value: normalizedCampaign.exclusivity_clause
+        ? exclusivityClauseMap[normalizedCampaign.exclusivity_clause] ||
+          normalizedCampaign.exclusivity_clause
+        : null,
+    },
   ].filter((field) => field.value);
 
   const sanitizeGuidelines = (list = []) =>
@@ -308,7 +329,6 @@ export default function useCampaignBriefModal(campaign = {}) {
     title: normalizedCampaign.campaign_title || "Untitled Campaign",
     campaignTypeLabel,
     imageSrc,
-    applicationDeadline,
     heroStats,
     nicheTags,
     deliverableTags,

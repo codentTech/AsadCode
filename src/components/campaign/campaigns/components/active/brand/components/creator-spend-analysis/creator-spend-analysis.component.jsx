@@ -17,6 +17,8 @@ const CreatorSpendAnalysis = ({
   onCreatorSelect,
   onSortChange,
   currentSort = "newest",
+  isMultiCreator = true,
+  isCompleted = false,
 }) => {
   const {
     creators,
@@ -28,7 +30,7 @@ const CreatorSpendAnalysis = ({
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-  } = useCreatorSpendAnalysis(selectedCampaign);
+  } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
 
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
 
@@ -62,20 +64,22 @@ const CreatorSpendAnalysis = ({
 
           <div className="flex justify-between items-center gap-4">
             <div className="flex-1 max-w-sm">
-              <SimpleSelect
-                placeHolder="Select an option"
-                options={sortOptions}
-                value={
-                  currentSort
-                    ? {
-                        value: currentSort,
-                        label: sortOptions.find((opt) => opt.value === currentSort)?.label,
-                      }
-                    : null
-                }
-                onChange={handleSortChange}
-                className="w-full max-w-[400px]"
-              />
+              {isMultiCreator && (
+                <SimpleSelect
+                  placeHolder="Select an option"
+                  options={sortOptions}
+                  value={
+                    currentSort
+                      ? {
+                          value: currentSort,
+                          label: sortOptions.find((opt) => opt.value === currentSort)?.label,
+                        }
+                      : null
+                  }
+                  onChange={handleSortChange}
+                  className="w-full max-w-[400px]"
+                />
+              )}
             </div>
             <div className="flex gap-3">
               <CustomButton
@@ -137,7 +141,6 @@ const CreatorSpendAnalysis = ({
           {/* Creators List */}
           {creatorsSuccess && creators.length > 0 && selectedCampaign
             ? creators.map((creator) => {
-                console.log(creator);
                 const isSelected = selectedCreator?.id === creator.id;
 
                 return (

@@ -5,8 +5,6 @@ export const PLATFORM_OPTIONS = [
   { value: "instagram", label: "Instagram" },
   { value: "youtube", label: "YouTube" },
   { value: "tiktok", label: "TikTok" },
-  { value: "facebook", label: "Facebook" },
-  { value: "twitter", label: "Twitter" },
 ];
 
 // Follower count options for filtering
@@ -21,6 +19,7 @@ export const FOLLOWER_OPTIONS = [
 
 // Gender options for creator filtering
 export const GENDER_OPTIONS = [
+  { value: "", label: "Select gender preference" },
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
 ];

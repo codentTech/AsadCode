@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  File,
   MessageCircle,
   X,
 } from "lucide-react";
@@ -197,10 +198,45 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 {expandedSections.styleGuide && (
                   <div className="p-3 bg-white border-t border-gray-200 space-y-2">
                     {campaignInfo.styleGuide.text ? (
-                      <div>
+                      <div className="space-y-2">
                         <p className="text-xs text-gray-600 whitespace-pre-wrap">
                           {campaignInfo.styleGuide.text}
                         </p>
+                        {campaignInfo.styleGuide.style_guide_file && (
+                          <a
+                            href={campaignInfo.styleGuide.style_guide_file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium transition-colors cursor-pointer group"
+                          >
+                            <File className="w-4 h-4" />
+                            <span>
+                              {campaignInfo.styleGuide.style_guide_file
+                                .split("/")
+                                .pop()
+                                .split("?")[0] || "View Style Guide File"}
+                            </span>
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </a>
+                        )}
+                      </div>
+                    ) : campaignInfo.styleGuide.style_guide_file ? (
+                      <div>
+                        <a
+                          href={campaignInfo.styleGuide.style_guide_file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium transition-colors cursor-pointer group"
+                        >
+                          <File className="w-4 h-4" />
+                          <span>
+                            {campaignInfo.styleGuide.style_guide_file
+                              .split("/")
+                              .pop()
+                              .split("?")[0] || "View Style Guide File"}
+                          </span>
+                          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
                       </div>
                     ) : (
                       <div className="text-center py-4">

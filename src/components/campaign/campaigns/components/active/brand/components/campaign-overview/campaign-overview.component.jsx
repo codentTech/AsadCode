@@ -6,7 +6,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import useCampaignOverview from "./use-campaign-overview.hook";
 
-export default function CampaignOverview({ onCampaignSelect }) {
+export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
   const {
     isMultiCreator,
     filteredCampaignOptions,
@@ -23,7 +23,7 @@ export default function CampaignOverview({ onCampaignSelect }) {
     handleToggleChange,
     handleExportData,
     handleViewAnalytics,
-  } = useCampaignOverview(onCampaignSelect);
+  } = useCampaignOverview(onCampaignSelect, onToggleChange);
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -70,7 +70,7 @@ export default function CampaignOverview({ onCampaignSelect }) {
       )}
 
       {/* No Data Message */}
-      {!hasData && !isLoading && filteredCampaignOptions.length === 0 && (
+      {!hasData && !isLoading && (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
         <div className="py-8">
           <NotFound
             title={isMultiCreator ? "No Active Campaigns" : "No Individual Collaborations"}
