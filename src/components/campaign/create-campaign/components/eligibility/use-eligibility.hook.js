@@ -1,6 +1,4 @@
-"use client";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
 
 const LANGUAGES = [
@@ -24,81 +22,38 @@ const LANGUAGES = [
   "Urdu",
 ];
 
-export default function useEligibility({ campaignData, handleChange, setValue }) {
+export default function useEligibility({ campaignData, setValue }) {
   const [languageSearch, setLanguageSearch] = useState(campaignData?.creator_language || "");
   const [countrySelectValueForMulti, setCountrySelectValueForMulti] = useState(null);
-  const [selectedCountry, setSelectedCountry] = useState(() => {
-    // Use first country from creator_countries array if available
-    if (
-      campaignData?.creator_countries &&
-      Array.isArray(campaignData.creator_countries) &&
-      campaignData.creator_countries.length > 0
-    ) {
-      const firstCountry = campaignData.creator_countries[0];
+
+  const selectedCountries = useMemo(() => {
+    if (campaignData?.creator_countries && Array.isArray(campaignData.creator_countries)) {
+      return campaignData.creator_countries;
+    }
+    return [];
+  }, [campaignData?.creator_countries]);
+
+  const countrySelectValue = useMemo(() => {
+    if (selectedCountries.length > 0) {
+      const first = selectedCountries[0];
       return {
-        countryName: firstCountry.country,
-        countryCode: firstCountry.countryCode,
-        phoneCode: firstCountry.phoneCode || "",
+        countryName: first.country,
+        countryCode: first.countryCode,
+        phoneCode: first.phoneCode || "",
       };
     }
     return null;
-  });
-  const [selectedCity, setSelectedCity] = useState(() => {
+  }, [selectedCountries]);
+
+  const citySelectValue = useMemo(() => {
     if (!campaignData?.creator_city) return null;
     return {
       cityName: campaignData.creator_city,
-      // countryCode:
-      //   campaignData.creator_city_country_code || campaignData.creator_country_code || "",
-      // region: campaignData.creator_city_region || "",
-      // geonameId: campaignData.creator_city_geoname_id || null,
-      // latitude: campaignData.creator_city_latitude ?? null,
-      // longitude: campaignData.creator_city_longitude ?? null,
+      countryCode: campaignData.creator_city_country_code || selectedCountries[0]?.countryCode || "",
+      region: campaignData.creator_city_region || "",
+      geonameId: campaignData.creator_city_geoname_id || null,
     };
-  });
-
-  useEffect(() => {
-    setLanguageSearch(campaignData?.creator_language || "");
-  }, [campaignData?.creator_language]);
-
-  useEffect(() => {
-    // Update selectedCountry from creator_countries array for city selector
-    if (
-      campaignData?.creator_countries &&
-      Array.isArray(campaignData.creator_countries) &&
-      campaignData.creator_countries.length > 0
-    ) {
-      const firstCountry = campaignData.creator_countries[0];
-      setSelectedCountry({
-        countryName: firstCountry.country,
-        countryCode: firstCountry.countryCode,
-        phoneCode: firstCountry.phoneCode || "",
-      });
-    } else {
-      setSelectedCountry(null);
-    }
-  }, [campaignData?.creator_countries]);
-
-  useEffect(() => {
-    if (campaignData?.creator_city) {
-      setSelectedCity({
-        cityName: campaignData.creator_city,
-        countryCode:
-          campaignData.creator_city_country_code ||
-          campaignData?.creator_countries?.[0]?.countryCode ||
-          "",
-        region: campaignData.creator_city_region || "",
-        geonameId: campaignData.creator_city_geoname_id || null,
-      });
-    } else {
-      setSelectedCity(null);
-    }
-  }, [
-    campaignData?.creator_city,
-    campaignData?.creator_city_country_code,
-    campaignData?.creator_city_region,
-    campaignData?.creator_city_geoname_id,
-    campaignData?.creator_countries,
-  ]);
+  }, [campaignData?.creator_city, campaignData?.creator_city_country_code, campaignData?.creator_city_region, campaignData?.creator_city_geoname_id, selectedCountries]);
 
   const filteredLanguages = useMemo(() => {
     if (!languageSearch) {
@@ -113,82 +68,46 @@ export default function useEligibility({ campaignData, handleChange, setValue })
     (nextValue) => {
       setLanguageSearch(nextValue);
       if (!nextValue) {
-        handleChange({ target: { name: "creator_language", value: "" } });
+        setValue("creator_language", "", { shouldDirty: true });
       }
     },
-    [handleChange]
+    [setValue]
   );
 
   const handleLanguageSelect = useCallback(
     (language) => {
-      handleChange({ target: { name: "creator_language", value: language } });
+      setValue("creator_language", language, { shouldDirty: true });
       setLanguageSearch(language);
     },
-    [handleChange]
+    [setValue]
   );
 
   const normalizedSelectedLanguage = (campaignData?.creator_language || "").trim().toLowerCase();
   const showLanguageOptions =
     Boolean(languageSearch) && languageSearch.trim().toLowerCase() !== normalizedSelectedLanguage;
 
-  // Legacy handleCountrySelect - kept for backward compatibility but not used for multi-country
-  const handleCountrySelect = useCallback((selection) => {
-    // This is no longer used since we use multi-country selection
-    // Keeping for backward compatibility
-    if (selection) {
-      setSelectedCountry(selection ? { ...selection } : null);
-    }
-  }, []);
-
-  // Handle multi-country selection
   const handleCountriesChange = useCallback(
     (countries) => {
-      // Update creator_countries array
       setValue("creator_countries", countries, { shouldValidate: true, shouldDirty: true });
 
-      // Update selectedCountry for city selector (use first country)
-      if (countries && countries.length > 0) {
-        const firstCountry = countries[0];
-        setSelectedCountry({
-          countryName: firstCountry.country,
-          countryCode: firstCountry.countryCode,
-          phoneCode: firstCountry.phoneCode || "",
-        });
-      } else {
-        setSelectedCountry(null);
-      }
-
-      // Clear city if countries change
       if (countries && countries.length > 0) {
         const firstCountryCode = countries[0].countryCode;
-        // Only clear city if it doesn't match any selected country
         const cityCountryCode = campaignData?.creator_city_country_code;
         if (cityCountryCode && !countries.some((c) => c.countryCode === cityCountryCode)) {
           setValue("creator_city", "", { shouldValidate: true, shouldDirty: true });
           setValue("creator_city_country_code", "", { shouldValidate: false, shouldDirty: true });
-          setSelectedCity(null);
         }
       } else {
         setValue("creator_city", "", { shouldValidate: true, shouldDirty: true });
         setValue("creator_city_country_code", "", { shouldValidate: false, shouldDirty: true });
-        setSelectedCity(null);
       }
     },
     [setValue, campaignData?.creator_city_country_code]
   );
 
-  // Initialize countries from campaignData
-  const selectedCountries = useMemo(() => {
-    if (campaignData?.creator_countries && Array.isArray(campaignData.creator_countries)) {
-      return campaignData.creator_countries;
-    }
-    return [];
-  }, [campaignData?.creator_countries]);
-
   const handleCitySelect = useCallback(
     (selection) => {
-      const nextCityName = selection?.cityName || "";
-      setValue("creator_city", nextCityName, { shouldValidate: true, shouldDirty: true });
+      setValue("creator_city", selection?.cityName || "", { shouldValidate: true, shouldDirty: true });
       setValue("creator_city_country_code", selection?.countryCode || "", {
         shouldValidate: false,
         shouldDirty: true,
@@ -201,22 +120,10 @@ export default function useEligibility({ campaignData, handleChange, setValue })
         shouldValidate: false,
         shouldDirty: true,
       });
-
-      setSelectedCity(selection ? { ...selection } : null);
     },
     [setValue]
   );
 
-  const countrySelectValue =
-    selectedCountry ||
-    (selectedCountries.length > 0
-      ? {
-          countryName: selectedCountries[0].country,
-          countryCode: selectedCountries[0].countryCode,
-          phoneCode: selectedCountries[0].phoneCode || "",
-        }
-      : null);
-  const citySelectValue = selectedCity;
   const isCityDisabled = !countrySelectValue?.countryCode || selectedCountries.length === 0;
 
   // Handle country removal
@@ -302,7 +209,6 @@ export default function useEligibility({ campaignData, handleChange, setValue })
     handleLanguageSelect,
     showLanguageOptions,
     countrySelectValue,
-    handleCountrySelect,
     citySelectValue,
     handleCitySelect,
     isCityDisabled,

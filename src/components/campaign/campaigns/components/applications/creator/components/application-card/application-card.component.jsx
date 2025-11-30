@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { Globe } from "lucide-react";
-import { campaignTitle, campiagnDeliverable } from "@/common/utils/campaign.utils";
+import { campaignTitle } from "@/common/utils/campaign.utils";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import { product } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -161,7 +161,7 @@ const ApplicationCard = ({
                       key={item}
                       className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
                     >
-                      {campiagnDeliverable(item)}
+                      {item}
                     </span>
                   ))}
                 </div>

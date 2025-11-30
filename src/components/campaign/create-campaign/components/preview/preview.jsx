@@ -1,4 +1,3 @@
-import { campiagnDeliverable } from "@/common/utils/campaign.utils";
 import { ClipboardList, FileText, HelpCircle, Layers3, Target } from "lucide-react";
 import usePreview from "./use-preview.hook";
 
@@ -114,7 +113,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
                           key={item.id}
                           className="rounded-lg bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
                         >
-                          {campiagnDeliverable(item.label)}
+                          {item.label}
                         </span>
                       ))}
                     </div>
@@ -158,20 +157,21 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
                   );
                 })}
 
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Style Guide File
-                </p>
                 {styleGuideFileUrl && (
-                  <a
-                    href={styleGuideFileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group w-full flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100"
-                  >
-                    <span className="truncate">{styleGuideFileName || "View style guide"}</span>
-                  </a>
+                  <>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Style Guide File
+                    </p>
+                    <a
+                      href={styleGuideFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group w-full flex items-center justify-between gap-3 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100"
+                    >
+                      <span className="truncate">{styleGuideFileName || "View style guide"}</span>
+                    </a>
+                  </>
                 )}
-
                 {guidelineGroups.length > 0 && (
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-500">

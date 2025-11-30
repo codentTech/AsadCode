@@ -1,6 +1,4 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import {
@@ -18,9 +16,7 @@ const getUploadedFileUrl = (payload) => {
 };
 
 const sanitizeGuidelineList = (list) => {
-  if (!Array.isArray(list) || list.length === 0) {
-    return [""];
-  }
+  if (!Array.isArray(list) || list.length === 0) return [""];
   const normalized = list.map((item) => (typeof item === "string" ? item : ""));
   return normalized.length ? normalized : [""];
 };
@@ -28,105 +24,66 @@ const sanitizeGuidelineList = (list) => {
 export default function useDescription({ campaignData, setValue }) {
   const dispatch = useDispatch();
 
-  const [questions, setQuestions] = useState(() => {
-    const list = campaignData?.questions?.length ? campaignData.questions : [""];
-    return [...list];
-  });
-
   const [imagePreview, setImagePreview] = useState(campaignData?.campaignImage || "");
   const [styleGuideFileName, setStyleGuideFileName] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingStyleGuide, setIsUploadingStyleGuide] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [doGuidelines, setDoGuidelines] = useState(() =>
-    sanitizeGuidelineList(campaignData?.nonNegotiablesDo)
-  );
-  const [dontGuidelines, setDontGuidelines] = useState(() =>
-    sanitizeGuidelineList(campaignData?.nonNegotiablesDont)
-  );
 
-  useEffect(() => {
+  const questions = useMemo(() => {
     const list = campaignData?.questions?.length ? campaignData.questions : [""];
-    setQuestions([...list]);
+    return [...list];
   }, [campaignData?.questions]);
 
-  useEffect(() => {
-    setImagePreview(campaignData?.campaignImage || "");
-  }, [campaignData?.campaignImage]);
+  const doGuidelines = useMemo(
+    () => sanitizeGuidelineList(campaignData?.nonNegotiablesDo),
+    [campaignData?.nonNegotiablesDo]
+  );
 
-  useEffect(() => {
-    setDoGuidelines(sanitizeGuidelineList(campaignData?.nonNegotiablesDo));
-  }, [campaignData?.nonNegotiablesDo]);
-
-  useEffect(() => {
-    setDontGuidelines(sanitizeGuidelineList(campaignData?.nonNegotiablesDont));
-  }, [campaignData?.nonNegotiablesDont]);
-
-  const updateQuestions = useCallback(
-    (updated) => {
-      const sanitized = updated.length ? updated : [""];
-      setQuestions(sanitized);
-      setValue("questions", sanitized);
-    },
-    [setValue]
+  const dontGuidelines = useMemo(
+    () => sanitizeGuidelineList(campaignData?.nonNegotiablesDont),
+    [campaignData?.nonNegotiablesDont]
   );
 
   const handleAddQuestion = useCallback(() => {
-    updateQuestions([...questions, ""]);
-  }, [questions, updateQuestions]);
+    const updated = [...questions, ""];
+    setValue("questions", updated, { shouldDirty: true });
+  }, [questions, setValue]);
 
   const handleRemoveQuestion = useCallback(
     (index) => {
       if (questions.length <= 1) return;
       const updated = questions.filter((_, i) => i !== index);
-      updateQuestions(updated);
+      setValue("questions", updated, { shouldDirty: true });
     },
-    [questions, updateQuestions]
+    [questions, setValue]
   );
 
   const handleQuestionChange = useCallback(
     (index, value) => {
       const updated = [...questions];
       updated[index] = value;
-      updateQuestions(updated);
+      setValue("questions", updated, { shouldDirty: true });
     },
-    [questions, updateQuestions]
-  );
-
-  const updateDoGuidelines = useCallback(
-    (updated) => {
-      const sanitized = sanitizeGuidelineList(updated);
-      setDoGuidelines(sanitized);
-      setValue("nonNegotiablesDo", sanitized, { shouldDirty: true });
-    },
-    [setValue]
-  );
-
-  const updateDontGuidelines = useCallback(
-    (updated) => {
-      const sanitized = sanitizeGuidelineList(updated);
-      setDontGuidelines(sanitized);
-      setValue("nonNegotiablesDont", sanitized, { shouldDirty: true });
-    },
-    [setValue]
+    [questions, setValue]
   );
 
   const handleRemoveDoGuideline = useCallback(
     (index) => {
       if (doGuidelines.length <= 1) return;
       const updated = doGuidelines.filter((_, i) => i !== index);
-      updateDoGuidelines(updated);
+      setValue("nonNegotiablesDo", updated, { shouldDirty: true });
     },
-    [doGuidelines, updateDoGuidelines]
+    [doGuidelines, setValue]
   );
 
   const handleDoGuidelineChange = useCallback(
     (index, value) => {
       const updated = [...doGuidelines];
       updated[index] = value;
-      updateDoGuidelines(updated);
+      setValue("nonNegotiablesDo", updated, { shouldDirty: true });
     },
-    [doGuidelines, updateDoGuidelines]
+    [doGuidelines, setValue]
   );
 
   const handleDoGuidelineKeyDown = useCallback(
@@ -139,28 +96,28 @@ export default function useDescription({ campaignData, setValue }) {
       const updated = [...doGuidelines];
       if (index === updated.length - 1 || updated[index + 1]?.trim()) {
         updated.splice(index + 1, 0, "");
-        updateDoGuidelines(updated);
+        setValue("nonNegotiablesDo", updated, { shouldDirty: true });
       }
     },
-    [doGuidelines, updateDoGuidelines]
+    [doGuidelines, setValue]
   );
 
   const handleRemoveDontGuideline = useCallback(
     (index) => {
       if (dontGuidelines.length <= 1) return;
       const updated = dontGuidelines.filter((_, i) => i !== index);
-      updateDontGuidelines(updated);
+      setValue("nonNegotiablesDont", updated, { shouldDirty: true });
     },
-    [dontGuidelines, updateDontGuidelines]
+    [dontGuidelines, setValue]
   );
 
   const handleDontGuidelineChange = useCallback(
     (index, value) => {
       const updated = [...dontGuidelines];
       updated[index] = value;
-      updateDontGuidelines(updated);
+      setValue("nonNegotiablesDont", updated, { shouldDirty: true });
     },
-    [dontGuidelines, updateDontGuidelines]
+    [dontGuidelines, setValue]
   );
 
   const handleDontGuidelineKeyDown = useCallback(
@@ -173,10 +130,10 @@ export default function useDescription({ campaignData, setValue }) {
       const updated = [...dontGuidelines];
       if (index === updated.length - 1 || updated[index + 1]?.trim()) {
         updated.splice(index + 1, 0, "");
-        updateDontGuidelines(updated);
+        setValue("nonNegotiablesDont", updated, { shouldDirty: true });
       }
     },
-    [dontGuidelines, updateDontGuidelines]
+    [dontGuidelines, setValue]
   );
 
   const validateFile = (file, allowedTypes, maxSize) => {
@@ -203,40 +160,35 @@ export default function useDescription({ campaignData, setValue }) {
       setUploadError("");
       setIsUploadingImage(true);
 
-      try {
-        const result = await dispatch(
-          uploadSingleFile({
-            file,
-            folder: "campaign",
-          })
-        );
+      const result = await dispatch(
+        uploadSingleFile({
+          file,
+          folder: "campaign",
+        })
+      );
 
-        if (uploadSingleFile.fulfilled.match(result)) {
-          const uploadedUrl = getUploadedFileUrl(result.payload);
-          if (uploadedUrl) {
-            setImagePreview(uploadedUrl);
-            setValue("campaignImage", uploadedUrl, {
-              shouldDirty: true,
-              shouldValidate: true,
-              shouldTouch: true,
-            });
-            setUploadError("");
-          } else {
-            setUploadError("Upload succeeded but no URL was returned.");
-            setValue("campaignImage", "", { shouldValidate: true, shouldTouch: true });
-          }
+      if (uploadSingleFile.fulfilled.match(result)) {
+        const uploadedUrl = getUploadedFileUrl(result.payload);
+        if (uploadedUrl) {
+          setImagePreview(uploadedUrl);
+          setValue("campaignImage", uploadedUrl, {
+            shouldDirty: true,
+            shouldValidate: true,
+            shouldTouch: true,
+          });
+          setUploadError("");
         } else {
-          const message = result.payload?.message || "Failed to upload image.";
-          setUploadError(message);
+          setUploadError("Upload succeeded but no URL was returned.");
           setValue("campaignImage", "", { shouldValidate: true, shouldTouch: true });
         }
-      } catch (error) {
-        setUploadError(error?.message || "Failed to upload image.");
+      } else {
+        const message = result.payload?.message || "Failed to upload image.";
+        setUploadError(message);
         setValue("campaignImage", "", { shouldValidate: true, shouldTouch: true });
-      } finally {
-        setIsUploadingImage(false);
-        event.target.value = "";
       }
+
+      setIsUploadingImage(false);
+      event.target.value = "";
     },
     [dispatch, setValue]
   );
