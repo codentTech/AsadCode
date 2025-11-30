@@ -1,19 +1,15 @@
 import { useCallback } from "react";
-import { useWatch } from "react-hook-form";
 
-export default function useCampaignTypeNiche({ watch, setValue, control }) {
-  const selectedNiches = useWatch({ control, name: "niches" }) || [];
-  const selectedDeliverables = useWatch({ control, name: "deliverables" }) || [];
-  const usageRightsValue = useWatch({ control, name: "usageRights" }) || "no_usage";
-  const usageRightsRequirement =
-    useWatch({ control, name: "usageRightsRequirement" }) || "negotiable";
-  const exclusivityValue = useWatch({ control, name: "exclusivityClause" }) || "none";
-  const exclusivityRequirement =
-    useWatch({ control, name: "exclusivityClauseRequirement" }) || "negotiable";
+export default function useCampaignTypeNiche({ watch, setValue }) {
+  const selectedNiches = watch("niches") || [];
+  const selectedDeliverables = watch("deliverables") || [];
+  const usageRightsValue = watch("usageRights") || "no_usage";
+  const usageRightsRequirement = watch("usageRightsRequirement") || "negotiable";
+  const exclusivityValue = watch("exclusivityClause") || "none";
+  const exclusivityRequirement = watch("exclusivityClauseRequirement") || "negotiable";
 
   const handleNicheChange = useCallback(
     (niches) => {
-      if (!setValue) return;
       setValue("niches", niches, { shouldDirty: true, shouldValidate: true });
     },
     [setValue]
@@ -21,7 +17,6 @@ export default function useCampaignTypeNiche({ watch, setValue, control }) {
 
   const handleDeliverableChange = useCallback(
     (deliverables) => {
-      if (!setValue) return;
       setValue("deliverables", deliverables, { shouldDirty: true, shouldValidate: true });
     },
     [setValue]
@@ -30,9 +25,9 @@ export default function useCampaignTypeNiche({ watch, setValue, control }) {
   const handleNicheRemove = useCallback(
     (nicheToRemove) => {
       const updated = selectedNiches.filter((niche) => niche !== nicheToRemove);
-      handleNicheChange(updated);
+      setValue("niches", updated, { shouldDirty: true, shouldValidate: true });
     },
-    [handleNicheChange, selectedNiches]
+    [selectedNiches, setValue]
   );
 
   return {

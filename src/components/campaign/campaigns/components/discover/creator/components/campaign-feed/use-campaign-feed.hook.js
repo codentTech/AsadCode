@@ -8,10 +8,17 @@ import {
   applyToCampaign,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { formatDate } from "@/common/utils/date.utils";
+import {
+  getCompensationType,
+  getCompensationTypeKey,
+  getCompensationAmount,
+  getCompensationValue,
+} from "@/common/utils/campaign.utils";
 
 export function useCampaignFeed() {
   const dispatch = useDispatch();
 
+  // ===== STATES =====
   const { data: allCampaignsData, isLoading: allCampaignsLoading } = useSelector(
     (state) => state.campaigns.getAllCampaigns
   );
@@ -32,43 +39,20 @@ export function useCampaignFeed() {
     filteredCampaignsData?.data !== undefined ? filteredCampaignsData.data : allCampaignsData?.data;
   const isLoading = filteredCampaignsLoading || allCampaignsLoading;
 
-  const getCompensationType = (campaign) => {
-    if (campaign.creator_fixed_price) return "Paid";
-    if (campaign.commission_percentage) return "Commission";
-    if (campaign.product_value) return "Gifted";
-    return "Paid";
-  };
-
-  const getCompensationTypeKey = (campaign) => {
-    if (campaign.creator_fixed_price) return "fixed";
-    if (campaign.commission_percentage) return "commission";
-    if (campaign.product_value) return "gifted";
-    return "fixed";
-  };
-
-  const getCompensationAmount = (campaign) => {
-    if (campaign.creator_fixed_price) {
-      return `$${campaign.creator_fixed_price}`;
+  // ===== LIFECYCLE METHODS =====
+  useEffect(() => {
+    if (!campaignsData) {
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          sort: sortBy,
+        })
+      );
     }
-    if (campaign.commission_percentage) {
-      return `${campaign.commission_percentage}% Commission`;
-    }
-    if (campaign.product_value) {
-      return `Product ($${campaign.product_value} value)`;
-    }
-    if (campaign.suggested_min && campaign.suggested_max) {
-      return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
-    }
-    return "$0";
-  };
+  }, [dispatch, campaignsData, sortBy]);
 
-  const getCompensationValue = (campaign) => {
-    if (campaign.creator_fixed_price) return campaign.creator_fixed_price;
-    if (campaign.suggested_max) return campaign.suggested_max;
-    if (campaign.product_value) return campaign.product_value;
-    return 0;
-  };
-
+  // ===== COMPUTED VALUES =====
   const transformedCampaigns = useMemo(() => {
     if (!campaignsData?.campaigns) return [];
 
@@ -122,18 +106,7 @@ export function useCampaignFeed() {
 
   const sortedCampaigns = transformedCampaigns;
 
-  useEffect(() => {
-    if (!campaignsData) {
-      dispatch(
-        filterCampaigns({
-          page: 1,
-          limit: 10,
-          sort: sortBy,
-        })
-      );
-    }
-  }, [dispatch, campaignsData, sortBy]);
-
+  // ===== COMMON FUNCTIONS =====
   const handleNicheChange = useCallback(
     (niche) => {
       const nicheValue = typeof niche === "object" ? niche.value : niche;

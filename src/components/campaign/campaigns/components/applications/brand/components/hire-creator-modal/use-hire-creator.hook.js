@@ -2,8 +2,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useCallback } from "react";
-import { COMPENSATION_TYPE, COLLABORATION_TYPE, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
-import { campiagnDeliverable } from "@/common/utils/campaign.utils";
+import {
+  COMPENSATION_TYPE,
+  COLLABORATION_TYPE,
+  CAMPAIGN_TYPE,
+} from "@/common/constants/campaign.constant";
 
 const createValidationSchema = (isIndividual) => {
   const baseSchema = {
@@ -84,7 +87,12 @@ const createValidationSchema = (isIndividual) => {
     baseSchema.campaignType = Yup.string()
       .required("Campaign type is required")
       .oneOf(
-        [CAMPAIGN_TYPE.SPONSORED_POST, CAMPAIGN_TYPE.UGC, CAMPAIGN_TYPE.GIFTED, CAMPAIGN_TYPE.AFFILIATE],
+        [
+          CAMPAIGN_TYPE.SPONSORED_POST,
+          CAMPAIGN_TYPE.UGC,
+          CAMPAIGN_TYPE.GIFTED,
+          CAMPAIGN_TYPE.AFFILIATE,
+        ],
         "Invalid campaign type"
       );
     baseSchema.contentGuidelines = Yup.string()
@@ -139,10 +147,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
         setValue("campaignType", "");
         setValue("contentGuidelines", "");
       } else {
-        setValue(
-          "contentFormat",
-          campaignData.deliverables?.map((deliverable) => campiagnDeliverable(deliverable)) || ""
-        );
+        setValue("contentFormat", campaignData.deliverables || "");
         setValue(
           "compensationType",
           campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
@@ -176,7 +181,9 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
           : undefined,
         productPrice: values.productPrice ? parseFloat(values.productPrice) : undefined,
         // Add campaign and creator metadata
-        campaignTitle: isIndividual ? "Individual Collaboration" : (campaignData?.campaign_title || ""),
+        campaignTitle: isIndividual
+          ? "Individual Collaboration"
+          : campaignData?.campaign_title || "",
         brandName:
           `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
           "[Brand Name]",
@@ -187,9 +194,13 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
         partiesInvolved:
           `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
           "[Brand Name]",
-        campaignDescription: isIndividual ? (values.contentGuidelines || "") : (campaignData?.short_description || campaignData?.description || ""),
-        contentGuidelines: isIndividual ? (values.contentGuidelines || "") : (campaignData?.style_guide || campaignData?.content_guidelines || ""),
-        campaignType: isIndividual ? (values.campaignType || "") : (campaignData?.campaign_type || ""),
+        campaignDescription: isIndividual
+          ? values.contentGuidelines || ""
+          : campaignData?.short_description || campaignData?.description || "",
+        contentGuidelines: isIndividual
+          ? values.contentGuidelines || ""
+          : campaignData?.style_guide || campaignData?.content_guidelines || "",
+        campaignType: isIndividual ? values.campaignType || "" : campaignData?.campaign_type || "",
       };
     },
     [campaignData, creatorData, isIndividual]

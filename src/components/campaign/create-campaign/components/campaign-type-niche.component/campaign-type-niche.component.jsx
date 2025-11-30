@@ -1,4 +1,3 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
@@ -7,7 +6,6 @@ import {
   NEGOTIATION_TOGGLE_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
 } from "@/common/constants/options.constant";
-import { X } from "lucide-react";
 import QuantityDeliverableInput from "../quantity-deliverable-input/quantity-deliverable-input.component";
 import SearchableNicheInput from "../searchable-niche-input/searchable-niche-input.component";
 import useCampaignTypeNiche from "./use-campaign-type-niche.hook";
@@ -18,20 +16,18 @@ import useCampaignTypeNiche from "./use-campaign-type-niche.hook";
  * Handles campaign title input, niche selection, and deliverable management.
  * First step in the campaign creation wizard.
  */
-function CampaignTypeNiche({ register, errors = {}, watch, setValue, control }) {
+function CampaignTypeNiche({ register, errors = {}, watch, setValue }) {
   const {
     selectedNiches,
     selectedDeliverables,
     usageRightsValue,
-    usageRightsNegotiation,
-    exclusivityValue,
-    exclusivityNegotiation,
     usageRightsRequirement,
+    exclusivityValue,
     exclusivityRequirement,
     handleNicheChange,
     handleDeliverableChange,
     handleNicheRemove,
-  } = useCampaignTypeNiche({ watch, setValue, control });
+  } = useCampaignTypeNiche({ watch, setValue });
 
   return (
     <div className="space-y-4">
@@ -60,29 +56,6 @@ function CampaignTypeNiche({ register, errors = {}, watch, setValue, control }) 
           />
         </div>
       </div>
-
-      {/* Selected Niches */}
-      {selectedNiches.length > 0 && (
-        <div className="space-y-1">
-          <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
-          <div className="flex flex-wrap gap-1">
-            {selectedNiches.map((niche) => (
-              <span
-                key={niche}
-                className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
-              >
-                {niche}
-                <CustomButton
-                  text=""
-                  onClick={() => handleNicheRemove(niche)}
-                  className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
-                  startIcon={<X className="text-black w-3 h-3 ml-4" />}
-                />
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Deliverables */}
       <div className="space-y-4">

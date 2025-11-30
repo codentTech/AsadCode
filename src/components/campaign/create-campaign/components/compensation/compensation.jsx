@@ -7,7 +7,7 @@ import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import useCompensation from "./use-compensation.hook";
 
-function Compensation({ campaignData, handleChange, errors = {}, register }) {
+function Compensation({ campaignData, errors = {}, register, setValue }) {
   const {
     paymentType,
     paymentTypeOptions,
@@ -17,7 +17,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
     handleCampaignTypeChange,
     handlePaymentTypeChange,
     handleCreatorCompOptionChange,
-  } = useCompensation({ campaignData, handleChange });
+  } = useCompensation({ campaignData, setValue });
 
   const creatorFee =
     campaignData.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
@@ -140,8 +140,7 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
                 inlineRadioButtons
                 value={creatorCompOption}
                 onChange={handleCreatorCompOptionChange}
-                register={register}
-                errorMessage={errors.creator_compensation_option?.message || ""}
+                errorMessage=""
               />
 
               {creatorCompOption === "suggested" && (
@@ -207,19 +206,19 @@ function Compensation({ campaignData, handleChange, errors = {}, register }) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CustomInput
-              label="% commission per sale"
+              label="Product price"
               type="number"
-              name="commission_percentage"
-              placeholder="e.g., 10"
+              name="product_price"
+              placeholder="e.g., 49.99"
               errors={errors}
               register={register}
               isRequired={true}
             />
             <CustomInput
-              label="Product price"
+              label="% commission per sale"
               type="number"
-              name="product_price"
-              placeholder="e.g., 49.99"
+              name="commission_percentage"
+              placeholder="e.g., 10"
               errors={errors}
               register={register}
               isRequired={true}

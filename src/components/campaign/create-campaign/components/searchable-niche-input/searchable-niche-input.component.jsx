@@ -13,6 +13,7 @@ function SearchableNicheInput({
   selectedNiches = [],
   onNichesChange,
   placeholder = "Type to search niches",
+  handleNicheRemove,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -529,6 +530,31 @@ function SearchableNicheInput({
           </div>
         )}
       </div>
+
+      {/* Selected Niches */}
+      {selectedNiches.length > 0 && (
+        <div className="space-y-1">
+          <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
+          <div className="flex flex-wrap gap-1">
+            {selectedNiches.map((niche) => (
+              <span
+                key={niche}
+                className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
+              >
+                {niche}
+                {handleNicheRemove && (
+                  <CustomButton
+                    text=""
+                    onClick={() => handleNicheRemove(niche)}
+                    className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
+                    startIcon={<X className="text-black w-3 h-3 ml-4" />}
+                  />
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
