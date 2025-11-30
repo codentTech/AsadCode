@@ -1,44 +1,18 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import React from "react";
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
+import { PLATFORM_OPTIONS } from "@/common/constants/options.constant";
 
-/**
- * Audience Requirements & Experience Component
- *
- * Handles follower requirements, platform-specific minimums,
- * and required platform selection for campaigns.
- */
-function AudienceRequirementsExperience({ campaignData, errors = {}, register, setValue, watch }) {
-  // Available social media platforms
-  const platformOptions = [
-    { label: "Instagram", value: "Instagram" },
-    { label: "TikTok", value: "TikTok" },
-    { label: "YouTube", value: "YouTube" },
-    { label: "Facebook", value: "Facebook" },
-    { label: "Pinterest", value: "Pinterest" },
-    { label: "Other", value: "Other" },
-  ];
+const PLATFORM_MINIMUMS = [
+  { key: "instagram", label: "Instagram" },
+  { key: "tiktok", label: "TikTok" },
+  { key: "youtube", label: "YouTube" },
+  { key: "facebook", label: "Facebook" },
+  { key: "pinterest", label: "Pinterest" },
+];
 
-  // Platform minimums configuration
-  const platformMinimums = [
-    { key: "instagram", label: "Instagram" },
-    { key: "tiktok", label: "TikTok" },
-    { key: "youtube", label: "YouTube" },
-    { key: "facebook", label: "Facebook" },
-    { key: "pinterest", label: "Pinterest" },
-  ];
-
-  // Handle platform minimum changes
-  const handlePlatformMinimumChange = (platformKey, value) => {
-    if (setValue) {
-      setValue(`platformMinimums.${platformKey}`, value);
-    }
-  };
-
+function AudienceRequirementsExperience({ errors = {}, register, setValue, watch }) {
   return (
     <div className="space-y-6">
-      {/* Overall Follower Requirement */}
       <div className="space-y-2">
         <h4 className="text-sm font-bold text-gray-800">Follower Requirements</h4>
         <div className="w-full max-w-xs">
@@ -54,19 +28,18 @@ function AudienceRequirementsExperience({ campaignData, errors = {}, register, s
         </div>
       </div>
 
-      {/* Platform-Specific Minimums */}
       <div className="space-y-3">
         <h4 className="text-sm font-bold text-gray-800">
           Platform-Specific Minimums
           <span className="text-xs text-gray-500 font-normal ml-1">(Optional)</span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {platformMinimums.map((platform) => (
+          {PLATFORM_OPTIONS.map((platform) => (
             <CustomInput
-              key={platform.key}
+              key={platform.value}
               label={platform.label}
               type="number"
-              name={`platformMinimums.${platform.key}`}
+              name={`platformMinimums.${platform.value}`}
               register={register}
               errors={errors}
               placeholder="e.g., 1000"
@@ -75,12 +48,11 @@ function AudienceRequirementsExperience({ campaignData, errors = {}, register, s
         </div>
       </div>
 
-      {/* Required Platforms */}
       <div className="space-y-2">
         <div className="border rounded-lg p-4">
           <CustomCheckboxGroup
             label="Required Platforms"
-            options={platformOptions}
+            options={PLATFORM_OPTIONS}
             name="required_platforms"
             setValue={setValue}
             watch={watch}

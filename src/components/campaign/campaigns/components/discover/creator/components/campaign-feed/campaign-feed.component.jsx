@@ -3,12 +3,12 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { product } from "@/common/constants/auth.constant";
-import { campaignTitle, campiagnDeliverable } from "@/common/utils/campaign.utils";
+import { campaignTitle } from "@/common/utils/campaign.utils";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
 import { DollarSign, Gift, Globe, Loader2, Users, Zap } from "lucide-react";
-import { useCampaignFeed } from "./use-campaign-feed.hook";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
+import { useCampaignFeed } from "./use-campaign-feed.hook";
 
 function CampaignFeed() {
   const {
@@ -67,7 +67,7 @@ function CampaignFeed() {
         icon: <Zap size={12} />,
       },
     };
-    return styles[type] || styles["SPONSORED_POST"];
+    return styles[type];
   };
 
   return (
@@ -195,7 +195,7 @@ function CampaignFeed() {
                               key={item}
                               className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
                             >
-                              {campiagnDeliverable(item)}
+                              {item}
                             </span>
                           ))}
                         </div>
@@ -210,9 +210,7 @@ function CampaignFeed() {
 
                     <div className="flex-shrink-0">
                       <img
-                        src={
-                          campaign.productImage.startsWith("http") ? campaign.productImage : product
-                        }
+                        src={campaign.productImage}
                         alt="Campaign Product"
                         className="w-44 h-44 rounded-lg object-cover border border-gray-200"
                       />

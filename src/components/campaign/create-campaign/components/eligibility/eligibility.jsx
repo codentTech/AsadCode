@@ -32,7 +32,6 @@ function Eligibility({
     handleLanguageSelect,
     showLanguageOptions,
     countrySelectValue,
-    handleCountrySelect,
     citySelectValue,
     handleCitySelect,
     isCityDisabled,
@@ -42,7 +41,7 @@ function Eligibility({
     handleRequirementChange,
     countrySelectValueForMulti,
     handleCountrySelectForMulti,
-  } = useEligibility({ campaignData, handleChange, setValue });
+  } = useEligibility({ campaignData, setValue });
 
   const requirementOptions = [
     {

@@ -11,7 +11,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
 import useDescription from "./use-description.hook";
 
-function Description({ campaignData, handleChange, errors = {}, register, setValue }) {
+function Description({ campaignData, errors = {}, register, setValue }) {
   const {
     questions,
     handleAddQuestion,
@@ -120,8 +120,8 @@ function Description({ campaignData, handleChange, errors = {}, register, setVal
         <TextArea
           label="Style Guidelines"
           name="styleGuide"
-          value={campaignData.styleGuide}
-          onChange={handleChange}
+          register={register}
+          errors={errors}
           className="w-full"
           placeholder="Natural lighting, authentic feel, minimal editing..."
         />
