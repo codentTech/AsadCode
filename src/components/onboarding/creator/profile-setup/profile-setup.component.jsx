@@ -2,142 +2,45 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { AddCircle } from "@mui/icons-material";
-import { ArrowLeft, Camera, DollarSign, Link, Upload, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { ArrowLeft, Camera, DollarSign, Link, Upload, X, CheckCircle } from "lucide-react";
 import useProfileSetup from "./use-profile-setup.hook";
 
 const ProfileSetup = ({ onNext, onBack }) => {
   const {
-    register,
     handleSubmit,
     errors,
-    onSubmit,
-    handleFileUpload,
-    profilePhotoPreview,
-    updateSocialPlatforms,
-    updateCategories,
-    updateKeywordTags,
-    updateContentRates,
-    getStandardContentTypes,
+    handleFormSubmit,
     isLoading,
+    handleFileUpload,
+    onFileChange,
+    handlePhotoUpload,
+    fileInputRef,
+    profilePhotoPreview,
+    platforms,
+    selectedPlatforms,
+    platformUsernames,
+    togglePlatform,
+    handleUsernameChange,
+    selectedCategories,
+    handleCategoryChange,
+    handleCategoryRemove,
+    keywordTags,
+    addKeywordTag,
+    removeKeywordTag,
+    bio,
+    handleBioChange,
+    contentRates,
+    customRates,
+    handleRateChange,
+    handleCustomRateChange,
+    addCustomRateRow,
+    removeCustomRate,
     name,
   } = useProfileSetup({ onNext });
 
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
-  const [platformUsernames, setPlatformUsernames] = useState({});
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [keywordTags, setKeywordTags] = useState([]);
-  const [bio, setBio] = useState("");
-  const [contentRates, setContentRates] = useState({});
-  const [customRates, setCustomRates] = useState([{ contentType: "", price: "" }]);
-
-  const fileInputRef = useRef(null);
-
-  const platforms = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook"];
-
-  const standardContentTypes = getStandardContentTypes();
-
-  const handlePhotoUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const onFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const togglePlatform = (platform) => {
-    const newSelectedPlatforms = selectedPlatforms.includes(platform)
-      ? selectedPlatforms.filter((p) => p !== platform)
-      : [...selectedPlatforms, platform];
-
-    setSelectedPlatforms(newSelectedPlatforms);
-    updateSocialPlatforms(newSelectedPlatforms, platformUsernames);
-  };
-
-  const handleUsernameChange = (platform, username) => {
-    const newUsernames = { ...platformUsernames, [platform]: username };
-    setPlatformUsernames(newUsernames);
-    updateSocialPlatforms(selectedPlatforms, newUsernames);
-  };
-
-  const handleCategoryChange = (niches) => {
-    const limited = Array.isArray(niches) ? niches.slice(0, 5) : [];
-    setSelectedCategories(limited);
-    updateCategories(limited);
-  };
-
-  const handleCategoryRemove = (nicheToRemove) => {
-    const filtered = selectedCategories.filter((niche) => niche !== nicheToRemove);
-    setSelectedCategories(filtered);
-    updateCategories(filtered);
-  };
-
-  const addKeywordTag = (tag) => {
-    if (tag.trim() && !keywordTags.includes(tag.trim())) {
-      const newTags = [...keywordTags, tag.trim()];
-      setKeywordTags(newTags);
-      updateKeywordTags(newTags);
-    }
-  };
-
-  const removeKeywordTag = (index) => {
-    const newTags = keywordTags.filter((_, i) => i !== index);
-    setKeywordTags(newTags);
-    updateKeywordTags(newTags);
-  };
-
-  const handleBioChange = (e) => {
-    setBio(e.target.value);
-  };
-
-  const handleRateChange = (index, value) => {
-    const newRates = { ...contentRates, [index]: value };
-    setContentRates(newRates);
-    updateContentRates(Object.values(newRates), customRates);
-  };
-
-  const addCustomRate = (description, price) => {
-    if (description.trim() && price > 0) {
-      const newCustomRate = {
-        contentType: description.trim(),
-        price: parseFloat(price),
-      };
-      const newCustomRates = [...customRates, newCustomRate];
-      setCustomRates(newCustomRates);
-      updateContentRates(Object.values(contentRates), newCustomRates);
-    }
-  };
-
-  // Custom Rates Handlers
-  const handleCustomRateChange = (idx, field, value) => {
-    const updated = [...customRates];
-    updated[idx][field] = value;
-    setCustomRates(updated);
-    updateContentRates(Object.values(contentRates), updated);
-  };
-
-  const addCustomRateRow = () => {
-    setCustomRates([...customRates, { contentType: "", price: "" }]);
-  };
-
-  const removeCustomRate = (idx) => {
-    const updated = customRates.filter((_, i) => i !== idx);
-    setCustomRates(updated.length ? updated : [{ contentType: "", price: "" }]);
-    updateContentRates(
-      Object.values(contentRates),
-      updated.length ? updated : [{ contentType: "", price: "" }]
-    );
-  };
-
-  const handleFormSubmit = async (data) => {
-    // Update bio in the form data
-    data.bio = bio;
-    await onSubmit(data);
-  };
+  const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -228,29 +131,81 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Social Platforms */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Link Other Platforms <span className="text-red-500">*</span>
-                </h3>
-                <div className="space-y-3">
-                  {platforms.map((platform) => (
-                    <div key={platform} className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedPlatforms.includes(platform)}
-                        onChange={() => togglePlatform(platform)}
-                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                      />
-                      <Link className="h-4 w-4 text-gray-400" />
-                      <CustomInput
-                        placeholder={`Your ${platform} username`}
-                        disabled={!selectedPlatforms.includes(platform)}
-                        value={platformUsernames[platform] || ""}
-                        onChange={(e) => handleUsernameChange(platform, e.target.value)}
-                      />
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Connect Social Media Platforms <span className="text-red-500">*</span>
+                  </h3>
                 </div>
-                <p className="flex justify-end text-xs text-gray-600 mt-2">
+
+                <div className="grid grid-cols-1 gap-2.5">
+                  {platforms.map((platform) => {
+                    const isSelected = selectedPlatforms.includes(platform);
+                    const platformColor = getPlatformColor(platform);
+                    const username = platformUsernames[platform] || "";
+
+                    return (
+                      <div
+                        key={platform}
+                        className={`
+                          relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md
+                          ${
+                            isSelected && username
+                              ? "border-green-200 bg-green-50"
+                              : "border-gray-200 bg-white hover:border-gray-300"
+                          }
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div
+                              className={`
+                                w-9 h-9 rounded-full flex items-center justify-center
+                                ${isSelected && username ? platformColor : "bg-gray-100"}
+                              `}
+                            >
+                              {getPlatformIcon(platform)}
+                            </div>
+
+                            <div className="flex flex-col flex-1">
+                              <span className="font-semibold text-gray-900 text-sm">
+                                {platform}
+                              </span>
+                              {isSelected && username ? (
+                                <div className="flex items-center space-x-2">
+                                  <CheckCircle className="w-3 h-3 text-green-500" />
+                                  <span className="text-xs text-green-600 font-medium">
+                                    Connected
+                                  </span>
+                                  <span className="text-xs text-gray-500">@{username}</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-500">Click to connect</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            {isSelected && username ? (
+                              <CustomButton
+                                text="Remove"
+                                onClick={() => togglePlatform(platform)}
+                                className="btn-danger text-xs px-3 py-1 h-7"
+                              />
+                            ) : (
+                              <CustomButton
+                                text="Connect"
+                                onClick={() => togglePlatform(platform)}
+                                className="btn-primary text-xs px-4 py-1 h-7"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p className="flex justify-end text-xs text-gray-600 mt-3">
                   At least 1 platform required
                 </p>
                 {errors.socialPlatforms && (
@@ -326,25 +281,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
                   handleNicheRemove={handleCategoryRemove}
                   placeholder="Search and add categories"
                 />
-                {selectedCategories.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedCategories.map((category) => (
-                      <span
-                        key={category}
-                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
-                      >
-                        {category}
-                        <button
-                          type="button"
-                          onClick={() => handleCategoryRemove(category)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
                 {errors.categories && (
                   <p className="text-xs text-red-600 mt-2">{errors.categories.message}</p>
                 )}
@@ -474,6 +410,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               className="btn-primary"
               type="submit"
               disabled={isLoading}
+              loading={isLoading}
             />
           </div>
         </form>

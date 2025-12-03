@@ -32,11 +32,11 @@ const CampaignHistory = ({ campaignId }) => {
             >
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-indigo-600 rounded-full mt-1.5 flex-shrink-0 group-hover:bg-indigo-700"></div>
-                <div className="flex justify-between w-full">
+                <div className="flex flex-col justify-between w-full">
                   <p className="text-xs font-medium text-gray-600 group-hover:text-indigo-900">
                     {item.action}
                   </p>
-                  <p className="text-xs text-gray-500">{item.time}</p>
+                  <p className="text-xs text-gray-500 mt-2">{item.time}</p>
                 </div>
               </div>
             </div>

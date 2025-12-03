@@ -390,6 +390,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                     className="btn-primary"
                     type="submit"
                     disabled={isLoading}
+                    loading={isLoading}
                   />
                 </div>
               </div>

@@ -51,3 +51,11 @@ export const REQUIREMENT_LEVEL = Object.freeze({
   PREFERRED: "preferred",
   MANDATORY: "mandatory",
 });
+
+export const CREATOR_STATUS = Object.freeze({
+  PENDING: "PENDING",
+  HIRED: "HIRED",
+  REJECTED: "REJECTED",
+  COMPLETED: "COMPLETED",
+  DRAFT: "DRAFT",
+});

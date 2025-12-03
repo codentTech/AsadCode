@@ -21,7 +21,6 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     hasData,
   } = useBrandCampaignCompleted();
 
-  // Filter campaigns based on collaboration type
   const filteredCampaignOptions = campaignOptions.filter((option) => {
     if (!option.campaign) return false;
     const collaborationType = option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
@@ -30,14 +29,12 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
       : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
   });
 
-  // Check if selected campaign matches current filter
   const isSelectedCampaignValid =
     selectedCampaign &&
     (isMultiCreator
       ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) === COLLABORATION_TYPE.MULTI_CREATOR
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
 
-  // Determine if we should show multi-creator specific UI elements
   const showMultiCreatorUI = isMultiCreator && isSelectedCampaignValid;
 
   const hasNotifiedParent = useRef(false);
@@ -50,14 +47,12 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     }
   }, [selectedCampaign, onCampaignSelect]);
 
-  // Fetch individual collaborations when switch is toggled to Individual Creator
   useEffect(() => {
     if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(true)); // true = completed
+      dispatch(getIndividualCollaborationContracts(true));
     }
   }, [isMultiCreator, dispatch]);
 
-  // Auto-select first individual collaboration when contracts are loaded
   const { data: individualContractsData, isSuccess: individualContractsSuccess } = useSelector(
     (state) => state.contracts.getIndividualCollaborationContracts || {}
   );
@@ -90,11 +85,8 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     onCampaignSelect,
   ]);
 
-  // Auto-select first campaign from filtered list when toggle changes or filtered list updates
   useEffect(() => {
-    // Only auto-select for multi-creator mode
     if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
-      // If no valid campaign is selected, or selected campaign doesn't match filter, select first
       if (!isSelectedCampaignValid) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
@@ -106,7 +98,6 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
         }
       }
     } else {
-      // Reset flag when switching away from multi-creator or when list is empty
       hasAutoSelectedFiltered.current = false;
     }
   }, [
@@ -125,13 +116,11 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     }
   };
 
-  // Handle toggle change - reset selected campaign if it doesn't match new filter
   const handleToggleChange = (event) => {
     const newIsMultiCreator = event?.target?.checked ?? !isMultiCreator;
     setIsMultiCreator(newIsMultiCreator);
-    hasAutoSelectedFiltered.current = false; // Reset auto-selection flag
+    hasAutoSelectedFiltered.current = false;
 
-    // Reset selected campaign if it doesn't match the new filter
     if (selectedCampaign) {
       const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
       const shouldReset =
@@ -147,11 +136,7 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     }
   };
 
-  const handleExportData = () => {};
-  const handleViewAnalytics = () => {};
-
   return {
-    // State
     isMultiCreator,
     filteredCampaignOptions,
     isSelectedCampaignValid,
@@ -163,11 +148,8 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     formatNumber,
     isLoading,
     hasData,
-    // Handlers
     handleCampaignSelect,
     handleToggleChange,
-    handleExportData,
-    handleViewAnalytics,
   };
 }
 

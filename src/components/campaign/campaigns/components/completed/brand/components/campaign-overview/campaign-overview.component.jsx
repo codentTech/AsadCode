@@ -47,7 +47,7 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
           onChange={handleCampaignSelect}
           isLoading={isLoading}
           value={
-            isSelectedCampaignValid
+            isSelectedCampaignValid && selectedCampaign?.campaign_title
               ? {
                   value: selectedCampaign.id,
                   label: selectedCampaign.campaign_title,
@@ -77,6 +77,14 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
                 : "You don't have any completed individual collaborations."
             }
           />
+        </div>
+      )}
+
+      {selectedCampaign && !hasData && !isLoading && (
+        <div className="flex flex-col items-center justify-center py-4 text-center">
+          <p className="text-sm text-gray-600">
+            No completed creators for this campaign yet.
+          </p>
         </div>
       )}
 
