@@ -1,12 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, Upload, Camera, Globe, MapPin, ArrowLeft, Eye } from "lucide-react";
+import { Building2, Upload, Camera, MapPin, ArrowLeft, Eye } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import useBrandProfileSetup from "./use-profile-setup.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
-import COUNTRIES from "@/common/constants/countries.constant";
 
 const BrandProfile = ({ onNext, onBack }) => {
   const {
@@ -14,120 +12,22 @@ const BrandProfile = ({ onNext, onBack }) => {
     handleSubmit,
     errors,
     onSubmit,
-    setValue,
     getValues,
-    watch,
     isLoading,
     isError,
     errorMessage,
-    handleFileUpload,
+    handleLogoUpload,
+    handleRemoveLogo,
     brandLogoPreview,
+    brandLogo,
+    countrySelection,
+    citySelection,
+    handleCountrySelect,
+    handleCitySelect,
+    previewCountryName,
+    previewCityName,
+    description,
   } = useBrandProfileSetup({ onNext });
-
-  const brandLogo = watch("brandLogoUrl");
-  const description = watch("companyDescription");
-
-  const countryName = watch("country");
-  const cityName = watch("city");
-
-  const [countrySelection, setCountrySelection] = useState(null);
-  const [citySelection, setCitySelection] = useState(null);
-
-  useEffect(() => {
-    if (countryName) {
-      const match = COUNTRIES.find(
-        (country) => country.label.toLowerCase() === countryName.toLowerCase()
-      );
-
-      setCountrySelection({
-        name: countryName,
-        countryCode: match?.code || "",
-      });
-    } else {
-      setCountrySelection(null);
-    }
-  }, [countryName]);
-
-  useEffect(() => {
-    if (cityName) {
-      setCitySelection((prev) =>
-        prev?.name === cityName
-          ? prev
-          : {
-              name: cityName,
-              countryCode: prev?.countryCode || countrySelection?.countryCode || "",
-            }
-      );
-    } else {
-      setCitySelection(null);
-    }
-  }, [cityName, countrySelection?.countryCode]);
-
-  const handleCountrySelect = useCallback(
-    (country) => {
-      if (!country) {
-        setCountrySelection(null);
-        setValue("country", "", { shouldValidate: true });
-        setCitySelection(null);
-        setValue("city", "", { shouldValidate: true });
-        return;
-      }
-
-      const normalizedCountry = {
-        name: country.countryName || country.label || country.name || "",
-        countryCode: country.countryCode || country.value || country.code || "",
-      };
-
-      setCountrySelection(normalizedCountry);
-      setValue("country", normalizedCountry.name, { shouldValidate: true });
-
-      setCitySelection(null);
-      setValue("city", "", { shouldValidate: true });
-    },
-    [setValue]
-  );
-
-  const handleCitySelect = useCallback(
-    (city) => {
-      if (!city) {
-        setCitySelection(null);
-        setValue("city", "", { shouldValidate: true });
-        return;
-      }
-
-      const normalizedCity = {
-        name: city.cityName || city.label || city.name || "",
-        countryCode: city.countryCode || countrySelection?.countryCode || "",
-      };
-
-      setCitySelection(normalizedCity);
-      setValue("city", normalizedCity.name, { shouldValidate: true });
-    },
-    [countrySelection?.countryCode, setValue]
-  );
-
-  const previewCountryName = useMemo(
-    () => countrySelection?.name || countryName || "Country",
-    [countrySelection?.name, countryName]
-  );
-
-  const previewCityName = useMemo(
-    () => citySelection?.name || cityName || "City",
-    [citySelection?.name, cityName]
-  );
-
-  const handleLogoUpload = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/jpeg,image/png";
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-    };
-    input.click();
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
@@ -210,10 +110,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                     )}
                     {(brandLogoPreview || brandLogo) && (
                       <button
-                        onClick={() => {
-                          setValue("brandLogoUrl", "");
-                          // Reset file state would need to be handled in hook
-                        }}
+                        onClick={handleRemoveLogo}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
                         type="button"
                       >
@@ -370,8 +267,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                   {
                     label: "Location",
                     status:
-                      (getValues("city") || citySelection?.name) &&
-                      (countrySelection || countryName)
+                      (getValues("city") || citySelection?.name) && countrySelection
                         ? "complete"
                         : "pending",
                   },
@@ -387,6 +283,7 @@ const BrandProfile = ({ onNext, onBack }) => {
             className="btn-primary"
             onClick={handleSubmit(onSubmit)}
             disabled={isLoading}
+            loading={isLoading}
           />
         </div>
       </div>

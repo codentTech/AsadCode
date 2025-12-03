@@ -91,7 +91,7 @@ export function useCampaignFeed() {
       min_age: campaign.min_age,
       max_age: campaign.max_age,
       application_deadline: formatDate(campaign.application_deadline),
-      budget: campaign.budget,
+      creator_fee: campaign.creator_fee,
       suggested_min: campaign.suggested_min,
       suggested_max: campaign.suggested_max,
       creator_fixed_price: campaign.creator_fixed_price,

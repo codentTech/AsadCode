@@ -1,19 +1,38 @@
 import React, { useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import CampaignOverviewCompleted from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysisCompleted from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgressCompleted from "./components/deliverables-progress/deliverables-progress.component";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 
 function CompletedBrandCampaign() {
+  const dispatch = useDispatch();
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
 
   const handleCampaignSelect = (campaign) => {
     setSelectedCampaign(campaign);
     setSelectedCreator(null);
+    // Update Redux context for persistence
+    if (campaign) {
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: campaign.id || null,
+          collaborationType: campaign.collaboration_type || null,
+        })
+      );
+    } else {
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: null,
+          collaborationType: null,
+        })
+      );
+    }
   };
 
   const handleCreatorSelect = (creator) => {

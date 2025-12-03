@@ -1,14 +1,18 @@
 import { isCreatorMode } from "@/common/utils/users.util";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
 
 function ActiveBrandCampiagn() {
   const dispatch = useDispatch();
+  const { selectedCampaignId, selectedCollaborationType } = useSelector(
+    (state) => state.campaignContext
+  );
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [isMultiCreator, setIsMultiCreator] = useState(true); // Track toggle state from CampaignOverview
@@ -20,6 +24,23 @@ function ActiveBrandCampiagn() {
   const handleCampaignSelect = (campaign) => {
     setSelectedCampaign(campaign);
     setSelectedCreator(null); // Reset creator selection when campaign changes
+    
+    // Update Redux context for persistence
+    if (campaign) {
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: campaign.id || null,
+          collaborationType: campaign.collaboration_type || null,
+        })
+      );
+    } else {
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: null,
+          collaborationType: null,
+        })
+      );
+    }
     
     // For individual collaborations, we don't need to fetch hired creators
     if (campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {

@@ -17,11 +17,15 @@ import {
   updateCampaignReview,
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 import {
-  getAllCampaigns,
-  getBrandCampaignsExcludingCompleted,
+  getAllBrandCampaigns,
   markCampaignComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
+import {
+  getContractsByCampaign,
+  getIndividualCollaborationContracts,
+} from "@/provider/features/contracts/contracts.slice";
+import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
+import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
@@ -55,10 +59,15 @@ const useDeliverablesProgress = (
     deleteCampaignNote: deleteNoteState,
   } = useSelector((state) => state.campaignNotes);
 
-  const { getContractsByCampaign: getContractsState } = useSelector((state) => state.contracts);
+  const {
+    getContractsByCampaign: getContractsState,
+    getIndividualCollaborationContracts: getIndividualContractsState,
+  } = useSelector((state) => state.contracts);
 
   const { updateCampaign: updateCampaignState, markCampaignComplete: markCampaignCompleteState } =
     useSelector((state) => state.campaigns);
+
+  const { getTimeline: getTimelineState } = useSelector((state) => state.campaignTimeline);
 
   // ==================== STATE MANAGEMENT ====================
 
@@ -134,6 +143,8 @@ const useDeliverablesProgress = (
   // Mark Complete Modal State
   const [showMarkCompleteModal, setShowMarkCompleteModal] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const [markCompleteRating, setMarkCompleteRating] = useState(0);
+  const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
 
   // ==================== CREATOR DATA ====================
   const creator = selectedCreator
@@ -173,21 +184,36 @@ const useDeliverablesProgress = (
     ? getReviewsByCreatorProfileState.data || []
     : getReviewsState.data || [];
 
-  // Get contracts for the campaign
-  const contracts = getContractsState.data || [];
+  // Get contracts for the campaign (multi-creator) or individual collaborations
+  const contracts =
+    isIndividualCreator || campaignId?.startsWith("individual-")
+      ? getIndividualContractsState.data || []
+      : getContractsState.data || [];
 
   // Find the contract for the selected creator
   const selectedContract =
     contracts.find((contract) => {
       // Try different ID fields that might match
-      const possibleCreatorIds = [creatorProfileId].filter(Boolean); // Remove undefined values
+      const possibleCreatorIds = [creatorProfileId, creatorUserId].filter(Boolean); // Remove undefined values
 
-      return possibleCreatorIds.includes(contract.creatorId);
+      // For individual collaborations, contract.creator might be an object with id
+      const contractCreatorId = contract.creator?.id || contract.creatorId || contract.creator_id;
+
+      return possibleCreatorIds.includes(contractCreatorId);
     }) || contracts[0]; // Fallback to first contract if no match found
 
   // ==================== EFFECTS ====================
+  // Fetch contracts for individual collaborations
   useEffect(() => {
-    // Skip ALL API calls for individual collaborations
+    if (isIndividualCreator || campaignId?.startsWith("individual-")) {
+      // Fetch individual collaboration contracts (false = active, not completed)
+      dispatch(getIndividualCollaborationContracts(false));
+    }
+  }, [dispatch, isIndividualCreator, campaignId]);
+
+  // Fetch contracts and other data for multi-creator campaigns
+  useEffect(() => {
+    // Skip for individual collaborations
     if (isIndividualCreator || campaignId?.startsWith("individual-")) {
       return;
     }
@@ -219,6 +245,27 @@ const useDeliverablesProgress = (
       }
     }
   }, [dispatch, campaignId, creatorProfileId, isIndividualCreator, creatorMode]);
+
+  // Fetch timeline only if there are contracts (hired creators) and a creator is selected
+  useEffect(() => {
+    // Skip for individual collaborations
+    if (isIndividualCreator || campaignId?.startsWith("individual-")) {
+      return;
+    }
+
+    // Only fetch timeline if:
+    // 1. Campaign ID is valid
+    // 2. There are contracts (hired creators)
+    // 3. A creator is selected (creatorProfileId exists)
+    if (
+      campaignId &&
+      campaignId !== "temp-campaign-id" &&
+      contracts.length > 0 &&
+      creatorProfileId
+    ) {
+      dispatch(getTimeline(campaignId));
+    }
+  }, [dispatch, campaignId, contracts.length, creatorProfileId, isIndividualCreator]);
 
   // Fetch double-blind review status
   useEffect(() => {
@@ -513,6 +560,37 @@ const useDeliverablesProgress = (
     setNewNoteText("");
   };
 
+  // ==================== TIMELINE CHECK ====================
+  const timelineSteps = getTimelineState?.data?.data || [];
+
+  // Find FINAL_PUBLISHED step for the selected creator
+  // Timeline steps have a creator object with id field
+  const finalPublishedStep = timelineSteps.find(
+    (step) =>
+      step.step === TIMELINE_STEPS.FINAL_PUBLISHED &&
+      (step.creator?.id === creatorUserId || step.creator_id === creatorUserId)
+  );
+
+  // Check if final published step exists and is completed/approved
+  const isFinalPublished =
+    finalPublishedStep &&
+    (finalPublishedStep.status === TIMELINE_STATUS.COMPLETED ||
+      finalPublishedStep.status === TIMELINE_STATUS.APPROVED);
+
+  // Check if all required deliverables are complete
+  const allDeliverablesComplete = project.deliverables.every(
+    (deliverable) => deliverable.completed
+  );
+
+  // Mark Complete button is enabled only if:
+  // 1. Final deliverable is published (FINAL_PUBLISHED step is COMPLETED or APPROVED)
+  // 2. All required deliverables are marked as complete
+  // For individual collaborations, skip timeline check
+  const isMarkCompleteDisabled =
+    isIndividualCreator || campaignId?.startsWith("individual-")
+      ? !allDeliverablesComplete
+      : !isFinalPublished || !allDeliverablesComplete;
+
   // ==================== MARK COMPLETE FUNCTIONS ====================
   const handleMarkCompleteClick = () => {
     setShowMarkCompleteModal(true);
@@ -520,32 +598,41 @@ const useDeliverablesProgress = (
 
   const handleCancelMarkComplete = () => {
     setShowMarkCompleteModal(false);
+    setMarkCompleteRating(0);
+    setMarkCompleteFeedback("");
   };
 
   const handleConfirmMarkComplete = async () => {
-    if (!selectedContract || !campaignId) return;
+    if (!selectedContract || !campaignId || !creatorProfileId || markCompleteRating === 0) return;
 
     setIsMarkingComplete(true);
     try {
-      // Mark campaign as complete (updates campaign status and creator statuses)
+      // Step 1: Create review first
+      await dispatch(
+        createCampaignReview({
+          campaignId,
+          creatorProfileId,
+          reviewData: {
+            rating: markCompleteRating,
+            review: markCompleteFeedback || null,
+          },
+        })
+      ).unwrap();
+
+      // Step 2: Mark campaign as complete (updates campaign status and creator statuses, releases payment)
       await dispatch(markCampaignComplete(campaignId)).unwrap();
 
-      // Refresh brand campaigns (excludes completed ones - for active tab)
-      await dispatch(getBrandCampaignsExcludingCompleted()).unwrap();
+      // Step 3: Refresh all brand campaigns (unified endpoint)
+      await dispatch(getAllBrandCampaigns()).unwrap();
 
-      // Refresh all campaigns (includes completed ones - for completed tab)
-      await dispatch(getAllCampaigns({ status: "COMPLETE" })).unwrap();
-
-      // Force refresh of completed tab by dispatching without status filter
-      // This ensures the completed tab gets the updated data
-      await dispatch(getAllCampaigns()).unwrap();
-
-      // Close modal and show success
+      // Step 6: Close modal, reset form, and show success
       setShowMarkCompleteModal(false);
-      // TODO: Show success message or update UI
+      setMarkCompleteRating(0);
+      setMarkCompleteFeedback("");
+
+      // Success toast is handled globally by api.js
     } catch (error) {
-      console.error("Error marking campaign complete:", error);
-      // TODO: Show error message
+      // Error toast is handled globally by api.js
     } finally {
       setIsMarkingComplete(false);
     }
@@ -611,7 +698,10 @@ const useDeliverablesProgress = (
     isCreateNoteLoading: createNoteState.isLoading,
     isUpdateNoteLoading: updateNoteState.isLoading,
     isDeleteNoteLoading: deleteNoteState.isLoading,
-    isContractsLoading: getContractsState.isLoading,
+    isContractsLoading:
+      isIndividualCreator || campaignId?.startsWith("individual-")
+        ? getIndividualContractsState.isLoading
+        : getContractsState.isLoading,
     isUpdateCampaignLoading: updateCampaignState.isLoading,
     reviewStatus,
     isMarkCampaignCompleteLoading: markCampaignCompleteState.isLoading,
@@ -623,6 +713,11 @@ const useDeliverablesProgress = (
     // Mark Complete functionality
     showMarkCompleteModal,
     isMarkingComplete,
+    isMarkCompleteDisabled,
+    markCompleteRating,
+    setMarkCompleteRating,
+    markCompleteFeedback,
+    setMarkCompleteFeedback,
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,

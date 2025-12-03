@@ -8,7 +8,7 @@ import {
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 
-export default function useBrandTimeline(campaignId) {
+export default function useBrandTimeline(campaignId, contracts = []) {
   const dispatch = useDispatch();
 
   // Redux state
@@ -38,23 +38,32 @@ export default function useBrandTimeline(campaignId) {
   // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
 
-  // Load timeline on mount and when campaignId changes
+  // Load timeline on mount and when campaignId changes - only if there are contracts (hired creators)
   useEffect(() => {
-    if (campaignId) {
+    // Skip if no campaign ID
+    if (!campaignId) return;
+    
+    // Skip if campaign ID is a synthetic ID for individual collaborations
+    if (campaignId.startsWith("individual-")) return;
+    
+    // Only fetch timeline if there are contracts (hired creators)
+    if (contracts.length > 0) {
       dispatch(getTimeline(campaignId));
     }
-  }, [campaignId, dispatch]);
+  }, [campaignId, contracts.length, dispatch]);
 
-  // Auto-refresh timeline every 10 seconds to show creator updates
+  // Auto-refresh timeline every 10 seconds to show creator updates - only if there are contracts
   useEffect(() => {
     if (!campaignId) return;
+    if (campaignId.startsWith("individual-")) return;
+    if (contracts.length === 0) return;
 
     const interval = setInterval(() => {
       dispatch(getTimeline(campaignId));
     }, 10000); // Refresh every 10 seconds
 
     return () => clearInterval(interval);
-  }, [campaignId, dispatch]);
+  }, [campaignId, contracts.length, dispatch]);
 
   // Format date
   const formatDate = (dateString) => {

@@ -30,8 +30,8 @@ export default function SimpleSelect({
   isSearchable,
   onChange,
   defaultValue,
+  value,
   className = "",
-  // New props for validation like CustomInput
   name,
   errors = null,
   register = null,
@@ -56,6 +56,7 @@ export default function SimpleSelect({
     isSearchable,
     onChange,
     defaultValue,
+    value,
   });
 
   const handleClick = (event) => {
@@ -148,6 +149,14 @@ SimpleSelect.propTypes = {
   isSearchable: PropTypes.bool,
   onChange: PropTypes.func,
   defaultValue: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  ]),
+  value: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.number,
     PropTypes.shape({
