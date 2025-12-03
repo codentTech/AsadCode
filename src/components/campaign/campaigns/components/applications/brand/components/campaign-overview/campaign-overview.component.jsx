@@ -6,11 +6,8 @@ import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { createContract, sendContract } from "@/provider/features/campaigns/campaigns.slice";
 import { RefreshRounded } from "@mui/icons-material";
 import { ChevronDown, ChevronUp, Filter } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import HireCreatorModal from "../hire-creator-modal/hire-creator-modal.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
 
@@ -23,26 +20,6 @@ export default function CampaignOverview({
   onClearFilters,
   onRejectCreator,
 }) {
-  const dispatch = useDispatch();
-  const [hireModalOpen, setHireModalOpen] = useState(false);
-  const [hireCreatorData, setHireCreatorData] = useState(null);
-  const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
-  const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
-
-  // Get contract creation state from Redux
-  const {
-    isLoading: createContractLoading,
-    isSuccess: createContractSuccess,
-    isError: createContractError,
-  } = useSelector((state) => state.campaigns.createContract || {});
-
-  // Get contract sending state from Redux
-  const {
-    isLoading: sendContractLoading,
-    isSuccess: sendContractSuccess,
-    isError: sendContractError,
-  } = useSelector((state) => state.campaigns.sendContract || {});
-
   const {
     openFilterModal,
     setOpenFilterModal,
@@ -50,123 +27,44 @@ export default function CampaignOverview({
     setMessageDialogOpen,
     campaignsData,
     campaignsLoading,
-    campaignsSuccess,
-    campaignsError,
     campaignOptions,
-    selectedCampaign: internalSelectedCampaign,
-    handleCampaignChange: internalHandleCampaignChange,
-  } = useCampaignOverview();
-
-  // Use external selected campaign if provided, otherwise use internal
-  const selectedCampaign = externalSelectedCampaign || internalSelectedCampaign;
-
-  // Handle campaign change and notify parent
-  const handleCampaignChange = (selectedOption) => {
-    const campaignId = selectedOption?.value;
-    const campaign = campaignsData?.data?.find((c) => c.id === campaignId);
-
-    if (onCampaignSelect && campaign) {
-      onCampaignSelect(campaign);
-    }
-  };
-
-  // Notify parent if internal auto-selection happens and parent hasn't provided selectedCampaign
-  useEffect(() => {
-    if (!externalSelectedCampaign && internalSelectedCampaign && onCampaignSelect) {
-      onCampaignSelect(internalSelectedCampaign);
-    }
-  }, [externalSelectedCampaign, internalSelectedCampaign, onCampaignSelect]);
-
-  const handleHireClick = () => {
-    if (!selectedCreator || !externalSelectedCampaign) {
-      console.error("Missing creator or campaign data for hiring");
-      return;
-    }
-
-    // Set real creator and campaign data
-    setHireCreatorData(selectedCreator);
-    setSelectedCampaignForHire(externalSelectedCampaign);
-    setHireModalOpen(true);
-  };
-
-  const handleSendOffer = async (contractData) => {
-    // Prepare contract data for API
-    const contractPayload = {
-      campaignId: externalSelectedCampaign.id,
-      creatorId: selectedCreator.creator?.id || selectedCreator.id,
-      brandId: externalSelectedCampaign.created_by?.id,
-      startDate: contractData.startDate,
-      completionDeadline: contractData.completionDeadline,
-      contentFormat: contractData.contentFormat,
-      revisionsLimit: contractData.revisionsLimit,
-      compensationType: contractData.compensationType.toUpperCase(),
-      totalCompensation: contractData.totalCompensation
-        ? parseFloat(contractData.totalCompensation)
-        : undefined,
-      productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
-      usageRights:
-        contractData.usageRights === "no_usage"
-          ? "no_usage"
-          : contractData.usageRights === "permanent"
-            ? "permanent"
-            : `${contractData.usageRights}_months`,
-      exclusivityClause:
-        contractData.exclusivityClause === "none"
-          ? "none"
-          : `${contractData.exclusivityClause}_months`,
-      hashtags: contractData.hashtags,
-      mentions: contractData.mentions,
-      inPersonRequired: contractData.inPersonRequired,
-      eligibleCountry: contractData.eligibleCountry,
-      eligibleCity: contractData.eligibleCity,
-      ageRange: contractData.ageRange,
-      gender: contractData.gender,
-      language: contractData.language,
-    };
-
-    // Create contract
-    const createResult = await dispatch(createContract(contractPayload)).unwrap();
-
-    if (createResult.success) {
-      // Send contract (this now auto-approves and hires the creator)
-      await dispatch(sendContract(createResult.data.id)).unwrap();
-
-      // Close modal
-      setHireModalOpen(false);
-      setHireCreatorData(null);
-      setSelectedCampaignForHire(null);
-
-      // Add a small delay to ensure backend has updated the status
-      setTimeout(() => {
-        // Refresh applications list
-        if (onCampaignSelect) {
-          onCampaignSelect(externalSelectedCampaign);
-        }
-      }, 1000); // 1 second delay
-    }
-  };
-
-  const handleRejectClick = () => {
-    setShowRejectConfirmation(true);
-  };
-
-  const handleConfirmReject = () => {
-    if (onRejectCreator && selectedCampaign && selectedCreator) {
-      onRejectCreator(selectedCampaign.id, selectedCreator.id);
-    }
-    setShowRejectConfirmation(false);
-  };
-
-  const handleCancelReject = () => {
-    setShowRejectConfirmation(false);
-  };
-
-  const countries = [
-    { value: "United States", label: "United States" },
-    { value: "United Kingdom", label: "United Kingdom" },
-    { value: "Canada", label: "Canada" },
-    { value: "Australia", label: "Australia" },
-  ];
+    selectedCampaign,
+    handleCampaignChange,
+    hireModalOpen,
+    setHireModalOpen,
+    hireCreatorData,
+    selectedCampaignForHire,
+    showRejectConfirmation,
+    createContractLoading,
+    sendContractLoading,
+    createContractSuccess,
+    sendContractSuccess,
+    createContractError,
+    sendContractError,
+    handleHireClick,
+    handleSendOffer,
+    handleRejectClick,
+    handleConfirmReject,
+    handleCancelReject,
+    handleNicheToggle,
+    handlePlatformToggle,
+    handleCountryToggle,
+    getSortLabel,
+    COUNTRIES,
+    APPLICATION_STATUS_OPTIONS,
+    SORT_OPTIONS,
+    NICHE_OPTIONS,
+    PLATFORM_OPTIONS,
+    COUNTRY_FILTER_OPTIONS,
+  } = useCampaignOverview({
+    onCampaignSelect,
+    selectedCampaign: externalSelectedCampaign,
+    selectedCreator,
+    filters,
+    onFilterChange,
+    onClearFilters,
+    onRejectCreator,
+  });
 
   return (
     <div className="w-[23%] border-r flex flex-col bg-white p-4 gap-4">
@@ -177,15 +75,21 @@ export default function CampaignOverview({
         isMulti={false}
         onChange={handleCampaignChange}
         isLoading={campaignsLoading}
+        value={
+          selectedCampaign?.campaign_title
+            ? campaignOptions.find((opt) => opt.value === selectedCampaign.id) || {
+                value: selectedCampaign.id,
+                label: selectedCampaign.campaign_title || "Untitled Campaign",
+              }
+            : null
+        }
       />
 
       <hr />
 
-      {/* Show Actions and Filters - now default campaign is auto-selected */}
       {selectedCampaign ? (
         <>
           <div className="space-y-4">
-            {/* Show Actions only when both campaign and creator are selected */}
             {selectedCreator ? (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Actions</h3>
@@ -214,7 +118,6 @@ export default function CampaignOverview({
                 <Filter className="w-4 h-4" />
                 Filters
               </h3>
-              {/* Clear Filters Button */}
               <button
                 onClick={onClearFilters}
                 className="flex items-center gap-2 text-red-600 hover:text-red-700 text-sm font-medium"
@@ -223,7 +126,6 @@ export default function CampaignOverview({
               </button>
             </div>
 
-            {/* Follower Count */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Follower Count</label>
               <div className="flex gap-2">
@@ -242,57 +144,37 @@ export default function CampaignOverview({
               </div>
             </div>
 
-            {/* Application Status */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Application Status
               </label>
               <SimpleSelect
                 placeHolder="Select status"
-                options={[
-                  { value: "PENDING", label: "Pending" },
-                  { value: "HIRED", label: "Hired" },
-                  { value: "REJECTED", label: "Rejected" },
-                  { value: "DRAFT", label: "Draft" },
-                ]}
+                options={APPLICATION_STATUS_OPTIONS}
                 value={filters?.status ? { value: filters.status, label: filters.status } : null}
                 onChange={(option) => onFilterChange("status", option?.value || "")}
               />
             </div>
 
-            {/* Audience Country */}
             <div>
               <SimpleSelect
                 placeHolder="Select Audience Country"
-                options={countries}
+                options={COUNTRIES}
                 value={filters?.country ? { value: filters.country, label: filters.country } : null}
                 onChange={(option) => onFilterChange("country", option?.value || "")}
               />
             </div>
 
-            {/* Sort Options */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
               <SimpleSelect
                 placeHolder="Sort by"
-                options={[
-                  { value: "newest", label: "Newest First" },
-                  { value: "oldest", label: "Oldest First" },
-                  { value: "rating", label: "Highest Rating" },
-                  { value: "followers", label: "Most Followers" },
-                ]}
+                options={SORT_OPTIONS}
                 value={
                   filters?.sort
                     ? {
                         value: filters.sort,
-                        label:
-                          filters.sort === "newest"
-                            ? "Newest First"
-                            : filters.sort === "oldest"
-                              ? "Oldest First"
-                              : filters.sort === "rating"
-                                ? "Highest Rating"
-                                : "Most Followers",
+                        label: getSortLabel(filters.sort),
                       }
                     : null
                 }
@@ -300,7 +182,6 @@ export default function CampaignOverview({
               />
             </div>
 
-            {/* See More Button */}
             <button
               onClick={() => setOpenFilterModal(!openFilterModal)}
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -338,7 +219,6 @@ export default function CampaignOverview({
         isError={createContractError || sendContractError}
       />
 
-      {/* Message Creator Dialog */}
       <Modal
         title={`Message to Sam Waters`}
         show={messageDialogOpen}
@@ -351,37 +231,19 @@ export default function CampaignOverview({
             className="btn-cancel"
             onClick={() => setMessageDialogOpen(false)}
           />
-
           <CustomButton text="Send Message" className="btn-primary" />
         </div>
       </Modal>
 
       <Modal title="Apply Filters" show={openFilterModal} onClose={() => setOpenFilterModal(false)}>
         <div className="space-y-6">
-          {/* Category Filters */}
           <div className="p-2 bg-gray-50 rounded-lg border">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Categories</h4>
             <div className="flex flex-wrap gap-2">
-              {[
-                "Beauty",
-                "Skincare",
-                "Fitness",
-                "Fashion",
-                "Travel",
-                "Food",
-                "Finance",
-                "Business",
-                "Health",
-              ].map((niche) => (
+              {NICHE_OPTIONS.map((niche) => (
                 <button
                   key={niche}
-                  onClick={() => {
-                    const currentNiches = filters?.niches || [];
-                    const newNiches = currentNiches.includes(niche)
-                      ? currentNiches.filter((n) => n !== niche)
-                      : [...currentNiches, niche];
-                    onFilterChange("niches", newNiches);
-                  }}
+                  onClick={() => handleNicheToggle(niche)}
                   className={`px-2 py-1.5 rounded-lg text-xs border ${
                     filters?.niches?.includes(niche)
                       ? "bg-primary text-white shadow-sm"
@@ -394,7 +256,6 @@ export default function CampaignOverview({
             </div>
           </div>
 
-          {/* Rating Slider */}
           <div className="bg-white border rounded-lg p-2 shadow-sm">
             <h4 className="text-sm font-semibold text-gray-700 mb-1">Minimum Rating</h4>
             <input
@@ -412,7 +273,6 @@ export default function CampaignOverview({
             </div>
           </div>
 
-          {/* Number of Ratings Slider */}
           <div className="bg-white border rounded-lg p-2 shadow-sm">
             <h4 className="text-sm font-semibold text-gray-700 mb-1">Number of Ratings</h4>
             <input
@@ -429,17 +289,16 @@ export default function CampaignOverview({
             </div>
           </div>
 
-          {/* Country Filters */}
           <div className="bg-white border rounded-lg p-2 shadow-sm">
             <h4 className="text-sm font-semibold text-gray-700 mb-1">Countries</h4>
             <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
-              {["United States", "Canada", "United Kingdom", "Australia"].map((country, idx) => (
+              {COUNTRY_FILTER_OPTIONS.map((country) => (
                 <label key={country} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     className="accent-blue-600"
                     checked={filters?.country === country}
-                    onChange={(e) => onFilterChange("country", e.target.checked ? country : "")}
+                    onChange={(e) => handleCountryToggle(country, e.target.checked)}
                   />
                   <span>{country}</span>
                 </label>
@@ -448,23 +307,16 @@ export default function CampaignOverview({
             <button className="mt-2 text-blue-600 text-sm hover:underline">+ Show more</button>
           </div>
 
-          {/* Platform Filters */}
           <div className="bg-white border rounded-lg p-2 shadow-sm">
             <h4 className="text-sm font-semibold text-gray-700 mb-1">Social Platforms</h4>
             <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
-              {["Instagram", "TikTok", "YouTube"].map((platform, idx) => (
+              {PLATFORM_OPTIONS.map((platform) => (
                 <label key={platform} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     className="accent-blue-600"
                     checked={filters?.platforms?.includes(platform)}
-                    onChange={(e) => {
-                      const currentPlatforms = filters?.platforms || [];
-                      const newPlatforms = e.target.checked
-                        ? [...currentPlatforms, platform]
-                        : currentPlatforms.filter((p) => p !== platform);
-                      onFilterChange("platforms", newPlatforms);
-                    }}
+                    onChange={(e) => handlePlatformToggle(platform, e.target.checked)}
                   />
                   <span>{platform}</span>
                 </label>
@@ -472,7 +324,6 @@ export default function CampaignOverview({
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
             <CustomButton
               text="Apply Filters"
@@ -489,7 +340,6 @@ export default function CampaignOverview({
         </div>
       </Modal>
 
-      {/* Reject Confirmation Modal */}
       <ConfirmationDialog
         show={showRejectConfirmation}
         onClose={handleCancelReject}

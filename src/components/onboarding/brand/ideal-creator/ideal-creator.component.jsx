@@ -522,6 +522,7 @@ const IdealCreator = ({ onNext, onBack }) => {
             className="btn-primary"
             onClick={handleSubmit(onSubmit)}
             disabled={isLoading}
+            loading={isLoading}
           />
         </div>
       </div>

@@ -159,7 +159,7 @@ function CampaignFeed() {
                       </div>
                       <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
-                        <div>{campaign.budget}</div>
+                        <div>{campaign.creator_fee}</div>
                       </div>
                     </div>
                   </div>

@@ -12,7 +12,11 @@ import MessageThreadModal from "../../../../message-thread-modal/message-thread-
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
-const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualCreator = false }) => {
+const DeliverablesProgress = ({
+  selectedCampaign,
+  selectedCreator,
+  isIndividualCreator = false,
+}) => {
   // ==================== HOOK USAGE ====================
   const {
     // Message thread integration
@@ -59,6 +63,11 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
     // Mark Complete functionality
     showMarkCompleteModal,
     isMarkingComplete,
+    isMarkCompleteDisabled,
+    markCompleteRating,
+    setMarkCompleteRating,
+    markCompleteFeedback,
+    setMarkCompleteFeedback,
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
@@ -66,7 +75,12 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
     // Helper functions
     getStatusColor,
     getStatusIcon,
-  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign, selectedCreator, isIndividualCreator);
+  } = useDeliverablesProgress(
+    selectedCampaign?.id,
+    selectedCampaign,
+    selectedCreator,
+    isIndividualCreator
+  );
 
   // ==================== RENDER HELPERS ====================
   const renderCampaignSelectionMessage = () => (
@@ -122,11 +136,17 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
     <div className="bg-white rounded border p-3">
       <h4 className="text-sm font-semibold text-gray-800 mb-2">Quick Actions</h4>
       <div className="flex gap-2">
-        <CustomButton text="Mark Complete" onClick={handleMarkCompleteClick} />
         <CustomButton
           text="Message"
-          className="btn-outline w-full"
+          className="btn-primary w-full"
           onClick={messageThreadHook.openMessageModal}
+        />
+        <CustomButton
+          text="Mark Complete"
+          onClick={handleMarkCompleteClick}
+          className={isMarkCompleteDisabled ? "btn-disabled w-full" : "btn-primary w-full"}
+          disabled={isMarkCompleteDisabled}
+          title={isMarkCompleteDisabled ? "Final content must be published before completion" : ""}
         />
       </div>
     </div>
@@ -257,7 +277,7 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={selectedCampaign?.id} />
+        <BrandTimelineSteps campaignId={selectedCampaign?.id} contracts={contracts} />
       </div>
     );
   };
@@ -396,38 +416,58 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
             messagesContainerRef={messageThreadHook.messagesContainerRef}
           />
 
-          {/* Mark Complete Confirmation Modal */}
+          {/* Mark Complete Review Modal */}
           <Modal
             show={showMarkCompleteModal}
             onClose={handleCancelMarkComplete}
-            title="Mark Campaign Complete"
-            size="sm"
+            title={`Leave a review for ${creator.name}`}
+            size="md"
           >
             <div className="p-4">
-              <div className="text-center mb-6">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                  <CheckCircle2 className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Confirm Campaign Completion
-                </h3>
-                <p className="text-sm text-gray-600">
-                  By continuing, you are acknowledging that{" "}
-                  <span className="font-semibold">{creator.name}</span> has completed their
-                  agreement.
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Your review helps other brands on CleerCut choose creators with confidence.
                 </p>
-                {selectedContract && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">
-                      <span className="font-medium">Contract Value:</span>{" "}
-                      {selectedContract.compensationType === "PAID"
-                        ? `$${selectedContract.totalCompensation || 0}`
-                        : selectedContract.compensationType === "GIFTED_PRODUCT"
-                          ? `Product ($${selectedContract.productPrice || 0})`
-                          : "Commission based"}
-                    </p>
+
+                {/* Star Rating */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Rating <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-8 h-8 cursor-pointer transition-colors ${
+                          i < markCompleteRating ? "text-yellow-400 fill-current" : "text-gray-300"
+                        }`}
+                        onClick={() => setMarkCompleteRating(i + 1)}
+                      />
+                    ))}
+                    {markCompleteRating > 0 && (
+                      <span className="text-sm text-gray-600 ml-2">{markCompleteRating}/5</span>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Feedback Text */}
+                <div className="mb-4">
+                  <TextArea
+                    label="Feedback (Optional)"
+                    placeholder="Share your experience working with this creator..."
+                    value={markCompleteFeedback}
+                    onChange={(e) => setMarkCompleteFeedback(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                {/* Notice */}
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-800">
+                    <span className="font-semibold">Notice:</span> Marking complete will
+                    automatically release the payment to the creator and close this collaboration.
+                  </p>
+                </div>
               </div>
 
               <div className="flex gap-3">
@@ -438,10 +478,14 @@ const DeliverablesProgress = ({ selectedCampaign, selectedCreator, isIndividualC
                   disabled={isMarkingComplete || isUpdateCampaignLoading}
                 />
                 <CustomButton
-                  text={isMarkingComplete || isUpdateCampaignLoading ? "Completing..." : "Complete"}
+                  text={
+                    isMarkingComplete || isUpdateCampaignLoading ? "Completing..." : "Mark Complete"
+                  }
                   className="btn-primary flex-1"
                   onClick={handleConfirmMarkComplete}
-                  disabled={isMarkingComplete || isUpdateCampaignLoading}
+                  disabled={
+                    isMarkingComplete || isUpdateCampaignLoading || markCompleteRating === 0
+                  }
                 />
               </div>
             </div>

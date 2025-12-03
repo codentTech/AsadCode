@@ -25,6 +25,9 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
     handleViewAnalytics,
   } = useCampaignOverview(onCampaignSelect, onToggleChange);
 
+  console.log(selectedCampaign);
+  console.log(filteredCampaignOptions);
+
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
       {/* Campaign Type Toggle */}
@@ -41,18 +44,17 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
       {/* Campaign Dropdown - Only show for Multi Creator */}
       {isMultiCreator && (
         <SimpleSelect
-          placeHolder={isMultiCreator ? "Active campaigns" : "Individual collaborations"}
+          placeHolder="Active campaigns"
           options={filteredCampaignOptions}
           isSearchable={true}
           isMulti={false}
           onChange={handleCampaignSelect}
           isLoading={isLoading}
           value={
-            isSelectedCampaignValid
+            isSelectedCampaignValid && selectedCampaign?.campaign_title
               ? {
                   value: selectedCampaign.id,
                   label: selectedCampaign.campaign_title,
-                  campaign: selectedCampaign,
                 }
               : null
           }
@@ -99,44 +101,6 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
         </div>
       )}
 
-      {/* Performance Overview - Only show for Multi Creator */}
-      {showMultiCreatorUI && hasData && (
-        <>
-          <hr />
-
-          {/* Performance Metrics */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Views:</span>
-                <span className="font-medium text-blue-800">
-                  {formatNumber(performanceMetrics.totalViews)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Engagement:</span>
-                <span className="font-medium text-blue-800">
-                  {formatNumber(performanceMetrics.totalEngagement)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Engagement Rate:</span>
-                <span className="font-medium text-blue-800">
-                  {performanceMetrics.engagementRate.toFixed(1)}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Cost per Engagement:</span>
-                <span className="font-medium text-blue-800">
-                  {formatCurrency(performanceMetrics.costPerEngagement)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
       {hasData && (
         <>
           <hr />
@@ -147,24 +111,6 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
             </h3>
             <AudienceDemographics className="flex flex-col" />
           </div>
-
-          <hr />
-
-          {/* Action Buttons */}
-          {showMultiCreatorUI && (
-            <div className="flex flex-col gap-2 mt-1">
-              <CustomButton
-                text="Export Campaign Data"
-                onClick={handleExportData}
-                className="w-full btn-primary"
-              />
-              <CustomButton
-                text="View Full Analytics"
-                onClick={handleViewAnalytics}
-                className="w-full btn-outline"
-              />
-            </div>
-          )}
         </>
       )}
     </div>

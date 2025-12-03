@@ -5,7 +5,7 @@ import { AlertCircle, CheckCircle, Loader2, Lock, MessageSquare } from "lucide-r
 import React from "react";
 import useBrandTimeline from "./use-brand-timeline.hook";
 
-const BrandTimelineSteps = ({ campaignId }) => {
+const BrandTimelineSteps = ({ campaignId, contracts = [] }) => {
   const {
     // State
     timelineSteps,
@@ -28,7 +28,7 @@ const BrandTimelineSteps = ({ campaignId }) => {
 
     // Constants
     TIMELINE_STATUS,
-  } = useBrandTimeline(campaignId);
+  } = useBrandTimeline(campaignId, contracts);
 
   const getStepIcon = (step) => {
     switch (step.status) {
