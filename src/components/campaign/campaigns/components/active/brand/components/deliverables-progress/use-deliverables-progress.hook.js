@@ -563,19 +563,24 @@ const useDeliverablesProgress = (
   // ==================== TIMELINE CHECK ====================
   const timelineSteps = getTimelineState?.data?.data || [];
 
-  // Find FINAL_PUBLISHED step for the selected creator
-  // Timeline steps have a creator object with id field
-  const finalPublishedStep = timelineSteps.find(
-    (step) =>
-      step.step === TIMELINE_STEPS.FINAL_PUBLISHED &&
-      (step.creator?.id === creatorUserId || step.creator_id === creatorUserId)
-  );
+  // Filter timeline steps for the selected creator
+  // Timeline creator.id is the user ID, so match against creatorUserId
+  let creatorTimelineSteps = timelineSteps.filter((step) => {
+    const stepCreatorId = step.creator?.id || step.creator_id;
+    return stepCreatorId === creatorUserId;
+  });
 
-  // Check if final published step exists and is completed/approved
-  const isFinalPublished =
-    finalPublishedStep &&
-    (finalPublishedStep.status === TIMELINE_STATUS.COMPLETED ||
-      finalPublishedStep.status === TIMELINE_STATUS.APPROVED);
+  // Fallback: if no steps found for creator, use all steps (for single-creator campaigns)
+  if (creatorTimelineSteps.length === 0 && timelineSteps.length > 0) {
+    creatorTimelineSteps = timelineSteps;
+  }
+
+  // Check if all 3 steps exist and all have status COMPLETED
+  const areAllStepsComplete =
+    creatorTimelineSteps.length >= 3 &&
+    creatorTimelineSteps.every((step) => step.status === TIMELINE_STATUS.COMPLETED);
+
+  console.log(areAllStepsComplete);
 
   // Check if all required deliverables are complete
   const allDeliverablesComplete = project.deliverables.every(
@@ -583,13 +588,13 @@ const useDeliverablesProgress = (
   );
 
   // Mark Complete button is enabled only if:
-  // 1. Final deliverable is published (FINAL_PUBLISHED step is COMPLETED or APPROVED)
+  // 1. All 3 timeline steps are completed (for multi-creator campaigns)
   // 2. All required deliverables are marked as complete
   // For individual collaborations, skip timeline check
   const isMarkCompleteDisabled =
     isIndividualCreator || campaignId?.startsWith("individual-")
       ? !allDeliverablesComplete
-      : !isFinalPublished || !allDeliverablesComplete;
+      : !areAllStepsComplete;
 
   // ==================== MARK COMPLETE FUNCTIONS ====================
   const handleMarkCompleteClick = () => {
