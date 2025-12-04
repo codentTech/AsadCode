@@ -6,7 +6,7 @@ import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, Edit2, MapPin, Star, Trash2 } from "lucide-react";
+import { Edit2, Star, Trash2 } from "lucide-react";
 import React from "react";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
@@ -17,28 +17,11 @@ const DeliverablesProgress = ({
   selectedCreator,
   isIndividualCreator = false,
 }) => {
-  // ==================== HOOK USAGE ====================
   const {
-    // Message thread integration
     messageThreadHook,
     creator,
-
-    // Project management
-    project,
-    editingItem,
-    editForm,
-    setEditForm,
-    handleEdit,
-    handleSave,
-    handleCancel,
-    toggleDeliverable,
-    toggleTimelineStep,
-
-    // Notes
     privateNotes,
     editingNote,
-    editNoteForm,
-    setEditNoteForm,
     newNoteText,
     setNewNoteText,
     handleEditNote,
@@ -47,20 +30,14 @@ const DeliverablesProgress = ({
     handleDeleteNote,
     handleSaveNewNote,
     handleCancelNewNote,
-
-    // Loading states
     isNotesLoading,
     isCreateNoteLoading,
     isUpdateNoteLoading,
     isDeleteNoteLoading,
     isContractsLoading,
     isUpdateCampaignLoading,
-
-    // Contract data
     selectedContract,
     contracts,
-
-    // Mark Complete functionality
     showMarkCompleteModal,
     isMarkingComplete,
     isMarkCompleteDisabled,
@@ -71,10 +48,6 @@ const DeliverablesProgress = ({
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
-
-    // Helper functions
-    getStatusColor,
-    getStatusIcon,
   } = useDeliverablesProgress(
     selectedCampaign?.id,
     selectedCampaign,
@@ -82,20 +55,12 @@ const DeliverablesProgress = ({
     isIndividualCreator
   );
 
-  // ==================== RENDER HELPERS ====================
   const renderCampaignSelectionMessage = () => (
     <div className="py-16">
       <NotFound
         title="No Campaign Selected"
         description="Select a campaign from the list to view creator details and manage deliverables."
       />
-    </div>
-  );
-
-  const renderCreatorSelectionMessage = () => (
-    <div className="flex flex-col items-center justify-center py-12 text-center px-3">
-      <Loader loading={true} />
-      <p className="text-sm text-gray-500 mt-3">Loading creators...</p>
     </div>
   );
 
@@ -198,12 +163,9 @@ const DeliverablesProgress = ({
     };
 
     const getDeliverables = () => {
-      // Parse content format to extract deliverables
       if (selectedContract.contentFormat) {
-        // Handle the specific format: "Quantity (1) Deliverable 'instagram post', Quantity (2) Deliverable 'instagram reel'"
         const deliverables = selectedContract.contentFormat.split(",").map((item) => {
           const trimmed = item.trim();
-          // Extract quantity and deliverable name
           const match = trimmed.match(/Quantity \((\d+)\) Deliverable '([^']+)'/);
           if (match) {
             const quantity = match[1];
@@ -269,7 +231,6 @@ const DeliverablesProgress = ({
   };
 
   const renderTimeline = () => {
-    // Only show timeline for CleerCut campaigns
     if (selectedCampaign?.source_platform !== SOURCE_PLATFORM.CLEERCUT) {
       return null;
     }
@@ -308,98 +269,79 @@ const DeliverablesProgress = ({
                       : note.timestamp}
                   </span>
                 </div>
-                {
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
-                    <button
-                      onClick={() => handleEditNote(note.id)}
-                      className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
-                      title="Edit note"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteNote(note.id)}
-                      disabled={isDeleteNoteLoading}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                      title="Delete note"
-                    >
-                      {isDeleteNoteLoading ? (
-                        <Loader loading={true} />
-                      ) : (
-                        <Trash2 className="w-3 h-3" />
-                      )}
-                    </button>
-                  </div>
-                }
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                  <button
+                    onClick={() => handleEditNote(note.id)}
+                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                    title="Edit note"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteNote(note.id)}
+                    disabled={isDeleteNoteLoading}
+                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                    title="Delete note"
+                  >
+                    {isDeleteNoteLoading ? (
+                      <Loader loading={true} />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
-      {
-        <React.Fragment>
-          <TextArea
-            key={`note-textarea-${editingNote || "new"}`}
-            label={editingNote ? "Edit note..." : "Add a new note..."}
-            value={newNoteText}
-            onChange={(e) => setNewNoteText(e.target.value)}
-            className="text-xs"
-            rows={2}
+      <React.Fragment>
+        <TextArea
+          key={`note-textarea-${editingNote || "new"}`}
+          label={editingNote ? "Edit note..." : "Add a new note..."}
+          value={newNoteText}
+          onChange={(e) => setNewNoteText(e.target.value)}
+          className="text-xs"
+          rows={2}
+        />
+        <div className="flex justify-end gap-2 mt-2">
+          <CustomButton
+            text="Cancel"
+            className="btn-cancel text-xs py-1 px-2"
+            onClick={editingNote ? handleCancelEditNote : handleCancelNewNote}
           />
-          <div className="flex justify-end gap-2 mt-2">
-            <CustomButton
-              text="Cancel"
-              className="btn-cancel text-xs py-1 px-2"
-              onClick={editingNote ? handleCancelEditNote : handleCancelNewNote}
-            />
-            <CustomButton
-              text={
-                isCreateNoteLoading || isUpdateNoteLoading ? (
-                  <Loader loading={true} />
-                ) : editingNote ? (
-                  "Update"
-                ) : (
-                  "Save"
-                )
-              }
-              className="btn-primary text-xs py-1 px-2"
-              onClick={editingNote ? () => handleSaveEditNote(editingNote) : handleSaveNewNote}
-              disabled={!newNoteText.trim() || isCreateNoteLoading || isUpdateNoteLoading}
-            />
-          </div>
-        </React.Fragment>
-      }
+          <CustomButton
+            text={
+              isCreateNoteLoading || isUpdateNoteLoading ? (
+                <Loader loading={true} />
+              ) : editingNote ? (
+                "Update"
+              ) : (
+                "Save"
+              )
+            }
+            className="btn-primary text-xs py-1 px-2"
+            onClick={editingNote ? () => handleSaveEditNote(editingNote) : handleSaveNewNote}
+            disabled={!newNoteText.trim() || isCreateNoteLoading || isUpdateNoteLoading}
+          />
+        </div>
+      </React.Fragment>
     </div>
   );
 
-  // Reviews block intentionally not rendered in Active tab
-
-  // ==================== MAIN RENDER ====================
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Campaign Selection Message */}
       {!selectedCampaign && renderCampaignSelectionMessage()}
-
-      {/* Creator Selection Message */}
-      {/* {selectedCampaign && !selectedCreator && renderCreatorSelectionMessage()} */}
-
-      {/* No Creator Found Message */}
       {selectedCampaign && selectedCreator === null && renderNoCreatorFound()}
-
-      {/* Main Content - Only show when both campaign and creator are selected */}
       {selectedCampaign && selectedCreator && (
         <>
           {renderCreatorProfile()}
-
-          {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {renderQuickActions()}
             {renderContractDetails()}
             {renderTimeline()}
             {renderNotes()}
           </div>
-
-          {/* Message Thread Modal */}
           <MessageThreadModal
             isOpen={messageThreadHook.isModalOpen}
             onClose={messageThreadHook.closeMessageModal}
@@ -415,8 +357,6 @@ const DeliverablesProgress = ({
             messagesEndRef={messageThreadHook.messagesEndRef}
             messagesContainerRef={messageThreadHook.messagesContainerRef}
           />
-
-          {/* Mark Complete Review Modal */}
           <Modal
             show={showMarkCompleteModal}
             onClose={handleCancelMarkComplete}
@@ -428,8 +368,6 @@ const DeliverablesProgress = ({
                 <p className="text-sm text-gray-600 mb-4">
                   Your review helps other brands on CleerCut choose creators with confidence.
                 </p>
-
-                {/* Star Rating */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Rating <span className="text-red-500">*</span>
@@ -449,8 +387,6 @@ const DeliverablesProgress = ({
                     )}
                   </div>
                 </div>
-
-                {/* Feedback Text */}
                 <div className="mb-4">
                   <TextArea
                     label="Feedback (Optional)"
@@ -460,8 +396,6 @@ const DeliverablesProgress = ({
                     rows={4}
                   />
                 </div>
-
-                {/* Notice */}
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800">
                     <span className="font-semibold">Notice:</span> Marking complete will
