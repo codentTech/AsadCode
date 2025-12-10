@@ -18,7 +18,6 @@ function DiscoverCreators({
   setSelectedShortlist,
   handleCreatorPreview,
   handleSaveToShortlist,
-  handleMessageCreator,
   getSortedCreators,
   handleRemoveFromShortlist,
   handleInviteToApply,
@@ -166,7 +165,6 @@ function DiscoverCreators({
           onCreatorPreview={handleCreatorPreview}
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
-          onMessageCreator={handleMessageCreator}
           onInviteClick={handleInviteClick}
           tab="discover"
         />
@@ -200,7 +198,6 @@ function DiscoverCreators({
             onCreatorPreview={handleCreatorPreview}
             onSaveToShortlist={handleSaveToShortlist}
             onRemoveFromShortlist={handleRemoveFromShortlist}
-            onMessageCreator={handleMessageCreator}
             onInviteClick={handleInviteClick}
             tab="discover"
           />

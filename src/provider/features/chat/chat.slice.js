@@ -196,7 +196,9 @@ const chatSlice = createSlice({
     // Add message from WebSocket
     addMessageFromSocket: (state, action) => {
       const message = action.payload;
-      const conversationId = message.conversation.id;
+      const conversationId = message.conversation?.id || message.conversation_id;
+
+      if (!conversationId) return;
 
       if (!state.messages[conversationId]) {
         state.messages[conversationId] = [];
@@ -205,14 +207,20 @@ const chatSlice = createSlice({
       // Add message if it doesn't exist
       const exists = state.messages[conversationId].some((m) => m.id === message.id);
       if (!exists) {
-        state.messages[conversationId].push(message);
+        state.messages[conversationId] = [...state.messages[conversationId], message];
+        // Sort messages by created_at to maintain chronological order (create new array)
+        state.messages[conversationId] = [...state.messages[conversationId]].sort((a, b) => {
+          const dateA = new Date(a.created_at || a.createdAt || 0);
+          const dateB = new Date(b.created_at || b.createdAt || 0);
+          return dateA - dateB;
+        });
       }
 
       // Update conversation last message
       const conversation = state.conversations.find((c) => c.id === conversationId);
       if (conversation) {
         conversation.last_message = message.content;
-        conversation.last_message_at = message.created_at;
+        conversation.last_message_at = message.created_at || message.createdAt;
       }
     },
 
@@ -239,17 +247,9 @@ const chatSlice = createSlice({
     updateConversationMessagesToSeen: (state, action) => {
       const { conversationId, seenAt } = action.payload;
 
-      console.log("🔄 Reducer: updateConversationMessagesToSeen", {
-        conversationId,
-        messageCount: state.messages[conversationId]?.length || 0,
-      });
-
       if (state.messages[conversationId]) {
-        let updatedCount = 0;
         state.messages[conversationId] = state.messages[conversationId].map((message) => {
-          // Only update messages that are not already SEEN
           if (message.status !== "SEEN") {
-            updatedCount++;
             return {
               ...message,
               status: "SEEN",
@@ -258,9 +258,6 @@ const chatSlice = createSlice({
           }
           return message;
         });
-        console.log(`✓ Updated ${updatedCount} messages to SEEN status`);
-      } else {
-        console.log(`⚠️ No messages found for conversation ${conversationId}`);
       }
     },
 
@@ -362,9 +359,25 @@ const chatSlice = createSlice({
         state.getConversationMessages.data = action.payload.data;
         state.getConversationMessages.message = action.payload.message;
 
-        // Store messages by conversation ID (reverse for chronological order)
+        // Store messages by conversation ID (sort chronologically)
         const conversationId = action.payload.conversationId;
-        state.messages[conversationId] = (action.payload.data || []).reverse();
+        const fetchedMessages = action.payload.data || [];
+        
+        // Merge with existing messages, avoiding duplicates
+        const existingMessages = state.messages[conversationId] || [];
+        const existingIds = new Set(existingMessages.map((m) => m.id));
+        
+        const newMessages = fetchedMessages.filter((m) => !existingIds.has(m.id));
+        const allMessages = [...existingMessages, ...newMessages];
+        
+        // Sort by created_at chronologically (create new array to avoid mutation)
+        const sortedMessages = [...allMessages].sort((a, b) => {
+          const dateA = new Date(a.created_at || a.createdAt || 0);
+          const dateB = new Date(b.created_at || b.createdAt || 0);
+          return dateA - dateB;
+        });
+        
+        state.messages[conversationId] = sortedMessages;
       })
       .addCase(getConversationMessages.rejected, (state, action) => {
         state.getConversationMessages.isLoading = false;
@@ -387,7 +400,9 @@ const chatSlice = createSlice({
 
         // Add message to conversation
         const message = action.payload.data;
-        const conversationId = message.conversation.id;
+        const conversationId = message.conversation?.id || message.conversation_id;
+
+        if (!conversationId) return;
 
         if (!state.messages[conversationId]) {
           state.messages[conversationId] = [];
@@ -396,14 +411,20 @@ const chatSlice = createSlice({
         // Check if message already exists to prevent duplicates
         const exists = state.messages[conversationId].some((m) => m.id === message.id);
         if (!exists) {
-          state.messages[conversationId].push(message);
+          state.messages[conversationId] = [...state.messages[conversationId], message];
+          // Sort messages by created_at to maintain chronological order (create new array)
+          state.messages[conversationId] = [...state.messages[conversationId]].sort((a, b) => {
+            const dateA = new Date(a.created_at || a.createdAt || 0);
+            const dateB = new Date(b.created_at || b.createdAt || 0);
+            return dateA - dateB;
+          });
         }
 
         // Update conversation last message
         const conversation = state.conversations.find((c) => c.id === conversationId);
         if (conversation) {
           conversation.last_message = message.content;
-          conversation.last_message_at = message.created_at;
+          conversation.last_message_at = message.created_at || message.createdAt;
         }
       })
       .addCase(sendMessage.rejected, (state, action) => {

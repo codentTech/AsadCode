@@ -53,8 +53,10 @@ function useCreatorApplications() {
           created_by: invitation.brand,
         }
       : {
-          id: null,
-          campaign_title: "Individual Collaboration",
+          id: invitation.campaign_id || null,
+          campaign_title: invitation.collaboration_type === "INDIVIDUAL_CREATOR" 
+            ? "Individual Collaboration" 
+            : "Campaign",
           campaign_type: null,
           compensation_type: null,
           budget: null,
@@ -68,10 +70,12 @@ function useCreatorApplications() {
           long_description: invitation.custom_message || "",
           campaign_image: null,
           created_by: invitation.brand,
+          collaboration_type: invitation.collaboration_type,
         },
     brand: invitation.brand,
     custom_message: invitation.custom_message,
     collaboration_type: invitation.collaboration_type,
+    campaign_id: invitation.campaign_id || invitation.campaign?.id || null,
     isInvitation: true,
   });
 
@@ -167,7 +171,9 @@ function useCreatorApplications() {
 
   const handleMessageClick = (item) => {
     const brandId = item.brand?.id || item.campaign?.created_by?.id;
-    if (brandId) {
+    const campaignId = item.campaign?.id || item.campaign_id || item.campaignId;
+    
+    if (brandId && campaignId) {
       setMessageModalState({
         isOpen: true,
         brandId,

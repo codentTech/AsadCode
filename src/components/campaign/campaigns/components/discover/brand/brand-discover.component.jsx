@@ -42,7 +42,6 @@ function BrandDiscover() {
     handleCreatorPreview,
     handleSaveToShortlist,
     confirmSaveToShortlist,
-    handleMessageCreator,
     getSortedCreators,
     mockNicheCategories,
     sortOptions,
@@ -125,7 +124,6 @@ function BrandDiscover() {
         setSelectedShortlist={setSelectedShortlist}
         handleCreatorPreview={handleCreatorPreview}
         handleSaveToShortlist={handleSaveToShortlist}
-        handleMessageCreator={handleMessageCreator}
         getSortedCreators={getSortedCreators}
         handleRemoveFromShortlist={handleRemoveFromShortlist}
         handleInviteToApply={handleInviteToApply}

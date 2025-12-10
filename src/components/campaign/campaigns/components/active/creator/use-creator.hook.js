@@ -10,8 +10,21 @@ export default function useActiveCampaign() {
   // Redux state
   const { getCreatorApplications: getApplicationsState } = useSelector((state) => state.campaigns);
 
-  // Get applications from Redux state
+  // Get applications from Redux state (backend already filters for HIRED status)
   const applications = getApplicationsState.data?.data || [];
+
+  // Debug: Log applications to see what we're getting
+  useEffect(() => {
+    console.log("[useActiveCampaign] Applications received:", applications);
+    console.log("[useActiveCampaign] Applications count:", applications.length);
+    const individual = applications.filter(
+      (app) => app.campaign?.collaboration_type === "INDIVIDUAL_CREATOR"
+    );
+    console.log("[useActiveCampaign] Individual collaborations found:", individual.length);
+    if (individual.length > 0) {
+      console.log("[useActiveCampaign] Individual collaboration details:", individual);
+    }
+  }, [applications]);
 
   // Local state
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -24,44 +37,64 @@ export default function useActiveCampaign() {
   // Format campaign data for display
   const formatCampaignData = useCallback((campaign) => {
     if (!campaign) return null;
+
+    console.log("[formatCampaignData] Formatting campaign:", campaign);
+
+    // Handle individual collaborations (from invitations or contracts)
+    const isIndividualCollaboration =
+      campaign.invitation || campaign.campaign?.collaboration_type === "INDIVIDUAL_CREATOR";
+
+    const campaignData = campaign.campaign || {};
+    const brandData = campaign.brand || campaignData.created_by || {};
+
+    console.log("[formatCampaignData] isIndividualCollaboration:", isIndividualCollaboration);
+    console.log("[formatCampaignData] campaignData:", campaignData);
+    console.log("[formatCampaignData] brandData:", brandData);
+
     return {
-      id: campaign.campaign?.id,
-      title: campaign.campaign?.campaign_title,
-      brand: campaign.campaign?.created_by?.brand_profile?.brand_name,
-      logo: campaign.campaign?.created_by?.brand_profile?.brand_logo_url || avatar, // Default logo, can be enhanced later
-      application_deadline: campaign.campaign?.application_deadline,
-      platforms: campaign.campaign?.platforms || [],
-      deliverables: campaign.campaign?.deliverables || [],
+      id: campaignData.id || campaign.campaign_id,
+      title: campaignData.campaign_title || "Individual Collaboration",
+      brand:
+        brandData.brand_profile?.brand_name ||
+        (brandData.first_name && brandData.last_name
+          ? `${brandData.first_name} ${brandData.last_name}`
+          : brandData.first_name || "Brand"),
+      logo: brandData.brand_profile?.brand_logo_url || avatar,
+      application_deadline: campaignData.application_deadline,
+      platforms: campaignData.platforms || [],
+      deliverables: campaignData.deliverables || [],
       payment:
-        campaign.campaign?.compensation_type === COMPENSATION_TYPE.PAID
-          ? `$${campaign.campaign?.budget || 0}`
-          : campaign.campaign?.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
+        campaignData.compensation_type === COMPENSATION_TYPE.PAID
+          ? `$${campaignData.budget || 0}`
+          : campaignData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
             ? "Gifted"
             : "Commission",
-      productImage: campaign.campaign?.campaign_image,
+      productImage: campaignData.campaign_image,
       completionRate: 0, // Will be calculated based on progress
-      type: campaign.campaign?.campaign_type,
-      compensation: campaign.campaign?.compensation_type || COMPENSATION_TYPE.PAID,
-      compensationAmount: campaign.campaign?.budget,
-      description: campaign.campaign?.short_description || "No description available",
+      type: campaignData.campaign_type,
+      compensation: campaignData.compensation_type || COMPENSATION_TYPE.PAID,
+      compensationAmount: campaignData.budget,
+      description:
+        campaignData.short_description ||
+        campaign.invitation?.custom_message ||
+        "No description available",
       progress: [
         { task: "Content recorded", completed: false },
         { task: "1st draft sent", completed: false },
         { task: "Final post published", completed: false },
       ],
       // Additional campaign data
-      campaign: campaign.campaign,
+      campaign: campaignData,
       application: campaign,
-      sourcePlatform: campaign.campaign?.source_platform || SOURCE_PLATFORM.CLEERCUT,
+      invitation: campaign.invitation,
+      isIndividualCollaboration,
+      sourcePlatform: campaignData.source_platform || SOURCE_PLATFORM.CLEERCUT,
     };
   }, []);
 
-  // Filter active campaigns from applications
-  const activeCampaigns =
-    applications?.filter(
-      (app) =>
-        app.status === "HIRED" && (app.campaign?.status === "INCOMPLETE" || !app.campaign?.status)
-    ) || [];
+  // Backend already filters for HIRED status and returns active campaigns
+  // Just use the applications directly
+  const activeCampaigns = applications || [];
 
   // Auto-select first campaign when campaigns are loaded
   useEffect(() => {

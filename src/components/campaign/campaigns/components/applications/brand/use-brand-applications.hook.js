@@ -6,10 +6,14 @@ import {
   rejectCreator,
   sendContract,
 } from "@/provider/features/campaigns/campaigns.slice";
+import {
+  getBrandIndividualCollaborations,
+  rejectInvitation,
+} from "@/provider/features/invitation/invitation.slice";
 import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import { avatar } from "@/common/constants/auth.constant";
-import invitationService from "@/provider/features/invitation/invitation.service";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { getUser } from "@/common/utils/users.util";
 
 function useBrandApplications() {
   const dispatch = useDispatch();
@@ -22,6 +26,16 @@ function useBrandApplications() {
   const { isLoading: rejectLoading, isSuccess: rejectSuccess } = useSelector(
     (state) => state.campaigns.rejectCreator || {}
   );
+  const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
+    useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});
+  const { isSuccess: rejectInvitationSuccess } = useSelector(
+    (state) => state.invitation.rejectInvitation || {}
+  );
+
+  const { isSuccess: reinstateInvitationSuccess } = useSelector(
+    (state) => state.invitation.reinstateInvitation || {}
+  );
+  const { messages: allMessages } = useSelector((state) => state.chat);
   const {
     isLoading: createContractLoading,
     isSuccess: createContractSuccess,
@@ -36,12 +50,15 @@ function useBrandApplications() {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const autoSelectedForCampaignRef = useRef(null);
+  const refreshTimeoutRef = useRef(null);
   const [hireModalOpen, setHireModalOpen] = useState(false);
   const [hireCreatorData, setHireCreatorData] = useState(null);
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
-  const [individualCollaborations, setIndividualCollaborations] = useState([]);
-  const [individualCollaborationsLoading, setIndividualCollaborationsLoading] = useState(false);
+
+  const individualCollaborations = (individualCollaborationsData?.data || []).filter(
+    (invitation) => invitation.status === "PENDING"
+  );
   const [filters, setFilters] = useState({
     min_followers: "",
     max_followers: "",
@@ -56,19 +73,14 @@ function useBrandApplications() {
   });
 
   const fetchIndividualCollaborations = async () => {
-    setIndividualCollaborationsLoading(true);
-    const response = await invitationService
-      .getBrandIndividualCollaborations()
-      .catch(() => ({ data: [] }));
-    const collaborations = response?.data || [];
-    setIndividualCollaborations(collaborations);
-    setIndividualCollaborationsLoading(false);
+    dispatch(getBrandIndividualCollaborations());
   };
 
   const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
     setSelectedCreator(null);
     autoSelectedForCampaignRef.current = null;
+    setSelectedCampaign(campaign);
+
     if (campaign) {
       if (campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
@@ -87,6 +99,7 @@ function useBrandApplications() {
     const creators = appliedCreatorsData?.data;
     if (
       selectedCampaign &&
+      selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
       appliedCreatorsSuccess &&
       Array.isArray(creators) &&
       creators.length > 0 &&
@@ -100,6 +113,10 @@ function useBrandApplications() {
 
   const handleCreatorSelect = (creator) => {
     setSelectedCreator(creator);
+  };
+
+  const handleClearCreator = () => {
+    setSelectedCreator(null);
   };
 
   const handleHireClick = () => {
@@ -169,8 +186,25 @@ function useBrandApplications() {
 
   const handleRejectClick = () => setShowRejectConfirmation(true);
 
-  const handleConfirmReject = () => {
-    if (selectedCampaign && selectedCreator) {
+  const handleConfirmReject = async () => {
+    if (!selectedCampaign || !selectedCreator) {
+      setShowRejectConfirmation(false);
+      return;
+    }
+
+    const isIndividual =
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
+    if (isIndividual) {
+      const invitationId = selectedCreator.id;
+      if (!invitationId) {
+        setShowRejectConfirmation(false);
+        return;
+      }
+      await dispatch(rejectInvitation(invitationId));
+      setSelectedCreator(null);
+      fetchIndividualCollaborations();
+    } else {
       dispatch(rejectCreator({ campaignId: selectedCampaign.id, creatorId: selectedCreator.id }));
     }
     setShowRejectConfirmation(false);
@@ -235,12 +269,71 @@ function useBrandApplications() {
     }
   }, [rejectSuccess, selectedCampaign, dispatch, filters]);
 
-  const messageThreadHook = useMessageThread(selectedCreator?.creator?.id || null);
+  useEffect(() => {
+    if (rejectInvitationSuccess && selectedCampaign) {
+      if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+        fetchIndividualCollaborations();
+        setSelectedCreator(null);
+      }
+    }
+  }, [rejectInvitationSuccess, selectedCampaign, dispatch]);
+
+  useEffect(() => {
+    if (
+      reinstateInvitationSuccess &&
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+    ) {
+      fetchIndividualCollaborations();
+      setSelectedCreator(null);
+    }
+  }, [reinstateInvitationSuccess, selectedCampaign, dispatch]);
+
+  const getCampaignId = () => {
+    if (selectedCampaign?.id && !selectedCampaign.id.startsWith("individual-")) {
+      return selectedCampaign.id;
+    }
+    if (selectedCreator?.campaign_id) {
+      return selectedCreator.campaign_id;
+    }
+    if (selectedCreator?.campaign?.id) {
+      return selectedCreator.campaign.id;
+    }
+    return null;
+  };
+
+  const getCreatorId = () => {
+    return selectedCreator?.creator?.id || selectedCreator?.id || null;
+  };
+
+  const messageThreadHook = useMessageThread(
+    getCreatorId(),
+    getCampaignId(),
+    null // No callback needed - WebSocket handles real-time updates
+  );
+
+  const handleMessageClick = () => {
+    const currentCampaignId = getCampaignId();
+    
+    if (!currentCampaignId) {
+      return;
+    }
+    
+    if (typeof currentCampaignId !== "string" || !currentCampaignId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      return;
+    }
+    
+    messageThreadHook.openMessageModal(currentCampaignId);
+  };
 
   const creator = {
-    id: selectedCreator?.creator?.id,
-    name: selectedCreator?.creator?.first_name + " " + selectedCreator?.creator?.last_name,
-    avatar: selectedCreator?.creator?.creator_profile?.profile_photo_url || avatar,
+    id: selectedCreator?.creator?.id || selectedCreator?.id,
+    name: selectedCreator?.creator
+      ? `${selectedCreator.creator.first_name || ""} ${selectedCreator.creator.last_name || ""}`.trim()
+      : selectedCreator?.name || "",
+    avatar:
+      selectedCreator?.creator?.creator_profile?.profile_photo_url ||
+      selectedCreator?.profileImage ||
+      avatar,
     isOnline: true,
   };
 
@@ -249,6 +342,8 @@ function useBrandApplications() {
   const individualCreators = individualCollaborations.map((invitation) => ({
     ...invitation,
     creator: invitation.creator,
+    campaign_id: invitation.campaign_id || invitation.campaign?.id || null,
+    campaign: invitation.campaign,
     applied_at: invitation.created_at,
     status: invitation.status || "PENDING",
   }));
@@ -258,26 +353,72 @@ function useBrandApplications() {
       ? individualCreators
       : creators;
 
-  // Auto-select first creator for individual collaborations
   useEffect(() => {
-    if (
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
-      individualCreators.length > 0 &&
-      !selectedCreator &&
-      autoSelectedForCampaignRef.current !== selectedCampaign.id
-    ) {
-      setSelectedCreator(individualCreators[0]);
-      autoSelectedForCampaignRef.current = selectedCampaign.id;
+    if (!selectedCampaign && individualCreators.length > 0 && !selectedCreator) {
+      const campaignKey = "individual";
+      if (autoSelectedForCampaignRef.current !== campaignKey) {
+        setSelectedCreator(individualCreators[0]);
+        autoSelectedForCampaignRef.current = campaignKey;
+      }
     }
-  }, [selectedCampaign, individualCreators, selectedCreator]);
+  }, [selectedCampaign, individualCreators.length]);
 
-  const handleMessageClick = () => {
-    messageThreadHook.openMessageModal();
-  };
+  const user = getUser();
+  const previousMessagesCountRef = useRef({});
+  const lastRefreshTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (user?.role !== "BRAND") return;
+    if (
+      selectedCampaign &&
+      selectedCampaign?.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+      selectedCampaign !== null
+    )
+      return;
+
+    const now = Date.now();
+    const minTimeBetweenRefreshes = 30000; // 30 seconds minimum between refreshes
+
+    let shouldRefresh = false;
+    Object.keys(allMessages || {}).forEach((conversationId) => {
+      const messages = allMessages[conversationId] || [];
+      const previousCount = previousMessagesCountRef.current[conversationId] || 0;
+
+      // Only refresh if creator sent a message (not when brand sends) and enough time has passed
+      if (messages.length > previousCount && previousCount > 0 && (now - lastRefreshTimeRef.current) > minTimeBetweenRefreshes) {
+        const latestMessage = messages[messages.length - 1];
+        const senderId = latestMessage?.sender?.id || latestMessage?.sender_id;
+        // Only refresh if creator sent the message (not the current brand user)
+        if (latestMessage && latestMessage.sender?.role === "CREATOR" && senderId !== user?.id) {
+          shouldRefresh = true;
+        }
+      }
+
+      previousMessagesCountRef.current[conversationId] = messages.length;
+    });
+
+    // Only dispatch once if refresh is needed
+    if (shouldRefresh) {
+      lastRefreshTimeRef.current = now;
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+      refreshTimeoutRef.current = setTimeout(() => {
+        dispatch(getBrandIndividualCollaborations());
+      }, 2000);
+    }
+
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [allMessages, selectedCampaign, dispatch, user]);
 
   return {
     appliedCreatorsData,
-    appliedCreatorsLoading: appliedCreatorsLoading || individualCollaborationsLoading,
+    appliedCreatorsLoading,
+    individualCollaborationsLoading,
     selectedCampaign,
     selectedCreator,
     hireModalOpen,
@@ -298,6 +439,7 @@ function useBrandApplications() {
     messageThreadHook,
     handleCampaignSelect,
     handleCreatorSelect,
+    handleClearCreator,
     handleHireClick,
     handleSendOffer,
     handleRejectClick,

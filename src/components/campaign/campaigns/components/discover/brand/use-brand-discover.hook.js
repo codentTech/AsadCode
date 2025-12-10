@@ -543,12 +543,6 @@ function useDiscover() {
     }
   };
 
-  // Handle messaging a creator
-  const handleMessageCreator = (creator) => {
-    setCreatorToMessage(creator);
-    setMessageDialogOpen(true);
-  };
-
   // Handle sending a message
   const handleSendMessage = () => {
     // Message sending logic would go here
@@ -647,7 +641,6 @@ function useDiscover() {
     handleCreatorPreview,
     handleSaveToShortlist,
     confirmSaveToShortlist,
-    handleMessageCreator,
     getSortedCreators,
     mockNicheCategories,
     sortOptions,

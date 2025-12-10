@@ -123,7 +123,12 @@ function CampaignFeed() {
           </div>
         ) : (
           sortedCampaigns.map((campaign) => {
-            const typeStyle = getCampaignTypeStyle(campaign.type);
+            const typeStyle = getCampaignTypeStyle(campaign.type) || {
+              bg: "bg-gray-100",
+              text: "text-gray-800",
+              border: "border-gray-200",
+              icon: null,
+            };
 
             return (
               <div

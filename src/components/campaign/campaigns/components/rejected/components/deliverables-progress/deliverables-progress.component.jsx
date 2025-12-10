@@ -12,18 +12,15 @@ const DeliverablesProgress = ({
   selectedCampaign,
   selectedCreator,
   onReinstateClick,
-  onViewNotesClick,
   onSaveToShortlistClick,
 }) => {
   const {
-    privateNotes,
     showReinstateConfirmation,
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
   } = useDeliverablesProgress({ onReinstateClick });
 
-  // Extract creator data
   const getCreatorData = () => {
     if (!selectedCreator) return null;
 
@@ -37,10 +34,42 @@ const DeliverablesProgress = ({
         image: profile?.profile_photo_url || avatar,
         location:
           `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
-        rating: profile?.rating,
-        appliedDate: new Date(selectedCreator.applied_at).toLocaleDateString(),
-        rejectedDate: new Date(selectedCreator.rejected_at).toLocaleDateString(),
-        pitch: selectedCreator.pitch,
+        rating: parseFloat(profile?.rating) || 0,
+        appliedDate: selectedCreator.applied_at
+          ? new Date(selectedCreator.applied_at).toLocaleDateString()
+          : selectedCreator.created_at
+            ? new Date(selectedCreator.created_at).toLocaleDateString()
+            : "N/A",
+        rejectedDate: selectedCreator.rejected_at
+          ? new Date(selectedCreator.rejected_at).toLocaleDateString()
+          : selectedCreator.updated_at
+            ? new Date(selectedCreator.updated_at).toLocaleDateString()
+            : "N/A",
+        pitch: selectedCreator.custom_message || selectedCreator.pitch || "No message",
+        status: selectedCreator.status,
+        profile: profile,
+        bio: profile?.bio,
+      };
+    }
+
+    if (selectedCreator.creator_id) {
+      const creator = selectedCreator.creator;
+      const profile = creator?.creator_profile;
+
+      return {
+        id: selectedCreator.id,
+        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown",
+        image: profile?.profile_photo_url || avatar,
+        location:
+          `${creator?.city || ""} ${creator?.country || ""}`.trim() || "Location not specified",
+        rating: parseFloat(profile?.rating) || 0,
+        appliedDate: selectedCreator.applied_at
+          ? new Date(selectedCreator.applied_at).toLocaleDateString()
+          : "N/A",
+        rejectedDate: selectedCreator.rejected_at
+          ? new Date(selectedCreator.rejected_at).toLocaleDateString()
+          : "N/A",
+        pitch: selectedCreator.pitch || "No message",
         status: selectedCreator.status,
         profile: profile,
         bio: profile?.bio,
@@ -51,14 +80,7 @@ const DeliverablesProgress = ({
   };
 
   const creatorData = getCreatorData();
-
-  if (!selectedCampaign) {
-    return (
-      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-        <Loader loading={true} />
-      </div>
-    );
-  }
+  const isIndividual = !selectedCampaign;
 
   if (!creatorData) {
     return (
@@ -70,7 +92,6 @@ const DeliverablesProgress = ({
 
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
@@ -106,9 +127,36 @@ const DeliverablesProgress = ({
         </div>
       </div>
 
-      {/* Scrollable Content */}
       <div className="flex flex-col overflow-y-auto p-4 gap-4">
-        {/* Actions under profile */}
+        <div className="bg-white rounded-lg border p-3">
+          <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Engagement Rate</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.engagement_rate ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Reach</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_reach ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Views</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_views ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Posting Frequency</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.posting_frequency ?? "N/A"}
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white border rounded-lg p-3">
           <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
@@ -122,9 +170,9 @@ const DeliverablesProgress = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 w-full">
+        <div className="grid grid-cols-1 gap-2 w-full">
           <CustomButton
-            text="Reinstate"
+            text="Reinstate to Applications"
             className="btn-primary !py-1"
             onClick={handleReinstateClick}
           />
@@ -136,7 +184,6 @@ const DeliverablesProgress = ({
         </div>
       </div>
 
-      {/* Reinstate Confirmation Dialog */}
       <ConfirmationDialog
         show={showReinstateConfirmation}
         onClose={handleCancelReinstate}

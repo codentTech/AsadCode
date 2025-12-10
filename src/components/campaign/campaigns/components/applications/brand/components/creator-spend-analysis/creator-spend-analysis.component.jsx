@@ -7,7 +7,6 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
-import { avatar } from "@/common/constants/auth.constant";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import {
@@ -17,165 +16,55 @@ import {
   NICHE_OPTIONS,
   LANGUAGE_OPTIONS,
 } from "@/common/constants/options.constant";
-import { Filter } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
+import { Filter, Search } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import invitationService from "@/provider/features/invitation/invitation.service";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
   appliedCreatorsData,
   appliedCreatorsLoading,
   onCreatorSelect,
+  onClearCreator,
   filters,
   onCampaignSelect,
   onFilterChange,
   onClearFilters,
-  onMessageClick,
   fetchIndividualCollaborations: fetchFromHook,
 }) => {
-  const { open, handleOpenModal, handleCloseModal } = useCreatorSpendAnalysis();
-
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [filterType, setFilterType] = useState("creator");
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
-  const [individualCollaborations, setIndividualCollaborations] = useState([]);
-  const [individualCollaborationsLoading, setIndividualCollaborationsLoading] = useState(false);
-  const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
-  const hasAutoSelected = useRef(false);
-  const hasFetchedIndividual = useRef(false);
-
-  const filteredCampaignOptions = campaignOptions.filter((option) => {
-    if (!campaignsData?.data) return false;
-    const campaign = campaignsData.data.find((c) => c.id === option.value);
-    if (!campaign) return false;
-    const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-    return isMultiCreator
-      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
-      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  });
-
-  const isSelectedCampaignValid =
-    selectedCampaign &&
-    (isMultiCreator
-      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
-        COLLABORATION_TYPE.MULTI_CREATOR
-      : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
-
-  const fetchIndividualCollaborations = async () => {
-    setIndividualCollaborationsLoading(true);
-    const response = await invitationService
-      .getBrandIndividualCollaborations()
-      .catch(() => ({ data: [] }));
-    const collaborations = response?.data || [];
-    setIndividualCollaborations(collaborations);
-    setIndividualCollaborationsLoading(false);
-
-    // Also trigger hook's fetch to keep state in sync for right pane
-    if (fetchFromHook) {
-      fetchFromHook();
-    }
-
-    // Auto-select first collaboration if none selected
-    if (collaborations.length > 0) {
-      const currentIsIndividual =
-        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-      if (!selectedCampaign || !currentIsIndividual) {
-        const firstCollaboration = {
-          id: `individual-${collaborations[0].id}`,
-          collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
-          campaign_title: "Individual Collaboration",
-          brand: collaborations[0].brand,
-          created_by: collaborations[0].brand,
-          invitation: collaborations[0],
-        };
-        if (onCampaignSelect) {
-          onCampaignSelect(firstCollaboration);
-        }
-      }
-    }
-  };
-
-  const handleToggleChange = (event) => {
-    const newIsMultiCreator = event.target.checked;
-    setIsMultiCreator(newIsMultiCreator);
-    hasAutoSelected.current = false;
-
-    // Reset fetch flag when switching modes
-    if (newIsMultiCreator) {
-      hasFetchedIndividual.current = false;
-    }
-
-    if (selectedCampaign) {
-      const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-      const shouldReset =
-        (newIsMultiCreator && campaignType !== COLLABORATION_TYPE.MULTI_CREATOR) ||
-        (!newIsMultiCreator && campaignType !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
-
-      if (shouldReset) {
-        if (onCampaignSelect) {
-          onCampaignSelect(null);
-        }
-      }
-    }
-
-    if (!newIsMultiCreator && !hasFetchedIndividual.current) {
-      // Fetch when switching to individual creator (only once)
-      hasFetchedIndividual.current = true;
-      fetchIndividualCollaborations();
-    }
-  };
-
-  useEffect(() => {
-    if (isMultiCreator) {
-      hasFetchedIndividual.current = false; // Reset flag when switching back to multi-creator
-      if (
-        !selectedCampaign &&
-        !hasAutoSelected.current &&
-        filteredCampaignOptions.length > 0 &&
-        typeof onCampaignSelect === "function"
-      ) {
-        const firstCampaign = campaignsData?.data?.find(
-          (c) => c.id === filteredCampaignOptions[0]?.value
-        );
-        if (firstCampaign) {
-          onCampaignSelect(firstCampaign);
-          hasAutoSelected.current = true;
-        }
-      }
-    } else {
-      // When switching to individual creator, fetch only once if not already fetched
-      const isSelectedIndividual =
-        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-      if (
-        !hasFetchedIndividual.current &&
-        (!isSelectedIndividual || individualCollaborations.length === 0)
-      ) {
-        hasFetchedIndividual.current = true;
-        fetchIndividualCollaborations();
-      }
-    }
-  }, [
+  const {
+    open,
+    handleOpenModal,
+    handleCloseModal,
+    showFilterModal,
+    setShowFilterModal,
+    filterType,
+    setFilterType,
     isMultiCreator,
-    selectedCampaign,
-    filteredCampaignOptions,
+    individualCollaborations,
+    individualCollaborationsLoading,
     campaignsData,
+    campaignsLoading,
+    filteredCampaignOptions,
+    isSelectedCampaignValid,
+    handleToggleChange,
+    handleCreatorPreview,
+    handleSaveToShortlist,
+    mapCreatorForCard,
+    handleSortChange,
+    sortOptions,
+  } = useCreatorSpendAnalysis({
+    selectedCampaign,
+    appliedCreatorsData,
+    appliedCreatorsLoading,
+    onCreatorSelect,
+    onClearCreator,
+    filters,
     onCampaignSelect,
-    // Removed individualCollaborations.length from dependencies to prevent infinite loop
-  ]);
-
-  // Note: We don't need to fetch data here since it's passed from parent component
-  // The parent Applications component handles all API calls and passes the data down
-
-  const handleCreatorPreview = (creator) => {
-    if (onCreatorSelect) {
-      onCreatorSelect(creator);
-    }
-  };
-
-  const handleSaveToShortlist = (creator) => {};
+    onFilterChange,
+    onClearFilters,
+    fetchIndividualCollaborations: fetchFromHook,
+  });
 
   // FilterButton component for consistent styling
   const FilterButton = ({ active, onClick, children }) => (
@@ -189,63 +78,68 @@ const CreatorSpendAnalysis = ({
     </button>
   );
 
-  // Map API data to shared CreatorCard shape
-  const mapCreatorForCard = (creator) => {
-    const creatorData = creator.creator;
-    const profile = creatorData?.creator_profile;
-    const appliedDate = creator.applied_at || creator.created_at;
-    return {
-      id: creatorData.id,
-      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
-      profileImage: profile?.profile_photo_url || avatar,
-      age: creatorData?.date_of_birth
-        ? Math.floor(
-            (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
-          )
-        : "N/A",
-      location:
-        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
-        "Location not specified",
-      rating: 4.5,
-      reviewCount: 12,
-      followers: 0,
-      platforms: (profile?.social_platforms || []).map(({ platform }) => platform).filter(Boolean),
-      platformStats: {},
-      portfolioImages: profile?.mini_profile_pictures || [],
-      niches: profile?.categories || [],
-      tagline: creator.pitch || "",
-      appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
-    };
-  };
-
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2 w-full">
-              {isMultiCreator && (
-                <div className="min-w-[240px] w-[260px]">
-                  <SimpleSelect
-                    placeHolder="Select a campaign"
-                    options={filteredCampaignOptions}
-                    isSearchable={true}
-                    isMulti={false}
-                    isLoading={campaignsLoading}
-                    defaultValue={
-                      isSelectedCampaignValid && selectedCampaign
-                        ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
-                        : null
-                    }
-                    onChange={(opt) => {
-                      const id = opt?.value;
-                      const campaign = campaignsData?.data?.find((c) => c.id === id);
-                      if (onCampaignSelect && campaign) onCampaignSelect(campaign);
-                    }}
-                  />
-                </div>
-              )}
+          {/* Toggle Switch - First Row */}
+          <div className="mb-3">
+            <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
+              <CustomSwitch
+                label="Campaign Type"
+                checked={isMultiCreator}
+                onChange={handleToggleChange}
+                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+                parentDivClassName="justify-between"
+              />
+            </div>
+          </div>
+
+          {/* Campaign Dropdown, Sort, Filters, and Start Campaign - Second Row */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Campaign Dropdown - Left Side (only for Multi-Creator) */}
+            {isMultiCreator ? (
+              <div className="min-w-[240px] w-[260px]">
+                <SimpleSelect
+                  placeHolder="Select a campaign"
+                  options={filteredCampaignOptions}
+                  isSearchable={true}
+                  isMulti={false}
+                  isLoading={campaignsLoading}
+                  defaultValue={
+                    isSelectedCampaignValid && selectedCampaign
+                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
+                      : null
+                  }
+                  onChange={(opt) => {
+                    const id = opt?.value;
+                    const campaign = campaignsData?.data?.find((c) => c.id === id);
+                    if (onCampaignSelect && campaign) onCampaignSelect(campaign);
+                  }}
+                />
+              </div>
+            ) : (
+              <div></div>
+            )}
+
+            {/* Sort, Filters, and Start Campaign - Right Side */}
+            <div className="flex items-center gap-3">
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect
+                  placeHolder="Sort by"
+                  options={sortOptions}
+                  value={
+                    filters?.sort
+                      ? {
+                          value: filters.sort,
+                          label: sortOptions.find((opt) => opt.value === filters.sort)?.label,
+                        }
+                      : null
+                  }
+                  onChange={handleSortChange}
+                />
+              </div>
               <div className="relative">
                 <CustomButton
                   text="Filters"
@@ -254,18 +148,13 @@ const CreatorSpendAnalysis = ({
                   className="btn-outline !h-10"
                 />
               </div>
-            </div>
-            <div className="w-full max-w-[200px]">
-              <CustomButton text="Start a new campaign" onClick={handleOpenModal} />
-            </div>
-            <div className="w-full max-w-[200px] bg-gray-100 rounded-lg p-3">
-              <CustomSwitch
-                label="Campaign Type"
-                checked={isMultiCreator}
-                onChange={handleToggleChange}
-                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
-                parentDivClassName="justify-between"
-              />
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -296,46 +185,43 @@ const CreatorSpendAnalysis = ({
             {/* Campaign Info */}
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h2 className="text-sm font-semibold text-gray-900 mb-2">
-                {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+                {selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
                   ? "Individual Collaborations"
                   : `Applied for "${selectedCampaign.campaign_title}"`}
               </h2>
               <p className="text-xs text-gray-600">
                 {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
-                  ? `${individualCollaborations.length} individual collaboration${individualCollaborations.length !== 1 ? "s" : ""}`
+                  ? `${Array.isArray(individualCollaborations) ? individualCollaborations.length : 0} individual collaboration${Array.isArray(individualCollaborations) && individualCollaborations.length !== 1 ? "s" : ""}`
                   : `${appliedCreatorsData?.data?.length || 0} creators have applied to this campaign`}
               </p>
             </div>
 
-            {/* Loading State */}
-            {selectedCampaign && (appliedCreatorsLoading || individualCollaborationsLoading) && (
-              <div className="text-center py-8 flex flex-col items-center">
-                <Loader loading={true} />
-                <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
-              </div>
-            )}
-
-            {/* Individual Collaborations Grid */}
-            {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
-              !individualCollaborationsLoading &&
-              individualCollaborations.length > 0 && (
+            {selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ? (
+              individualCollaborationsLoading ? (
+                <div className="text-center py-12 flex flex-col items-center">
+                  <Loader loading={true} />
+                  <p className="text-xs text-gray-500 mt-3">Loading collaborations...</p>
+                </div>
+              ) : Array.isArray(individualCollaborations) &&
+                individualCollaborations.length === 0 ? (
+                <div className="w-full flex flex-col items-center justify-center py-20 min-h-[300px]">
+                  <div className="text-center max-w-sm">
+                    <div className="w-16 h-16 mx-auto bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                      <Search className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-2">No Creators Found</h2>
+                    <p className="text-sm text-gray-500">
+                      No individual collaborations found at this time. Invite creators to start
+                      collaborating.
+                    </p>
+                  </div>
+                </div>
+              ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                   {individualCollaborations.map((invitation) => {
-                    const creatorData = invitation.creator;
-                    const mapped = mapCreatorForCard({
-                      ...invitation,
-                      creator: creatorData,
-                    });
+                    const mapped = mapCreatorForCard(invitation);
                     return (
-                      <div
-                        key={invitation.id}
-                        onClick={() =>
-                          handleCreatorPreview({
-                            ...invitation,
-                            creator: creatorData,
-                          })
-                        }
-                      >
+                      <div key={invitation.id} onClick={() => handleCreatorPreview(invitation)}>
                         <CreatorCard
                           creator={mapped}
                           tab="applications"
@@ -343,66 +229,59 @@ const CreatorSpendAnalysis = ({
                           onCreatorPreview={handleCreatorPreview}
                           onSaveToShortlist={handleSaveToShortlist}
                           onRemoveFromShortlist={() => {}}
-                          onMessageCreator={onMessageClick}
                           onInviteClick={() => {}}
                         />
                       </div>
                     );
                   })}
                 </div>
-              )}
-
-            {/* Applied Creators Grid */}
-            {selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
-              !appliedCreatorsLoading &&
-              Array.isArray(appliedCreatorsData?.data) &&
-              appliedCreatorsData.data.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-                  {appliedCreatorsData.data.map((creator) => {
-                    const mapped = mapCreatorForCard(creator);
-                    return (
-                      <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
-                        <CreatorCard
-                          creator={mapped}
-                          tab="applications"
-                          appliedDate={mapped.appliedDate}
-                          onCreatorPreview={handleCreatorPreview}
-                          onSaveToShortlist={handleSaveToShortlist}
-                          onRemoveFromShortlist={() => {}}
-                          onMessageCreator={onMessageClick}
-                          onInviteClick={() => {}}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-            {/* No Creators Found */}
-            {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
-              ? // For individual collaborations
-                !individualCollaborationsLoading &&
-                individualCollaborations.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <NotFound
-                      title="No Creators Found"
-                      description="No individual collaborations found. Invite creators to start collaborating."
-                    />
+              )
+            ) : (
+              <>
+                {appliedCreatorsLoading ? (
+                  <div className="text-center py-12 flex flex-col items-center">
+                    <Loader loading={true} />
+                    <p className="text-xs text-gray-500 mt-3">Loading creators...</p>
                   </div>
-                )
-              : // For multi-creator campaigns
-                !appliedCreatorsLoading &&
-                (!Array.isArray(appliedCreatorsData?.data) ||
-                  appliedCreatorsData.data.length === 0) && (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                ) : Array.isArray(appliedCreatorsData?.data) &&
+                  appliedCreatorsData.data.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                    {appliedCreatorsData.data.map((creator) => {
+                      const mapped = mapCreatorForCard(creator);
+                      return (
+                        <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
+                          <CreatorCard
+                            creator={mapped}
+                            tab="applications"
+                            appliedDate={mapped.appliedDate}
+                            onCreatorPreview={handleCreatorPreview}
+                            onSaveToShortlist={handleSaveToShortlist}
+                            onRemoveFromShortlist={() => {}}
+                            onInviteClick={() => {}}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20">
                     <NotFound
                       title="No Creators Found"
-                      description="Try adjusting filters or selecting a different campaign."
+                      description="No creators have applied to this campaign yet. Try adjusting your filters or selecting a different campaign."
                     />
                   </div>
                 )}
+              </>
+            )}
           </>
-        ) : null}
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20">
+            <NotFound
+              title="No Creators Found"
+              description="No creators have applied to this campaign yet. Try adjusting your filters or selecting a different campaign."
+            />
+          </div>
+        )}
       </div>
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
