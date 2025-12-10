@@ -2,49 +2,53 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
+import { getBrandRejectedIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { sortOptions, avatar } from "@/common/constants/auth.constant";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
   onCampaignSelect,
   onReinstateCreator,
   onSaveToShortlist,
+  onSortChange,
+  onCreatorSelect,
+  onClearCreator,
 }) {
-  // State
   const [showReinstateConfirmation, setShowReinstateConfirmation] = useState(false);
-  const [creatorToReinstate, setCreatorToReinstate] = useState(null);
   const [originalCreatorToReinstate, setOriginalCreatorToReinstate] = useState(null);
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const hasAutoSelected = useRef(false);
 
-  // Redux State
   const dispatch = useDispatch();
 
   const {
     data: campaignsData,
     isLoading: campaignsLoading,
-    isSuccess: campaignsSuccess,
-    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getBrandCampaignsExcludingCompleted);
 
   const {
     data: shortlistsData,
     isLoading: shortlistsLoading,
-    isSuccess: shortlistsSuccess,
   } = useSelector((state) => state.shortlist.getAllShortlists);
 
-  // useEffect
-  // Load campaigns when component mounts
   useEffect(() => {
     dispatch(getBrandCampaignsExcludingCompleted());
   }, [dispatch]);
 
-  // Load shortlists when component mounts
   useEffect(() => {
     dispatch(getAllShortlists());
   }, [dispatch]);
 
-  // Auto-select first campaign and notify parent once
+  useEffect(() => {
+    if (!isMultiCreator) {
+      dispatch(getBrandRejectedIndividualCollaborations());
+    }
+  }, [isMultiCreator, dispatch]);
+
   useEffect(() => {
     if (
       !selectedCampaign &&
@@ -58,56 +62,140 @@ function useCreatorSpendAnalysis({
     }
   }, [selectedCampaign, campaignsData, onCampaignSelect]);
 
-  // Functions
   const campaignOptions =
     campaignsData?.data?.map((campaign) => ({
       value: campaign.id,
       label: campaign.campaign_title,
     })) || [];
 
-  const handleCampaignChange = (selectedOption) => {
-    const campaignId = selectedOption?.value;
-    const campaign = campaignsData?.data?.find((c) => c.id === campaignId);
+  const filteredCampaignOptions = campaignOptions.filter((option) => {
+    if (!campaignsData?.data) return false;
+    const campaign = campaignsData.data.find((c) => c.id === option.value);
+    if (!campaign) return false;
+    const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+    return isMultiCreator
+      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+  });
 
-    if (onCampaignSelect && campaign) {
-      onCampaignSelect(campaign);
+  const isSelectedCampaignValid =
+    selectedCampaign &&
+    (isMultiCreator
+      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+        COLLABORATION_TYPE.MULTI_CREATOR
+      : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+  const handleToggleChange = (event) => {
+    const newIsMultiCreator = event.target.checked;
+    setIsMultiCreator(newIsMultiCreator);
+    hasAutoSelected.current = false;
+
+    if (onClearCreator) {
+      onClearCreator();
+    }
+
+    if (!newIsMultiCreator) {
+      if (onCampaignSelect) {
+        onCampaignSelect(null);
+      }
+      dispatch(getBrandRejectedIndividualCollaborations());
+    } else {
+      if (selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+        if (onCampaignSelect) {
+          onCampaignSelect(null);
+        }
+      }
     }
   };
 
-  const formatFollowers = (count) => {
-    if (count === undefined || count === null || isNaN(count)) {
-      return "0";
+  const handleSortChange = (option) => {
+    if (onSortChange && option?.value) {
+      onSortChange(option.value);
     }
-    const numCount = Number(count);
-    if (numCount >= 1_000_000) return `${(numCount / 1_000_000).toFixed(1)}M`;
-    if (numCount >= 1_000) return `${(numCount / 1_000).toFixed(0)}K`;
-    return numCount.toString();
+  };
+
+  const handleOpenModal = () => {
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+  };
+
+  const handleCreatorPreview = (creator) => {
+    if (onCreatorSelect) {
+      onCreatorSelect(creator);
+    }
+  };
+
+  const mapCreatorForCard = (data) => {
+    const creatorData = data.creator;
+    const profile = creatorData?.creator_profile;
+    const appliedDate = data.applied_at || data.created_at;
+    const rejectedDate = data.rejected_at || data.updated_at;
+
+    return {
+      id: creatorData?.id,
+      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
+      profileImage: profile?.profile_photo_url || avatar,
+      age: creatorData?.date_of_birth
+        ? Math.floor(
+            (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
+          )
+        : "N/A",
+      location:
+        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
+        "Location not specified",
+      rating: parseFloat(profile?.rating) || 0,
+      reviewCount: profile?.review_count || 0,
+      followers: profile?.total_followers || 0,
+      niches: profile?.categories || [],
+      tagline: data.custom_message || data.pitch || profile?.bio || "",
+      portfolioImages: profile?.mini_profile_pictures || [],
+      platforms: (profile?.social_platforms || [])
+        .map((p) => (typeof p === "object" ? p.platform : p))
+        .filter(Boolean),
+      platformStats: (profile?.social_platforms || []).reduce((acc, platform) => {
+        const platformName = typeof platform === "object" ? platform.platform : platform;
+        if (platformName) {
+          acc[platformName] = { followers: 0 };
+        }
+        return acc;
+      }, {}),
+      appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
+      rejectedDate: rejectedDate ? new Date(rejectedDate).toLocaleDateString() : "N/A",
+      originalData: data,
+    };
   };
 
   const handleReinstateClick = (creator, e) => {
     e.stopPropagation();
-    setCreatorToReinstate(creator);
     setOriginalCreatorToReinstate(creator);
     setShowReinstateConfirmation(true);
   };
 
   const handleConfirmReinstate = () => {
-    if (
-      onReinstateCreator &&
-      selectedCampaign &&
-      originalCreatorToReinstate &&
-      originalCreatorToReinstate.creator?.id
-    ) {
-      onReinstateCreator(selectedCampaign.id, originalCreatorToReinstate.creator.id);
+    if (onReinstateCreator && originalCreatorToReinstate) {
+      const isCreatorFromIndividual =
+        originalCreatorToReinstate.collaboration_type === "INDIVIDUAL_CREATOR" ||
+        (originalCreatorToReinstate.originalData?.collaboration_type === "INDIVIDUAL_CREATOR") ||
+        (!originalCreatorToReinstate.campaign_id && !originalCreatorToReinstate.creator_id && originalCreatorToReinstate.creator);
+      
+      if (isCreatorFromIndividual) {
+        const invitationId = originalCreatorToReinstate.id || originalCreatorToReinstate.originalData?.id;
+        onReinstateCreator(null, null, invitationId);
+      } else {
+        if (selectedCampaign && originalCreatorToReinstate.creator?.id) {
+          onReinstateCreator(selectedCampaign.id, originalCreatorToReinstate.creator.id);
+        }
+      }
     }
     setShowReinstateConfirmation(false);
-    setCreatorToReinstate(null);
     setOriginalCreatorToReinstate(null);
   };
 
   const handleCancelReinstate = () => {
     setShowReinstateConfirmation(false);
-    setCreatorToReinstate(null);
     setOriginalCreatorToReinstate(null);
   };
 
@@ -135,26 +223,30 @@ function useCreatorSpendAnalysis({
   const shortlists = Array.isArray(shortlistsData) ? shortlistsData : [];
 
   return {
-    // State
     showReinstateConfirmation,
-    creatorToReinstate,
     campaignsData,
     campaignsLoading,
-    campaignOptions,
+    filteredCampaignOptions,
+    isSelectedCampaignValid,
     showSaveToShortlistModal,
     creatorToSave,
     shortlists,
     shortlistsLoading,
-
-    // Handlers
-    handleCampaignChange,
+    open,
+    isMultiCreator,
+    sortOptions,
+    handleToggleChange,
+    handleSortChange,
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
     handleSaveToShortlistClick,
     handleConfirmSaveToShortlist,
     handleCancelSaveToShortlist,
-    formatFollowers,
+    handleOpenModal,
+    handleCloseModal,
+    handleCreatorPreview,
+    mapCreatorForCard,
   };
 }
 

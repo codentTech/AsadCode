@@ -200,14 +200,14 @@ const ApplicationCard = ({
         )}
         {isInvitation ? (
           <>
-            {handleMessageClick && (
+            {handleMessageClick && (campaign?.id || application.campaign_id) && (
               <CustomButton
                 text="Message"
                 className="btn-primary flex-1 !h-8 !text-xs"
                 onClick={() => handleMessageClick(application)}
               />
             )}
-            {campaign?.id && (
+            {(campaign?.id || application.campaign_id) && (
               <CustomButton
                 text="View Campaign"
                 className="btn-outline flex-1 !h-8 !text-xs"

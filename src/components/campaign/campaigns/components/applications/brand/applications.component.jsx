@@ -33,6 +33,7 @@ function BrandApplications() {
     messageThreadHook,
     handleCampaignSelect,
     handleCreatorSelect,
+    handleClearCreator,
     handleHireClick,
     handleSendOffer,
     handleRejectClick,
@@ -53,7 +54,11 @@ function BrandApplications() {
       );
     }
 
-    if (!selectedCampaign) {
+    const isIndividualCreator =
+      !selectedCampaign ||
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
+    if (!selectedCampaign && !selectedCreator) {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
           <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
@@ -61,20 +66,29 @@ function BrandApplications() {
       );
     }
 
-    const isIndividualCreator =
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    if (!selectedCampaign && creators.length === 0) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound title="No Creators Found" description="No individual collaborations found." />
+        </div>
+      );
+    }
 
     if (selectedCampaign && creators.length === 0) {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
           <NotFound
             title="No Creators Found"
-            description={
-              isIndividualCreator
-                ? "No individual collaborations found."
-                : "No creators have applied to this campaign yet."
-            }
+            description="No creators have applied to this campaign yet."
           />
+        </div>
+      );
+    }
+
+    if (!selectedCreator) {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound title="No Creator Selected" description="Select a creator to view details." />
         </div>
       );
     }
@@ -100,11 +114,11 @@ function BrandApplications() {
         appliedCreatorsData={appliedCreatorsData}
         appliedCreatorsLoading={appliedCreatorsLoading}
         onCreatorSelect={handleCreatorSelect}
+        onClearCreator={handleClearCreator}
         selectedCreator={selectedCreator}
         filters={filters}
         onFilterChange={handleFilterChange}
         onClearFilters={clearFilters}
-        onMessageClick={handleMessageClick}
         fetchIndividualCollaborations={fetchIndividualCollaborations}
       />
 

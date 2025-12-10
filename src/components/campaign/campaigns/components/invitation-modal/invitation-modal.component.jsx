@@ -25,6 +25,7 @@ const InvitationModal = ({
     handleClose,
     handleSubmit,
     formatCompensation,
+    resetForm,
   } = useInvitationModal();
 
   const handleTypeChange = (type) => {

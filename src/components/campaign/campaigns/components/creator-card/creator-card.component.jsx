@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { Bookmark, Mail, Star } from "lucide-react";
+import { Bookmark, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const CreatorCard = ({
@@ -9,7 +9,6 @@ const CreatorCard = ({
   onCreatorPreview,
   onSaveToShortlist,
   onRemoveFromShortlist,
-  onMessageCreator,
   onInviteClick,
   tab = "discover", // "discover" | "applications" | "rejected"
   appliedDate,
@@ -28,11 +27,6 @@ const CreatorCard = ({
     } else {
       onSaveToShortlist(creator);
     }
-  };
-
-  const handleMessageClick = (e) => {
-    e.stopPropagation();
-    onMessageCreator(creator);
   };
 
   const handleInviteClickInternal = (e) => {
@@ -196,23 +190,11 @@ const CreatorCard = ({
         {/* Icon Buttons (Discover tab) */}
         {tab === "discover" && (
           <div className="flex justify-center space-x-2">
-            <button
+            <CustomButton
+              text={isShortlist ? "Remove from list" : "Save to list"}
               onClick={handleSaveClick}
-              className="p-2 rounded-full hover:bg-blue-100 transition"
-              title={isShortlist ? "Remove from list" : "Save to list"}
-            >
-              <Bookmark
-                className={`w-5 h-5 ${isShortlist ? "text-blue-700 fill-current" : "text-blue-600"}`}
-              />
-            </button>
-
-            <button
-              onClick={handleMessageClick}
-              className="p-2 rounded-full hover:bg-purple-100 transition"
-              title="Message"
-            >
-              <Mail className="w-5 h-5 text-purple-600" />
-            </button>
+              className="btn-primary w-full rounded-lg"
+            />
           </div>
         )}
 
@@ -245,11 +227,6 @@ const CreatorCard = ({
               text={isShortlist ? "Remove" : "Save"}
               className="w-full btn-secondary rounded-lg"
               onClick={handleSaveClick}
-            />
-            <CustomButton
-              text="Message"
-              className="w-full btn-outline rounded-lg"
-              onClick={handleMessageClick}
             />
           </div>
         )}

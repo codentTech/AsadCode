@@ -2,7 +2,11 @@ import { useEffect, useRef } from "react";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 function useApplicationMessageThread(brandId, application, onClose) {
-  const messageThreadHook = useMessageThread(brandId);
+  const campaignId = application?.campaign?.id || application?.campaign_id || application?.campaignId;
+  if (!campaignId) {
+    throw new Error("Campaign ID is required for conversations");
+  }
+  const messageThreadHook = useMessageThread(brandId, campaignId);
   const hasOpenedRef = useRef(false);
 
   useEffect(() => {

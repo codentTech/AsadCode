@@ -1,40 +1,44 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
+import { useSelector } from "react-redux";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
-  selectedCreator,
   appliedCreatorsData,
   appliedCreatorsLoading,
   onCreatorSelect,
+  onClearCreator,
   onCampaignSelect,
   onReinstateCreator,
   reinstateLoading,
-  filters,
   sortBy,
-  onFilterChange,
-  onClearFilters,
   onSortChange,
   onSaveToShortlist,
 }) => {
+  const individualCollaborationsState = useSelector(
+    (state) => state.invitation.getBrandRejectedIndividualCollaborations || {}
+  );
+  const individualCollaborationsData = individualCollaborationsState?.data;
+
   const {
     showReinstateConfirmation,
-    creatorToReinstate,
     campaignsData,
     campaignsLoading,
-    campaignOptions,
-    handleCampaignChange,
+    filteredCampaignOptions,
+    isSelectedCampaignValid,
+    handleToggleChange,
+    handleSortChange,
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
-    formatFollowers,
     showSaveToShortlistModal,
     creatorToSave,
     shortlists,
@@ -42,88 +46,85 @@ const CreatorSpendAnalysis = ({
     handleSaveToShortlistClick,
     handleConfirmSaveToShortlist,
     handleCancelSaveToShortlist,
+    open,
+    isMultiCreator,
+    sortOptions,
+    handleOpenModal,
+    handleCloseModal,
+    handleCreatorPreview,
+    mapCreatorForCard,
   } = useCreatorSpendAnalysis({
     selectedCampaign,
     onCampaignSelect,
     onReinstateCreator,
     onSaveToShortlist,
+    onSortChange,
+    onCreatorSelect,
+    onClearCreator,
   });
-
-  const handleCreatorPreview = (creator) => {
-    if (onCreatorSelect) {
-      onCreatorSelect(creator);
-    }
-  };
-
-  const handleRemoveFromShortlist = (creatorId) => {
-    // Handle remove from shortlist
-  };
-
-  const handleInviteClick = (creator, e) => {
-    // Handle invite click
-  };
-
-  // Map API data to CreatorCard format
-  const mapCreatorForCard = (creator) => {
-    const creatorData = creator.creator;
-    const profile = creatorData?.creator_profile;
-
-    return {
-      id: creatorData.id,
-      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
-      profileImage: profile?.profile_photo_url || avatar,
-      age: creatorData?.date_of_birth
-        ? Math.floor(
-            (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
-          )
-        : "N/A",
-      location:
-        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
-        "Location not specified",
-      rating: profile?.rating || 0,
-      reviewCount: 0,
-      followers: profile?.total_followers || 0,
-      niches: profile?.niches || [],
-      tagline: profile?.bio || "Creating authentic content that resonates with audiences",
-      portfolioImages: profile?.mini_profile_pictures || [],
-      platforms: profile?.social_platforms?.map((p) => p.platform) || [],
-      platformStats:
-        profile?.social_platforms?.reduce((acc, platform) => {
-          acc[platform.platform] = { followers: platform.followers };
-          return acc;
-        }, {}) || {},
-    };
-  };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-        <div className="p-3">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Rejected Creators</h1>
-              <p className="text-xs text-gray-500">Manage rejected creator applications</p>
+        <div className="p-4">
+          <div className="mb-3">
+            <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
+              <CustomSwitch
+                label="Campaign Type"
+                checked={isMultiCreator}
+                onChange={handleToggleChange}
+                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+                parentDivClassName="justify-between"
+              />
             </div>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-64">
+          <div className="flex items-center justify-between gap-3">
+            {isMultiCreator ? (
+              <div className="min-w-[240px] w-[260px]">
                 <SimpleSelect
                   placeHolder="Select a campaign"
-                  options={campaignOptions}
+                  options={filteredCampaignOptions}
                   isSearchable={true}
                   isMulti={false}
-                  onChange={handleCampaignChange}
-                  value={campaignOptions.find((opt) => opt.value === selectedCampaign?.id)}
                   isLoading={campaignsLoading}
+                  defaultValue={
+                    isSelectedCampaignValid && selectedCampaign
+                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
+                      : null
+                  }
+                  onChange={(opt) => {
+                    const id = opt?.value;
+                    const campaign = campaignsData?.data?.find((c) => c.id === id);
+                    if (onCampaignSelect && campaign) onCampaignSelect(campaign);
+                  }}
                 />
               </div>
-              <div className="w-48">
+            ) : (
+              <div></div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <div className="w-full min-w-[230px]">
                 <SimpleSelect
                   placeHolder="Sort by"
                   options={sortOptions}
-                  className="w-full"
-                  value={sortOptions.find((opt) => opt.value === sortBy)}
-                  onChange={(selectedOption) => onSortChange(selectedOption?.value)}
+                  value={
+                    sortBy
+                      ? {
+                          value: sortBy,
+                          label: sortOptions.find((opt) => opt.value === sortBy)?.label,
+                        }
+                      : null
+                  }
+                  onChange={handleSortChange}
+                />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
                 />
               </div>
             </div>
@@ -132,52 +133,118 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {appliedCreatorsLoading ? (
-          <div className="flex flex-col items-center justify-center h-64">
-            <Loader loading={true} />
-            <p className="text-xs text-gray-500 mt-2">Loading rejected creators...</p>
-          </div>
-        ) : !selectedCampaign ? (
-          <NotFound
-            title="No Campaign Selected"
-            description="Select a campaign from the dropdown to view rejected creators."
-          />
-        ) : appliedCreatorsData?.data?.length === 0 ? (
-          <NotFound
-            title="No Rejected Creators"
-            description="No creators have been rejected for this campaign yet."
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
-            {appliedCreatorsData?.data?.map((creator) => {
-              const mappedCreator = mapCreatorForCard(creator);
-              const isSelected = selectedCreator?.id === creator?.id;
+        {(() => {
+          const isIndividualMode = !isMultiCreator;
+          let dataToDisplay = null;
+          let isLoading = appliedCreatorsLoading;
 
+          if (isIndividualMode) {
+            isLoading = individualCollaborationsState?.isLoading || false;
+            dataToDisplay = individualCollaborationsData?.data;
+          } else {
+            dataToDisplay = appliedCreatorsData?.data;
+          }
+
+          if (isLoading) {
+            return (
+              <div className="flex flex-col items-center justify-center h-64">
+                <Loader loading={true} />
+                <p className="text-xs text-gray-500 mt-2">Loading rejected creators...</p>
+              </div>
+            );
+          }
+
+          if (isIndividualMode) {
+            if (!dataToDisplay || !Array.isArray(dataToDisplay) || dataToDisplay.length === 0) {
               return (
-                <CreatorCard
-                  key={creator.id}
-                  creator={mappedCreator}
-                  isShortlist={false}
-                  onCreatorPreview={handleCreatorPreview}
-                  onSaveToShortlist={() => handleSaveToShortlistClick(creator)}
-                  onRemoveFromShortlist={handleRemoveFromShortlist}
-                  onInviteClick={handleInviteClick}
-                  tab="rejected"
-                  appliedDate={new Date(creator.applied_at).toLocaleDateString()}
-                  rejectedDate={
-                    creator.rejected_at ? new Date(creator.rejected_at).toLocaleDateString() : "N/A"
-                  }
-                  onReinstateClick={(mappedCreator, e) => handleReinstateClick(creator, e)}
-                  onViewNotesClick={(creator, e) => {
-                    e.stopPropagation();
-                    // Handle view notes
-                  }}
-                  isReinstateLoading={reinstateLoading}
+                <NotFound
+                  title="No Rejected Creators"
+                  description="No rejected individual creators found."
                 />
               );
-            })}
-          </div>
-        )}
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
+                {dataToDisplay.map((invitation) => {
+                  const mappedCreator = mapCreatorForCard(invitation);
+                  return (
+                    <div
+                      key={invitation.id || invitation.creator?.id}
+                      onClick={() => handleCreatorPreview(invitation)}
+                    >
+                      <CreatorCard
+                        creator={mappedCreator}
+                        isShortlist={false}
+                        onCreatorPreview={handleCreatorPreview}
+                        onSaveToShortlist={() => handleSaveToShortlistClick(invitation)}
+                        onRemoveFromShortlist={() => {}}
+                        onInviteClick={() => {}}
+                        tab="rejected"
+                        appliedDate={mappedCreator.appliedDate}
+                        rejectedDate={mappedCreator.rejectedDate}
+                        onReinstateClick={(mappedCreator, e) => handleReinstateClick(invitation, e)}
+                        onViewNotesClick={(invitation, e) => {
+                          e.stopPropagation();
+                        }}
+                        isReinstateLoading={reinstateLoading}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          if (!selectedCampaign) {
+            return (
+              <NotFound
+                title="No Campaign Selected"
+                description="Select a campaign from the dropdown to view rejected creators."
+              />
+            );
+          }
+
+          if (!dataToDisplay || !Array.isArray(dataToDisplay) || dataToDisplay.length === 0) {
+            return (
+              <NotFound
+                title="No Rejected Creators"
+                description="No creators have been rejected for this campaign yet."
+              />
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
+              {dataToDisplay.map((creator) => {
+                const mappedCreator = mapCreatorForCard(creator);
+                return (
+                  <CreatorCard
+                    key={creator.id}
+                    creator={mappedCreator}
+                    isShortlist={false}
+                    onCreatorPreview={handleCreatorPreview}
+                    onSaveToShortlist={() => handleSaveToShortlistClick(creator)}
+                    onRemoveFromShortlist={() => {}}
+                    onInviteClick={() => {}}
+                    tab="rejected"
+                    appliedDate={new Date(creator.applied_at).toLocaleDateString()}
+                    rejectedDate={
+                      creator.rejected_at
+                        ? new Date(creator.rejected_at).toLocaleDateString()
+                        : "N/A"
+                    }
+                    onReinstateClick={(mappedCreator, e) => handleReinstateClick(creator, e)}
+                    onViewNotesClick={(creator, e) => {
+                      e.stopPropagation();
+                    }}
+                    isReinstateLoading={reinstateLoading}
+                  />
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       <ConfirmationDialog
@@ -197,7 +264,6 @@ const CreatorSpendAnalysis = ({
         }
       />
 
-      {/* Save to Shortlist Modal */}
       <Modal
         title="Save to Shortlist"
         show={showSaveToShortlistModal}
@@ -257,6 +323,8 @@ const CreatorSpendAnalysis = ({
           )}
         </div>
       </Modal>
+
+      <CampaignCreationWizard open={open} close={handleCloseModal} />
     </div>
   );
 };
