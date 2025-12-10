@@ -10,21 +10,16 @@ class ChatSocketService {
 
   // Initialize WebSocket connection
   connect(dispatch) {
-    // Prevent multiple connections
     if (this.socket && this.isConnected) {
-      console.log("⚠️ WebSocket already connected, skipping...");
       return;
     }
 
     const user = getUser();
     if (!user || !user.id) {
-      console.error("❌ User not found, cannot connect to chat");
       return;
     }
 
     const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000/chat";
-
-    console.log(`🔌 Connecting to WebSocket: ${SOCKET_URL} with userId: ${user.id}`);
 
     this.socket = io(SOCKET_URL, {
       query: { userId: user.id },
@@ -46,17 +41,23 @@ class ChatSocketService {
 
     // Connection events
     this.socket.on("connect", () => {
-      console.log("✅ Connected to chat server");
       this.isConnected = true;
     });
 
     this.socket.on("disconnect", () => {
-      console.log("❌ Disconnected from chat server");
       this.isConnected = false;
     });
 
-    this.socket.on("connect_error", (error) => {
-      console.error("Connection error:", error);
+    this.socket.on("connect_error", () => {
+      this.isConnected = false;
+    });
+
+    // Online users list
+    this.socket.on("online_users", (userIds) => {
+      if (dispatch) {
+        const { setOnlineUsers } = require("./chat.slice");
+        dispatch(setOnlineUsers(userIds || []));
+      }
     });
 
     // Message events
@@ -66,12 +67,10 @@ class ChatSocketService {
 
     this.socket.on("new_message", (message) => {
       if (dispatch) {
-        const user = getUser();
-        // Only add messages from other users (sender's messages are already added via sendMessage.fulfilled)
-        if (message.sender_id !== user?.id) {
-          const { addMessageFromSocket } = require("./chat.slice");
-          dispatch(addMessageFromSocket(message));
-        }
+        // Always add the message - the Redux slice will handle duplicate prevention
+        // This ensures both sender and receiver see messages in real-time
+        const { addMessageFromSocket } = require("./chat.slice");
+        dispatch(addMessageFromSocket(message));
       }
     });
 
@@ -116,17 +115,12 @@ class ChatSocketService {
     });
 
     // Error events
-    this.socket.on("message_error", ({ error }) => {
-      console.error("❌ Message error:", error);
-    });
+    this.socket.on("message_error", () => {});
 
-    this.socket.on("mark_seen_error", ({ error }) => {
-      console.error("❌ Mark seen error:", error);
-    });
+    this.socket.on("mark_seen_error", () => {});
 
     // Notification events
     this.socket.on("new_notification", (notification) => {
-      console.log("🔔 New notification received:", notification);
 
       if (dispatch) {
         // Play notification sound
@@ -152,7 +146,6 @@ class ChatSocketService {
   // Send message via WebSocket
   sendMessage(messageData, user) {
     if (!this.socket || !this.isConnected) {
-      console.error("Socket not connected");
       return;
     }
 
@@ -165,7 +158,6 @@ class ChatSocketService {
   // Mark messages as seen
   markAsSeen(conversationId, user) {
     if (!this.socket || !this.isConnected) {
-      console.error("Socket not connected");
       return;
     }
 
@@ -201,13 +193,10 @@ class ChatSocketService {
   joinConversation(conversationId) {
     if (!this.socket || !this.isConnected) return;
 
-    // Prevent joining the same room multiple times
     if (this.joinedRooms.has(conversationId)) {
-      console.log(`⚠️ Already joined conversation room: ${conversationId}`);
       return;
     }
 
-    console.log(`🔗 Joining conversation room: ${conversationId}`);
     this.socket.emit("join_conversation", { conversationId });
     this.joinedRooms.add(conversationId);
   }
@@ -216,7 +205,6 @@ class ChatSocketService {
   leaveConversation(conversationId) {
     if (!this.socket || !this.isConnected) return;
 
-    console.log(`👋 Leaving conversation room: ${conversationId}`);
     this.socket.emit("leave_conversation", { conversationId });
     this.joinedRooms.delete(conversationId);
   }

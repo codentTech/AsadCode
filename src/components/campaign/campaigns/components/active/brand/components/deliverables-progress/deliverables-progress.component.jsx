@@ -231,7 +231,7 @@ const DeliverablesProgress = ({
   };
 
   const renderTimeline = () => {
-    if (selectedCampaign?.source_platform !== SOURCE_PLATFORM.CLEERCUT) {
+    if (selectedCampaign?.source_platform === SOURCE_PLATFORM.OTHER) {
       return null;
     }
 

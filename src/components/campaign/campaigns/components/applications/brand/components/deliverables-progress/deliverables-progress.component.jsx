@@ -1,15 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loader from "@/common/components/loader/loader.component";
-import ReadMore from "@/common/components/readmore/readmore.component";
 import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
-import { MapPin, Star } from "lucide-react";
 import CampaignHistory from "../campaign-history/campaign-history.component";
-import { getAge } from "@/common/utils/date.utils";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
-  isCompleted = false,
   selectedCampaign,
   selectedCreator,
   onHireClick,
@@ -17,46 +14,14 @@ const DeliverablesProgress = ({
   onMessageClick,
   isIndividualCreator = false,
 }) => {
-  // Extract creator data from the selectedCreator object
-  const getCreatorData = () => {
-    if (!selectedCreator) return null;
-
-    // If it's the original API data structure
-    if (selectedCreator.creator) {
-      const creator = selectedCreator?.creator;
-      const profile = creator?.creator_profile;
-
-      return {
-        id: selectedCreator.id,
-        name: `${creator.first_name} ${creator.last_name}`,
-        image: profile?.profile_photo_url || avatar,
-        location:
-          `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
-        rating: Number(profile?.rating), // Mock rating
-        appliedDate: new Date(selectedCreator.applied_at).toLocaleDateString(),
-        pitch: selectedCreator.pitch,
-        status: selectedCreator.status,
-        profile: profile,
-        bio: profile?.bio,
-        age: getAge(creator.date_of_birth),
-        reviewCount: profile?.review_count,
-        rating: profile?.rating || 0,
-      };
-    }
-
-    // If it's already transformed data
-    return selectedCreator;
-  };
-
-  const creatorData = getCreatorData();
-  // If no campaign selected, render nothing (campaign auto-selects in sidebar)
-  if (!selectedCampaign) {
-    return (
-      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-        <Loader loading={true} />
-      </div>
-    );
-  }
+  const {
+    selectedContract,
+    isContractsLoading,
+    creatorData,
+    formatDate,
+    formatCompensation,
+    getDeliverables,
+  } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
 
   if (!creatorData) {
     return (
@@ -65,9 +30,9 @@ const DeliverablesProgress = ({
       </div>
     );
   }
+
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Sticky Profile Section */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
@@ -86,18 +51,89 @@ const DeliverablesProgress = ({
         <p className="flex items-center text-sm text-gray-500 -mt-1">
           {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
         </p>
-
         <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
       </div>
 
-      {/* Scrollable Content */}
       <div className="flex flex-col overflow-y-auto p-4 gap-4">
-        {/* Actions under profile */}
         <div className="grid grid-cols-3 gap-2 w-full">
           <CustomButton text="Message" className="btn-primary !py-1" onClick={onMessageClick} />
           <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
           <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
         </div>
+
+        {isIndividualCreator && (
+          <>
+            {isContractsLoading ? (
+              <div className="bg-white rounded border p-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
+                  Contract Agreement
+                </h4>
+                <div className="flex justify-center py-3">
+                  <Loader loading={true} />
+                </div>
+              </div>
+            ) : !selectedContract ? (
+              <div className="bg-white rounded border p-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
+                  Contract Agreement
+                </h4>
+                <p className="text-xs text-gray-500">No contract found for this creator</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded border p-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
+                  Contract Agreement
+                </h4>
+                <ul className="space-y-2 text-xs text-gray-600">
+                  {getDeliverables(selectedContract).map((deliverable, index) => (
+                    <li key={index} className="flex items-center justify-between">
+                      <span>{deliverable}</span>
+                    </li>
+                  ))}
+                  <li className="flex items-center justify-between">
+                    <span>
+                      Deadline:
+                      <span className="font-medium ml-1">
+                        {formatDate(selectedContract.completionDeadline)}
+                      </span>
+                    </span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>
+                      Payment:{" "}
+                      <span className="font-medium">{formatCompensation(selectedContract)}</span>
+                    </span>
+                  </li>
+                  {selectedContract.usageRights && (
+                    <li className="flex items-center justify-between">
+                      <span>
+                        Usage Rights:{" "}
+                        <span className="font-medium">{selectedContract.usageRights}</span>
+                      </span>
+                    </li>
+                  )}
+                  {selectedContract.exclusivityClause && (
+                    <li className="flex items-center justify-between">
+                      <span>
+                        Exclusivity:{" "}
+                        <span className="font-medium">{selectedContract.exclusivityClause}</span>
+                      </span>
+                    </li>
+                  )}
+                  {selectedContract.revisionsLimit && (
+                    <li className="flex items-center justify-between">
+                      <span>
+                        Revisions:{" "}
+                        <span className="font-medium">{selectedContract.revisionsLimit}</span>
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+
         {!isIndividualCreator && (
           <>
             <div className="bg-white rounded-lg border p-3">
@@ -137,12 +173,13 @@ const DeliverablesProgress = ({
           </>
         )}
 
-        {/* Only show campaign history for multi-creator campaigns */}
-        {!isIndividualCreator &&
-          selectedCampaign?.id &&
-          !selectedCampaign.id.startsWith("individual-") && (
-            <CampaignHistory campaignId={selectedCampaign.id} />
-          )}
+        {(() => {
+          const campaignId = isIndividualCreator
+            ? selectedCreator?.campaign_id || selectedCreator?.campaign?.id
+            : selectedCampaign?.id;
+
+          return campaignId ? <CampaignHistory campaignId={campaignId} /> : null;
+        })()}
       </div>
     </div>
   );

@@ -3,7 +3,6 @@ import DeliverablesProgress from "./components/deliverables-progress/deliverable
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import useRejected from "./use-rejected.hook";
@@ -16,12 +15,12 @@ function Rejected() {
     selectedCreator,
     filters,
     sortBy,
-    creators,
     rejectedCreatorsLoading,
     reinstateLoading,
     rejectedCreatorsData,
     handleCampaignSelect,
     handleCreatorSelect,
+    handleClearCreator,
     handleFilterChange,
     handleClearFilters,
     handleSortChange,
@@ -36,30 +35,44 @@ function Rejected() {
   const shortlists = Array.isArray(shortlistsData) ? shortlistsData : [];
 
   const renderRightPane = () => {
-    if (rejectedCreatorsLoading) {
-      return (
-        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-          <Loader loading={true} />
-          <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
-        </div>
-      );
+    const isIndividual = !selectedCampaign;
+
+    if (selectedCreator) {
+      const isCreatorFromIndividual =
+        selectedCreator.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
+      const isCreatorFromMultiCreator = selectedCreator.creator_id || selectedCreator.campaign_id;
+
+      if (isIndividual && isCreatorFromMultiCreator) {
+        return (
+          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+            <NotFound title="No Creator Selected" description="Select a creator to view details." />
+          </div>
+        );
+      }
+
+      if (!isIndividual && isCreatorFromIndividual) {
+        return (
+          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+            <NotFound
+              title="No Campaign Selected"
+              description="Select a campaign to view details."
+            />
+          </div>
+        );
+      }
     }
 
-    if (!selectedCampaign) {
+    if (!selectedCreator) {
+      if (isIndividual) {
+        return (
+          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+            <NotFound title="No Creator Selected" description="Select a creator to view details." />
+          </div>
+        );
+      }
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
           <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
-        </div>
-      );
-    }
-
-    if (selectedCampaign && creators.length === 0) {
-      return (
-        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound
-            title="No Rejected Creators"
-            description="No rejected creators found for this campaign."
-          />
         </div>
       );
     }
@@ -68,10 +81,23 @@ function Rejected() {
       <DeliverablesProgress
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
-        onReinstateClick={() =>
-          handleReinstateCreator(selectedCampaign.id, selectedCreator.creator.id)
-        }
-        onViewNotesClick={() => {}}
+        onReinstateClick={() => {
+          if (!selectedCreator) return;
+
+          const isCreatorFromIndividual =
+            selectedCreator.collaboration_type === "INDIVIDUAL_CREATOR" ||
+            selectedCreator.originalData?.collaboration_type === "INDIVIDUAL_CREATOR" ||
+            (!selectedCreator.campaign_id &&
+              !selectedCreator.creator_id &&
+              selectedCreator.creator);
+
+          if (isCreatorFromIndividual) {
+            const invitationId = selectedCreator.id || selectedCreator.originalData?.id;
+            handleReinstateCreator(null, null, invitationId);
+          } else if (selectedCampaign && selectedCreator?.creator?.id) {
+            handleReinstateCreator(selectedCampaign.id, selectedCreator.creator.id);
+          }
+        }}
         onSaveToShortlistClick={() => setShowShortlistModalForDetails(true)}
       />
     );
@@ -87,6 +113,7 @@ function Rejected() {
           appliedCreatorsData={rejectedCreatorsData}
           appliedCreatorsLoading={rejectedCreatorsLoading}
           onCreatorSelect={handleCreatorSelect}
+          onClearCreator={handleClearCreator}
           onReinstateCreator={handleReinstateCreator}
           reinstateLoading={reinstateLoading}
           filters={filters}
@@ -100,7 +127,6 @@ function Rejected() {
         {renderRightPane()}
       </div>
 
-      {/* Shortlist Modal for Details Panel */}
       <Modal
         title="Save to Shortlist"
         show={showShortlistModalForDetails}

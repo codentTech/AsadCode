@@ -42,7 +42,6 @@ export default function useCreateCampaign(close) {
   });
 
   const campaignData = watch();
-  console.log(campaignData);
 
   // ===== LIFECYCLE METHODS =====
   useEffect(() => {

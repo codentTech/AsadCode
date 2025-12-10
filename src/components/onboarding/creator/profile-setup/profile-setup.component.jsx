@@ -130,7 +130,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Social Platforms */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
+              {/* <div className="bg-white rounded-lg shadow-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">
                     Connect Social Media Platforms <span className="text-red-500">*</span>
@@ -211,7 +211,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 {errors.socialPlatforms && (
                   <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
                 )}
-              </div>
+              </div> */}
             </div>
 
             {/* Right Column */}

@@ -10,11 +10,7 @@ import chatSocketService from "@/provider/features/chat/chat-socket.service";
 import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
 
-/**
- * Custom hook for managing message thread functionality with real chat integration
- * Handles loading messages, pagination, sending new messages, and real-time updates
- */
-const useMessageThread = (creatorId) => {
+const useMessageThread = (creatorId, campaignId, onMessageSent) => {
   const dispatch = useDispatch();
   const user = getUser();
 
@@ -30,10 +26,11 @@ const useMessageThread = (creatorId) => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const sendingRef = useRef(false); // Prevent duplicate sends
+  const sendingRef = useRef(false);
   const fileInputRef = useRef(null);
+  const hasFetchedMessagesRef = useRef(false);
+  const pollingIntervalRef = useRef(null);
 
-  // Get data from Redux
   const { messages: allMessages, onlineUsers, typingUsers } = useSelector((state) => state.chat);
   const {
     createOrGetConversation: conversationState,
@@ -41,19 +38,28 @@ const useMessageThread = (creatorId) => {
     sendMessage: sendMessageState,
   } = useSelector((state) => state.chat);
 
-  // Get messages for current conversation
-  const messages = conversationId ? allMessages[conversationId] || [] : [];
+  const messages = conversationId
+    ? [...(allMessages[conversationId] || [])].sort((a, b) => {
+        const dateA = new Date(a.created_at || a.createdAt || 0);
+        const dateB = new Date(b.created_at || b.createdAt || 0);
+        return dateA - dateB;
+      })
+    : [];
 
-  // Check if creator is online
-  const isCreatorOnline = creatorId ? onlineUsers.includes(creatorId) : false;
+  // Get the other user ID from conversation or use creatorId
+  const otherUserId = conversationState?.data?.brand?.id === user?.id 
+    ? conversationState?.data?.creator?.id 
+    : conversationState?.data?.brand?.id || creatorId;
+  
+  // Determine receiver ID based on user role and conversation
+  const receiverId = user?.role === "BRAND" 
+    ? (conversationState?.data?.creator?.id || creatorId)
+    : (conversationState?.data?.brand?.id || otherUserId);
+  
+  const isOtherUserOnline = otherUserId ? onlineUsers.includes(otherUserId) : false;
+  const isOtherUserTyping = conversationId && otherUserId ? typingUsers[conversationId]?.includes(otherUserId) : false;
 
-  // Check if creator is typing
-  const isCreatorTyping = conversationId ? typingUsers[conversationId]?.includes(creatorId) : false;
-
-  /**
-   * Opens the message modal and loads conversation
-   */
-  const openMessageModal = useCallback(async () => {
+  const openMessageModal = useCallback(async (overrideCampaignId = null) => {
     if (!creatorId || !user?.id) {
       setError("Unable to start conversation");
       return;
@@ -61,24 +67,37 @@ const useMessageThread = (creatorId) => {
 
     setIsModalOpen(true);
     setError(null);
+    hasFetchedMessagesRef.current = false;
 
-    // Prevent self-conversations
     if (user.id === creatorId) {
-      console.warn("Cannot create conversation with yourself");
       return;
     }
 
-    // Create or get conversation
+    const effectiveCampaignId = overrideCampaignId || campaignId;
+    if (!effectiveCampaignId) {
+      setError("Campaign ID is required to start a conversation");
+      return;
+    }
+
     const conversationData = {
-      brand_id: user.id,
-      creator_id: creatorId,
+      brand_id: user.role === "BRAND" ? user.id : creatorId,
+      creator_id: user.role === "CREATOR" ? user.id : creatorId,
+      campaign_id: effectiveCampaignId,
     };
 
     const result = await dispatch(createOrGetConversation(conversationData)).unwrap();
     const convId = result.data.id;
     setConversationId(convId);
 
-    // Load messages
+    // Ensure socket is connected
+    if (!chatSocketService.isSocketConnected()) {
+      chatSocketService.connect(dispatch);
+    }
+    
+    // Join conversation room for real-time updates
+    chatSocketService.joinConversation(convId);
+
+    // Fetch messages ONCE when modal opens
     await dispatch(
       getConversationMessages({
         conversationId: convId,
@@ -87,33 +106,36 @@ const useMessageThread = (creatorId) => {
       })
     ).unwrap();
 
-    // Mark messages as seen
+    hasFetchedMessagesRef.current = true;
+
     await dispatch(markConversationMessagesAsSeen(convId)).unwrap();
-
-    // Scroll to bottom
     scrollToBottom();
-  }, [creatorId, user, dispatch]);
+  }, [creatorId, campaignId, user, dispatch]);
 
-  /**
-   * Closes the message modal and resets state
-   */
   const closeMessageModal = useCallback(() => {
+    // Clear polling interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    // Leave conversation room when closing modal
+    if (conversationId) {
+      chatSocketService.leaveConversation(conversationId);
+    }
+    
     setIsModalOpen(false);
     setNewMessage("");
     setConversationId(null);
     setError(null);
+    hasFetchedMessagesRef.current = false;
 
-    // Clear typing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-  }, []);
+  }, [conversationId]);
 
-  /**
-   * Sends a new message
-   */
   const sendMessageHandler = useCallback(async () => {
-    // Prevent duplicate sends
     if (
       (!newMessage.trim() && !attachmentPreview) ||
       !conversationId ||
@@ -123,12 +145,16 @@ const useMessageThread = (creatorId) => {
       return;
     }
 
-    // Set sending flag
     sendingRef.current = true;
+
+    // Determine receiver ID
+    const currentReceiverId = user?.role === "BRAND" 
+      ? (conversationState?.data?.creator?.id || creatorId)
+      : (conversationState?.data?.brand?.id || otherUserId);
 
     const messageData = {
       conversation_id: conversationId,
-      receiver_id: creatorId,
+      receiver_id: currentReceiverId,
       content: newMessage.trim() || (attachmentPreview ? attachmentPreview.filename : ""),
       message_type: attachmentPreview
         ? attachmentPreview.mimetype.startsWith("image/")
@@ -142,17 +168,15 @@ const useMessageThread = (creatorId) => {
       await dispatch(sendMessage(messageData)).unwrap();
       setNewMessage("");
       setAttachmentPreview(null);
-
-      // Stop typing indicator
-      chatSocketService.stopTyping(conversationId, user.id, creatorId);
-
-      // Scroll to bottom
+      chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
       scrollToBottom();
+      
+      if (onMessageSent) {
+        onMessageSent();
+      }
     } catch (err) {
       setError("Failed to send message. Please try again.");
-      console.error("Error sending message:", err);
     } finally {
-      // Reset sending flag after a short delay
       setTimeout(() => {
         sendingRef.current = false;
       }, 500);
@@ -165,55 +189,49 @@ const useMessageThread = (creatorId) => {
     user,
     dispatch,
     sendMessageState.isLoading,
+    onMessageSent,
+    conversationState?.data,
+    otherUserId,
   ]);
 
-  /**
-   * Handles message input change with typing indicator
-   */
   const handleMessageChange = useCallback(
     (value) => {
-      // Handle both string values and function values
       if (typeof value === "function") {
         setNewMessage(value);
       } else {
         setNewMessage(value);
       }
 
-      if (!conversationId || !creatorId) return;
+      if (!conversationId) return;
 
-      // Clear existing timeout
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Start typing - ensure value is a string before calling trim
+      // Determine receiver ID from conversation data
+      const currentReceiverId = user?.role === "BRAND" 
+        ? (conversationState?.data?.creator?.id || creatorId)
+        : (conversationState?.data?.brand?.id || otherUserId);
+
       const stringValue = typeof value === "function" ? "" : String(value || "");
       if (stringValue.trim()) {
-        chatSocketService.startTyping(conversationId, user.id, creatorId);
-
-        // Stop typing after 2 seconds of inactivity
+        chatSocketService.startTyping(conversationId, user.id, currentReceiverId);
         typingTimeoutRef.current = setTimeout(() => {
-          chatSocketService.stopTyping(conversationId, user.id, creatorId);
+          chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
         }, 2000);
       } else {
-        chatSocketService.stopTyping(conversationId, user.id, creatorId);
+        chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
       }
     },
-    [conversationId, creatorId, user]
+    [conversationId, creatorId, user, conversationState?.data, otherUserId]
   );
 
-  /**
-   * Scrolls to the bottom of messages
-   */
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   }, []);
 
-  /**
-   * Formats message timestamp for display
-   */
   const formatMessageTime = useCallback((timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -226,7 +244,6 @@ const useMessageThread = (creatorId) => {
         hour12: true,
       });
     } else if (diffInHours < 168) {
-      // Less than a week
       return date.toLocaleDateString("en-US", {
         weekday: "short",
         hour: "numeric",
@@ -244,44 +261,29 @@ const useMessageThread = (creatorId) => {
     }
   }, []);
 
-  /**
-   * Clears error state
-   */
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  /**
-   * Handle emoji selection
-   */
   const handleEmojiClick = useCallback((emojiData) => {
-    // emoji-picker-react v4+ uses emojiData.emoji
     const emoji = emojiData.emoji || emojiData.native || emojiData;
     setNewMessage((prev) => prev + emoji);
     setShowEmojiPicker(false);
   }, []);
 
-  /**
-   * Toggle emoji picker
-   */
   const toggleEmojiPicker = useCallback(() => {
     setShowEmojiPicker((prev) => !prev);
   }, []);
 
-  /**
-   * Handle file selection
-   */
   const handleFileSelect = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file size (50MB - matches backend)
     if (file.size > 50 * 1024 * 1024) {
       setError("File size must be less than 50MB");
       return;
     }
 
-    // Validate file type (matches backend allowed types)
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -303,10 +305,7 @@ const useMessageThread = (creatorId) => {
     setError(null);
 
     try {
-      // Upload file
       const response = await chatService.uploadAttachment(file);
-
-      // Set preview - response structure from /upload endpoint
       setAttachmentPreview({
         url: response.data.url,
         filename: file.originalname || file.name,
@@ -314,42 +313,96 @@ const useMessageThread = (creatorId) => {
         size: file.size,
       });
 
-      // Clear file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } catch (err) {
       setError("Failed to upload file. Please try again.");
-      console.error("Error uploading file:", err);
     } finally {
       setIsUploading(false);
     }
   }, []);
 
-  /**
-   * Remove attachment preview
-   */
   const removeAttachment = useCallback(() => {
     setAttachmentPreview(null);
   }, []);
 
-  /**
-   * Open file picker
-   */
   const openFilePicker = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
-  // Join conversation room when conversationId changes and modal is open
+  // Single useEffect to handle socket connection and message fetching
+  useEffect(() => {
+    if (!conversationId || !isModalOpen) {
+      // Clear polling when modal closes
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Ensure socket is connected
+    if (!chatSocketService.isSocketConnected()) {
+      chatSocketService.connect(dispatch);
+    }
+    
+    // Join conversation room for real-time updates
+    chatSocketService.joinConversation(conversationId);
+
+    // Only fetch if we haven't already fetched (prevents duplicate fetches)
+    if (!hasFetchedMessagesRef.current) {
+      dispatch(
+        getConversationMessages({
+          conversationId,
+          limit: 50,
+          offset: 0,
+        })
+      ).then(() => {
+        hasFetchedMessagesRef.current = true;
+        setTimeout(() => scrollToBottom(), 100);
+      });
+    }
+
+    // Fallback polling only if WebSocket might have issues (30 seconds, much less aggressive)
+    // This is just a safety net, WebSocket should handle real-time updates
+    if (!pollingIntervalRef.current) {
+      pollingIntervalRef.current = setInterval(() => {
+        // Only poll if we have messages (meaning conversation exists)
+        // This prevents unnecessary API calls for empty conversations
+        const existingMessages = allMessages[conversationId] || [];
+        if (existingMessages.length > 0 || hasFetchedMessagesRef.current) {
+          dispatch(
+            getConversationMessages({
+              conversationId,
+              limit: 50,
+              offset: 0,
+            })
+          );
+        }
+      }, 30000); // 30 seconds - much less aggressive
+    }
+
+    return () => {
+      chatSocketService.leaveConversation(conversationId);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, isModalOpen, dispatch]);
+
+  // Auto-scroll when new messages arrive
   useEffect(() => {
     if (conversationId && isModalOpen) {
-      chatSocketService.joinConversation(conversationId);
-
-      return () => {
-        chatSocketService.leaveConversation(conversationId);
-      };
+      const conversationMessages = allMessages[conversationId] || [];
+      if (conversationMessages.length > 0) {
+        scrollToBottom();
+      }
     }
-  }, [conversationId, isModalOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMessages, conversationId, isModalOpen]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -357,64 +410,39 @@ const useMessageThread = (creatorId) => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
     };
   }, []);
 
-  // Auto-scroll when new messages arrive
-  useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom();
-    }
-  }, [messages.length, scrollToBottom]);
-
   return {
-    // Modal state
     isModalOpen,
     openMessageModal,
     closeMessageModal,
-
-    // Messages state
     messages,
     newMessage,
     setNewMessage: handleMessageChange,
-
-    // Loading states
     isLoading: messagesState.isLoading || conversationState.isLoading,
     isSending: sendMessageState.isLoading,
-
-    // Online/Typing status
-    isCreatorOnline,
-    isCreatorTyping,
-
-    // Error handling
+    isCreatorOnline: isOtherUserOnline,
+    isCreatorTyping: isOtherUserTyping,
     error,
     clearError,
-
-    // Actions
     sendMessage: sendMessageHandler,
-
-    // Emoji
     showEmojiPicker,
     toggleEmojiPicker,
     handleEmojiClick,
-
-    // Attachments
     isUploading,
     attachmentPreview,
     handleFileSelect,
     removeAttachment,
     openFilePicker,
     fileInputRef,
-
-    // Refs
     messagesEndRef,
     messagesContainerRef,
-
-    // Utilities
     formatMessageTime,
     scrollToBottom,
-
-    // Conversation info
     conversationId,
   };
 };
