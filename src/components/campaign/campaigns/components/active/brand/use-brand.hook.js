@@ -75,7 +75,10 @@ export default function useBrandCampaign(isCompleted = false) {
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const options = allCampaigns.map((campaign) => ({
+      const activeCampaigns = allCampaigns.filter(
+        (campaign) => campaign.status !== "COMPLETE"
+      );
+      const options = activeCampaigns.map((campaign) => ({
         value: campaign.id,
         label: campaign.campaign_title || "Untitled Campaign",
         campaign: campaign,
@@ -85,26 +88,31 @@ export default function useBrandCampaign(isCompleted = false) {
 
       if (
         selectedCampaign &&
-        allCampaigns.length > 0 &&
-        !allCampaigns.some((c) => c.id === selectedCampaign.id)
+        activeCampaigns.length > 0 &&
+        !activeCampaigns.some((c) => c.id === selectedCampaign.id)
       ) {
-        setSelectedCampaign(allCampaigns[0]);
-        hasAutoSelected.current = true;
+        if (selectedCampaign.status === "COMPLETE") {
+          setSelectedCampaign(null);
+          hasAutoSelected.current = false;
+        } else {
+          setSelectedCampaign(activeCampaigns[0]);
+          hasAutoSelected.current = true;
+        }
         return;
       }
 
       if (
-        allCampaigns.length > 0 &&
+        activeCampaigns.length > 0 &&
         !selectedCampaign &&
         !hasAutoSelected.current &&
         !hasRestoredFromContext.current
       ) {
-        setSelectedCampaign(allCampaigns[0]);
+        setSelectedCampaign(activeCampaigns[0]);
         hasAutoSelected.current = true;
         dispatch(
           setSelectedCampaignContext({
-            campaignId: allCampaigns[0].id,
-            collaborationType: allCampaigns[0].collaboration_type || null,
+            campaignId: activeCampaigns[0].id,
+            collaborationType: activeCampaigns[0].collaboration_type || null,
           })
         );
       }

@@ -86,22 +86,34 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
         const selectedOptions = options?.filter((option) => 
           value.some((v) => (typeof v === 'object' ? v.value : v) === option.value)
         ) || [];
-        setSelectedValue(selectedOptions);
+        // Only update if different to avoid infinite loops
+        const currentStr = JSON.stringify(selectedValue);
+        const newStr = JSON.stringify(selectedOptions);
+        if (currentStr !== newStr) {
+          setSelectedValue(selectedOptions);
+        }
       } else {
-        setSelectedValue([]);
+        if (selectedValue !== null && (!Array.isArray(selectedValue) || selectedValue.length > 0)) {
+          setSelectedValue([]);
+        }
       }
       return;
     }
 
     // For single select, if value is null, clear selection
     if (value === null) {
-      setSelectedValue(null);
+      if (selectedValue !== null) {
+        setSelectedValue(null);
+      }
       return;
     }
 
     // If value is an object with value and label, use it directly
     if (typeof value === "object" && value?.value !== undefined && value?.label !== undefined) {
-      setSelectedValue(value);
+      // Only update if different to avoid infinite loops
+      if (selectedValue?.value !== value.value || selectedValue?.label !== value.label) {
+        setSelectedValue(value);
+      }
       return;
     }
 
@@ -109,15 +121,23 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
     if (typeof value !== "object") {
       const valueOption = options?.find((option) => option.value === value);
       if (valueOption) {
-        setSelectedValue(valueOption);
+        if (selectedValue?.value !== valueOption.value) {
+          setSelectedValue(valueOption);
+        }
       } else {
-        setSelectedValue(null);
+        if (selectedValue !== null) {
+          setSelectedValue(null);
+        }
       }
       return;
     }
 
     // Fallback: use value as-is if it's an object
-    setSelectedValue(value);
+    const currentStr = JSON.stringify(selectedValue);
+    const newStr = JSON.stringify(value);
+    if (currentStr !== newStr) {
+      setSelectedValue(value);
+    }
   }, [value, options, isMulti]);
 
   const getDisplay = () => {

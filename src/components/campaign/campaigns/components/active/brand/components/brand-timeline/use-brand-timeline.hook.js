@@ -8,16 +8,12 @@ import {
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 
-export default function useBrandTimeline(campaignId, contracts = []) {
+export default function useBrandTimeline(campaignId) {
   const dispatch = useDispatch();
 
-  // Redux state
-  const {
-    data: timelineData,
-    isLoading: timelineLoading,
-    isSuccess: timelineSuccess,
-    isError: timelineError,
-  } = useSelector((state) => state.campaignTimeline.getTimeline || {});
+  const { data: timelineData, isLoading: timelineLoading } = useSelector(
+    (state) => state.campaignTimeline.getTimeline || {}
+  );
 
   const { isLoading: approveLoading } = useSelector(
     (state) => state.campaignTimeline.approveDraft || {}
@@ -31,41 +27,27 @@ export default function useBrandTimeline(campaignId, contracts = []) {
     (state) => state.campaignTimeline.markFinalComplete || {}
   );
 
-  // Local state
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [revisionNotes, setRevisionNotes] = useState("");
 
-  // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
 
-  // Load timeline on mount and when campaignId changes - only if there are contracts (hired creators)
   useEffect(() => {
-    // Skip if no campaign ID
     if (!campaignId) return;
-    
-    // Skip if campaign ID is a synthetic ID for individual collaborations
-    if (campaignId.startsWith("individual-")) return;
-    
-    // Only fetch timeline if there are contracts (hired creators)
-    if (contracts.length > 0) {
-      dispatch(getTimeline(campaignId));
-    }
-  }, [campaignId, contracts.length, dispatch]);
 
-  // Auto-refresh timeline every 10 seconds to show creator updates - only if there are contracts
+    dispatch(getTimeline(campaignId));
+  }, [campaignId, dispatch]);
+
   useEffect(() => {
     if (!campaignId) return;
-    if (campaignId.startsWith("individual-")) return;
-    if (contracts.length === 0) return;
 
     const interval = setInterval(() => {
       dispatch(getTimeline(campaignId));
-    }, 10000); // Refresh every 10 seconds
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [campaignId, contracts.length, dispatch]);
+  }, [campaignId, dispatch]);
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -75,7 +57,6 @@ export default function useBrandTimeline(campaignId, contracts = []) {
     });
   };
 
-  // Get time remaining
   const getTimeRemaining = useCallback((deadlineDate) => {
     if (!deadlineDate) return "";
     const now = new Date();
@@ -91,7 +72,6 @@ export default function useBrandTimeline(campaignId, contracts = []) {
     return `${hours}h`;
   }, []);
 
-  // Approve draft (Step 2 only)
   const handleApproveDraft = useCallback(async () => {
     try {
       await dispatch(
@@ -101,15 +81,12 @@ export default function useBrandTimeline(campaignId, contracts = []) {
         })
       ).unwrap();
 
-      // Refresh timeline
       await dispatch(getTimeline(campaignId));
     } catch (error) {
-      console.error("Failed to approve draft:", error);
       alert(`Approval failed: ${error.message || "Unknown error"}`);
     }
   }, [campaignId, dispatch]);
 
-  // Request revision (Step 2 only)
   const handleRequestRevision = useCallback(async () => {
     if (!revisionNotes.trim()) return;
 
@@ -122,17 +99,13 @@ export default function useBrandTimeline(campaignId, contracts = []) {
         })
       ).unwrap();
 
-      // Refresh timeline
       await dispatch(getTimeline(campaignId));
 
       setShowRevisionModal(false);
       setRevisionNotes("");
-    } catch (error) {
-      console.error("Failed to request revision:", error);
-    }
+    } catch (error) {}
   }, [revisionNotes, campaignId, dispatch]);
 
-  // Mark as complete (Step 3 only)
   const handleMarkAsComplete = useCallback(async () => {
     try {
       await dispatch(
@@ -142,14 +115,10 @@ export default function useBrandTimeline(campaignId, contracts = []) {
         })
       ).unwrap();
 
-      // Refresh timeline
       await dispatch(getTimeline(campaignId));
-    } catch (error) {
-      console.error("Failed to mark complete:", error);
-    }
+    } catch (error) {}
   }, [campaignId, dispatch]);
 
-  // Calculate completion percentage
   const completedSteps = timelineSteps.filter(
     (step) => step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
   ).length;
@@ -157,19 +126,14 @@ export default function useBrandTimeline(campaignId, contracts = []) {
     timelineSteps.length > 0 ? (completedSteps / timelineSteps.length) * 100 : 0;
 
   return {
-    // State
     timelineSteps,
     timelineLoading,
-    timelineSuccess,
-    timelineError,
     approveLoading,
     revisionLoading,
     completeLoading,
     showRevisionModal,
     revisionNotes,
     completionPercentage,
-
-    // Actions
     setShowRevisionModal,
     setRevisionNotes,
     handleApproveDraft,

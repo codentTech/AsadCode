@@ -6,10 +6,9 @@ import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import { MapPin, Star } from "lucide-react";
-import React from "react";
-import { useCreatorSpendAnalysis } from "../../../../active/brand/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 import CalendarModal from "../../../../active/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "../../../../task-manager/task-manager.component";
+import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysisCompleted = ({
   selectedCampaign,
@@ -24,7 +23,6 @@ const CreatorSpendAnalysisCompleted = ({
     open,
     creators,
     creatorsLoading,
-    creatorsSuccess,
     creatorsError,
     formatFollowers,
     getSuccessRateColor,
@@ -34,40 +32,20 @@ const CreatorSpendAnalysisCompleted = ({
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-  } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
+    getPlatformEntries,
+    getPerformanceComparison,
+  } = useCreatorSpendAnalysisCompleted({
+    selectedCampaign,
+    selectedCreator,
+    onCreatorSelect,
+    isCompleted,
+    isMultiCreator,
+  });
 
-  // Handle sort change
   const handleSortChange = (option) => {
     if (onSortChange && option?.value) {
       onSortChange(option.value);
     }
-  };
-
-  // Auto-select first creator when creators are loaded and no creator is selected
-  React.useEffect(() => {
-    if (creatorsSuccess && creators.length > 0 && !selectedCreator && selectedCampaign) {
-      onCreatorSelect(creators[0]);
-    }
-  }, [creatorsSuccess, creators, selectedCreator, selectedCampaign, onCreatorSelect]);
-
-  const getPlatformEntries = (platforms) => {
-    if (Array.isArray(platforms)) {
-      return platforms.map((p) => [p.name, { followers: p.followers }]);
-    }
-    return Object.entries(platforms || {});
-  };
-
-  // Helper function to determine if performance is above or below average
-  const getPerformanceComparison = (metricType) => {
-    // Simulate random performance data - in real app this would come from your data
-    const isAboveAverage = Math.random() > 0.5;
-    const difference = Math.floor(Math.random() * 5000) + 100; // Random difference
-
-    return {
-      isAboveAverage,
-      difference: formatFollowers(difference),
-      textColor: isAboveAverage ? "text-green-600" : "text-red-600",
-    };
   };
 
   const totalViews = "10,000";
@@ -77,15 +55,14 @@ const CreatorSpendAnalysisCompleted = ({
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-
-      {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-xl font-bold text-gray-900">Creator Analysis</h1>
-              <p className="text-xs text-gray-500">Discover top creators for your campaigns</p>
+              <p className="text-xs text-gray-500">
+                Review campaign results and individual performance.
+              </p>
             </div>
           </div>
 
@@ -127,7 +104,6 @@ const CreatorSpendAnalysisCompleted = ({
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {!selectedCampaign && (
           <div className="flex items-center justify-center py-16">
@@ -157,10 +133,10 @@ const CreatorSpendAnalysisCompleted = ({
           <div className="space-y-3">
             {creators.map((creator) => {
               const isSelected = selectedCreator?.id === creator.id;
-              const viewsComparison = getPerformanceComparison("views");
-              const engagementComparison = getPerformanceComparison("engagement");
-              const rateComparison = getPerformanceComparison("rate");
-              const costComparison = getPerformanceComparison("cost");
+              const viewsComparison = getPerformanceComparison();
+              const engagementComparison = getPerformanceComparison();
+              const rateComparison = getPerformanceComparison();
+              const costComparison = getPerformanceComparison();
               return (
                 <div
                   key={creator.id}
@@ -172,7 +148,6 @@ const CreatorSpendAnalysisCompleted = ({
                   }`}
                 >
                   <div className="flex items-start space-x-4">
-                    {/* Profile Image */}
                     <div className="flex-shrink-0">
                       <img
                         src={creator.image || avatar}
@@ -184,7 +159,6 @@ const CreatorSpendAnalysisCompleted = ({
                       />
                     </div>
 
-                    {/* Creator Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
                         <div className="w-full">
@@ -222,7 +196,6 @@ const CreatorSpendAnalysisCompleted = ({
                         </div>
                       </div>
 
-                      {/* Rating */}
                       <div className="flex items-center space-x-2 mb-3">
                         <div className="flex text-xs items-center">
                           {[...Array(5)].map((_, i) => (
@@ -242,7 +215,6 @@ const CreatorSpendAnalysisCompleted = ({
                         </span>
                       </div>
 
-                      {/* Performance Metrics */}
                       <div className="flex items-center space-x-4 text-xs">
                         <div
                           className={`px-2 py-1 rounded-full ${getSuccessRateColor(
@@ -263,7 +235,6 @@ const CreatorSpendAnalysisCompleted = ({
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                        {/* Total Views Dashboard Card */}
                         <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-semibold text-gray-700">Total Views</span>
@@ -274,7 +245,6 @@ const CreatorSpendAnalysisCompleted = ({
                           </div>
                         </div>
 
-                        {/* Total Engagement Dashboard Card */}
                         <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-semibold text-gray-700">
@@ -289,7 +259,6 @@ const CreatorSpendAnalysisCompleted = ({
                           </div>
                         </div>
 
-                        {/* Engagement Rate Dashboard Card */}
                         <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-semibold text-gray-700">
@@ -304,7 +273,6 @@ const CreatorSpendAnalysisCompleted = ({
                           </div>
                         </div>
 
-                        {/* Cost Per Engagement Dashboard Card */}
                         <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-semibold text-gray-700">

@@ -111,6 +111,43 @@ function useBrandApplications() {
     }
   }, [appliedCreatorsSuccess, appliedCreatorsData, selectedCampaign, selectedCreator]);
 
+  useEffect(() => {
+    if (
+      selectedCampaign &&
+      selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+      !individualCollaborationsLoading &&
+      individualCollaborations.length > 0 &&
+      !selectedCreator &&
+      autoSelectedForCampaignRef.current !== selectedCampaign.id
+    ) {
+      const matchingCollaborations = individualCollaborations.filter(
+        (invitation) => (invitation.campaign_id || invitation.campaign?.id) === selectedCampaign.id
+      );
+
+      const firstCreator = (
+        matchingCollaborations.length > 0 ? matchingCollaborations : individualCollaborations
+      ).map((invitation) => ({
+        ...invitation,
+        creator: invitation.creator,
+        campaign_id: invitation.campaign_id || invitation.campaign?.id || null,
+        campaign: invitation.campaign,
+        applied_at: invitation.created_at,
+        status: invitation.status || "PENDING",
+      }))[0];
+
+      if (firstCreator && firstCreator.creator) {
+        setSelectedCreator(firstCreator);
+        autoSelectedForCampaignRef.current = selectedCampaign.id;
+      }
+    }
+  }, [
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    individualCollaborations,
+    individualCollaborationsLoading,
+    selectedCreator,
+  ]);
+
   const handleCreatorSelect = (creator) => {
     setSelectedCreator(creator);
   };
@@ -128,11 +165,21 @@ function useBrandApplications() {
 
   const handleSendOffer = async (contractData) => {
     const isIndividual =
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
+      (!selectedCampaign && selectedCreator?.campaign_id);
+
+    // For individual collaborations, get campaignId from selectedCreator (synthetic campaign)
+    const campaignId = isIndividual
+      ? selectedCreator?.campaign_id || selectedCreator?.campaign?.id
+      : selectedCampaign?.id;
+
     const contractPayload = {
-      ...(isIndividual ? {} : { campaignId: selectedCampaign.id }),
+      ...(campaignId ? { campaignId } : {}),
       creatorId: selectedCreator.creator?.id || selectedCreator.id,
-      brandId: selectedCampaign?.created_by?.id || selectedCampaign?.brand?.id,
+      brandId:
+        selectedCampaign?.created_by?.id ||
+        selectedCampaign?.brand?.id ||
+        selectedCreator?.brand?.id,
       startDate: contractData.startDate,
       completionDeadline: contractData.completionDeadline,
       contentFormat: contractData.contentFormat,
@@ -289,7 +336,7 @@ function useBrandApplications() {
   }, [reinstateInvitationSuccess, selectedCampaign, dispatch]);
 
   const getCampaignId = () => {
-    if (selectedCampaign?.id && !selectedCampaign.id.startsWith("individual-")) {
+    if (selectedCampaign?.id) {
       return selectedCampaign.id;
     }
     if (selectedCreator?.campaign_id) {
@@ -313,15 +360,18 @@ function useBrandApplications() {
 
   const handleMessageClick = () => {
     const currentCampaignId = getCampaignId();
-    
+
     if (!currentCampaignId) {
       return;
     }
-    
-    if (typeof currentCampaignId !== "string" || !currentCampaignId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+
+    if (
+      typeof currentCampaignId !== "string" ||
+      !currentCampaignId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+    ) {
       return;
     }
-    
+
     messageThreadHook.openMessageModal(currentCampaignId);
   };
 
@@ -354,14 +404,24 @@ function useBrandApplications() {
       : creators;
 
   useEffect(() => {
-    if (!selectedCampaign && individualCreators.length > 0 && !selectedCreator) {
+    if (
+      !selectedCampaign &&
+      !individualCollaborationsLoading &&
+      individualCreators.length > 0 &&
+      !selectedCreator
+    ) {
       const campaignKey = "individual";
       if (autoSelectedForCampaignRef.current !== campaignKey) {
         setSelectedCreator(individualCreators[0]);
         autoSelectedForCampaignRef.current = campaignKey;
       }
     }
-  }, [selectedCampaign, individualCreators.length]);
+  }, [
+    selectedCampaign,
+    individualCreators.length,
+    individualCollaborationsLoading,
+    selectedCreator,
+  ]);
 
   const user = getUser();
   const previousMessagesCountRef = useRef({});
@@ -385,7 +445,11 @@ function useBrandApplications() {
       const previousCount = previousMessagesCountRef.current[conversationId] || 0;
 
       // Only refresh if creator sent a message (not when brand sends) and enough time has passed
-      if (messages.length > previousCount && previousCount > 0 && (now - lastRefreshTimeRef.current) > minTimeBetweenRefreshes) {
+      if (
+        messages.length > previousCount &&
+        previousCount > 0 &&
+        now - lastRefreshTimeRef.current > minTimeBetweenRefreshes
+      ) {
         const latestMessage = messages[messages.length - 1];
         const senderId = latestMessage?.sender?.id || latestMessage?.sender_id;
         // Only refresh if creator sent the message (not the current brand user)

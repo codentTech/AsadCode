@@ -3,12 +3,10 @@ import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
-// When used on completed tab, pass isCompleted=true so it reads from getAppliedCreators
 export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, isMultiCreator = true) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
-  // Redux state - pick source based on tab
   const {
     isLoading: creatorsLoading,
     isSuccess: creatorsSuccess,
@@ -19,7 +17,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
       (isCompleted ? state.campaigns.getAppliedCreators : state.campaigns.getHiredCreators) || {}
   );
 
-  // Redux state for individual collaboration contracts
   const {
     isLoading: individualContractsLoading,
     isSuccess: individualContractsSuccess,
@@ -27,21 +24,22 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
     data: individualContractsData,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
-  // Check if we should use individual collaborations
   const isIndividualMode = useMemo(() => {
-    // If toggle is set to Individual Creator, use individual mode
-    // OR if selected campaign is an individual collaboration
     return !isMultiCreator || selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
   }, [isMultiCreator, selectedCampaign]);
 
-  // Process individual collaboration contracts
   const individualCreators = useMemo(() => {
     if (!isIndividualMode || !Array.isArray(individualContractsData)) {
       return [];
     }
     
     return individualContractsData
-      .filter((contract) => !contract.campaignId)
+      .filter((contract) => {
+        if (isCompleted) return true;
+        const now = new Date();
+        const deadline = new Date(contract.completionDeadline);
+        return deadline >= now && contract.campaign?.status !== "COMPLETE";
+      })
       .map((contract) => {
         const creator = contract.creator;
         const creatorProfile = creator?.creator_profile;
@@ -49,33 +47,36 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
         return {
         id: contract.id,
         contractId: contract.id,
+        campaign_id: contract.campaignId || contract.campaign?.id,
+        campaign: contract.campaign,
         age: getAge(creator?.date_of_birth),
         creatorUserId: creator?.id,
+        creator: creator,
         name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
         bio: creatorProfile?.bio || "No bio available",
         image: creatorProfile?.profile_photo_url,
         location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
         totalSpent: contract.totalCompensation || 0,
         rating: creatorProfile?.rating || 0,
-        reviewCount: 0, // Not available in contract data
+        reviewCount: 0,
         platforms: {
           instagram: {
-            followers: 0, // Not available in contract data
+            followers: 0,
             verified: false,
           },
           youtube: {
-            followers: 0, // Not available in contract data
+            followers: 0,
             verified: false,
           },
           twitter: {
-            followers: 0, // Not available in contract data
+            followers: 0,
             verified: false,
           },
         },
-        projects: 0, // Not available in contract data
-        successRate: 0, // Not available in contract data
-        avgDeliveryTime: "N/A", // Not available in contract data
-        specialty: "General", // Not available in contract data
+        projects: 0,
+        successRate: 0,
+        avgDeliveryTime: "N/A",
+        specialty: "General",
         deadline: new Date(contract.completionDeadline) > new Date() ? "On time" : "Completed",
         status: contract.status,
         appliedAt: contract.createdAt,
@@ -85,13 +86,12 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
     });
   }, [isIndividualMode, individualContractsData]);
 
-  // Process creators data from API
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
         ...creator,
         id: creator?.creator?.creator_profile?.id,
         age: getAge(creator?.creator?.date_of_birth),
-        creatorUserId: creator?.creator?.id, // Add the actual user ID for chat
+        creatorUserId: creator?.creator?.id,
         name:
           `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||
           "Unknown Creator",
@@ -155,7 +155,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
   const handleOpenModal = () => setOpen(true);
   const handleCloseModal = () => setOpen(false);
 
-  // Determine which creators to use based on mode
   const displayCreators = isIndividualMode ? individualCreators : creators;
   const displayLoading = isIndividualMode ? individualContractsLoading : creatorsLoading;
   const displaySuccess = isIndividualMode ? individualContractsSuccess : creatorsSuccess;

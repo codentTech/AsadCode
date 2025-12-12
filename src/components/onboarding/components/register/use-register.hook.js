@@ -23,6 +23,12 @@ const createValidationSchema = (isCreatorMode) => {
       .required("Please confirm your password")
       .oneOf([Yup.ref("password"), null], "Passwords must match"),
     date_of_birth: Yup.date()
+      .transform((value, originalValue) => {
+        if (originalValue === "" || originalValue == null) {
+          return undefined;
+        }
+        return value;
+      })
       .required("Date of birth is required")
       .max(new Date(), "Date of birth cannot be in the future"),
     city: Yup.string().required("City is required"),

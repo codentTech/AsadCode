@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { getAge } from "@/common/utils/date.utils";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   const dispatch = useDispatch();
@@ -71,11 +72,11 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   };
 
   const formatCompensation = (contract) => {
-    if (contract.compensationType === "PAID") {
+    if (contract.compensationType === COMPENSATION_TYPE.PAID) {
       return `$${contract.totalCompensation || 0}`;
-    } else if (contract.compensationType === "GIFTED_PRODUCT") {
+    } else if (contract.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
       return `Product ($${contract.productPrice || 0})`;
-    } else if (contract.compensationType === "COMMISSION") {
+    } else if (contract.compensationType === COMPENSATION_TYPE.COMMISSION) {
       return "Commission based";
     }
     return "Not specified";

@@ -1,29 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
 
-const LANGUAGES = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Italian",
-  "Portuguese",
-  "Japanese",
-  "Korean",
-  "Mandarin",
-  "Hindi",
-  "Arabic",
-  "Dutch",
-  "Swedish",
-  "Norwegian",
-  "Russian",
-  "Polish",
-  "Turkish",
-  "Urdu",
-];
-
 export default function useEligibility({ campaignData, setValue }) {
-  const [languageSearch, setLanguageSearch] = useState(campaignData?.creator_language || "");
   const [countrySelectValueForMulti, setCountrySelectValueForMulti] = useState(null);
 
   const selectedCountries = useMemo(() => {
@@ -55,36 +33,21 @@ export default function useEligibility({ campaignData, setValue }) {
     };
   }, [campaignData?.creator_city, campaignData?.creator_city_country_code, campaignData?.creator_city_region, campaignData?.creator_city_geoname_id, selectedCountries]);
 
-  const filteredLanguages = useMemo(() => {
-    if (!languageSearch) {
-      return LANGUAGES;
-    }
+  const selectedLanguages = useMemo(() => {
+    if (!campaignData?.creator_language) return [];
+    const language = campaignData.creator_language;
+    return Array.isArray(language) ? language : [language];
+  }, [campaignData?.creator_language]);
 
-    const normalized = languageSearch.toLowerCase();
-    return LANGUAGES.filter((language) => language.toLowerCase().includes(normalized));
-  }, [languageSearch]);
-
-  const handleLanguageInputChange = useCallback(
-    (nextValue) => {
-      setLanguageSearch(nextValue);
-      if (!nextValue) {
-        setValue("creator_language", "", { shouldDirty: true });
-      }
+  const handleLanguageChange = useCallback(
+    (languages) => {
+      const languageValue = Array.isArray(languages) && languages.length > 0 
+        ? languages[0] 
+        : "";
+      setValue("creator_language", languageValue, { shouldDirty: true });
     },
     [setValue]
   );
-
-  const handleLanguageSelect = useCallback(
-    (language) => {
-      setValue("creator_language", language, { shouldDirty: true });
-      setLanguageSearch(language);
-    },
-    [setValue]
-  );
-
-  const normalizedSelectedLanguage = (campaignData?.creator_language || "").trim().toLowerCase();
-  const showLanguageOptions =
-    Boolean(languageSearch) && languageSearch.trim().toLowerCase() !== normalizedSelectedLanguage;
 
   const handleCountriesChange = useCallback(
     (countries) => {
@@ -203,11 +166,8 @@ export default function useEligibility({ campaignData, setValue }) {
   );
 
   return {
-    languageSearch,
-    filteredLanguages,
-    handleLanguageInputChange,
-    handleLanguageSelect,
-    showLanguageOptions,
+    selectedLanguages,
+    handleLanguageChange,
     countrySelectValue,
     citySelectValue,
     handleCitySelect,

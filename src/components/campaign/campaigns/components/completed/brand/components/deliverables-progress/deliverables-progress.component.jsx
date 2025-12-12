@@ -4,34 +4,17 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
+import { CheckCircle2, Star } from "lucide-react";
 import useDeliverablesProgress from "../../../../active/brand/components/deliverables-progress/use-deliverables-progress.hook";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 
 const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) => {
-  // ==================== HOOK USAGE ====================
   const {
-    // Message thread integration
     messageThreadHook,
     creator,
-
-    // Project management
-    project,
-    editingItem,
-    editForm,
-    setEditForm,
-    handleEdit,
-    handleSave,
-    handleCancel,
-    toggleDeliverable,
-    toggleTimelineStep,
-
-    // Reviews
     campaignReviews,
     editingReview,
-    editReviewForm,
-    setEditReviewForm,
     newReviewText,
     setNewReviewText,
     newReviewRating,
@@ -39,69 +22,25 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
     handleEditReview,
     handleSaveEditReview,
     handleCancelEditReview,
-    handleDeleteReview,
     handleSaveNewReview,
     handleCancelNewReview,
-
-    // Notes
     privateNotes,
-    editingNote,
-    editNoteForm,
-    setEditNoteForm,
-    newNoteText,
-    setNewNoteText,
-    handleEditNote,
-    handleSaveEditNote,
-    handleCancelEditNote,
-    handleDeleteNote,
-    handleSaveNewNote,
-    handleCancelNewNote,
-
-    // Loading states
     isReviewsLoading,
     isCreateReviewLoading,
     isUpdateReviewLoading,
-    isDeleteReviewLoading,
     isNotesLoading,
-    isCreateNoteLoading,
-    isUpdateNoteLoading,
-    isDeleteNoteLoading,
     isContractsLoading,
-    isUpdateCampaignLoading,
-
-    // Contract data
     selectedContract,
     contracts,
-
-    // Mark Complete functionality
-    showMarkCompleteModal,
-    isMarkingComplete,
-    handleMarkCompleteClick,
-    handleCancelMarkComplete,
-    handleConfirmMarkComplete,
-
-    // Helper functions
-    getStatusColor,
-    getStatusIcon,
-
-    // Review status for double-blind functionality
     reviewStatus,
   } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign, selectedCreator);
 
-  // ==================== RENDER HELPERS ====================
   const renderCampaignSelectionMessage = () => (
     <div className="py-16">
       <NotFound
         title="No Campaign Selected"
         description="Select a completed campaign from the list to view creator details and deliverables."
       />
-    </div>
-  );
-
-  const renderCreatorSelectionMessage = () => (
-    <div className="flex flex-col items-center justify-center py-12 text-center px-3">
-      <Loader loading={true} />
-      <p className="text-sm text-gray-500 mt-3">Loading creators...</p>
     </div>
   );
 
@@ -201,12 +140,9 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
     };
 
     const getDeliverables = () => {
-      // Parse content format to extract deliverables
       if (selectedContract.contentFormat) {
-        // Handle the specific format: "Quantity (1) Deliverable 'instagram post', Quantity (2) Deliverable 'instagram reel'"
         const deliverables = selectedContract.contentFormat.split(",").map((item) => {
           const trimmed = item.trim();
-          // Extract quantity and deliverable name
           const match = trimmed.match(/Quantity \((\d+)\) Deliverable '([^']+)'/);
           if (match) {
             const quantity = match[1];
@@ -314,14 +250,11 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
     </div>
   );
 
-  // ==================== REVIEWS (DOUBLE-BLIND) ====================
   const renderReviews = () => {
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Reviews</h4>
 
-        {/* Double-blind indicators */}
-        {/* Waiting for creator indicator (locked state) */}
         {reviewStatus &&
           !reviewStatus.isUnlocked &&
           reviewStatus.hasBrandReview &&
@@ -337,7 +270,6 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
             </div>
           )}
 
-        {/* Creator submitted, waiting for brand */}
         {reviewStatus &&
           !reviewStatus.isUnlocked &&
           !reviewStatus.hasBrandReview &&
@@ -355,7 +287,6 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
             </div>
           )}
 
-        {/* Reviews list - shows creator's review after unlocking */}
         {isReviewsLoading ? (
           <div className="flex justify-center py-2">
             <Loader loading={true} />
@@ -377,7 +308,7 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
                         />
                       ))}
                     </div>
-                    <p className="text-xs text-gray-700">{review.review}</p>
+                    <p className="text-xs text-gray-700">{review.review || ""}</p>
                     <span className="text-[11px] text-gray-400 mt-0.5">
                       {new Date(review.created_at).toLocaleString()}
                     </span>
@@ -386,7 +317,6 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
               </div>
             ))}
 
-            {/* Create / Edit review form */}
             {(selectedCreator?.creator_profile_id || selectedCreator?.id) && (
               <div className="mt-2 p-2 bg-gray-50 rounded">
                 <h5 className="text-xs font-semibold text-gray-700 mb-2">
@@ -436,7 +366,7 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
                           : handleSaveNewReview
                       }
                       disabled={
-                        !newReviewText.trim() || isCreateReviewLoading || isUpdateReviewLoading
+                        !newReviewText?.trim() || isCreateReviewLoading || isUpdateReviewLoading
                       }
                     />
                   </div>
@@ -449,21 +379,13 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
     );
   };
 
-  // ==================== MAIN RENDER ====================
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Campaign Selection Message */}
       {!selectedCampaign && renderCampaignSelectionMessage()}
-
-      {/* No Creator Found Message */}
       {selectedCampaign && selectedCreator === null && renderNoCreatorFound()}
-
-      {/* Main Content - Only show when both campaign and creator are selected */}
       {selectedCampaign && selectedCreator && (
         <>
           {renderCreatorProfile()}
-
-          {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {renderQuickActions()}
             {renderContractDetails()}
@@ -471,8 +393,6 @@ const DeliverablesProgressCompleted = ({ selectedCampaign, selectedCreator }) =>
             {renderNotes()}
             {renderReviews()}
           </div>
-
-          {/* Message Thread Modal */}
           <MessageThreadModal
             isOpen={messageThreadHook.isModalOpen}
             onClose={messageThreadHook.closeMessageModal}

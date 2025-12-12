@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
-import { getBrandRejectedIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
 
@@ -21,19 +20,17 @@ function useCreatorSpendAnalysis({
   const [creatorToSave, setCreatorToSave] = useState(null);
   const [open, setOpen] = useState(false);
   const [isMultiCreator, setIsMultiCreator] = useState(true);
-  const hasAutoSelected = useRef(false);
+  const hasAutoSelectedCampaignRef = useRef(false);
 
   const dispatch = useDispatch();
 
-  const {
-    data: campaignsData,
-    isLoading: campaignsLoading,
-  } = useSelector((state) => state.campaigns.getBrandCampaignsExcludingCompleted);
+  const { data: campaignsData, isLoading: campaignsLoading } = useSelector(
+    (state) => state.campaigns.getBrandCampaignsExcludingCompleted
+  );
 
-  const {
-    data: shortlistsData,
-    isLoading: shortlistsLoading,
-  } = useSelector((state) => state.shortlist.getAllShortlists);
+  const { data: shortlistsData, isLoading: shortlistsLoading } = useSelector(
+    (state) => state.shortlist.getAllShortlists
+  );
 
   useEffect(() => {
     dispatch(getBrandCampaignsExcludingCompleted());
@@ -43,40 +40,54 @@ function useCreatorSpendAnalysis({
     dispatch(getAllShortlists());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getBrandRejectedIndividualCollaborations());
-    }
-  }, [isMultiCreator, dispatch]);
+  const campaignOptions = useMemo(
+    () =>
+      campaignsData?.data?.map((campaign) => ({
+        value: campaign.id,
+        label: campaign.campaign_title,
+      })) || [],
+    [campaignsData?.data]
+  );
+
+  const filteredCampaignOptions = useMemo(() => {
+    return campaignOptions.filter((option) => {
+      if (!campaignsData?.data) return false;
+      const campaign = campaignsData.data.find((c) => c.id === option.value);
+      if (!campaign) return false;
+      const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      return isMultiCreator
+        ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+        : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    });
+  }, [campaignOptions, campaignsData?.data, isMultiCreator]);
 
   useEffect(() => {
     if (
+      isMultiCreator &&
       !selectedCampaign &&
-      !hasAutoSelected.current &&
+      !hasAutoSelectedCampaignRef.current &&
+      !campaignsLoading &&
       Array.isArray(campaignsData?.data) &&
       campaignsData.data.length > 0 &&
+      filteredCampaignOptions.length > 0 &&
       typeof onCampaignSelect === "function"
     ) {
-      onCampaignSelect(campaignsData.data[0]);
-      hasAutoSelected.current = true;
+      const firstCampaign = campaignsData.data.find(
+        (c) => c.id === filteredCampaignOptions[0]?.value
+      );
+      if (firstCampaign) {
+        onCampaignSelect(firstCampaign);
+        hasAutoSelectedCampaignRef.current = true;
+      }
     }
-  }, [selectedCampaign, campaignsData, onCampaignSelect]);
-
-  const campaignOptions =
-    campaignsData?.data?.map((campaign) => ({
-      value: campaign.id,
-      label: campaign.campaign_title,
-    })) || [];
-
-  const filteredCampaignOptions = campaignOptions.filter((option) => {
-    if (!campaignsData?.data) return false;
-    const campaign = campaignsData.data.find((c) => c.id === option.value);
-    if (!campaign) return false;
-    const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-    return isMultiCreator
-      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
-      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  });
+  }, [
+    isMultiCreator,
+    selectedCampaign,
+    campaignsData?.data,
+    campaignsLoading,
+    filteredCampaignOptions.length,
+    onCampaignSelect,
+  ]);
 
   const isSelectedCampaignValid =
     selectedCampaign &&
@@ -85,10 +96,17 @@ function useCreatorSpendAnalysis({
         COLLABORATION_TYPE.MULTI_CREATOR
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
 
+  const selectedCampaignValue = useMemo(() => {
+    if (isSelectedCampaignValid && selectedCampaign) {
+      return { value: selectedCampaign.id, label: selectedCampaign.campaign_title };
+    }
+    return null;
+  }, [isSelectedCampaignValid, selectedCampaign?.id, selectedCampaign?.campaign_title]);
+
   const handleToggleChange = (event) => {
     const newIsMultiCreator = event.target.checked;
     setIsMultiCreator(newIsMultiCreator);
-    hasAutoSelected.current = false;
+    hasAutoSelectedCampaignRef.current = false;
 
     if (onClearCreator) {
       onClearCreator();
@@ -98,7 +116,6 @@ function useCreatorSpendAnalysis({
       if (onCampaignSelect) {
         onCampaignSelect(null);
       }
-      dispatch(getBrandRejectedIndividualCollaborations());
     } else {
       if (selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         if (onCampaignSelect) {
@@ -168,28 +185,41 @@ function useCreatorSpendAnalysis({
     };
   };
 
-  const handleReinstateClick = (creator, e) => {
-    e.stopPropagation();
-    setOriginalCreatorToReinstate(creator);
+  const handleReinstateClick = (data, e) => {
+    e?.stopPropagation();
+    setOriginalCreatorToReinstate(data);
     setShowReinstateConfirmation(true);
   };
 
   const handleConfirmReinstate = () => {
-    if (onReinstateCreator && originalCreatorToReinstate) {
-      const isCreatorFromIndividual =
-        originalCreatorToReinstate.collaboration_type === "INDIVIDUAL_CREATOR" ||
-        (originalCreatorToReinstate.originalData?.collaboration_type === "INDIVIDUAL_CREATOR") ||
-        (!originalCreatorToReinstate.campaign_id && !originalCreatorToReinstate.creator_id && originalCreatorToReinstate.creator);
-      
-      if (isCreatorFromIndividual) {
-        const invitationId = originalCreatorToReinstate.id || originalCreatorToReinstate.originalData?.id;
+    if (!onReinstateCreator || !originalCreatorToReinstate) {
+      setShowReinstateConfirmation(false);
+      setOriginalCreatorToReinstate(null);
+      return;
+    }
+
+    const hasCampaignId = !!originalCreatorToReinstate.campaign_id;
+    const hasCreatorIdField = !!originalCreatorToReinstate.creator_id;
+    const isMultiCreatorStructure = hasCampaignId || hasCreatorIdField;
+    const isMultiCreatorCampaign =
+      selectedCampaign && selectedCampaign.collaboration_type !== "INDIVIDUAL_CREATOR";
+
+    if (isMultiCreatorCampaign || isMultiCreatorStructure) {
+      const creatorId =
+        originalCreatorToReinstate.creator?.id ||
+        originalCreatorToReinstate.creator_id ||
+        originalCreatorToReinstate.originalData?.creator?.id;
+      if (selectedCampaign && creatorId) {
+        onReinstateCreator(selectedCampaign.id, creatorId);
+      }
+    } else {
+      const invitationId =
+        originalCreatorToReinstate.originalData?.id || originalCreatorToReinstate.id;
+      if (invitationId) {
         onReinstateCreator(null, null, invitationId);
-      } else {
-        if (selectedCampaign && originalCreatorToReinstate.creator?.id) {
-          onReinstateCreator(selectedCampaign.id, originalCreatorToReinstate.creator.id);
-        }
       }
     }
+
     setShowReinstateConfirmation(false);
     setOriginalCreatorToReinstate(null);
   };
@@ -228,6 +258,7 @@ function useCreatorSpendAnalysis({
     campaignsLoading,
     filteredCampaignOptions,
     isSelectedCampaignValid,
+    selectedCampaignValue,
     showSaveToShortlistModal,
     creatorToSave,
     shortlists,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendInvitation } from "@/provider/features/invitation/invitation.slice";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { COLLABORATION_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const useInvitationModal = () => {
   const dispatch = useDispatch();
@@ -17,18 +17,18 @@ const useInvitationModal = () => {
   const formatCompensation = (campaign) => {
     const type = campaign.compensation_type;
 
-    if (type === "PAID") {
+    if (type === COMPENSATION_TYPE.PAID) {
       if (campaign.creator_fixed_price) return `$${campaign.creator_fixed_price}`;
-      if (campaign.budget) return `$${campaign.budget}`;
+      if (campaign.budget) return `$${campaign.remaining_budget}`;
       if (campaign.suggested_min && campaign.suggested_max) {
         return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
       }
       if (campaign.suggested_min) return `From $${campaign.suggested_min}`;
       if (campaign.suggested_max) return `Up to $${campaign.suggested_max}`;
-    } else if (type === "GIFTED_PRODUCT") {
+    } else if (type === COMPENSATION_TYPE.GIFTED_PRODUCT) {
       if (campaign.product_value) return `Product ($${campaign.product_value} value)`;
       return "Gifted Product";
-    } else if (type === "COMMISSION") {
+    } else if (type === COMPENSATION_TYPE.COMMISSION) {
       if (campaign.commission_percentage) return `${campaign.commission_percentage}% Commission`;
       return "Commission Based";
     }

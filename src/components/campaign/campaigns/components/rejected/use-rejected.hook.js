@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getRejectedCreators,
@@ -46,54 +46,98 @@ function useRejected() {
     (state) => state.invitation.rejectInvitation || {}
   );
 
+  const autoSelectedForCampaignRef = useRef(null);
+  const initialLoadRef = useRef(false);
+  const lastModeRef = useRef(null);
+  const justReinstatedRef = useRef(false);
+
   useEffect(() => {
-    const isIndividual = !selectedCampaign;
+    if (!initialLoadRef.current) {
+      dispatch(getBrandRejectedIndividualCollaborations());
+      initialLoadRef.current = true;
+    }
+  }, [dispatch]);
 
-    if (isIndividual) {
-      const hasIndividualData =
-        rejectedIndividualCollaborationsData &&
-        Array.isArray(rejectedIndividualCollaborationsData.data) &&
-        rejectedIndividualCollaborationsData.data.length > 0;
+  useEffect(() => {
+    const isIndividualMode = !selectedCampaign;
+    const currentMode = isIndividualMode ? "individual" : selectedCampaign?.id;
 
-      if (hasIndividualData) {
-        const isCreatorFromIndividual =
-          selectedCreator?.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
-        const isCreatorFromMultiCreator =
-          selectedCreator?.creator_id || selectedCreator?.campaign_id;
-
-        if (!selectedCreator || isCreatorFromMultiCreator) {
-          const creators = rejectedIndividualCollaborationsData.data;
-          if (creators.length > 0) {
-            setSelectedCreator(creators[0]);
-          }
-        }
-      } else if (selectedCreator) {
-        const isCreatorFromMultiCreator =
-          selectedCreator?.creator_id || selectedCreator?.campaign_id;
+    if (lastModeRef.current !== currentMode) {
+      autoSelectedForCampaignRef.current = null;
+      lastModeRef.current = currentMode;
+      justReinstatedRef.current = false;
+      
+      if (isIndividualMode) {
+        const isCreatorFromMultiCreator = selectedCreator?.creator_id || selectedCreator?.campaign_id;
         if (isCreatorFromMultiCreator) {
           setSelectedCreator(null);
         }
+      } else {
+        const isCreatorFromIndividual = selectedCreator?.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
+        if (isCreatorFromIndividual) {
+          setSelectedCreator(null);
+        }
       }
-    } else if (selectedCampaign) {
-      const isCreatorFromIndividual =
-        selectedCreator?.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
-      const isCreatorFromMultiCreator = selectedCreator?.creator_id || selectedCreator?.campaign_id;
+    }
 
-      if (isCreatorFromIndividual) {
-        setSelectedCreator(null);
-      } else if (!selectedCreator && rejectedCreatorsSuccess) {
-        const creators = rejectedCreatorsData?.data;
-        if (Array.isArray(creators) && creators.length > 0) {
-          setSelectedCreator(creators[0]);
+    const isLoading = isIndividualMode ? rejectedIndividualCollaborationsLoading : rejectedCreatorsLoading;
+    if (justReinstatedRef.current && !isLoading) {
+      justReinstatedRef.current = false;
+    }
+
+    if (!selectedCampaign) {
+      if (
+        !rejectedIndividualCollaborationsLoading &&
+        rejectedIndividualCollaborationsData?.data &&
+        Array.isArray(rejectedIndividualCollaborationsData.data) &&
+        rejectedIndividualCollaborationsData.data.length > 0 &&
+        autoSelectedForCampaignRef.current !== "individual" &&
+        !justReinstatedRef.current
+      ) {
+        const isCreatorFromMultiCreator = selectedCreator?.creator_id || selectedCreator?.campaign_id;
+        if (!selectedCreator || isCreatorFromMultiCreator) {
+          setSelectedCreator(rejectedIndividualCollaborationsData.data[0]);
+          autoSelectedForCampaignRef.current = "individual";
+        }
+      }
+    } else if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+      if (
+        !rejectedIndividualCollaborationsLoading &&
+        rejectedIndividualCollaborationsData?.data &&
+        Array.isArray(rejectedIndividualCollaborationsData.data) &&
+        rejectedIndividualCollaborationsData.data.length > 0 &&
+        autoSelectedForCampaignRef.current !== selectedCampaign.id &&
+        !justReinstatedRef.current
+      ) {
+        const isCreatorFromMultiCreator = selectedCreator?.creator_id || selectedCreator?.campaign_id;
+        if (!selectedCreator || isCreatorFromMultiCreator) {
+          setSelectedCreator(rejectedIndividualCollaborationsData.data[0]);
+          autoSelectedForCampaignRef.current = selectedCampaign.id;
+        }
+      }
+    } else {
+      if (
+        !rejectedCreatorsLoading &&
+        rejectedCreatorsData?.data &&
+        Array.isArray(rejectedCreatorsData.data) &&
+        rejectedCreatorsData.data.length > 0 &&
+        autoSelectedForCampaignRef.current !== selectedCampaign.id &&
+        !justReinstatedRef.current
+      ) {
+        const isCreatorFromIndividual = selectedCreator?.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
+        if (!selectedCreator || isCreatorFromIndividual) {
+          setSelectedCreator(rejectedCreatorsData.data[0]);
+          autoSelectedForCampaignRef.current = selectedCampaign.id;
         }
       }
     }
   }, [
-    rejectedCreatorsSuccess,
-    rejectedCreatorsData,
-    rejectedIndividualCollaborationsSuccess,
-    rejectedIndividualCollaborationsData,
-    selectedCampaign,
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    rejectedIndividualCollaborationsLoading,
+    rejectedIndividualCollaborationsData?.data?.length,
+    rejectedCreatorsLoading,
+    rejectedCreatorsData?.data?.length,
     selectedCreator,
   ]);
 
@@ -120,41 +164,51 @@ function useRejected() {
   }, [rejectInvitationSuccess, dispatch]);
 
   useEffect(() => {
-    if (reinstateSuccess && selectedCampaign) {
-      if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
-        dispatch(getBrandRejectedIndividualCollaborations());
-      } else {
-        dispatch(
-          getRejectedCreators({
-            campaignId: selectedCampaign.id,
-            filters: { ...filters, status: "REJECTED" },
-            sortBy,
-          })
-        );
-      }
+    if (reinstateSuccess) {
       setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
+      justReinstatedRef.current = true;
+      
+      if (selectedCampaign) {
+        if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+          dispatch(getBrandRejectedIndividualCollaborations());
+        } else {
+          dispatch(
+            getRejectedCreators({
+              campaignId: selectedCampaign.id,
+              filters: { ...filters, status: "REJECTED" },
+              sortBy,
+            })
+          );
+        }
+      } else {
+        dispatch(getBrandRejectedIndividualCollaborations());
+      }
     }
   }, [reinstateSuccess, selectedCampaign, dispatch, filters, sortBy]);
 
   useEffect(() => {
     if (reinstateInvitationSuccess) {
-      dispatch(getBrandRejectedIndividualCollaborations());
       setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
+      justReinstatedRef.current = true;
+      dispatch(getBrandRejectedIndividualCollaborations());
     }
   }, [reinstateInvitationSuccess, dispatch]);
 
-  useEffect(() => {
-    dispatch(getBrandRejectedIndividualCollaborations());
-  }, [dispatch]);
+
 
   const handleCampaignSelect = useCallback(
     (campaign) => {
       setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
       setSelectedCampaign(campaign);
 
       if (campaign?.id) {
         if (campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
-          dispatch(getBrandRejectedIndividualCollaborations());
+          if (!rejectedIndividualCollaborationsData?.data && !rejectedIndividualCollaborationsLoading) {
+            dispatch(getBrandRejectedIndividualCollaborations());
+          }
         } else {
           dispatch(
             getRejectedCreators({
@@ -165,10 +219,12 @@ function useRejected() {
           );
         }
       } else if (!campaign) {
-        dispatch(getBrandRejectedIndividualCollaborations());
+        if (!rejectedIndividualCollaborationsData?.data && !rejectedIndividualCollaborationsLoading) {
+          dispatch(getBrandRejectedIndividualCollaborations());
+        }
       }
     },
-    [dispatch, filters, sortBy]
+    [dispatch, filters, sortBy, rejectedIndividualCollaborationsData?.data, rejectedIndividualCollaborationsLoading]
   );
 
   const handleCreatorSelect = useCallback((creator) => {
