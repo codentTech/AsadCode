@@ -34,6 +34,7 @@ const CreatorSpendAnalysis = ({
     campaignsLoading,
     filteredCampaignOptions,
     isSelectedCampaignValid,
+    selectedCampaignValue,
     handleToggleChange,
     handleSortChange,
     handleReinstateClick,
@@ -88,11 +89,7 @@ const CreatorSpendAnalysis = ({
                   isSearchable={true}
                   isMulti={false}
                   isLoading={campaignsLoading}
-                  defaultValue={
-                    isSelectedCampaignValid && selectedCampaign
-                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
-                      : null
-                  }
+                  value={selectedCampaignValue}
                   onChange={(opt) => {
                     const id = opt?.value;
                     const campaign = campaignsData?.data?.find((c) => c.id === id);

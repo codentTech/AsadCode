@@ -235,10 +235,20 @@ const DeliverablesProgress = ({
       return null;
     }
 
+    const campaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : selectedCampaign?.id;
+
+    if (!campaignId) {
+      return null;
+    }
+
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={selectedCampaign?.id} contracts={contracts} />
+        <BrandTimelineSteps campaignId={campaignId} />
       </div>
     );
   };

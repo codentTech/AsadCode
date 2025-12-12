@@ -1,10 +1,8 @@
-"use client";
-
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import CustomRadioGroup from "@/common/components/radio-group/radio-group.component";
-import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import useCompensation from "./use-compensation.hook";
 
 function Compensation({ campaignData, errors = {}, register, setValue }) {
@@ -13,27 +11,13 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
     paymentTypeOptions,
     creatorCompOption,
     creatorCompensationOptions,
-    commissionPayment,
+    isGiftedCampaign,
+    selectedCampaignTypeOption,
+    creatorFee,
     handleCampaignTypeChange,
     handlePaymentTypeChange,
     handleCreatorCompOptionChange,
   } = useCompensation({ campaignData, setValue });
-
-  const creatorFee =
-    campaignData.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-    campaignData.campaign_type === CAMPAIGN_TYPE.UGC
-      ? creatorCompOption === "set-price"
-        ? campaignData.creator_fixed_price || 0
-        : `${campaignData.suggested_min || 0} - ${campaignData.suggested_max || 0} (Range)` || 0
-      : campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED || paymentType === "gifted"
-        ? campaignData.product_value || 0
-        : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-          ? commissionPayment || 0
-          : 0;
-
-  const requireCreatorCompensation =
-    [CAMPAIGN_TYPE.SPONSORED_POST, CAMPAIGN_TYPE.UGC].includes(campaignData.campaign_type) &&
-    paymentType === "paid";
 
   return (
     <div className="space-y-6">
@@ -45,7 +29,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
             options={CAMPAIGN_TYPE_OPTIONS}
             name="campaign_type"
             register={register}
-            value={campaignData.campaign_type}
+            value={selectedCampaignTypeOption}
             onChange={handleCampaignTypeChange}
             errors={errors}
             isRequired={true}
@@ -56,9 +40,11 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
           <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
             <div className="flex justify-between">
               <p className="text-sm font-medium text-indigo-900 mb-1">Compensation Type</p>
-              <p className="text-sm font-medium text-indigo-900 mb-1">
-                <span className="font-bold">Creator Fee:</span> ${creatorFee}
-              </p>
+              {!isGiftedCampaign && (
+                <p className="text-sm font-medium text-indigo-900 mb-1">
+                  <span className="font-bold">Creator Fee:</span> ${creatorFee}
+                </p>
+              )}
             </div>
             <p className="text-sm text-indigo-700">
               {campaignData.compensation_type === COMPENSATION_TYPE.PAID &&
@@ -74,9 +60,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
               {campaignData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT ||
               paymentType === "gifted" ? (
                 <>
-                  <span className="font-semibold text-red-600">
-                    Product Gifting Only (${campaignData.product_value || 0} (can't be changed)
-                  </span>
+                  <span className="font-semibold text-red-600">Product Gifting Only</span>
                   <br />
                   <span className="text-xs text-indigo-600">
                     Creators receive product only - no monetary compensation
@@ -120,31 +104,37 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
             />
           )}
 
-          <CustomInput
-            label="Enter total budget amount (Not publicly visible, for budget management only)"
-            type="number"
-            name="budget"
-            placeholder="e.g., 1000"
-            errors={errors}
-            register={register}
-            isRequired={paymentType === "paid"}
-            disabled={paymentType !== "paid"}
-          />
+          {campaignData.compensation_type !== COMPENSATION_TYPE.GIFTED_PRODUCT && (
+            <CustomInput
+              label="Enter total budget amount (Not publicly visible, for budget management only)"
+              type="number"
+              name="budget"
+              placeholder="e.g., 1000"
+              errors={errors}
+              register={register}
+              isRequired={paymentType === "paid"}
+              disabled={paymentType !== "paid"}
+            />
+          )}
 
           {paymentType === "paid" && (
             <div className="space-y-4">
               <CustomRadioGroup
-                label="Creator compensation (optional)"
+                label="Creator Payment Amount (optional)"
                 name="creator_compensation_option"
-                radioOptions={creatorCompensationOptions}
+                radioOptions={[{ label: "None", value: "none" }, ...creatorCompensationOptions]}
                 inlineRadioButtons
                 value={creatorCompOption}
                 onChange={handleCreatorCompOptionChange}
+                register={register}
                 errorMessage=""
               />
 
               {creatorCompOption === "suggested" && (
                 <div className="space-y-2">
+                  <p className="text-xs text-gray-600 mb-2">
+                    Enter a minimum and maximum amount that you are comfortable to pay each creator
+                  </p>
                   <div className="flex gap-4">
                     <CustomInput
                       label="Suggested Minimum (optional)"
@@ -170,6 +160,9 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
 
               {creatorCompOption === "set-price" && (
                 <div className="space-y-2">
+                  <p className="text-xs text-gray-600 mb-2">
+                    Enter a fixed payment amount per creator
+                  </p>
                   <CustomInput
                     label="Fixed Creator Payment (optional)"
                     type="number"

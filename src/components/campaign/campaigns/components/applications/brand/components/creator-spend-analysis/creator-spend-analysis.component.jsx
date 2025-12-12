@@ -47,6 +47,7 @@ const CreatorSpendAnalysis = ({
     campaignsLoading,
     filteredCampaignOptions,
     isSelectedCampaignValid,
+    selectedCampaignValue,
     handleToggleChange,
     handleCreatorPreview,
     handleSaveToShortlist,
@@ -107,11 +108,7 @@ const CreatorSpendAnalysis = ({
                   isSearchable={true}
                   isMulti={false}
                   isLoading={campaignsLoading}
-                  defaultValue={
-                    isSelectedCampaignValid && selectedCampaign
-                      ? { value: selectedCampaign.id, label: selectedCampaign.campaign_title }
-                      : null
-                  }
+                  value={selectedCampaignValue}
                   onChange={(opt) => {
                     const id = opt?.value;
                     const campaign = campaignsData?.data?.find((c) => c.id === id);
@@ -168,17 +165,6 @@ const CreatorSpendAnalysis = ({
             <p className="text-xs text-gray-500 mt-2">Loading campaigns...</p>
           </div>
         )}
-
-        {/* No Campaigns Found */}
-        {!campaignsLoading &&
-          (!Array.isArray(campaignsData?.data) || campaignsData.data.length === 0) && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <NotFound
-                title="No Campaigns Found"
-                description="Create a campaign to see applications here."
-              />
-            </div>
-          )}
 
         {selectedCampaign ? (
           <>

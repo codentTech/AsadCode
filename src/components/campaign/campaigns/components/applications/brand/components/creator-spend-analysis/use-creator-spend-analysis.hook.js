@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -38,15 +38,17 @@ function useCreatorSpendAnalysis({
     (invitation) => invitation.status === "PENDING"
   );
 
-  const filteredCampaignOptions = campaignOptions.filter((option) => {
-    if (!campaignsData?.data) return false;
-    const campaign = campaignsData.data.find((c) => c.id === option.value);
-    if (!campaign) return false;
-    const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-    return isMultiCreator
-      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
-      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  });
+  const filteredCampaignOptions = useMemo(() => {
+    return campaignOptions.filter((option) => {
+      if (!campaignsData?.data) return false;
+      const campaign = campaignsData.data.find((c) => c.id === option.value);
+      if (!campaign) return false;
+      const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      return isMultiCreator
+        ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+        : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    });
+  }, [campaignOptions, campaignsData?.data, isMultiCreator]);
 
   const isSelectedCampaignValid =
     selectedCampaign &&
@@ -54,6 +56,13 @@ function useCreatorSpendAnalysis({
       ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
         COLLABORATION_TYPE.MULTI_CREATOR
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+  const selectedCampaignValue = useMemo(() => {
+    if (isSelectedCampaignValid && selectedCampaign) {
+      return { value: selectedCampaign.id, label: selectedCampaign.campaign_title };
+    }
+    return null;
+  }, [isSelectedCampaignValid, selectedCampaign?.id, selectedCampaign?.campaign_title]);
 
   const fetchIndividualCollaborations = async () => {
     hasFetchedIndividual.current = true;
@@ -68,16 +77,17 @@ function useCreatorSpendAnalysis({
         const currentIsIndividual =
           selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
         if (!selectedCampaign || !currentIsIndividual) {
-          const firstCollaboration = {
-            id: `individual-${collaborations[0].id}`,
+          const firstCollaboration = collaborations[0];
+          const syntheticCampaign = {
+            id: firstCollaboration.campaign_id || firstCollaboration.campaign?.id,
             collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
             campaign_title: "Individual Collaboration",
-            brand: collaborations[0].brand,
-            created_by: collaborations[0].brand,
-            invitation: collaborations[0],
+            brand: firstCollaboration.brand,
+            created_by: firstCollaboration.brand,
+            invitation: firstCollaboration,
           };
-          if (onCampaignSelect) {
-            onCampaignSelect(firstCollaboration);
+          if (onCampaignSelect && syntheticCampaign.id) {
+            onCampaignSelect(syntheticCampaign);
           }
         }
       }
@@ -112,9 +122,6 @@ function useCreatorSpendAnalysis({
       if (onCampaignSelect) {
         onCampaignSelect(null);
       }
-    }
-
-    if (!newIsMultiCreator) {
       hasFetchedIndividual.current = false;
       fetchIndividualCollaborations();
     }
@@ -125,11 +132,12 @@ function useCreatorSpendAnalysis({
       hasFetchedIndividual.current = false;
       if (
         !selectedCampaign &&
-        !hasAutoSelected.current &&
+        !campaignsLoading &&
         filteredCampaignOptions.length > 0 &&
+        campaignsData?.data &&
         typeof onCampaignSelect === "function"
       ) {
-        const firstCampaign = campaignsData?.data?.find(
+        const firstCampaign = campaignsData.data.find(
           (c) => c.id === filteredCampaignOptions[0]?.value
         );
         if (firstCampaign) {
@@ -144,7 +152,13 @@ function useCreatorSpendAnalysis({
         fetchIndividualCollaborations();
       }
     }
-  }, [isMultiCreator, selectedCampaign?.id]);
+  }, [
+    isMultiCreator,
+    selectedCampaign?.id,
+    filteredCampaignOptions.length,
+    campaignsData?.data,
+    campaignsLoading,
+  ]);
 
   useEffect(() => {
     if (reinstateInvitationSuccess && !isMultiCreator) {
@@ -227,6 +241,7 @@ function useCreatorSpendAnalysis({
     campaignsLoading,
     filteredCampaignOptions,
     isSelectedCampaignValid,
+    selectedCampaignValue,
     handleToggleChange,
     handleCreatorPreview,
     handleSaveToShortlist,

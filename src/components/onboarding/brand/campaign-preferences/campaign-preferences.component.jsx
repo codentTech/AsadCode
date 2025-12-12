@@ -350,31 +350,7 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                   handleNicheRemove={handleTargetNicheRemove}
                   placeholder="Search and add target niches"
                 />
-                {selectedNiches?.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-bold text-gray-600 mb-2">
-                      Selected: {selectedNiches.length} niche
-                      {selectedNiches.length !== 1 ? "s" : ""}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedNiches.map((niche) => (
-                        <span
-                          key={niche}
-                          className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 border border-indigo-200 text-xs text-gray-700 rounded-lg"
-                        >
-                          {niche}
-                          <button
-                            type="button"
-                            onClick={() => handleTargetNicheRemove(niche)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
                 {errors.target_niches && (
                   <p className="text-xs text-red-600 mt-2">{errors.target_niches.message}</p>
                 )}

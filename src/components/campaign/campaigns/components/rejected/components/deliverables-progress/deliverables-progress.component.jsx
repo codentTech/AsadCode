@@ -1,7 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loader from "@/common/components/loader/loader.component";
 import ReadMore from "@/common/components/readmore/readmore.component";
-import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
 import { MapPin, Star } from "lucide-react";
@@ -11,76 +10,22 @@ import useDeliverablesProgress from "./use-deliverables-progress.hook";
 const DeliverablesProgress = ({
   selectedCampaign,
   selectedCreator,
-  onReinstateClick,
+  onReinstateCreator,
   onSaveToShortlistClick,
+  isIndividualCreator,
 }) => {
   const {
     showReinstateConfirmation,
+    creatorData,
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
-  } = useDeliverablesProgress({ onReinstateClick });
-
-  const getCreatorData = () => {
-    if (!selectedCreator) return null;
-
-    if (selectedCreator.creator) {
-      const creator = selectedCreator.creator;
-      const profile = creator.creator_profile;
-
-      return {
-        id: selectedCreator.id,
-        name: `${creator.first_name} ${creator.last_name}`,
-        image: profile?.profile_photo_url || avatar,
-        location:
-          `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
-        rating: parseFloat(profile?.rating) || 0,
-        appliedDate: selectedCreator.applied_at
-          ? new Date(selectedCreator.applied_at).toLocaleDateString()
-          : selectedCreator.created_at
-            ? new Date(selectedCreator.created_at).toLocaleDateString()
-            : "N/A",
-        rejectedDate: selectedCreator.rejected_at
-          ? new Date(selectedCreator.rejected_at).toLocaleDateString()
-          : selectedCreator.updated_at
-            ? new Date(selectedCreator.updated_at).toLocaleDateString()
-            : "N/A",
-        pitch: selectedCreator.custom_message || selectedCreator.pitch || "No message",
-        status: selectedCreator.status,
-        profile: profile,
-        bio: profile?.bio,
-      };
-    }
-
-    if (selectedCreator.creator_id) {
-      const creator = selectedCreator.creator;
-      const profile = creator?.creator_profile;
-
-      return {
-        id: selectedCreator.id,
-        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown",
-        image: profile?.profile_photo_url || avatar,
-        location:
-          `${creator?.city || ""} ${creator?.country || ""}`.trim() || "Location not specified",
-        rating: parseFloat(profile?.rating) || 0,
-        appliedDate: selectedCreator.applied_at
-          ? new Date(selectedCreator.applied_at).toLocaleDateString()
-          : "N/A",
-        rejectedDate: selectedCreator.rejected_at
-          ? new Date(selectedCreator.rejected_at).toLocaleDateString()
-          : "N/A",
-        pitch: selectedCreator.pitch || "No message",
-        status: selectedCreator.status,
-        profile: profile,
-        bio: profile?.bio,
-      };
-    }
-
-    return selectedCreator;
-  };
-
-  const creatorData = getCreatorData();
-  const isIndividual = !selectedCampaign;
+  } = useDeliverablesProgress({
+    onReinstateCreator,
+    selectedCreator,
+    selectedCampaign,
+    isIndividualCreator: isIndividualCreator || !selectedCampaign,
+  });
 
   if (!creatorData) {
     return (
@@ -92,36 +37,25 @@ const DeliverablesProgress = ({
 
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
+      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
-            src={creatorData?.image || avatar}
-            alt={creatorData?.name || "Creator"}
+            src={creatorData?.image}
+            alt={creatorData?.image}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
             {creatorData.name?.charAt(0) || "C"}
           </Avatar>
         </div>
-        <h3>{creatorData.name}</h3>
-
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 ${
-                i < Math.floor(creatorData.rating || 0)
-                  ? "text-yellow-400 fill-current"
-                  : "text-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <MapPin className="w-4 h-4" />
-          <span>{creatorData.location}</span>
-        </div>
-        <p className="primary-text text-center">{creatorData.bio}</p>
-
+        <h3>
+          {creatorData.name}
+          <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
+          <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
+        </h3>
+        <p className="flex items-center text-sm text-gray-500 -mt-1">
+          {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
+        </p>
+        <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
         <div className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
           Application Rejected
         </div>

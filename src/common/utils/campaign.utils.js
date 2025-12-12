@@ -391,6 +391,7 @@ export const transformDataForAPI = (data) => {
 
     compensation_type: data.compensation_type || null,
     budget: toNumber(data.budget),
+    remaining_budget: toNumber(data.budget),
     suggested_min: toNumber(data.suggested_min),
     suggested_max: toNumber(data.suggested_max),
     creator_fixed_price: toNumber(data.creator_fixed_price),

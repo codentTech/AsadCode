@@ -61,7 +61,10 @@ export default function useBrandCampaignCompleted() {
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const options = allCampaigns.map((campaign) => ({
+      const completedCampaigns = allCampaigns.filter(
+        (campaign) => campaign.status === "COMPLETE"
+      );
+      const options = completedCampaigns.map((campaign) => ({
         value: campaign.id,
         label: campaign.campaign_title || "Untitled Campaign",
         campaign: campaign,
@@ -69,13 +72,13 @@ export default function useBrandCampaignCompleted() {
 
       setCampaignOptions(options);
 
-      if (allCampaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current && !hasRestoredFromContext.current) {
-        setSelectedCampaign(allCampaigns[0]);
+      if (completedCampaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current && !hasRestoredFromContext.current) {
+        setSelectedCampaign(completedCampaigns[0]);
         hasAutoSelected.current = true;
         dispatch(
           setSelectedCampaignContext({
-            campaignId: allCampaigns[0].id,
-            collaborationType: allCampaigns[0].collaboration_type || null,
+            campaignId: completedCampaigns[0].id,
+            collaborationType: completedCampaigns[0].collaboration_type || null,
           })
         );
       }

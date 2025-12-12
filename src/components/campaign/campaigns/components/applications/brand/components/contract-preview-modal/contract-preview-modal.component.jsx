@@ -84,9 +84,7 @@ export default function ContractPreviewModal({
     return compensationText;
   };
 
-  // Helper function to get eligibility information
   const getEligibilitySection = () => {
-    console.log(campaignData);
     const eligibilityItems = [];
 
     // In-person requirement

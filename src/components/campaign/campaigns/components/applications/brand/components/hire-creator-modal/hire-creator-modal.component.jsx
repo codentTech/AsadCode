@@ -71,7 +71,7 @@ export default function HireCreatorModal({
   }, [show, reset]);
 
   const handleSaveDraft = () => {
-    console.log("Save Draft");
+    // TODO: Implement save draft functionality
   };
 
   const handlePreviewContract = () => {

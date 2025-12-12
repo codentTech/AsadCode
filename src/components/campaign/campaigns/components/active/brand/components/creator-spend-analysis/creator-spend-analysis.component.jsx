@@ -58,7 +58,9 @@ const CreatorSpendAnalysis = ({
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-xl font-bold text-gray-900">Creator Analysis</h1>
-              <p className="text-xs text-gray-500">Discover top creators for your campaigns</p>
+              <p className="text-xs text-gray-500">
+                Track creator progress, deadlines and deliverables.
+              </p>
             </div>
           </div>
 

@@ -72,11 +72,14 @@ function Header() {
             aria-haspopup="true"
             aria-expanded={showProfileDropdown}
           >
-            {currentUser?.avatar ? (
+            {currentUser?.brand_profile || currentUser?.creator_profile ? (
               <img
-                src={currentUser.avatar}
+                src={
+                  currentUser?.brand_profile?.brand_logo_url ||
+                  currentUser?.creator_profile?.profile_photo_url
+                }
                 alt={currentUser?.first_name || "User avatar"}
-                className="w-6 h-6 rounded-full object-cover border border-white/30"
+                className="w-8 h-8 rounded-full object-cover border border-white/30"
               />
             ) : (
               <div className="w-6 h-6 bg-white/20 text-white rounded-full flex items-center justify-center text-xs font-semibold">

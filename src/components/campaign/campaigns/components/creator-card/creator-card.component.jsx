@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { Bookmark, Star } from "lucide-react";
+import { Bookmark, Star, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const CreatorCard = ({
@@ -60,7 +60,7 @@ const CreatorCard = ({
 
   return (
     <div
-      className={`group relative flex-shrink-0 snap-start ${
+      className={`relative flex-shrink-0 snap-start ${
         isShortlist ? "w-full" : "w-64"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
       onClick={() => onCreatorPreview(creator)}
@@ -116,11 +116,11 @@ const CreatorCard = ({
         </div>
 
         {/* Niche Tags */}
-        <div className="flex flex-wrap gap-1 justify-center">
-          {creator.niches?.slice(0, 2).map((niche) => (
+        <div className="flex gap-1 justify-center overflow-hidden">
+          {creator.niches?.slice(0, 3).map((niche) => (
             <span
               key={niche}
-              className="px-2 py-1 bg-gray-100 text-xs rounded-full text-gray-600 capitalize"
+              className="px-2 py-1 bg-gray-100 text-xs rounded-full text-gray-600 capitalize whitespace-nowrap flex-shrink-0"
             >
               {niche}
             </span>
@@ -151,14 +151,20 @@ const CreatorCard = ({
           </div>
         )}
 
-        {/* Short tagline bio */}
+        {/* Bio */}
         <div className="text-center">
-          <p className="text-xs text-gray-500 truncate">{creator.tagline}</p>
+          <p className="text-xs text-gray-500 line-clamp-2">
+            {creator.bio
+              ? creator.bio.length > 100
+                ? creator.bio.substring(0, 100) + "..."
+                : creator.bio
+              : creator.tagline || ""}
+          </p>
         </div>
 
         {/* Stats */}
         <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
-          <span className="font-medium">{formatFollowers(creator.followers)} Total Followers</span>
+          <span className="font-medium">{formatFollowers(creator.followers)} Followers</span>
         </div>
 
         {/* Social Icons */}
@@ -189,12 +195,34 @@ const CreatorCard = ({
 
         {/* Icon Buttons (Discover tab) */}
         {tab === "discover" && (
-          <div className="flex justify-center space-x-2">
-            <CustomButton
-              text={isShortlist ? "Remove from list" : "Save to list"}
-              onClick={handleSaveClick}
-              className="btn-primary w-full rounded-lg"
-            />
+          <div className="flex justify-center items-center gap-3">
+            <div className="relative group">
+              <button
+                onClick={handleSaveClick}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <Bookmark
+                  className={`w-5 h-5 ${isShortlist ? "text-primary fill-current" : "text-gray-600"}`}
+                />
+              </button>
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {isShortlist ? "Remove from list" : "Save to List"}
+              </span>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/creator-profile/${creator.id}`);
+                }}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <User className="w-5 h-5 text-gray-600" />
+              </button>
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                View Full Profile
+              </span>
+            </div>
           </div>
         )}
 
@@ -230,15 +258,6 @@ const CreatorCard = ({
             />
           </div>
         )}
-
-        <CustomButton
-          text="View Full Portfolio"
-          className="w-full btn-primary rounded-lg"
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(`/creator-profile/${creator.id}`);
-          }}
-        />
       </div>
     </div>
   );

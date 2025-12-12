@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loader from "@/common/components/loader/loader.component";
-import { avatar } from "@/common/constants/auth.constant";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
 import CampaignHistory from "../campaign-history/campaign-history.component";
@@ -36,17 +35,17 @@ const DeliverablesProgress = ({
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
-            src={creatorData?.image || avatar}
-            alt={creatorData?.image || avatar}
+            src={creatorData?.image}
+            alt={creatorData?.image}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
             {creatorData.name?.charAt(0) || "C"}
           </Avatar>
-          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
         </div>
         <h3>
           {creatorData.name}
-          <span className="text-lg text-gray-500 ml-1">({creatorData.rating})</span>
+          <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
+          <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
         </h3>
         <p className="flex items-center text-sm text-gray-500 -mt-1">
           {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
@@ -64,7 +63,7 @@ const DeliverablesProgress = ({
         {isIndividualCreator && (
           <>
             {isContractsLoading ? (
-              <div className="bg-white rounded border p-3">
+              <div className="bg-white rounded-lg border p-3">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
                   Contract Agreement
                 </h4>
@@ -73,14 +72,14 @@ const DeliverablesProgress = ({
                 </div>
               </div>
             ) : !selectedContract ? (
-              <div className="bg-white rounded border p-3">
+              <div className="bg-white rounded-lg border p-3">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
                   Contract Agreement
                 </h4>
                 <p className="text-xs text-gray-500">No contract found for this creator</p>
               </div>
             ) : (
-              <div className="bg-white rounded border p-3">
+              <div className="bg-white rounded-lg border p-3">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
                   Contract Agreement
                 </h4>
@@ -108,7 +107,9 @@ const DeliverablesProgress = ({
                     <li className="flex items-center justify-between">
                       <span>
                         Usage Rights:{" "}
-                        <span className="font-medium">{selectedContract.usageRights}</span>
+                        <span className="font-medium">
+                          {selectedContract.usageRights?.replaceAll("_", " ")}
+                        </span>
                       </span>
                     </li>
                   )}
@@ -116,7 +117,9 @@ const DeliverablesProgress = ({
                     <li className="flex items-center justify-between">
                       <span>
                         Exclusivity:{" "}
-                        <span className="font-medium">{selectedContract.exclusivityClause}</span>
+                        <span className="font-medium">
+                          {selectedContract.exclusivityClause?.replaceAll("_", " ")}
+                        </span>
                       </span>
                     </li>
                   )}
@@ -134,44 +137,42 @@ const DeliverablesProgress = ({
           </>
         )}
 
-        {!isIndividualCreator && (
-          <>
-            <div className="bg-white rounded-lg border p-3">
-              <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="border rounded p-2">
-                  <p className="text-[11px] text-gray-500">Engagement Rate</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {creatorData?.profile?.engagement_rate ?? "N/A"}
-                  </p>
-                </div>
-                <div className="border rounded p-2">
-                  <p className="text-[11px] text-gray-500">Average Reach</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {creatorData?.profile?.average_reach ?? "N/A"}
-                  </p>
-                </div>
-                <div className="border rounded p-2">
-                  <p className="text-[11px] text-gray-500">Average Views</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {creatorData?.profile?.average_views ?? "N/A"}
-                  </p>
-                </div>
-                <div className="border rounded p-2">
-                  <p className="text-[11px] text-gray-500">Posting Frequency</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {creatorData?.profile?.posting_frequency ?? "N/A"}
-                  </p>
-                </div>
+        <>
+          <div className="bg-white rounded-lg border p-3">
+            <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="border rounded p-2">
+                <p className="text-[11px] text-gray-500">Engagement Rate</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {creatorData?.profile?.engagement_rate ?? "N/A"}
+                </p>
+              </div>
+              <div className="border rounded p-2">
+                <p className="text-[11px] text-gray-500">Average Reach</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {creatorData?.profile?.average_reach ?? "N/A"}
+                </p>
+              </div>
+              <div className="border rounded p-2">
+                <p className="text-[11px] text-gray-500">Average Views</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {creatorData?.profile?.average_views ?? "N/A"}
+                </p>
+              </div>
+              <div className="border rounded p-2">
+                <p className="text-[11px] text-gray-500">Posting Frequency</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {creatorData?.profile?.posting_frequency ?? "N/A"}
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="bg-white border rounded-lg p-3">
-              <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
-              <AudienceDemographics className="flex flex-col" />
-            </div>
-          </>
-        )}
+          <div className="bg-white border rounded-lg p-3">
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
+            <AudienceDemographics className="flex flex-col" />
+          </div>
+        </>
 
         {(() => {
           const campaignId = isIndividualCreator

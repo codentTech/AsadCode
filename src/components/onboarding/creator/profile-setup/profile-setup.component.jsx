@@ -122,11 +122,11 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 <TextArea
                   label="Bio (Optional)"
                   placeholder="Tell brands about yourself and your content style..."
-                  maxLength={200}
+                  maxLength={100}
                   value={bio}
                   onChange={handleBioChange}
                 />
-                <p className="text-xs text-gray-600 mt-2">{bio.length}/200 characters</p>
+                <p className="text-xs text-gray-600 mt-2">{bio.length}/100 characters</p>
               </div>
 
               {/* Social Platforms */}
