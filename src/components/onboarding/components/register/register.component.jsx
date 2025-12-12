@@ -202,9 +202,11 @@ const Register = ({ onNext, onBack }) => {
         </div>
 
         <div className="text-center mb-5">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">Create Your Account</h1>
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
+            Account Owner Information
+          </h1>
           <p className="text-sm lg:text-lg text-gray-600">
-            Let's set up your profile to start connecting with brands
+            Let's set up your profile to start connecting with creators
           </p>
         </div>
 

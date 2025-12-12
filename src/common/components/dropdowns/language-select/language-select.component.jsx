@@ -29,6 +29,7 @@ export default function LanguageSelect({
   helperText = "",
   quickSelectCodes = COMMON_LANGUAGE_CODES,
   disabled = false,
+  isRequired = false,
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -111,7 +112,7 @@ export default function LanguageSelect({
       {label && (
         <label className="text-sm font-semibold text-gray-900">
           {label}
-          <span className="text-red-500">*</span>
+          {isRequired && <span className="text-red-500">*</span>}
         </label>
       )}
 
@@ -204,4 +205,5 @@ LanguageSelect.propTypes = {
   helperText: PropTypes.string,
   quickSelectCodes: PropTypes.arrayOf(PropTypes.string),
   disabled: PropTypes.bool,
+  isRequired: PropTypes.bool,
 };

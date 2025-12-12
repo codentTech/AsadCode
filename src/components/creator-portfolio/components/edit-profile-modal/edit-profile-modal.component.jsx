@@ -201,10 +201,19 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                     label="Tell us about yourself"
                     name="bio"
                     value={profileData.bio}
-                    onChange={(e) => handleProfileFieldChange("bio", e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.length <= 100) {
+                        handleProfileFieldChange("bio", value);
+                      }
+                    }}
                     placeholder="Share your story, passion, and what makes you unique..."
                     rows={4}
+                    maxLength={100}
                   />
+                  <p className="text-xs text-gray-600 mt-2">
+                    {profileData.bio?.length || 0}/100 characters
+                  </p>
                 </div>
 
                 {/* Basic Information */}

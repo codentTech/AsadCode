@@ -13,9 +13,8 @@ export default function useCampaignHistory(campaignId) {
   } = useSelector((state) => state.campaigns.getCampaignHistory || {});
 
   useEffect(() => {
-    // Skip API call for synthetic IDs (individual collaborations)
-    // Synthetic IDs start with "individual-" and are not valid UUIDs
-    if (campaignId && !campaignId.startsWith("individual-")) {
+    // Only fetch history if campaignId is a valid UUID
+    if (campaignId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignId)) {
       dispatch(getCampaignHistory(campaignId));
     }
   }, [dispatch, campaignId]);

@@ -184,7 +184,7 @@ const InvitationModal = ({
                           {campaign.campaign_title}
                         </h4>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-green-600 font-medium">
+                          <span className="text-xs text-primary font-medium">
                             {formatCompensation(campaign)}
                           </span>
                           {campaign.total_collaborators && (

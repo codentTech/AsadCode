@@ -219,7 +219,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
 
       await onSendOffer(contractData);
     } catch (error) {
-      console.error("Form submission error:", error);
+      // Error handled by parent component
     }
   };
 

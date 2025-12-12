@@ -12,7 +12,7 @@ import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
   profilePhoto: Yup.mixed().required("Profile photo is required"),
-  bio: Yup.string().max(200, "Bio must be less than 200 characters"),
+  bio: Yup.string().max(100, "Bio must be less than 100 characters"),
   // socialPlatforms: Yup.array()
   //   .min(1, "At least one social platform is required")
   //   .of(

@@ -34,8 +34,15 @@ export default function useQuantityDeliverableInput({ deliverables = [], onDeliv
   );
 
   const handleQuantityChange = useCallback((e) => {
-    const value = parseInt(e.target.value, 10) || 0;
-    setQuantity(Math.max(1, value));
+    const value = e.target.value;
+    if (value === "") {
+      setQuantity("");
+      return;
+    }
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue)) {
+      setQuantity(numValue);
+    }
   }, []);
 
   const handleTextChange = useCallback((e) => {
@@ -52,4 +59,3 @@ export default function useQuantityDeliverableInput({ deliverables = [], onDeliv
     handleKeyPress,
   };
 }
-

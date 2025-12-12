@@ -3,12 +3,13 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
 import { LOCATION_OPTIONS, GENDER_OPTIONS } from "@/common/constants/options.constant";
 import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
-import { X } from "lucide-react";
 import useEligibility from "./use-eligibility.hook";
+import { X } from "lucide-react";
 
 /**
  * Eligibility Component
@@ -26,11 +27,8 @@ function Eligibility({
   getWatchedValue,
 }) {
   const {
-    languageSearch,
-    filteredLanguages,
-    handleLanguageInputChange,
-    handleLanguageSelect,
-    showLanguageOptions,
+    selectedLanguages,
+    handleLanguageChange,
     countrySelectValue,
     citySelectValue,
     handleCitySelect,
@@ -122,7 +120,7 @@ function Eligibility({
       {/* Country Selection - Multi-Select */}
       <div className="border rounded-lg p-4">
         <CountrySelect
-          label="Add country"
+          label="Creator Country"
           name="countries_selector"
           value={countrySelectValueForMulti}
           onChange={handleCountrySelectForMulti}
@@ -253,52 +251,15 @@ function Eligibility({
         {renderRequirementToggle("gender")}
       </div>
 
-      {/* Language Selection */}
       <div className="border rounded-lg p-4">
-        <div className="relative">
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <CustomInput
-                label="Creator Language (Optional)"
-                name="creator_language"
-                placeholder="Type to search languages"
-                value={languageSearch}
-                onChange={(e) => handleLanguageInputChange(e.target.value)}
-                className="mb-2"
-                errors={errors}
-              />
-            </div>
-            {campaignData.creator_language && (
-              <button
-                type="button"
-                onClick={() => {
-                  handleChange({
-                    target: { name: "creator_language", value: "" },
-                  });
-                  handleLanguageInputChange("");
-                }}
-                className="mt-3 bg-gray-500 rounded-full p-1 text-gray-100 hover:text-gray-50"
-                aria-label="Clear language selection"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          {showLanguageOptions && (
-            <div className="absolute z-10 w-full max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
-              {filteredLanguages.map((language) => (
-                <button
-                  key={language}
-                  type="button"
-                  onClick={() => handleLanguageSelect(language)}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                >
-                  {language}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <LanguageSelect
+          label="Creator Language (Optional)"
+          name="creator_language"
+          value={selectedLanguages}
+          onChange={handleLanguageChange}
+          maxSelections={1}
+          errors={errors}
+        />
 
         {renderRequirementToggle("language")}
       </div>

@@ -25,9 +25,6 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
     handleViewAnalytics,
   } = useCampaignOverview(onCampaignSelect, onToggleChange);
 
-  console.log(selectedCampaign);
-  console.log(filteredCampaignOptions);
-
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
       {/* Campaign Type Toggle */}

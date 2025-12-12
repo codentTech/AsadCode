@@ -37,31 +37,6 @@ function Rejected() {
   const renderRightPane = () => {
     const isIndividual = !selectedCampaign;
 
-    if (selectedCreator) {
-      const isCreatorFromIndividual =
-        selectedCreator.creator && !selectedCreator.campaign_id && !selectedCreator.creator_id;
-      const isCreatorFromMultiCreator = selectedCreator.creator_id || selectedCreator.campaign_id;
-
-      if (isIndividual && isCreatorFromMultiCreator) {
-        return (
-          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-            <NotFound title="No Creator Selected" description="Select a creator to view details." />
-          </div>
-        );
-      }
-
-      if (!isIndividual && isCreatorFromIndividual) {
-        return (
-          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-            <NotFound
-              title="No Campaign Selected"
-              description="Select a campaign to view details."
-            />
-          </div>
-        );
-      }
-    }
-
     if (!selectedCreator) {
       if (isIndividual) {
         return (
@@ -77,27 +52,17 @@ function Rejected() {
       );
     }
 
+    const isIndividualCreator =
+      !selectedCampaign ||
+      selectedCampaign?.collaboration_type === "INDIVIDUAL_CREATOR" ||
+      (!selectedCreator?.campaign_id && !selectedCreator?.creator_id && selectedCreator?.creator);
+
     return (
       <DeliverablesProgress
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
-        onReinstateClick={() => {
-          if (!selectedCreator) return;
-
-          const isCreatorFromIndividual =
-            selectedCreator.collaboration_type === "INDIVIDUAL_CREATOR" ||
-            selectedCreator.originalData?.collaboration_type === "INDIVIDUAL_CREATOR" ||
-            (!selectedCreator.campaign_id &&
-              !selectedCreator.creator_id &&
-              selectedCreator.creator);
-
-          if (isCreatorFromIndividual) {
-            const invitationId = selectedCreator.id || selectedCreator.originalData?.id;
-            handleReinstateCreator(null, null, invitationId);
-          } else if (selectedCampaign && selectedCreator?.creator?.id) {
-            handleReinstateCreator(selectedCampaign.id, selectedCreator.creator.id);
-          }
-        }}
+        isIndividualCreator={isIndividualCreator}
+        onReinstateCreator={handleReinstateCreator}
         onSaveToShortlistClick={() => setShowShortlistModalForDetails(true)}
       />
     );

@@ -7,7 +7,13 @@ import {
   getCampaignNotesByCreatorProfile,
   updateCampaignNote,
 } from "@/provider/features/campaign-notes/campaign-notes.slice";
-import { createCampaignReview } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
+import {
+  createCampaignReview,
+  getCampaignReviewsByCreatorProfile,
+  updateCampaignReview,
+  deleteCampaignReview,
+  getReviewStatus,
+} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 import {
   getAllBrandCampaigns,
   markCampaignComplete,
@@ -18,7 +24,7 @@ import {
 } from "@/provider/features/contracts/contracts.slice";
 import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
@@ -31,8 +37,6 @@ const useDeliverablesProgress = (
   const creatorMode = isCreatorMode();
   const user = getUser();
   const dispatch = useDispatch();
-
-  const { createCampaignReview: createReviewState } = useSelector((state) => state.campaignReviews);
 
   const {
     createCampaignNote: createNoteState,
@@ -47,40 +51,43 @@ const useDeliverablesProgress = (
     getIndividualCollaborationContracts: getIndividualContractsState,
   } = useSelector((state) => state.contracts);
 
-  const { updateCampaign: updateCampaignState, markCampaignComplete: markCampaignCompleteState } =
-    useSelector((state) => state.campaigns);
+  const { updateCampaign: updateCampaignState } = useSelector((state) => state.campaigns);
 
   const { getTimeline: getTimelineState } = useSelector((state) => state.campaignTimeline);
 
-  const [project] = useState({
-    deliverables: [
-      { id: 1, completed: true },
-      { id: 2, completed: false },
-      { id: 3, completed: false },
-      { id: 4, completed: false },
-    ],
-  });
+  const {
+    getCampaignReviews: getReviewsState,
+    getCampaignReviewsByCreatorProfile: getReviewsByCreatorProfileState,
+    createCampaignReview: createReviewState,
+    updateCampaignReview: updateReviewState,
+    deleteCampaignReview: deleteReviewState,
+    getReviewStatus: getReviewStatusState,
+  } = useSelector((state) => state.campaignReviews || {});
 
   const [editingNote, setEditingNote] = useState(null);
   const [newNoteText, setNewNoteText] = useState("");
+
+  const [editingReview, setEditingReview] = useState(null);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(0);
 
   const [showMarkCompleteModal, setShowMarkCompleteModal] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [markCompleteRating, setMarkCompleteRating] = useState(0);
   const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
-  const creator = selectedCreator
-    ? {
-        id: selectedCreator.id,
-        name: `${selectedCreator.name || ""}`.trim() || "Creator",
-        image: selectedCreator.image || avatar,
-        avatar: selectedCreator.image || avatar,
-        isOnline: true,
-        location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
-        rating: selectedCreator.rating || 0,
-        bio: selectedCreator.bio || "No bio available",
-        age: selectedCreator.age,
-      }
-    : {
+
+  const creatorUserId = isIndividualCreator
+    ? selectedCreator?.creatorUserId || selectedCreator?.creator?.id
+    : selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id;
+
+  const creatorProfileId = isIndividualCreator
+    ? selectedCreator?.creator?.creator_profile?.id ||
+      selectedCreator?.contract?.creator?.creator_profile?.id ||
+      null
+    : selectedCreator?.id || user?.creator_profile?.id;
+  const getCreatorData = () => {
+    if (!selectedCreator) {
+      return {
         id: "unknown",
         name: "Creator",
         image: avatar,
@@ -89,11 +96,46 @@ const useDeliverablesProgress = (
         location: "Location not specified",
         rating: 0,
         bio: "No bio available",
+        age: null,
       };
+    }
 
-  const creatorUserId = selectedCreator?.creatorUserId || selectedCreator?.id;
-  const messageThreadHook = useMessageThread(creatorUserId);
-  const creatorProfileId = selectedCreator?.id || user?.creator_profile?.id;
+    if (isIndividualCreator) {
+      return {
+        id: creatorProfileId || selectedCreator.creatorUserId || selectedCreator.id,
+        name: `${selectedCreator.name || ""}`.trim() || "Creator",
+        image: selectedCreator.image || avatar,
+        avatar: selectedCreator.image || avatar,
+        isOnline: true,
+        location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
+        rating: selectedCreator.rating || 0,
+        bio: selectedCreator.bio || "No bio available",
+        age: selectedCreator.age,
+      };
+    }
+
+    return {
+      id: selectedCreator.id,
+      name: `${selectedCreator.name || ""}`.trim() || "Creator",
+      image: selectedCreator.image || avatar,
+      avatar: selectedCreator.image || avatar,
+      isOnline: true,
+      location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
+      rating: selectedCreator.rating || 0,
+      bio: selectedCreator.bio || "No bio available",
+      age: selectedCreator.age,
+    };
+  };
+
+  const creator = getCreatorData();
+
+  const messageCampaignId = isIndividualCreator
+    ? selectedCreator?.campaign_id ||
+      selectedCreator?.campaign?.id ||
+      selectedCreator?.contract?.campaignId
+    : campaignId;
+
+  const messageThreadHook = useMessageThread(creatorUserId, messageCampaignId);
 
   const privateNotes = creatorProfileId
     ? getNotesByCreatorProfileState.data || []
@@ -104,12 +146,32 @@ const useDeliverablesProgress = (
       ? getIndividualContractsState.data || []
       : getContractsState.data || [];
 
-  const selectedContract =
-    contracts.find((contract) => {
-      const possibleCreatorIds = [creatorProfileId, creatorUserId].filter(Boolean);
-      const contractCreatorId = contract.creator?.id || contract.creatorId || contract.creator_id;
-      return possibleCreatorIds.includes(contractCreatorId);
-    }) || contracts[0];
+  const selectedContract = useMemo(() => {
+    if (!selectedCreator || contracts.length === 0) return null;
+
+    if (isIndividualCreator) {
+      return (
+        contracts.find((contract) => {
+          const contractCreatorId =
+            contract.creator?.id || contract.creatorId || contract.creator_id;
+          const contractId = contract.id;
+          return (
+            contractCreatorId === creatorUserId ||
+            contractId === selectedCreator.contractId ||
+            contractId === selectedCreator.id
+          );
+        }) || contracts[0]
+      );
+    }
+
+    const possibleCreatorIds = [creatorProfileId, creatorUserId].filter(Boolean);
+    return (
+      contracts.find((contract) => {
+        const contractCreatorId = contract.creator?.id || contract.creatorId || contract.creator_id;
+        return possibleCreatorIds.includes(contractCreatorId);
+      }) || contracts[0]
+    );
+  }, [contracts, selectedCreator, creatorProfileId, creatorUserId, isIndividualCreator]);
 
   useEffect(() => {
     if (isIndividualCreator || campaignId?.startsWith("individual-")) {
@@ -119,6 +181,18 @@ const useDeliverablesProgress = (
 
   useEffect(() => {
     if (isIndividualCreator || campaignId?.startsWith("individual-")) {
+      const effectiveCampaignId =
+        selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId;
+      if (effectiveCampaignId && creatorProfileId && !creatorMode) {
+        dispatch(
+          getCampaignNotesByCreatorProfile({
+            campaignId: effectiveCampaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      }
       return;
     }
 
@@ -136,22 +210,30 @@ const useDeliverablesProgress = (
         dispatch(getCampaignNotes(campaignId));
       }
     }
-  }, [dispatch, campaignId, creatorProfileId, isIndividualCreator, creatorMode]);
+  }, [dispatch, campaignId, creatorProfileId, isIndividualCreator, creatorMode, selectedCreator]);
 
   useEffect(() => {
-    if (isIndividualCreator || campaignId?.startsWith("individual-")) {
-      return;
-    }
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
 
-    if (
-      campaignId &&
-      campaignId !== "temp-campaign-id" &&
-      contracts.length > 0 &&
-      creatorProfileId
-    ) {
-      dispatch(getTimeline(campaignId));
+    if (effectiveCampaignId && effectiveCampaignId !== "temp-campaign-id") {
+      if (isIndividualCreator) {
+        dispatch(getTimeline(effectiveCampaignId));
+      } else if (contracts.length > 0 && creatorProfileId) {
+        dispatch(getTimeline(effectiveCampaignId));
+      }
     }
-  }, [dispatch, campaignId, contracts.length, creatorProfileId, isIndividualCreator]);
+  }, [
+    dispatch,
+    campaignId,
+    selectedCreator,
+    contracts.length,
+    creatorProfileId,
+    isIndividualCreator,
+  ]);
 
   const handleEditNote = (noteId) => {
     const note = privateNotes.find((n) => n.id === noteId);
@@ -162,30 +244,28 @@ const useDeliverablesProgress = (
   };
 
   const handleSaveEditNote = async (noteId) => {
-    try {
-      await dispatch(
-        updateCampaignNote({
-          noteId,
-          noteData: { text: newNoteText },
+    await dispatch(
+      updateCampaignNote({
+        noteId,
+        noteData: { text: newNoteText },
+      })
+    ).unwrap();
+
+    setTimeout(() => {
+      setEditingNote(null);
+      setNewNoteText("");
+    }, 0);
+
+    if (creatorProfileId && !creatorMode) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({
+          campaignId,
+          creatorProfileId: creatorProfileId,
         })
-      ).unwrap();
-
-      setTimeout(() => {
-        setEditingNote(null);
-        setNewNoteText("");
-      }, 0);
-
-      if (creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      } else if (!creatorMode) {
-        dispatch(getCampaignNotes(campaignId));
-      }
-    } catch (error) {}
+      );
+    } else if (!creatorMode) {
+      dispatch(getCampaignNotes(campaignId));
+    }
   };
 
   const handleCancelEditNote = () => {
@@ -196,7 +276,6 @@ const useDeliverablesProgress = (
   const handleDeleteNote = async (noteId) => {
     await dispatch(deleteCampaignNote(noteId)).unwrap();
 
-    // Refresh notes after deleting
     if (creatorProfileId && !creatorMode) {
       dispatch(
         getCampaignNotesByCreatorProfile({
@@ -210,40 +289,154 @@ const useDeliverablesProgress = (
   };
 
   const handleSaveNewNote = async () => {
-    if (!newNoteText.trim()) return;
+    if (!newNoteText.trim() || !creatorProfileId) return;
 
-    if (!creatorProfileId) {
-      return;
-    }
+    await dispatch(
+      createCampaignNote({
+        campaignId,
+        creatorProfileId: creatorProfileId,
+        noteData: { text: newNoteText.trim() },
+      })
+    ).unwrap();
 
-    try {
-      await dispatch(
-        createCampaignNote({
+    setTimeout(() => {
+      setNewNoteText("");
+    }, 0);
+
+    if (creatorProfileId && !creatorMode) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({
           campaignId,
           creatorProfileId: creatorProfileId,
-          noteData: { text: newNoteText.trim() },
         })
-      ).unwrap();
-
-      setTimeout(() => {
-        setNewNoteText("");
-      }, 0);
-
-      if (creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      } else if (!creatorMode) {
-        dispatch(getCampaignNotes(campaignId));
-      }
-    } catch (error) {}
+      );
+    } else if (!creatorMode) {
+      dispatch(getCampaignNotes(campaignId));
+    }
   };
 
   const handleCancelNewNote = () => {
     setNewNoteText("");
+  };
+
+  useEffect(() => {
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
+
+    if (effectiveCampaignId && effectiveCampaignId !== "temp-campaign-id" && creatorProfileId) {
+      dispatch(
+        getCampaignReviewsByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
+      dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+    }
+  }, [dispatch, campaignId, selectedCreator, creatorProfileId, isIndividualCreator]);
+
+  const campaignReviews = creatorProfileId
+    ? getReviewsByCreatorProfileState?.data?.data || []
+    : getReviewsState?.data?.data || [];
+
+  const reviewStatus = getReviewStatusState?.data?.data || null;
+
+  const handleEditReview = (reviewId) => {
+    const review = campaignReviews.find((r) => r.id === reviewId);
+    if (review) {
+      setEditingReview(reviewId);
+      setNewReviewText(review.review || "");
+      setNewReviewRating(review.rating || 0);
+    }
+  };
+
+  const handleSaveEditReview = async (reviewId) => {
+    if (!newReviewText?.trim() || newReviewRating === 0) return;
+
+    await dispatch(
+      updateCampaignReview({
+        reviewId,
+        reviewData: {
+          rating: newReviewRating,
+          review: newReviewText.trim(),
+        },
+      })
+    ).unwrap();
+
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
+
+    if (effectiveCampaignId && creatorProfileId) {
+      dispatch(
+        getCampaignReviewsByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
+      dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+    }
+
+    setEditingReview(null);
+    setNewReviewText("");
+    setNewReviewRating(0);
+  };
+
+  const handleCancelEditReview = () => {
+    setEditingReview(null);
+    setNewReviewText("");
+    setNewReviewRating(0);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    await dispatch(deleteCampaignReview(reviewId)).unwrap();
+
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
+
+    if (effectiveCampaignId && creatorProfileId) {
+      dispatch(
+        getCampaignReviewsByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
+      dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+    }
+  };
+
+  const handleSaveNewReview = async () => {
+    if (!newReviewText?.trim() || newReviewRating === 0 || !creatorProfileId) return;
+
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
+
+    if (!effectiveCampaignId || effectiveCampaignId === "temp-campaign-id") return;
+
+    await dispatch(
+      createCampaignReview({
+        campaignId: effectiveCampaignId,
+        creatorProfileId,
+        reviewData: {
+          rating: newReviewRating,
+          review: newReviewText.trim(),
+        },
+      })
+    ).unwrap();
+
+    dispatch(
+      getCampaignReviewsByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+    );
+    dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+
+    setNewReviewText("");
+    setNewReviewRating(0);
+  };
+
+  const handleCancelNewReview = () => {
+    setNewReviewText("");
+    setNewReviewRating(0);
   };
 
   const timelineSteps = getTimelineState?.data?.data || [];
@@ -262,14 +455,8 @@ const useDeliverablesProgress = (
     creatorTimelineSteps.length >= 3 &&
     creatorTimelineSteps.every((step) => step.status === TIMELINE_STATUS.COMPLETED);
 
-  const allDeliverablesComplete = project.deliverables.every(
-    (deliverable) => deliverable.completed
-  );
+  const isMarkCompleteDisabled = !areAllStepsComplete;
 
-  const isMarkCompleteDisabled =
-    isIndividualCreator || campaignId?.startsWith("individual-")
-      ? !allDeliverablesComplete
-      : !areAllStepsComplete;
   const handleMarkCompleteClick = () => {
     setShowMarkCompleteModal(true);
   };
@@ -281,31 +468,39 @@ const useDeliverablesProgress = (
   };
 
   const handleConfirmMarkComplete = async () => {
-    if (!selectedContract || !campaignId || !creatorProfileId || markCompleteRating === 0) return;
+    const effectiveCampaignId = isIndividualCreator
+      ? selectedCreator?.campaign_id ||
+        selectedCreator?.campaign?.id ||
+        selectedCreator?.contract?.campaignId
+      : campaignId;
+
+    if (!selectedContract || !effectiveCampaignId || !creatorProfileId || markCompleteRating === 0)
+      return;
 
     setIsMarkingComplete(true);
-    try {
-      await dispatch(
-        createCampaignReview({
-          campaignId,
-          creatorProfileId,
-          reviewData: {
-            rating: markCompleteRating,
-            review: markCompleteFeedback || null,
-          },
-        })
-      ).unwrap();
+    await dispatch(
+      createCampaignReview({
+        campaignId: effectiveCampaignId,
+        creatorProfileId,
+        reviewData: {
+          rating: markCompleteRating,
+          review: markCompleteFeedback || null,
+        },
+      })
+    ).unwrap();
 
-      await dispatch(markCampaignComplete(campaignId)).unwrap();
+    await dispatch(markCampaignComplete(effectiveCampaignId)).unwrap();
+
+    if (isIndividualCreator) {
+      await dispatch(getIndividualCollaborationContracts(false)).unwrap();
+    } else {
       await dispatch(getAllBrandCampaigns()).unwrap();
-
-      setShowMarkCompleteModal(false);
-      setMarkCompleteRating(0);
-      setMarkCompleteFeedback("");
-    } catch (error) {
-    } finally {
-      setIsMarkingComplete(false);
     }
+
+    setShowMarkCompleteModal(false);
+    setMarkCompleteRating(0);
+    setMarkCompleteFeedback("");
+    setIsMarkingComplete(false);
   };
 
   return {
@@ -344,6 +539,25 @@ const useDeliverablesProgress = (
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
+    campaignReviews,
+    editingReview,
+    newReviewText,
+    setNewReviewText,
+    newReviewRating,
+    setNewReviewRating,
+    handleEditReview,
+    handleSaveEditReview,
+    handleCancelEditReview,
+    handleDeleteReview,
+    handleSaveNewReview,
+    handleCancelNewReview,
+    isReviewsLoading: creatorProfileId
+      ? getReviewsByCreatorProfileState.isLoading
+      : getReviewsState.isLoading,
+    isCreateReviewLoading: createReviewState.isLoading,
+    isUpdateReviewLoading: updateReviewState.isLoading,
+    isDeleteReviewLoading: deleteReviewState.isLoading,
+    reviewStatus,
   };
 };
 
