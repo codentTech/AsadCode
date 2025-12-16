@@ -13,14 +13,7 @@ const DeliverablesProgress = ({
   onMessageClick,
   isIndividualCreator = false,
 }) => {
-  const {
-    selectedContract,
-    isContractsLoading,
-    creatorData,
-    formatDate,
-    formatCompensation,
-    getDeliverables,
-  } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
+  const { creatorData } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
 
   if (!creatorData) {
     return (
@@ -59,83 +52,6 @@ const DeliverablesProgress = ({
           <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
           <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
         </div>
-
-        {isIndividualCreator && (
-          <>
-            {isContractsLoading ? (
-              <div className="bg-white rounded-lg border p-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-                  Contract Agreement
-                </h4>
-                <div className="flex justify-center py-3">
-                  <Loader loading={true} />
-                </div>
-              </div>
-            ) : !selectedContract ? (
-              <div className="bg-white rounded-lg border p-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-                  Contract Agreement
-                </h4>
-                <p className="text-xs text-gray-500">No contract found for this creator</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg border p-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-                  Contract Agreement
-                </h4>
-                <ul className="space-y-2 text-xs text-gray-600">
-                  {getDeliverables(selectedContract).map((deliverable, index) => (
-                    <li key={index} className="flex items-center justify-between">
-                      <span>{deliverable}</span>
-                    </li>
-                  ))}
-                  <li className="flex items-center justify-between">
-                    <span>
-                      Deadline:
-                      <span className="font-medium ml-1">
-                        {formatDate(selectedContract.completionDeadline)}
-                      </span>
-                    </span>
-                  </li>
-                  <li className="flex items-center justify-between">
-                    <span>
-                      Payment:{" "}
-                      <span className="font-medium">{formatCompensation(selectedContract)}</span>
-                    </span>
-                  </li>
-                  {selectedContract.usageRights && (
-                    <li className="flex items-center justify-between">
-                      <span>
-                        Usage Rights:{" "}
-                        <span className="font-medium">
-                          {selectedContract.usageRights?.replaceAll("_", " ")}
-                        </span>
-                      </span>
-                    </li>
-                  )}
-                  {selectedContract.exclusivityClause && (
-                    <li className="flex items-center justify-between">
-                      <span>
-                        Exclusivity:{" "}
-                        <span className="font-medium">
-                          {selectedContract.exclusivityClause?.replaceAll("_", " ")}
-                        </span>
-                      </span>
-                    </li>
-                  )}
-                  {selectedContract.revisionsLimit && (
-                    <li className="flex items-center justify-between">
-                      <span>
-                        Revisions:{" "}
-                        <span className="font-medium">{selectedContract.revisionsLimit}</span>
-                      </span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </>
-        )}
 
         <>
           <div className="bg-white rounded-lg border p-3">

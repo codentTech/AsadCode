@@ -52,7 +52,10 @@ const createValidationSchema = (isIndividual) => {
         "Invalid compensation type"
       ),
     totalCompensation: Yup.mixed().when("compensationType", {
-      is: (val) => val === COMPENSATION_TYPE.PAID || val === COMPENSATION_TYPE.COMMISSION,
+      is: (val) =>
+        val === COMPENSATION_TYPE.PAID ||
+        val === COMPENSATION_TYPE.COMMISSION ||
+        val === COMPENSATION_TYPE.GIFTED_PRODUCT,
       then: (schema) =>
         schema
           .required("Compensation amount is required")
@@ -237,8 +240,8 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
   }, [watchedValues.compensationType]);
 
   const isCompensationRequired = useCallback(() => {
-    return watchedValues.compensationType !== COMPENSATION_TYPE.GIFTED_PRODUCT;
-  }, [watchedValues.compensationType]);
+    return true;
+  }, []);
 
   return {
     register,

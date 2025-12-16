@@ -23,8 +23,8 @@ export const formatDate = (dateString) => {
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
   const seconds = dateObj.getSeconds().toString().padStart(2, "0");
 
-  // return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
-  return `${day} ${month} ${year}`;
+  return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
+  // return `${day} ${month} ${year}`;
 };
 
 export const formatDateBySplit = (date) => {

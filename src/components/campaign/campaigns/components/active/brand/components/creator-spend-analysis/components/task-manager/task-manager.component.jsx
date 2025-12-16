@@ -6,13 +6,17 @@ import { AddCircle } from "@mui/icons-material";
 import useTaskManager from "./use-task-manager.hook";
 import { TASK_STATUS } from "@/common/constants/campaign.constant";
 
-const TaskManagerModal = ({ show, onClose }) => {
+const TaskManagerModal = ({
+  show,
+  onClose,
+  selectedCampaign: propSelectedCampaign,
+  isMultiCreator = true,
+}) => {
   const {
     // State
     selectedCampaign,
     showAddTask,
     newTaskText,
-    newTaskCampaign,
     filteredTasks,
     campaignOptions,
     campaignLookup,
@@ -26,11 +30,10 @@ const TaskManagerModal = ({ show, onClose }) => {
     handleTaskAction,
     addCustomTask,
     handleCampaignSelect,
-    handleNewTaskCampaignSelect,
     handleNewTaskTextChange,
     toggleAddTask,
     cancelAddTask,
-  } = useTaskManager(show);
+  } = useTaskManager(show, propSelectedCampaign, isMultiCreator);
 
   return (
     <Modal show={show} title="Task Manager" onClose={onClose} size="lg">
@@ -45,14 +48,16 @@ const TaskManagerModal = ({ show, onClose }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="w-full min-w-[230px]">
-              <SimpleSelect
-                placeHolder="All Campaigns"
-                options={campaignOptions}
-                value={selectedCampaign}
-                onChange={handleCampaignSelect}
-              />
-            </div>
+            {isMultiCreator && (
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect
+                  placeHolder="All Campaigns"
+                  options={campaignOptions}
+                  value={selectedCampaign}
+                  onChange={handleCampaignSelect}
+                />
+              </div>
+            )}
 
             <button className="bg-gray-200 p-2 rounded-full" onClick={toggleAddTask}>
               <AddCircle className="text-primary" />
@@ -71,25 +76,22 @@ const TaskManagerModal = ({ show, onClose }) => {
                 </div>
               )}
 
-              <div className="flex justify-between gap-6">
-                <CustomInput
-                  placeholder="What needs to be done?"
-                  value={newTaskText}
-                  onChange={handleNewTaskTextChange}
-                  className="!bg-white"
-                />
-                <SimpleSelect
-                  placeHolder="Select Campaign"
-                  options={campaignOptions.filter((c) => c.value !== "all")}
-                  value={newTaskCampaign}
-                  onChange={handleNewTaskCampaignSelect}
-                />
-              </div>
+              <CustomInput
+                placeholder="What needs to be done?"
+                value={newTaskText}
+                onChange={handleNewTaskTextChange}
+                className="!bg-white"
+              />
               <div className="flex justify-end gap-2">
                 <CustomButton
                   text="Add Task"
                   onClick={addCustomTask}
-                  disabled={!newTaskText.trim() || !newTaskCampaign || createTaskState.isLoading}
+                  disabled={
+                    !newTaskText.trim() ||
+                    (isMultiCreator && selectedCampaign === "all") ||
+                    (!isMultiCreator && !propSelectedCampaign?.id) ||
+                    createTaskState.isLoading
+                  }
                   className="btn-primary text-sm px-3 py-1"
                 />
                 <CustomButton

@@ -8,7 +8,7 @@ import {
 import { getAllCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { TASK_STATUS } from "@/common/constants/campaign.constant";
 
-export default function useTaskManager(show) {
+export default function useTaskManager(show, propSelectedCampaign, isMultiCreator = true) {
   const dispatch = useDispatch();
 
   // Redux state
@@ -26,7 +26,6 @@ export default function useTaskManager(show) {
   const [selectedCampaign, setSelectedCampaign] = useState("all");
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
-  const [newTaskCampaign, setNewTaskCampaign] = useState("");
 
   // Extract campaigns from the nested structure
   const campaigns = campaignsData?.data?.campaigns || campaignsData?.data || [];
@@ -47,41 +46,83 @@ export default function useTaskManager(show) {
   ];
 
   // Filter tasks based on selected campaign
-  const filteredTasks = tasks.filter(
-    (task) => selectedCampaign === "all" || task.campaign?.id === selectedCampaign
-  );
+  const filteredTasks = tasks.filter((task) => {
+    if (selectedCampaign === "all") return true;
+    // Match by campaign ID (handles both multi-creator and individual creator)
+    return task.campaign?.id === selectedCampaign || task.campaign_id === selectedCampaign;
+  });
+
+  // Auto-select campaign for multi-creator mode
+  useEffect(() => {
+    if (show && propSelectedCampaign?.id) {
+      setSelectedCampaign(propSelectedCampaign.id);
+    }
+  }, [show, propSelectedCampaign?.id]);
 
   // Load data when modal opens
   useEffect(() => {
     if (show) {
       dispatch(getAllTasks());
-      dispatch(getAllCampaigns());
+      if (isMultiCreator) {
+        dispatch(getAllCampaigns());
+      }
     }
-  }, [show, dispatch]);
+  }, [show, dispatch, isMultiCreator]);
+
+  // Refresh tasks when createTask is successful
+  useEffect(() => {
+    if (createTaskState.isSuccess && !createTaskState.isLoading) {
+      dispatch(getAllTasks());
+    }
+  }, [createTaskState.isSuccess, createTaskState.isLoading, dispatch]);
+
+  // Refresh tasks when updateTask is successful
+  useEffect(() => {
+    if (updateTaskState.isSuccess && !updateTaskState.isLoading) {
+      dispatch(getAllTasks());
+    }
+  }, [updateTaskState.isSuccess, updateTaskState.isLoading, dispatch]);
 
   // Handle task action - mark as complete
   const handleTaskAction = async (task) => {
-    await dispatch(
-      updateTask({
-        taskId: task.id,
-        updateData: { status: TASK_STATUS.COMPLETE },
-      })
-    ).unwrap();
+    try {
+      await dispatch(
+        updateTask({
+          taskId: task.id,
+          updateData: { status: TASK_STATUS.COMPLETE },
+        })
+      ).unwrap();
+      // Tasks will be refreshed by useEffect watching updateTaskState.isSuccess
+    } catch (error) {
+      // Error is handled by Redux state
+      console.error("Failed to update task:", error);
+    }
   };
 
   // Add custom task
   const addCustomTask = async () => {
-    if (newTaskText.trim() && newTaskCampaign) {
-      await dispatch(
-        createTask({
-          task_name: newTaskText,
-          campaign_id: newTaskCampaign,
-        })
-      ).unwrap();
+    const campaignId = isMultiCreator
+      ? selectedCampaign !== "all" ? selectedCampaign : null
+      : propSelectedCampaign?.id; // Use synthetic campaign ID for individual creator
 
-      setNewTaskText("");
-      setNewTaskCampaign("");
-      setShowAddTask(false);
+    if (newTaskText.trim() && campaignId) {
+      try {
+        await dispatch(
+          createTask({
+            task_name: newTaskText,
+            campaign_id: campaignId,
+          })
+        ).unwrap();
+
+        // Refresh tasks after successful creation
+        await dispatch(getAllTasks());
+
+        setNewTaskText("");
+        setShowAddTask(false);
+      } catch (error) {
+        // Error is handled by Redux state
+        console.error("Failed to create task:", error);
+      }
     }
   };
 
@@ -90,10 +131,6 @@ export default function useTaskManager(show) {
     setSelectedCampaign(value);
   };
 
-  // Handle new task campaign selection
-  const handleNewTaskCampaignSelect = ({ value }) => {
-    setNewTaskCampaign(value);
-  };
 
   // Handle new task text change
   const handleNewTaskTextChange = (e) => {
@@ -109,7 +146,6 @@ export default function useTaskManager(show) {
   const cancelAddTask = () => {
     setShowAddTask(false);
     setNewTaskText("");
-    setNewTaskCampaign("");
   };
 
   return {
@@ -117,7 +153,6 @@ export default function useTaskManager(show) {
     selectedCampaign,
     showAddTask,
     newTaskText,
-    newTaskCampaign,
     tasks,
     filteredTasks,
     campaignOptions,
@@ -132,7 +167,6 @@ export default function useTaskManager(show) {
     handleTaskAction,
     addCustomTask,
     handleCampaignSelect,
-    handleNewTaskCampaignSelect,
     handleNewTaskTextChange,
     toggleAddTask,
     cancelAddTask,
