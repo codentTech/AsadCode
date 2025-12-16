@@ -16,12 +16,13 @@ import React from "react";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import useCampaignDetail from "./use-campaign-detail.hook";
+import Loading from "@/common/components/loadar/loading.component";
+import { formatDate } from "@/common/utils/formate-date";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const {
     // State
     showContentBrief,
-    showProgressModal,
     expandedSections,
     campaign,
     campaignInfo,
@@ -29,8 +30,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     // Computed
     isCleerCutCampaign,
     typeStyle,
-    timelineSteps,
-    progressPercentage,
+    formattedType,
     creator,
 
     // Message thread
@@ -39,26 +39,12 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     // Handlers
     handleMessageClick,
     toggleSection,
-    handleUpdateProgress,
     handleCloseContentBrief,
     handleOpenContentBrief,
-    handleCloseProgressModal,
-    formatDate,
-    getStepStatus,
   } = useCampaignDetail(selectedCampaign);
 
   // Loading state
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen bg-white border-x flex-1 flex flex-col overflow-y-auto">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-sm text-gray-500 mb-2">Loading campaign details...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!isLoading) <Loading />;
 
   // No campaign selected state
   if (!campaign) {
@@ -101,7 +87,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               <div
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
               >
-                {campaign.type}
+                {formattedType}
               </div>
               <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                 <div>{campaign.compensation} -</div>
@@ -313,20 +299,13 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className={`grid ${isCleerCutCampaign ? "grid-cols-3" : "grid-cols-2"} gap-2 pt-2`}>
+          <div className={`grid ${isCleerCutCampaign ? "grid-cols-2" : "grid-cols-1"} gap-2 pt-2`}>
             {isCleerCutCampaign && (
-              <React.Fragment>
-                <CustomButton
-                  text="Update Progress"
-                  className="btn-outline text-xs"
-                  onClick={handleUpdateProgress}
-                />
-                <CustomButton
-                  text="Message"
-                  className="btn-primary text-xs"
-                  onClick={handleMessageClick}
-                />
-              </React.Fragment>
+              <CustomButton
+                text="Message"
+                className="btn-primary text-xs"
+                onClick={handleMessageClick}
+              />
             )}
             <CustomButton
               text="View Brief"
@@ -374,94 +353,6 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           </div>
         </Modal>
       )}
-
-      {/* Progress Update Modal */}
-      <Modal
-        show={showProgressModal}
-        title="Campaign Progress"
-        onClose={handleCloseProgressModal}
-        size="md"
-      >
-        <div className="space-y-4">
-          {/* Overall Progress */}
-          <div className="bg-gray-50 rounded p-3 border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-medium text-gray-900">{progressPercentage}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Timeline Steps */}
-          <div className="space-y-3">
-            {timelineSteps && timelineSteps.length > 0 ? (
-              timelineSteps.map((step, index) => {
-                const stepStatus = getStepStatus(step);
-
-                return (
-                  <div
-                    key={step.id || index}
-                    className="p-3 rounded border border-gray-200 bg-white hover:border-gray-300 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Checkbox */}
-                      <div className="mt-0.5">
-                        <input
-                          type="checkbox"
-                          checked={stepStatus.isCompleted}
-                          readOnly
-                          className="w-4 h-4 text-primary rounded border-gray-300"
-                        />
-                      </div>
-
-                      {/* Step Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-medium text-gray-900">{step.title}</h4>
-                          <span className="text-xs text-gray-500">{stepStatus.statusText}</span>
-                        </div>
-                        <p className="text-xs text-gray-600">{step.description}</p>
-                        {step.submitted_at && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Submitted {new Date(step.submitted_at).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Revision Feedback */}
-                    {stepStatus.isRevisionRequested &&
-                      step.revisions &&
-                      step.revisions.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <p className="text-xs text-gray-700">
-                            <span className="font-medium">Feedback:</span>{" "}
-                            {step.revisions[0].revision_notes}
-                          </p>
-                        </div>
-                      )}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-                <p className="text-sm text-gray-500">Loading progress...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-end pt-2 border-t border-gray-200">
-            <CustomButton text="Close" className="btn-primary" onClick={handleCloseProgressModal} />
-          </div>
-        </div>
-      </Modal>
 
       {/* Message Thread Modal */}
       <MessageThreadModal

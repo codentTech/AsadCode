@@ -2,9 +2,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import { CheckSquare, ChevronLeft, ChevronRight, Plus, Square } from "lucide-react";
-import useCalendarModal from "./use-calendar-modal.hook";
+import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import { AddCircle } from "@mui/icons-material";
+import { CheckSquare, ChevronLeft, ChevronRight, Square, Trash2 } from "lucide-react";
+import useCalendarModal from "./use-calendar-modal.hook";
 
 const CalendarModal = ({ show, onClose, selectedCampaign }) => {
   const {
@@ -40,6 +41,11 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
     handleTagSelection,
     toggleAddTag,
     cancelAddTag,
+    handleDeleteCategoryClick,
+    showDeleteConfirmation,
+    categoryToDelete,
+    handleConfirmDelete,
+    handleCancelDelete,
   } = useCalendarModal(show, selectedCampaign);
 
   return (
@@ -151,11 +157,23 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
                     {allCategories
                       .filter((cat) => !cat.isDefault)
                       .map((category) => (
-                        <div key={category.label} className="flex items-center gap-2 text-xs">
-                          <div
-                            className={`w-2 h-2 rounded-full ${category.color.split(" ")[0]}`}
-                          ></div>
-                          <span className="text-gray-600">{category.label}</span>
+                        <div
+                          key={category.id || category.label}
+                          className="flex items-center justify-between gap-2 text-xs group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-2 h-2 rounded-full ${category.color.split(" ")[0]}`}
+                            ></div>
+                            <span className="text-gray-600">{category.label}</span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteCategoryClick(category.id, category.label)}
+                            className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity p-1"
+                            title="Delete category"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       ))}
                   </div>
@@ -306,6 +324,14 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
           </div>
         </div>
       </div>
+
+      <ConfirmationDialog
+        show={showDeleteConfirmation}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        message="Delete Category"
+        content={`Are you sure you want to delete "${categoryToDelete?.label}"? This action cannot be undone.`}
+      />
     </Modal>
   );
 };

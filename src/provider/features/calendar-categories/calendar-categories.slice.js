@@ -13,6 +13,7 @@ const initialState = {
   categories: [],
   createCategory: generalState,
   getAllCategories: generalState,
+  deleteCategory: generalState,
 };
 
 // Create calendar category
@@ -57,6 +58,20 @@ export const getCategoriesByCampaign = createAsyncThunk(
   }
 );
 
+// Delete calendar category
+export const deleteCalendarCategory = createAsyncThunk(
+  "calendarCategories/deleteCategory",
+  async (categoryId, thunkAPI) => {
+    try {
+      const response = await calendarCategoryService.deleteCategory(categoryId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
 export const calendarCategoriesSlice = createSlice({
   name: "calendarCategories",
   initialState,
@@ -64,6 +79,7 @@ export const calendarCategoriesSlice = createSlice({
     reset: (state) => {
       state.createCategory = generalState;
       state.getAllCategories = generalState;
+      state.deleteCategory = generalState;
     },
     clearCategories: (state) => {
       state.categories = [];
@@ -111,6 +127,30 @@ export const calendarCategoriesSlice = createSlice({
         state.getAllCategories.isLoading = false;
         state.getAllCategories.isError = true;
         state.getAllCategories.data = null;
+      })
+
+      // Delete category
+      .addCase(deleteCalendarCategory.pending, (state) => {
+        state.deleteCategory.isLoading = true;
+        state.deleteCategory.message = "";
+        state.deleteCategory.isError = false;
+        state.deleteCategory.isSuccess = false;
+        state.deleteCategory.data = null;
+      })
+      .addCase(deleteCalendarCategory.fulfilled, (state, action) => {
+        state.deleteCategory.isLoading = false;
+        state.deleteCategory.isSuccess = true;
+        state.deleteCategory.data = action.payload.data;
+        // Remove deleted category from categories array
+        state.categories = state.categories.filter(
+          (cat) => cat.id !== action.payload.data?.id
+        );
+      })
+      .addCase(deleteCalendarCategory.rejected, (state, action) => {
+        state.deleteCategory.message = action.payload.message;
+        state.deleteCategory.isLoading = false;
+        state.deleteCategory.isError = true;
+        state.deleteCategory.data = null;
       });
   },
 });

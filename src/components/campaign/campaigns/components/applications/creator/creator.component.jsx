@@ -1,7 +1,7 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { Package } from "lucide-react";
+import { Package, Gift } from "lucide-react";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import ApplicationMessageThread from "./components/message-thread-modal/application-message-thread.component";
 import useCreatorApplications from "./use-creator-applications.hook";
@@ -45,6 +45,8 @@ const CreatorApplications = () => {
 
     // Helper functions
     formatCompensationType,
+
+    offersData,
   } = useCreatorApplications();
 
   return (
@@ -58,81 +60,108 @@ const CreatorApplications = () => {
               <p className="text-gray-600">Track and manage your brand applications</p>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex items-center space-x-3">
-              {/* My Offers Button - Blue and Distinct */}
-              <CustomButton
-                text="My Offers"
+            {/* Tab Navigation - Enhanced Color Design */}
+            <div className="flex items-center gap-3">
+              {/* My Offers - Simple Distinct Button */}
+              <button
                 onClick={() => setShowOffersModal(true)}
-                className="px-5 py-3 text-sm font-semibold rounded-lg transition-all duration-200 bg-primary text-white shadow-md hover:shadow-lg"
-              />
+                className="relative flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+              >
+                <Gift className="w-4 h-4" />
+                <span>My Offers</span>
+                {(offersData?.length || 0) > 0 && (
+                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-white/20 text-white text-xs font-bold rounded-full">
+                    {offersData?.length || 0}
+                  </span>
+                )}
+              </button>
 
-              {/* Other Tabs */}
-              <div className="flex items-center space-x-1 bg-gray-100 p-1.5 rounded-xl shadow-inner">
-                <CustomButton
-                  text={
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span>Invites</span>
-                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                        {allApplications.invites?.length || 0}
-                      </span>
-                    </div>
-                  }
+              {/* Tab Pills - Simple Theme Design */}
+              <div className="flex items-center gap-0 bg-gray-100 rounded-lg p-0.5">
+                <button
                   onClick={() => handleTabChange("invites")}
-                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
                     activeTab === "invites"
-                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
-                />
-                <CustomButton
-                  text={
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span>Negotiations</span>
-                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                        {allApplications.negotiations?.length || 0}
-                      </span>
-                    </div>
-                  }
+                >
+                  <span>Invites</span>
+                  {allApplications.invites?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === "invites"
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.invites?.length || 0}
+                    </span>
+                  )}
+                </button>
+                <button
                   onClick={() => handleTabChange("negotiations")}
-                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
                     activeTab === "negotiations"
-                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
-                />
-                <CustomButton
-                  text={
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span>Pending</span>
-                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                        {allApplications.pending?.length || 0}
-                      </span>
-                    </div>
-                  }
+                >
+                  <span>Negotiations</span>
+                  {allApplications.negotiations?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === "negotiations"
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.negotiations?.length || 0}
+                    </span>
+                  )}
+                </button>
+                <button
                   onClick={() => handleTabChange("pending")}
-                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
                     activeTab === "pending"
-                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
-                />
-                <CustomButton
-                  text={
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span>Rejected</span>
-                      <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                        {allApplications.rejected?.length || 0}
-                      </span>
-                    </div>
-                  }
+                >
+                  <span>Pending</span>
+                  {allApplications.pending?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === "pending"
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.pending?.length || 0}
+                    </span>
+                  )}
+                </button>
+                <button
                   onClick={() => handleTabChange("rejected")}
-                  className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
                     activeTab === "rejected"
-                      ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
-                />
+                >
+                  <span>Rejected</span>
+                  {allApplications.rejected?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === "rejected"
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.rejected?.length || 0}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -181,7 +210,7 @@ const CreatorApplications = () => {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredData.map((item) => (
                 <ApplicationCard
                   key={item.id}

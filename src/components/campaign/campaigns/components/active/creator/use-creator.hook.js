@@ -22,7 +22,62 @@ export default function useActiveCampaign() {
       campaign.invitation || campaign.campaign?.collaboration_type === "INDIVIDUAL_CREATOR";
 
     const campaignData = campaign.campaign || {};
-    const brandData = campaign.brand || campaignData.created_by || {};
+    const contractData = campaign.contract || {};
+    const brandData = campaign.brand || campaignData.created_by || contractData.brand || {};
+
+    const hasContractData = contractData && (
+      contractData.id || 
+      contractData.campaignId || 
+      contractData.completionDeadline || 
+      contractData.completion_deadline ||
+      contractData.contentFormat ||
+      contractData.compensationType ||
+      contractData.compensation_type
+    );
+
+    if (isIndividualCollaboration && hasContractData) {
+      return {
+        id: contractData.campaignId || campaignData.id || campaign.campaign_id,
+        title: campaignData.campaign_title || contractData.contentFormat || "Individual Collaboration",
+        brand:
+          brandData.brand_profile?.brand_name ||
+          (brandData.first_name && brandData.last_name
+            ? `${brandData.first_name} ${brandData.last_name}`
+            : brandData.first_name || "Brand"),
+        logo: brandData.brand_profile?.brand_logo_url || avatar,
+        application_deadline: contractData.completionDeadline || contractData.completion_deadline || campaignData.application_deadline,
+        platforms: contractData.platforms || campaignData.platforms || [],
+        deliverables: contractData.contentFormat ? [contractData.contentFormat] : campaignData.deliverables || [],
+        payment:
+          contractData.compensationType === COMPENSATION_TYPE.PAID || contractData.compensation_type === COMPENSATION_TYPE.PAID
+            ? `$${contractData.totalCompensation || contractData.total_compensation || 0}`
+            : contractData.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT || contractData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
+              ? "Gifted"
+              : "Commission",
+        productImage: campaignData.campaign_image,
+        completionRate: 0,
+        type: contractData.campaignType || contractData.campaign_type || campaignData.campaign_type,
+        compensation: contractData.compensationType || contractData.compensation_type || campaignData.compensation_type || COMPENSATION_TYPE.PAID,
+        compensationAmount: contractData.totalCompensation || contractData.total_compensation || campaignData.budget,
+        description:
+          contractData.contentGuidelines ||
+          contractData.content_guidelines ||
+          campaignData.short_description ||
+          campaign.invitation?.custom_message ||
+          "No description available",
+        progress: [
+          { task: "Content recorded", completed: false },
+          { task: "1st draft sent", completed: false },
+          { task: "Final post published", completed: false },
+        ],
+        campaign: campaignData,
+        contract: contractData,
+        application: campaign,
+        invitation: campaign.invitation,
+        isIndividualCollaboration: true,
+        sourcePlatform: campaignData.source_platform || SOURCE_PLATFORM.CLEERCUT,
+      };
+    }
 
     return {
       id: campaignData.id || campaign.campaign_id,
@@ -59,7 +114,7 @@ export default function useActiveCampaign() {
       campaign: campaignData,
       application: campaign,
       invitation: campaign.invitation,
-      isIndividualCollaboration,
+      isIndividualCollaboration: false,
       sourcePlatform: campaignData.source_platform || SOURCE_PLATFORM.CLEERCUT,
     };
   }, []);

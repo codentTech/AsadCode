@@ -1,8 +1,8 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loader from "@/common/components/loader/loader.component";
+import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { Avatar } from "@mui/material";
@@ -11,6 +11,8 @@ import React from "react";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
+import { formatDate } from "@/common/utils/formate-date";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const DeliverablesProgress = ({
   selectedCampaign,
@@ -19,11 +21,13 @@ const DeliverablesProgress = ({
 }) => {
   const {
     messageThreadHook,
+    handleMessageClick,
     creator,
     privateNotes,
     editingNote,
     newNoteText,
     setNewNoteText,
+    textareaKey,
     handleEditNote,
     handleSaveEditNote,
     handleCancelEditNote,
@@ -48,12 +52,7 @@ const DeliverablesProgress = ({
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
-  } = useDeliverablesProgress(
-    selectedCampaign?.id,
-    selectedCampaign,
-    selectedCreator,
-    isIndividualCreator
-  );
+  } = useDeliverablesProgress(selectedCampaign, selectedCreator, isIndividualCreator);
 
   const renderCampaignSelectionMessage = () => (
     <div className="py-16">
@@ -67,8 +66,8 @@ const DeliverablesProgress = ({
   const renderNoCreatorFound = () => (
     <div className="py-16">
       <NotFound
-        title="No Creator Found"
-        description="No creators have applied to this campaign yet."
+        title="No Creator Selected"
+        description="Select a creator from the list to view their details and manage deliverables."
       />
     </div>
   );
@@ -77,22 +76,21 @@ const DeliverablesProgress = ({
     <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
       <div className="relative">
         <Avatar
-          src={creator?.image || avatar}
-          alt={creator?.image || avatar}
+          src={creator?.image}
+          alt={creator?.image}
           className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
         >
           {creator.name?.charAt(0) || "C"}
         </Avatar>
-        <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
       </div>
       <h3>
         {creator.name}
-        <span className="text-lg text-gray-500 ml-1">({creator.rating})</span>
+        <span className="text-lg text-gray-500 ml-1">{creator.rating}</span>
+        <span className="text-lg text-gray-500 ml-1">({creator.reviewCount || 0})</span>
       </h3>
       <p className="flex items-center text-sm text-gray-500 -mt-1">
         {creator.age} • <span className="ml-1">{creator.location}</span>
       </p>
-
       <p className="text-sm text-gray-500 -mt-1">{creator?.bio}</p>
     </div>
   );
@@ -101,11 +99,7 @@ const DeliverablesProgress = ({
     <div className="bg-white rounded border p-3">
       <h4 className="text-sm font-semibold text-gray-800 mb-2">Quick Actions</h4>
       <div className="flex gap-2">
-        <CustomButton
-          text="Message"
-          className="btn-primary w-full"
-          onClick={messageThreadHook.openMessageModal}
-        />
+        <CustomButton text="Message" className="btn-primary w-full" onClick={handleMessageClick} />
         <CustomButton
           text="Mark Complete"
           onClick={handleMarkCompleteClick}
@@ -142,41 +136,15 @@ const DeliverablesProgress = ({
       );
     }
 
-    const formatDate = (dateString) => {
-      if (!dateString) return "Not set";
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    };
-
     const formatCompensation = () => {
-      if (selectedContract.compensationType === "PAID") {
+      if (selectedContract.compensationType === COMPENSATION_TYPE.PAID) {
         return `$${selectedContract.totalCompensation || 0}`;
-      } else if (selectedContract.compensationType === "GIFTED_PRODUCT") {
+      } else if (selectedContract.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
         return `Product ($${selectedContract.productPrice || 0})`;
-      } else if (selectedContract.compensationType === "COMMISSION") {
+      } else if (selectedContract.compensationType === COMPENSATION_TYPE.COMMISSION) {
         return "Commission based";
       }
       return "Not specified";
-    };
-
-    const getDeliverables = () => {
-      if (selectedContract.contentFormat) {
-        const deliverables = selectedContract.contentFormat.split(",").map((item) => {
-          const trimmed = item.trim();
-          const match = trimmed.match(/Quantity \((\d+)\) Deliverable '([^']+)'/);
-          if (match) {
-            const quantity = match[1];
-            const deliverable = match[2];
-            return `${quantity} ${deliverable}`;
-          }
-          return trimmed;
-        });
-        return deliverables;
-      }
-      return ["Content deliverables"];
     };
 
     return (
@@ -185,11 +153,13 @@ const DeliverablesProgress = ({
           Contract Agreement
         </h4>
         <ul className="space-y-2 text-xs text-gray-600">
-          {getDeliverables().map((deliverable, index) => (
-            <li key={index} className="flex items-center justify-between">
-              <span>{deliverable}</span>
-            </li>
-          ))}
+          {selectedContract.contentFormat?.split(",").map((deliverable, index) => {
+            return (
+              <li key={index} className="flex items-center justify-between">
+                <span>{deliverable.trim()}</span>
+              </li>
+            );
+          })}
           <li className="flex items-center justify-between">
             <span>
               Deadline:
@@ -206,7 +176,12 @@ const DeliverablesProgress = ({
           {selectedContract.usageRights && (
             <li className="flex items-center justify-between">
               <span>
-                Usage Rights: <span className="font-medium">{selectedContract.usageRights}</span>
+                Usage Rights:{" "}
+                <span className="font-medium">
+                  {selectedContract.usageRights
+                    ? selectedContract.usageRights?.split("_").join(" ")
+                    : "Not specified"}
+                </span>
               </span>
             </li>
           )}
@@ -214,7 +189,11 @@ const DeliverablesProgress = ({
             <li className="flex items-center justify-between">
               <span>
                 Exclusivity:{" "}
-                <span className="font-medium">{selectedContract.exclusivityClause}</span>
+                <span className="font-medium">
+                  {selectedContract.exclusivityClause
+                    ? selectedContract.exclusivityClause?.split("_").join(" ")
+                    : "Not specified"}
+                </span>
               </span>
             </li>
           )}
@@ -264,19 +243,11 @@ const DeliverablesProgress = ({
         <div className="space-y-2 text-xs text-gray-700 mb-3">
           {privateNotes.map((note, index) => (
             <div key={note.id || index} className="border-l-2 border-indigo-500 pl-3 py-1 group">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start border-b pb-1">
                 <div className="flex flex-col flex-1">
                   <span>{note.text}</span>
                   <span className="text-xs text-gray-400 mt-0.5">
-                    {note.created_at
-                      ? new Date(note.created_at).toLocaleString("en-US", {
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })
-                      : note.timestamp}
+                    {note.created_at ? formatDate(note.created_at) : formatDate(note.timestamp)}
                   </span>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
@@ -285,7 +256,7 @@ const DeliverablesProgress = ({
                     className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
                     title="Edit note"
                   >
-                    <Edit2 className="w-3 h-3" />
+                    <Edit2 className="w-3 h-3 text-indigo-500" />
                   </button>
                   <button
                     onClick={() => handleDeleteNote(note.id)}
@@ -296,7 +267,7 @@ const DeliverablesProgress = ({
                     {isDeleteNoteLoading ? (
                       <Loader loading={true} />
                     ) : (
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3 text-red-500" />
                     )}
                   </button>
                 </div>
@@ -307,12 +278,13 @@ const DeliverablesProgress = ({
       )}
       <React.Fragment>
         <TextArea
-          key={`note-textarea-${editingNote || "new"}`}
-          label={editingNote ? "Edit note..." : "Add a new note..."}
-          value={newNoteText}
+          key={`note-textarea-${editingNote || "new"}-${textareaKey}`}
+          label={editingNote ? "Edit note..." : "Add a new note"}
+          value={newNoteText || ""}
           onChange={(e) => setNewNoteText(e.target.value)}
           className="text-xs"
           rows={2}
+          placeholder="Type your note here"
         />
         <div className="flex justify-end gap-2 mt-2">
           <CustomButton
@@ -342,8 +314,10 @@ const DeliverablesProgress = ({
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
       {!selectedCampaign && renderCampaignSelectionMessage()}
-      {selectedCampaign && selectedCreator === null && renderNoCreatorFound()}
-      {selectedCampaign && selectedCreator && (
+      {selectedCampaign &&
+        (selectedCreator === null || selectedCreator === undefined) &&
+        renderNoCreatorFound()}
+      {selectedCampaign && selectedCreator && creator && creator.id !== "unknown" && (
         <>
           {renderCreatorProfile()}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">

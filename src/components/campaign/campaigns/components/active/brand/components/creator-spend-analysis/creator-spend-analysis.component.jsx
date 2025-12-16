@@ -10,11 +10,13 @@ import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
+import Loading from "@/common/components/loadar/loading.component";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
   selectedCreator,
   onCreatorSelect,
+  onClearCreator,
   onSortChange,
   currentSort = "newest",
   isMultiCreator = true,
@@ -30,29 +32,40 @@ const CreatorSpendAnalysis = ({
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-  } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
+  } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator, onClearCreator);
 
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
+  const autoSelectedRef = React.useRef(null);
 
-  // Handle sort change
   const handleSortChange = (option) => {
     if (onSortChange && option?.value) {
       onSortChange(option.value);
     }
   };
 
-  // Auto-select first creator when creators are loaded and no creator is selected
   React.useEffect(() => {
-    if (creatorsSuccess && creators.length > 0 && !selectedCreator && selectedCampaign) {
-      onCreatorSelect(creators[0]);
+    const campaignKey = selectedCampaign?.id || "none";
+    if (
+      creatorsSuccess &&
+      creators.length > 0 &&
+      !selectedCreator &&
+      selectedCampaign &&
+      autoSelectedRef.current !== campaignKey
+    ) {
+      autoSelectedRef.current = campaignKey;
+      if (onCreatorSelect) {
+        const firstCreator = creators[0];
+        onCreatorSelect(firstCreator);
+      }
+    }
+
+    if (!selectedCampaign) {
+      autoSelectedRef.current = null;
     }
   }, [creatorsSuccess, creators, selectedCreator, selectedCampaign, onCreatorSelect]);
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-
-      {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -99,11 +112,17 @@ const CreatorSpendAnalysis = ({
         </div>
       </div>
 
-      {/* Creator List */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {/* Campaign Selection Message */}
-          {!selectedCampaign && !creatorsLoading && (
+          {!selectedCampaign && !creatorsLoading && !isMultiCreator && creators.length === 0 && (
+            <div className="py-16">
+              <NotFound
+                title="No Individual Collaborations"
+                description="You don't have any active individual collaborations at the moment."
+              />
+            </div>
+          )}
+          {!selectedCampaign && !creatorsLoading && isMultiCreator && (
             <div className="py-16">
               <NotFound
                 title="No Active Campaign Selected"
@@ -112,15 +131,8 @@ const CreatorSpendAnalysis = ({
             </div>
           )}
 
-          {/* Loading State */}
-          {creatorsLoading && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Loader loading={true} />
-              <p className="text-sm text-gray-500 mt-3">Loading creators...</p>
-            </div>
-          )}
+          {creatorsLoading && <Loading />}
 
-          {/* Error State */}
           {creatorsError && (
             <div className="py-16">
               <NotFound
@@ -130,7 +142,6 @@ const CreatorSpendAnalysis = ({
             </div>
           )}
 
-          {/* No Creators Message */}
           {creatorsSuccess && creators.length === 0 && selectedCampaign && (
             <div className="py-16">
               <NotFound
@@ -140,8 +151,9 @@ const CreatorSpendAnalysis = ({
             </div>
           )}
 
-          {/* Creators List */}
-          {creatorsSuccess && creators.length > 0 && selectedCampaign
+          {creatorsSuccess &&
+          creators.length > 0 &&
+          (selectedCampaign || (!isMultiCreator && creators.length > 0))
             ? creators.map((creator) => {
                 const isSelected = selectedCreator?.id === creator.id;
 
@@ -156,7 +168,6 @@ const CreatorSpendAnalysis = ({
                     }`}
                   >
                     <div className="flex items-start space-x-4">
-                      {/* Profile Image */}
                       <div className="flex-shrink-0">
                         <img
                           src={creator.image || avatar}
@@ -168,7 +179,6 @@ const CreatorSpendAnalysis = ({
                         />
                       </div>
 
-                      {/* Creator Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
                           <div className="w-full">
@@ -199,7 +209,6 @@ const CreatorSpendAnalysis = ({
                           </div>
                         </div>
 
-                        {/* Rating */}
                         <div className="flex items-center space-x-2 mb-3">
                           <div className="flex text-xs items-center">
                             {[...Array(5)].map((_, i) => (
@@ -219,7 +228,6 @@ const CreatorSpendAnalysis = ({
                           </span>
                         </div>
 
-                        {/* Performance Metrics */}
                         <div className="flex items-center space-x-4 text-xs">
                           <div
                             className={`px-2 py-1 rounded-full ${getSuccessRateColor(
@@ -272,7 +280,12 @@ const CreatorSpendAnalysis = ({
         onClose={() => setShowBrandCalendar(false)}
         selectedCampaign={selectedCampaign}
       />
-      <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
+      <TaskManagerModal
+        show={showTaskManager}
+        onClose={() => setShowTaskManager(false)}
+        selectedCampaign={selectedCampaign}
+        isMultiCreator={isMultiCreator}
+      />
     </div>
   );
 };

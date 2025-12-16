@@ -2,30 +2,44 @@ import { isCreatorMode } from "@/common/utils/users.util";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
+import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 
-function ActiveBrandCampiagn() {
+function ActiveBrandCampaign() {
   const dispatch = useDispatch();
-  const { selectedCampaignId, selectedCollaborationType } = useSelector(
-    (state) => state.campaignContext
+  const { selectedCampaignId } = useSelector(
+    (state) => state.campaignContext || {}
   );
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
-  const [isMultiCreator, setIsMultiCreator] = useState(true); // Track toggle state from CampaignOverview
+  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const [filters, setFilters] = useState({
-    status: "HIRED", // Default to HIRED applications for active-completed tab
-    sort: "newest", // Default sort
+    status: "HIRED",
+    sort: "newest",
   });
+  const initialLoadRef = useRef(false);
+
+  useEffect(() => {
+    if (!initialLoadRef.current && selectedCampaignId) {
+      initialLoadRef.current = true;
+    }
+  }, [selectedCampaignId]);
+
+  useEffect(() => {
+    if (!isMultiCreator) {
+      dispatch(getIndividualCollaborationContracts(false));
+    }
+  }, [isMultiCreator, dispatch]);
 
   const handleCampaignSelect = (campaign) => {
     setSelectedCampaign(campaign);
-    setSelectedCreator(null); // Reset creator selection when campaign changes
+    setSelectedCreator(null);
+    autoSelectedForCampaignRef.current = null;
     
-    // Update Redux context for persistence
     if (campaign) {
       dispatch(
         setSelectedCampaignContext({
@@ -42,12 +56,10 @@ function ActiveBrandCampiagn() {
       );
     }
     
-    // For individual collaborations, we don't need to fetch hired creators
     if (campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
       return;
     }
     
-    // Determine default sort based on campaign type
     const isPaidCampaign = 
       campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST || 
       campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
@@ -55,21 +67,19 @@ function ActiveBrandCampiagn() {
       campaign?.campaign_type === CAMPAIGN_TYPE.GIFTED || 
       campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE;
     
-    let defaultSort = "newest"; // Default fallback
+    let defaultSort = "newest";
     if (isPaidCampaign) {
-      defaultSort = "most-expensive"; // Most expensive first for paid campaigns
+      defaultSort = "most-expensive";
     } else if (isGiftedOrAffiliate) {
-      defaultSort = "newest"; // Newest first for gifted/affiliate
+      defaultSort = "newest";
     }
     
-    // Update filters with default sort if not already set
     const updatedFilters = {
       ...filters,
       sort: filters.sort || defaultSort,
     };
     setFilters(updatedFilters);
 
-    // Fetch applied creators for this campaign (HIRED status for active-completed tab)
     if (campaign?.id) {
       dispatch(
         getHiredCreators({
@@ -82,14 +92,89 @@ function ActiveBrandCampiagn() {
 
   const handleCreatorSelect = (creator) => {
     setSelectedCreator(creator);
+    
+    if (!isMultiCreator && creator?.campaign_id && !selectedCampaign) {
+      const individualCampaign = {
+        id: creator.campaign_id,
+        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+        campaign_title: creator.campaign?.campaign_title || "Individual Collaboration",
+        campaign: creator.campaign,
+        created_by: creator.campaign?.created_by,
+        brand: creator.campaign?.created_by,
+      };
+      setSelectedCampaign(individualCampaign);
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: individualCampaign.id,
+          collaborationType: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+        })
+      );
+    }
   };
+
+  const {
+    data: individualContractsData,
+    isSuccess: individualContractsSuccess,
+  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
+
+  const autoSelectedForCampaignRef = useRef(null);
+
+  useEffect(() => {
+    if (
+      selectedCampaign &&
+      selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+      individualContractsSuccess &&
+      Array.isArray(individualContractsData) &&
+      individualContractsData.length > 0 &&
+      !selectedCreator &&
+      autoSelectedForCampaignRef.current !== selectedCampaign.id
+    ) {
+      const matchingContracts = individualContractsData.filter(
+        (contract) => (contract.campaignId || contract.campaign?.id) === selectedCampaign.id
+      );
+
+      const firstContract = matchingContracts.length > 0 ? matchingContracts[0] : individualContractsData[0];
+      const creator = firstContract.creator;
+      const creatorProfile = creator?.creator_profile;
+
+      const formattedCreator = {
+        id: firstContract.id,
+        contractId: firstContract.id,
+        campaign_id: firstContract.campaignId || firstContract.campaign?.id,
+        campaign: firstContract.campaign,
+        creatorUserId: creator?.id,
+        creator: creator,
+        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
+        bio: creatorProfile?.bio || "No bio available",
+        image: creatorProfile?.profile_photo_url,
+        location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
+        rating: creatorProfile?.rating || 0,
+        age: creator?.date_of_birth ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear() : null,
+        contract: firstContract,
+      };
+
+      if (formattedCreator.creator) {
+        setSelectedCreator(formattedCreator);
+        autoSelectedForCampaignRef.current = selectedCampaign.id;
+      }
+    }
+  }, [
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    individualContractsData,
+    individualContractsSuccess,
+    selectedCreator,
+  ]);
+
+  const handleClearCreator = useCallback(() => {
+    setSelectedCreator(null);
+  }, []);
 
   const handleFilterChange = (filterName, value) => {
     const newFilters = { ...filters, [filterName]: value };
     setFilters(newFilters);
 
-    // Refetch creators with new filters if campaign is selected
-    if (selectedCampaign?.id) {
+    if (selectedCampaign?.id && selectedCampaign?.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
       dispatch(
         getHiredCreators({
           campaignId: selectedCampaign.id,
@@ -105,7 +190,6 @@ function ActiveBrandCampiagn() {
 
   const handleToggleChange = (newIsMultiCreator) => {
     setIsMultiCreator(newIsMultiCreator);
-    // Reset selected campaign when toggle changes
     setSelectedCampaign(null);
     setSelectedCreator(null);
   };
@@ -121,6 +205,7 @@ function ActiveBrandCampiagn() {
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
         onCreatorSelect={handleCreatorSelect}
+        onClearCreator={handleClearCreator}
         onSortChange={handleSortChange}
         currentSort={filters.sort}
         isMultiCreator={isMultiCreator}
@@ -137,4 +222,4 @@ function ActiveBrandCampiagn() {
   );
 }
 
-export default ActiveBrandCampiagn;
+export default ActiveBrandCampaign;

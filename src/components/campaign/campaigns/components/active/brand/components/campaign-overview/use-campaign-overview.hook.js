@@ -6,13 +6,12 @@ import { getIndividualCollaborationContracts } from "@/provider/features/contrac
 
 export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const dispatch = useDispatch();
-  const [isMultiCreator, setIsMultiCreator] = useState(true); // Default to Multi-Creator
+  const [isMultiCreator, setIsMultiCreator] = useState(true);
 
   const {
     campaignOptions,
     selectedCampaign,
     budgetData,
-    deliverables,
     performanceMetrics,
     handleCampaignSelect: internalHandleCampaignSelect,
     formatCurrency,
@@ -41,8 +40,16 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const hasNotifiedParent = useRef(false);
   const hasAutoSelectedFiltered = useRef(false);
+  const lastSelectedCampaignId = useRef(null);
 
   useEffect(() => {
+    const currentCampaignId = selectedCampaign?.id;
+    
+    if (currentCampaignId !== lastSelectedCampaignId.current) {
+      hasNotifiedParent.current = false;
+      lastSelectedCampaignId.current = currentCampaignId;
+    }
+    
     if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
       onCampaignSelect(selectedCampaign);
       hasNotifiedParent.current = true;
@@ -82,15 +89,22 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     ) {
       hasAutoSelectedIndividual.current = true;
       const firstContract = individualContractsData[0];
-      const individualCampaign = {
-        id: `individual-${firstContract.id}`,
-        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
-        campaign_title: "Individual Collaboration",
-        contract: firstContract,
-        creator: firstContract.creator,
-      };
-      if (onCampaignSelect) {
-        onCampaignSelect(individualCampaign);
+      const campaignId = firstContract.campaignId || firstContract.campaign?.id;
+      
+      if (campaignId) {
+        const individualCampaign = {
+          id: campaignId,
+          collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+          campaign_title: firstContract.campaign?.campaign_title || "Individual Collaboration",
+          contract: firstContract,
+          creator: firstContract.creator,
+          campaign: firstContract.campaign,
+          created_by: firstContract.brand,
+          brand: firstContract.brand,
+        };
+        if (onCampaignSelect) {
+          onCampaignSelect(individualCampaign);
+        }
       }
     }
   }, [
@@ -103,7 +117,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   useEffect(() => {
     if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
-      if (!isSelectedCampaignValid) {
+      if (!isSelectedCampaignValid && !hasAutoSelectedFiltered.current) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
           internalHandleCampaignSelect(firstFilteredOption);
@@ -143,6 +157,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     const newIsMultiCreator = event?.target?.checked ?? !isMultiCreator;
     setIsMultiCreator(newIsMultiCreator);
     hasAutoSelectedFiltered.current = false;
+    hasAutoSelectedIndividual.current = false;
 
     if (onToggleChange) {
       onToggleChange(newIsMultiCreator);

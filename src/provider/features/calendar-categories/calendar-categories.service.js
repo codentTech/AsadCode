@@ -24,10 +24,17 @@ const getCategoriesByCampaign = async (campaignId) => {
   return response.data;
 };
 
+// Delete calendar category
+const deleteCategory = async (categoryId) => {
+  const response = await api().delete(`/calendar-tasks/categories/${categoryId}`);
+  return response.data;
+};
+
 const calendarCategoryService = {
   createCategory,
   getAllCategories,
   getCategoriesByCampaign,
+  deleteCategory,
 };
 
 export default calendarCategoryService;

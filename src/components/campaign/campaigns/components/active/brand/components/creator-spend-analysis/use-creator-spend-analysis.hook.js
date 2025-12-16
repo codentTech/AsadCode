@@ -1,9 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
-export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, isMultiCreator = true) => {
+export const useCreatorSpendAnalysis = (
+  selectedCampaign,
+  isCompleted = false,
+  isMultiCreator = true,
+  onClearCreator
+) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
@@ -25,16 +30,26 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const isIndividualMode = useMemo(() => {
-    return !isMultiCreator || selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    return (
+      !isMultiCreator ||
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+    );
   }, [isMultiCreator, selectedCampaign]);
 
   const individualCreators = useMemo(() => {
     if (!isIndividualMode || !Array.isArray(individualContractsData)) {
       return [];
     }
-    
+
     return individualContractsData
       .filter((contract) => {
+        if (selectedCampaign?.id) {
+          const contractCampaignId = contract.campaignId || contract.campaign?.id;
+          if (contractCampaignId !== selectedCampaign.id) {
+            return false;
+          }
+        }
+
         if (isCompleted) return true;
         const now = new Date();
         const deadline = new Date(contract.completionDeadline);
@@ -43,48 +58,51 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
       .map((contract) => {
         const creator = contract.creator;
         const creatorProfile = creator?.creator_profile;
-        
+
         return {
-        id: contract.id,
-        contractId: contract.id,
-        campaign_id: contract.campaignId || contract.campaign?.id,
-        campaign: contract.campaign,
-        age: getAge(creator?.date_of_birth),
-        creatorUserId: creator?.id,
-        creator: creator,
-        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
-        bio: creatorProfile?.bio || "No bio available",
-        image: creatorProfile?.profile_photo_url,
-        location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
-        totalSpent: contract.totalCompensation || 0,
-        rating: creatorProfile?.rating || 0,
-        reviewCount: 0,
-        platforms: {
-          instagram: {
-            followers: 0,
-            verified: false,
+          id: contract.id,
+          contractId: contract.id,
+          campaign_id: contract.campaignId || contract.campaign?.id,
+          campaign: contract.campaign,
+          age: getAge(creator?.date_of_birth),
+          creatorUserId: creator?.id,
+          creator: creator,
+          name:
+            `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
+          bio: creatorProfile?.bio || "No bio available",
+          image: creatorProfile?.profile_photo_url,
+          location:
+            `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
+            "Location not specified",
+          totalSpent: contract.totalCompensation || 0,
+          rating: creatorProfile?.rating || 0,
+          reviewCount: 0,
+          platforms: {
+            instagram: {
+              followers: 0,
+              verified: false,
+            },
+            youtube: {
+              followers: 0,
+              verified: false,
+            },
+            twitter: {
+              followers: 0,
+              verified: false,
+            },
           },
-          youtube: {
-            followers: 0,
-            verified: false,
-          },
-          twitter: {
-            followers: 0,
-            verified: false,
-          },
-        },
-        projects: 0,
-        successRate: 0,
-        avgDeliveryTime: "N/A",
-        specialty: "General",
-        deadline: new Date(contract.completionDeadline) > new Date() ? "On time" : "Completed",
-        status: contract.status,
-        appliedAt: contract.createdAt,
-        hiredAt: contract.sentAt,
-        contract: contract,
-      };
-    });
-  }, [isIndividualMode, individualContractsData]);
+          projects: 0,
+          successRate: 0,
+          avgDeliveryTime: "N/A",
+          specialty: "General",
+          deadline: new Date(contract.completionDeadline) > new Date() ? "On time" : "Completed",
+          status: contract.status,
+          appliedAt: contract.createdAt,
+          hiredAt: contract.sentAt,
+          contract: contract,
+        };
+      });
+  }, [isIndividualMode, individualContractsData, selectedCampaign?.id, isCompleted]);
 
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
@@ -151,15 +169,16 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
     return followers.toString();
   };
 
-  const [open, setOpen] = useState(false);
-  const handleOpenModal = () => setOpen(true);
-  const handleCloseModal = () => setOpen(false);
-
   const displayCreators = isIndividualMode ? individualCreators : creators;
   const displayLoading = isIndividualMode ? individualContractsLoading : creatorsLoading;
   const displaySuccess = isIndividualMode ? individualContractsSuccess : creatorsSuccess;
   const displayError = isIndividualMode ? individualContractsError : creatorsError;
 
+  useEffect(() => {
+    if (onClearCreator) {
+      onClearCreator();
+    }
+  }, [isIndividualMode]);
 
   return {
     creators: displayCreators,
@@ -168,9 +187,6 @@ export const useCreatorSpendAnalysis = (selectedCampaign, isCompleted = false, i
     creatorsError: displayError,
     getSuccessRateColor,
     formatFollowers,
-    open,
-    handleOpenModal,
-    handleCloseModal,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,

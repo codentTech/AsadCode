@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createOrGetConversation,
@@ -10,9 +10,8 @@ import chatSocketService from "@/provider/features/chat/chat-socket.service";
 import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
 
-const useMessageThread = (creatorId, campaignId, onMessageSent) => {
+const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch = null) => {
   const dispatch = useDispatch();
-  const user = getUser();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -38,7 +37,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
     sendMessage: sendMessageState,
   } = useSelector((state) => state.chat);
 
-  const messages = conversationId
+  const actualMessages = conversationId
     ? [...(allMessages[conversationId] || [])].sort((a, b) => {
         const dateA = new Date(a.created_at || a.createdAt || 0);
         const dateB = new Date(b.created_at || b.createdAt || 0);
@@ -46,13 +45,54 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
       })
     : [];
 
-  // Get the other user ID from conversation or use creatorId
-  const otherUserId = conversationState?.data?.brand?.id === user?.id 
+  const messages = useMemo(() => {
+    if (!applicationPitch || !conversationId) {
+      return actualMessages;
+    }
+
+    if (actualMessages.length > 0) {
+      const hasPitchAsMessage = actualMessages.some(
+        (msg) => {
+          const contentMatches = msg.content?.trim() === applicationPitch.trim();
+          const isCreatorMessage = msg.sender?.role === "CREATOR";
+          const isBrandMessage = msg.sender?.role === "BRAND";
+          return contentMatches && (isCreatorMessage || isBrandMessage);
+        }
+      );
+
+      if (hasPitchAsMessage) {
+        return actualMessages;
+      }
+    }
+
+    const currentUser = getUser();
+    const actualCreatorId = currentUser?.role === "CREATOR" 
+      ? currentUser?.id 
+      : (conversationState?.data?.creator?.id || creatorId);
+
+    const pitchMessage = {
+      id: `pitch-${conversationId}`,
+      content: applicationPitch,
+      sender: {
+        id: actualCreatorId,
+        role: "CREATOR",
+      },
+      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      message_type: "TEXT",
+      isPitch: true,
+    };
+
+    return [pitchMessage, ...actualMessages];
+  }, [actualMessages, applicationPitch, conversationId, creatorId, conversationState?.data?.creator?.id]);
+
+  const currentUser = getUser();
+  
+  const otherUserId = conversationState?.data?.brand?.id === currentUser?.id 
     ? conversationState?.data?.creator?.id 
     : conversationState?.data?.brand?.id || creatorId;
   
-  // Determine receiver ID based on user role and conversation
-  const receiverId = user?.role === "BRAND" 
+  const receiverId = currentUser?.role === "BRAND" 
     ? (conversationState?.data?.creator?.id || creatorId)
     : (conversationState?.data?.brand?.id || otherUserId);
   
@@ -60,16 +100,16 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
   const isOtherUserTyping = conversationId && otherUserId ? typingUsers[conversationId]?.includes(otherUserId) : false;
 
   const openMessageModal = useCallback(async (overrideCampaignId = null) => {
-    if (!creatorId || !user?.id) {
+    const currentUser = getUser();
+    if (!creatorId || !currentUser?.id) {
       setError("Unable to start conversation");
       return;
     }
 
     setIsModalOpen(true);
     setError(null);
-    hasFetchedMessagesRef.current = false;
 
-    if (user.id === creatorId) {
+    if (currentUser.id === creatorId) {
       return;
     }
 
@@ -80,53 +120,58 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
     }
 
     const conversationData = {
-      brand_id: user.role === "BRAND" ? user.id : creatorId,
-      creator_id: user.role === "CREATOR" ? user.id : creatorId,
+      brand_id: currentUser.role === "BRAND" ? currentUser.id : creatorId,
+      creator_id: currentUser.role === "CREATOR" ? currentUser.id : creatorId,
       campaign_id: effectiveCampaignId,
     };
 
-    const result = await dispatch(createOrGetConversation(conversationData)).unwrap();
-    const convId = result.data.id;
-    setConversationId(convId);
+    try {
+      const result = await dispatch(createOrGetConversation(conversationData)).unwrap();
+      const convId = result.data.id;
+      
+      const conversationChanged = conversationId !== convId;
+      if (conversationChanged) {
+        setConversationId(convId);
+        hasFetchedMessagesRef.current = false;
+      }
 
-    // Ensure socket is connected
-    if (!chatSocketService.isSocketConnected()) {
-      chatSocketService.connect(dispatch);
+      if (!chatSocketService.isSocketConnected()) {
+        chatSocketService.connect(dispatch);
+      }
+      
+      chatSocketService.joinConversation(convId);
+
+      if (!hasFetchedMessagesRef.current || conversationChanged) {
+        await dispatch(
+          getConversationMessages({
+            conversationId: convId,
+            limit: 50,
+            offset: 0,
+          })
+        ).unwrap();
+
+        hasFetchedMessagesRef.current = true;
+        await dispatch(markConversationMessagesAsSeen(convId)).unwrap();
+        scrollToBottom();
+      }
+    } catch (err) {
+      const errorMessage = err?.message || err?.response?.data?.message || "Unable to start conversation";
+      setError(errorMessage);
     }
-    
-    // Join conversation room for real-time updates
-    chatSocketService.joinConversation(convId);
-
-    // Fetch messages ONCE when modal opens
-    await dispatch(
-      getConversationMessages({
-        conversationId: convId,
-        limit: 50,
-        offset: 0,
-      })
-    ).unwrap();
-
-    hasFetchedMessagesRef.current = true;
-
-    await dispatch(markConversationMessagesAsSeen(convId)).unwrap();
-    scrollToBottom();
-  }, [creatorId, campaignId, user, dispatch]);
+  }, [creatorId, campaignId, dispatch]);
 
   const closeMessageModal = useCallback(() => {
-    // Clear polling interval
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
 
-    // Leave conversation room when closing modal
     if (conversationId) {
       chatSocketService.leaveConversation(conversationId);
     }
     
     setIsModalOpen(false);
     setNewMessage("");
-    setConversationId(null);
     setError(null);
     hasFetchedMessagesRef.current = false;
 
@@ -147,8 +192,8 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
 
     sendingRef.current = true;
 
-    // Determine receiver ID
-    const currentReceiverId = user?.role === "BRAND" 
+    const currentUser = getUser();
+    const currentReceiverId = currentUser?.role === "BRAND" 
       ? (conversationState?.data?.creator?.id || creatorId)
       : (conversationState?.data?.brand?.id || otherUserId);
 
@@ -168,7 +213,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
       await dispatch(sendMessage(messageData)).unwrap();
       setNewMessage("");
       setAttachmentPreview(null);
-      chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
+      chatSocketService.stopTyping(conversationId, currentUser?.id, currentReceiverId);
       scrollToBottom();
       
       if (onMessageSent) {
@@ -186,7 +231,6 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
     attachmentPreview,
     conversationId,
     creatorId,
-    user,
     dispatch,
     sendMessageState.isLoading,
     onMessageSent,
@@ -208,22 +252,22 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Determine receiver ID from conversation data
-      const currentReceiverId = user?.role === "BRAND" 
+      const currentUser = getUser();
+      const currentReceiverId = currentUser?.role === "BRAND" 
         ? (conversationState?.data?.creator?.id || creatorId)
         : (conversationState?.data?.brand?.id || otherUserId);
 
       const stringValue = typeof value === "function" ? "" : String(value || "");
       if (stringValue.trim()) {
-        chatSocketService.startTyping(conversationId, user.id, currentReceiverId);
+        chatSocketService.startTyping(conversationId, currentUser?.id, currentReceiverId);
         typingTimeoutRef.current = setTimeout(() => {
-          chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
+          chatSocketService.stopTyping(conversationId, currentUser?.id, currentReceiverId);
         }, 2000);
       } else {
-        chatSocketService.stopTyping(conversationId, user.id, currentReceiverId);
+        chatSocketService.stopTyping(conversationId, currentUser?.id, currentReceiverId);
       }
     },
-    [conversationId, creatorId, user, conversationState?.data, otherUserId]
+    [conversationId, creatorId, conversationState?.data, otherUserId]
   );
 
   const scrollToBottom = useCallback(() => {
@@ -350,7 +394,6 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
     // Join conversation room for real-time updates
     chatSocketService.joinConversation(conversationId);
 
-    // Only fetch if we haven't already fetched (prevents duplicate fetches)
     if (!hasFetchedMessagesRef.current) {
       dispatch(
         getConversationMessages({
@@ -361,6 +404,8 @@ const useMessageThread = (creatorId, campaignId, onMessageSent) => {
       ).then(() => {
         hasFetchedMessagesRef.current = true;
         setTimeout(() => scrollToBottom(), 100);
+      }).catch(() => {
+        hasFetchedMessagesRef.current = false;
       });
     }
 

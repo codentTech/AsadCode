@@ -142,6 +142,7 @@ function useCampaignOverview({
       brandId: currentSelectedCampaign.created_by?.id,
       startDate: contractData.startDate,
       completionDeadline: contractData.completionDeadline,
+      firstDraftDeadline: contractData.firstDraftDeadline || undefined,
       contentFormat: contractData.contentFormat,
       revisionsLimit: contractData.revisionsLimit,
       compensationType: contractData.compensationType.toUpperCase(),
