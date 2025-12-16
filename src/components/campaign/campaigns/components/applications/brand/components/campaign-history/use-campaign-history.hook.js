@@ -13,8 +13,7 @@ export default function useCampaignHistory(campaignId) {
   } = useSelector((state) => state.campaigns.getCampaignHistory || {});
 
   useEffect(() => {
-    // Only fetch history if campaignId is a valid UUID
-    if (campaignId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignId)) {
+    if (campaignId) {
       dispatch(getCampaignHistory(campaignId));
     }
   }, [dispatch, campaignId]);
@@ -61,4 +60,3 @@ export default function useCampaignHistory(campaignId) {
     isSuccess,
   };
 }
-

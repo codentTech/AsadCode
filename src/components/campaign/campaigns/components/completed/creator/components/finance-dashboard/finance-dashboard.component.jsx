@@ -1,8 +1,7 @@
 import { ChevronDown, ChevronUp, Star } from "lucide-react";
-import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import useDeliverablesProgress from "@/components/campaign/campaigns/components/active/brand/components/deliverables-progress/use-deliverables-progress.hook";
+import { useState } from "react";
 
 const FinanceDashboard = ({
   paymentHistory,
@@ -11,15 +10,15 @@ const FinanceDashboard = ({
   setExpandedMonths,
   selectedCampaign,
 }) => {
-  const {
-    newReviewText,
-    setNewReviewText,
-    newReviewRating,
-    setNewReviewRating,
-    handleSaveNewReview,
-    reviewStatus,
-    campaignReviews,
-  } = useDeliverablesProgress(selectedCampaign?.id, selectedCampaign);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const reviewStatus = null;
+  const campaignReviews = [];
+  
+  const handleSaveNewReview = () => {
+    setNewReviewText("");
+    setNewReviewRating(0);
+  };
   const totalEarnings = Object.values(paymentHistory).reduce((sum, month) => sum + month.total, 0);
 
   const toggleMonth = (month) => {
@@ -31,36 +30,6 @@ const FinanceDashboard = ({
 
   return (
     <div className="w-[27%] bg-white border-l border-gray-200 flex flex-col">
-      {/* Double-blind review unlocked message placeholder
-      {reviewStatus &&
-        !reviewStatus.isUnlocked &&
-        reviewStatus.hasBrandReview &&
-        !reviewStatus.hasCreatorReview && (
-          <div className="p-3 border-b border-gray-200">
-            <NotFound
-              title="Brand submitted a review"
-              description="Submit your review to unlock and view both."
-            />
-          </div>
-        )}
-
-      {reviewStatus &&
-        !reviewStatus.isUnlocked &&
-        reviewStatus.hasCreatorReview &&
-        !reviewStatus.hasBrandReview && (
-          <div className="p-3 border-b border-gray-200">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <h4 className="text-sm font-semibold text-blue-800">Review Submitted</h4>
-              </div>
-              <p className="text-xs text-blue-700 mt-1">
-                Your review has been submitted. Waiting for brand to submit their review to unlock
-                both reviews.
-              </p>
-            </div>
-          </div>
-        )} */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
         <div className="bg-gray-100 p-2 rounded-lg">
@@ -70,7 +39,6 @@ const FinanceDashboard = ({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {/* Payment History */}
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment History</h3>
           <div className="space-y-2">
@@ -111,7 +79,6 @@ const FinanceDashboard = ({
           </div>
         </div>
 
-        {/* Upcoming Payments */}
         <div className="p-4 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Upcoming Payments</h3>
           <div className="space-y-3">
@@ -129,11 +96,9 @@ const FinanceDashboard = ({
           </div>
         </div>
 
-        {/* Review form (creator side) */}
         <div className="p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Reviews</h3>
 
-          {/* Waiting for brand indicator (locked state) */}
           {reviewStatus &&
             !reviewStatus.isUnlocked &&
             !reviewStatus.hasBrandReview &&
@@ -149,7 +114,6 @@ const FinanceDashboard = ({
               </div>
             )}
 
-          {/* Brand submitted, waiting for creator */}
           {reviewStatus &&
             !reviewStatus.isUnlocked &&
             reviewStatus.hasBrandReview &&
@@ -167,7 +131,6 @@ const FinanceDashboard = ({
               </div>
             )}
 
-          {/* Reviews list - shows brand's review after unlocking */}
           {campaignReviews && campaignReviews.length > 0 && (
             <div className="space-y-2 mb-3">
               {campaignReviews.map((review, index) => (
@@ -192,7 +155,6 @@ const FinanceDashboard = ({
             </div>
           )}
 
-          {/* Review submission form */}
           <div className="mt-2">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Leave a review</h4>
             <div className="flex items-center gap-2 mb-2">
@@ -219,7 +181,7 @@ const FinanceDashboard = ({
                 text="Submit Review"
                 className="btn-primary text-xs"
                 onClick={handleSaveNewReview}
-                disabled={!newReviewText.trim()}
+                disabled={!newReviewText || !newReviewText.trim()}
               />
             </div>
           </div>

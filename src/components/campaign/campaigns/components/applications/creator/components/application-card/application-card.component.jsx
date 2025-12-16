@@ -133,7 +133,7 @@ const ApplicationCard = ({
           <div className="flex-1">
             <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
             <div className="flex flex-col gap-1 text-xs">
-              <span className="flex items-center gap-2 text-gray-600">
+              <span className="flex items-start gap-2 text-gray-600">
                 <span className="font-medium">Niche:</span>{" "}
                 {Array.isArray(niches) && niches.length > 0
                   ? niches.map((n) => `${n}`).join(", ")
@@ -216,13 +216,24 @@ const ApplicationCard = ({
             )}
           </>
         ) : (
-          campaign?.id && (
-            <CustomButton
-              text="View Brief"
-              className="btn-outline flex-1 !h-8 !text-xs"
-              onClick={() => handleViewCampaign(campaign)}
-            />
-          )
+          <>
+            {handleMessageClick &&
+              application.status === "NEGOTIATIONS" &&
+              (campaign?.id || application.campaign_id) && (
+                <CustomButton
+                  text="Message"
+                  className="btn-primary flex-1 !h-8 !text-xs"
+                  onClick={() => handleMessageClick(application)}
+                />
+              )}
+            {campaign?.id && (
+              <CustomButton
+                text="View Brief"
+                className="btn-outline flex-1 !h-8 !text-xs"
+                onClick={() => handleViewCampaign(campaign)}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

@@ -69,7 +69,7 @@ export default function ContractPreviewModal({
 
       case COMPENSATION_TYPE.GIFTED_PRODUCT:
         compensationText += `• Compensation Type: Gifted Product\n`;
-        compensationText += `• Product Value: $${campaignData?.product_value || contractData.productValue || "[enter value]"}\n`;
+        compensationText += `• Product Value: $${contractData.totalCompensation || campaignData?.product_value || "[enter value]"}\n`;
         compensationText += `• Note: No monetary compensation will be provided\n\n`;
         break;
 

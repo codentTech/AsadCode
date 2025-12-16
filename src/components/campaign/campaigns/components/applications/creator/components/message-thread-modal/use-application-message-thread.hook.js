@@ -6,7 +6,16 @@ function useApplicationMessageThread(brandId, application, onClose) {
   if (!campaignId) {
     throw new Error("Campaign ID is required for conversations");
   }
-  const messageThreadHook = useMessageThread(brandId, campaignId);
+
+  const isActuallyInvitation = application?.isInvitation && 
+    (application?.collaboration_type === "INDIVIDUAL_CREATOR" || 
+     application?.campaign?.collaboration_type === "INDIVIDUAL_CREATOR");
+
+  const applicationPitch = isActuallyInvitation
+    ? null
+    : application?.pitch?.trim() || null;
+
+  const messageThreadHook = useMessageThread(brandId, campaignId, null, applicationPitch);
   const hasOpenedRef = useRef(false);
 
   useEffect(() => {
@@ -14,7 +23,7 @@ function useApplicationMessageThread(brandId, application, onClose) {
       hasOpenedRef.current = true;
       messageThreadHook.openMessageModal();
     }
-  }, [brandId]);
+  }, [brandId, messageThreadHook.openMessageModal]);
 
   const handleClose = () => {
     messageThreadHook.closeMessageModal();

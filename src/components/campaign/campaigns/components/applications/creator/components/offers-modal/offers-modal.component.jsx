@@ -80,7 +80,7 @@ export default function OffersModal({ show, onClose, onContractAction }) {
   }
 
   return (
-    <Modal title="My Offers" show={show} onClose={onClose} size="lg">
+    <Modal title={`My Offers (${pendingContracts.length})`} show={show} onClose={onClose} size="lg">
       <div className="space-y-4">
         {pendingContractsLoading ? (
           <div className="flex justify-center items-center py-12">

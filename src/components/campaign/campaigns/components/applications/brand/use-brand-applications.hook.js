@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createContract,
@@ -23,7 +23,7 @@ function useBrandApplications() {
     isLoading: appliedCreatorsLoading,
     isSuccess: appliedCreatorsSuccess,
   } = useSelector((state) => state.campaigns.getAppliedCreators || {});
-  const { isLoading: rejectLoading, isSuccess: rejectSuccess } = useSelector(
+  const { isSuccess: rejectSuccess } = useSelector(
     (state) => state.campaigns.rejectCreator || {}
   );
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
@@ -68,13 +68,14 @@ function useBrandApplications() {
     city: "",
     niches: [],
     platforms: [],
-    status: "PENDING",
+    status: "",
+    excludeStatus: "HIRED",
     sort: "newest",
   });
 
-  const fetchIndividualCollaborations = async () => {
+  const fetchIndividualCollaborations = useCallback(async () => {
     dispatch(getBrandIndividualCollaborations());
-  };
+  }, [dispatch]);
 
   const handleCampaignSelect = (campaign) => {
     setSelectedCreator(null);
@@ -182,6 +183,7 @@ function useBrandApplications() {
         selectedCreator?.brand?.id,
       startDate: contractData.startDate,
       completionDeadline: contractData.completionDeadline,
+      firstDraftDeadline: contractData.firstDraftDeadline || undefined,
       contentFormat: contractData.contentFormat,
       revisionsLimit: contractData.revisionsLimit,
       compensationType: contractData.compensationType?.toUpperCase(),
@@ -221,13 +223,6 @@ function useBrandApplications() {
       setHireModalOpen(false);
       setHireCreatorData(null);
       setSelectedCampaignForHire(null);
-      setTimeout(() => {
-        if (selectedCampaign) {
-          handleCampaignSelect(selectedCampaign);
-        } else if (isIndividual) {
-          fetchIndividualCollaborations();
-        }
-      }, 1000);
     }
   };
 
@@ -283,7 +278,8 @@ function useBrandApplications() {
       city: "",
       niches: [],
       platforms: [],
-      status: "PENDING",
+      status: "",
+      excludeStatus: "HIRED",
       sort: "newest",
     };
     setFilters(clearedFilters);
@@ -308,13 +304,28 @@ function useBrandApplications() {
         dispatch(
           getAppliedCreators({
             campaignId: selectedCampaign.id,
-            filters: { ...filters, status: "PENDING" },
+            filters: filters,
           })
         );
       }
       setSelectedCreator(null);
     }
   }, [rejectSuccess, selectedCampaign, dispatch, filters]);
+
+  useEffect(() => {
+    if (createContractSuccess && sendContractSuccess) {
+      if (selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+        fetchIndividualCollaborations();
+      } else if (selectedCampaign) {
+        dispatch(
+          getAppliedCreators({
+            campaignId: selectedCampaign.id,
+            filters: filters,
+          })
+        );
+      }
+    }
+  }, [createContractSuccess, sendContractSuccess, selectedCampaign, dispatch, filters, fetchIndividualCollaborations]);
 
   useEffect(() => {
     if (rejectInvitationSuccess && selectedCampaign) {
@@ -352,23 +363,19 @@ function useBrandApplications() {
     return selectedCreator?.creator?.id || selectedCreator?.id || null;
   };
 
+  const applicationPitch = selectedCreator?.pitch || selectedCreator?.custom_message || null;
+  
   const messageThreadHook = useMessageThread(
     getCreatorId(),
     getCampaignId(),
-    null // No callback needed - WebSocket handles real-time updates
+    null, // No callback needed - WebSocket handles real-time updates
+    applicationPitch
   );
 
   const handleMessageClick = () => {
     const currentCampaignId = getCampaignId();
 
     if (!currentCampaignId) {
-      return;
-    }
-
-    if (
-      typeof currentCampaignId !== "string" ||
-      !currentCampaignId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
-    ) {
       return;
     }
 

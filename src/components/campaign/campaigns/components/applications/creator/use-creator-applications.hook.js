@@ -33,6 +33,10 @@ function useCreatorApplications() {
     (state) => state.campaigns.getCreatorApplications || {}
   );
 
+  const { data: offersData } = useSelector(
+    (state) => state.contracts.getPendingContractsForCreator || {}
+  );
+
   const { isLoading: withdrawLoading } = useSelector(
     (state) => state.campaigns.withdrawApplication || {}
   );
@@ -54,9 +58,10 @@ function useCreatorApplications() {
         }
       : {
           id: invitation.campaign_id || null,
-          campaign_title: invitation.collaboration_type === "INDIVIDUAL_CREATOR" 
-            ? "Individual Collaboration" 
-            : "Campaign",
+          campaign_title:
+            invitation.collaboration_type === "INDIVIDUAL_CREATOR"
+              ? "Individual Collaboration"
+              : "Campaign",
           campaign_type: null,
           compensation_type: null,
           budget: null,
@@ -81,28 +86,28 @@ function useCreatorApplications() {
 
   const fetchAllApplications = async () => {
     const pendingResponse = await dispatch(getCreatorApplications("PENDING")).unwrap();
-    const pendingApps = pendingResponse?.data || [];
+    const pendingApps = (pendingResponse?.data || []).filter((app) => !app.isInvitation);
+
+    const negotiationsResponse = await dispatch(getCreatorApplications("NEGOTIATIONS")).unwrap();
+    const negotiationsApps = (negotiationsResponse?.data || []).filter((app) => !app.isInvitation);
 
     const rejectedResponse = await dispatch(getCreatorApplications("REJECTED")).unwrap();
-    const rejectedApps = rejectedResponse?.data || [];
+    const rejectedApps = (rejectedResponse?.data || []).filter((app) => !app.isInvitation);
 
     const hiredResponse = await dispatch(getCreatorApplications("HIRED")).unwrap();
-    const hiredApps = hiredResponse?.data || [];
+    const hiredApps = (hiredResponse?.data || []).filter((app) => !app.isInvitation);
 
     let invites = [];
     const invitesResponse = await invitationService
       .getCreatorInvitations()
       .catch(() => ({ data: [] }));
     const rawInvites = invitesResponse?.data || [];
-    invites = rawInvites.map(normalizeInvitation);
-
-    const negotiationsApps = [];
-    const truePendingApps = pendingApps;
+    invites = rawInvites.map(normalizeInvitation).filter((invite) => invite.isInvitation === true);
 
     setAllApplications({
       invites,
       negotiations: negotiationsApps,
-      pending: truePendingApps,
+      pending: pendingApps,
       rejected: rejectedApps,
       offers: hiredApps,
     });
@@ -115,14 +120,14 @@ function useCreatorApplications() {
 
   const filteredData =
     activeTab === "invites"
-      ? allApplications.invites
+      ? allApplications.invites.filter((item) => item.isInvitation === true)
       : activeTab === "negotiations"
-        ? allApplications.negotiations
+        ? allApplications.negotiations.filter((item) => !item.isInvitation)
         : activeTab === "offers"
-          ? allApplications.offers
+          ? allApplications.offers.filter((item) => !item.isInvitation)
           : activeTab === "pending"
-            ? allApplications.pending
-            : allApplications.rejected;
+            ? allApplications.pending.filter((item) => !item.isInvitation)
+            : allApplications.rejected.filter((item) => !item.isInvitation);
 
   const formatCompensationType = (type) => {
     switch (type) {
@@ -172,7 +177,7 @@ function useCreatorApplications() {
   const handleMessageClick = (item) => {
     const brandId = item.brand?.id || item.campaign?.created_by?.id;
     const campaignId = item.campaign?.id || item.campaign_id || item.campaignId;
-    
+
     if (brandId && campaignId) {
       setMessageModalState({
         isOpen: true,
@@ -213,6 +218,7 @@ function useCreatorApplications() {
     messageModalState,
     fetchAllApplications,
     formatCompensationType,
+    offersData,
   };
 }
 
