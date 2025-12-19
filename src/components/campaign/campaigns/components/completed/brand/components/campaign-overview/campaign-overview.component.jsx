@@ -6,7 +6,7 @@ import AudienceDemographics from "@/components/audience-demographics/audience-de
 import NotFound from "@/common/components/not-found/not-found.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
 
-export default function CampaignOverviewCompleted({ onCampaignSelect }) {
+export default function CampaignOverviewCompleted({ onCampaignSelect, onToggleChange }) {
   const {
     isMultiCreator,
     filteredCampaignOptions,
@@ -23,7 +23,7 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
     handleToggleChange,
     handleExportData,
     handleViewAnalytics,
-  } = useCampaignOverviewCompleted(onCampaignSelect);
+  } = useCampaignOverviewCompleted(onCampaignSelect, onToggleChange);
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -37,10 +37,9 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         />
       </div>
 
-      {/* Campaign Dropdown - Only show for Multi Creator */}
       {isMultiCreator && (
         <SimpleSelect
-          placeHolder={isMultiCreator ? "Completed campaigns" : "Individual collaborations"}
+          placeHolder="Completed campaigns"
           options={filteredCampaignOptions}
           isSearchable={true}
           isMulti={false}
@@ -51,7 +50,6 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
               ? {
                   value: selectedCampaign.id,
                   label: selectedCampaign.campaign_title,
-                  campaign: selectedCampaign,
                 }
               : null
           }
@@ -67,28 +65,21 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         </div>
       )}
 
-      {!hasData && !isLoading && filteredCampaignOptions.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
+      {!isLoading &&
+        !selectedCampaign &&
+        (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
           <NotFound
-            title={isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"}
+            title={
+              isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
+            }
             description={
               isMultiCreator
                 ? "You don't have any completed campaigns."
                 : "You don't have any completed individual collaborations."
             }
           />
-        </div>
-      )}
+        )}
 
-      {selectedCampaign && !hasData && !isLoading && (
-        <div className="flex flex-col items-center justify-center py-4 text-center">
-          <p className="text-sm text-gray-600">
-            No completed creators for this campaign yet.
-          </p>
-        </div>
-      )}
-
-      {/* Budget Summary - Only show for Multi Creator */}
       {showMultiCreatorUI && hasData && (
         <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
           <div className="flex flex-col justify-between">
@@ -102,7 +93,6 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
         </div>
       )}
 
-      {/* Performance Overview - Only show for Multi Creator */}
       {showMultiCreatorUI && hasData && (
         <>
           <hr />
@@ -148,7 +138,6 @@ export default function CampaignOverviewCompleted({ onCampaignSelect }) {
             <AudienceDemographics className="flex flex-col" />
           </div>
           <hr />
-          {/* Action Buttons - Only show for Multi Creator */}
           {showMultiCreatorUI && (
             <div className="flex flex-col gap-2 mt-1">
               <CustomButton

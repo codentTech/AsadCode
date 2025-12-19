@@ -1,4 +1,4 @@
-import { formatDateBySplit } from "@/common/utils/formate-date";
+import { formatDate } from "@/common/utils/date.utils";
 import { isOnboardingCompleted } from "@/common/utils/users.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
@@ -61,9 +61,7 @@ const columns = [
   {
     key: "created_at",
     title: "Joined Date",
-    customRender: (row) => (
-      <span className="text-neutral-700">{formatDateBySplit(row.created_at)}</span>
-    ),
+    customRender: (row) => <span className="text-neutral-700">{formatDate(row.created_at)}</span>,
   },
   {
     key: "is_blocked",

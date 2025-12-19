@@ -1,4 +1,5 @@
 import { avatar } from "@/common/constants/auth.constant";
+import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import {
   createCampaignNote,
@@ -9,27 +10,28 @@ import {
 } from "@/provider/features/campaign-notes/campaign-notes.slice";
 import {
   createCampaignReview,
-  getCampaignReviewsByCreatorProfile,
   getReviewStatus,
+  getCampaignReviewsByCreatorProfile,
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
+import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import {
   getAllBrandCampaigns,
+  getHiredCreators,
   markCampaignComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
 import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
 } from "@/provider/features/contracts/contracts.slice";
-import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
-import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const useDeliverablesProgress = (
   selectedCampaign = null,
   selectedCreator = null,
-  isIndividualCreator = false
+  isIndividualCreator = false,
+  onClearCreator = null
 ) => {
   const creatorMode = isCreatorMode();
   const user = getUser();
@@ -75,8 +77,8 @@ const useDeliverablesProgress = (
     ? selectedCreator?.creator?.creator_profile?.id ||
       selectedCreator?.contract?.creator?.creator_profile?.id ||
       null
-    : selectedCreator?.id ||
-      selectedCreator?.creator?.creator_profile?.id ||
+    : selectedCreator?.creator?.creator_profile?.id ||
+      selectedCreator?.id ||
       user?.creator_profile?.id;
 
   const getCreatorData = () => {
@@ -175,9 +177,7 @@ const useDeliverablesProgress = (
     messageThreadHook.openMessageModal(currentCampaignId);
   };
 
-  const privateNotes = creatorProfileId
-    ? getNotesByCreatorProfileState.data || []
-    : getNotesState.data || [];
+  const privateNotes = getNotesState.data || [];
 
   const contracts = isIndividualCreator
     ? getIndividualContractsState.data || []
@@ -222,39 +222,17 @@ const useDeliverablesProgress = (
         selectedCreator?.campaign_id ||
         selectedCreator?.campaign?.id ||
         selectedCreator?.contract?.campaignId;
-      if (effectiveCampaignId && creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId: effectiveCampaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
+      if (effectiveCampaignId && !creatorMode) {
+        dispatch(getCampaignNotes(effectiveCampaignId));
       }
       return;
     }
 
-    if (selectedCampaign?.id) {
+    if (selectedCampaign?.id && !creatorMode) {
       dispatch(getContractsByCampaign(selectedCampaign.id));
-
-      if (creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId: selectedCampaign.id,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      } else if (!creatorMode) {
-        dispatch(getCampaignNotes(selectedCampaign.id));
-      }
+      dispatch(getCampaignNotes(selectedCampaign.id));
     }
-  }, [
-    dispatch,
-    selectedCampaign?.id,
-    creatorProfileId,
-    isIndividualCreator,
-    creatorMode,
-    selectedCreator,
-  ]);
+  }, [dispatch, selectedCampaign?.id, isIndividualCreator, creatorMode, selectedCreator]);
 
   useEffect(() => {
     const effectiveCampaignId = isIndividualCreator
@@ -283,7 +261,7 @@ const useDeliverablesProgress = (
     const note = privateNotes.find((n) => n.id === noteId);
     if (note) {
       setEditingNote(noteId);
-      setNewNoteText(note.text);
+      setNewNoteText(note.text || note.note || "");
     }
   };
 
@@ -305,17 +283,8 @@ const useDeliverablesProgress = (
     setNewNoteText("");
     setTextareaKey((prev) => prev + 1);
 
-    if (effectiveCampaignId) {
-      if (creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId: effectiveCampaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      } else if (!creatorMode) {
-        dispatch(getCampaignNotes(effectiveCampaignId));
-      }
+    if (effectiveCampaignId && !creatorMode) {
+      dispatch(getCampaignNotes(effectiveCampaignId));
     }
   };
 
@@ -334,17 +303,8 @@ const useDeliverablesProgress = (
 
     await dispatch(deleteCampaignNote(noteId)).unwrap();
 
-    if (effectiveCampaignId) {
-      if (creatorProfileId && !creatorMode) {
-        dispatch(
-          getCampaignNotesByCreatorProfile({
-            campaignId: effectiveCampaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      } else if (!creatorMode) {
-        dispatch(getCampaignNotes(effectiveCampaignId));
-      }
+    if (effectiveCampaignId && !creatorMode) {
+      dispatch(getCampaignNotes(effectiveCampaignId));
     }
   };
 
@@ -370,14 +330,7 @@ const useDeliverablesProgress = (
     setNewNoteText("");
     setTextareaKey((prev) => prev + 1);
 
-    if (creatorProfileId && !creatorMode) {
-      dispatch(
-        getCampaignNotesByCreatorProfile({
-          campaignId: effectiveCampaignId,
-          creatorProfileId: creatorProfileId,
-        })
-      );
-    } else if (!creatorMode) {
+    if (!creatorMode) {
       dispatch(getCampaignNotes(effectiveCampaignId));
     }
   };
@@ -394,10 +347,23 @@ const useDeliverablesProgress = (
         selectedCreator?.contract?.campaignId
       : selectedCampaign?.id;
 
-    if (effectiveCampaignId && creatorProfileId) {
+    if (effectiveCampaignId && creatorProfileId && !creatorMode) {
       dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+      dispatch(
+        getCampaignReviewsByCreatorProfile({
+          campaignId: effectiveCampaignId,
+          creatorProfileId: creatorProfileId,
+        })
+      );
     }
-  }, [dispatch, selectedCampaign?.id, selectedCreator, creatorProfileId, isIndividualCreator]);
+  }, [
+    dispatch,
+    selectedCampaign?.id,
+    selectedCreator,
+    creatorProfileId,
+    isIndividualCreator,
+    creatorMode,
+  ]);
 
   const timelineSteps = getTimelineState?.data?.data || [];
 
@@ -452,9 +418,23 @@ const useDeliverablesProgress = (
     await dispatch(markCampaignComplete(effectiveCampaignId)).unwrap();
 
     if (isIndividualCreator) {
-      await dispatch(getIndividualCollaborationContracts(false)).unwrap();
+      const refreshResult = await dispatch(getIndividualCollaborationContracts(false)).unwrap();
+      if (onClearCreator) {
+        onClearCreator();
+      }
     } else {
       await dispatch(getAllBrandCampaigns()).unwrap();
+      if (selectedCampaign?.id) {
+        await dispatch(
+          getHiredCreators({
+            campaignId: selectedCampaign.id,
+            filters: filters,
+          })
+        ).unwrap();
+      }
+      if (onClearCreator) {
+        onClearCreator();
+      }
     }
 
     setShowMarkCompleteModal(false);
@@ -478,9 +458,7 @@ const useDeliverablesProgress = (
     handleDeleteNote,
     handleSaveNewNote,
     handleCancelNewNote,
-    isNotesLoading: creatorProfileId
-      ? getNotesByCreatorProfileState.isLoading
-      : getNotesState.isLoading,
+    isNotesLoading: getNotesState.isLoading,
     isCreateNoteLoading: createNoteState.isLoading,
     isUpdateNoteLoading: updateNoteState.isLoading,
     isDeleteNoteLoading: deleteNoteState.isLoading,
@@ -500,6 +478,9 @@ const useDeliverablesProgress = (
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
+    campaignReviews: getReviewsByCreatorProfileState.data || [],
+    reviewStatus: getReviewStatusState.data || null,
+    isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
   };
 };
 

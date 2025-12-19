@@ -61,10 +61,7 @@ export default function useBrandCampaignCompleted() {
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const completedCampaigns = allCampaigns.filter(
-        (campaign) => campaign.status === "COMPLETE"
-      );
-      const options = completedCampaigns.map((campaign) => ({
+      const options = allCampaigns.map((campaign) => ({
         value: campaign.id,
         label: campaign.campaign_title || "Untitled Campaign",
         campaign: campaign,
@@ -72,13 +69,28 @@ export default function useBrandCampaignCompleted() {
 
       setCampaignOptions(options);
 
-      if (completedCampaigns.length > 0 && !selectedCampaign && !hasAutoSelected.current && !hasRestoredFromContext.current) {
-        setSelectedCampaign(completedCampaigns[0]);
+      if (
+        selectedCampaign &&
+        allCampaigns.length > 0 &&
+        !allCampaigns.some((c) => c.id === selectedCampaign.id)
+      ) {
+        setSelectedCampaign(allCampaigns[0]);
+        hasAutoSelected.current = true;
+        return;
+      }
+
+      if (
+        allCampaigns.length > 0 &&
+        !selectedCampaign &&
+        !hasAutoSelected.current &&
+        !hasRestoredFromContext.current
+      ) {
+        setSelectedCampaign(allCampaigns[0]);
         hasAutoSelected.current = true;
         dispatch(
           setSelectedCampaignContext({
-            campaignId: completedCampaigns[0].id,
-            collaborationType: completedCampaigns[0].collaboration_type || null,
+            campaignId: allCampaigns[0].id,
+            collaborationType: allCampaigns[0].collaboration_type || null,
           })
         );
       }
@@ -199,6 +211,6 @@ export default function useBrandCampaignCompleted() {
     formatCurrency,
     formatNumber,
     isLoading: campaignsLoading || creatorsLoading,
-    hasData: selectedCampaign && Array.isArray(creatorsData?.data),
+    hasData: selectedCampaign && Array.isArray(creatorsData?.data) && creatorsData.data.length > 0,
   };
 }

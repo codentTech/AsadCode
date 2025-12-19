@@ -1,26 +1,8 @@
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SearchIcon from "@/common/icons/search-icon";
-
-const CompletedCampaignList = ({
-  campaigns,
-  selectedCampaign,
-  onSelect,
-  searchQuery,
-  onSearch,
-}) => {
+const CompletedCampaignList = ({ campaigns, selectedCampaign, onSelect }) => {
   return (
     <div className="w-[23%] bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Completed Campaigns</h2>
-        <CustomInput
-          type="text"
-          name="search"
-          placeholder="Search campaign"
-          startIcon={<SearchIcon />}
-          className="!h-[36px]"
-          value={searchQuery}
-          onChange={(e) => onSearch(e.target.value)}
-        />
+        <h2 className="text-lg font-semibold text-gray-900">Completed Campaigns</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -34,14 +16,16 @@ const CompletedCampaignList = ({
           >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg border border-gray-200 flex-shrink-0">
-                {typeof campaign.brand.logo === "string" && campaign.brand.logo.length <= 2
-                  ? campaign.brand.logo
-                  : "🌟"}
+                <img
+                  src={campaign?.brand?.logo}
+                  alt="Brand Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 text-sm truncate">{campaign.title}</h3>
-                <div className="flex justify-between items-center">
-                  <p className="text-xs font-bold text-gray-600 mt-1">{campaign.brand.name}</p>
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-xs font-bold text-gray-600">{campaign.brand.name}</p>
                   <span className="text-xs text-gray-500">
                     Completed on{" "}
                     {campaign.completedDate

@@ -7,18 +7,26 @@ import { avatar } from "@/common/constants/auth.constant";
 import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { Avatar } from "@mui/material";
 import { Edit2, Star, Trash2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import { formatDate } from "@/common/utils/formate-date";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
+import { getUser } from "@/common/utils/users.util";
+import Loading from "@/common/components/loadar/loading.component";
 
 const DeliverablesProgress = ({
   selectedCampaign,
   selectedCreator,
   isIndividualCreator = false,
+  onClearCreator = null,
+  filters = { status: "HIRED", sort: "newest" },
 }) => {
+  const [showContractPreview, setShowContractPreview] = useState(false);
+  const user = getUser();
+
   const {
     messageThreadHook,
     handleMessageClick,
@@ -52,7 +60,13 @@ const DeliverablesProgress = ({
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
-  } = useDeliverablesProgress(selectedCampaign, selectedCreator, isIndividualCreator);
+  } = useDeliverablesProgress(
+    selectedCampaign,
+    selectedCreator,
+    isIndividualCreator,
+    onClearCreator,
+    filters
+  );
 
   const renderCampaignSelectionMessage = () => (
     <div className="py-16">
@@ -149,9 +163,15 @@ const DeliverablesProgress = ({
 
     return (
       <div className="bg-white rounded border p-3">
-        <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-          Contract Agreement
-        </h4>
+        <div className="flex justify-between items-center pb-2 mb-2 border-b">
+          <h4 className="text-sm font-semibold text-gray-800">Contract Agreement</h4>
+          <h4
+            className="text-sm font-semibold text-primary cursor-pointer hover:underline"
+            onClick={() => setShowContractPreview(true)}
+          >
+            View Full Contract
+          </h4>
+        </div>
         <ul className="space-y-2 text-xs text-gray-600">
           {selectedContract.contentFormat?.split(",").map((deliverable, index) => {
             return (
@@ -241,39 +261,43 @@ const DeliverablesProgress = ({
         </div>
       ) : (
         <div className="space-y-2 text-xs text-gray-700 mb-3">
-          {privateNotes.map((note, index) => (
-            <div key={note.id || index} className="border-l-2 border-indigo-500 pl-3 py-1 group">
-              <div className="flex justify-between items-start border-b pb-1">
-                <div className="flex flex-col flex-1">
-                  <span>{note.text}</span>
-                  <span className="text-xs text-gray-400 mt-0.5">
-                    {note.created_at ? formatDate(note.created_at) : formatDate(note.timestamp)}
-                  </span>
-                </div>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
-                  <button
-                    onClick={() => handleEditNote(note.id)}
-                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
-                    title="Edit note"
-                  >
-                    <Edit2 className="w-3 h-3 text-indigo-500" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteNote(note.id)}
-                    disabled={isDeleteNoteLoading}
-                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                    title="Delete note"
-                  >
-                    {isDeleteNoteLoading ? (
-                      <Loader loading={true} />
-                    ) : (
-                      <Trash2 className="w-3 h-3 text-red-500" />
-                    )}
-                  </button>
+          {privateNotes && privateNotes.length > 0 ? (
+            privateNotes.map((note, index) => (
+              <div key={note.id || index} className="border-l-2 border-indigo-500 pl-3 py-1 group">
+                <div className="flex justify-between items-start border-b pb-1">
+                  <div className="flex flex-col flex-1">
+                    <span>{note.text || note.note}</span>
+                    <span className="text-xs text-gray-400 mt-0.5">
+                      {note.created_at ? formatDate(note.created_at) : formatDate(note.timestamp)}
+                    </span>
+                  </div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                    <button
+                      onClick={() => handleEditNote(note.id)}
+                      className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                      title="Edit note"
+                    >
+                      <Edit2 className="w-3 h-3 text-indigo-500" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      disabled={isDeleteNoteLoading}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      title="Delete note"
+                    >
+                      {isDeleteNoteLoading ? (
+                        <Loader loading={true} />
+                      ) : (
+                        <Trash2 className="w-3 h-3 text-red-500" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-xs text-gray-500">No notes yet.</p>
+          )}
         </div>
       )}
       <React.Fragment>
@@ -352,7 +376,7 @@ const DeliverablesProgress = ({
                 <p className="text-sm text-gray-600 mb-4">
                   Your review helps other brands on CleerCut choose creators with confidence.
                 </p>
-                <div className="mb-4">
+                <div className="flex justify-between items-center mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Rating <span className="text-red-500">*</span>
                   </label>
@@ -360,7 +384,7 @@ const DeliverablesProgress = ({
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-8 h-8 cursor-pointer transition-colors ${
+                        className={`w-6 h-6 cursor-pointer transition-colors ${
                           i < markCompleteRating ? "text-yellow-400 fill-current" : "text-gray-300"
                         }`}
                         onClick={() => setMarkCompleteRating(i + 1)}
@@ -397,7 +421,7 @@ const DeliverablesProgress = ({
                 />
                 <CustomButton
                   text={
-                    isMarkingComplete || isUpdateCampaignLoading ? "Completing..." : "Mark Complete"
+                    isMarkingComplete || isUpdateCampaignLoading ? <Loading /> : "Mark Complete"
                   }
                   className="btn-primary flex-1"
                   onClick={handleConfirmMarkComplete}
@@ -408,6 +432,44 @@ const DeliverablesProgress = ({
               </div>
             </div>
           </Modal>
+          {selectedContract && (
+            <ContractPreviewModal
+              show={showContractPreview}
+              onClose={() => setShowContractPreview(false)}
+              contractData={{
+                brandName:
+                  user?.first_name && user?.last_name
+                    ? `${user.first_name} ${user.last_name}`
+                    : user?.first_name || user?.name || "Brand",
+                creatorName: creator?.name || "Creator",
+                campaignTitle: selectedCampaign?.campaign_title || "Campaign",
+                startDate: selectedContract.startDate || selectedContract.start_date,
+                completionDeadline:
+                  selectedContract.completionDeadline || selectedContract.completion_deadline,
+                contentFormat: selectedContract.contentFormat || selectedContract.content_format,
+                revisionsLimit:
+                  selectedContract.revisionsLimit || selectedContract.revisions_limit || "2",
+                compensationType:
+                  selectedContract.compensationType || selectedContract.compensation_type,
+                totalCompensation:
+                  selectedContract.totalCompensation?.toString() ||
+                  selectedContract.total_compensation?.toString(),
+                productPrice:
+                  selectedContract.productPrice?.toString() ||
+                  selectedContract.product_price?.toString(),
+                productValue:
+                  selectedCampaign?.product_value?.toString() ||
+                  selectedContract.productValue?.toString() ||
+                  selectedContract.product_value?.toString(),
+                usageRights: selectedContract.usageRights || selectedContract.usage_rights,
+                exclusivityClause:
+                  selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
+              }}
+              creatorData={creator}
+              campaignData={selectedCampaign}
+              contractId={selectedContract.id}
+            />
+          )}
         </>
       )}
     </div>
