@@ -50,7 +50,9 @@ export const useCreatorSpendAnalysis = (
           }
         }
 
-        if (isCompleted) return true;
+        if (isCompleted) {
+          return contract.campaign?.status === "COMPLETE";
+        }
         const now = new Date();
         const deadline = new Date(contract.completionDeadline);
         return deadline >= now && contract.campaign?.status !== "COMPLETE";

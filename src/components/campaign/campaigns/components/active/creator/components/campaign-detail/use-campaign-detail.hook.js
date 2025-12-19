@@ -6,6 +6,7 @@ import useMessageThread from "../../../../message-thread-modal/use-message-threa
 export default function useCampaignDetail(selectedCampaign) {
   // State
   const [showContentBrief, setShowContentBrief] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     dosdonts: false,
     styleGuide: false,
@@ -144,9 +145,18 @@ export default function useCampaignDetail(selectedCampaign) {
     setShowContentBrief(true);
   }, []);
 
+  const handleOpenContractModal = useCallback(() => {
+    setShowContractModal(true);
+  }, []);
+
+  const handleCloseContractModal = useCallback(() => {
+    setShowContractModal(false);
+  }, []);
+
   return {
     // State
     showContentBrief,
+    showContractModal,
     expandedSections,
     campaign,
     campaignData,
@@ -173,5 +183,7 @@ export default function useCampaignDetail(selectedCampaign) {
     toggleSection,
     handleCloseContentBrief,
     handleOpenContentBrief,
+    handleOpenContractModal,
+    handleCloseContractModal,
   };
 }

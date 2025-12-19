@@ -18,7 +18,6 @@ export default function useCompletedCampaign() {
 
   // Local state
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [expandedMonths, setExpandedMonths] = useState({});
 
   // Function to fetch completed applications
@@ -78,19 +77,10 @@ export default function useCompletedCampaign() {
     };
   }, []);
 
-  // Filter campaigns based on search query
-  const filteredCampaigns = completedCampaigns.filter((campaign) => {
-    const formattedCampaign = formatCampaignData(campaign);
-    return (
-      formattedCampaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      formattedCampaign.brand.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
-
   // Format campaigns for display
   const formattedCampaigns = useMemo(
-    () => filteredCampaigns.map((campaign) => formatCampaignData(campaign)),
-    [filteredCampaigns, formatCampaignData]
+    () => completedCampaigns.map((campaign) => formatCampaignData(campaign)),
+    [completedCampaigns, formatCampaignData]
   );
 
   // Auto-select first campaign when campaigns are loaded
@@ -142,7 +132,6 @@ export default function useCompletedCampaign() {
     // State
     selectedCampaign,
     completedCampaigns: formattedCampaigns,
-    searchQuery,
     expandedMonths,
 
     // Redux states - following the same pattern as useCreatorApplications
@@ -157,7 +146,6 @@ export default function useCompletedCampaign() {
 
     // Actions
     handleCampaignSelect,
-    setSearchQuery,
     setExpandedMonths,
     formatCampaignData,
     fetchCompletedApplications,

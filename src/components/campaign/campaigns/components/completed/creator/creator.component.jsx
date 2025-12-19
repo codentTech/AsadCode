@@ -13,7 +13,6 @@ const CompletedCampaign = () => {
   const {
     selectedCampaign,
     completedCampaigns,
-    searchQuery,
     expandedMonths,
     applicationsLoading,
     applicationsSuccess,
@@ -21,7 +20,6 @@ const CompletedCampaign = () => {
     paymentHistory,
     upcomingPayments,
     handleCampaignSelect,
-    setSearchQuery,
     setExpandedMonths,
   } = useCompletedCampaign();
 
@@ -118,8 +116,6 @@ const CompletedCampaign = () => {
         campaigns={completedCampaigns}
         selectedCampaign={selectedCampaign}
         onSelect={handleCampaignSelect}
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
       />
       <CampaignDetails
         campaign={selectedCampaign}

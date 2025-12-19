@@ -2,8 +2,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Modal from "@/common/components/modal/modal.component";
 import { product } from "@/common/constants/auth.constant";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, X } from "lucide-react";
+import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import useCampaignDetail from "./use-campaign-detail.hook";
+import { formatDate } from "@/common/utils/date.utils";
 
 const CampaignDetail = ({ campaign }) => {
   const {
@@ -26,7 +28,6 @@ const CampaignDetail = ({ campaign }) => {
     handleOpenContentBrief,
     handleCloseContentBrief,
     handleCloseProgressModal,
-    formatDate,
   } = useCampaignDetail(campaign);
 
   if (!campaign) {
@@ -64,13 +65,13 @@ const CampaignDetail = ({ campaign }) => {
               <p className="text-sm text-gray-600">{campaign?.title}</p>
               <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                <span>{formatDate(campaign?.deadline)}</span>
+                <span>{formatDate(campaign?.campaign?.application_deadline)}</span>
               </div>
             </div>
           </div>
 
           {/* Campaign Type Badge and Compensation */}
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
             <div
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
             >
@@ -216,13 +217,15 @@ const CampaignDetail = ({ campaign }) => {
           </div>
 
           {/* Product Image */}
-          <div className="flex-shrink-0">
-            <img
-              src={product}
-              alt="Campaign Product"
-              className="w-36 h-36 rounded-lg object-cover border border-gray-200"
-            />
-          </div>
+          {campaign?.campaign?.campaign_image && (
+            <div className="flex-shrink-0">
+              <img
+                src={campaign?.campaign?.campaign_image}
+                alt="Campaign Product"
+                className="w-36 h-36 rounded-lg object-cover border border-gray-200"
+              />
+            </div>
+          )}
         </div>
 
         {/* Deliverables */}
@@ -364,6 +367,13 @@ const CampaignDetail = ({ campaign }) => {
           </div>
         </div>
       </Modal>
+
+      {/* Campaign Brief Modal */}
+      <CampaignBriefModal
+        show={showContentBrief}
+        onClose={handleCloseContentBrief}
+        campaign={campaign}
+      />
 
       {/* Message Thread Modal */}
       <MessageThreadModal
