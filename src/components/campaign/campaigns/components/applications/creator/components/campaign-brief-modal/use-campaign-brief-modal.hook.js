@@ -1,10 +1,15 @@
-import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  CAMPAIGN_TYPE,
+  COMPENSATION_TYPE,
+  COLLABORATION_TYPE,
+} from "@/common/constants/campaign.constant";
 import {
   CAMPAIGN_TYPE_OPTIONS,
   EXCLUSIVITY_CLAUSE_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
 } from "@/common/constants/options.constant";
 import { useMemo } from "react";
+import { formatDate } from "@/common/utils/formate-date";
 
 const friendlyCampaignTypeMap = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
@@ -44,9 +49,46 @@ const calculateCommissionPerSale = (price, percentage) => {
   return (price * percentage) / 100;
 };
 
-export default function useCampaignBriefModal(campaign = {}) {
-  // Normalize campaign data structure to handle both transformed (feed) and raw (applications) formats
+export default function useCampaignBriefModal(campaign = {}, isIndividualCreator = false) {
   const normalizedCampaign = useMemo(() => {
+    if (isIndividualCreator) {
+      return {
+        campaign_title: "Individual Collaboration",
+        campaign_type: campaign.campaignType || campaign.campaign_type || null,
+        compensation_type:
+          campaign.compensation_type || campaign.compensationType || COMPENSATION_TYPE.PAID,
+        budget: campaign.total_compensation || campaign.totalCompensation || null,
+        creator_fee: campaign.total_compensation || campaign.totalCompensation || null,
+        product_value: campaign.product_value || campaign.productValue || null,
+        product_price: campaign.product_price || campaign.productPrice || null,
+        application_deadline: campaign.completion_deadline || campaign.completionDeadline || null,
+        deliverables: campaign.contentFormat
+          ? typeof campaign.contentFormat === "string"
+            ? campaign.contentFormat.split(",").map((d) => d.trim())
+            : [campaign.contentFormat]
+          : [],
+        short_description: campaign.content_guidelines || campaign.contentGuidelines || "",
+        long_description: campaign.content_guidelines || campaign.contentGuidelines || "",
+        hashtags: campaign.hashtags || null,
+        style_guide: null,
+        style_guide_file: null,
+        non_negotiables_do: [],
+        non_negotiables_dont: [],
+        location_options:
+          campaign.in_person_required || campaign.inPersonRequired ? ["On Location"] : ["Remote"],
+        niches: [],
+        required_platforms: [],
+        platform_minimums: {},
+        min_combined_followers: null,
+        usage_rights: campaign.usage_rights || campaign.usageRights || null,
+        exclusivity_clause: campaign.exclusivity_clause || campaign.exclusivityClause || null,
+        revisions_limit: campaign.revisions_limit || campaign.revisionsLimit || null,
+        start_date: campaign.start_date || campaign.startDate || null,
+        first_draft_deadline: campaign.first_draft_deadline || campaign.firstDraftDeadline || null,
+        collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+      };
+    }
+
     // If it's already in the raw format (has campaign_title), return as is
     if (campaign.campaign_title) {
       return campaign;
@@ -63,7 +105,7 @@ export default function useCampaignBriefModal(campaign = {}) {
           : campaign.commission_percentage
             ? "COMMISSION"
             : campaign.product_value
-              ? "GIFTED_PRODUCT"
+              ? "GIFTED PRODUCT"
               : "PAID"),
       budget: campaign.budget,
       suggested_min: campaign.suggested_min,
@@ -103,7 +145,7 @@ export default function useCampaignBriefModal(campaign = {}) {
       usage_rights: campaign.usage_rights,
       exclusivity_clause: campaign.exclusivity_clause,
     };
-  }, [campaign]);
+  }, [campaign, isIndividualCreator]);
 
   const campaignTypeLabel =
     friendlyCampaignTypeMap[normalizedCampaign.campaign_type] ||
@@ -232,13 +274,20 @@ export default function useCampaignBriefModal(campaign = {}) {
     { label: "Campaign Type", value: campaignTypeLabel },
     {
       label: "Creator Fee",
-      value: compensationItems[1]?.value || formatCurrency(normalizedCampaign.creator_fee),
+      value: normalizedCampaign.creator_fee
+        ? formatCurrency(normalizedCampaign.creator_fee)
+        : compensationItems[1]?.value || "—",
     },
     commissionPerSale > 0 && {
       label: "Earnings per Sale",
       value: formatCurrency(commissionPerSale),
     },
-    { label: "Deadline", value: normalizedCampaign.application_deadline || "No deadline set" },
+    {
+      label: "Deadline",
+      value: normalizedCampaign.application_deadline
+        ? formatDate(normalizedCampaign.application_deadline)
+        : "No deadline set",
+    },
     { label: "Work Mode", value: workMode.join(" • ") || null },
     {
       label: "Country",
@@ -293,11 +342,12 @@ export default function useCampaignBriefModal(campaign = {}) {
   }
 
   const contentSections = [
-    normalizedCampaign.short_description && {
-      title: "Campaign Overview",
-      body: normalizedCampaign.short_description,
-      tone: "muted",
-    },
+    !isIndividualCreator &&
+      normalizedCampaign.short_description && {
+        title: "Campaign Overview",
+        body: normalizedCampaign.short_description,
+        tone: "muted",
+      },
     normalizedCampaign.long_description && {
       title: "Detailed Brief",
       body: normalizedCampaign.long_description,
@@ -325,8 +375,13 @@ export default function useCampaignBriefModal(campaign = {}) {
 
   const imageSrc = normalizedCampaign.campaign_image || "";
 
+  const title = isIndividualCreator
+    ? normalizedCampaign.campaign_title || "Individual Collaboration"
+    : normalizedCampaign.campaign_title || "Untitled Campaign";
+
   return {
-    title: normalizedCampaign.campaign_title || "Untitled Campaign",
+    title,
+    isIndividualCreator,
     campaignTypeLabel,
     imageSrc,
     heroStats,

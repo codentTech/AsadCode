@@ -1,12 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-brand.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 
-export default function useCampaignOverviewCompleted(onCampaignSelect) {
+export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleChange, parentIsMultiCreator) {
   const dispatch = useDispatch();
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
+  const [isMultiCreator, setIsMultiCreator] = useState(parentIsMultiCreator !== undefined ? parentIsMultiCreator : true);
+  
+  useEffect(() => {
+    if (parentIsMultiCreator !== undefined) {
+      setIsMultiCreator(parentIsMultiCreator);
+    }
+  }, [parentIsMultiCreator]);
 
   const {
     campaignOptions,
@@ -21,13 +27,15 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     hasData,
   } = useBrandCampaignCompleted();
 
-  const filteredCampaignOptions = campaignOptions.filter((option) => {
-    if (!option.campaign) return false;
-    const collaborationType = option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-    return isMultiCreator
-      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
-      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  });
+  const filteredCampaignOptions = useMemo(() => {
+    return campaignOptions.filter((option) => {
+      if (!option || !option.campaign) return false;
+      const collaborationType = option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      return isMultiCreator
+        ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+        : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    });
+  }, [campaignOptions, isMultiCreator]);
 
   const isSelectedCampaignValid =
     selectedCampaign &&
@@ -87,7 +95,7 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
 
   useEffect(() => {
     if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
-      if (!isSelectedCampaignValid) {
+      if (!isSelectedCampaignValid && !hasAutoSelectedFiltered.current) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
           internalHandleCampaignSelect(firstFilteredOption);
@@ -121,6 +129,10 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     setIsMultiCreator(newIsMultiCreator);
     hasAutoSelectedFiltered.current = false;
 
+    if (onToggleChange) {
+      onToggleChange(newIsMultiCreator);
+    }
+
     if (selectedCampaign) {
       const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
       const shouldReset =
@@ -134,6 +146,14 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
         }
       }
     }
+  };
+
+  const handleExportData = () => {
+    // TODO: Implement export functionality
+  };
+
+  const handleViewAnalytics = () => {
+    // TODO: Implement analytics view
   };
 
   return {
@@ -150,6 +170,8 @@ export default function useCampaignOverviewCompleted(onCampaignSelect) {
     hasData,
     handleCampaignSelect,
     handleToggleChange,
+    handleExportData,
+    handleViewAnalytics,
   };
 }
 

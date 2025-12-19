@@ -125,36 +125,46 @@ function ActiveBrandCampaign() {
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
       individualContractsSuccess &&
       Array.isArray(individualContractsData) &&
-      individualContractsData.length > 0 &&
-      !selectedCreator &&
-      autoSelectedForCampaignRef.current !== selectedCampaign.id
+      !selectedCreator
     ) {
       const matchingContracts = individualContractsData.filter(
-        (contract) => (contract.campaignId || contract.campaign?.id) === selectedCampaign.id
+        (contract) => {
+          const contractCampaignId = contract.campaignId || contract.campaign?.id;
+          if (contractCampaignId !== selectedCampaign.id) {
+            return false;
+          }
+          const now = new Date();
+          const deadline = new Date(contract.completionDeadline || contract.completion_deadline);
+          return deadline >= now && contract.campaign?.status !== "COMPLETE";
+        }
       );
 
-      const firstContract = matchingContracts.length > 0 ? matchingContracts[0] : individualContractsData[0];
-      const creator = firstContract.creator;
-      const creatorProfile = creator?.creator_profile;
+      if (matchingContracts.length > 0) {
+        const firstContract = matchingContracts[0];
+        const creator = firstContract.creator;
+        const creatorProfile = creator?.creator_profile;
 
-      const formattedCreator = {
-        id: firstContract.id,
-        contractId: firstContract.id,
-        campaign_id: firstContract.campaignId || firstContract.campaign?.id,
-        campaign: firstContract.campaign,
-        creatorUserId: creator?.id,
-        creator: creator,
-        name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
-        bio: creatorProfile?.bio || "No bio available",
-        image: creatorProfile?.profile_photo_url,
-        location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
-        rating: creatorProfile?.rating || 0,
-        age: creator?.date_of_birth ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear() : null,
-        contract: firstContract,
-      };
+        const formattedCreator = {
+          id: firstContract.id,
+          contractId: firstContract.id,
+          campaign_id: firstContract.campaignId || firstContract.campaign?.id,
+          campaign: firstContract.campaign,
+          creatorUserId: creator?.id,
+          creator: creator,
+          name: `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
+          bio: creatorProfile?.bio || "No bio available",
+          image: creatorProfile?.profile_photo_url,
+          location: `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") || "Location not specified",
+          rating: creatorProfile?.rating || 0,
+          age: creator?.date_of_birth ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear() : null,
+          contract: firstContract,
+        };
 
-      if (formattedCreator.creator) {
-        setSelectedCreator(formattedCreator);
+        if (formattedCreator.creator) {
+          setSelectedCreator(formattedCreator);
+          autoSelectedForCampaignRef.current = selectedCampaign.id;
+        }
+      } else {
         autoSelectedForCampaignRef.current = selectedCampaign.id;
       }
     }
@@ -168,6 +178,7 @@ function ActiveBrandCampaign() {
 
   const handleClearCreator = useCallback(() => {
     setSelectedCreator(null);
+    autoSelectedForCampaignRef.current = null;
   }, []);
 
   const handleFilterChange = (filterName, value) => {
@@ -217,6 +228,8 @@ function ActiveBrandCampaign() {
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
         isIndividualCreator={!isMultiCreator || selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR}
+        onClearCreator={handleClearCreator}
+        filters={filters}
       />
     </div>
   );

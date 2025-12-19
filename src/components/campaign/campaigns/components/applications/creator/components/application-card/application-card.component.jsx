@@ -207,13 +207,14 @@ const ApplicationCard = ({
                 onClick={() => handleMessageClick(application)}
               />
             )}
-            {(campaign?.id || application.campaign_id) && (
-              <CustomButton
-                text="View Campaign"
-                className="btn-outline flex-1 !h-8 !text-xs"
-                onClick={() => handleViewCampaign(campaign)}
-              />
-            )}
+            {(campaign?.id || application.campaign_id) &&
+              application.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR && (
+                <CustomButton
+                  text="View Campaign"
+                  className="btn-outline flex-1 !h-8 !text-xs"
+                  onClick={() => handleViewCampaign(campaign)}
+                />
+              )}
           </>
         ) : (
           <>

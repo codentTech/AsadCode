@@ -111,15 +111,6 @@ export default function useCampaignDetail(campaign) {
     setShowProgressModal(false);
   }, []);
 
-  // Format date
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  }, []);
-
   return {
     // State
     showContentBrief,
@@ -130,7 +121,7 @@ export default function useCampaignDetail(campaign) {
     campaignInfo,
 
     // Computed
-    typeStyle: getCampaignTypeStyle(campaign?.type),
+    typeStyle: getCampaignTypeStyle(campaign?.type || campaign?.campaign?.campaign_type),
     creator,
     brandId,
 
@@ -144,7 +135,5 @@ export default function useCampaignDetail(campaign) {
     handleCloseContentBrief,
     handleOpenProgressModal,
     handleCloseProgressModal,
-    formatDate,
   };
 }
-

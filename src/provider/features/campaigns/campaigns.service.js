@@ -42,9 +42,11 @@ const markCampaignComplete = async (campaignId) => {
   return response.data;
 };
 
-// Get campaign history
-const getCampaignHistory = async (campaignId) => {
-  const response = await api().get(`/campaigns/${campaignId}/history`);
+// Get creator collaboration history
+const getCreatorCollaborationHistory = async (creatorProfileId) => {
+  const response = await api().get(`/campaigns/creator/history`, {
+    params: { creatorProfileId },
+  });
   return response.data;
 };
 
@@ -152,7 +154,7 @@ const campaignsService = {
   sendContract,
   hireCreator,
   markCampaignComplete,
-  getCampaignHistory,
+  getCreatorCollaborationHistory,
 };
 
 export default campaignsService;

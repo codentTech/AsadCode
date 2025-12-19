@@ -38,7 +38,7 @@ const initialState = {
   sendContract: { ...generalState },
   hireCreator: { ...generalState },
   markCampaignComplete: { ...generalState },
-  getCampaignHistory: { ...generalState },
+  getCreatorCollaborationHistory: { ...generalState },
 };
 
 // Create campaign
@@ -355,17 +355,16 @@ export const markCampaignComplete = createAsyncThunk(
   }
 );
 
-// Get campaign history
-export const getCampaignHistory = createAsyncThunk(
-  "campaigns/getCampaignHistory",
-  async (campaignId, thunkAPI) => {
+export const getCreatorCollaborationHistory = createAsyncThunk(
+  "campaigns/getCreatorCollaborationHistory",
+  async (creatorProfileId, thunkAPI) => {
     try {
-      const response = await campaignsService.getCampaignHistory(campaignId);
+      const response = await campaignsService.getCreatorCollaborationHistory(creatorProfileId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        getSerializableError(error, "Failed to get campaign history")
+        getSerializableError(error, "Failed to get creator collaboration history")
       );
     }
   }
@@ -833,25 +832,25 @@ export const campaignsSlice = createSlice({
         state.markCampaignComplete.isError = true;
         state.markCampaignComplete.data = null;
       })
-      // getCampaignHistory
-      .addCase(getCampaignHistory.pending, (state) => {
-        state.getCampaignHistory.isLoading = true;
-        state.getCampaignHistory.message = "";
-        state.getCampaignHistory.isError = false;
-        state.getCampaignHistory.isSuccess = false;
-        state.getCampaignHistory.data = null;
+      // getCreatorCollaborationHistory
+      .addCase(getCreatorCollaborationHistory.pending, (state) => {
+        state.getCreatorCollaborationHistory.isLoading = true;
+        state.getCreatorCollaborationHistory.message = "";
+        state.getCreatorCollaborationHistory.isError = false;
+        state.getCreatorCollaborationHistory.isSuccess = false;
+        state.getCreatorCollaborationHistory.data = null;
       })
-      .addCase(getCampaignHistory.fulfilled, (state, action) => {
-        state.getCampaignHistory.isLoading = false;
-        state.getCampaignHistory.isSuccess = true;
-        state.getCampaignHistory.data = action.payload;
+      .addCase(getCreatorCollaborationHistory.fulfilled, (state, action) => {
+        state.getCreatorCollaborationHistory.isLoading = false;
+        state.getCreatorCollaborationHistory.isSuccess = true;
+        state.getCreatorCollaborationHistory.data = action.payload;
       })
-      .addCase(getCampaignHistory.rejected, (state, action) => {
-        state.getCampaignHistory.message =
-          action.payload?.message || "Failed to get campaign history";
-        state.getCampaignHistory.isLoading = false;
-        state.getCampaignHistory.isError = true;
-        state.getCampaignHistory.data = null;
+      .addCase(getCreatorCollaborationHistory.rejected, (state, action) => {
+        state.getCreatorCollaborationHistory.message =
+          action.payload?.message || "Failed to get creator collaboration history";
+        state.getCreatorCollaborationHistory.isLoading = false;
+        state.getCreatorCollaborationHistory.isError = true;
+        state.getCreatorCollaborationHistory.data = null;
       });
   },
 });

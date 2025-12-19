@@ -2,9 +2,18 @@ import React from "react";
 import Modal from "@/common/components/modal/modal.component";
 import { FileText, Layers3, Target } from "lucide-react";
 import useCampaignBriefModal from "./use-campaign-brief-modal.hook";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 const CampaignBriefModal = ({ show, onClose, campaign }) => {
   if (!campaign) return null;
+
+  const isIndividualCreator =
+    campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
+    campaign.campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
+    campaign.isIndividualCollaboration;
+
+  const contract = campaign.contract || campaign.campaign?.contract;
+  const dataToUse = isIndividualCreator && contract ? contract : campaign.campaign || campaign;
 
   const {
     title,
@@ -19,7 +28,8 @@ const CampaignBriefModal = ({ show, onClose, campaign }) => {
     styleGuideFileName,
     guidelineGroups,
     quickFields,
-  } = useCampaignBriefModal(campaign);
+    isIndividualCreator: isIndividual,
+  } = useCampaignBriefModal(dataToUse, isIndividualCreator);
 
   return (
     <Modal show={show} title="Campaign Brief" onClose={onClose} size="lg">
@@ -203,67 +213,68 @@ const CampaignBriefModal = ({ show, onClose, campaign }) => {
           </div>
 
           <div className="space-y-4">
-            {(campaign.min_combined_followers ||
-              requiredPlatforms.length > 0 ||
-              platformMinimums.length > 0) && (
-              <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <header className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-indigo-600" />
-                  <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
-                    Audience Requirements
-                  </h2>
-                </header>
-                <div className="mt-3 space-y-3 text-sm text-gray-700">
-                  {campaign.min_combined_followers && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Min Followers</span>
-                      <span className="font-medium text-gray-900">
-                        {parseInt(campaign.min_combined_followers, 10).toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                  {requiredPlatforms.length > 0 && (
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
-                        Required Platforms
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {requiredPlatforms.map((platform) => (
-                          <span
-                            key={platform.id}
-                            className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
-                          >
-                            {platform.label}
-                          </span>
-                        ))}
+            {!isIndividual &&
+              (campaign.min_combined_followers ||
+                requiredPlatforms.length > 0 ||
+                platformMinimums.length > 0) && (
+                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <header className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-indigo-600" />
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
+                      Audience Requirements
+                    </h2>
+                  </header>
+                  <div className="mt-3 space-y-3 text-sm text-gray-700">
+                    {campaign.min_combined_followers && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Min Followers</span>
+                        <span className="font-medium text-gray-900">
+                          {parseInt(campaign.min_combined_followers, 10).toLocaleString()}
+                        </span>
                       </div>
-                    </div>
-                  )}
-                  {platformMinimums.length > 0 && (
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
-                        Platform Minimums
-                      </p>
-                      <div className="mt-2 space-y-2">
-                        {platformMinimums.map((minimum) => (
-                          <div
-                            key={minimum.id}
-                            className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2"
-                          >
-                            <span className="text-xs uppercase text-gray-500">
-                              {minimum.platform}
+                    )}
+                    {requiredPlatforms.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                          Required Platforms
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {requiredPlatforms.map((platform) => (
+                            <span
+                              key={platform.id}
+                              className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                            >
+                              {platform.label}
                             </span>
-                            <span className="text-sm font-medium text-gray-900">
-                              {minimum.value}
-                            </span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                    {platformMinimums.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                          Platform Minimums
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {platformMinimums.map((minimum) => (
+                            <div
+                              key={minimum.id}
+                              className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2"
+                            >
+                              <span className="text-xs uppercase text-gray-500">
+                                {minimum.platform}
+                              </span>
+                              <span className="text-sm font-medium text-gray-900">
+                                {minimum.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </section>
       </div>

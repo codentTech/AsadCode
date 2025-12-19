@@ -1,28 +1,21 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Modal from "@/common/components/modal/modal.component";
-import { product } from "@/common/constants/auth.constant";
-import {
-  BarChart3,
-  Calendar,
-  CheckCircle,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  File,
-  MessageCircle,
-  X,
-} from "lucide-react";
 import React from "react";
-import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
-import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
-import useCampaignDetail from "./use-campaign-detail.hook";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loading from "@/common/components/loadar/loading.component";
+import { product } from "@/common/constants/auth.constant";
 import { formatDate } from "@/common/utils/formate-date";
+import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";
+import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
+import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
+import useCampaignDetail from "./use-campaign-detail.hook";
+import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
+import { getUser } from "@/common/utils/users.util";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const {
     // State
     showContentBrief,
+    showContractModal,
     expandedSections,
     campaign,
     campaignInfo,
@@ -41,7 +34,27 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     toggleSection,
     handleCloseContentBrief,
     handleOpenContentBrief,
+    handleOpenContractModal,
+    handleCloseContractModal,
   } = useCampaignDetail(selectedCampaign);
+
+  const user = getUser();
+
+  // Find the signed contract for the current creator
+  const selectedContract = React.useMemo(() => {
+    if (!campaign?.campaign?.contracts || !Array.isArray(campaign.campaign.contracts)) {
+      return campaign?.contract || null;
+    }
+
+    // For multi-creator campaigns, find the signed contract for this creator
+    const signedContract = campaign.campaign.contracts.find(
+      (contract) =>
+        contract.status === "signed" &&
+        (contract.creator_id === user?.id || contract.creatorId === user?.id)
+    );
+
+    return signedContract || campaign.campaign.contracts[0] || campaign?.contract || null;
+  }, [campaign, user?.id]);
 
   // Loading state
   if (!isLoading) <Loading />;
@@ -77,7 +90,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 <p className="text-sm text-gray-600">{campaign.title}</p>
                 <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                   <Calendar className="w-3 h-3" />
-                  <span>{formatDate(campaign.deadline)}</span>
+                  <span>{formatDate(campaign.application_deadline)}</span>
                 </div>
               </div>
             </div>
@@ -264,13 +277,15 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             </div>
 
             {/* Product Image */}
-            <div className="flex-shrink-0">
-              <img
-                src={product}
-                alt="Campaign Product"
-                className="w-36 h-36 rounded-lg object-cover border border-gray-200"
-              />
-            </div>
+            {campaign?.campaign?.campaign_image && (
+              <div className="flex-shrink-0">
+                <img
+                  src={campaign?.campaign?.campaign_image}
+                  alt="Campaign Product"
+                  className="w-36 h-36 rounded-lg object-cover border border-gray-200"
+                />
+              </div>
+            )}
           </div>
 
           {/* Deliverables */}
@@ -299,13 +314,30 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className={`grid ${isCleerCutCampaign ? "grid-cols-2" : "grid-cols-1"} gap-2 pt-2`}>
+          <div
+            className={`grid ${
+              isCleerCutCampaign && selectedContract
+                ? "grid-cols-3"
+                : isCleerCutCampaign
+                  ? "grid-cols-2"
+                  : "grid-cols-1"
+            } gap-2 pt-2`}
+          >
             {isCleerCutCampaign && (
-              <CustomButton
-                text="Message"
-                className="btn-primary text-xs"
-                onClick={handleMessageClick}
-              />
+              <>
+                {selectedContract && (
+                  <CustomButton
+                    text="View Full Contract"
+                    className="btn-outline text-xs w-full"
+                    onClick={handleOpenContractModal}
+                  />
+                )}
+                <CustomButton
+                  text="Message"
+                  className="btn-primary text-xs"
+                  onClick={handleMessageClick}
+                />
+              </>
             )}
             <CustomButton
               text="View Brief"
@@ -324,35 +356,12 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
         </div>
       </div>
 
-      {/* Content Brief Modal */}
-      {showContentBrief && (
-        <Modal
-          show={showContentBrief}
-          title="Content Brief"
-          onClose={handleCloseContentBrief}
-          size="lg"
-        >
-          <div className="prose text-sm text-gray-600">
-            <p className="mb-4">
-              Create engaging content showcasing our Summer Skincare Collection. Focus on the
-              benefits of our new hydrating serum and SPF moisturizer.
-            </p>
-            <h3 className="font-medium text-gray-900 mb-2">Key Points to Cover:</h3>
-            <ul className="list-disc list-inside space-y-1 mb-4">
-              <li>Lightweight, non-greasy formula</li>
-              <li>Suitable for all skin types</li>
-              <li>SPF 30 protection</li>
-              <li>Hydrating benefits</li>
-            </ul>
-            <h3 className="font-medium text-gray-900 mb-2">Brand Guidelines:</h3>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Use natural lighting when possible</li>
-              <li>Include product close-ups</li>
-              <li>Mention discount code: SUMMER20</li>
-            </ul>
-          </div>
-        </Modal>
-      )}
+      {/* Campaign Brief Modal */}
+      <CampaignBriefModal
+        show={showContentBrief}
+        onClose={handleCloseContentBrief}
+        campaign={campaign}
+      />
 
       {/* Message Thread Modal */}
       <MessageThreadModal
@@ -370,6 +379,52 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
         messagesEndRef={messageThreadHook.messagesEndRef}
         messagesContainerRef={messageThreadHook.messagesContainerRef}
       />
+
+      {/* Contract Preview Modal */}
+      {showContractModal && selectedContract && (
+        <ContractPreviewModal
+          show={showContractModal}
+          onClose={handleCloseContractModal}
+          contractData={{
+            brandName:
+              campaign?.campaign?.created_by?.first_name &&
+              campaign?.campaign?.created_by?.last_name
+                ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
+                : campaign?.campaign?.created_by?.first_name || "Brand",
+            creatorName:
+              user?.first_name && user?.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user?.first_name || "Creator",
+            campaignTitle: campaign?.campaign?.campaign_title || campaign?.title || "Campaign",
+            startDate: selectedContract.startDate || selectedContract.start_date,
+            completionDeadline:
+              selectedContract.completionDeadline || selectedContract.completion_deadline,
+            contentFormat: selectedContract.contentFormat || selectedContract.content_format,
+            revisionsLimit:
+              selectedContract.revisionsLimit || selectedContract.revisions_limit || "2",
+            compensationType:
+              selectedContract.compensationType || selectedContract.compensation_type,
+            totalCompensation:
+              selectedContract.totalCompensation?.toString() ||
+              selectedContract.total_compensation?.toString(),
+            productPrice:
+              selectedContract.productPrice?.toString() ||
+              selectedContract.product_price?.toString(),
+            productValue:
+              campaign?.campaign?.product_value?.toString() ||
+              selectedContract.productValue?.toString() ||
+              selectedContract.product_value?.toString(),
+            usageRights: selectedContract.usageRights || selectedContract.usage_rights,
+            exclusivityClause:
+              selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
+            hashtags: selectedContract.hashtags,
+            mentions: selectedContract.mentions,
+          }}
+          creatorData={user}
+          campaignData={campaign?.campaign || campaign}
+          contractId={selectedContract.id}
+        />
+      )}
     </div>
   );
 };

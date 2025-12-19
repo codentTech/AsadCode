@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useCreatorSpendAnalysis } from "../../../../active/brand/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 
 export const useCreatorSpendAnalysisCompleted = ({
@@ -8,24 +8,11 @@ export const useCreatorSpendAnalysisCompleted = ({
   isCompleted = true,
   isMultiCreator = true,
 }) => {
+  const [open, setOpen] = useState(false);
   const hookData = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
 
-  useEffect(() => {
-    if (
-      hookData.creatorsSuccess &&
-      hookData.creators.length > 0 &&
-      !selectedCreator &&
-      selectedCampaign
-    ) {
-      onCreatorSelect(hookData.creators[0]);
-    }
-  }, [
-    hookData.creatorsSuccess,
-    hookData.creators,
-    selectedCreator,
-    selectedCampaign,
-    onCreatorSelect,
-  ]);
+  const handleOpenModal = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false);
 
   const getPlatformEntries = (platforms) => {
     if (Array.isArray(platforms)) {
@@ -47,6 +34,9 @@ export const useCreatorSpendAnalysisCompleted = ({
 
   return {
     ...hookData,
+    open,
+    handleOpenModal,
+    handleCloseModal,
     getPlatformEntries,
     getPerformanceComparison,
   };

@@ -2,6 +2,15 @@ import { ChevronDown, ChevronUp, Star } from "lucide-react";
 import TextArea from "@/common/components/text-area/text-area.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createCampaignReview,
+  getCampaignReviewsByCreatorProfile,
+  getReviewStatus,
+} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
+import { getUser } from "@/common/utils/users.util";
+import Loader from "@/common/components/loader/loader.component";
+import { useEffect } from "react";
 
 const FinanceDashboard = ({
   paymentHistory,
@@ -10,14 +19,79 @@ const FinanceDashboard = ({
   setExpandedMonths,
   selectedCampaign,
 }) => {
+  const dispatch = useDispatch();
+  const user = getUser();
+  const creatorProfileId = user?.creator_profile?.id;
+
+  const {
+    createCampaignReview: createReviewState,
+    getCampaignReviewsByCreatorProfile: getReviewsState,
+    getReviewStatus: getReviewStatusState,
+  } = useSelector((state) => state.campaignReviews || {});
+
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(0);
-  const reviewStatus = null;
-  const campaignReviews = [];
-  
-  const handleSaveNewReview = () => {
-    setNewReviewText("");
-    setNewReviewRating(0);
+
+  const reviewStatus = getReviewStatusState.data || null;
+  const campaignReviews = getReviewsState.data || [];
+
+  useEffect(() => {
+    const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
+    if (campaignId && creatorProfileId) {
+      dispatch(
+        getReviewStatus({
+          campaignId: campaignId,
+          creatorProfileId: creatorProfileId,
+        })
+      );
+      dispatch(
+        getCampaignReviewsByCreatorProfile({
+          campaignId: campaignId,
+          creatorProfileId: creatorProfileId,
+        })
+      );
+    }
+  }, [dispatch, selectedCampaign, creatorProfileId]);
+
+  const handleSaveNewReview = async () => {
+    const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
+
+    if (!newReviewText.trim() || !newReviewRating || !campaignId || !creatorProfileId) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        createCampaignReview({
+          campaignId: campaignId,
+          creatorProfileId: creatorProfileId,
+          reviewData: {
+            rating: newReviewRating,
+            review: newReviewText.trim(),
+          },
+        })
+      ).unwrap();
+
+      setNewReviewText("");
+      setNewReviewRating(0);
+
+      if (campaignId && creatorProfileId) {
+        dispatch(
+          getReviewStatus({
+            campaignId: campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+        dispatch(
+          getCampaignReviewsByCreatorProfile({
+            campaignId: campaignId,
+            creatorProfileId: creatorProfileId,
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Failed to create review:", error);
+    }
   };
   const totalEarnings = Object.values(paymentHistory).reduce((sum, month) => sum + month.total, 0);
 
@@ -131,29 +205,56 @@ const FinanceDashboard = ({
               </div>
             )}
 
-          {campaignReviews && campaignReviews.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {campaignReviews.map((review, index) => (
-                <div key={review.id || index} className="border-l-2 border-indigo-500 pl-3 py-1">
-                  <span className="text-[10px] font-semibold text-gray-500 mb-1 block">
-                    Brand's Review
-                  </span>
-                  <div className="flex items-center gap-1 mb-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-3 h-3 ${i < (review.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-700">{review.review}</p>
-                  <span className="text-[11px] text-gray-400 mt-0.5 block">
-                    {new Date(review.created_at).toLocaleString()}
-                  </span>
+          {reviewStatus &&
+            !reviewStatus.isUnlocked &&
+            reviewStatus.hasCreatorReview &&
+            !reviewStatus.hasBrandReview && (
+              <div className="mb-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-semibold text-amber-800">Review Locked</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-[11px] text-amber-700 mt-1">
+                  Your review has been locked. Wait for brand to give review so that your review
+                  gets unlocked.
+                </p>
+              </div>
+            )}
+
+          {(() => {
+            const filteredReviews =
+              campaignReviews?.filter((review) => {
+                if (!reviewStatus?.isUnlocked) {
+                  return review.created_by?.id === user?.id;
+                } else {
+                  return review.reviewer_role === "BRAND";
+                }
+              }) || [];
+
+            return reviewStatus && reviewStatus.isUnlocked && filteredReviews.length > 0 ? (
+              <div className="space-y-2 mb-3">
+                {filteredReviews.map((review, index) => (
+                  <div key={review.id || index} className="border-l-2 border-indigo-500 pl-3 py-1">
+                    <span className="text-[10px] font-semibold text-gray-500 mb-1 block">
+                      Brand's Review
+                    </span>
+                    <div className="flex items-center gap-1 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${i < (review.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-700">{review.review}</p>
+                    <span className="text-[11px] text-gray-400 mt-0.5 block">
+                      {new Date(review.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
 
           <div className="mt-2">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Leave a review</h4>
@@ -178,10 +279,17 @@ const FinanceDashboard = ({
             />
             <div className="flex justify-end mt-2">
               <CustomButton
-                text="Submit Review"
+                text={createReviewState.isLoading ? <Loader loading={true} /> : "Submit Review"}
                 className="btn-primary text-xs"
                 onClick={handleSaveNewReview}
-                disabled={!newReviewText || !newReviewText.trim()}
+                disabled={
+                  !newReviewText ||
+                  !newReviewText.trim() ||
+                  !newReviewRating ||
+                  createReviewState.isLoading ||
+                  !(selectedCampaign?.id || selectedCampaign?.campaign?.id) ||
+                  !creatorProfileId
+                }
               />
             </div>
           </div>

@@ -2,7 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
-import CampaignHistory from "../campaign-history/campaign-history.component";
+import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -91,11 +91,13 @@ const DeliverablesProgress = ({
         </>
 
         {(() => {
-          const campaignId = isIndividualCreator
-            ? selectedCreator?.campaign_id || selectedCreator?.campaign?.id
-            : selectedCampaign?.id;
+          const creatorProfileId =
+            selectedCreator?.creator?.creator_profile?.id ||
+            selectedCreator?.creator_profile?.id;
 
-          return campaignId ? <CampaignHistory campaignId={campaignId} /> : null;
+          return creatorProfileId ? (
+            <CollaborationHistory creatorProfileId={creatorProfileId} />
+          ) : null;
         })()}
       </div>
     </div>
