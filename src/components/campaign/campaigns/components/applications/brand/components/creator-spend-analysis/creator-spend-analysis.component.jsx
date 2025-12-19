@@ -1,22 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
-import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import Modal from "@/common/components/modal/modal.component";
+import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filter-modal.component";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import {
-  PLATFORM_OPTIONS,
-  FOLLOWER_OPTIONS,
-  AGE_OPTIONS,
-  NICHE_OPTIONS,
-  LANGUAGE_OPTIONS,
-} from "@/common/constants/options.constant";
-import { Filter, Search } from "lucide-react";
+import { Filter } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
@@ -66,18 +57,6 @@ const CreatorSpendAnalysis = ({
     onClearFilters,
     fetchIndividualCollaborations: fetchFromHook,
   });
-
-  // FilterButton component for consistent styling
-  const FilterButton = ({ active, onClick, children }) => (
-    <button
-      onClick={onClick}
-      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-        active ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-      }`}
-    >
-      {children}
-    </button>
-  );
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -273,301 +252,90 @@ const CreatorSpendAnalysis = ({
       <CampaignCreationWizard open={open} close={handleCloseModal} />
 
       {/* Filters Modal */}
-      <Modal
-        title="Filter Creators"
+      <FilterModal
         show={showFilterModal}
         onClose={() => setShowFilterModal(false)}
-        size="lg"
-      >
-        <div className="space-y-6">
-          {/* Filter Type Toggle */}
-          <div className="flex items-center justify-center">
-            <div className="bg-gray-100 rounded-lg p-1 flex">
-              <button
-                onClick={() => setFilterType("creator")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  filterType === "creator"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Creator Filters
-              </button>
-              <button
-                onClick={() => setFilterType("audience")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  filterType === "audience"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Audience Filters
-              </button>
-            </div>
-          </div>
-
-          {/* Creator Filters */}
-          {filterType === "creator" && (
-            <div className="space-y-6">
-              {/* Niche Categories */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Niche Categories</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                  {NICHE_OPTIONS.map((niche) => (
-                    <FilterButton
-                      key={niche.value}
-                      active={filters?.niches?.includes(niche.value)}
-                      onClick={() => {
-                        const current = filters?.niches || [];
-                        const next = current.includes(niche.value)
-                          ? current.filter((n) => n !== niche.value)
-                          : [...current, niche.value];
-                        onFilterChange && onFilterChange("niches", next);
-                      }}
-                    >
-                      {niche.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Platforms */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                  {PLATFORM_OPTIONS.map((platform) => (
-                    <FilterButton
-                      key={platform.value}
-                      active={filters?.platforms?.includes(platform.value)}
-                      onClick={() => {
-                        const current = filters?.platforms || [];
-                        const next = current.includes(platform.value)
-                          ? current.filter((p) => p !== platform.value)
-                          : [...current, platform.value];
-                        onFilterChange && onFilterChange("platforms", next);
-                      }}
-                    >
-                      {platform.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Minimum Followers */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Minimum Followers</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                  {FOLLOWER_OPTIONS.map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters?.min_followers === option.value}
-                      onClick={() =>
-                        onFilterChange && onFilterChange("min_followers", option.value)
-                      }
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Demographics */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* Gender filter removed - field doesn't exist in backend schema */}
-
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    {AGE_OPTIONS.map((option) => (
-                      <FilterButton
-                        key={option.value}
-                        active={filters?.ageRange === option.value}
-                        onClick={() => onFilterChange && onFilterChange("ageRange", option.value)}
-                      >
-                        {option.label}
-                      </FilterButton>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-2">Language</h4>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                    {LANGUAGE_OPTIONS.map((option) => (
-                      <FilterButton
-                        key={option.value}
-                        active={filters?.languages?.includes(option.value)}
-                        onClick={() => {
-                          const current = filters?.languages || [];
-                          const next = current.includes(option.value)
-                            ? current.filter((l) => l !== option.value)
-                            : [...current, option.value];
-                          onFilterChange && onFilterChange("languages", next);
-                        }}
-                      >
-                        {option.label}
-                      </FilterButton>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="grid grid-cols-2 gap-4">
-                <CountrySelect
-                  label="Country"
-                  value={
-                    filters?.country
-                      ? {
-                          countryName: filters.country,
-                          countryCode: filters?.countryCode || "",
-                        }
-                      : null
-                  }
-                  onChange={(option) => {
-                    if (!onFilterChange) return;
-                    onFilterChange("country", option?.countryName || "");
-                    onFilterChange("countryCode", option?.countryCode || "");
-                    onFilterChange("city", "");
-                    onFilterChange("cityCountryCode", "");
-                  }}
-                  helperText=""
-                />
-                <CitySelect
-                  label="City"
-                  countryCode={filters?.countryCode || ""}
-                  value={
-                    filters?.city
-                      ? {
-                          cityName: filters.city,
-                          countryCode: filters?.cityCountryCode || filters?.countryCode || "",
-                        }
-                      : null
-                  }
-                  onChange={(option) => {
-                    onFilterChange && onFilterChange("city", option?.cityName || "");
-                    onFilterChange && onFilterChange("cityCountryCode", option?.countryCode || "");
-                  }}
-                  disabled={!filters?.country}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Audience Filters */}
-          {filterType === "audience" && (
-            <div className="space-y-6">
-              {/* Audience Gender */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Audience Gender</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: "mostly-male", label: "Mostly Male" },
-                    { value: "mostly-female", label: "Mostly Female" },
-                  ].map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters?.audienceGender === option.value}
-                      onClick={() =>
-                        onFilterChange && onFilterChange("audienceGender", option.value)
-                      }
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience Age Ranges */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Age Ranges</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {[
-                    { value: "13-17", label: "13–17" },
-                    { value: "18-24", label: "18–24" },
-                    { value: "25-34", label: "25–34" },
-                    { value: "35-44", label: "35–44" },
-                    { value: "45-54", label: "45–54" },
-                    { value: "55+", label: "55+" },
-                  ].map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters?.audienceAgeRanges?.includes(option.value)}
-                      onClick={() => {
-                        const current = filters?.audienceAgeRanges || [];
-                        const next = current.includes(option.value)
-                          ? current.filter((a) => a !== option.value)
-                          : [...current, option.value];
-                        onFilterChange && onFilterChange("audienceAgeRanges", next);
-                      }}
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience Countries */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Countries</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                  {[
-                    { value: "us", label: "US" },
-                    { value: "ca", label: "Canada" },
-                    { value: "uk", label: "UK" },
-                    { value: "au", label: "Australia" },
-                    { value: "de", label: "Germany" },
-                    { value: "fr", label: "France" },
-                    { value: "es", label: "Spain" },
-                    { value: "it", label: "Italy" },
-                  ].map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters?.audienceCountries?.includes(option.value)}
-                      onClick={() => {
-                        const current = filters?.audienceCountries || [];
-                        const next = current.includes(option.value)
-                          ? current.filter((c) => c !== option.value)
-                          : [...current, option.value];
-                        onFilterChange && onFilterChange("audienceCountries", next);
-                      }}
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience City */}
-              <div>
-                <CustomInput
-                  label="Audience City"
-                  placeholder="Enter audience city"
-                  value={filters?.audienceCity || ""}
-                  onChange={(e) => onFilterChange && onFilterChange("audienceCity", e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Modal Actions */}
-        <div className="flex justify-between items-center mt-6">
-          <CustomButton onClick={onClearFilters} text="Clear All" className="btn-cancel" />
-          <div className="flex gap-3">
-            <CustomButton
-              onClick={() => setShowFilterModal(false)}
-              text="Cancel"
-              className="btn-cancel"
-            />
-            <CustomButton
-              onClick={() => setShowFilterModal(false)}
-              text="Apply Filters"
-              className="btn-primary"
-            />
-          </div>
-        </div>
-      </Modal>
+        filterType={filterType}
+        setFilterType={setFilterType}
+        filters={filters || {}}
+        audienceFilters={
+          filters
+            ? {
+                audienceGender: filters.audienceGender || "",
+                audienceAgeRanges: filters.audienceAgeRanges || [],
+                audienceCountries: filters.audienceCountries || [],
+                audienceCity: filters.audienceCity || "",
+              }
+            : {}
+        }
+        onNicheToggle={(niche) => {
+          const current = filters?.niches || [];
+          const next = current.includes(niche)
+            ? current.filter((n) => n !== niche)
+            : [...current, niche];
+          onFilterChange && onFilterChange("niches", next);
+        }}
+        onPlatformToggle={(platform) => {
+          const current = filters?.platforms || [];
+          const next = current.includes(platform)
+            ? current.filter((p) => p !== platform)
+            : [...current, platform];
+          onFilterChange && onFilterChange("platforms", next);
+        }}
+        onFollowerSelect={(minFollowers) => {
+          onFilterChange && onFilterChange("min_followers", minFollowers);
+        }}
+        onGenderSelect={(gender) => {
+          onFilterChange && onFilterChange("gender", gender);
+        }}
+        onAgeSelect={(ageRange) => {
+          onFilterChange && onFilterChange("ageRange", ageRange);
+        }}
+        onLanguageToggle={(language) => {
+          const current = filters?.languages || [];
+          const next = current.includes(language)
+            ? current.filter((l) => l !== language)
+            : [...current, language];
+          onFilterChange && onFilterChange("languages", next);
+        }}
+        onAudienceGenderSelect={(audienceGender) => {
+          onFilterChange && onFilterChange("audienceGender", audienceGender);
+        }}
+        onAudienceAgeToggle={(ageRange) => {
+          const current = filters?.audienceAgeRanges || [];
+          const next = current.includes(ageRange)
+            ? current.filter((a) => a !== ageRange)
+            : [...current, ageRange];
+          onFilterChange && onFilterChange("audienceAgeRanges", next);
+        }}
+        onAudienceCountryToggle={(country) => {
+          const current = filters?.audienceCountries || [];
+          const next = current.includes(country)
+            ? current.filter((c) => c !== country)
+            : [...current, country];
+          onFilterChange && onFilterChange("audienceCountries", next);
+        }}
+        onFiltersChange={(updatedFilters) => {
+          if (onFilterChange) {
+            Object.keys(updatedFilters).forEach((key) => {
+              onFilterChange(key, updatedFilters[key]);
+            });
+          }
+        }}
+        onAudienceFiltersChange={(updatedAudienceFilters) => {
+          if (onFilterChange) {
+            Object.keys(updatedAudienceFilters).forEach((key) => {
+              onFilterChange(key, updatedAudienceFilters[key]);
+            });
+          }
+        }}
+        onClearAllFilters={() => {
+          onClearFilters && onClearFilters();
+        }}
+        onApplyFilters={() => {
+          setShowFilterModal(false);
+        }}
+      />
     </div>
   );
 };
