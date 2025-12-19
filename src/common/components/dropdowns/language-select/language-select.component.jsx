@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { X, Search } from "lucide-react";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
@@ -12,6 +12,7 @@ const matchLanguage = (term) => {
 
   return (language) => {
     if (language.label.toLowerCase().includes(normalized)) return true;
+    if (language.code.toLowerCase().includes(normalized)) return true;
     if (language.aliases?.some((alias) => alias.toLowerCase().includes(normalized))) {
       return true;
     }
@@ -33,6 +34,8 @@ export default function LanguageSelect({
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
 
   const selectedLabels = Array.isArray(value) ? value : [];
   const selectedSet = useMemo(
@@ -47,11 +50,31 @@ export default function LanguageSelect({
 
   const filteredOptions = useMemo(() => {
     if (!inputValue.trim()) {
-      return availableOptions.slice(0, 10);
+      return availableOptions;
     }
     const predicate = matchLanguage(inputValue);
-    return availableOptions.filter(predicate).slice(0, 10);
+    return availableOptions.filter(predicate);
   }, [availableOptions, inputValue]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const quickSelectOptions = useMemo(
     () =>
@@ -86,12 +109,25 @@ export default function LanguageSelect({
     setIsOpen(true);
   };
 
+  const handleInputFocus = () => {
+    setIsOpen(true);
+  };
+
+  const handleInputClick = () => {
+    setIsOpen(true);
+  };
+
   const handleInputKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       if (filteredOptions.length > 0) {
         handleAddLanguage(filteredOptions[0]);
       }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      setIsOpen(false);
       return;
     }
 
@@ -137,12 +173,13 @@ export default function LanguageSelect({
         })}
       </div>
 
-      <div className="relative">
+      <div className="relative" ref={inputRef}>
         <CustomInput
           name={`${name}_input`}
           value={inputValue}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={handleInputFocus}
+          onClick={handleInputClick}
           onKeyDown={handleInputKeyDown}
           placeholder="Search languages"
           disabled={disabled || hasReachedLimit}
@@ -150,19 +187,26 @@ export default function LanguageSelect({
           errors={errors}
         />
 
-        {isOpen && !disabled && filteredOptions.length > 0 && (
-          <div className="absolute z-50 mt-2 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-            {filteredOptions.map((language) => (
-              <button
-                key={language.code}
-                type="button"
-                onClick={() => handleAddLanguage(language)}
-                className="flex w-full items-center justify-between px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                <span>{language.label}</span>
-                <span className="text-xs text-gray-400">{language.code.toUpperCase()}</span>
-              </button>
-            ))}
+        {isOpen && !disabled && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+          >
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((language) => (
+                <button
+                  key={language.code}
+                  type="button"
+                  onClick={() => handleAddLanguage(language)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm text-gray-600 hover:bg-indigo-50 transition-colors"
+                >
+                  <span>{language.label}</span>
+                  <span className="text-xs text-gray-400">{language.code.toUpperCase()}</span>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500 text-center">No languages found</div>
+            )}
           </div>
         )}
       </div>

@@ -1,20 +1,18 @@
-import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
-import LanguageSelect from "@/components/campaign/create-campaign/components/language-select/language-select.component";
-import { X } from "lucide-react";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
+import Modal from "@/common/components/modal/modal.component";
 import {
-  PLATFORM_OPTIONS,
+  AGE_OPTIONS,
+  AUDIENCE_AGE_OPTIONS,
+  AUDIENCE_GENDER_OPTIONS,
   FOLLOWER_OPTIONS,
   GENDER_OPTIONS,
-  AGE_OPTIONS,
-  AUDIENCE_GENDER_OPTIONS,
-  AUDIENCE_AGE_OPTIONS,
-  COUNTRY_OPTIONS,
+  PLATFORM_OPTIONS,
 } from "@/common/constants/options.constant";
+import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
+import { X } from "lucide-react";
 
 const FilterModal = ({
   show,
@@ -81,18 +79,34 @@ const FilterModal = ({
         {filterType === "creator" && (
           <div className="space-y-6">
             {/* Platforms */}
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                {PLATFORM_OPTIONS.map((platform) => (
-                  <FilterButton
-                    key={platform.value}
-                    active={filters.platforms.includes(platform.value)}
-                    onClick={() => onPlatformToggle(platform.value)}
-                  >
-                    {platform.label}
-                  </FilterButton>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                  {PLATFORM_OPTIONS.map((platform) => (
+                    <FilterButton
+                      key={platform.value}
+                      active={filters.platforms.includes(platform.value)}
+                      onClick={() => onPlatformToggle(platform.value)}
+                    >
+                      {platform.label}
+                    </FilterButton>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {GENDER_OPTIONS?.filter((option) => option.value !== "").map((option) => (
+                    <FilterButton
+                      key={option.value}
+                      active={filters.gender === option.value}
+                      onClick={() => onGenderSelect(option.value)}
+                    >
+                      {option.label}
+                    </FilterButton>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -113,21 +127,6 @@ const FilterModal = ({
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {GENDER_OPTIONS?.filter((option) => option.value !== "").map((option) => (
-                    <FilterButton
-                      key={option.value}
-                      active={filters.gender === option.value}
-                      onClick={() => onGenderSelect(option.value)}
-                    >
-                      {option.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-
               <div>
                 <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -189,7 +188,7 @@ const FilterModal = ({
             </div>
 
             {/* Niche Categories and Language */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* Niche Categories */}
               <div>
                 <SearchableNicheInput
@@ -232,20 +231,14 @@ const FilterModal = ({
 
               {/* Language */}
               <div>
-                <h4 className=" text-xs font-bold leading-[17.5px] text-gray-700 mb-[6px]">
-                  Language
-                </h4>
                 <LanguageSelect
-                  selectedLanguage={
-                    filters.languages && filters.languages.length > 0 ? filters.languages[0] : null
-                  }
-                  onLanguageChange={(language) => {
-                    onFiltersChange({ ...filters, languages: language ? [language] : [] });
+                  label="Language"
+                  name="languages"
+                  value={Array.isArray(filters.languages) ? filters.languages : []}
+                  onChange={(languages) => {
+                    onFiltersChange({ ...filters, languages });
                   }}
-                  placeholder="Type to search languages"
-                  handleLanguageRemove={() => {
-                    onFiltersChange({ ...filters, languages: [] });
-                  }}
+                  maxSelections={1}
                 />
               </div>
             </div>
