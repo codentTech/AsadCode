@@ -1,15 +1,14 @@
-import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loading from "@/common/components/loadar/loading.component";
-import { product } from "@/common/constants/auth.constant";
 import { formatDate } from "@/common/utils/formate-date";
+import { getUser } from "@/common/utils/users.util";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";
+import React from "react";
+import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 import useCampaignDetail from "./use-campaign-detail.hook";
-import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
-import { getUser } from "@/common/utils/users.util";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   const {
@@ -36,6 +35,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     handleOpenContentBrief,
     handleOpenContractModal,
     handleCloseContractModal,
+    compensationAmount,
   } = useCampaignDetail(selectedCampaign);
 
   const user = getUser();
@@ -104,7 +104,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               </div>
               <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                 <div>{campaign.compensation} -</div>
-                <div>{campaign.compensationAmount}</div>
+                <div>{campaign?.compensationAmount || compensationAmount(campaign)}</div>
               </div>
             </div>
           </div>
@@ -351,6 +351,9 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             <CreatorTimelineSteps
               campaignId={campaign?.id}
               deadline={campaign?.campaign_deadline || campaign?.application_deadline}
+              revisionsLimit={
+                campaign?.contract?.revisionsLimit || campaign?.contract?.revisions_limit || 2
+              }
             />
           )}
         </div>

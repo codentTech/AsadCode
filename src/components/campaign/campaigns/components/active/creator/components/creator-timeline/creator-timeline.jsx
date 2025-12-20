@@ -16,7 +16,7 @@ import useCreatorTimeline from "./use-creator-timeline.hook";
 const CreatorTimelineSteps = ({
   campaignId,
   deadline = "2025-01-20T23:59:59Z",
-  revisionsLimit = 3,
+  revisionsLimit = 2,
 }) => {
   const {
     // State

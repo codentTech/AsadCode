@@ -17,6 +17,7 @@ const generalState = {
 
 const initialState = {
   getTimeline: { ...generalState },
+  timelinesByKey: {}, // Store timelines keyed by "campaignId-creatorId"
   initializeTimeline: { ...generalState },
   updateTimelineStep: { ...generalState },
   approveDraft: { ...generalState },
@@ -27,9 +28,9 @@ const initialState = {
 // Get timeline
 export const getTimeline = createAsyncThunk(
   "campaignTimeline/getTimeline",
-  async (campaignId, thunkAPI) => {
+  async ({ campaignId, creatorId }, thunkAPI) => {
     try {
-      const response = await campaignTimelineService.getTimeline(campaignId);
+      const response = await campaignTimelineService.getTimeline(campaignId, creatorId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -71,9 +72,9 @@ export const updateTimelineStep = createAsyncThunk(
 // Approve draft
 export const approveDraft = createAsyncThunk(
   "campaignTimeline/approveDraft",
-  async ({ campaignId, step }, thunkAPI) => {
+  async ({ campaignId, step, creatorId }, thunkAPI) => {
     try {
-      const response = await campaignTimelineService.approveDraft(campaignId, step);
+      const response = await campaignTimelineService.approveDraft(campaignId, step, creatorId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -85,12 +86,13 @@ export const approveDraft = createAsyncThunk(
 // Request revision
 export const requestRevision = createAsyncThunk(
   "campaignTimeline/requestRevision",
-  async ({ campaignId, step, revisionNotes }, thunkAPI) => {
+  async ({ campaignId, step, revisionNotes, creatorId }, thunkAPI) => {
     try {
       const response = await campaignTimelineService.requestRevision(
         campaignId,
         step,
-        revisionNotes
+        revisionNotes,
+        creatorId
       );
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
@@ -103,9 +105,9 @@ export const requestRevision = createAsyncThunk(
 // Mark final complete
 export const markFinalComplete = createAsyncThunk(
   "campaignTimeline/markFinalComplete",
-  async ({ campaignId, step }, thunkAPI) => {
+  async ({ campaignId, step, creatorId }, thunkAPI) => {
     try {
-      const response = await campaignTimelineService.markFinalComplete(campaignId, step);
+      const response = await campaignTimelineService.markFinalComplete(campaignId, step, creatorId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -133,10 +135,18 @@ const campaignTimelineSlice = createSlice({
         state.getTimeline.isSuccess = false;
       })
       .addCase(getTimeline.fulfilled, (state, action) => {
+        const { campaignId, creatorId } = action.meta.arg || {};
+        const timelineKey = campaignId && creatorId ? `${campaignId}-${creatorId}` : null;
+
         state.getTimeline.isLoading = false;
         state.getTimeline.isSuccess = true;
         state.getTimeline.data = action.payload;
         state.getTimeline.message = action.payload.message;
+
+        // Store timeline by key for multi-creator campaigns
+        if (timelineKey) {
+          state.timelinesByKey[timelineKey] = action.payload;
+        }
       })
       .addCase(getTimeline.rejected, (state, action) => {
         state.getTimeline.isLoading = false;
@@ -199,12 +209,25 @@ const campaignTimelineSlice = createSlice({
         state.approveDraft.isLoading = false;
         state.approveDraft.isSuccess = true;
         state.approveDraft.data = action.payload;
-        // Update the timeline in getTimeline.data
+
+        // Update the timeline in getTimeline.data only if it matches the same creator
         if (state.getTimeline.data?.data) {
           const updatedStep = action.payload.data;
-          state.getTimeline.data.data = state.getTimeline.data.data.map((step) =>
-            step.id === updatedStep.id ? updatedStep : step
-          );
+          const updatedCreatorId =
+            updatedStep?.creator?.id || updatedStep?.creator_id || updatedStep?.creatorId;
+
+          // Check if any step in current timeline has the same creatorId
+          const currentTimelineCreatorId =
+            state.getTimeline.data.data[0]?.creator?.id ||
+            state.getTimeline.data.data[0]?.creator_id ||
+            state.getTimeline.data.data[0]?.creatorId;
+
+          // Only update if the timeline is for the same creator
+          if (updatedCreatorId && currentTimelineCreatorId === updatedCreatorId) {
+            state.getTimeline.data.data = state.getTimeline.data.data.map((step) =>
+              step.id === updatedStep.id ? updatedStep : step
+            );
+          }
         }
       })
       .addCase(approveDraft.rejected, (state, action) => {
@@ -221,12 +244,24 @@ const campaignTimelineSlice = createSlice({
         state.requestRevision.isSuccess = false;
       })
       .addCase(requestRevision.fulfilled, (state, action) => {
+        const updatedStep = action.payload.data;
+        const updatedCreatorId =
+          updatedStep?.creator?.id || updatedStep?.creator_id || updatedStep?.creatorId;
+        const currentTimelineCreatorId =
+          state.getTimeline.data?.data?.[0]?.creator?.id ||
+          state.getTimeline.data?.data?.[0]?.creator_id ||
+          state.getTimeline.data?.data?.[0]?.creatorId;
+
         state.requestRevision.isLoading = false;
         state.requestRevision.isSuccess = true;
         state.requestRevision.data = action.payload;
-        // Update the timeline in getTimeline.data
-        if (state.getTimeline.data?.data) {
-          const updatedStep = action.payload.data;
+
+        // Update the timeline in getTimeline.data only if same creator
+        if (
+          state.getTimeline.data?.data &&
+          updatedCreatorId &&
+          currentTimelineCreatorId === updatedCreatorId
+        ) {
           state.getTimeline.data.data = state.getTimeline.data.data.map((step) =>
             step.id === updatedStep.id ? updatedStep : step
           );
@@ -246,12 +281,24 @@ const campaignTimelineSlice = createSlice({
         state.markFinalComplete.isSuccess = false;
       })
       .addCase(markFinalComplete.fulfilled, (state, action) => {
+        const updatedStep = action.payload.data;
+        const updatedCreatorId =
+          updatedStep?.creator?.id || updatedStep?.creator_id || updatedStep?.creatorId;
+        const currentTimelineCreatorId =
+          state.getTimeline.data?.data?.[0]?.creator?.id ||
+          state.getTimeline.data?.data?.[0]?.creator_id ||
+          state.getTimeline.data?.data?.[0]?.creatorId;
+
         state.markFinalComplete.isLoading = false;
         state.markFinalComplete.isSuccess = true;
         state.markFinalComplete.data = action.payload;
-        // Update the timeline in getTimeline.data
-        if (state.getTimeline.data?.data) {
-          const updatedStep = action.payload.data;
+
+        // Update the timeline in getTimeline.data only if same creator
+        if (
+          state.getTimeline.data?.data &&
+          updatedCreatorId &&
+          currentTimelineCreatorId === updatedCreatorId
+        ) {
           state.getTimeline.data.data = state.getTimeline.data.data.map((step) =>
             step.id === updatedStep.id ? updatedStep : step
           );

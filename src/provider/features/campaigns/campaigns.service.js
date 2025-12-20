@@ -36,6 +36,12 @@ const publishCampaign = async (campaignId) => {
   return response.data;
 };
 
+// Mark a specific creator as complete in a campaign
+const markCreatorComplete = async (campaignId, creatorId) => {
+  const response = await api().post(`/campaigns/${campaignId}/creators/${creatorId}/complete`);
+  return response.data;
+};
+
 // Mark campaign as complete
 const markCampaignComplete = async (campaignId) => {
   const response = await api().post(`/campaigns/${campaignId}/complete`);
@@ -153,6 +159,7 @@ const campaignsService = {
   createContract,
   sendContract,
   hireCreator,
+  markCreatorComplete,
   markCampaignComplete,
   getCreatorCollaborationHistory,
 };

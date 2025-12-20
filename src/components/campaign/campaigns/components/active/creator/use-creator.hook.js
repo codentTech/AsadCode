@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
 import { avatar } from "@/common/constants/auth.constant";
-import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
+import {
+  COLLABORATION_TYPE,
+  COMPENSATION_TYPE,
+  SOURCE_PLATFORM,
+} from "@/common/constants/campaign.constant";
 
 export default function useActiveCampaign() {
   const dispatch = useDispatch();
@@ -19,46 +23,60 @@ export default function useActiveCampaign() {
     if (!campaign) return null;
 
     const isIndividualCollaboration =
-      campaign.invitation || campaign.campaign?.collaboration_type === "INDIVIDUAL_CREATOR";
+      campaign.invitation ||
+      campaign.campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
     const campaignData = campaign.campaign || {};
     const contractData = campaign.contract || {};
     const brandData = campaign.brand || campaignData.created_by || contractData.brand || {};
 
-    const hasContractData = contractData && (
-      contractData.id || 
-      contractData.campaignId || 
-      contractData.completionDeadline || 
-      contractData.completion_deadline ||
-      contractData.contentFormat ||
-      contractData.compensationType ||
-      contractData.compensation_type
-    );
+    const hasContractData =
+      contractData &&
+      (contractData.id ||
+        contractData.campaignId ||
+        contractData.completionDeadline ||
+        contractData.completion_deadline ||
+        contractData.contentFormat ||
+        contractData.compensationType ||
+        contractData.compensation_type);
 
     if (isIndividualCollaboration && hasContractData) {
       return {
         id: contractData.campaignId || campaignData.id || campaign.campaign_id,
-        title: campaignData.campaign_title || contractData.contentFormat || "Individual Collaboration",
+        title:
+          campaignData.campaign_title || contractData.contentFormat || "Individual Collaboration",
         brand:
           brandData.brand_profile?.brand_name ||
           (brandData.first_name && brandData.last_name
             ? `${brandData.first_name} ${brandData.last_name}`
             : brandData.first_name || "Brand"),
         logo: brandData.brand_profile?.brand_logo_url || avatar,
-        application_deadline: contractData.completionDeadline || contractData.completion_deadline || campaignData.application_deadline,
+        application_deadline:
+          contractData.completionDeadline ||
+          contractData.completion_deadline ||
+          campaignData.application_deadline,
         platforms: contractData.platforms || campaignData.platforms || [],
-        deliverables: contractData.contentFormat ? [contractData.contentFormat] : campaignData.deliverables || [],
+        deliverables: contractData.contentFormat
+          ? [contractData.contentFormat]
+          : campaignData.deliverables || [],
         payment:
-          contractData.compensationType === COMPENSATION_TYPE.PAID || contractData.compensation_type === COMPENSATION_TYPE.PAID
+          contractData.compensationType === COMPENSATION_TYPE.PAID ||
+          contractData.compensation_type === COMPENSATION_TYPE.PAID
             ? `$${contractData.totalCompensation || contractData.total_compensation || 0}`
-            : contractData.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT || contractData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
+            : contractData.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+                contractData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT
               ? "Gifted"
               : "Commission",
         productImage: campaignData.campaign_image,
         completionRate: 0,
         type: contractData.campaignType || contractData.campaign_type || campaignData.campaign_type,
-        compensation: contractData.compensationType || contractData.compensation_type || campaignData.compensation_type || COMPENSATION_TYPE.PAID,
-        compensationAmount: contractData.totalCompensation || contractData.total_compensation || campaignData.budget,
+        compensation:
+          contractData.compensationType ||
+          contractData.compensation_type ||
+          campaignData.compensation_type ||
+          COMPENSATION_TYPE.PAID,
+        compensationAmount:
+          contractData.totalCompensation || contractData.total_compensation || campaignData.budget,
         description:
           contractData.contentGuidelines ||
           contractData.content_guidelines ||

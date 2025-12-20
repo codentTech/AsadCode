@@ -1,8 +1,11 @@
 import api from "@/common/utils/api";
 
 // Get campaign timeline
-const getTimeline = async (campaignId) => {
-  const response = await api().get(`/campaigns/${campaignId}/timeline`);
+const getTimeline = async (campaignId, creatorId) => {
+  const url = creatorId 
+    ? `/campaigns/${campaignId}/timeline?creatorId=${creatorId}`
+    : `/campaigns/${campaignId}/timeline`;
+  const response = await api().get(url);
   return response.data;
 };
 
@@ -22,29 +25,25 @@ const updateTimelineStep = async (campaignId, step, data) => {
 };
 
 // Approve draft (Brand only)
-const approveDraft = async (campaignId, step) => {
-  const response = await api().post(
-    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/approve`
-  );
+const approveDraft = async (campaignId, step, creatorId) => {
+  const url = `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/approve${creatorId ? `?creatorId=${creatorId}` : ''}`;
+  const response = await api().post(url);
   return response.data;
 };
 
 // Request revision (Brand only)
-const requestRevision = async (campaignId, step, revisionNotes) => {
-  const response = await api().post(
-    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/request-revision`,
-    {
-      revision_notes: revisionNotes,
-    }
-  );
+const requestRevision = async (campaignId, step, revisionNotes, creatorId) => {
+  const url = `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/request-revision${creatorId ? `?creatorId=${creatorId}` : ''}`;
+  const response = await api().post(url, {
+    revision_notes: revisionNotes,
+  });
   return response.data;
 };
 
 // Mark final as complete (Brand only)
-const markFinalComplete = async (campaignId, step) => {
-  const response = await api().post(
-    `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/mark-complete`
-  );
+const markFinalComplete = async (campaignId, step, creatorId) => {
+  const url = `/campaigns/${campaignId}/timeline/${step.toLowerCase()}/mark-complete${creatorId ? `?creatorId=${creatorId}` : ''}`;
+  const response = await api().post(url);
   return response.data;
 };
 

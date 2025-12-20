@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle, Circle, Lock, MessageSquare } from "lucide-re
 import React from "react";
 import useBrandTimeline from "./use-brand-timeline.hook";
 
-const BrandTimelineSteps = ({ campaignId }) => {
+const BrandTimelineSteps = ({ campaignId, creatorId }) => {
   const {
     timelineSteps,
     timelineLoading,
@@ -20,12 +20,13 @@ const BrandTimelineSteps = ({ campaignId }) => {
     // Actions
     setShowRevisionModal,
     setRevisionNotes,
+    setSelectedStepForRevision,
     handleApproveDraft,
     handleRequestRevision,
     handleMarkAsComplete,
     formatDate,
     getTimeRemaining,
-  } = useBrandTimeline(campaignId);
+  } = useBrandTimeline(campaignId, creatorId);
 
   const getStepIcon = (step) => {
     switch (step.status) {
@@ -163,7 +164,10 @@ const BrandTimelineSteps = ({ campaignId }) => {
 
                   <CustomButton
                     text="Revise"
-                    onClick={() => setShowRevisionModal(true)}
+                    onClick={() => {
+                      setSelectedStepForRevision(step);
+                      setShowRevisionModal(true);
+                    }}
                     className="btn-outline w-full !h-7 text-xs"
                     disabled={revisionLoading}
                   />
@@ -185,7 +189,7 @@ const BrandTimelineSteps = ({ campaignId }) => {
                   </a>
                 )}
                 <CustomButton
-                  text={completeLoading ? "Completing..." : "Mark Complete"}
+                  text={completeLoading ? "Completing..." : "Complete"}
                   onClick={handleMarkAsComplete}
                   className="btn-success w-full !h-7 text-xs"
                   disabled={completeLoading}

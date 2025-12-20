@@ -6,9 +6,12 @@ import {
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
+import { getUser } from "@/common/utils/users.util";
 
-export default function useCreatorTimeline(campaignId, deadline, revisionsLimit = 3) {
+export default function useCreatorTimeline(campaignId, deadline, revisionsLimit = 2) {
   const dispatch = useDispatch();
+  const user = getUser();
+  const creatorId = user?.id;
 
   // Redux state
   const {
@@ -35,23 +38,21 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
   // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
 
-  // Load timeline on mount and when campaignId changes
   useEffect(() => {
-    if (campaignId) {
-      dispatch(getTimeline(campaignId));
+    if (campaignId && creatorId) {
+      dispatch(getTimeline({ campaignId, creatorId }));
     }
-  }, [campaignId, dispatch]);
+  }, [campaignId, creatorId, dispatch]);
 
-  // Auto-refresh timeline every 10 seconds to show brand updates
   useEffect(() => {
-    if (!campaignId) return;
+    if (!campaignId || !creatorId) return;
 
     const interval = setInterval(() => {
-      dispatch(getTimeline(campaignId));
-    }, 10000); // Refresh every 10 seconds
+      dispatch(getTimeline({ campaignId, creatorId }));
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [campaignId, dispatch]);
+  }, [campaignId, creatorId, dispatch]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -100,10 +101,9 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
         })
       ).unwrap();
 
-      // Refresh timeline
-      await dispatch(getTimeline(campaignId));
+      await dispatch(getTimeline({ campaignId, creatorId }));
     },
-    [campaignId, dispatch]
+    [campaignId, creatorId, dispatch]
   );
 
   // Step 2: Upload draft file (FILE UPLOAD)
@@ -134,11 +134,11 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     ).unwrap();
 
     // Refresh timeline
-    await dispatch(getTimeline(campaignId));
+    await dispatch(getTimeline({ campaignId, creatorId }));
 
     setShowUploadModal(false);
     setSelectedFile(null);
-  }, [selectedFile, campaignId, dispatch]);
+  }, [selectedFile, campaignId, creatorId, dispatch]);
 
   // Step 3: Submit published URL (URL INPUT ONLY)
   const handlePublishUrl = useCallback(async () => {
@@ -156,11 +156,11 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     ).unwrap();
 
     // Refresh timeline
-    await dispatch(getTimeline(campaignId));
+    await dispatch(getTimeline({ campaignId, creatorId }));
 
     setShowUrlModal(false);
     setPublishedUrl("");
-  }, [publishedUrl, campaignId, dispatch]);
+  }, [publishedUrl, campaignId, creatorId, dispatch]);
 
   // Calculate completion percentage
   const completedSteps = timelineSteps.filter(

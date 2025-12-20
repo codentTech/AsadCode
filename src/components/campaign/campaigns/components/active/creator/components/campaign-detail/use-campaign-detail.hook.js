@@ -1,5 +1,9 @@
 import { useState, useCallback, useMemo } from "react";
-import { SOURCE_PLATFORM, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import {
+  SOURCE_PLATFORM,
+  CAMPAIGN_TYPE,
+  COMPENSATION_TYPE,
+} from "@/common/constants/campaign.constant";
 import useCreatorTimeline from "../creator-timeline/use-creator-timeline.hook";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
@@ -153,6 +157,18 @@ export default function useCampaignDetail(selectedCampaign) {
     setShowContractModal(false);
   }, []);
 
+  const compensationAmount = useCallback(({ campaign }) => {
+    if (campaign.compensation_type === COMPENSATION_TYPE.COMMISSION) {
+      return campaign.commission_percentage || 0 + "%";
+    }
+    if (campaign.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      return campaign.product_value || 0 + " value";
+    }
+    if (campaign.compensation_type === COMPENSATION_TYPE.PAID) {
+      return campaign.creator_fee || 0;
+    }
+  }, []);
+
   return {
     // State
     showContentBrief,
@@ -185,5 +201,6 @@ export default function useCampaignDetail(selectedCampaign) {
     handleOpenContentBrief,
     handleOpenContractModal,
     handleCloseContractModal,
+    compensationAmount,
   };
 }
