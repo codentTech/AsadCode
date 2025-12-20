@@ -33,8 +33,16 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
 
   const creatorData = useMemo(() => getCreatorData(), [selectedCreator]);
 
+  const creatorProfileId = useMemo(() => {
+    if (!selectedCreator) return null;
+    return (
+      selectedCreator?.creator?.creator_profile?.id || selectedCreator?.creator_profile?.id || null
+    );
+  }, [selectedCreator]);
+
   return {
     creatorData,
+    creatorProfileId,
   };
 };
 

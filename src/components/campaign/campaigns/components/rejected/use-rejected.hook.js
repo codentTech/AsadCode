@@ -83,6 +83,7 @@ function useRejected() {
     const isLoading = isIndividualMode ? rejectedIndividualCollaborationsLoading : rejectedCreatorsLoading;
     if (justReinstatedRef.current && !isLoading) {
       justReinstatedRef.current = false;
+      autoSelectedForCampaignRef.current = null;
     }
 
     if (!selectedCampaign) {
@@ -318,6 +319,55 @@ function useRejected() {
     ? rejectedIndividualCollaborationsLoading
     : rejectedCreatorsLoading;
 
+  const rightPaneState = (() => {
+    if (isLoading) {
+      return { type: "loading" };
+    }
+
+    if (!selectedCampaign && !selectedCreator) {
+      return {
+        type: "notFound",
+        title: "No Campaign Selected",
+        description: "Select a campaign to view details.",
+      };
+    }
+
+    const dataLength = isIndividual
+      ? rejectedIndividualCollaborationsData?.data?.length || 0
+      : rejectedCreatorsData?.data?.length || 0;
+
+    if (!selectedCampaign && dataLength === 0) {
+      return {
+        type: "notFound",
+        title: "No Creators Found",
+        description: "No rejected individual collaborations found.",
+      };
+    }
+
+    if (selectedCampaign && dataLength === 0) {
+      return {
+        type: "notFound",
+        title: "No Creators Found",
+        description: "No creators have been rejected for this campaign yet.",
+      };
+    }
+
+    if (!selectedCreator) {
+      return {
+        type: "notFound",
+        title: "No Creator Selected",
+        description: "Select a creator to view details.",
+      };
+    }
+
+    const isIndividualCreator =
+      !selectedCampaign ||
+      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
+      (!selectedCreator?.campaign_id && !selectedCreator?.creator_id && selectedCreator?.creator);
+
+    return { type: "content", isIndividualCreator };
+  })();
+
   return {
     selectedCampaign,
     selectedCreator,
@@ -328,6 +378,7 @@ function useRejected() {
     rejectedCreatorsData: isIndividual
       ? rejectedIndividualCollaborationsData
       : rejectedCreatorsData,
+    rightPaneState,
     handleCampaignSelect,
     handleCreatorSelect,
     handleClearCreator,

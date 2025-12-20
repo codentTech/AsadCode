@@ -1,14 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loader from "@/common/components/loader/loader.component";
+import Loading from "@/common/components/loadar/loading.component";
 import ReadMore from "@/common/components/readmore/readmore.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
-import { MapPin, Star } from "lucide-react";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
-  selectedCampaign,
   selectedCreator,
   onReinstateCreator,
   onSaveToShortlistClick,
@@ -23,14 +21,13 @@ const DeliverablesProgress = ({
   } = useDeliverablesProgress({
     onReinstateCreator,
     selectedCreator,
-    selectedCampaign,
-    isIndividualCreator: isIndividualCreator || !selectedCampaign,
+    isIndividualCreator,
   });
 
   if (!creatorData) {
     return (
       <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-        <Loader loading={true} />
+        <Loading />
       </div>
     );
   }

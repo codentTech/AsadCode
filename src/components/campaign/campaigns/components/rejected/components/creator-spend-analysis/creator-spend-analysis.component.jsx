@@ -1,6 +1,6 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import Loader from "@/common/components/loader/loader.component";
+import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import Modal from "@/common/components/modal/modal.component";
@@ -97,9 +97,7 @@ const CreatorSpendAnalysis = ({
                   }}
                 />
               </div>
-            ) : (
-              <div></div>
-            )}
+            ) : null}
 
             <div className="flex items-center gap-3">
               <div className="w-full min-w-[230px]">
@@ -143,12 +141,7 @@ const CreatorSpendAnalysis = ({
           }
 
           if (isLoading) {
-            return (
-              <div className="flex flex-col items-center justify-center h-64">
-                <Loader loading={true} />
-                <p className="text-xs text-gray-500 mt-2">Loading rejected creators...</p>
-              </div>
-            );
+            return <Loading />;
           }
 
           if (isIndividualMode) {
@@ -162,7 +155,7 @@ const CreatorSpendAnalysis = ({
             }
 
             return (
-              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                 {dataToDisplay.map((invitation) => {
                   const mappedCreator = mapCreatorForCard(invitation);
                   return (
@@ -212,7 +205,7 @@ const CreatorSpendAnalysis = ({
           }
 
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
               {dataToDisplay.map((creator) => {
                 const mappedCreator = mapCreatorForCard(creator);
                 return (
@@ -269,8 +262,7 @@ const CreatorSpendAnalysis = ({
         <div className="space-y-4">
           {shortlistsLoading ? (
             <div className="text-center py-8">
-              <Loader loading={true} />
-              <p className="text-sm text-gray-500 mt-2">Loading shortlists...</p>
+              <Loading />
             </div>
           ) : shortlists.length === 0 ? (
             <div className="text-center py-8">

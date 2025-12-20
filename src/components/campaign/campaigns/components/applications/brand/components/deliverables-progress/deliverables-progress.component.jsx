@@ -1,26 +1,24 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import { Avatar } from "@mui/material";
 import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
+import Loading from "@/common/components/loadar/loading.component";
 
 const DeliverablesProgress = ({
-  selectedCampaign,
   selectedCreator,
   onHireClick,
   onRejectClick,
   onMessageClick,
   isIndividualCreator = false,
 }) => {
-  const { creatorData } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
+  const { creatorData, creatorProfileId } = useDeliverablesProgress(
+    selectedCreator,
+    isIndividualCreator
+  );
 
   if (!creatorData) {
-    return (
-      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-        <Loader loading={true} />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -90,15 +88,7 @@ const DeliverablesProgress = ({
           </div>
         </>
 
-        {(() => {
-          const creatorProfileId =
-            selectedCreator?.creator?.creator_profile?.id ||
-            selectedCreator?.creator_profile?.id;
-
-          return creatorProfileId ? (
-            <CollaborationHistory creatorProfileId={creatorProfileId} />
-          ) : null;
-        })()}
+        {creatorProfileId && <CollaborationHistory creatorProfileId={creatorProfileId} />}
       </div>
     </div>
   );

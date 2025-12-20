@@ -1,8 +1,7 @@
-import React from "react";
-import useCreatorCollaborationHistory from "./use-creator-collaboration-history.hook";
-import Loader from "@/common/components/loader/loader.component";
-import { Star } from "lucide-react";
+import Loading from "@/common/components/loadar/loading.component";
 import { formatDate } from "@/common/utils/formate-date";
+import { Star } from "lucide-react";
+import useCreatorCollaborationHistory from "./use-creator-collaboration-history.hook";
 
 const CollaborationHistory = ({ creatorProfileId }) => {
   const { history, isLoading, isError } = useCreatorCollaborationHistory(creatorProfileId);
@@ -15,7 +14,7 @@ const CollaborationHistory = ({ creatorProfileId }) => {
 
       {isLoading ? (
         <div className="flex justify-center items-center py-8">
-          <Loader />
+          <Loading />
         </div>
       ) : isError ? (
         <div className="text-center py-8">
