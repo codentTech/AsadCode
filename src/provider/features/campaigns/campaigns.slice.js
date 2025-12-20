@@ -37,6 +37,7 @@ const initialState = {
   createContract: { ...generalState },
   sendContract: { ...generalState },
   hireCreator: { ...generalState },
+  markCreatorComplete: { ...generalState },
   markCampaignComplete: { ...generalState },
   getCreatorCollaborationHistory: { ...generalState },
 };
@@ -336,6 +337,21 @@ export const hireCreator = createAsyncThunk(
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
+
+export const markCreatorComplete = createAsyncThunk(
+  "campaigns/markCreatorComplete",
+  async ({ campaignId, creatorId }, thunkAPI) => {
+    try {
+      const response = await campaignsService.markCreatorComplete(campaignId, creatorId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to mark creator complete")
+      );
     }
   }
 );
@@ -814,6 +830,23 @@ export const campaignsSlice = createSlice({
         state.hireCreator.isLoading = false;
         state.hireCreator.isError = true;
         state.hireCreator.data = null;
+      })
+      // markCreatorComplete
+      .addCase(markCreatorComplete.pending, (state) => {
+        state.markCreatorComplete.isLoading = true;
+        state.markCreatorComplete.message = "";
+      })
+      .addCase(markCreatorComplete.fulfilled, (state, action) => {
+        state.markCreatorComplete.isLoading = false;
+        state.markCreatorComplete.isSuccess = true;
+        state.markCreatorComplete.data = action.payload;
+      })
+      .addCase(markCreatorComplete.rejected, (state, action) => {
+        state.markCreatorComplete.message =
+          action.payload?.message || "Failed to mark creator complete";
+        state.markCreatorComplete.isLoading = false;
+        state.markCreatorComplete.isError = true;
+        state.markCreatorComplete.data = null;
       })
       // markCampaignComplete
       .addCase(markCampaignComplete.pending, (state) => {

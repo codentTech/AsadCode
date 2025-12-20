@@ -224,10 +224,18 @@ const DeliverablesProgressCompleted = ({
       return null;
     }
 
+    const creatorUserId = isIndividualCreator
+      ? selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id
+      : selectedCreator?.creator?.id || selectedCreator?.creator_id;
+
+    if (!creatorUserId) {
+      return null;
+    }
+
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={campaignId} contracts={contracts} />
+        <BrandTimelineSteps campaignId={campaignId} creatorId={creatorUserId} />
       </div>
     );
   };

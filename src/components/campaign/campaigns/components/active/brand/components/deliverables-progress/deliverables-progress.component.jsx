@@ -1,21 +1,18 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loader from "@/common/components/loader/loader.component";
+import Loading from "@/common/components/loadar/loading.component";
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { avatar } from "@/common/constants/auth.constant";
-import { SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
+import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
+import { formatDate } from "@/common/utils/formate-date";
+import { getUser } from "@/common/utils/users.util";
 import { Avatar } from "@mui/material";
 import { Edit2, Star, Trash2 } from "lucide-react";
 import React, { useState } from "react";
+import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
-import { formatDate } from "@/common/utils/formate-date";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
-import { getUser } from "@/common/utils/users.util";
-import Loading from "@/common/components/loadar/loading.component";
 
 const DeliverablesProgress = ({
   selectedCampaign,
@@ -31,6 +28,7 @@ const DeliverablesProgress = ({
     messageThreadHook,
     handleMessageClick,
     creator,
+    creatorUserId,
     privateNotes,
     editingNote,
     newNoteText,
@@ -133,7 +131,7 @@ const DeliverablesProgress = ({
             Contract Agreement
           </h4>
           <div className="flex justify-center py-3">
-            <Loader loading={true} />
+            <Loading />
           </div>
         </div>
       );
@@ -247,7 +245,7 @@ const DeliverablesProgress = ({
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={campaignId} />
+        <BrandTimelineSteps campaignId={campaignId} creatorId={creatorUserId} />
       </div>
     );
   };
@@ -256,9 +254,7 @@ const DeliverablesProgress = ({
     <div className="bg-white rounded border p-3">
       <h4 className="text-sm font-semibold text-gray-800 mb-2">Campaign Notes</h4>
       {isNotesLoading ? (
-        <div className="flex justify-center py-3">
-          <Loader loading={true} />
-        </div>
+        <Loading />
       ) : (
         <div className="space-y-2 text-xs text-gray-700 mb-3">
           {privateNotes && privateNotes.length > 0 ? (
@@ -286,7 +282,7 @@ const DeliverablesProgress = ({
                       title="Delete note"
                     >
                       {isDeleteNoteLoading ? (
-                        <Loader loading={true} />
+                        <Loading />
                       ) : (
                         <Trash2 className="w-3 h-3 text-red-500" />
                       )}
@@ -319,7 +315,7 @@ const DeliverablesProgress = ({
           <CustomButton
             text={
               isCreateNoteLoading || isUpdateNoteLoading ? (
-                <Loader loading={true} />
+                <Loading />
               ) : editingNote ? (
                 "Update"
               ) : (
