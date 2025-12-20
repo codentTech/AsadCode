@@ -1,6 +1,6 @@
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
-import Loader from "@/common/components/loader/loader.component";
+import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
 import { useState } from "react";
@@ -18,6 +18,7 @@ function Rejected() {
     rejectedCreatorsLoading,
     reinstateLoading,
     rejectedCreatorsData,
+    rightPaneState,
     handleCampaignSelect,
     handleCreatorSelect,
     handleClearCreator,
@@ -35,33 +36,26 @@ function Rejected() {
   const shortlists = Array.isArray(shortlistsData) ? shortlistsData : [];
 
   const renderRightPane = () => {
-    const isIndividual = !selectedCampaign;
-
-    if (!selectedCreator) {
-      if (isIndividual) {
-        return (
-          <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-            <NotFound title="No Creator Selected" description="Select a creator to view details." />
-          </div>
-        );
-      }
+    if (rightPaneState.type === "loading") {
       return (
-        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
+        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+          <Loading />
         </div>
       );
     }
 
-    const isIndividualCreator =
-      !selectedCampaign ||
-      selectedCampaign?.collaboration_type === "INDIVIDUAL_CREATOR" ||
-      (!selectedCreator?.campaign_id && !selectedCreator?.creator_id && selectedCreator?.creator);
+    if (rightPaneState.type === "notFound") {
+      return (
+        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
+          <NotFound title={rightPaneState.title} description={rightPaneState.description} />
+        </div>
+      );
+    }
 
     return (
       <DeliverablesProgress
-        selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
-        isIndividualCreator={isIndividualCreator}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
         onReinstateCreator={handleReinstateCreator}
         onSaveToShortlistClick={() => setShowShortlistModalForDetails(true)}
       />
@@ -100,8 +94,7 @@ function Rejected() {
         <div className="space-y-4">
           {shortlistsLoading ? (
             <div className="text-center py-8">
-              <Loader loading={true} />
-              <p className="text-sm text-gray-500 mt-2">Loading shortlists...</p>
+              <Loading />
             </div>
           ) : shortlists.length === 0 ? (
             <div className="text-center py-8">

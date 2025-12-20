@@ -1,15 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import Loader from "@/common/components/loader/loader.component";
+import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filter-modal.component";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
+import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filter-modal.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
 import { Filter } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -37,7 +36,6 @@ const CreatorSpendAnalysis = ({
     campaignsData,
     campaignsLoading,
     filteredCampaignOptions,
-    isSelectedCampaignValid,
     selectedCampaignValue,
     handleToggleChange,
     handleCreatorPreview,
@@ -60,10 +58,8 @@ const CreatorSpendAnalysis = ({
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
-      {/* Compact Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          {/* Toggle Switch - First Row */}
           <div className="mb-3">
             <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
               <CustomSwitch
@@ -76,10 +72,8 @@ const CreatorSpendAnalysis = ({
             </div>
           </div>
 
-          {/* Campaign Dropdown, Sort, Filters, and Start Campaign - Second Row */}
           <div className="flex items-center justify-between gap-3">
-            {/* Campaign Dropdown - Left Side (only for Multi-Creator) */}
-            {isMultiCreator ? (
+            {isMultiCreator && (
               <div className="min-w-[240px] w-[260px]">
                 <SimpleSelect
                   placeHolder="Select a campaign"
@@ -95,11 +89,8 @@ const CreatorSpendAnalysis = ({
                   }}
                 />
               </div>
-            ) : (
-              <div></div>
             )}
 
-            {/* Sort, Filters, and Start Campaign - Right Side */}
             <div className="flex items-center gap-3">
               <div className="w-full min-w-[230px]">
                 <SimpleSelect
@@ -137,17 +128,10 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Campaigns Loading */}
-        {campaignsLoading && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Loader loading={true} />
-            <p className="text-xs text-gray-500 mt-2">Loading campaigns...</p>
-          </div>
-        )}
+        {campaignsLoading && <Loading />}
 
         {selectedCampaign ? (
           <>
-            {/* Campaign Info */}
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h2 className="text-sm font-semibold text-gray-900 mb-2">
                 {selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
@@ -163,23 +147,14 @@ const CreatorSpendAnalysis = ({
 
             {selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ? (
               individualCollaborationsLoading ? (
-                <div className="text-center py-12 flex flex-col items-center">
-                  <Loader loading={true} />
-                  <p className="text-xs text-gray-500 mt-3">Loading collaborations...</p>
-                </div>
+                <Loading />
               ) : Array.isArray(individualCollaborations) &&
                 individualCollaborations.length === 0 ? (
-                <div className="w-full flex flex-col items-center justify-center py-20 min-h-[300px]">
-                  <div className="text-center max-w-sm">
-                    <div className="w-16 h-16 mx-auto bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                      <Search className="w-8 h-8 text-indigo-600" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2">No Creators Found</h2>
-                    <p className="text-sm text-gray-500">
-                      No individual collaborations found at this time. Invite creators to start
-                      collaborating.
-                    </p>
-                  </div>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <NotFound
+                    title="No Creators Found"
+                    description="No individual collaborations found at this time. Invite creators to start collaborating."
+                  />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
@@ -204,10 +179,7 @@ const CreatorSpendAnalysis = ({
             ) : (
               <>
                 {appliedCreatorsLoading ? (
-                  <div className="text-center py-12 flex flex-col items-center">
-                    <Loader loading={true} />
-                    <p className="text-xs text-gray-500 mt-3">Loading creators...</p>
-                  </div>
+                  <Loading />
                 ) : Array.isArray(appliedCreatorsData?.data) &&
                   appliedCreatorsData.data.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
@@ -251,7 +223,6 @@ const CreatorSpendAnalysis = ({
 
       <CampaignCreationWizard open={open} close={handleCloseModal} />
 
-      {/* Filters Modal */}
       <FilterModal
         show={showFilterModal}
         onClose={() => setShowFilterModal(false)}

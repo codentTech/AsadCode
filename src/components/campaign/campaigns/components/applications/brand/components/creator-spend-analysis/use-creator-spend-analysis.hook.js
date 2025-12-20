@@ -68,7 +68,6 @@ function useCreatorSpendAnalysis({
     hasFetchedIndividual.current = true;
     const result = await dispatch(getBrandIndividualCollaborations());
 
-    // Auto-select first collaboration if none selected
     if (result.payload?.success && result.payload?.data?.length > 0) {
       const collaborations = result.payload.data.filter(
         (invitation) => invitation.status === "PENDING"
@@ -240,7 +239,6 @@ function useCreatorSpendAnalysis({
     campaignsData,
     campaignsLoading,
     filteredCampaignOptions,
-    isSelectedCampaignValid,
     selectedCampaignValue,
     handleToggleChange,
     handleCreatorPreview,

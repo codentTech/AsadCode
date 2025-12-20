@@ -64,7 +64,6 @@ const ApplicationCard = ({
     campaign?.long_description ||
     application.custom_message ||
     "No description available";
-  const productImage = campaign?.campaign_image || product;
   const appliedDate = application.applied_at || application.created_at;
 
   return (
@@ -169,13 +168,15 @@ const ApplicationCard = ({
             )}
           </div>
 
-          <div className="flex-shrink-0">
-            <img
-              src={productImage.startsWith("http") ? productImage : product}
-              alt="Campaign Product"
-              className="w-44 h-44 rounded-lg object-cover border border-gray-200"
-            />
-          </div>
+          {campaign?.campaign_image && (
+            <div className="flex-shrink-0">
+              <img
+                src={campaign?.campaign_image}
+                alt="Campaign Product"
+                className="w-44 h-44 rounded-lg object-cover border border-gray-200"
+              />
+            </div>
+          )}
         </div>
       </div>
 
