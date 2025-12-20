@@ -1,72 +1,34 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getTimeline,
-  approveDraft,
-  requestRevision,
-  markFinalComplete,
-} from "@/provider/features/campaign-timeline/campaign-timeline.slice";
+import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 
-const TIMELINE_STEPS = {
-  CONTENT_RECORDED: "CONTENT_RECORDED",
-  DRAFT_REVIEW: "DRAFT_REVIEW",
-  FINAL_PUBLISHED: "FINAL_PUBLISHED",
-};
-
-const TIMELINE_STATUS = {
-  PENDING: "PENDING",
-  IN_PROGRESS: "IN_PROGRESS",
-  SUBMITTED: "SUBMITTED",
-  APPROVED: "APPROVED",
-  REVISION_REQUESTED: "REVISION_REQUESTED",
-  COMPLETED: "COMPLETED",
-};
-
-export default function useBrandTimeline(campaignId, contracts = []) {
+export default function useBrandTimeline(campaignId, creatorId) {
   const dispatch = useDispatch();
 
-  // Redux state
-  const {
-    data: timelineData,
-    isLoading: timelineLoading,
-    isSuccess: timelineSuccess,
-    isError: timelineError,
-  } = useSelector((state) => state.campaignTimeline.getTimeline || {});
-
-  const { isLoading: approveLoading } = useSelector(
-    (state) => state.campaignTimeline.approveDraft || {}
+  const { data: timelineData, isLoading: timelineLoading } = useSelector(
+    (state) => state.campaignTimeline.getTimeline || {}
   );
 
-  const { isLoading: revisionLoading } = useSelector(
-    (state) => state.campaignTimeline.requestRevision || {}
+  // Try to get timeline from keyed storage first, fallback to general state
+  const timelineKey = campaignId && creatorId ? `${campaignId}-${creatorId}` : null;
+  const keyedTimelineData = useSelector((state) =>
+    timelineKey ? state.campaignTimeline.timelinesByKey?.[timelineKey] : null
   );
+  const generalTimelineData = useSelector((state) => state.campaignTimeline.getTimeline || {});
 
-  const { isLoading: completeLoading } = useSelector(
-    (state) => state.campaignTimeline.markFinalComplete || {}
-  );
+  // Use keyed timeline if available, otherwise use general (for backwards compatibility)
+  const timelineDataToUse = keyedTimelineData || generalTimelineData;
 
-  // Local state
-  const [showRevisionModal, setShowRevisionModal] = useState(false);
-  const [revisionNotes, setRevisionNotes] = useState("");
+  const timelineSteps = Array.isArray(timelineDataToUse?.data) ? timelineDataToUse.data : [];
 
-  // Get timeline steps from Redux
-  const timelineSteps = timelineData?.data || [];
-
-  // Load timeline on mount - only if there are contracts (hired creators)
   useEffect(() => {
-    // Skip if no campaign ID
-    if (!campaignId) return;
-    
-    // Skip if campaign ID is a synthetic ID for individual collaborations
-    if (campaignId.startsWith("individual-")) return;
-    
-    // Only fetch timeline if there are contracts (hired creators)
-    if (contracts.length > 0) {
-      dispatch(getTimeline(campaignId));
+    if (!campaignId || !creatorId) {
+      return;
     }
-  }, [campaignId, contracts.length, dispatch]);
 
-  // Format date
+    dispatch(getTimeline({ campaignId, creatorId }));
+  }, [campaignId, creatorId, dispatch]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -76,89 +38,9 @@ export default function useBrandTimeline(campaignId, contracts = []) {
     });
   };
 
-  // Get time remaining
-  const getTimeRemaining = useCallback((deadlineDate) => {
-    if (!deadlineDate) return "";
-    const now = new Date();
-    const deadline = new Date(deadlineDate);
-    const diff = deadline - now;
-
-    if (diff <= 0) return "Overdue";
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-    if (days > 0) return `${days}d`;
-    return `${hours}h`;
-  }, []);
-
-  // Approve draft
-  const handleApproveDraft = useCallback(async () => {
-    await dispatch(
-      approveDraft({
-        campaignId,
-        step: TIMELINE_STEPS.DRAFT_REVIEW,
-      })
-    );
-  }, [campaignId, dispatch]);
-
-  // Request revision
-  const handleRequestRevision = useCallback(async () => {
-    if (!revisionNotes.trim()) return;
-
-    await dispatch(
-      requestRevision({
-        campaignId,
-        step: TIMELINE_STEPS.DRAFT_REVIEW,
-        revisionNotes,
-      })
-    );
-
-    setShowRevisionModal(false);
-    setRevisionNotes("");
-  }, [revisionNotes, campaignId, dispatch]);
-
-  // Mark as complete
-  const handleMarkAsComplete = useCallback(async () => {
-    await dispatch(
-      markFinalComplete({
-        campaignId,
-        step: TIMELINE_STEPS.FINAL_PUBLISHED,
-      })
-    );
-  }, [campaignId, dispatch]);
-
-  // Calculate completion percentage
-  const completedSteps = timelineSteps.filter(
-    (step) => step.status === TIMELINE_STATUS.COMPLETED
-  ).length;
-  const completionPercentage =
-    timelineSteps.length > 0 ? (completedSteps / timelineSteps.length) * 100 : 0;
-
   return {
-    // State
     timelineSteps,
     timelineLoading,
-    timelineSuccess,
-    timelineError,
-    approveLoading,
-    revisionLoading,
-    completeLoading,
-    showRevisionModal,
-    revisionNotes,
-    completionPercentage,
-
-    // Actions
-    setShowRevisionModal,
-    setRevisionNotes,
-    handleApproveDraft,
-    handleRequestRevision,
-    handleMarkAsComplete,
     formatDate,
-    getTimeRemaining,
-
-    // Constants
-    TIMELINE_STEPS,
-    TIMELINE_STATUS,
   };
 }

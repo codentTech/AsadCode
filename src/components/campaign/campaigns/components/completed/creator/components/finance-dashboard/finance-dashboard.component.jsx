@@ -153,7 +153,7 @@ const FinanceDashboard = ({
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-200">
+        {/* <div className="p-4 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Upcoming Payments</h3>
           <div className="space-y-3">
             {upcomingPayments.map((payment, index) => (
@@ -168,7 +168,7 @@ const FinanceDashboard = ({
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <div className="p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Reviews</h3>

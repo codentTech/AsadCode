@@ -8,10 +8,20 @@ import {
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 
-export default function useBrandTimeline(campaignId) {
+export default function useBrandTimeline(campaignId, creatorId) {
   const dispatch = useDispatch();
 
-  const { data: timelineData, isLoading: timelineLoading } = useSelector(
+  // Try to get timeline from keyed storage first, fallback to general state
+  const timelineKey = campaignId && creatorId ? `${campaignId}-${creatorId}` : null;
+  const keyedTimelineData = useSelector((state) =>
+    timelineKey ? state.campaignTimeline.timelinesByKey?.[timelineKey] : null
+  );
+  const generalTimelineData = useSelector((state) => state.campaignTimeline.getTimeline || {});
+
+  // Use keyed timeline if available, otherwise use general (for backwards compatibility)
+  const timelineData = keyedTimelineData || generalTimelineData;
+
+  const { isLoading: timelineLoading } = useSelector(
     (state) => state.campaignTimeline.getTimeline || {}
   );
 
@@ -29,24 +39,27 @@ export default function useBrandTimeline(campaignId) {
 
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [revisionNotes, setRevisionNotes] = useState("");
+  const [selectedStepForRevision, setSelectedStepForRevision] = useState(null);
 
-  const timelineSteps = timelineData?.data || [];
-
-  useEffect(() => {
-    if (!campaignId) return;
-
-    dispatch(getTimeline(campaignId));
-  }, [campaignId, dispatch]);
+  const timelineSteps = Array.isArray(timelineData?.data) ? timelineData.data : [];
 
   useEffect(() => {
-    if (!campaignId) return;
+    if (!campaignId || !creatorId) {
+      return;
+    }
+
+    dispatch(getTimeline({ campaignId, creatorId }));
+  }, [campaignId, creatorId, dispatch]);
+
+  useEffect(() => {
+    if (!campaignId || !creatorId) return;
 
     const interval = setInterval(() => {
-      dispatch(getTimeline(campaignId));
+      dispatch(getTimeline({ campaignId, creatorId }));
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [campaignId, dispatch]);
+  }, [campaignId, creatorId, dispatch]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -73,51 +86,88 @@ export default function useBrandTimeline(campaignId) {
   }, []);
 
   const handleApproveDraft = useCallback(async () => {
-    try {
-      await dispatch(
-        approveDraft({
-          campaignId,
-          step: TIMELINE_STEPS.DRAFT_REVIEW,
-        })
-      ).unwrap();
+    // Find the DRAFT_REVIEW step from timelineSteps
+    const draftStep = timelineSteps.find((s) => s.step === TIMELINE_STEPS.DRAFT_REVIEW);
 
-      await dispatch(getTimeline(campaignId));
-    } catch (error) {
-      alert(`Approval failed: ${error.message || "Unknown error"}`);
+    if (!draftStep) {
+      return;
     }
-  }, [campaignId, dispatch]);
+
+    // Get creatorId from the actual step
+    const stepCreatorId =
+      draftStep?.creator?.id || draftStep?.creator_id || draftStep?.creatorId || creatorId;
+
+    if (!stepCreatorId) {
+      return;
+    }
+
+    await dispatch(
+      approveDraft({
+        campaignId,
+        step: TIMELINE_STEPS.DRAFT_REVIEW,
+        creatorId: stepCreatorId,
+      })
+    ).unwrap();
+
+    await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
+  }, [campaignId, creatorId, timelineSteps, dispatch]);
 
   const handleRequestRevision = useCallback(async () => {
-    if (!revisionNotes.trim()) return;
+    if (!revisionNotes.trim() || !selectedStepForRevision) return;
 
-    try {
-      await dispatch(
-        requestRevision({
-          campaignId,
-          step: TIMELINE_STEPS.DRAFT_REVIEW,
-          revisionNotes,
-        })
-      ).unwrap();
+    // Get creatorId from the actual step, not from props
+    const stepCreatorId =
+      selectedStepForRevision.creator?.id ||
+      selectedStepForRevision.creator_id ||
+      selectedStepForRevision.creatorId ||
+      creatorId;
 
-      await dispatch(getTimeline(campaignId));
+    if (!stepCreatorId) {
+      return;
+    }
 
-      setShowRevisionModal(false);
-      setRevisionNotes("");
-    } catch (error) {}
-  }, [revisionNotes, campaignId, dispatch]);
+    const step = selectedStepForRevision.step
+      ? typeof selectedStepForRevision.step === "string"
+        ? selectedStepForRevision.step.toUpperCase()
+        : selectedStepForRevision.step
+      : TIMELINE_STEPS.DRAFT_REVIEW;
+
+    await dispatch(
+      requestRevision({
+        campaignId,
+        step,
+        revisionNotes,
+        creatorId: stepCreatorId,
+      })
+    ).unwrap();
+
+    // Refresh timeline with the correct creatorId
+    await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
+
+    setShowRevisionModal(false);
+    setRevisionNotes("");
+    setSelectedStepForRevision(null);
+  }, [revisionNotes, campaignId, creatorId, selectedStepForRevision, dispatch]);
 
   const handleMarkAsComplete = useCallback(async () => {
-    try {
-      await dispatch(
-        markFinalComplete({
-          campaignId,
-          step: TIMELINE_STEPS.FINAL_PUBLISHED,
-        })
-      ).unwrap();
+    // Find the FINAL_PUBLISHED step from timelineSteps
+    const finalStep = timelineSteps.find((s) => s.step === TIMELINE_STEPS.FINAL_PUBLISHED);
+    const stepCreatorId = finalStep?.creator?.id || finalStep?.creator_id || creatorId;
 
-      await dispatch(getTimeline(campaignId));
-    } catch (error) {}
-  }, [campaignId, dispatch]);
+    if (!stepCreatorId) {
+      return;
+    }
+
+    await dispatch(
+      markFinalComplete({
+        campaignId,
+        step: TIMELINE_STEPS.FINAL_PUBLISHED,
+        creatorId: stepCreatorId,
+      })
+    ).unwrap();
+
+    await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
+  }, [campaignId, creatorId, timelineSteps, dispatch]);
 
   const completedSteps = timelineSteps.filter(
     (step) => step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
@@ -136,6 +186,7 @@ export default function useBrandTimeline(campaignId) {
     completionPercentage,
     setShowRevisionModal,
     setRevisionNotes,
+    setSelectedStepForRevision,
     handleApproveDraft,
     handleRequestRevision,
     handleMarkAsComplete,

@@ -17,13 +17,13 @@ import { getTimeline } from "@/provider/features/campaign-timeline/campaign-time
 import {
   getAllBrandCampaigns,
   getHiredCreators,
-  markCampaignComplete,
+  markCreatorComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
 import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
 } from "@/provider/features/contracts/contracts.slice";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
@@ -31,7 +31,8 @@ const useDeliverablesProgress = (
   selectedCampaign = null,
   selectedCreator = null,
   isIndividualCreator = false,
-  onClearCreator = null
+  onClearCreator = null,
+  filters = { status: "HIRED", sort: "newest" }
 ) => {
   const creatorMode = isCreatorMode();
   const user = getUser();
@@ -69,17 +70,50 @@ const useDeliverablesProgress = (
   const [markCompleteRating, setMarkCompleteRating] = useState(0);
   const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
 
-  const creatorUserId = isIndividualCreator
-    ? selectedCreator?.creatorUserId || selectedCreator?.creator?.id
-    : selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id;
+  // Track the last called keys to prevent duplicate calls
+  const lastCalledKeysRef = useRef({
+    notes: null,
+    timeline: null,
+    reviews: null,
+    individualContracts: false,
+  });
 
-  const creatorProfileId = isIndividualCreator
-    ? selectedCreator?.creator?.creator_profile?.id ||
-      selectedCreator?.contract?.creator?.creator_profile?.id ||
-      null
-    : selectedCreator?.creator?.creator_profile?.id ||
-      selectedCreator?.id ||
-      user?.creator_profile?.id;
+  // Track previous mode to detect mode switches
+  const prevModeRef = useRef(isIndividualCreator);
+
+  // Extract stable IDs to prevent unnecessary recalculations - extract once at the top
+  const selectedCreatorContractCampaignId = selectedCreator?.contract?.campaignId;
+  const selectedCampaignId = selectedCampaign?.id;
+
+  const creatorUserId = useMemo(() => {
+    if (!selectedCreator) return null;
+    if (isIndividualCreator) {
+      return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
+    }
+    return (
+      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id || null
+    );
+  }, [
+    selectedCreator?.id,
+    selectedCreator?.creatorUserId,
+    selectedCreator?.creator?.id,
+    isIndividualCreator,
+  ]);
+
+  const creatorProfileId = useMemo(() => {
+    if (!selectedCreator) return null;
+
+    if (isIndividualCreator) {
+      return selectedCreator?.contract?.creator?.creator_profile?.id || null;
+    }
+
+    return selectedCreator?.creator?.creator_profile?.id || null;
+  }, [
+    selectedCreator?.id,
+    selectedCreator?.contract?.creator?.creator_profile?.id,
+    selectedCreator?.creator?.creator_profile?.id,
+    isIndividualCreator,
+  ]);
 
   const getCreatorData = () => {
     if (!selectedCreator) {
@@ -150,41 +184,68 @@ const useDeliverablesProgress = (
     };
   };
 
-  const creator = getCreatorData();
+  const creator = useMemo(
+    () => getCreatorData(),
+    [
+      selectedCreator?.id,
+      selectedCreator?.name,
+      selectedCreator?.image,
+      selectedCreator?.location,
+      selectedCreator?.rating,
+      selectedCreator?.bio,
+      selectedCreator?.age,
+      selectedCreator?.creatorUserId,
+      selectedCreator?.creator?.id,
+      selectedCreator?.creator?.first_name,
+      selectedCreator?.creator?.last_name,
+      selectedCreator?.creator?.city,
+      selectedCreator?.creator?.country,
+      selectedCreator?.creator?.date_of_birth,
+      selectedCreator?.creator?.creator_profile?.id,
+      selectedCreator?.creator?.creator_profile?.profile_photo_url,
+      selectedCreator?.creator?.creator_profile?.rating,
+      selectedCreator?.creator?.creator_profile?.bio,
+      creatorProfileId,
+      isIndividualCreator,
+    ]
+  );
 
-  const getMessageCampaignId = () => {
+  const messageCampaignId = useMemo(() => {
     if (isIndividualCreator) {
-      return (
-        selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId ||
-        null
-      );
+      return selectedCreatorContractCampaignId || null;
     }
-    return selectedCampaign?.id || null;
-  };
+    return selectedCampaignId || null;
+  }, [isIndividualCreator, selectedCreatorContractCampaignId, selectedCampaignId]);
 
-  const messageCampaignId = getMessageCampaignId();
   const messageThreadHook = useMessageThread(creatorUserId, messageCampaignId);
 
   const handleMessageClick = () => {
-    const currentCampaignId = getMessageCampaignId();
-
-    if (!currentCampaignId) {
+    if (!messageCampaignId) {
       return;
     }
 
-    messageThreadHook.openMessageModal(currentCampaignId);
+    messageThreadHook.openMessageModal(messageCampaignId);
   };
 
-  const privateNotes = getNotesState.data || [];
+  const privateNotes = getNotesByCreatorProfileState.data || [];
 
-  const contracts = isIndividualCreator
-    ? getIndividualContractsState.data || []
-    : getContractsState.data || [];
+  // Use stable references to prevent unnecessary recalculations
+  const individualContractsData = getIndividualContractsState.data;
+  const multiContractsData = getContractsState.data;
+  const individualContractsLength = Array.isArray(individualContractsData)
+    ? individualContractsData.length
+    : 0;
+  const multiContractsLength = Array.isArray(multiContractsData) ? multiContractsData.length : 0;
+
+  const contracts = useMemo(() => {
+    if (isIndividualCreator) {
+      return Array.isArray(individualContractsData) ? individualContractsData : [];
+    }
+    return Array.isArray(multiContractsData) ? multiContractsData : [];
+  }, [isIndividualCreator, individualContractsLength, multiContractsLength]);
 
   const selectedContract = useMemo(() => {
-    if (!selectedCreator || contracts.length === 0) return null;
+    if (!selectedCreator || !contracts || contracts.length === 0) return null;
 
     if (isIndividualCreator) {
       return (
@@ -208,54 +269,115 @@ const useDeliverablesProgress = (
         return possibleCreatorIds.includes(contractCreatorId);
       }) || contracts[0]
     );
-  }, [contracts, selectedCreator, creatorProfileId, creatorUserId, isIndividualCreator]);
+  }, [
+    contracts,
+    selectedCreator?.id,
+    selectedCreator?.contractId,
+    creatorProfileId,
+    creatorUserId,
+    isIndividualCreator,
+  ]);
 
   useEffect(() => {
+    const modeChanged = prevModeRef.current !== isIndividualCreator;
+
     if (isIndividualCreator) {
-      dispatch(getIndividualCollaborationContracts(false));
+      // Update mode ref immediately to prevent multiple triggers
+      if (modeChanged) {
+        prevModeRef.current = isIndividualCreator;
+        // Reset other refs when mode changes to allow fresh data fetch
+        lastCalledKeysRef.current.notes = null;
+        lastCalledKeysRef.current.timeline = null;
+        lastCalledKeysRef.current.reviews = null;
+        lastCalledKeysRef.current.individualContracts = false;
+      }
+
+      // Check if we already have data or are currently loading - if yes, don't fetch again
+      const hasData =
+        Array.isArray(getIndividualContractsState.data) &&
+        getIndividualContractsState.data.length > 0;
+      const isCurrentlyLoading = getIndividualContractsState.isLoading;
+
+      // Only fetch if mode changed (switching TO individual creator) AND we haven't fetched yet
+      // OR if we don't have data and we're not loading and haven't marked as fetched
+      const shouldFetch =
+        (modeChanged && !lastCalledKeysRef.current.individualContracts) ||
+        (!hasData && !isCurrentlyLoading && !lastCalledKeysRef.current.individualContracts);
+
+      if (shouldFetch) {
+        // Mark as fetched BEFORE dispatching to prevent duplicate calls
+        lastCalledKeysRef.current.individualContracts = true;
+        dispatch(getIndividualCollaborationContracts(false));
+      }
+    } else {
+      // Reset flag when switching away from individual creator mode
+      if (modeChanged) {
+        prevModeRef.current = isIndividualCreator;
+        lastCalledKeysRef.current.individualContracts = false;
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, isIndividualCreator]);
 
-  useEffect(() => {
+  const effectiveCampaignId = useMemo(() => {
     if (isIndividualCreator) {
-      const effectiveCampaignId =
-        selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId;
-      if (effectiveCampaignId && !creatorMode) {
-        dispatch(getCampaignNotes(effectiveCampaignId));
-      }
+      return selectedCreatorContractCampaignId || null;
+    }
+    return selectedCampaignId || null;
+  }, [isIndividualCreator, selectedCreatorContractCampaignId, selectedCampaignId]);
+
+  useEffect(() => {
+    if (creatorMode) return;
+    if (!selectedCreator) return;
+    if (!creatorProfileId) return;
+    if (!effectiveCampaignId) return;
+
+    // Create a unique key for this combination - only depends on actual IDs
+    const currentKey = `${effectiveCampaignId}-${creatorProfileId}-${isIndividualCreator}`;
+
+    // Prevent duplicate API calls - check if we already called with this exact key
+    if (lastCalledKeysRef.current.notes === currentKey) {
       return;
     }
 
-    if (selectedCampaign?.id && !creatorMode) {
-      dispatch(getContractsByCampaign(selectedCampaign.id));
-      dispatch(getCampaignNotes(selectedCampaign.id));
-    }
-  }, [dispatch, selectedCampaign?.id, isIndividualCreator, creatorMode, selectedCreator]);
+    // Update the ref BEFORE making the call to prevent race conditions
+    lastCalledKeysRef.current.notes = currentKey;
 
-  useEffect(() => {
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
-
-    if (effectiveCampaignId) {
-      if (isIndividualCreator) {
-        dispatch(getTimeline(effectiveCampaignId));
-      } else if (contracts.length > 0 && creatorProfileId) {
-        dispatch(getTimeline(effectiveCampaignId));
-      }
+    if (isIndividualCreator) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
+    } else {
+      dispatch(getContractsByCampaign(effectiveCampaignId));
+      dispatch(
+        getCampaignNotesByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
     }
   }, [
     dispatch,
-    selectedCampaign?.id,
-    selectedCreator,
-    contracts.length,
+    effectiveCampaignId,
     creatorProfileId,
     isIndividualCreator,
+    creatorMode,
+    selectedCreator?.id,
   ]);
+
+  useEffect(() => {
+    if (!effectiveCampaignId || !creatorUserId) return;
+
+    // Create a unique key - only depends on actual IDs
+    const currentKey = `${effectiveCampaignId}-${creatorUserId}`;
+
+    // Prevent duplicate API calls
+    if (lastCalledKeysRef.current.timeline === currentKey) {
+      return;
+    }
+
+    // Update the ref BEFORE making the call
+    lastCalledKeysRef.current.timeline = currentKey;
+
+    dispatch(getTimeline({ campaignId: effectiveCampaignId, creatorId: creatorUserId }));
+  }, [dispatch, effectiveCampaignId, creatorUserId]);
 
   const handleEditNote = (noteId) => {
     const note = privateNotes.find((n) => n.id === noteId);
@@ -266,11 +388,7 @@ const useDeliverablesProgress = (
   };
 
   const handleSaveEditNote = async (noteId) => {
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
+    if (!creatorProfileId || !effectiveCampaignId) return;
 
     await dispatch(
       updateCampaignNote({
@@ -283,8 +401,10 @@ const useDeliverablesProgress = (
     setNewNoteText("");
     setTextareaKey((prev) => prev + 1);
 
-    if (effectiveCampaignId && !creatorMode) {
-      dispatch(getCampaignNotes(effectiveCampaignId));
+    if (!creatorMode) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
     }
   };
 
@@ -295,29 +415,19 @@ const useDeliverablesProgress = (
   };
 
   const handleDeleteNote = async (noteId) => {
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
+    if (!creatorProfileId || !effectiveCampaignId) return;
 
     await dispatch(deleteCampaignNote(noteId)).unwrap();
 
-    if (effectiveCampaignId && !creatorMode) {
-      dispatch(getCampaignNotes(effectiveCampaignId));
+    if (!creatorMode) {
+      dispatch(
+        getCampaignNotesByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
     }
   };
 
   const handleSaveNewNote = async () => {
-    if (!newNoteText.trim() || !creatorProfileId) return;
-
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
-
-    if (!effectiveCampaignId) return;
+    if (!newNoteText.trim() || !creatorProfileId || !effectiveCampaignId) return;
 
     await dispatch(
       createCampaignNote({
@@ -331,7 +441,9 @@ const useDeliverablesProgress = (
     setTextareaKey((prev) => prev + 1);
 
     if (!creatorMode) {
-      dispatch(getCampaignNotes(effectiveCampaignId));
+      dispatch(
+        getCampaignNotesByCreatorProfile({ campaignId: effectiveCampaignId, creatorProfileId })
+      );
     }
   };
 
@@ -341,29 +453,27 @@ const useDeliverablesProgress = (
   };
 
   useEffect(() => {
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
+    if (!effectiveCampaignId || !creatorProfileId || creatorMode) return;
 
-    if (effectiveCampaignId && creatorProfileId && !creatorMode) {
-      dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
-      dispatch(
-        getCampaignReviewsByCreatorProfile({
-          campaignId: effectiveCampaignId,
-          creatorProfileId: creatorProfileId,
-        })
-      );
+    // Create a unique key - only depends on actual IDs
+    const currentKey = `${effectiveCampaignId}-${creatorProfileId}`;
+
+    // Prevent duplicate API calls
+    if (lastCalledKeysRef.current.reviews === currentKey) {
+      return;
     }
-  }, [
-    dispatch,
-    selectedCampaign?.id,
-    selectedCreator,
-    creatorProfileId,
-    isIndividualCreator,
-    creatorMode,
-  ]);
+
+    // Update the ref BEFORE making the call
+    lastCalledKeysRef.current.reviews = currentKey;
+
+    dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+    dispatch(
+      getCampaignReviewsByCreatorProfile({
+        campaignId: effectiveCampaignId,
+        creatorProfileId: creatorProfileId,
+      })
+    );
+  }, [dispatch, effectiveCampaignId, creatorProfileId, creatorMode]);
 
   const timelineSteps = getTimelineState?.data?.data || [];
 
@@ -394,13 +504,13 @@ const useDeliverablesProgress = (
   };
 
   const handleConfirmMarkComplete = async () => {
-    const effectiveCampaignId = isIndividualCreator
-      ? selectedCreator?.campaign_id ||
-        selectedCreator?.campaign?.id ||
-        selectedCreator?.contract?.campaignId
-      : selectedCampaign?.id;
-
-    if (!selectedContract || !effectiveCampaignId || !creatorProfileId || markCompleteRating === 0)
+    if (
+      !selectedContract ||
+      !effectiveCampaignId ||
+      !creatorProfileId ||
+      !creatorUserId ||
+      markCompleteRating === 0
+    )
       return;
 
     setIsMarkingComplete(true);
@@ -415,7 +525,9 @@ const useDeliverablesProgress = (
       })
     ).unwrap();
 
-    await dispatch(markCampaignComplete(effectiveCampaignId)).unwrap();
+    await dispatch(
+      markCreatorComplete({ campaignId: effectiveCampaignId, creatorId: creatorUserId })
+    ).unwrap();
 
     if (isIndividualCreator) {
       const refreshResult = await dispatch(getIndividualCollaborationContracts(false)).unwrap();
@@ -447,6 +559,7 @@ const useDeliverablesProgress = (
     messageThreadHook,
     handleMessageClick,
     creator,
+    creatorUserId,
     privateNotes,
     editingNote,
     newNoteText,
@@ -458,7 +571,7 @@ const useDeliverablesProgress = (
     handleDeleteNote,
     handleSaveNewNote,
     handleCancelNewNote,
-    isNotesLoading: getNotesState.isLoading,
+    isNotesLoading: getNotesByCreatorProfileState.isLoading,
     isCreateNoteLoading: createNoteState.isLoading,
     isUpdateNoteLoading: updateNoteState.isLoading,
     isDeleteNoteLoading: deleteNoteState.isLoading,

@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import Loading from "@/common/components/loadar/loading.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
@@ -10,7 +10,6 @@ import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
-import Loading from "@/common/components/loadar/loading.component";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
