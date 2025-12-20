@@ -23,9 +23,7 @@ function useBrandApplications() {
     isLoading: appliedCreatorsLoading,
     isSuccess: appliedCreatorsSuccess,
   } = useSelector((state) => state.campaigns.getAppliedCreators || {});
-  const { isSuccess: rejectSuccess } = useSelector(
-    (state) => state.campaigns.rejectCreator || {}
-  );
+  const { isSuccess: rejectSuccess } = useSelector((state) => state.campaigns.rejectCreator || {});
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
     useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});
   const { isSuccess: rejectInvitationSuccess } = useSelector(
@@ -68,7 +66,7 @@ function useBrandApplications() {
     city: "",
     niches: [],
     platforms: [],
-    status: "",
+    status: "PENDING",
     excludeStatus: "HIRED",
     sort: "newest",
   });
@@ -169,7 +167,6 @@ function useBrandApplications() {
       selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
       (!selectedCampaign && selectedCreator?.campaign_id);
 
-    // For individual collaborations, get campaignId from selectedCreator (synthetic campaign)
     const campaignId = isIndividual
       ? selectedCreator?.campaign_id || selectedCreator?.campaign?.id
       : selectedCampaign?.id;
@@ -309,8 +306,9 @@ function useBrandApplications() {
         );
       }
       setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
     }
-  }, [rejectSuccess, selectedCampaign, dispatch, filters]);
+  }, [rejectSuccess, selectedCampaign, dispatch, filters, fetchIndividualCollaborations]);
 
   useEffect(() => {
     if (createContractSuccess && sendContractSuccess) {
@@ -324,17 +322,27 @@ function useBrandApplications() {
           })
         );
       }
+      setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
     }
-  }, [createContractSuccess, sendContractSuccess, selectedCampaign, dispatch, filters, fetchIndividualCollaborations]);
+  }, [
+    createContractSuccess,
+    sendContractSuccess,
+    selectedCampaign,
+    dispatch,
+    filters,
+    fetchIndividualCollaborations,
+  ]);
 
   useEffect(() => {
     if (rejectInvitationSuccess && selectedCampaign) {
       if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
         setSelectedCreator(null);
+        autoSelectedForCampaignRef.current = null;
       }
     }
-  }, [rejectInvitationSuccess, selectedCampaign, dispatch]);
+  }, [rejectInvitationSuccess, selectedCampaign, dispatch, fetchIndividualCollaborations]);
 
   useEffect(() => {
     if (
@@ -343,8 +351,9 @@ function useBrandApplications() {
     ) {
       fetchIndividualCollaborations();
       setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
     }
-  }, [reinstateInvitationSuccess, selectedCampaign, dispatch]);
+  }, [reinstateInvitationSuccess, selectedCampaign, dispatch, fetchIndividualCollaborations]);
 
   const getCampaignId = () => {
     if (selectedCampaign?.id) {
@@ -364,11 +373,11 @@ function useBrandApplications() {
   };
 
   const applicationPitch = selectedCreator?.pitch || selectedCreator?.custom_message || null;
-  
+
   const messageThreadHook = useMessageThread(
     getCreatorId(),
     getCampaignId(),
-    null, // No callback needed - WebSocket handles real-time updates
+    null,
     applicationPitch
   );
 
@@ -444,14 +453,13 @@ function useBrandApplications() {
       return;
 
     const now = Date.now();
-    const minTimeBetweenRefreshes = 30000; // 30 seconds minimum between refreshes
+    const minTimeBetweenRefreshes = 30000;
 
     let shouldRefresh = false;
     Object.keys(allMessages || {}).forEach((conversationId) => {
       const messages = allMessages[conversationId] || [];
       const previousCount = previousMessagesCountRef.current[conversationId] || 0;
 
-      // Only refresh if creator sent a message (not when brand sends) and enough time has passed
       if (
         messages.length > previousCount &&
         previousCount > 0 &&
@@ -459,7 +467,6 @@ function useBrandApplications() {
       ) {
         const latestMessage = messages[messages.length - 1];
         const senderId = latestMessage?.sender?.id || latestMessage?.sender_id;
-        // Only refresh if creator sent the message (not the current brand user)
         if (latestMessage && latestMessage.sender?.role === "CREATOR" && senderId !== user?.id) {
           shouldRefresh = true;
         }
@@ -467,8 +474,6 @@ function useBrandApplications() {
 
       previousMessagesCountRef.current[conversationId] = messages.length;
     });
-
-    // Only dispatch once if refresh is needed
     if (shouldRefresh) {
       lastRefreshTimeRef.current = now;
       if (refreshTimeoutRef.current) {
@@ -485,6 +490,50 @@ function useBrandApplications() {
       }
     };
   }, [allMessages, selectedCampaign, dispatch, user]);
+
+  const isIndividualCreator =
+    !selectedCampaign ||
+    selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
+  const rightPaneState = (() => {
+    if (appliedCreatorsLoading || individualCollaborationsLoading) {
+      return { type: "loading" };
+    }
+
+    if (!selectedCampaign && !selectedCreator) {
+      return {
+        type: "notFound",
+        title: "No Campaign Selected",
+        description: "Select a campaign to view details.",
+      };
+    }
+
+    if (!selectedCampaign && displayCreators.length === 0) {
+      return {
+        type: "notFound",
+        title: "No Creators Found",
+        description: "No individual collaborations found.",
+      };
+    }
+
+    if (selectedCampaign && displayCreators.length === 0) {
+      return {
+        type: "notFound",
+        title: "No Creators Found",
+        description: "No creators have applied to this campaign yet.",
+      };
+    }
+
+    if (!selectedCreator) {
+      return {
+        type: "notFound",
+        title: "No Creator Selected",
+        description: "Select a creator to view details.",
+      };
+    }
+
+    return { type: "content", isIndividualCreator };
+  })();
 
   return {
     appliedCreatorsData,
@@ -508,6 +557,7 @@ function useBrandApplications() {
     creators: displayCreators,
     creator,
     messageThreadHook,
+    rightPaneState,
     handleCampaignSelect,
     handleCreatorSelect,
     handleClearCreator,

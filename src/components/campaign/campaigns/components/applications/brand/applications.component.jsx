@@ -1,12 +1,10 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { isCreatorMode } from "@/common/utils/users.util";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import Loading from "@/common/components/loadar/loading.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
-import Loader from "@/common/components/loader/loader.component";
-import NotFound from "@/common/components/not-found/not-found.component";
 import useBrandApplications from "./use-brand-applications.hook";
 
 function BrandApplications() {
@@ -28,9 +26,9 @@ function BrandApplications() {
     createContractError,
     sendContractError,
     filters,
-    creators,
     creator,
     messageThreadHook,
+    rightPaneState,
     handleCampaignSelect,
     handleCreatorSelect,
     handleClearCreator,
@@ -45,63 +43,29 @@ function BrandApplications() {
   } = useBrandApplications();
 
   const renderRightPane = () => {
-    if (appliedCreatorsLoading) {
+    if (rightPaneState.type === "loading") {
       return (
         <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-          <Loader loading={true} />
-          <p className="text-xs text-gray-500 mt-2">Loading creators...</p>
+          <Loading />
         </div>
       );
     }
 
-    const isIndividualCreator =
-      !selectedCampaign ||
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-
-    if (!selectedCampaign && !selectedCreator) {
+    if (rightPaneState.type === "notFound") {
       return (
         <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound title="No Campaign Selected" description="Select a campaign to view details." />
-        </div>
-      );
-    }
-
-    if (!selectedCampaign && creators.length === 0) {
-      return (
-        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound title="No Creators Found" description="No individual collaborations found." />
-        </div>
-      );
-    }
-
-    if (selectedCampaign && creators.length === 0) {
-      return (
-        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound
-            title="No Creators Found"
-            description="No creators have applied to this campaign yet."
-          />
-        </div>
-      );
-    }
-
-    if (!selectedCreator) {
-      return (
-        <div className="w-[27%] bg-transparent flex flex-col border-l h-screen items-center justify-center">
-          <NotFound title="No Creator Selected" description="Select a creator to view details." />
+          <NotFound title={rightPaneState.title} description={rightPaneState.description} />
         </div>
       );
     }
 
     return (
       <DeliverablesProgress
-        isCreatorMode={isCreatorMode()}
-        selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
         onHireClick={handleHireClick}
         onRejectClick={handleRejectClick}
         onMessageClick={handleMessageClick}
-        isIndividualCreator={isIndividualCreator}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
       />
     );
   };

@@ -198,26 +198,33 @@ function useCreatorSpendAnalysis({
       return;
     }
 
-    const hasCampaignId = !!originalCreatorToReinstate.campaign_id;
-    const hasCreatorIdField = !!originalCreatorToReinstate.creator_id;
-    const isMultiCreatorStructure = hasCampaignId || hasCreatorIdField;
-    const isMultiCreatorCampaign =
-      selectedCampaign && selectedCampaign.collaboration_type !== "INDIVIDUAL_CREATOR";
+    const isMultiCreatorMode =
+      isMultiCreator &&
+      selectedCampaign &&
+      selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
-    if (isMultiCreatorCampaign || isMultiCreatorStructure) {
+    if (isMultiCreatorMode && selectedCampaign?.id) {
       const creatorId =
         originalCreatorToReinstate.creator?.id ||
         originalCreatorToReinstate.creator_id ||
         originalCreatorToReinstate.originalData?.creator?.id;
-      if (selectedCampaign && creatorId) {
+      if (creatorId) {
         onReinstateCreator(selectedCampaign.id, creatorId);
+        setShowReinstateConfirmation(false);
+        setOriginalCreatorToReinstate(null);
+        return;
       }
-    } else {
-      const invitationId =
-        originalCreatorToReinstate.originalData?.id || originalCreatorToReinstate.id;
-      if (invitationId) {
-        onReinstateCreator(null, null, invitationId);
-      }
+    }
+
+    const invitationId =
+      originalCreatorToReinstate.originalData?.id ||
+      originalCreatorToReinstate.id ||
+      originalCreatorToReinstate.invitation_id;
+    if (invitationId) {
+      onReinstateCreator(null, null, invitationId);
+      setShowReinstateConfirmation(false);
+      setOriginalCreatorToReinstate(null);
+      return;
     }
 
     setShowReinstateConfirmation(false);
