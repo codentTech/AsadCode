@@ -11,46 +11,53 @@ const generalState = {
 
 const initialState = {
   setupBrandProfile: generalState,
+  getBrandProfile: generalState,
 };
 
 export const setupBrandProfile = createAsyncThunk(
   "brand-profile/setup",
   async ({ payload, email }, thunkAPI) => {
-    try {
-      const response = await brandProfileService.setupBrandProfile(payload, email);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
-    }
+    const response = await brandProfileService.setupBrandProfile(payload, email);
+    if (response.success) return response;
+    return thunkAPI.rejectWithValue({
+      message: response.message || "Failed to setup brand profile",
+      statusCode: response.statusCode || 400,
+    });
   }
 );
 
 export const setupBrandCampaignPreferences = createAsyncThunk(
   "brand-profile/campaign-preferences",
   async ({ payload, email }, thunkAPI) => {
-    try {
-      const response = await brandProfileService.setupBrandCampaignPreferences(payload, email);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
-    }
+    const response = await brandProfileService.setupBrandCampaignPreferences(payload, email);
+    if (response.success) return response;
+    return thunkAPI.rejectWithValue({
+      message: response.message || "Failed to setup campaign preferences",
+      statusCode: response.statusCode || 400,
+    });
   }
 );
 
 export const setupBrandIdealCreator = createAsyncThunk(
   "brand-profile/ideal-creator",
   async ({ payload, email }, thunkAPI) => {
-    try {
-      const response = await brandProfileService.setupBrandIdealCreator(payload, email);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
-    }
+    const response = await brandProfileService.setupBrandIdealCreator(payload, email);
+    if (response.success) return response;
+    return thunkAPI.rejectWithValue({
+      message: response.message || "Failed to setup ideal creator",
+      statusCode: response.statusCode || 400,
+    });
   }
 );
+
+export const getBrandProfile = createAsyncThunk("brand-profile/get", async (email, thunkAPI) => {
+  const response = await brandProfileService.getBrandProfile(email);
+  if (response.success) return response;
+  return thunkAPI.rejectWithValue({
+    message: response.message || "Failed to fetch brand profile",
+    statusCode: response.statusCode || 400,
+  });
+});
 
 export const brandProfileSlice = createSlice({
   name: "brandProfile",
@@ -60,6 +67,7 @@ export const brandProfileSlice = createSlice({
       state.setupBrandProfile = generalState;
       state.updateCampaignPreferences = generalState;
       state.updateIdealCreator = generalState;
+      state.getBrandProfile = generalState;
     },
   },
   extraReducers: (builder) => {
@@ -75,7 +83,8 @@ export const brandProfileSlice = createSlice({
       .addCase(setupBrandProfile.rejected, (state, action) => {
         state.setupBrandProfile.isLoading = false;
         state.setupBrandProfile.isError = true;
-        state.setupBrandProfile.message = action.payload.message;
+        state.setupBrandProfile.message =
+          action.payload?.message || "Failed to setup brand profile";
       })
       .addCase(setupBrandCampaignPreferences.pending, (state) => {
         state.updateCampaignPreferences = { ...generalState, isLoading: true };
@@ -91,7 +100,7 @@ export const brandProfileSlice = createSlice({
         state.updateCampaignPreferences = {
           ...generalState,
           isError: true,
-          message: action.payload.message,
+          message: action.payload?.message || "Failed to setup campaign preferences",
         };
       })
       .addCase(setupBrandIdealCreator.pending, (state) => {
@@ -104,8 +113,21 @@ export const brandProfileSlice = createSlice({
         state.updateIdealCreator = {
           ...generalState,
           isError: true,
-          message: action.payload.message,
+          message: action.payload?.message || "Failed to setup ideal creator",
         };
+      })
+      .addCase(getBrandProfile.pending, (state) => {
+        state.getBrandProfile.isLoading = true;
+      })
+      .addCase(getBrandProfile.fulfilled, (state, action) => {
+        state.getBrandProfile.isLoading = false;
+        state.getBrandProfile.isSuccess = true;
+        state.getBrandProfile.data = action.payload;
+      })
+      .addCase(getBrandProfile.rejected, (state, action) => {
+        state.getBrandProfile.isLoading = false;
+        state.getBrandProfile.isError = true;
+        state.getBrandProfile.message = action.payload?.message || "Failed to fetch brand profile";
       });
   },
 });

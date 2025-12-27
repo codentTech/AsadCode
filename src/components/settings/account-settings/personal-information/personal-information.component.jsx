@@ -6,7 +6,7 @@ import CountrySelect from "@/common/components/dropdowns/country-select/country-
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { isCreatorMode } from "@/common/utils/users.util";
-import { Building2, Calendar, Mail, MapPin, User } from "lucide-react";
+import { Building2, Mail, MapPin, User } from "lucide-react";
 import usePersonalInformation from "./use-personal-information.hook";
 
 export default function PersonalInformationPage() {
@@ -48,38 +48,29 @@ export default function PersonalInformationPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <CustomInput
-                    label="First Name"
-                    name="first_name"
-                    register={register}
-                    errors={errors}
-                    placeholder="Enter your first name"
-                    isRequired={true}
-                    startIcon={<User className="h-4 w-4" />}
-                  />
-
-                  <CustomInput
-                    label="Last Name"
-                    name="last_name"
-                    register={register}
-                    errors={errors}
-                    placeholder="Enter your last name"
-                    isRequired={true}
-                    startIcon={<User className="h-4 w-4" />}
-                  />
-                </div>
-
                 <CustomInput
-                  label="Date of Birth"
-                  name="date_of_birth"
-                  type="date"
+                  label="Account Name"
+                  name="account_name"
                   register={register}
                   errors={errors}
-                  placeholder="Select your date of birth"
+                  placeholder="Enter account name"
                   isRequired={true}
-                  startIcon={<Calendar className="h-4 w-4" />}
+                  startIcon={<User className="h-4 w-4" />}
                 />
+
+                <CustomInput
+                  label="Admin Contact Name"
+                  name="admin_contact_name"
+                  register={register}
+                  errors={errors}
+                  placeholder="Enter admin contact name"
+                  isRequired={true}
+                  startIcon={<User className="h-4 w-4" />}
+                />
+
+                {/* Hidden fields for API */}
+                <input type="hidden" {...register("first_name")} />
+                <input type="hidden" {...register("last_name")} />
               </div>
             </div>
 

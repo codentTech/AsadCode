@@ -1,8 +1,5 @@
 "use client";
 
-import { X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import useSidebar from "./use-sidebar";
 
 function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
@@ -108,19 +105,9 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between py-[14px] border-b border-gray-200 px-6">
-          <Link href="/" className="flex items-center cursor-pointer">
-            <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
-          </Link>
-          <button onClick={onClose} className="lg:hidden text-white hover:text-indigo-200">
-            <X size={24} />
-          </button>
-        </div>
-
         {/* Navigation */}
         <nav className="flex-1 py-4 h-screen overflow-y-auto pb-10">
-          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
+          <div className="px-4 space-y-2 pt-10">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>
     </>

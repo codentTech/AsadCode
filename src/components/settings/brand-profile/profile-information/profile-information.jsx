@@ -1,12 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
+import { getUserById } from "@/provider/features/users/users.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Camera, MapPin, Upload } from "lucide-react";
+import { Camera, Upload, Instagram, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,19 +20,13 @@ const validationSchema = Yup.object().shape({
   brandLogoUrl: Yup.string().nullable(),
   city: Yup.string().required("City is required"),
   country: Yup.string().required("Country is required"),
+  country_code: Yup.string(),
+  city_country_code: Yup.string(),
   companyDescription: Yup.string().required("Description is required").max(300),
+  instagramUrl: Yup.string().url("Enter a valid URL").nullable(),
+  tiktokUrl: Yup.string().url("Enter a valid URL").nullable(),
+  youtubeUrl: Yup.string().url("Enter a valid URL").nullable(),
 });
-
-const countries = [
-  { value: "us", label: "United States" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "ca", label: "Canada" },
-  { value: "au", label: "Australia" },
-  { value: "de", label: "Germany" },
-  { value: "fr", label: "France" },
-  { value: "jp", label: "Japan" },
-  { value: "sg", label: "Singapore" },
-];
 
 const ProfileInformation = () => {
   const dispatch = useDispatch();
@@ -38,6 +34,8 @@ const ProfileInformation = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [brandLogoFile, setBrandLogoFile] = useState(null);
   const [brandLogoPreview, setBrandLogoPreview] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
 
   const { uploadSingleFile: uploadState } = useSelector((state) => state.uploadFile);
 
@@ -58,32 +56,122 @@ const ProfileInformation = () => {
       brandLogoUrl: "",
       city: "",
       country: "",
+      country_code: "",
+      city_country_code: "",
       companyDescription: "",
+      instagramUrl: "",
+      tiktokUrl: "",
+      youtubeUrl: "",
     },
   });
 
   // Load user data on component mount
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       const user = getUser();
-      if (user) {
-        setCurrentUser(user);
-        // Populate form with user data
-        setValue("brandName", user.brand_profile?.brand_name || "");
-        setValue("websiteUrl", user.brand_profile?.website_url || "");
-        setValue("brandLogoUrl", user.brand_profile?.brand_logo_url || "");
-        setValue("city", user.brand_profile?.city || "");
-        setValue("country", user.brand_profile?.country || "");
-        setValue("companyDescription", user.brand_profile?.company_description || "");
+      if (!user?.email) {
+        setIsLoading(false);
+        return;
       }
+
+      setCurrentUser(user);
+
+      // Fetch fresh user data from API using user ID
+      let updatedUser = user;
+      if (user.id) {
+        const result = await dispatch(getUserById(user.id)).unwrap();
+        if (result?.success && result?.data) {
+          updatedUser = result.data;
+          setCurrentUser(updatedUser);
+          getUser(updatedUser);
+        } else if (result?.data && !result.success) {
+          updatedUser = result.data;
+          setCurrentUser(updatedUser);
+          getUser(updatedUser);
+        }
+      }
+
+      const brandProfile = updatedUser.brand_profile || {};
+
+      // Populate form with brand profile data
+      reset({
+        brandName: brandProfile.brand_name || "",
+        websiteUrl: brandProfile.website_url || "",
+        brandLogoUrl: brandProfile.brand_logo_url || "",
+        companyDescription: brandProfile.company_description || "",
+        instagramUrl: brandProfile.instagram_url || "",
+        tiktokUrl: brandProfile.tiktok_url || "",
+        youtubeUrl: brandProfile.youtube_url || "",
+        city: brandProfile.city || "",
+        country: brandProfile.country || "",
+        country_code: brandProfile.country_code || "",
+        city_country_code: brandProfile.city_country_code || "",
+      });
+
+      // Set logo preview if exists
+      if (brandProfile.brand_logo_url) {
+        setBrandLogoPreview(brandProfile.brand_logo_url);
+      }
+
+      // Location - set selects after reset
+      if (brandProfile.country) {
+        const countryValue = {
+          countryName: brandProfile.country,
+          countryCode: brandProfile.country_code || brandProfile.country,
+          phoneCode: "",
+        };
+        setSelectedCountry(countryValue);
+      }
+
+      if (brandProfile.city) {
+        const cityValue = {
+          cityName: brandProfile.city,
+          countryCode: brandProfile.city_country_code || brandProfile.country_code || "",
+          region: "",
+        };
+        setSelectedCity(cityValue);
+      }
+
+      setIsLoading(false);
     };
 
     loadUserData();
-  }, [setValue]);
+  }, [dispatch, setValue]);
 
   const brandLogo = watch("brandLogoUrl");
   const description = watch("companyDescription");
-  const selectedCountry = watch("country");
+
+  const handleCountryChange = (country) => {
+    if (!country) {
+      setSelectedCountry(null);
+      setValue("country", "");
+      setValue("country_code", "");
+      setSelectedCity(null);
+      setValue("city", "");
+      setValue("city_country_code", "");
+      return;
+    }
+    setSelectedCountry(country);
+    setValue("country", country.countryName || country.country || "");
+    setValue("country_code", country.countryCode || "");
+    if (selectedCity && selectedCity.countryCode !== country.countryCode) {
+      setSelectedCity(null);
+      setValue("city", "");
+      setValue("city_country_code", "");
+    }
+  };
+
+  const handleCityChange = (city) => {
+    if (!city) {
+      setSelectedCity(null);
+      setValue("city", "");
+      setValue("city_country_code", "");
+      return;
+    }
+    setSelectedCity(city);
+    setValue("city", city.cityName || city.city || "");
+    setValue("city_country_code", city.countryCode || "");
+  };
 
   const handleFileUpload = (file) => {
     if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
@@ -145,8 +233,12 @@ const ProfileInformation = () => {
     }
 
     const payload = {
-      ...data,
-      brandLogoUrl: brandLogoUrl || data.brandLogoUrl,
+      brandName: data.brandName,
+      websiteUrl: data.websiteUrl,
+      brandLogoUrl: brandLogoUrl || data.brandLogoUrl || null,
+      city: data.city,
+      country: data.country,
+      companyDescription: data.companyDescription,
     };
 
     const result = await dispatch(setupBrandProfile({ payload, email: currentUser.email }));
@@ -252,20 +344,21 @@ const ProfileInformation = () => {
                 Location <span className="text-red-500">*</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SimpleSelect
+                <CountrySelect
                   label="Country"
-                  placeHolder="Select an option"
-                  options={countries}
+                  name="country"
                   value={selectedCountry}
-                  onChange={({ value }) => setValue("country", value, { shouldValidate: true })}
-                  error={errors.country?.message}
+                  onChange={handleCountryChange}
+                  isRequired={true}
+                  errors={errors}
                 />
-                <CustomInput
+                <CitySelect
                   label="City"
                   name="city"
-                  placeholder="Enter your city"
-                  icon={MapPin}
-                  register={register}
+                  countryCode={selectedCountry?.countryCode}
+                  value={selectedCity}
+                  onChange={handleCityChange}
+                  isRequired={true}
                   errors={errors}
                 />
               </div>
@@ -295,6 +388,46 @@ const ProfileInformation = () => {
                 {errors.companyDescription && (
                   <p className="text-xs text-red-600 mt-2">{errors.companyDescription.message}</p>
                 )}
+              </div>
+            </div>
+
+            {/* Social Media Links */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h3>
+              <div className="space-y-4">
+                <CustomInput
+                  label="Instagram"
+                  name="instagramUrl"
+                  type="url"
+                  placeholder="https://www.instagram.com/yourbrand"
+                  register={register}
+                  errors={errors}
+                  startIcon={<Instagram className="h-4 w-4 text-pink-600" />}
+                />
+                <CustomInput
+                  label="TikTok"
+                  name="tiktokUrl"
+                  type="url"
+                  placeholder="https://www.tiktok.com/@yourbrand"
+                  register={register}
+                  errors={errors}
+                  startIcon={
+                    <div className="bg-black p-1 rounded">
+                      <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                      </svg>
+                    </div>
+                  }
+                />
+                <CustomInput
+                  label="YouTube"
+                  name="youtubeUrl"
+                  type="url"
+                  placeholder="https://www.youtube.com/@yourbrand"
+                  register={register}
+                  errors={errors}
+                  startIcon={<Youtube className="h-4 w-4 text-red-600" />}
+                />
               </div>
             </div>
           </div>
