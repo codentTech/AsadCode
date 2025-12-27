@@ -185,6 +185,7 @@ const usersService = {
   getBlockedUsers,
   isUserBlocked,
   addUserToWaitlist,
+  getCurrentUser,
   connectSocialMedia,
   getSocialAccounts,
   disconnectSocialAccount,

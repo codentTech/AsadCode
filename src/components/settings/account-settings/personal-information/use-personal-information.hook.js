@@ -9,19 +9,11 @@ import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import { updateUser } from "@/provider/features/users/users.slice";
 
 const schema = yup.object().shape({
-  first_name: yup.string().required("First name is required"),
-  last_name: yup.string().required("Last name is required"),
+  account_name: yup.string().required("Account name is required"),
+  admin_contact_name: yup.string().required("Admin contact name is required"),
+  first_name: yup.string(), // Hidden field for API
+  last_name: yup.string(), // Hidden field for API
   email: yup.string().email("Invalid email format").required("Email is required"),
-  date_of_birth: yup
-    .date()
-    .transform((value, originalValue) => {
-      if (originalValue === "" || originalValue == null) {
-        return undefined;
-      }
-      return value;
-    })
-    .required("Date of birth is required")
-    .max(new Date(), "Date of birth cannot be in the future"),
   city: yup.string().required("City is required"),
   country: yup.string().required("Country is required"),
   country_code: yup.string(),
@@ -45,14 +37,16 @@ export default function usePersonalInformation() {
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm({
     resolver: yupResolver(schema),
     context: { isCreatorMode: isCreatorMode() },
     defaultValues: {
+      account_name: "",
+      admin_contact_name: "",
       first_name: "",
       last_name: "",
       email: "",
-      date_of_birth: "",
       city: "",
       country: "",
       country_code: "",
@@ -64,15 +58,25 @@ export default function usePersonalInformation() {
   useEffect(() => {
     const user = getUser();
     if (user) {
+      // Merge first_name and last_name into account_name for display
+      const accountName = [user.first_name || "", user.last_name || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      setValue("account_name", accountName);
+
+      // Admin Contact Name: This was the original first_name + last_name from signup
+      // For now, we'll use the same merged value, but this might need to come from a different source
+      const adminContactName = [user.first_name || "", user.last_name || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      setValue("admin_contact_name", adminContactName);
+
+      // Keep hidden fields for API
       setValue("first_name", user.first_name || "");
       setValue("last_name", user.last_name || "");
       setValue("email", user.email || "");
-      const dateValue = user.date_of_birth
-        ? user.date_of_birth.includes("T")
-          ? user.date_of_birth.split("T")[0]
-          : user.date_of_birth
-        : "";
-      setValue("date_of_birth", dateValue);
 
       if (user.country) {
         const countryValue = {
@@ -145,15 +149,24 @@ export default function usePersonalInformation() {
   const handleReset = () => {
     const user = getUser();
     if (user) {
+      // Merge first_name and last_name into account_name for display
+      const accountName = [user.first_name || "", user.last_name || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      setValue("account_name", accountName);
+
+      // Admin Contact Name: This was the original first_name + last_name from signup
+      const adminContactName = [user.first_name || "", user.last_name || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      setValue("admin_contact_name", adminContactName);
+
+      // Keep hidden fields for API
       setValue("first_name", user.first_name || "");
       setValue("last_name", user.last_name || "");
       setValue("email", user.email || "");
-      const dateValue = user.date_of_birth
-        ? user.date_of_birth.includes("T")
-          ? user.date_of_birth.split("T")[0]
-          : user.date_of_birth
-        : "";
-      setValue("date_of_birth", dateValue);
 
       if (user.country) {
         const countryValue = {
@@ -186,7 +199,27 @@ export default function usePersonalInformation() {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    const { email, country_code, city_country_code, ...updateData } = data;
+
+    // Split account_name into first_name and last_name for API
+    const accountNameParts = (data.account_name || "").trim().split(/\s+/);
+    const first_name = accountNameParts[0] || "";
+    const last_name = accountNameParts.slice(1).join(" ") || "";
+
+    // Prepare update data - exclude frontend-only fields and include split names
+    const {
+      email,
+      country_code,
+      city_country_code,
+      account_name,
+      admin_contact_name,
+      ...restData
+    } = data;
+    const updateData = {
+      ...restData,
+      first_name,
+      last_name,
+    };
+
     const result = await dispatch(updateUser(updateData)).unwrap();
     if (result.success) {
       setIsLoading(false);

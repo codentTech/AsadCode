@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/admin/sidebar/sidebar.component";
 import DashboardHeader from "@/components/admin/header/header.component";
+import PrivateHeader from "@/components/private-header/private-header.component";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
@@ -118,16 +119,10 @@ export default function DashboardLayout({ children }) {
         }`}
       >
         {/* Header */}
-        <DashboardHeader
-          onMenuClick={handleMobileMenuToggle}
-          sidebarCollapsed={sidebarCollapsed}
-          onSidebarToggle={handleSidebarToggle}
-          pageTitle={getPageTitle()}
-          breadcrumbs={getBreadcrumbs()}
-        />
+        <PrivateHeader />
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden bg-gray-50">{children}</main>
+        <main className="flex-1 px-4 lg:px-6 py-20 overflow-x-hidden bg-gray-50">{children}</main>
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200 px-4 lg:px-6 py-4">
