@@ -30,7 +30,7 @@ function Header() {
       portfolioLink,
       // { href: "/chat-inbox", label: "Inbox" },
       { href: "/notifications", label: "Notifications" },
-      { href: "/admin/dashboard", label: "Settings" },
+      { href: "/settings/account-settings/personal-information", label: "Settings" },
     ];
   }, [isCreator]);
 
@@ -43,7 +43,8 @@ function Header() {
             const isActive =
               pathname === href ||
               (href.includes("creator-portfolio") && pathname.includes("/creator-profile")) ||
-              (href.includes("brand-portfolio") && pathname.includes("/brand-portfolio"));
+              (href.includes("brand-portfolio") && pathname.includes("/brand-portfolio")) ||
+              (href.includes("settings") && pathname.includes("/settings"));
 
             const baseStyles =
               "text-xs font-medium px-3 py-1 rounded-md transition-all duration-200";
