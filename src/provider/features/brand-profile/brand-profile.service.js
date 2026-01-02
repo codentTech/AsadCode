@@ -5,7 +5,7 @@ const setupBrandProfile = async (data, email) => {
     `/auth/onboarding/brand/profile-setup?email=${encodeURIComponent(email)}`,
     data
   );
-  return response.data;
+  return response?.data || { success: false, message: "No response from server" };
 };
 
 const setupBrandCampaignPreferences = async (data, email) => {

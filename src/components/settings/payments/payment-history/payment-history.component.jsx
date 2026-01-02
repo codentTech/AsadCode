@@ -1,17 +1,7 @@
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  DollarSign,
-  Download,
-  Eye,
-  Filter,
-  RefreshCw,
-  TrendingUp,
-} from "lucide-react";
+import { CheckCircle, Clock, Download, Eye, Filter, User } from "lucide-react";
 import { useState } from "react";
 
 const PaymentHistoryPage = () => {
@@ -22,10 +12,8 @@ const PaymentHistoryPage = () => {
 
   const statusOptions = [
     { value: "all", label: "All Status" },
-    { value: "completed", label: "Completed" },
-    { value: "pending", label: "Pending" },
-    { value: "processing", label: "Processing" },
-    { value: "failed", label: "Failed" },
+    { value: "paid", label: "Paid" },
+    { value: "pending", label: "Pending Release" },
   ];
 
   const timeFilterOptions = [
@@ -35,81 +23,89 @@ const PaymentHistoryPage = () => {
     { value: "quarter", label: "Last Quarter" },
   ];
 
-  // Sample payment data
+  // Sample payment data - Brand payments to creators
   const payments = [
     {
-      id: "PAY-001",
-      campaign: "Summer Fashion Campaign - ZARA",
-      brand: "ZARA",
-      amount: 850,
-      status: "completed",
-      date: "2024-06-15",
-      method: "PayPal",
-      type: "sponsored",
+      id: "TXN-001",
+      creatorName: "Sarah Johnson",
+      campaignName: "Summer Fashion Campaign - ZARA",
+      transactionId: "TXN-2024-001-ABC123",
+      paymentAmount: 850,
+      cleercutCommission: 85,
+      releaseDate: "2024-06-15",
+      status: "paid",
     },
     {
-      id: "PAY-002",
-      campaign: "Skincare Review Series - Glossier",
-      brand: "Glossier",
-      amount: 650,
+      id: "TXN-002",
+      creatorName: "Michael Chen",
+      campaignName: "Skincare Review Series - Glossier",
+      transactionId: "TXN-2024-002-XYZ789",
+      paymentAmount: 650,
+      cleercutCommission: 65,
+      releaseDate: null,
       status: "pending",
-      date: "2024-06-12",
-      method: "Stripe",
-      type: "ugc",
     },
     {
-      id: "PAY-003",
-      campaign: "Tech Product Unboxing - Apple",
-      brand: "Apple",
-      amount: 1200,
-      status: "completed",
-      date: "2024-06-08",
-      method: "Bank Transfer",
-      type: "sponsored",
+      id: "TXN-003",
+      creatorName: "Emma Williams",
+      campaignName: "Tech Product Unboxing - Apple",
+      transactionId: "TXN-2024-003-DEF456",
+      paymentAmount: 1200,
+      cleercutCommission: 120,
+      releaseDate: "2024-06-08",
+      status: "paid",
     },
     {
-      id: "PAY-004",
-      campaign: "Fitness Equipment Review",
-      brand: "Peloton",
-      amount: 420,
-      status: "processing",
-      date: "2024-06-05",
-      method: "PayPal",
-      type: "affiliate",
+      id: "TXN-004",
+      creatorName: "James Rodriguez",
+      campaignName: "Fitness Equipment Review",
+      transactionId: "TXN-2024-004-GHI789",
+      paymentAmount: 420,
+      cleercutCommission: 42,
+      releaseDate: null,
+      status: "pending",
     },
     {
-      id: "PAY-005",
-      campaign: "Home Decor Collaboration",
-      brand: "West Elm",
-      amount: 300,
-      status: "failed",
-      date: "2024-06-01",
-      method: "Stripe",
-      type: "gifted",
+      id: "TXN-005",
+      creatorName: "Olivia Brown",
+      campaignName: "Home Decor Collaboration",
+      transactionId: "TXN-2024-005-JKL012",
+      paymentAmount: 300,
+      cleercutCommission: 30,
+      releaseDate: "2024-06-01",
+      status: "paid",
     },
   ];
 
   // Define table columns
   const columns = [
     {
-      key: "campaign",
-      title: "Campaign",
+      key: "creatorName",
+      title: "Creator Name",
     },
     {
-      key: "amount",
-      title: "Amount",
+      key: "campaignName",
+      title: "Campaign/Collaboration",
+    },
+    {
+      key: "transactionId",
+      title: "Transaction ID",
+    },
+    {
+      key: "paymentAmount",
+      title: "Payment Amount",
+    },
+    {
+      key: "cleercutCommission",
+      title: "CleerCut Commission",
+    },
+    {
+      key: "releaseDate",
+      title: "Release Date",
     },
     {
       key: "status",
       title: "Status",
-    },
-    {
-      key: "date",
-      title: "Date",
-    },
-    {
-      key: "method",
-      title: "Method",
     },
   ];
 
@@ -125,23 +121,14 @@ const PaymentHistoryPage = () => {
       label: "Download Receipt",
       icon: <Download size={16} />,
     },
-    {
-      key: "retry",
-      label: "Retry Payment",
-      icon: <RefreshCw size={16} />,
-    },
   ];
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "completed":
+      case "paid":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "pending":
         return <Clock className="h-4 w-4 text-yellow-600" />;
-      case "processing":
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      case "failed":
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
     }
@@ -149,82 +136,88 @@ const PaymentHistoryPage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "completed":
+      case "paid":
         return "text-green-700 bg-green-100";
       case "pending":
         return "text-yellow-700 bg-yellow-100";
-      case "processing":
-        return "text-blue-700 bg-blue-100";
-      case "failed":
-        return "text-red-700 bg-red-100";
       default:
         return "text-gray-700 bg-gray-100";
     }
   };
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case "sponsored":
-        return "💰";
-      case "ugc":
-        return "🎬";
-      case "affiliate":
-        return "📈";
-      case "gifted":
-        return "🎁";
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "paid":
+        return "Paid";
+      case "pending":
+        return "Pending Release";
       default:
-        return "💼";
+        return status;
     }
   };
 
   // Custom cell renderers
   const customCellRenderer = {
-    campaign: (value, row) => (
+    creatorName: (value, row) => (
       <div className="flex items-center">
-        <div className="text-lg mr-3">{getTypeIcon(row.type)}</div>
-        <div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
-          <div className="text-sm text-gray-500">{row.brand}</div>
+        <div className="p-1.5 bg-indigo-100 rounded-full mr-2">
+          <User className="h-4 w-4 text-indigo-600" />
         </div>
+        <div className="text-sm font-medium text-gray-900">{value}</div>
       </div>
     ),
-    amount: (value) => (
+    campaignName: (value) => (
+      <div className="text-sm text-gray-900 max-w-xs truncate" title={value}>
+        {value}
+      </div>
+    ),
+    transactionId: (value) => <div className="text-sm text-gray-600 font-mono">{value}</div>,
+    paymentAmount: (value) => (
       <div className="text-sm font-semibold text-gray-900">${value.toLocaleString()}</div>
+    ),
+    cleercutCommission: (value) => (
+      <div className="text-sm text-gray-700">${value.toLocaleString()}</div>
+    ),
+    releaseDate: (value, row) => (
+      <div className="text-sm text-gray-900">
+        {value ? new Date(value).toLocaleDateString() : row.status === "pending" ? "—" : "—"}
+      </div>
     ),
     status: (value) => (
       <div className="flex items-center">
         {getStatusIcon(value)}
         <span
           className={`
-          ml-2 px-2 py-1 text-xs font-medium rounded-full capitalize
+          ml-2 px-2 py-1 text-xs font-medium rounded-full
           ${getStatusColor(value)}
         `}
         >
-          {value}
+          {getStatusLabel(value)}
         </span>
       </div>
     ),
-    date: (value) => (
-      <div className="text-sm text-gray-900">{new Date(value).toLocaleDateString()}</div>
-    ),
-    method: (value) => <div className="text-sm text-gray-900">{value}</div>,
   };
 
   // Calculate totals
-  const totalEarned = payments
-    .filter((p) => p.status === "completed")
-    .reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = payments
-    .filter((p) => p.status === "pending" || p.status === "processing")
-    .reduce((sum, p) => sum + p.amount, 0);
-  const completedPayments = payments.filter((p) => p.status === "completed").length;
+  const totalPaid = payments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.paymentAmount, 0);
+  const totalPending = payments
+    .filter((p) => p.status === "pending")
+    .reduce((sum, p) => sum + p.paymentAmount, 0);
+  const totalCommission = payments.reduce((sum, p) => sum + p.cleercutCommission, 0);
+  const totalExpenses = payments.reduce(
+    (sum, p) => sum + p.paymentAmount + p.cleercutCommission,
+    0
+  );
 
   // Filter payments
   const filteredPayments = payments.filter((payment) => {
     const matchesStatus = filterStatus === "all" || payment.status === filterStatus;
     const matchesSearch =
-      payment.campaign.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.brand.toLowerCase().includes(searchTerm.toLowerCase());
+      payment.creatorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -232,13 +225,10 @@ const PaymentHistoryPage = () => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        console.log("View payment:", row);
+        // View payment details
         break;
       case "download":
-        console.log("Download receipt:", row);
-        break;
-      case "retry":
-        console.log("Retry payment:", row);
+        // Download receipt
         break;
       default:
         break;
@@ -252,15 +242,23 @@ const PaymentHistoryPage = () => {
 
   const handleExport = () => {
     const csvContent = [
-      ["Campaign", "Brand", "Amount", "Status", "Date", "Method", "Type"],
+      [
+        "Creator Name",
+        "Campaign/Collaboration",
+        "Transaction ID",
+        "Payment Amount",
+        "CleerCut Commission",
+        "Release Date",
+        "Status",
+      ],
       ...filteredPayments.map((payment) => [
-        payment.campaign,
-        payment.brand,
-        payment.amount,
-        payment.status,
-        payment.date,
-        payment.method,
-        payment.type,
+        payment.creatorName,
+        payment.campaignName,
+        payment.transactionId,
+        payment.paymentAmount,
+        payment.cleercutCommission,
+        payment.releaseDate || "—",
+        getStatusLabel(payment.status),
       ]),
     ]
       .map((row) => row.join(","))
@@ -283,19 +281,20 @@ const PaymentHistoryPage = () => {
     <DashboardLayout>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Payout History</h1>
-        <p className="text-sm mt-1">Track all your processed and pending payouts</p>
+        <h1 className="text-xl font-bold text-white">Payment History</h1>
+        <p className="text-sm mt-1">Track all payments made to creators through escrow</p>
       </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg mr-3">
-              <DollarSign className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Earned</p>
-              <p className="text-xl font-semibold text-gray-900">${totalEarned.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Total Paid</p>
+              <p className="text-xl font-semibold text-gray-900">${totalPaid.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -306,9 +305,9 @@ const PaymentHistoryPage = () => {
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-sm text-gray-600">Pending Release</p>
               <p className="text-xl font-semibold text-gray-900">
-                ${pendingAmount.toLocaleString()}
+                ${totalPending.toLocaleString()}
               </p>
             </div>
           </div>
@@ -316,36 +315,52 @@ const PaymentHistoryPage = () => {
 
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg mr-3">
-              <CheckCircle className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-indigo-100 rounded-lg mr-3">
+              <Filter className="h-5 w-5 text-indigo-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-xl font-semibold text-gray-900">{completedPayments}</p>
+              <p className="text-sm text-gray-600">Total Commission</p>
+              <p className="text-xl font-semibold text-gray-900">
+                ${totalCommission.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg mr-3">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-red-100 rounded-lg mr-3">
+              <Download className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">This Month</p>
-              <p className="text-xl font-semibold text-gray-900">$2,420</p>
+              <p className="text-sm text-gray-600">Total Expenses</p>
+              <p className="text-xl font-semibold text-gray-900">
+                ${totalExpenses.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
       </div>
+
       {/* Filters */}
       <div className="bg-white rounded-lg border p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <SimpleSelect placeHolder="Select status" options={statusOptions} onChange={() => {}} />
+          <SimpleSelect
+            placeHolder="Select status"
+            options={statusOptions}
+            value={filterStatus}
+            onChange={(value) => setFilterStatus(value)}
+          />
 
-          <SimpleSelect placeHolder="Select time" options={timeFilterOptions} onChange={() => {}} />
+          <SimpleSelect
+            placeHolder="Select time"
+            options={timeFilterOptions}
+            value={dateRange}
+            onChange={(value) => setDateRange(value)}
+          />
         </div>
       </div>
+
       {/* Payment History Table using CustomDataTable */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
