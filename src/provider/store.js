@@ -24,6 +24,7 @@ import chatReducer from "./features/chat/chat.slice";
 import invitationReducer from "./features/invitation/invitation.slice";
 import notificationReducer from "./features/notification/notification.slice";
 import campaignContextReducer from "./features/campaign-context/campaign-context.slice";
+import creatorApplicationsReducer from "./features/creator-applications/creator-applications.slice";
 
 const persistConfig = {
   key: "root",
@@ -54,6 +55,7 @@ const rootReducer = combineReducers({
   invitation: invitationReducer,
   notification: notificationReducer,
   campaignContext: campaignContextReducer,
+  creatorApplications: creatorApplicationsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

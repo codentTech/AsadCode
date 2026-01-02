@@ -66,8 +66,15 @@ export default function useLogin() {
   const onSubmit = async (values) => {
     setLoading(true);
     const response = await dispatch(login(values));
-    if (response.payload.success) router.push("campaign");
-    response && setLoading(false);
+    console.log(response);
+    if (response.payload.success) {
+      if (response.payload?.data?.user?.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/campaign");
+      }
+    }
+    setLoading(false);
     if (typeof window === "object" && isChecked) {
       // Check if the browser supports localStorage
       if (localStorage) {
