@@ -8,11 +8,18 @@ import { useSelector } from "react-redux";
 import useRegister from "./use-register.hook";
 import api from "@/common/utils/api";
 
-const Register = ({ onNext, onBack }) => {
+const Register = ({ onNext, onBack, inviteToken }) => {
   const { register, handleSubmit, errors, onSubmit, watch, setValue, isLoading } = useRegister({
     onNext,
+    inviteToken,
   });
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  
+  const email = watch("email");
+  
+  // When invite token exists, we need to validate it and get the email
+  // For now, we'll validate in the hook on submit
+  // The email should be pre-filled from URL params or validated
 
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -308,7 +315,7 @@ const Register = ({ onNext, onBack }) => {
             <input type="hidden" {...register("latitude")} />
             <input type="hidden" {...register("longitude")} />
 
-            {!isCreatorMode && (
+            {!isCreatorMode && !inviteToken && (
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Account Type <span className="text-red-500">*</span>

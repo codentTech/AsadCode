@@ -1,9 +1,20 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import ROLES from "@/common/constants/role.constant";
+import { getUser, logout } from "@/common/utils/users.util";
 import useSidebar from "./use-sidebar";
 
 function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
+  const router = useRouter();
+  const currentUser = getUser();
   const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
     const { label, icon: Icon, children, href } = item;
@@ -101,14 +112,29 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Navigation */}
-        <nav className="flex-1 py-4 h-screen overflow-y-auto pb-10">
-          <div className="px-4 space-y-2 pt-10">{navItems?.map((item) => renderNavItem(item))}</div>
+        <nav className="flex-1 py-4 overflow-y-auto">
+          <div className={`px-4 space-y-2 ${currentUser?.role === ROLES.ADMIN ? "pt-7" : "pt-12"}`}>
+            {navItems?.map((item) => renderNavItem(item))}
+          </div>
         </nav>
+
+        {/* Logout Button - Only for Admin */}
+        {currentUser?.role === ROLES.ADMIN && (
+          <div className="border-t border-gray-200 p-4">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

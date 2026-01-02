@@ -4,7 +4,10 @@ import { reset, signUp } from "@/provider/features/auth/auth.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 import * as Yup from "yup";
+import { useSearchParams } from "next/navigation";
+import api from "@/common/utils/api";
 
 // Dynamic validation schema based on creator mode
 const createValidationSchema = (isCreatorMode) => {
@@ -53,9 +56,11 @@ const createValidationSchema = (isCreatorMode) => {
   return Yup.object().shape(baseSchema);
 };
 
-export default function useRegister({ onNext }) {
+export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
+  const token = inviteToken || searchParams?.get("token");
 
   const validationSchema = createValidationSchema(isCreatorMode);
 
@@ -85,39 +90,42 @@ export default function useRegister({ onNext }) {
   const email = watch("email");
 
   const onSubmit = async (values) => {
-    try {
-      const payload = {
-        first_name: values.first_name.trim(),
-        last_name: values.last_name.trim(),
-        email: values.email.toLowerCase().trim(),
-        password: values.password,
-        date_of_birth: values.date_of_birth,
-        city: values.city.trim(),
-        country: values.country,
-        country_code: values.country_code,
-        city_country_code: values.city_country_code,
-        latitude:
-          values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
-        longitude:
-          values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
-        role: isCreatorMode ? "CREATOR" : "BRAND",
-        marketing_emails: values.marketing_emails || false,
-        agree_terms: values.agree_terms,
-      };
+    const payload = {
+      first_name: values.first_name.trim(),
+      last_name: values.last_name.trim(),
+      email: values.email.toLowerCase().trim(),
+      password: values.password,
+      date_of_birth: values.date_of_birth,
+      city: values.city.trim(),
+      country: values.country,
+      country_code: values.country_code,
+      city_country_code: values.city_country_code,
+      latitude:
+        values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
+      longitude:
+        values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
+      role: isCreatorMode ? "CREATOR" : "BRAND",
+      marketing_emails: values.marketing_emails || false,
+      agree_terms: values.agree_terms,
+    };
 
-      // Add type-specific fields
-      if (isCreatorMode) {
-        payload.account_type = values.account_type;
-      }
-      const response = await dispatch(signUp(payload));
-      if (response.payload.success) {
-        onNext();
-        dispatch(reset());
-        localStorage.setItem("email", email);
-        localStorage.setItem("name", values.first_name + " " + values.last_name);
-      }
-    } catch (error) {
-      console.error("Form submission error:", error);
+    // Add invite token if present
+    if (token) {
+      payload.invite_token = token;
+      // Lock role to CREATOR for invites
+      payload.role = "CREATOR";
+    }
+
+    // Add type-specific fields
+    if (isCreatorMode && !token) {
+      payload.account_type = values.account_type;
+    }
+    const response = await dispatch(signUp(payload));
+    if (response.payload.success) {
+      onNext();
+      dispatch(reset());
+      localStorage.setItem("email", email);
+      localStorage.setItem("name", values.first_name + " " + values.last_name);
     }
   };
 
