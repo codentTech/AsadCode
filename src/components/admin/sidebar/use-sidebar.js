@@ -210,11 +210,6 @@ const brandNavItems = [
         href: "/settings/account-settings/security-settings",
         icon: Lock,
       },
-      {
-        label: "Email & Phone",
-        href: "/settings/account-settings/email-phone",
-        icon: Phone,
-      },
     ],
   },
   {
@@ -291,11 +286,6 @@ const creatorNavItems = [
         href: "/settings/account-settings/security-settings",
         icon: Lock,
       },
-      {
-        label: "Email & Phone",
-        href: "/settings/account-settings/email-phone",
-        icon: Phone,
-      },
     ],
   },
   {
@@ -319,7 +309,7 @@ const creatorNavItems = [
     icon: CreditCard,
     children: [
       {
-        label: "Payout Methods",
+        label: "Payouts",
         href: "/settings/payments/payout-methods",
         icon: CreditCard,
       },
@@ -328,11 +318,11 @@ const creatorNavItems = [
         href: "/settings/payments/payment-history",
         icon: History,
       },
-      {
-        label: "Invoices & Receipts",
-        href: "/settings/payments/invoice-receipt",
-        icon: Receipt,
-      },
+      // {
+      //   label: "Invoices & Receipts",
+      //   href: "/settings/payments/invoice-receipt",
+      //   icon: Receipt,
+      // },
     ],
   },
   {
