@@ -16,7 +16,7 @@ export default function AuthMainRoutes({ component }) {
   useEffect(() => {
     const checkAuth = () => {
       if (isLoginVerified()) {
-        router.push("admin/dashboard");
+        router.push(getUser()?.role === ROLES.ADMIN ? "/admin/dashboard" : "/campaign");
         return;
       }
     };

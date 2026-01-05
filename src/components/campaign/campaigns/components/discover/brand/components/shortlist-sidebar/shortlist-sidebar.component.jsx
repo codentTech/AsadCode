@@ -2,16 +2,13 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import Loader from "@/common/components/loader/loader.component";
-import useClickOutside from "@/common/hooks/use-click-outside";
 import { AddCircle, Delete, Edit, MoreVert } from "@mui/icons-material";
-import { useEffect, useRef, useState } from "react";
+import useShortlistSidebar from "./use-shortlist-sidebar.hook";
 
 function ShortlistSidebar({
   shortlists,
   selectedShortlist,
-  setSelectedShortlist,
   handleShortlistSelect,
-  setIsNewShortlistDialogOpen,
   handleEditShortlist,
   handleDeleteShortlist,
   handleCreateShortlist,
@@ -19,103 +16,35 @@ function ShortlistSidebar({
   setNewShortlistName,
   shortlistState,
 }) {
-  const [editingShortlist, setEditingShortlist] = useState(null);
-  const [editName, setEditName] = useState("");
-  const [showOptions, setShowOptions] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [isCreatingNew, setIsCreatingNew] = useState(false);
-  const createInputRef = useRef(null);
-  const optionsMenuRef = useRef(null);
-
-  const handleEditClick = (e, shortlist) => {
-    e.stopPropagation();
-    setEditingShortlist(shortlist);
-    setEditName(shortlist.name);
-    setShowOptions(null);
-  };
-
-  const handleDeleteClick = (e, shortlist) => {
-    e.stopPropagation();
-    setShowDeleteConfirm(shortlist);
-    setShowOptions(null);
-  };
-
-  const handleConfirmDelete = (shortlistId) => {
-    handleDeleteShortlist(shortlistId);
-    setShowDeleteConfirm(null);
-  };
-
-  const handleSaveEdit = () => {
-    if (editName.trim() && editingShortlist) {
-      handleEditShortlist(editingShortlist.id, editName.trim());
-      setEditingShortlist(null);
-      setEditName("");
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingShortlist(null);
-    setEditName("");
-  };
-
-  const handleCreateClick = () => {
-    setIsCreatingNew(true);
-    setNewShortlistName("");
-  };
-
-  const handleSaveCreate = () => {
-    if (newShortlistName.trim()) {
-      // Use the hook's handleCreateShortlist function which will use the hook's newShortlistName state
-      handleCreateShortlist();
-      setIsCreatingNew(false);
-      setNewShortlistName(""); // Clear the input
-    }
-  };
-
-  const handleCancelCreate = () => {
-    setIsCreatingNew(false);
-    setNewShortlistName(""); // Clear the input
-  };
-
-  const toggleOptions = (e, shortlistId) => {
-    e.stopPropagation();
-    setShowOptions(showOptions === shortlistId ? null : shortlistId);
-  };
-
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (editingShortlist) {
-        if (event.key === "Escape") {
-          handleCancelEdit();
-        }
-      }
-      if (isCreatingNew) {
-        if (event.key === "Escape") {
-          handleCancelCreate();
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [editingShortlist, isCreatingNew]);
-
-  // Focus the create input when the form becomes visible
-  useEffect(() => {
-    if (isCreatingNew && createInputRef.current) {
-      createInputRef.current.focus();
-    }
-  }, [isCreatingNew]);
-
-  // Handle click outside to close options menu
-  useClickOutside([optionsMenuRef], [() => setShowOptions(null)]);
+  const {
+    editingShortlist,
+    editName,
+    setEditName,
+    showOptions,
+    showDeleteConfirm,
+    isCreatingNew,
+    createInputRef,
+    optionsMenuRef,
+    handleEditClick,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleCreateClick,
+    handleSaveCreate,
+    handleCancelCreate,
+    toggleOptions,
+    setShowOptions,
+  } = useShortlistSidebar({
+    handleEditShortlist,
+    handleDeleteShortlist,
+    handleCreateShortlist,
+    newShortlistName,
+    setNewShortlistName,
+  });
 
   return (
     <div className="w-72 flex flex-col bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 overflow-hidden">
-      {/* Header Section */}
       <div className="p-4 bg-white border-b border-gray-100 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-gray-800">Shortlists</h2>
@@ -139,9 +68,7 @@ function ShortlistSidebar({
         />
       </div>
 
-      {/* Shortlists List */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Inline Create Form */}
         {isCreatingNew && (
           <div className="mb-4 bg-white rounded-lg border-2 border-indigo-200 shadow-sm p-3">
             <div className="flex items-center gap-2 mb-2">
@@ -189,7 +116,6 @@ function ShortlistSidebar({
             {shortlists.map((shortlist) => (
               <li key={shortlist.id} className="relative">
                 {editingShortlist?.id === shortlist.id ? (
-                  // Edit Mode
                   <div className="bg-white rounded-lg border-2 border-indigo-200 shadow-sm p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <CustomInput
@@ -212,7 +138,6 @@ function ShortlistSidebar({
                     </div>
                   </div>
                 ) : (
-                  // View Mode
                   <div
                     onClick={() => {
                       if (
@@ -220,7 +145,7 @@ function ShortlistSidebar({
                         !shortlistState.deleteShortlist.isLoading
                       ) {
                         handleShortlistSelect(shortlist);
-                        setShowOptions(null); // Close any open options menu
+                        setShowOptions(null);
                       }
                     }}
                     className={`group cursor-pointer bg-white rounded-lg border transition-all duration-200 hover:shadow-sm ${
@@ -260,7 +185,6 @@ function ShortlistSidebar({
                           </div>
                         </div>
 
-                        {/* Options Menu */}
                         <div
                           className="relative ml-2"
                           ref={showOptions === shortlist.id ? optionsMenuRef : null}
@@ -288,7 +212,6 @@ function ShortlistSidebar({
                             <MoreVert className="w-4 h-4" />
                           </button>
 
-                          {/* Dropdown Options */}
                           {showOptions === shortlist.id && (
                             <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[130px] py-1">
                               <button
@@ -334,7 +257,6 @@ function ShortlistSidebar({
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         id={showDeleteConfirm?.id}
         confirmationRef={null}
