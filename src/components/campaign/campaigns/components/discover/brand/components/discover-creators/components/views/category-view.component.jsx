@@ -1,5 +1,5 @@
-import ViewHeader from "./view-header.component";
-import CreatorGrid from "./creator-grid.component";
+import ViewHeader from "../headers/view-header.component";
+import CreatorGrid from "../grid/creator-grid.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 
 const CategoryView = ({
