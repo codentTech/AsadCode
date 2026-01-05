@@ -1,7 +1,7 @@
-import PageHeader from "./page-header.component";
-import ActiveFilters from "./active-filters.component";
-import CreatorGrid from "./creator-grid.component";
-import NicheCategory from "./niche-category.component";
+import PageHeader from "../headers/page-header.component";
+import ActiveFilters from "../filters/active-filters.component";
+import CreatorGrid from "../grid/creator-grid.component";
+import NicheCategory from "../grid/niche-category.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 
 const DiscoverView = ({

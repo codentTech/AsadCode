@@ -282,19 +282,7 @@ export const shortlistSlice = createSlice({
         state.addUserToShortlist.isLoading = false;
         state.addUserToShortlist.isSuccess = true;
         state.addUserToShortlist.data = action.payload;
-        // Update user count optimistically
-        if (state.getAllShortlists.data) {
-          const shortlist = state.getAllShortlists.data.find(
-            (s) => s.id === action.payload.shortlistId
-          );
-          if (shortlist) {
-            shortlist.user_count = (shortlist.user_count || 0) + 1;
-            // Also ensure users array length matches the count
-            if (!shortlist.users) {
-              shortlist.users = [];
-            }
-          }
-        }
+        // Note: Shortlists will be refetched by the component to get accurate counts
       })
       .addCase(addUserToShortlist.rejected, (state, action) => {
         state.addUserToShortlist.isLoading = false;
@@ -310,19 +298,7 @@ export const shortlistSlice = createSlice({
         state.removeUserFromShortlist.isLoading = false;
         state.removeUserFromShortlist.isSuccess = true;
         state.removeUserFromShortlist.data = action.payload;
-        // Update user count optimistically
-        if (state.getAllShortlists.data) {
-          const shortlist = state.getAllShortlists.data.find(
-            (s) => s.id === action.payload.shortlistId
-          );
-          if (shortlist) {
-            shortlist.user_count = Math.max((shortlist.user_count || 0) - 1, 0);
-            // Also update users array if it exists
-            if (shortlist.users) {
-              shortlist.users = shortlist.users.filter((u) => u.id !== action.payload.userId);
-            }
-          }
-        }
+        // Note: Shortlists will be refetched by the component to get accurate counts
       })
       .addCase(removeUserFromShortlist.rejected, (state, action) => {
         state.removeUserFromShortlist.isLoading = false;

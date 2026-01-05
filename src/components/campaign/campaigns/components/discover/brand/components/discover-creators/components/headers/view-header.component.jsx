@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
-import SearchAndSortControls from "./search-and-sort-controls.component";
+import SearchAndSortControls from "../controls/search-and-sort-controls.component";
+import { capitalizeFirstWord } from "@/common/utils/helper.utils";
 
 const ViewHeader = ({
   title,
@@ -25,8 +26,8 @@ const ViewHeader = ({
             <ArrowLeft />
           </button>
         )}
-        <h3 className="text-lg font-semibold text-gray-900">
-          {title}
+        <h3 className="text-xl font-semibold text-gray-900">
+          {capitalizeFirstWord(title)}
           {count !== undefined && (
             <span className="text-lg text-gray-600"> ({count} creators)</span>
           )}
@@ -47,4 +48,3 @@ const ViewHeader = ({
 };
 
 export default ViewHeader;
-
