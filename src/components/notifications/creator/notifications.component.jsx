@@ -11,6 +11,7 @@ function Notifications() {
     markAsRead,
     removeNotification,
     markAllAsRead,
+    handleNotificationClick,
   } = useNotifications();
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -98,7 +99,8 @@ function Notifications() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`group relative bg-white rounded-xl border transition-all duration-200 hover:shadow-md ${
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`group relative bg-white rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${
                     !notification.is_read ? "border-indigo-200 shadow-sm" : "border-gray-200"
                   }`}
                 >
@@ -185,3 +187,4 @@ function Notifications() {
 }
 
 export default Notifications;
+
