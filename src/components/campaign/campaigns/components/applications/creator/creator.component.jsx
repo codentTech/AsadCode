@@ -1,12 +1,10 @@
-import React from "react";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { Package, Gift } from "lucide-react";
+import { Gift, Package } from "lucide-react";
+import ApplicationCard from "./components/application-card/application-card.component";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import ApplicationMessageThread from "./components/message-thread-modal/application-message-thread.component";
-import useCreatorApplications from "./use-creator-applications.hook";
 import OffersModal from "./components/offers-modal/offers-modal.component";
-import ApplicationCard from "./components/application-card/application-card.component";
+import useCreatorApplications from "./use-creator-applications.hook";
 
 const CreatorApplications = () => {
   const {

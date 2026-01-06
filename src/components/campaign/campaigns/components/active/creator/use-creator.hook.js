@@ -137,7 +137,22 @@ export default function useActiveCampaign() {
     };
   }, []);
 
-  const activeCampaigns = applications || [];
+  // Filter out completed individual collaborations from active campaigns
+  // Backend should handle this, but adding frontend filter as safety measure
+  const activeCampaigns = (applications || []).filter((app) => {
+    // For individual collaborations, check campaign status
+    const isIndividualCollaboration =
+      app.invitation ||
+      app.campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    
+    if (isIndividualCollaboration && app.campaign) {
+      // Exclude if campaign status is COMPLETE
+      return app.campaign.status !== "COMPLETE";
+    }
+    
+    // For multi-creator campaigns, backend already filters by status
+    return true;
+  });
 
   useEffect(() => {
     if (activeCampaigns.length > 0 && !selectedCampaign) {

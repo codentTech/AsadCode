@@ -193,7 +193,7 @@ const CreatorSpendAnalysis = ({
                                   Creator Fee:
                                   <span className="font-bold text-primary">
                                     {" "}
-                                    ${creator?.campaign?.creator_fee}
+                                    ${creator?.contract?.totalCompensation}
                                   </span>
                                 </div>
                               ) : null}
@@ -234,15 +234,6 @@ const CreatorSpendAnalysis = ({
                             )}`}
                           >
                             {`${creator.successRate || 0}% Success Rate`}
-                          </div>
-                          <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
-                            <span className="font-bold">Total Views:</span>{" "}
-                            {formatFollowers(
-                              Object.values(creator.platforms).reduce(
-                                (sum, p) => sum + p.followers,
-                                0
-                              )
-                            )}
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">

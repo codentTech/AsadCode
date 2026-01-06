@@ -413,81 +413,78 @@ const DeliverablesProgressCompleted = ({
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
       {!selectedCampaign && renderCampaignSelectionMessage()}
-      {selectedCampaign && parentLoading && renderLoading()}
-      {selectedCampaign && !parentLoading && !selectedCreator && renderNoCreatorFound()}
       {selectedCampaign &&
-        !parentLoading &&
-        selectedCreator &&
-        creator &&
-        creator.id !== "unknown" && (
-          <>
-            {renderCreatorProfile()}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-              {renderQuickActions()}
-              {renderContractDetails()}
-              {renderTimeline()}
-              {renderReviews()}
-              {renderNotes()}
-            </div>
-            <MessageThreadModal
-              isOpen={messageThreadHook?.isModalOpen}
-              onClose={messageThreadHook?.closeMessageModal}
-              creator={creator}
-              messages={messageThreadHook?.messages || []}
-              newMessage={messageThreadHook?.newMessage || ""}
-              setNewMessage={messageThreadHook?.setNewMessage}
-              sendMessage={messageThreadHook?.sendMessage}
-              isSending={messageThreadHook?.isSending}
-              isLoading={messageThreadHook?.isLoading}
-              isCreatorOnline={messageThreadHook?.isCreatorOnline}
-              isCreatorTyping={messageThreadHook?.isCreatorTyping}
-              messagesEndRef={messageThreadHook?.messagesEndRef}
-              messagesContainerRef={messageThreadHook?.messagesContainerRef}
+        (selectedCreator === null || selectedCreator === undefined) &&
+        renderNoCreatorFound()}
+      {selectedCampaign && selectedCreator && creator && creator.id !== "unknown" && (
+        <>
+          {renderCreatorProfile()}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {renderQuickActions()}
+            {renderContractDetails()}
+            {renderTimeline()}
+            {renderReviews()}
+            {renderNotes()}
+          </div>
+          <MessageThreadModal
+            isOpen={messageThreadHook?.isModalOpen}
+            onClose={messageThreadHook?.closeMessageModal}
+            creator={creator}
+            messages={messageThreadHook?.messages || []}
+            newMessage={messageThreadHook?.newMessage || ""}
+            setNewMessage={messageThreadHook?.setNewMessage}
+            sendMessage={messageThreadHook?.sendMessage}
+            isSending={messageThreadHook?.isSending}
+            isLoading={messageThreadHook?.isLoading}
+            isCreatorOnline={messageThreadHook?.isCreatorOnline}
+            isCreatorTyping={messageThreadHook?.isCreatorTyping}
+            messagesEndRef={messageThreadHook?.messagesEndRef}
+            messagesContainerRef={messageThreadHook?.messagesContainerRef}
+          />
+          {showContractPreview && selectedContract && (
+            <ContractPreviewModal
+              show={showContractPreview}
+              onClose={() => setShowContractPreview(false)}
+              contractData={{
+                brandName:
+                  selectedCampaign?.created_by?.first_name &&
+                  selectedCampaign?.created_by?.last_name
+                    ? `${selectedCampaign.created_by.first_name} ${selectedCampaign.created_by.last_name}`
+                    : selectedCampaign?.created_by?.first_name || "Brand",
+                creatorName: creator?.name || "Creator",
+                campaignTitle:
+                  selectedCampaign?.campaign_title || selectedCampaign?.title || "Campaign",
+                startDate: selectedContract.startDate || selectedContract.start_date,
+                completionDeadline:
+                  selectedContract.completionDeadline || selectedContract.completion_deadline,
+                contentFormat: selectedContract.contentFormat || selectedContract.content_format,
+                revisionsLimit:
+                  selectedContract.revisionsLimit || selectedContract.revisions_limit || "2",
+                compensationType:
+                  selectedContract.compensationType || selectedContract.compensation_type,
+                totalCompensation:
+                  selectedContract.totalCompensation?.toString() ||
+                  selectedContract.total_compensation?.toString(),
+                productPrice:
+                  selectedContract.productPrice?.toString() ||
+                  selectedContract.product_price?.toString(),
+                productValue:
+                  selectedCampaign?.product_value?.toString() ||
+                  selectedContract.productValue?.toString() ||
+                  selectedContract.product_value?.toString(),
+                usageRights: selectedContract.usageRights || selectedContract.usage_rights,
+                exclusivityClause:
+                  selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
+                hashtags: selectedContract.hashtags,
+                mentions: selectedContract.mentions,
+              }}
+              creatorData={user}
+              campaignData={selectedCampaign}
+              contractId={selectedContract.id}
             />
-            {showContractPreview && selectedContract && (
-              <ContractPreviewModal
-                show={showContractPreview}
-                onClose={() => setShowContractPreview(false)}
-                contractData={{
-                  brandName:
-                    selectedCampaign?.created_by?.first_name &&
-                    selectedCampaign?.created_by?.last_name
-                      ? `${selectedCampaign.created_by.first_name} ${selectedCampaign.created_by.last_name}`
-                      : selectedCampaign?.created_by?.first_name || "Brand",
-                  creatorName: creator?.name || "Creator",
-                  campaignTitle:
-                    selectedCampaign?.campaign_title || selectedCampaign?.title || "Campaign",
-                  startDate: selectedContract.startDate || selectedContract.start_date,
-                  completionDeadline:
-                    selectedContract.completionDeadline || selectedContract.completion_deadline,
-                  contentFormat: selectedContract.contentFormat || selectedContract.content_format,
-                  revisionsLimit:
-                    selectedContract.revisionsLimit || selectedContract.revisions_limit || "2",
-                  compensationType:
-                    selectedContract.compensationType || selectedContract.compensation_type,
-                  totalCompensation:
-                    selectedContract.totalCompensation?.toString() ||
-                    selectedContract.total_compensation?.toString(),
-                  productPrice:
-                    selectedContract.productPrice?.toString() ||
-                    selectedContract.product_price?.toString(),
-                  productValue:
-                    selectedCampaign?.product_value?.toString() ||
-                    selectedContract.productValue?.toString() ||
-                    selectedContract.product_value?.toString(),
-                  usageRights: selectedContract.usageRights || selectedContract.usage_rights,
-                  exclusivityClause:
-                    selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
-                  hashtags: selectedContract.hashtags,
-                  mentions: selectedContract.mentions,
-                }}
-                creatorData={user}
-                campaignData={selectedCampaign}
-                contractId={selectedContract.id}
-              />
-            )}
-          </>
-        )}
+          )}
+        </>
+      )}
     </div>
   );
 };

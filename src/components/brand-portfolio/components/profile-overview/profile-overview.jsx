@@ -1,7 +1,7 @@
 "use client";
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { avatar } from "@/common/constants/auth.constant";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import {
   Building2,
   CheckCircle,
@@ -13,7 +13,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import PropTypes from "prop-types";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
 
 function ProfileOverview({
   basics,
@@ -34,30 +33,15 @@ function ProfileOverview({
           <div className="relative flex-shrink-0">
             <div className="w-32 h-32 rounded-full border-4 border-white shadow-md ring-2 ring-primary overflow-hidden flex items-center justify-center bg-gray-50">
               {basics.logo ? (
-                <img
-                  src={basics.logo || avatar}
-                  alt={basics.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={basics.logo} alt={basics.name} className="w-full h-full object-cover" />
               ) : (
                 <Building2 className="w-12 h-12 text-gray-400" />
               )}
             </div>
-            {basics.isVerified && (
-              <span className="absolute -bottom-2 right-6 bg-emerald-500 text-white rounded-full p-1 shadow-lg">
-                <ShieldCheck className="w-5 h-5" />
-              </span>
-            )}
           </div>
 
           <div>
             <div className="flex items-center gap-3 mb-2 flex-wrap">
-              {basics.isVerified && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <CheckCircle className="w-3 h-3" />
-                  Verified Brand
-                </span>
-              )}
               {!canEdit && onFollowBrand && (
                 <CustomButton
                   text="Follow Brand"

@@ -42,7 +42,14 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
               <p className="text-sm font-medium text-indigo-900 mb-1">Compensation Type</p>
               {!isGiftedCampaign && (
                 <p className="text-sm font-medium text-indigo-900 mb-1">
-                  <span className="font-bold">Creator Fee:</span> ${creatorFee}
+                  <span className="font-bold">Creator Fee:</span>{" "}
+                  {creatorCompOption === "none" ? (
+                    <span>Negotiable</span>
+                  ) : typeof creatorFee === "string" ? (
+                    `$${creatorFee}`
+                  ) : (
+                    `$${creatorFee}`
+                  )}
                 </p>
               )}
             </div>
@@ -122,7 +129,10 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
               <CustomRadioGroup
                 label="Creator Payment Amount (optional)"
                 name="creator_compensation_option"
-                radioOptions={[{ label: "None", value: "none" }, ...creatorCompensationOptions]}
+                radioOptions={[
+                  { label: "Negotiable", value: "none" },
+                  ...creatorCompensationOptions,
+                ]}
                 inlineRadioButtons
                 value={creatorCompOption}
                 onChange={handleCreatorCompOptionChange}

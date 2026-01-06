@@ -6,7 +6,11 @@ import AudienceDemographics from "@/components/audience-demographics/audience-de
 import NotFound from "@/common/components/not-found/not-found.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
 
-export default function CampaignOverviewCompleted({ onCampaignSelect, onToggleChange }) {
+export default function CampaignOverviewCompleted({
+  onCampaignSelect,
+  onToggleChange,
+  parentSelectedCampaign,
+}) {
   const {
     isMultiCreator,
     filteredCampaignOptions,
@@ -23,7 +27,14 @@ export default function CampaignOverviewCompleted({ onCampaignSelect, onToggleCh
     handleToggleChange,
     handleExportData,
     handleViewAnalytics,
-  } = useCampaignOverviewCompleted(onCampaignSelect, onToggleChange);
+    individualContractsData,
+    individualContractsSuccess,
+  } = useCampaignOverviewCompleted(
+    onCampaignSelect,
+    onToggleChange,
+    undefined,
+    parentSelectedCampaign
+  );
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -65,92 +76,119 @@ export default function CampaignOverviewCompleted({ onCampaignSelect, onToggleCh
         </div>
       )}
 
-      {!isLoading &&
-        !selectedCampaign &&
-        (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
-          <NotFound
-            title={
-              isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
-            }
-            description={
-              isMultiCreator
-                ? "You don't have any completed campaigns."
-                : "You don't have any completed individual collaborations."
-            }
-          />
-        )}
+      {(() => {
+        let shouldShowNotFound = false;
 
-      {showMultiCreatorUI && hasData && (
-        <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
-          <div className="flex flex-col justify-between">
-            <h5 className="text-primary text-sm">Budget Spent</h5>
-            <h6 className="text-primary text-sm font-bold">{formatCurrency(budgetData.spent)}</h6>
-          </div>
-          <div className="flex flex-col justify-between">
-            <h5 className="text-green-600 text-sm">Budget Saved</h5>
-            <h6 className="text-green-600 text-sm font-bold">{formatCurrency(budgetData.saved)}</h6>
-          </div>
-        </div>
-      )}
+        if (isMultiCreator) {
+          shouldShowNotFound =
+            !isLoading && !selectedCampaign && filteredCampaignOptions.length === 0;
+        } else {
+          const completedContractsCount =
+            individualContractsData?.filter((contract) => contract.campaign?.status === "COMPLETE")
+              .length || 0;
 
-      {showMultiCreatorUI && hasData && (
+          shouldShowNotFound =
+            !isLoading &&
+            !selectedCampaign &&
+            individualContractsSuccess &&
+            completedContractsCount === 0;
+        }
+
+        return (
+          shouldShowNotFound && (
+            <NotFound
+              title={
+                isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
+              }
+              description={
+                isMultiCreator
+                  ? "You don't have any completed campaigns."
+                  : "You don't have any completed individual collaborations."
+              }
+            />
+          )
+        );
+      })()}
+
+      {selectedCampaign && (
         <>
-          <hr />
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Views:</span>
-                <span className="font-medium text-blue-800">
-                  {formatNumber(performanceMetrics.totalViews)}
-                </span>
+          {showMultiCreatorUI && hasData && (
+            <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
+              <div className="flex flex-col justify-between">
+                <h5 className="text-primary text-sm">Budget Spent</h5>
+                <h6 className="text-primary text-sm font-bold">
+                  {formatCurrency(budgetData.spent)}
+                </h6>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Engagement:</span>
-                <span className="font-medium text-blue-800">
-                  {formatNumber(performanceMetrics.totalEngagement)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Engagement Rate:</span>
-                <span className="font-medium text-blue-800">
-                  {performanceMetrics.engagementRate.toFixed(1)}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Cost per Engagement:</span>
-                <span className="font-medium text-blue-800">
-                  {formatCurrency(performanceMetrics.costPerEngagement)}
-                </span>
+              <div className="flex flex-col justify-between">
+                <h5 className="text-green-600 text-sm">Budget Saved</h5>
+                <h6 className="text-green-600 text-sm font-bold">
+                  {formatCurrency(budgetData.saved)}
+                </h6>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          )}
 
-      {hasData && (
-        <>
-          <hr />
-          <div className="mb-1">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
-            </h3>
-            <AudienceDemographics className="flex flex-col" />
-          </div>
-          <hr />
-          {showMultiCreatorUI && (
-            <div className="flex flex-col gap-2 mt-1">
-              <CustomButton
-                text="Export Campaign Data"
-                onClick={handleExportData}
-                className="w-full btn-primary"
-              />
-              <CustomButton
-                text="View Full Analytics"
-                onClick={handleViewAnalytics}
-                className="w-full btn-outline"
-              />
-            </div>
+          {showMultiCreatorUI && hasData && (
+            <>
+              <hr />
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Views:</span>
+                    <span className="font-medium text-blue-800">
+                      {formatNumber(performanceMetrics.totalViews)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Engagement:</span>
+                    <span className="font-medium text-blue-800">
+                      {formatNumber(performanceMetrics.totalEngagement)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Engagement Rate:</span>
+                    <span className="font-medium text-blue-800">
+                      {performanceMetrics.engagementRate.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Cost per Engagement:</span>
+                    <span className="font-medium text-blue-800">
+                      {formatCurrency(performanceMetrics.costPerEngagement)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {selectedCampaign && (
+            <>
+              <hr />
+              <div className="mb-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
+                </h3>
+                <AudienceDemographics className="flex flex-col" />
+              </div>
+              <hr />
+              {showMultiCreatorUI && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <CustomButton
+                    text="Export Campaign Data"
+                    onClick={handleExportData}
+                    className="w-full btn-primary"
+                  />
+                  <CustomButton
+                    text="View Full Analytics"
+                    onClick={handleViewAnalytics}
+                    className="w-full btn-outline"
+                  />
+                </div>
+              )}
+            </>
           )}
         </>
       )}

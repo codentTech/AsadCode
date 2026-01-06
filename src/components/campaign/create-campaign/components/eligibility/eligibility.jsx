@@ -120,7 +120,7 @@ function Eligibility({
       {/* Country Selection - Multi-Select */}
       <div className="border rounded-lg p-4">
         <CountrySelect
-          label="Creator Country"
+          label="Creator Country (Optional)"
           name="countries_selector"
           value={countrySelectValueForMulti}
           onChange={handleCountrySelectForMulti}
