@@ -1,4 +1,4 @@
-import SearchAndSortControls from "./search-and-sort-controls.component";
+import SearchAndSortControls from "../controls/search-and-sort-controls.component";
 
 const PageHeader = ({
   title,

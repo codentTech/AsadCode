@@ -1,24 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
-import { avatar } from "@/common/constants/auth.constant";
-import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
-import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
+import NotFound from "@/common/components/not-found/not-found.component";
+import { List } from "lucide-react";
 import CreatorPreview from "./components/creator-preview/creator-preview.component";
 import DiscoverCreators from "./components/discover-creators/discover-creators.component";
 import ShortlistSidebar from "./components/shortlist-sidebar/shortlist-sidebar.component";
 import useDiscover from "./use-brand-discover.hook";
-import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 
 function BrandDiscover() {
-  const dispatch = useDispatch();
-  const campaignsState = useSelector(
-    (state) => state.campaigns?.getBrandCampaignsExcludingCompleted
-  );
-  const [userCampaigns, setUserCampaigns] = useState([]);
-
   const {
     shortlists,
     selectedShortlist,
@@ -32,78 +22,22 @@ function BrandDiscover() {
     setIsPreviewOpen,
     saveToShortlistDialogOpen,
     setSaveToShortlistDialogOpen,
-    messageDialogOpen,
-    setMessageDialogOpen,
-    creatorToMessage,
-    messageText,
-    setMessageText,
     handleShortlistSelect,
     handleCreateShortlist,
     handleCreatorPreview,
     handleSaveToShortlist,
     confirmSaveToShortlist,
     getSortedCreators,
-    mockNicheCategories,
-    sortOptions,
     handleRemoveFromShortlist,
     handleEditShortlist,
     handleDeleteShortlist,
-    handleSendMessage,
+    handleInviteToApply,
+    userCampaigns,
     shortlistState,
   } = useDiscover();
 
-  // ==================== HOOKS ====================
-  const lastOpenedCreatorIdRef = useRef(null);
-  const messageThreadHook = useMessageThread(creatorToMessage?.id || null);
-
-  const creator = {
-    id: creatorToMessage?.id,
-    name: creatorToMessage?.name,
-    avatar: creatorToMessage?.profileImage || avatar,
-    isOnline: true,
-  };
-
-  // ==================== EFFECTS ====================
-  // Fetch user campaigns on component mount
-  useEffect(() => {
-    dispatch(getBrandCampaignsExcludingCompleted());
-  }, [dispatch]);
-
-  // Update userCampaigns when campaigns are fetched
-  useEffect(() => {
-    if (campaignsState?.data?.data && Array.isArray(campaignsState.data.data)) {
-      setUserCampaigns(campaignsState.data.data);
-    }
-  }, [campaignsState]);
-
-  // Auto-open modal when creatorToMessage changes
-  useEffect(() => {
-    if (creatorToMessage?.id && creatorToMessage.id !== lastOpenedCreatorIdRef.current) {
-      lastOpenedCreatorIdRef.current = creatorToMessage.id;
-      messageThreadHook.openMessageModal();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [creatorToMessage?.id]);
-
-  // ==================== HANDLERS ====================
-  const handleCloseModal = () => {
-    messageThreadHook.closeMessageModal();
-    setMessageDialogOpen(false);
-    lastOpenedCreatorIdRef.current = null;
-  };
-
-  const handleInviteToApply = (creator, campaign) => {
-    if (campaign) {
-      console.log("Invitation sent to:", creator.name, "for campaign:", campaign.campaign_title || campaign.title);
-    } else {
-      console.log("Invitation sent to:", creator.name, "for individual collaboration");
-    }
-    // You can add additional logic here like showing a success message
-  };
-
   return (
     <div className="flex bg-white w-full h-[calc(100vh-48px)]">
-      {/* Left Column - Shortlists Sidebar */}
       <ShortlistSidebar
         shortlists={shortlists}
         selectedShortlist={selectedShortlist}
@@ -118,7 +52,6 @@ function BrandDiscover() {
         shortlistState={shortlistState}
       />
 
-      {/* Center Column - Discovery Feed or Shortlist View */}
       <DiscoverCreators
         selectedShortlist={selectedShortlist}
         setSelectedShortlist={setSelectedShortlist}
@@ -130,7 +63,6 @@ function BrandDiscover() {
         userCampaigns={userCampaigns}
       />
 
-      {/* New Shortlist Dialog */}
       <Modal
         title="Create New Shortlist"
         show={isNewShortlistDialogOpen}
@@ -147,12 +79,11 @@ function BrandDiscover() {
             onClick={() => setIsNewShortlistDialogOpen(false)}
             text="Cancel"
             className="btn-cancel"
-          ></CustomButton>
+          />
           <CustomButton onClick={handleCreateShortlist} text="Create" />
         </div>
       </Modal>
 
-      {/* Creator Preview Dialog */}
       <Modal
         title="Creator Preview"
         show={isPreviewOpen}
@@ -162,45 +93,38 @@ function BrandDiscover() {
         <CreatorPreview previewCreator={previewCreator} setIsPreviewOpen={setIsPreviewOpen} />
       </Modal>
 
-      {/* Save to Shortlist Dialog */}
       <Modal
         title="Save to Shortlist"
         show={saveToShortlistDialogOpen}
         onClose={() => setSaveToShortlistDialogOpen(false)}
       >
         <div>
-          <h5 className="text-primary font-bold mb-2">Click the campaign to save</h5>
+          <h5 className="text-primary font-bold mb-2">Click the shortlist to save</h5>
           <hr className="border border-primary" />
-          <ul className="space-y-2 mt-4">
-            {shortlists.map((shortlist) => (
-              <li key={shortlist.id}>
-                <div
-                  className="w-full text-sm p-2 border border-gray-200 hover:border-primary hover:bg-indigo-50 rounded-lg cursor-pointer transition-all flex items-center"
-                  onClick={() => confirmSaveToShortlist(shortlist.id)}
-                >
-                  {shortlist.name}
-                </div>
-              </li>
-            ))}
-          </ul>
+          {shortlists.length === 0 ? (
+            <NotFound
+              title="No Shortlists Found"
+              description="Create a shortlist first to save creators."
+              icon={List}
+              showAnimation={false}
+              className="py-8"
+            />
+          ) : (
+            <ul className="space-y-2 mt-4">
+              {shortlists.map((shortlist) => (
+                <li key={shortlist.id}>
+                  <div
+                    className="w-full text-sm p-2 border border-gray-200 hover:border-primary hover:bg-indigo-50 rounded-lg cursor-pointer transition-all flex items-center"
+                    onClick={() => confirmSaveToShortlist(shortlist.id)}
+                  >
+                    {shortlist.name}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </Modal>
-
-      <MessageThreadModal
-        isOpen={messageThreadHook.isModalOpen}
-        onClose={handleCloseModal}
-        creator={creator}
-        messages={messageThreadHook.messages || []}
-        newMessage={messageThreadHook.newMessage || ""}
-        setNewMessage={messageThreadHook.setNewMessage}
-        sendMessage={messageThreadHook.sendMessage}
-        isSending={messageThreadHook.isSending}
-        isLoading={messageThreadHook.isLoading}
-        isCreatorOnline={messageThreadHook.isCreatorOnline}
-        isCreatorTyping={messageThreadHook.isCreatorTyping}
-        messagesEndRef={messageThreadHook.messagesEndRef}
-        messagesContainerRef={messageThreadHook.messagesContainerRef}
-      />
     </div>
   );
 }

@@ -60,7 +60,7 @@ function LayoutWrapper({ children }) {
   return (
     <React.Fragment>
       <SnackbarExposer />
-      {!loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
+      {loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
     </React.Fragment>
   );
 }
