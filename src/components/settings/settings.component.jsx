@@ -1,22 +1,14 @@
 "use client";
 
-import DashboardHeader from "@/components/admin/header/header.component";
-import Sidebar from "@/components/admin/sidebar/sidebar.component";
+import SettingSidebar from "./setting-sidebar/setting-sidebar.component";
+import PrivateHeader from "@/components/private-header/private-header.component";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function DashboardLayout({ children }) {
+export default function SettingsLayout({ children }) {
   const pathname = usePathname();
-  const [activeRoute, setActiveRoute] = useState(pathname || "/admin/dashboard");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Update active route when pathname changes
-  useEffect(() => {
-    if (pathname) {
-      setActiveRoute(pathname);
-    }
-  }, [pathname]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -25,7 +17,6 @@ export default function DashboardLayout({ children }) {
         setSidebarCollapsed(true);
         setMobileMenuOpen(false);
       } else {
-        // Auto-expand sidebar on larger screens
         setSidebarCollapsed(false);
       }
     };
@@ -39,7 +30,7 @@ export default function DashboardLayout({ children }) {
   // Close mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
-  }, [activeRoute]);
+  }, [pathname]);
 
   return (
     <div className="min-h-screen flex">
@@ -51,8 +42,8 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Sidebar - Admin only */}
-      <Sidebar
+      {/* Settings Sidebar */}
+      <SettingSidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         setCurrentBar={null}
@@ -65,14 +56,11 @@ export default function DashboardLayout({ children }) {
           sidebarCollapsed ? "ml-16" : "ml-72"
         }`}
       >
-        {/* Admin Header */}
-        <DashboardHeader
-          onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          sidebarCollapsed={sidebarCollapsed}
-        />
+        {/* Header */}
+        <PrivateHeader />
 
         {/* Main Content */}
-        <main className={`flex-1 px-4 lg:px-6 pt-24 overflow-x-hidden bg-gray-50`}>{children}</main>
+        <main className="flex-1 px-4 lg:px-6 py-20 overflow-x-hidden bg-gray-50">{children}</main>
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200 px-4 lg:px-6 py-4">

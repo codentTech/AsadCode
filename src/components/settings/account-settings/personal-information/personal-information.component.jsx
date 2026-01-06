@@ -4,7 +4,6 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { Building2, Mail, MapPin, User } from "lucide-react";
 import usePersonalInformation from "./use-personal-information.hook";
@@ -26,7 +25,7 @@ export default function PersonalInformationPage() {
   } = usePersonalInformation();
 
   return (
-    <DashboardLayout>
+    <>
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Personal Information</h1>
         <p className="text-sm mt-1">
@@ -193,6 +192,6 @@ export default function PersonalInformationPage() {
           </div>
         </form>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
