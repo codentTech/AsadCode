@@ -38,7 +38,7 @@ const CampaignBriefModal = ({ show, onClose, campaign }) => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1 space-y-3">
               <h1 className="text-lg uppercase font-bold leading-snug text-indigo-900 sm:text-xl truncate">
-                ----- {title} -----
+                {title}
               </h1>
 
               {quickFields.length > 0 && (
