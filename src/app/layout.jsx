@@ -4,11 +4,10 @@ import FullPageLoader from "@/common/components/full-page-loader/full-page-loade
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
-import { persistor, store } from "@/provider/store";
 import ChatProvider from "@/provider/chat-provider";
+import { persistor, store } from "@/provider/store";
 import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
-import { Loader } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { MaterialDesignContent, SnackbarProvider, useSnackbar } from "notistack";
 import PropTypes from "prop-types";

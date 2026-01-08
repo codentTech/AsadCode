@@ -1,12 +1,9 @@
 "use client";
 
-import ROLES from "@/common/constants/role.constant";
-import { getUser } from "@/common/utils/users.util";
-import useSidebar from "./use-sidebar";
+import useSettingSidebar from "./use-setting-sidebar";
 
-function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
-  const currentUser = getUser();
-  const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();
+function SettingSidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
+  const { expandedSections, activeItem, navItems, handleItemClick } = useSettingSidebar();
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
     const { label, icon: Icon, children, href } = item;
@@ -104,12 +101,12 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 bottom-0 left-0 z-40 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r flex flex-col ${
+        className={`fixed top-12 bottom-0 left-0 z-40 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Logo */}
-        <div className="px-4 py-3.5 border-b border-gray-200">
+        <div className="px-4 py-4 border-b border-gray-200">
           <img
             src="/assets/images/horizontal-logo.png"
             alt="Cleercut Logo"
@@ -119,13 +116,11 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
         {/* Navigation */}
         <nav className="flex-1 py-4 overflow-y-auto">
-          <div className={`px-4 space-y-2 ${currentUser?.role === ROLES.ADMIN ? "pt-4" : "pt-4"}`}>
-            {navItems?.map((item) => renderNavItem(item))}
-          </div>
+          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
         </nav>
       </div>
     </>
   );
 }
 
-export default Sidebar;
+export default SettingSidebar;
