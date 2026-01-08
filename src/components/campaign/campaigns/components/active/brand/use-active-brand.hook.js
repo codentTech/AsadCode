@@ -48,6 +48,26 @@ function useActiveBrand() {
       autoSelectedForCampaignRef.current = null;
       setSelectedCampaign(campaign);
 
+      // Check if this is a task navigation and set isMultiCreator accordingly
+      const taskIsIndividualCreator = sessionStorage.getItem("taskIsIndividualCreator");
+      if (campaign && taskIsIndividualCreator !== null) {
+        const shouldBeIndividualCreator = taskIsIndividualCreator === "true";
+        const campaignIsIndividual =
+          campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
+        // Only update if the campaign type matches what we stored
+        if (shouldBeIndividualCreator === campaignIsIndividual) {
+          const newIsMultiCreator = !shouldBeIndividualCreator;
+          setIsMultiCreator(newIsMultiCreator);
+          // Clear the sessionStorage flag after use
+          sessionStorage.removeItem("taskIsIndividualCreator");
+        }
+      } else if (campaign) {
+        // Normal selection - set based on campaign type
+        const isIndividual = campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+        setIsMultiCreator(!isIndividual);
+      }
+
       if (campaign) {
         dispatch(
           setSelectedCampaignContext({
@@ -144,16 +164,41 @@ function useActiveBrand() {
         return deadline >= now && contract.campaign?.status !== "COMPLETE";
       });
 
-      if (matchingContracts.length > 0) {
-        const firstContract = matchingContracts[0];
-        const creator = firstContract.creator;
+      // Check if we have task navigation data in sessionStorage
+      const taskCreatorId = sessionStorage.getItem("taskCreatorId");
+      const taskCampaignId = sessionStorage.getItem("taskCampaignId");
+
+      let contractToSelect = null;
+
+      if (taskCampaignId === selectedCampaign.id && taskCreatorId) {
+        // Find the contract matching the creator ID
+        contractToSelect = matchingContracts.find(
+          (contract) =>
+            contract.creator?.id === taskCreatorId ||
+            contract.creator?.creator_profile?.id === taskCreatorId
+        );
+
+        // Clear sessionStorage after use
+        if (contractToSelect) {
+          sessionStorage.removeItem("taskCreatorId");
+          sessionStorage.removeItem("taskCampaignId");
+          sessionStorage.removeItem("taskType");
+          sessionStorage.removeItem("taskConversationId");
+        }
+      }
+
+      // Use task creator if found, otherwise use first contract
+      const selectedContract = contractToSelect || matchingContracts[0];
+
+      if (selectedContract) {
+        const creator = selectedContract.creator;
         const creatorProfile = creator?.creator_profile;
 
         const formattedCreator = {
-          id: firstContract.id,
-          contractId: firstContract.id,
-          campaign_id: firstContract.campaignId || firstContract.campaign?.id,
-          campaign: firstContract.campaign,
+          id: selectedContract.id,
+          contractId: selectedContract.id,
+          campaign_id: selectedContract.campaignId || selectedContract.campaign?.id,
+          campaign: selectedContract.campaign,
           creatorUserId: creator?.id,
           creator: creator,
           name:
@@ -167,7 +212,7 @@ function useActiveBrand() {
           age: creator?.date_of_birth
             ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear()
             : null,
-          contract: firstContract,
+          contract: selectedContract,
         };
 
         if (formattedCreator.creator) {
@@ -196,6 +241,32 @@ function useActiveBrand() {
       !selectedCreator &&
       autoSelectedForCampaignRef.current !== selectedCampaign.id
     ) {
+      // Check if we have task navigation data in sessionStorage
+      const taskCreatorId = sessionStorage.getItem("taskCreatorId");
+      const taskCampaignId = sessionStorage.getItem("taskCampaignId");
+
+      if (taskCampaignId === selectedCampaign.id && taskCreatorId) {
+        // Find the creator by creatorUserId or creator.id
+        const matchingCreator = hiredCreatorsData.data.find(
+          (creator) =>
+            creator.creatorUserId === taskCreatorId ||
+            creator.creator?.id === taskCreatorId ||
+            creator.creator?.creator_profile?.id === taskCreatorId
+        );
+
+        if (matchingCreator) {
+          setSelectedCreator(matchingCreator);
+          autoSelectedForCampaignRef.current = selectedCampaign.id;
+          // Clear sessionStorage after use
+          sessionStorage.removeItem("taskCreatorId");
+          sessionStorage.removeItem("taskCampaignId");
+          sessionStorage.removeItem("taskType");
+          sessionStorage.removeItem("taskConversationId");
+          return;
+        }
+      }
+
+      // Default: select first creator
       setSelectedCreator(hiredCreatorsData.data[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }

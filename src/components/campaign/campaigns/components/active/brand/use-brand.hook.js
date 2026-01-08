@@ -42,26 +42,27 @@ export default function useBrandCampaign(isCompleted = false) {
     engagementRate: 0,
     costPerEngagement: 0,
   });
+
   useEffect(() => {
     dispatch(getAllBrandCampaigns());
   }, [dispatch]);
 
   useEffect(() => {
-    if (
-      campaignsSuccess &&
-      campaignsData?.data &&
-      selectedCampaignId &&
-      !hasRestoredFromContext.current
-    ) {
+    if (campaignsSuccess && campaignsData?.data && selectedCampaignId) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
-      if (restoredCampaign) {
+
+      // Allow re-selection if campaign ID changed or if not yet restored
+      const shouldRestore =
+        !hasRestoredFromContext.current || selectedCampaign?.id !== selectedCampaignId;
+
+      if (restoredCampaign && shouldRestore) {
         setSelectedCampaign(restoredCampaign);
         hasAutoSelected.current = true;
         hasRestoredFromContext.current = true;
       }
     }
-  }, [campaignsSuccess, campaignsData, selectedCampaignId]);
+  }, [campaignsSuccess, campaignsData, selectedCampaignId, selectedCampaign]);
 
   useEffect(() => {
     if (!hasRestoredFromContext.current) {
@@ -75,9 +76,7 @@ export default function useBrandCampaign(isCompleted = false) {
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const activeCampaigns = allCampaigns.filter(
-        (campaign) => campaign.status !== "COMPLETE"
-      );
+      const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
       const options = activeCampaigns.map((campaign) => ({
         value: campaign.id,
         label: campaign.campaign_title || "Untitled Campaign",
@@ -174,6 +173,7 @@ export default function useBrandCampaign(isCompleted = false) {
       });
     }
   }, [creatorsSuccess, creatorsData, selectedCampaign, isCompleted]);
+
   const handleCampaignSelect = useCallback(
     (selectedOption) => {
       if (selectedOption) {

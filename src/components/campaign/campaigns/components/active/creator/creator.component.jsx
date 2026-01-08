@@ -2,6 +2,7 @@ import React from "react";
 import CampaignList from "./components/campaign-list/campaign-list.component";
 import CampaignDetail from "./components/campaign-detail/campaign-detail.component";
 import ContentPlanning from "./components/content-planning/content-planning.component";
+import TaskManagerCreator from "../../task-manager/creator/task-manager-creator.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import useActiveCampaign from "./use-creator.hook";
 import Loading from "@/common/components/loadar/loading.component";
@@ -12,6 +13,7 @@ const ActiveCampaign = () => {
     activeCampaigns,
     getApplicationsState,
     handleCampaignSelect,
+    getCampaignById,
     formatCampaignData,
   } = useActiveCampaign();
 
@@ -57,13 +59,22 @@ const ActiveCampaign = () => {
           />
         </div>
 
-        {/* Right Column - Content Planning */}
-        <div className="w-[27%] bg-white">
-          <NotFound
-            title="No Content Planner"
-            description="Content tools not available."
-            className="h-full"
-          />
+        {/* Right Column - Content Planning + Upcoming Tasks */}
+        <div className="w-[27%] bg-white flex flex-col">
+          <div className="flex-1">
+            <NotFound
+              title="No Content Planner"
+              description="Content tools not available."
+              className="h-full"
+            />
+          </div>
+          <div className="border-t border-gray-200 p-4 flex-shrink-0" style={{ maxHeight: "40%" }}>
+            <TaskManagerCreator
+              setSelectedCampaign={handleCampaignSelect}
+              getCampaignById={getCampaignById}
+              formatCampaignData={formatCampaignData}
+            />
+          </div>
         </div>
       </div>
     );
@@ -85,8 +96,13 @@ const ActiveCampaign = () => {
         isLoading={getApplicationsState.isLoading}
       />
 
-      {/* Right Column - Content Planning + Deadlines */}
-      <ContentPlanning selectedCampaign={selectedCampaign} />
+      {/* Right Column - Content Planning (includes Upcoming Tasks) */}
+      <ContentPlanning
+        selectedCampaign={selectedCampaign}
+        setSelectedCampaign={handleCampaignSelect}
+        getCampaignById={getCampaignById}
+        formatCampaignData={formatCampaignData}
+      />
     </div>
   );
 };
