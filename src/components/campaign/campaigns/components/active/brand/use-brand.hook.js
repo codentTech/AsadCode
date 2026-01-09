@@ -75,9 +75,7 @@ export default function useBrandCampaign(isCompleted = false) {
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const activeCampaigns = allCampaigns.filter(
-        (campaign) => campaign.status !== "COMPLETE"
-      );
+      const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
       const options = activeCampaigns.map((campaign) => ({
         value: campaign.id,
         label: campaign.campaign_title || "Untitled Campaign",
@@ -131,7 +129,10 @@ export default function useBrandCampaign(isCompleted = false) {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
       const totalBudget = selectedCampaign.budget || 0;
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
+      const spent = creators.reduce(
+        (sum, creator) => sum + (creator.contract?.total_compensation || 0),
+        0
+      );
       const remaining = totalBudget - spent;
       const saved = isCompleted ? Math.max(0, remaining) : 0;
 

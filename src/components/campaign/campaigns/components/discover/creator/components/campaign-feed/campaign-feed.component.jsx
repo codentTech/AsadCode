@@ -1,15 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { product } from "@/common/constants/auth.constant";
 import { campaignTitle } from "@/common/utils/campaign.utils";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
 import { DollarSign, Gift, Globe, Loader2, Users, Zap } from "lucide-react";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import { useCampaignFeed } from "./use-campaign-feed.hook";
-import NotFound from "@/common/components/not-found/not-found.component";
 
 function CampaignFeed() {
   const {
@@ -163,7 +162,9 @@ function CampaignFeed() {
                       </div>
                       <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
-                        <div>{campaign.creator_fee}</div>
+                        <div>
+                          {+campaign.creator_fee !== 0 ? campaign.creator_fee : "Negotiable"}
+                        </div>
                       </div>
                     </div>
                   </div>

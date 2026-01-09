@@ -1,9 +1,8 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { Globe } from "lucide-react";
-import { campaignTitle } from "@/common/utils/campaign.utils";
-import { formatTimeAgo } from "@/common/utils/helper.utils";
-import { product } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { campaignTitle, formatLanguageForDisplay } from "@/common/utils/campaign.utils";
+import { formatTimeAgo } from "@/common/utils/helper.utils";
+import { Globe } from "lucide-react";
 
 // Campaign type color mapping - matches campaign-feed component
 const getCampaignTypeStyle = (type) => {
@@ -56,7 +55,9 @@ const ApplicationCard = ({
   const budget = campaign?.budget || campaign?.creator_fee || "N/A";
   const niches = campaign?.niches || [];
   const location = campaign?.location_options?.[0] || "N/A";
-  const language = campaign?.language_requirement || "N/A";
+  const language = formatLanguageForDisplay(
+    campaign?.language_requirement || campaign?.creator_language
+  );
   const minFollowers = campaign?.min_combined_followers || "0";
   const deliverables = campaign?.deliverables || [];
   const description =
@@ -65,6 +66,10 @@ const ApplicationCard = ({
     application.custom_message ||
     "No description available";
   const appliedDate = application.applied_at || application.created_at;
+
+  // Determine if this is an individual collaboration invite (no campaign post)
+  const isIndividualCollaboration =
+    isInvitation && application.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
@@ -128,67 +133,83 @@ const ApplicationCard = ({
           )}
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
-            <div className="flex flex-col gap-1 text-xs">
-              <span className="flex items-start gap-2 text-gray-600">
-                <span className="font-medium">Niche:</span>{" "}
-                {Array.isArray(niches) && niches.length > 0
-                  ? niches.map((n) => `${n}`).join(", ")
-                  : niches || "N/A"}
-              </span>
-              {location && (
-                <span className="flex items-center gap-2 text-gray-600">
-                  <span className="font-medium">Location:</span> {location}
-                </span>
-              )}
-              <span className="flex items-center gap-2 text-gray-600">
-                <span className="font-medium">Language:</span> {language || "Any"}
-              </span>
-              <span className="flex items-center gap-2 text-gray-600">
-                <span className="font-medium">Min Followers:</span> {minFollowers || "0"}
-              </span>
-            </div>
-
-            {deliverables.length > 0 && (
-              <div className="mt-2">
-                <h5 className="text-xs font-semibold text-gray-900 mb-2">Deliverables</h5>
-                <div className="flex flex-wrap gap-1">
-                  {deliverables.map((item) => (
-                    <span
-                      key={item}
-                      className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
-                    >
-                      {item}
+        {/* Requirements and Description - Only show for multi-creator campaigns, not individual collaborations */}
+        {!isIndividualCollaboration && (
+          <>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
+                <div className="flex flex-col gap-1 text-xs">
+                  <span className="flex items-start gap-2 text-gray-600">
+                    <span className="font-medium">Niche:</span>{" "}
+                    {Array.isArray(niches) && niches.length > 0
+                      ? niches.map((n) => `${n}`).join(", ")
+                      : niches || "N/A"}
+                  </span>
+                  {location && (
+                    <span className="flex items-center gap-2 text-gray-600">
+                      <span className="font-medium">Location:</span> {location}
                     </span>
-                  ))}
+                  )}
+                  <span className="flex items-center gap-2 text-gray-600">
+                    <span className="font-medium">Language:</span> {language}
+                  </span>
+                  <span className="flex items-center gap-2 text-gray-600">
+                    <span className="font-medium">Min Followers:</span> {minFollowers || "0"}
+                  </span>
                 </div>
-              </div>
-            )}
-          </div>
 
-          {campaign?.campaign_image && (
-            <div className="flex-shrink-0">
-              <img
-                src={campaign?.campaign_image}
-                alt="Campaign Product"
-                className="w-44 h-44 rounded-lg object-cover border border-gray-200"
-              />
+                {deliverables.length > 0 && (
+                  <div className="mt-2">
+                    <h5 className="text-xs font-semibold text-gray-900 mb-2">Deliverables</h5>
+                    <div className="flex flex-wrap gap-1">
+                      {deliverables.map((item) => (
+                        <span
+                          key={item}
+                          className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {campaign?.campaign_image && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={campaign?.campaign_image}
+                    alt="Campaign Product"
+                    className="w-44 h-44 rounded-lg object-cover border border-gray-200"
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
+
+        {campaign?.campaign_image && isIndividualCollaboration && (
+          <div className="flex justify-center">
+            <img
+              src={campaign?.campaign_image}
+              alt="Campaign Product"
+              className="w-44 h-44 rounded-lg object-cover border border-gray-200"
+            />
+          </div>
+        )}
       </div>
 
-      <div className="px-4">
-        {description && (
+      {/* Description - Only show for multi-creator campaigns, not individual collaborations */}
+      {!isIndividualCollaboration && description && (
+        <div className="px-4">
           <div className="border-l-2 border-primary">
             <p className="text-xs text-gray-600 line-clamp-2 ml-2">
               <span className="font-bold">Description:</span> {description}
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
         {!isInvitation && application.status === "PENDING" && (

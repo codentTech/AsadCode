@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-import { CREATOR_COMPENSATION_OPTIONS, CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
+import {
+  CREATOR_COMPENSATION_OPTIONS,
+  CAMPAIGN_TYPE_OPTIONS,
+} from "@/common/constants/options.constant";
 import { calculateCommissionPayment } from "@/common/utils/campaign.utils";
 
 export default function useCompensation({ campaignData, setValue }) {
@@ -47,11 +50,7 @@ export default function useCompensation({ campaignData, setValue }) {
       campaignData.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT ||
       paymentType === "gifted"
     );
-  }, [
-    campaignData.campaign_type,
-    campaignData.compensation_type,
-    paymentType,
-  ]);
+  }, [campaignData.campaign_type, campaignData.compensation_type, paymentType]);
 
   const selectedCampaignTypeOption = useMemo(() => {
     if (!campaignData.campaign_type) return null;
@@ -71,8 +70,14 @@ export default function useCompensation({ campaignData, setValue }) {
       if (creatorCompOption === "set-price") {
         return campaignData.creator_fixed_price || 0;
       }
-      if (campaignData.suggested_min || campaignData.suggested_max) {
+      if (
+        creatorCompOption === "suggested" &&
+        (campaignData.suggested_min || campaignData.suggested_max)
+      ) {
         return `${campaignData.suggested_min || 0} - ${campaignData.suggested_max || 0}`;
+      }
+      if (creatorCompOption === "none") {
+        return "Negotiable";
       }
       return 0;
     }

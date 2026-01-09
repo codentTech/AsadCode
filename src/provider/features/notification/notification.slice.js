@@ -8,6 +8,12 @@ const initialState = {
     isSuccess: false,
     isError: false,
   },
+  getActionRequiredNotifications: {
+    data: null,
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+  },
   getUnreadCount: {
     data: null,
     isLoading: false,
@@ -18,8 +24,17 @@ const initialState = {
 
 export const getMyNotifications = createAsyncThunk(
   "notification/getMyNotifications",
-  async (_, thunkAPI) => {
-    const response = await notificationService.getMyNotifications();
+  async (campaignId, thunkAPI) => {
+    const response = await notificationService.getMyNotifications(campaignId);
+    if (response.success) return response;
+    return thunkAPI.rejectWithValue(response);
+  }
+);
+
+export const getActionRequiredNotifications = createAsyncThunk(
+  "notification/getActionRequiredNotifications",
+  async (campaignId, thunkAPI) => {
+    const response = await notificationService.getActionRequiredNotifications(campaignId);
     if (response.success) return response;
     return thunkAPI.rejectWithValue(response);
   }
@@ -54,6 +69,23 @@ const notificationSlice = createSlice({
         state.getMyNotifications.isLoading = false;
         state.getMyNotifications.isError = true;
         state.getMyNotifications.data = action.payload;
+      });
+
+    builder
+      .addCase(getActionRequiredNotifications.pending, (state) => {
+        state.getActionRequiredNotifications.isLoading = true;
+        state.getActionRequiredNotifications.isSuccess = false;
+        state.getActionRequiredNotifications.isError = false;
+      })
+      .addCase(getActionRequiredNotifications.fulfilled, (state, action) => {
+        state.getActionRequiredNotifications.isLoading = false;
+        state.getActionRequiredNotifications.isSuccess = true;
+        state.getActionRequiredNotifications.data = action.payload;
+      })
+      .addCase(getActionRequiredNotifications.rejected, (state, action) => {
+        state.getActionRequiredNotifications.isLoading = false;
+        state.getActionRequiredNotifications.isError = true;
+        state.getActionRequiredNotifications.data = action.payload;
       });
 
     builder

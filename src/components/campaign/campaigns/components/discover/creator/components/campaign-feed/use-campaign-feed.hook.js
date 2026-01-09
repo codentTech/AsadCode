@@ -13,6 +13,7 @@ import {
   getCompensationTypeKey,
   getCompensationAmount,
   getCompensationValue,
+  formatCreatorFeeForDisplay,
 } from "@/common/utils/campaign.utils";
 
 export function useCampaignFeed() {
@@ -91,7 +92,7 @@ export function useCampaignFeed() {
       min_age: campaign.min_age,
       max_age: campaign.max_age,
       application_deadline: formatDate(campaign.application_deadline),
-      creator_fee: campaign.creator_fee,
+      creator_fee: formatCreatorFeeForDisplay(campaign),
       suggested_min: campaign.suggested_min,
       suggested_max: campaign.suggested_max,
       creator_fixed_price: campaign.creator_fixed_price,

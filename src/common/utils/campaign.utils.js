@@ -6,6 +6,7 @@ import Compensation from "@/components/campaign/create-campaign/components/compe
 import Eligibility from "@/components/campaign/create-campaign/components/eligibility/eligibility";
 import Description from "@/components/campaign/create-campaign/components/description/description";
 import Preview from "@/components/campaign/create-campaign/components/preview/preview";
+import { capitalizeFirstWord } from "./helper.utils";
 
 export const CAMPAIGN_TYPE_MAP = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
@@ -166,9 +167,9 @@ export const buildCreatorRequirements = (campaignData) =>
         label: "Gender Requirement",
         value: campaignData.genderRequirement,
       },
-    campaignData.creator_gender && {
+    {
       label: "Preferred Gender",
-      value: campaignData.creator_gender,
+      value: formatGenderForDisplay(campaignData.creator_gender),
     },
     campaignData.languageRequirement &&
       campaignData.languageRequirement !== "none" && {
@@ -250,11 +251,8 @@ export const buildQuickFields = (
       label: "City",
       value: `${campaignData.creator_city}${campaignData.creator_city_region ? `, ${campaignData.creator_city_region}` : ""}`,
     },
-    campaignData.creator_language && {
-      label: "Language",
-      value: campaignData.creator_language,
-    },
-    campaignData.creator_gender && { label: "Gender", value: campaignData.creator_gender },
+    { label: "Language", value: formatLanguageForDisplay(campaignData.creator_language) },
+    { label: "Gender", value: formatGenderForDisplay(campaignData.creator_gender) },
     ageRangeSummary && { label: "Age Range", value: ageRangeSummary },
   ]
     .filter(Boolean)
@@ -362,6 +360,86 @@ const calculateCreatorFee = (data) => {
   }
 
   return 0;
+};
+
+/**
+ * Formats gender for display, showing "No preference" instead of null, empty, or "none"
+ */
+export const formatGenderForDisplay = (gender) => {
+  if (!gender || gender === "" || gender === "none" || gender === null || gender === undefined) {
+    return "No preference";
+  }
+  // Capitalize first letter
+  return capitalizeFirstWord(gender);
+};
+
+/**
+ * Formats language for display, showing "No preference" instead of null, empty, or "none"
+ */
+export const formatLanguageForDisplay = (language) => {
+  if (
+    !language ||
+    language === "" ||
+    language === "none" ||
+    language === null ||
+    language === undefined
+  ) {
+    return "No preference";
+  }
+  // Capitalize first letter
+  return capitalizeFirstWord(language);
+};
+
+/**
+ * Formats creator fee for display, showing "Negotiable" instead of $0 when appropriate
+ */
+export const formatCreatorFeeForDisplay = (campaign) => {
+  // If there's a fixed price, show it
+  if (campaign.creator_fixed_price && campaign.creator_fixed_price > 0) {
+    return `$${campaign.creator_fixed_price}`;
+  }
+
+  // If there's a suggested range, show it
+  if (campaign.suggested_min || campaign.suggested_max) {
+    return `$${campaign.suggested_min || 0} - $${campaign.suggested_max || 0}`;
+  }
+
+  // For PAID campaigns (SPONSORED_POST or UGC) with no fixed price or range, show "Negotiable"
+  if (
+    (campaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+      campaign.campaign_type === CAMPAIGN_TYPE.UGC) &&
+    campaign.compensation_type === COMPENSATION_TYPE.PAID &&
+    (!campaign.creator_fixed_price || campaign.creator_fixed_price === 0) &&
+    !campaign.suggested_min &&
+    !campaign.suggested_max &&
+    (!campaign.creator_fee || campaign.creator_fee === 0)
+  ) {
+    return "Negotiable";
+  }
+
+  // For gifted campaigns, show product value
+  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED && campaign.product_value) {
+    return `$${campaign.product_value}`;
+  }
+
+  // For affiliate campaigns, show commission
+  if (campaign.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
+    const commissionPayment = calculateCommissionPayment(
+      campaign.commission_percentage,
+      campaign.product_price
+    );
+    if (commissionPayment > 0) {
+      return `$${commissionPayment}`;
+    }
+  }
+
+  // If creator_fee exists and is > 0, show it
+  if (campaign.creator_fee && campaign.creator_fee > 0) {
+    return `$${campaign.creator_fee}`;
+  }
+
+  // Default fallback
+  return campaign.creator_fee || "Negotiable";
 };
 
 export const transformDataForAPI = (data) => {
