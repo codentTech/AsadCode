@@ -393,7 +393,7 @@ const DeliverablesProgress = ({
                 </div>
                 <div className="mb-4">
                   <TextArea
-                    label="Feedback (Optional)"
+                    label="Feedback"
                     placeholder="Share your experience working with this creator..."
                     value={markCompleteFeedback}
                     onChange={(e) => setMarkCompleteFeedback(e.target.value)}
@@ -417,12 +417,19 @@ const DeliverablesProgress = ({
                 />
                 <CustomButton
                   text={
-                    isMarkingComplete || isUpdateCampaignLoading ? <Loading /> : "Mark Complete"
+                    isMarkingComplete || isUpdateCampaignLoading ? (
+                      <Loading height={4} width={4} />
+                    ) : (
+                      "Mark Complete"
+                    )
                   }
                   className="btn-primary flex-1"
                   onClick={handleConfirmMarkComplete}
                   disabled={
-                    isMarkingComplete || isUpdateCampaignLoading || markCompleteRating === 0
+                    !markCompleteFeedback ||
+                    isMarkingComplete ||
+                    isUpdateCampaignLoading ||
+                    markCompleteRating === 0
                   }
                 />
               </div>

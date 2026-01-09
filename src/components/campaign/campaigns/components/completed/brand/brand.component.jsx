@@ -21,6 +21,21 @@ function CompletedBrandCampaign() {
     }
   }, [isMultiCreator, dispatch]);
 
+  useEffect(() => {
+    if (
+      selectedCampaign &&
+      selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
+      selectedCampaign.id
+    ) {
+      dispatch(
+        getAppliedCreators({
+          campaignId: selectedCampaign.id,
+          filters: { status: "COMPLETED" },
+        })
+      );
+    }
+  }, [selectedCampaign?.id, selectedCampaign?.collaboration_type, dispatch]);
+
   const {
     data: individualContractsData,
     isSuccess: individualContractsSuccess,
@@ -33,40 +48,43 @@ function CompletedBrandCampaign() {
     isLoading: creatorsLoading,
   } = useSelector((state) => state.campaigns.getAppliedCreators || {});
 
-  const handleCampaignSelect = (campaign) => {
-    setSelectedCampaign(campaign);
-    setSelectedCreator(null);
-    autoSelectedForCampaignRef.current = null;
+  const handleCampaignSelect = useCallback(
+    (campaign) => {
+      setSelectedCampaign(campaign);
+      setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
 
-    if (campaign) {
-      dispatch(
-        setSelectedCampaignContext({
-          campaignId: campaign.id || null,
-          collaborationType: campaign.collaboration_type || null,
-        })
-      );
-    } else {
-      dispatch(
-        setSelectedCampaignContext({
-          campaignId: null,
-          collaborationType: null,
-        })
-      );
-    }
+      if (campaign) {
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: campaign.id || null,
+            collaborationType: campaign.collaboration_type || null,
+          })
+        );
+      } else {
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: null,
+            collaborationType: null,
+          })
+        );
+      }
 
-    if (campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
-      return;
-    }
+      if (campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+        return;
+      }
 
-    if (campaign?.id) {
-      dispatch(
-        getAppliedCreators({
-          campaignId: campaign.id,
-          filters: { status: "COMPLETED" },
-        })
-      );
-    }
-  };
+      if (campaign?.id) {
+        dispatch(
+          getAppliedCreators({
+            campaignId: campaign.id,
+            filters: { status: "COMPLETED" },
+          })
+        );
+      }
+    },
+    [dispatch]
+  );
 
   const handleCreatorSelect = (creator) => {
     setSelectedCreator(creator);
@@ -90,7 +108,6 @@ function CompletedBrandCampaign() {
     }
   };
 
-  // Auto-select first creator for multi-creator campaigns
   useEffect(() => {
     if (
       isMultiCreator &&
@@ -139,21 +156,21 @@ function CompletedBrandCampaign() {
     selectedCreator,
   ]);
 
-  // Auto-select first creator for individual creator campaigns
   useEffect(() => {
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
       individualContractsSuccess &&
       Array.isArray(individualContractsData) &&
+      individualContractsData.length > 0 &&
       !selectedCreator &&
-      autoSelectedForCampaignRef.current !== selectedCampaign.id
+      autoSelectedForCampaignRef.current !== (selectedCampaign.id || selectedCampaign.campaign?.id)
     ) {
+      const campaignId = selectedCampaign.id || selectedCampaign.campaign?.id;
+
       const matchingContracts = individualContractsData.filter((contract) => {
         const contractCampaignId = contract.campaignId || contract.campaign?.id;
-        return (
-          contractCampaignId === selectedCampaign.id && contract.campaign?.status === "COMPLETE"
-        );
+        return contractCampaignId === campaignId && contract.campaign?.status === "COMPLETE";
       });
 
       if (matchingContracts.length > 0) {
@@ -183,9 +200,9 @@ function CompletedBrandCampaign() {
         };
 
         setSelectedCreator(formattedCreator);
-        autoSelectedForCampaignRef.current = selectedCampaign.id;
+        autoSelectedForCampaignRef.current = campaignId;
       } else {
-        autoSelectedForCampaignRef.current = selectedCampaign.id;
+        autoSelectedForCampaignRef.current = campaignId;
       }
     }
   }, [
@@ -227,6 +244,7 @@ function CompletedBrandCampaign() {
       <CampaignOverviewCompleted
         onCampaignSelect={handleCampaignSelect}
         onToggleChange={handleToggleChange}
+        parentSelectedCampaign={selectedCampaign}
       />
 
       <CreatorSpendAnalysisCompleted

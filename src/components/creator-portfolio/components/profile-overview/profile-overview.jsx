@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import FacebookIcon from "@/common/icons/facebook";
 import InstagramIcon from "@/common/icons/instagram";
@@ -7,6 +8,10 @@ import YoutubeIcon from "@/common/icons/youtube";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import Niche from "@/components/niche/niche";
 import { getCreatorById } from "@/provider/features/creator-profile/creator-profile.slice";
+import {
+  addUserToShortlist,
+  getAllShortlists,
+} from "@/provider/features/shortlist/shortlist.slice";
 import {
   BookmarkPlus,
   Edit,
@@ -17,15 +22,20 @@ import {
   Star,
   StarHalf,
 } from "lucide-react";
+import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 
 const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveToShortlistDialogOpen, setSaveToShortlistDialogOpen] = useState(false);
   const dispatch = useDispatch();
+
+  const { data: shortlistsData } = useSelector((state) => state.shortlist?.getAllShortlists || {});
+  const shortlists = Array.isArray(shortlistsData) ? shortlistsData : [];
 
   const loadCreatorData = useCallback(async () => {
     if (creatorId) {
@@ -105,6 +115,57 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
       loadCreatorData();
     }
   }, [refreshKey, loadCreatorData]);
+
+  // Load shortlists when component mounts (only for brand view)
+  useEffect(() => {
+    if (creatorId) {
+      dispatch(getAllShortlists());
+    }
+  }, [creatorId, dispatch]);
+
+  // Handle adding creator to shortlist
+  const handleSaveToShortlist = () => {
+    if (creatorId && creator?.user?.id) {
+      setSaveToShortlistDialogOpen(true);
+    }
+  };
+
+  // Confirm adding creator to selected shortlist
+  const confirmSaveToShortlist = (shortlistId) => {
+    if (creatorId && creator?.user?.id) {
+      dispatch(
+        addUserToShortlist({
+          shortlistId,
+          userId: creator.user.id,
+        })
+      );
+    }
+    setSaveToShortlistDialogOpen(false);
+  };
+
+  // Handle share button - copy URL to clipboard
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      await navigator.clipboard.writeText(currentUrl);
+      enqueueSnackbar("Link copied to clipboard!", { variant: "success" });
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = window.location.href;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        enqueueSnackbar("Link copied to clipboard!", { variant: "success" });
+      } catch (fallbackErr) {
+        console.error("Fallback copy failed:", fallbackErr);
+        enqueueSnackbar("Failed to copy link", { variant: "error" });
+      }
+      document.body.removeChild(textArea);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -236,7 +297,7 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
 
             {/* Followers/Following */}
             <div className="flex gap-6 mb-4 text-center">
-              <div>
+              {/* <div>
                 <p className="text-sm font-semibold text-gray-800">
                   {creator.followers.toLocaleString()}
                 </p>
@@ -247,26 +308,31 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
                   {creator.following.toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-500">Following</p>
-              </div>
+              </div> */}
             </div>
 
             {/* Action Buttons */}
             {creatorId ? (
               <div className="flex flex-col gap-2 w-full md:w-auto">
-                <CustomButton text="Follow" startIcon={<Heart className="w-4 h-4" />} />
+                {/* <CustomButton text="Follow" startIcon={<Heart className="w-4 h-4" />} /> */}
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  <CustomButton
+                  {/* <CustomButton
                     text="Message"
                     className="btn-outline"
                     startIcon={<MessageCircle className="w-4 h-4" />}
+                  /> */}
+                  <CustomButton
+                    text="Shortlist"
+                    startIcon={<BookmarkPlus className="w-4 h-4" />}
+                    onClick={handleSaveToShortlist}
                   />
-                  <CustomButton text="Shortlist" startIcon={<BookmarkPlus className="w-4 h-4" />} />
 
                   <CustomButton
                     text="share"
                     className="btn-outline"
                     startIcon={<Share2 className="w-4 h-4" />}
+                    onClick={handleShare}
                   />
                 </div>
               </div>
@@ -276,12 +342,45 @@ const ProfileOverview = ({ onProfileUpdate, refreshKey = 0, creatorId = null }) 
                   text="Share Your Profile"
                   className="btn-outline"
                   startIcon={<Share2 className="w-4 h-4" />}
+                  onClick={handleShare}
                 />
               </div>
             )}
           </div>
         </div>
       </section>
+
+      {/* Save to Shortlist Dialog */}
+      {creatorId && (
+        <Modal
+          title="Save to Shortlist"
+          show={saveToShortlistDialogOpen}
+          onClose={() => setSaveToShortlistDialogOpen(false)}
+        >
+          <div>
+            <h5 className="text-primary font-bold mb-2">Click the shortlist to save</h5>
+            <hr className="border border-primary" />
+            {shortlists.length === 0 ? (
+              <p className="text-gray-500 text-sm mt-4">
+                No shortlists available. Create one first.
+              </p>
+            ) : (
+              <ul className="space-y-2 mt-4">
+                {shortlists.map((shortlist) => (
+                  <li key={shortlist.id}>
+                    <div
+                      className="w-full text-sm p-2 border border-gray-200 hover:border-primary hover:bg-indigo-50 rounded-lg cursor-pointer transition-all flex items-center"
+                      onClick={() => confirmSaveToShortlist(shortlist.id)}
+                    >
+                      {shortlist.name}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Modal>
+      )}
 
       {/* Profile Edit Modal */}
       <ProfileEditModal

@@ -43,7 +43,16 @@ export const useCreatorSpendAnalysis = (
 
     return individualContractsData
       .filter((contract) => {
-        if (selectedCampaign?.id) {
+        // Only filter by campaign ID if:
+        // 1. We're in multi-creator mode (isMultiCreator = true) AND
+        // 2. A campaign is selected AND
+        // 3. The selected campaign is specifically an individual creator campaign
+        // When toggle is switched to individual creator (!isMultiCreator), show ALL individual creators
+        if (
+          isMultiCreator &&
+          selectedCampaign?.id &&
+          selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+        ) {
           const contractCampaignId = contract.campaignId || contract.campaign?.id;
           if (contractCampaignId !== selectedCampaign.id) {
             return false;
@@ -104,7 +113,14 @@ export const useCreatorSpendAnalysis = (
           contract: contract,
         };
       });
-  }, [isIndividualMode, individualContractsData, selectedCampaign?.id, isCompleted]);
+  }, [
+    isIndividualMode,
+    individualContractsData,
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    isCompleted,
+  ]);
 
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => ({
@@ -152,6 +168,34 @@ export const useCreatorSpendAnalysis = (
         status: creator.status,
         appliedAt: creator.applied_at,
         hiredAt: creator.hired_at,
+        contract: creator.contract
+          ? {
+              ...creator.contract,
+              totalCompensation:
+                creator.contract.total_compensation || creator.contract.totalCompensation || 0,
+              campaignId: creator.contract.campaign_id || creator.contract.campaignId,
+              creatorId: creator.contract.creator_id || creator.contract.creatorId,
+              brandId: creator.contract.brand_id || creator.contract.brandId,
+              completionDeadline:
+                creator.contract.completion_deadline || creator.contract.completionDeadline,
+              startDate: creator.contract.start_date || creator.contract.startDate,
+              firstDraftDeadline:
+                creator.contract.first_draft_deadline || creator.contract.firstDraftDeadline,
+              contentFormat: creator.contract.content_format || creator.contract.contentFormat,
+              revisionsLimit: creator.contract.revisions_limit || creator.contract.revisionsLimit,
+              compensationType:
+                creator.contract.compensation_type || creator.contract.compensationType,
+              productPrice: creator.contract.product_price || creator.contract.productPrice,
+              usageRights: creator.contract.usage_rights || creator.contract.usageRights,
+              exclusivityClause:
+                creator.contract.exclusivity_clause || creator.contract.exclusivityClause,
+              campaignType: creator.contract.campaign_type || creator.contract.campaignType,
+              contentGuidelines:
+                creator.contract.content_guidelines || creator.contract.contentGuidelines,
+              sentAt: creator.contract.sent_at || creator.contract.sentAt,
+              expiresAt: creator.contract.expires_at || creator.contract.expiresAt,
+            }
+          : null, // Include contract if available, with camelCase transformation
       }))
     : [];
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 export default function useCompletedCampaign() {
   const dispatch = useDispatch();
@@ -31,7 +32,25 @@ export default function useCompletedCampaign() {
   }, [fetchCompletedApplications]);
 
   // Filter completed campaigns from applications
-  const completedCampaigns = applications?.filter((app) => app.status === "COMPLETED") || [];
+  // Backend should handle this, but adding frontend filter as safety measure
+  const completedCampaigns = (applications || []).filter((app) => {
+    // Check if status is COMPLETED
+    if (app.status === "COMPLETED") {
+      return true;
+    }
+    
+    // For individual collaborations, also check campaign status
+    const isIndividualCollaboration =
+      app.invitation ||
+      app.campaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    
+    if (isIndividualCollaboration && app.campaign) {
+      // Include if campaign status is COMPLETE
+      return app.campaign.status === "COMPLETE";
+    }
+    
+    return false;
+  });
 
   // Format campaign data for display
   const formatCampaignData = useCallback((campaign) => {

@@ -131,15 +131,20 @@ const useDeliverablesProgress = (
     }
 
     if (isIndividualCreator) {
+      const contractCreator = selectedCreator.contract?.creator || selectedCreator.creator;
+      const contractProfile =
+        contractCreator?.creator_profile || selectedCreator.creator?.creator_profile;
+
       return {
         id: creatorProfileId || selectedCreator.creatorUserId || selectedCreator.id,
         name: `${selectedCreator.name || ""}`.trim() || "Creator",
-        image: selectedCreator.image || avatar,
-        avatar: selectedCreator.image || avatar,
+        image: selectedCreator.image || contractProfile?.profile_photo_url || avatar,
+        avatar: selectedCreator.image || contractProfile?.profile_photo_url || avatar,
         isOnline: true,
         location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
-        rating: parseFloat(selectedCreator.rating) || 0,
-        bio: selectedCreator.bio || "No bio available",
+        rating: parseFloat(selectedCreator.rating) || parseFloat(contractProfile?.rating) || 0,
+        reviewCount: selectedCreator.reviewCount || contractProfile?.review_count || 0,
+        bio: selectedCreator.bio || contractProfile?.bio || "No bio available",
         age: selectedCreator.age,
       };
     }
@@ -162,6 +167,7 @@ const useDeliverablesProgress = (
           selectedCreator.location ||
           "Location not specified",
         rating: parseFloat(profile?.rating) || parseFloat(selectedCreator.rating) || 0,
+        reviewCount: profile?.review_count || selectedCreator.reviewCount || 0,
         bio: profile?.bio || selectedCreator.bio || "No bio available",
         age:
           selectedCreator.age ||
@@ -179,6 +185,7 @@ const useDeliverablesProgress = (
       isOnline: true,
       location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
       rating: parseFloat(selectedCreator.rating) || 0,
+      reviewCount: selectedCreator.reviewCount || 0,
       bio: selectedCreator.bio || "No bio available",
       age: selectedCreator.age,
     };
@@ -192,6 +199,7 @@ const useDeliverablesProgress = (
       selectedCreator?.image,
       selectedCreator?.location,
       selectedCreator?.rating,
+      selectedCreator?.reviewCount,
       selectedCreator?.bio,
       selectedCreator?.age,
       selectedCreator?.creatorUserId,
@@ -204,7 +212,15 @@ const useDeliverablesProgress = (
       selectedCreator?.creator?.creator_profile?.id,
       selectedCreator?.creator?.creator_profile?.profile_photo_url,
       selectedCreator?.creator?.creator_profile?.rating,
+      selectedCreator?.creator?.creator_profile?.review_count,
       selectedCreator?.creator?.creator_profile?.bio,
+      selectedCreator?.contract?.id,
+      selectedCreator?.contract?.creator?.id,
+      selectedCreator?.contract?.creator?.creator_profile?.id,
+      selectedCreator?.contract?.creator?.creator_profile?.profile_photo_url,
+      selectedCreator?.contract?.creator?.creator_profile?.rating,
+      selectedCreator?.contract?.creator?.creator_profile?.review_count,
+      selectedCreator?.contract?.creator?.creator_profile?.bio,
       creatorProfileId,
       isIndividualCreator,
     ]
@@ -530,7 +546,9 @@ const useDeliverablesProgress = (
     ).unwrap();
 
     if (isIndividualCreator) {
-      const refreshResult = await dispatch(getIndividualCollaborationContracts(false)).unwrap();
+      // Refetch both active and completed contracts
+      await dispatch(getIndividualCollaborationContracts(false)).unwrap();
+      await dispatch(getIndividualCollaborationContracts(true)).unwrap();
       if (onClearCreator) {
         onClearCreator();
       }

@@ -10,6 +10,7 @@ import {
 } from "@/common/constants/options.constant";
 import { useMemo } from "react";
 import { formatDate } from "@/common/utils/formate-date";
+import { formatGenderForDisplay, formatLanguageForDisplay } from "@/common/utils/campaign.utils";
 
 const friendlyCampaignTypeMap = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
@@ -80,8 +81,11 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
         required_platforms: [],
         platform_minimums: {},
         min_combined_followers: null,
-        usage_rights: campaign.usage_rights || campaign.usageRights || null,
-        exclusivity_clause: campaign.exclusivity_clause || campaign.exclusivityClause || null,
+        usage_rights: (campaign.usage_rights || campaign.usageRights)?.replace("_", " "),
+        exclusivity_clause: (campaign.exclusivity_clause || campaign.exclusivityClause)?.replace(
+          "_",
+          " "
+        ),
         revisions_limit: campaign.revisions_limit || campaign.revisionsLimit || null,
         start_date: campaign.start_date || campaign.startDate || null,
         first_draft_deadline: campaign.first_draft_deadline || campaign.firstDraftDeadline || null,
@@ -270,13 +274,42 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
     }
   })();
 
+  // Determine if creator fee should show "Negotiable"
+  const getCreatorFeeDisplay = () => {
+    // If there's an explicit creator_fee value (and it's not 0), show it
+    if (normalizedCampaign.creator_fee && normalizedCampaign.creator_fee > 0) {
+      return formatCurrency(normalizedCampaign.creator_fee);
+    }
+
+    // If there's a fixed price or suggested range, show that
+    if (normalizedCampaign.creator_fixed_price) {
+      return formatCurrency(normalizedCampaign.creator_fixed_price);
+    }
+    if (normalizedCampaign.suggested_min || normalizedCampaign.suggested_max) {
+      return `${formatCurrency(normalizedCampaign.suggested_min || 0)} — ${formatCurrency(normalizedCampaign.suggested_max || 0)}`;
+    }
+
+    // For PAID campaigns (SPONSORED_POST or UGC) with no fixed price or range, show "Negotiable"
+    if (
+      (normalizedCampaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+        normalizedCampaign.campaign_type === CAMPAIGN_TYPE.UGC) &&
+      normalizedCampaign.compensation_type === COMPENSATION_TYPE.PAID &&
+      !normalizedCampaign.creator_fixed_price &&
+      !normalizedCampaign.suggested_min &&
+      !normalizedCampaign.suggested_max
+    ) {
+      return "Negotiable";
+    }
+
+    // Fallback to compensation items or "—"
+    return compensationItems[1]?.value || "Negotiable";
+  };
+
   const quickFields = [
     { label: "Campaign Type", value: campaignTypeLabel },
     {
       label: "Creator Fee",
-      value: normalizedCampaign.creator_fee
-        ? formatCurrency(normalizedCampaign.creator_fee)
-        : compensationItems[1]?.value || "—",
+      value: getCreatorFeeDisplay(),
     },
     commissionPerSale > 0 && {
       label: "Earnings per Sale",
@@ -303,11 +336,31 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
     },
     {
       label: "Language",
-      value: normalizedCampaign.language_requirement || normalizedCampaign.creator_language || null,
+      value: (() => {
+        // Prioritize creator_language first, then language_requirement
+        // Only use language_requirement if creator_language is not available
+        const language =
+          normalizedCampaign.creator_language &&
+          normalizedCampaign.creator_language !== "none" &&
+          normalizedCampaign.creator_language !== ""
+            ? normalizedCampaign.creator_language
+            : normalizedCampaign.language_requirement;
+        return formatLanguageForDisplay(language);
+      })(),
     },
     {
       label: "Gender",
-      value: normalizedCampaign.gender_requirement || normalizedCampaign.creator_gender || null,
+      value: (() => {
+        // Prioritize creator_gender first, then gender_requirement
+        // Only use gender_requirement if creator_gender is not available
+        const gender =
+          normalizedCampaign.creator_gender &&
+          normalizedCampaign.creator_gender !== "none" &&
+          normalizedCampaign.creator_gender !== ""
+            ? normalizedCampaign.creator_gender
+            : normalizedCampaign.gender_requirement;
+        return formatGenderForDisplay(gender);
+      })(),
     },
     { label: "Age Range", value: ageRangeSummary },
     {
