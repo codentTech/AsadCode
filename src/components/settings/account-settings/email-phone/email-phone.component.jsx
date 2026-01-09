@@ -2,15 +2,14 @@
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Mail, Edit2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
 import { getUser } from "@/common/utils/users.util";
-import { useDispatch } from "react-redux";
 import { updateUser } from "@/provider/features/users/users.slice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Edit2, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import * as yup from "yup";
 
 // Validation schema
 const emailSchema = yup.object().shape({
@@ -59,7 +58,7 @@ export default function ContactMethodsPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Email Address</h1>
@@ -119,6 +118,6 @@ export default function ContactMethodsPage() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

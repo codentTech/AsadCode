@@ -43,11 +43,6 @@ const brandNavItems = [
         href: "/settings/account-settings/security-settings",
         icon: Lock,
       },
-      {
-        label: "Email & Phone",
-        href: "/settings/account-settings/email-phone",
-        icon: Phone,
-      },
     ],
   },
   {
@@ -122,11 +117,6 @@ const creatorNavItems = [
         label: "Security Settings",
         href: "/settings/account-settings/security-settings",
         icon: Lock,
-      },
-      {
-        label: "Email & Phone",
-        href: "/settings/account-settings/email-phone",
-        icon: Phone,
       },
     ],
   },
@@ -272,4 +262,3 @@ function useSettingSidebar() {
 }
 
 export default useSettingSidebar;
-

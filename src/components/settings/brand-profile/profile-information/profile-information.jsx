@@ -1,14 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
-import { getUserById } from "@/provider/features/users/users.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
+import { getUserById } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Camera, Upload, Instagram, Youtube } from "lucide-react";
+import { Camera, Instagram, Upload, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -252,7 +251,7 @@ const ProfileInformation = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header (from settings) */}
       <div className="bg-primary p-4 rounded-lg text-white mb-8">
         <h1 className="text-xl font-bold text-white">Profile Information</h1>
@@ -442,7 +441,7 @@ const ProfileInformation = () => {
           />
         </div>
       </form>
-    </DashboardLayout>
+    </>
   );
 };
 

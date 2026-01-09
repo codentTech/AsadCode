@@ -1,6 +1,5 @@
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { CheckCircle, Clock, Download, Eye, Filter, User } from "lucide-react";
 import { useState } from "react";
 
@@ -278,7 +277,7 @@ const PaymentHistoryPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Payment History</h1>
@@ -400,7 +399,7 @@ const PaymentHistoryPage = () => {
           emptyMessage="No payments found"
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

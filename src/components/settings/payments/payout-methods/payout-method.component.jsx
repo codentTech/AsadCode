@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { Edit2, Eye, EyeOff, Plus, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -73,7 +72,7 @@ const PayoutMethodsPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Payout Methods</h1>
@@ -297,7 +296,7 @@ const PayoutMethodsPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 
