@@ -1,5 +1,5 @@
-import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { Bell, X, Sparkles, RefreshCw } from "lucide-react";
+import HeaderLayout from "@/common/layouts/header.layout";
+import { Bell, RefreshCw, Sparkles, X } from "lucide-react";
 import useNotifications from "./use-notifications.hook";
 
 function Notifications() {
@@ -17,10 +17,10 @@ function Notifications() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <DashboardLayout>
+    <HeaderLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50/30">
         {/* Header */}
-        <div className="mb-4 sticky top-0 bg-primary z-10 shadow-sm rounded-xl">
+        <div className="max-w-7xl mx-auto mb-4 sticky top-0 bg-primary z-10 shadow-sm rounded-xl">
           <div className="max-w-4xl mx-auto px-6 py-3">
             <div className="flex items-center justify-between">
               {/* Left side */}
@@ -182,9 +182,8 @@ function Notifications() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </HeaderLayout>
   );
 }
 
 export default Notifications;
-
