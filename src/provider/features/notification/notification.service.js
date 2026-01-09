@@ -1,7 +1,14 @@
 import api from "@/common/utils/api";
 
-const getMyNotifications = async () => {
-  const response = await api().get("/notifications");
+const getMyNotifications = async (campaignId) => {
+  const params = campaignId ? { campaignId } : {};
+  const response = await api().get("/notifications", { params });
+  return response.data;
+};
+
+const getActionRequiredNotifications = async (campaignId) => {
+  const params = campaignId ? { campaignId } : {};
+  const response = await api().get("/notifications/action-required", { params });
   return response.data;
 };
 
@@ -27,6 +34,7 @@ const deleteNotification = async (notificationId) => {
 
 const notificationService = {
   getMyNotifications,
+  getActionRequiredNotifications,
   getUnreadCount,
   markAsRead,
   markAllAsRead,
