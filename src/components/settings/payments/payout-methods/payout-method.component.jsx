@@ -1,5 +1,4 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { CreditCard, ExternalLink } from "lucide-react";
 import usePayoutMethod from "./use-payout-method.hook";
 
@@ -7,7 +6,7 @@ const PayoutMethodsPage = () => {
   const { statusConfig, isLoading } = usePayoutMethod();
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Payouts</h1>
@@ -83,7 +82,7 @@ const PayoutMethodsPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -2,7 +2,6 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { Eye, FileText, Info, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -101,7 +100,7 @@ const BriefTemplate = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Content Brief Templates</h1>
@@ -362,7 +361,7 @@ const BriefTemplate = () => {
           </div>
         </div>
       </Modal>
-    </DashboardLayout>
+    </>
   );
 };
 

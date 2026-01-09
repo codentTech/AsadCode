@@ -1,11 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SearchIcon from "@/common/icons/search-icon";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandCampaignPreferences } from "@/provider/features/brand-profile/brand-profile.slice";
-import { X, Search } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 
 // All niche options from searchable-niche-input
@@ -525,7 +523,7 @@ const NicheTags = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Niche Tags</h1>
@@ -637,7 +635,7 @@ const NicheTags = () => {
           />
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

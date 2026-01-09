@@ -1,24 +1,15 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { getUser } from "@/common/utils/users.util";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { getUser } from "@/common/utils/users.util";
 import {
-  updateCampaignDefaults,
   connectSocialMedia,
-  getSocialAccounts,
   disconnectSocialAccount,
+  getSocialAccounts,
+  updateCampaignDefaults,
 } from "@/provider/features/users/users.slice";
 import { AddCircle } from "@mui/icons-material";
-import {
-  DollarSign,
-  Link,
-  X,
-  ExternalLink,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, DollarSign, ExternalLink, RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -252,7 +243,7 @@ const SavedDefaultFilters = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header - Keep the primary banner */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Saved Default Filters</h1>
@@ -531,7 +522,7 @@ const SavedDefaultFilters = () => {
           />
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

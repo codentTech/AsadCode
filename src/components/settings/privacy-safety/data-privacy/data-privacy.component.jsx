@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { AlertTriangle, Download, FileText, Info, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
@@ -19,7 +18,7 @@ const DataPrivacyPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Data Privacy</h1>
@@ -164,7 +163,7 @@ const DataPrivacyPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

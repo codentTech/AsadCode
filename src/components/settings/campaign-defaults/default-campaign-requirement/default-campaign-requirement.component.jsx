@@ -1,14 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import COUNTRIES from "@/common/constants/countries.constant";
-import FacebookIcon from "@/common/icons/facebook";
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
-import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import {
   setupBrandCampaignPreferences,
@@ -26,7 +22,6 @@ import {
   Hash,
   MapPin,
   Percent,
-  Search,
   TrendingUp,
   UserCheck,
   Users,
@@ -439,7 +434,7 @@ const DefaultCampaignRequirements = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-8">
         <h1 className="text-xl font-bold text-white">Default Campaign Requirements</h1>
@@ -1017,7 +1012,7 @@ const DefaultCampaignRequirements = () => {
           </div>
         </form>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -3,7 +3,6 @@ import CustomDataTable from "@/common/components/custom-data-table/custom-data-t
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { isCreatorMode } from "@/common/utils/users.util";
 import {
   AlertTriangle,
@@ -265,7 +264,7 @@ const BlockedBrandsPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">
@@ -447,7 +446,7 @@ const BlockedBrandsPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

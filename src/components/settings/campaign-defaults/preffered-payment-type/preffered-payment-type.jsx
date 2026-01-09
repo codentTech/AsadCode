@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import {
   CheckCircle,
   CreditCard,
@@ -94,7 +93,7 @@ const PreferredPaymentType = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 sm:p-6 rounded-lg text-white mb-4">
         <h1 className="text-xl sm:text-2xl font-bold text-white">Preferred Payment Type</h1>
@@ -310,7 +309,7 @@ const PreferredPaymentType = () => {
           </p>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

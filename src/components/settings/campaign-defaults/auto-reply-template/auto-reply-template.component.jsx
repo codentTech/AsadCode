@@ -2,7 +2,6 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { Eye, Info, MessageSquare, Save, Send } from "lucide-react";
 import { useState } from "react";
 
@@ -56,7 +55,7 @@ const AutoReplyTemplate = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Auto-Reply Templates</h1>
@@ -213,7 +212,7 @@ const AutoReplyTemplate = () => {
           </div>
         </div>
       </Modal>
-    </DashboardLayout>
+    </>
   );
 };
 
