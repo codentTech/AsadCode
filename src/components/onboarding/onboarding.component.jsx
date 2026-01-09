@@ -25,6 +25,7 @@ export default function Onboarding() {
   const [isValidatingToken, setIsValidatingToken] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [tokenError, setTokenError] = useState(null);
+  const [hasValidatedToken, setHasValidatedToken] = useState(false);
 
   const {
     currentStep,
@@ -42,6 +43,7 @@ export default function Onboarding() {
       if (inviteToken) {
         setIsValidatingToken(true);
         setTokenError(null);
+        setHasValidatedToken(false);
         try {
           const response = await invitesService.validateTokenOnly(inviteToken);
           if (response.success && response.data?.valid) {
@@ -55,9 +57,11 @@ export default function Onboarding() {
           setTokenError(error.response?.data?.message || "Invalid or expired invite token");
         } finally {
           setIsValidatingToken(false);
+          setHasValidatedToken(true);
         }
       } else {
         setIsTokenValid(false);
+        setHasValidatedToken(true);
       }
     };
 
@@ -93,13 +97,13 @@ export default function Onboarding() {
   };
 
   const renderStep = () => {
-    // Show loading state while validating token
-    if (inviteToken && isValidatingToken) {
+    // Show loading state while validating token or if token exists but validation hasn't started yet
+    if (inviteToken && (isValidatingToken || !hasValidatedToken)) {
       return <FullPageLoader />;
     }
 
-    // Show error if token is invalid
-    if (inviteToken && !isValidatingToken && !isTokenValid) {
+    // Show error if token is invalid (only after validation has completed)
+    if (inviteToken && hasValidatedToken && !isTokenValid) {
       return (
         <AccessDenied
           title="Access Denied"
