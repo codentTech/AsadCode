@@ -5,10 +5,11 @@ import Loading from "@/common/components/loadar/loading.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, MessageSquare } from "lucide-react";
 import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
 import TaskManagerModal from "./components/task-manager/task-manager.component";
+import BulkMessageModal from "./components/bulk-message-modal/bulk-message-modal.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -32,6 +33,15 @@ const CreatorSpendAnalysis = ({
     showTaskManager,
     setShowTaskManager,
   } = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator, onClearCreator);
+
+  const [showBulkMessageModal, setShowBulkMessageModal] = React.useState(false);
+
+  // Filter active creators (HIRED status) for bulk message button
+  const activeCreators = React.useMemo(() => {
+    return creators.filter((creator) => creator.status === "HIRED");
+  }, [creators]);
+
+  const hasActiveCreators = activeCreators.length > 0;
 
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
   const autoSelectedRef = React.useRef(null);
@@ -96,6 +106,14 @@ const CreatorSpendAnalysis = ({
               )}
             </div>
             <div className="flex gap-3">
+              {isMultiCreator && (
+                <CustomButton
+                  text="Bulk Message"
+                  className="btn-outline"
+                  onClick={() => setShowBulkMessageModal(true)}
+                  disabled={!selectedCampaign || !hasActiveCreators}
+                />
+              )}
               <CustomButton
                 text="Calendar"
                 className="btn-primary"
@@ -284,6 +302,12 @@ const CreatorSpendAnalysis = ({
         onClose={() => setShowTaskManager(false)}
         selectedCampaign={selectedCampaign}
         isMultiCreator={isMultiCreator}
+      />
+      <BulkMessageModal
+        isOpen={showBulkMessageModal}
+        onClose={() => setShowBulkMessageModal(false)}
+        creators={creators}
+        selectedCampaign={selectedCampaign}
       />
     </div>
   );
