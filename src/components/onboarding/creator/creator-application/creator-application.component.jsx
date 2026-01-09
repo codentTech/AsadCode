@@ -6,7 +6,7 @@ import CountrySelect from "@/common/components/dropdowns/country-select/country-
 import { ArrowLeft, ExternalLink, Globe, Mail, Plus, Trash2, User, X } from "lucide-react";
 import useCreatorApplication from "./use-creator-application.hook";
 
-const CreatorApplication = ({ onBack }) => {
+const CreatorApplication = ({ onBack, onSuccess }) => {
   const {
     register,
     handleSubmit,
@@ -29,7 +29,7 @@ const CreatorApplication = ({ onBack }) => {
     handleAddAdditionalLink,
     socialPlatforms,
     getPlatformIcon,
-  } = useCreatorApplication({ onSuccess: () => {} });
+  } = useCreatorApplication({ onSuccess });
 
   return (
     <div className="py-8 px-4 bg-gray-100 min-h-screen">
