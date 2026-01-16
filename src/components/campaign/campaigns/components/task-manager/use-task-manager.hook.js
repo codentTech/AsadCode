@@ -59,14 +59,14 @@ export default function useTaskManager(show) {
     }
   }, [show, dispatch]);
 
-  // Handle task action - mark as complete
+  // Handle task action - navigate to appropriate page
+  // Tasks are state-driven and cannot be manually marked as complete
+  // They disappear automatically when the underlying action is completed
   const handleTaskAction = async (task) => {
-    await dispatch(
-      updateTask({
-        taskId: task.id,
-        updateData: { status: TASK_STATUS.COMPLETE },
-      })
-    ).unwrap();
+    // Navigate to the appropriate page based on task type
+    // This should use the same navigation logic as the main task manager
+    // For now, we'll just log - the navigation should be implemented based on task type
+    console.log("Task action clicked - navigation should be implemented", task);
   };
 
   // Add custom task

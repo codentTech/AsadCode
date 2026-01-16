@@ -21,34 +21,9 @@ import { useState, useRef, useEffect } from "react";
 import useContentPlanning from "./use-content-planning.hook";
 import useMonthlyGoals from "./use-monthly-goals.hook";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
+import TaskManagerCreator from "../../../../task-manager/creator/task-manager-creator.component";
 
-const upcomingTasks = [
-  {
-    campaign: "BeautyPlus New Eyeliner Campaign",
-    task: "Sign Agreement",
-    date: "Feb 12, 2025",
-    status: "pending",
-    type: "agreement",
-  },
-  {
-    campaign: "New Season, New Shades",
-    task: "Feed Post",
-    date: "Feb 25, 2025",
-    status: "in-progress",
-    type: "content",
-    submitBy: "Feb 20, 2025",
-  },
-  {
-    campaign: "Espresso+ Campaign",
-    task: "Feed Post (Revision Requested)",
-    date: "Feb 22, 2025",
-    status: "pending",
-    type: "content",
-    submitBy: "Feb 18, 2025",
-  },
-];
-
-const ContentPlanning = ({ selectedCampaign }) => {
+const ContentPlanning = ({ selectedCampaign, setSelectedCampaign, getCampaignById, formatCampaignData }) => {
   // Use the custom hook for content planner functionality
   const {
     showContentPlanner,
@@ -169,14 +144,6 @@ const ContentPlanning = ({ selectedCampaign }) => {
     editorRef.current?.focus();
   };
 
-  const getTaskCTA = (task) => {
-    return (
-      <CustomButton
-        text={task.type === "agreement" ? "Sign Agreement" : "Submit Content"}
-        className="btn-outline !h-7"
-      />
-    );
-  };
 
   const handleSectionRenameStart = (section) => {
     setRenamingSectionId(section.id);
@@ -316,50 +283,12 @@ const ContentPlanning = ({ selectedCampaign }) => {
         </div>
 
         {/* Upcoming Tasks */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2 mt-4">
-            Upcoming Tasks
-          </h3>
-          <div className="space-y-2">
-            {upcomingTasks.map((item, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg p-2 hover:border-gray-300 hover:shadow-sm transition-all duration-200 bg-white"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">
-                        {item.campaign}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500">Due: {item.date}</span>
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            item.status === "pending"
-                              ? "bg-orange-400"
-                              : item.status === "in-progress"
-                                ? "bg-blue-400"
-                                : "bg-green-400"
-                          }`}
-                        />
-                      </div>
-                      {item.submitBy && (
-                        <p className="text-xs text-orange-600 mt-1">Submit by {item.submitBy}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
-                      {item.task}
-                    </span>
-                    {getTaskCTA(item)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <TaskManagerCreator
+            setSelectedCampaign={setSelectedCampaign}
+            getCampaignById={getCampaignById}
+            formatCampaignData={formatCampaignData}
+          />
         </div>
       </div>
 
