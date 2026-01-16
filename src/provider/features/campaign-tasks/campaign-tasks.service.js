@@ -40,6 +40,21 @@ const deleteTask = async (taskId) => {
   return { ...response.data, taskId };
 };
 
+// Get brand tasks (with optional campaign filter)
+const getBrandTasks = async (campaignId = null) => {
+  const url = campaignId
+    ? `/campaign-tasks/brand?campaignId=${campaignId}`
+    : "/campaign-tasks/brand";
+  const response = await api().get(url);
+  return response.data;
+};
+
+// Get creator tasks
+const getCreatorTasks = async () => {
+  const response = await api().get("/campaign-tasks/creator");
+  return response.data;
+};
+
 const campaignTaskService = {
   createTask,
   getAllTasks,
@@ -47,6 +62,8 @@ const campaignTaskService = {
   getTaskById,
   updateTask,
   deleteTask,
+  getBrandTasks,
+  getCreatorTasks,
 };
 
 export default campaignTaskService;

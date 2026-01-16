@@ -8,7 +8,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { MapPin, Star } from "lucide-react";
 import React from "react";
 import CalendarModal from "../../../calendar-modal/calendar-modal.component";
-import TaskManagerModal from "./components/task-manager/task-manager.component";
+import TaskManagerModal from "../../../../task-manager/task-manager.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -280,8 +280,7 @@ const CreatorSpendAnalysis = ({
       <TaskManagerModal
         show={showTaskManager}
         onClose={() => setShowTaskManager(false)}
-        selectedCampaign={selectedCampaign}
-        isMultiCreator={isMultiCreator}
+        selectedCampaignId={selectedCampaign?.id || null}
       />
     </div>
   );
