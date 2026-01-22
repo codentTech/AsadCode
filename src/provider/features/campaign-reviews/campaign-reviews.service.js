@@ -7,8 +7,10 @@ const createCampaignReview = async (campaignId, reviewData) => {
 };
 
 // Get all reviews for a campaign
-const getCampaignReviews = async (campaignId) => {
-  const response = await api().get(`/campaign-reviews/campaign/${campaignId}`);
+const getCampaignReviews = async (campaignId, params = {}) => {
+  const response = await api().get(`/campaign-reviews/campaign/${campaignId}`, {
+    params,
+  });
   return response.data;
 };
 

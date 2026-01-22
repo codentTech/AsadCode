@@ -127,8 +127,6 @@ const CompletedCampaign = () => {
         getPlatformColor={getPlatformColor}
       />
       <FinanceDashboard
-        paymentHistory={paymentHistory}
-        upcomingPayments={upcomingPayments}
         expandedMonths={expandedMonths}
         setExpandedMonths={setExpandedMonths}
         selectedCampaign={selectedCampaign?.campaign}

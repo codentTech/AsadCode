@@ -69,7 +69,7 @@ const CreatorSpendAnalysis = ({
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="mb-3 flex justify-between items-center gap-3">
+          <div className="bg-indigo-100 rounded-lg p-3 mb-3 flex justify-between items-center gap-3">
             {onSwitchToApplications && (
               <CustomButton
                 text="Applications"

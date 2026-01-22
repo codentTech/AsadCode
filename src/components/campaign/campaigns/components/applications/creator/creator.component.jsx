@@ -77,9 +77,9 @@ const CreatorApplications = () => {
               {/* Tab Pills - Simple Theme Design */}
               <div className="flex items-center gap-0 bg-gray-100 rounded-lg p-0.5">
                 <button
-                  onClick={() => handleTabChange("invites")}
+                  onClick={() => handleTabChange(1)}
                   className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "invites"
+                    activeTab === 1
                       ? "bg-primary text-white shadow-sm"
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
@@ -88,9 +88,7 @@ const CreatorApplications = () => {
                   {allApplications.invites?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "invites"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 1 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.invites?.length || 0}
@@ -98,9 +96,9 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("negotiations")}
+                  onClick={() => handleTabChange(2)}
                   className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "negotiations"
+                    activeTab === 2
                       ? "bg-primary text-white shadow-sm"
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
@@ -109,9 +107,7 @@ const CreatorApplications = () => {
                   {allApplications.negotiations?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "negotiations"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 2 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.negotiations?.length || 0}
@@ -119,9 +115,9 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("pending")}
+                  onClick={() => handleTabChange(3)}
                   className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "pending"
+                    activeTab === 3
                       ? "bg-primary text-white shadow-sm"
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
@@ -130,9 +126,7 @@ const CreatorApplications = () => {
                   {allApplications.pending?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "pending"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 3 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.pending?.length || 0}
@@ -140,9 +134,9 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("rejected")}
+                  onClick={() => handleTabChange(4)}
                   className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "rejected"
+                    activeTab === 4
                       ? "bg-primary text-white shadow-sm"
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
                   }`}
@@ -151,9 +145,7 @@ const CreatorApplications = () => {
                   {allApplications.rejected?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "rejected"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 4 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.rejected?.length || 0}
@@ -185,24 +177,24 @@ const CreatorApplications = () => {
             <EmptyState
               icon={<Package className="w-8 h-8 text-gray-400" />}
               title={`No ${
-                activeTab === "invites"
+                activeTab === 1
                   ? "invites"
-                  : activeTab === "negotiations"
+                  : activeTab === 2
                     ? "negotiations"
-                    : activeTab === "offers"
+                    : activeTab === 5
                       ? "offers"
-                      : activeTab === "pending"
+                      : activeTab === 3
                         ? "pending"
                         : "rejected"
-              } ${activeTab === "invites" ? "" : "applications"}`}
+              } ${activeTab === 1 ? "" : "applications"}`}
               description={
-                activeTab === "invites"
+                activeTab === 1
                   ? "You don't have any invitations from brands yet. Brands will send you invitations to collaborate."
-                  : activeTab === "negotiations"
+                  : activeTab === 2
                     ? "Brands haven't started conversations about your applications yet."
                     : activeTab === "offers"
                       ? "You don't have any offers at the moment. Keep applying to campaigns!"
-                      : activeTab === "pending"
+                      : activeTab === 3
                         ? "You don't have any pending applications at the moment."
                         : "You don't have any rejected applications."
               }

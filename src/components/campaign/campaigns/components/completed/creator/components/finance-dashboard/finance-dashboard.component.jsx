@@ -11,17 +11,20 @@ import {
 import { getUser } from "@/common/utils/users.util";
 import Loader from "@/common/components/loader/loader.component";
 import { useEffect } from "react";
+import useCreatorPayments from "./use-creator-payments.hook";
+import { getCompensationTypeLabel } from "@/common/utils/campaign.utils";
 
-const FinanceDashboard = ({
-  paymentHistory,
-  upcomingPayments,
-  expandedMonths,
-  setExpandedMonths,
-  selectedCampaign,
-}) => {
+const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign }) => {
   const dispatch = useDispatch();
   const user = getUser();
   const creatorProfileId = user?.creator_profile?.id;
+
+  // Fetch payment history - filter by selected campaign if one is selected
+  const {
+    paymentHistory,
+    totalEarnings,
+    isLoading: paymentsLoading,
+  } = useCreatorPayments(selectedCampaign);
 
   const {
     createCampaignReview: createReviewState,
@@ -93,7 +96,6 @@ const FinanceDashboard = ({
       console.error("Failed to create review:", error);
     }
   };
-  const totalEarnings = Object.values(paymentHistory).reduce((sum, month) => sum + month.total, 0);
 
   const toggleMonth = (month) => {
     setExpandedMonths((prev) => ({
@@ -108,49 +110,95 @@ const FinanceDashboard = ({
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Finance Dashboard</h2>
         <div className="bg-gray-100 p-2 rounded-lg">
           <p className="text-sm text-gray-600">Total Earnings</p>
-          <p className="text-lg font-bold text-green-600">${totalEarnings.toLocaleString()}</p>
+          {paymentsLoading ? (
+            <div className="flex items-center gap-2">
+              <Loader loading={true} size="small" />
+              <p className="text-lg font-bold text-gray-400">Loading...</p>
+            </div>
+          ) : (
+            <p className="text-lg font-bold text-green-600">
+              $
+              {totalEarnings.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment History</h3>
-          <div className="space-y-2">
-            {Object.entries(paymentHistory).map(([month, data]) => (
-              <div key={month} className="border border-gray-200 rounded-lg">
-                <div
-                  onClick={() => toggleMonth(month)}
-                  className="px-3 py-1 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="text-xs font-medium text-gray-900">{month}</p>
-                    <p className="text-xs text-green-600 font-bold">${data.total}</p>
+          {paymentsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader loading={true} />
+            </div>
+          ) : Object.keys(paymentHistory).length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-500">No payment history available</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {Object.entries(paymentHistory).map(([month, data]) => (
+                <div key={month} className="border border-gray-200 rounded-lg">
+                  <div
+                    onClick={() => toggleMonth(month)}
+                    className="px-3 py-1 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">{month}</p>
+                      <p className="text-xs text-green-600 font-bold">${data.total}</p>
+                    </div>
+                    {expandedMonths[month] ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
                   </div>
-                  {expandedMonths[month] ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+
+                  {expandedMonths[month] && (
+                    <div className="text-xs h-40 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      {data.payments.map((payment, index) => {
+                        // Format compensation display similar to campaign feed
+                        let compensationDisplay = "";
+                        if (payment.commissionPercentage) {
+                          compensationDisplay = `${payment.commissionPercentage}% Commission`;
+                        } else if (payment.creatorFixedPrice) {
+                          compensationDisplay = "Paid";
+                        } else if (payment.productValue) {
+                          compensationDisplay = "Gifted Product";
+                        } else if (payment.compensationType) {
+                          compensationDisplay = getCompensationTypeLabel(payment.compensationType);
+                        } else {
+                          compensationDisplay = "Payment";
+                        }
+
+                        return (
+                          <div key={index} className="bg-gray-50 p-2 rounded text-sm">
+                            <p className="text-xs font-medium text-gray-900 truncate">
+                              {payment.campaign}
+                            </p>
+                            <div className="flex justify-between items-center mt-1">
+                              <div className="flex gap-2 items-center">
+                                <span className="text-xs text-gray-600">
+                                  {compensationDisplay} -
+                                </span>
+                                <span className="text-xs font-semibold text-gray-900">
+                                  ${payment.amount}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">{payment.date}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-
-                {expandedMonths[month] && (
-                  <div className="text-xs h-40 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                    {data.payments.map((payment, index) => (
-                      <div key={index} className="bg-gray-50 p-2 rounded text-sm">
-                        <p className="text-xs font-medium text-gray-900 truncate">
-                          {payment.campaign}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-900">${payment.amount}</span>
-                          <span className="text-xs text-gray-500">{payment.date}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* <div className="p-4 border-t border-gray-200">

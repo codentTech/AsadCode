@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isCreatorMode } from "@/common/utils/users.util";
+import { useSearchParams } from "next/navigation";
 
 function useCampaign() {
-  const [activeTab, setActiveTab] = useState(1);
+  const searchParams = useSearchParams();
+  const tab = Number(searchParams.get("tab")) || 1;
+  const [activeTab, setActiveTab] = useState(tab || 1);
 
   const mainTabs = useMemo(() => {
     const tabs = [
@@ -14,6 +17,10 @@ function useCampaign() {
 
     return tabs;
   }, []);
+
+  useEffect(() => {
+    setActiveTab(tab || 1);
+  }, [tab]);
 
   return {
     activeTab,
