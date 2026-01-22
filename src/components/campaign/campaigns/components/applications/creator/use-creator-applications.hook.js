@@ -6,11 +6,14 @@ import {
 } from "@/provider/features/campaigns/campaigns.slice";
 import invitationService from "@/provider/features/invitation/invitation.service";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { useSearchParams } from "next/navigation";
 
 function useCreatorApplications() {
+  const searchParams = useSearchParams();
+  const tab = Number(searchParams.get("application")) || 2;
   const dispatch = useDispatch();
 
-  const [activeTab, setActiveTab] = useState("negotiations");
+  const [activeTab, setActiveTab] = useState(tab || 2);
   const [allApplications, setAllApplications] = useState({
     invites: [],
     negotiations: [],
@@ -44,6 +47,10 @@ function useCreatorApplications() {
   useEffect(() => {
     fetchAllApplications();
   }, []);
+
+  useEffect(() => {
+    setActiveTab(tab || 2);
+  }, [tab]);
 
   const normalizeInvitation = (invitation) => ({
     ...invitation,
@@ -119,13 +126,13 @@ function useCreatorApplications() {
   };
 
   const filteredData =
-    activeTab === "invites"
+    activeTab === 1
       ? allApplications.invites.filter((item) => item.isInvitation === true)
-      : activeTab === "negotiations"
+      : activeTab === 2
         ? allApplications.negotiations.filter((item) => !item.isInvitation)
-        : activeTab === "offers"
+        : activeTab === 5
           ? allApplications.offers.filter((item) => !item.isInvitation)
-          : activeTab === "pending"
+          : activeTab === 3
             ? allApplications.pending.filter((item) => !item.isInvitation)
             : allApplications.rejected.filter((item) => !item.isInvitation);
 

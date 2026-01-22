@@ -5,7 +5,12 @@ import useBrandTaskManager from "./use-brand-task-manager.hook";
 import { AlertCircle, Clock, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/common/utils/date.utils";
 
-const TaskManagerBrandModal = ({ show, onClose, selectedCampaignId = null }) => {
+const TaskManagerBrandModal = ({
+  show,
+  onClose,
+  selectedCampaignId = null,
+  isMultiCreator = true,
+}) => {
   const {
     selectedCampaign,
     selectedCampaignValue,
@@ -29,15 +34,16 @@ const TaskManagerBrandModal = ({ show, onClose, selectedCampaignId = null }) => 
               {tasks.length}
             </div>
           </div>
-
-          <div className="w-full max-w-[280px]">
-            <SimpleSelect
-              placeHolder="All Campaigns"
-              options={campaignOptions}
-              value={selectedCampaignValue}
-              onChange={handleCampaignSelect}
-            />
-          </div>
+          {isMultiCreator && (
+            <div className="w-full max-w-[280px]">
+              <SimpleSelect
+                placeHolder="All Campaigns"
+                options={campaignOptions}
+                value={selectedCampaignValue}
+                onChange={handleCampaignSelect}
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-2 max-h-96 overflow-y-auto">

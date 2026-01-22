@@ -126,6 +126,7 @@ export default function useBrandCampaign(isCompleted = false) {
       dispatch(getAppliedCreators({ campaignId: selectedCampaign.id, filters }));
     }
   }, [selectedCampaign, dispatch, isCompleted]);
+
   useEffect(() => {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];

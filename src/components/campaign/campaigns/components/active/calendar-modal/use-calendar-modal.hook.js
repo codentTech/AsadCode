@@ -45,7 +45,7 @@ export default function useCalendarModal(show, selectedCampaign) {
   const [selectedTag, setSelectedTag] = useState("");
   const [showAddTag, setShowAddTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("bg-gray-100 text-gray-800");
+  const [newTagColor, setNewTagColor] = useState("#6366f1"); // Default indigo color
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
 
@@ -71,15 +71,12 @@ export default function useCalendarModal(show, selectedCampaign) {
     { label: "1st Draft Deadline", color: "bg-orange-500 text-white", isDefault: true },
   ];
 
-  // Color options for new tags
-  const colorOptions = [
-    "bg-blue-500 text-white",
-    "bg-green-500 text-white",
-    "bg-purple-500 text-white",
-    "bg-yellow-500 text-white",
-    "bg-teal-500 text-white",
-    "bg-pink-500 text-white",
-  ];
+  // Helper function to convert hex color to Tailwind-like class format
+  // We'll store hex colors and use inline styles for display
+  const hexToTailwindFormat = (hex) => {
+    // For backward compatibility, we'll store as hex but convert when needed
+    return hex;
+  };
 
   // Load data when modal opens
   useEffect(() => {
@@ -162,10 +159,7 @@ export default function useCalendarModal(show, selectedCampaign) {
           const deadlineYear = deadlineDate.getFullYear();
           const deadlineDay = deadlineDate.getDate();
 
-          if (
-            deadlineMonth === currentMonth.month &&
-            deadlineYear === currentMonth.year
-          ) {
+          if (deadlineMonth === currentMonth.month && deadlineYear === currentMonth.year) {
             if (!tasksMap[deadlineDay]) {
               tasksMap[deadlineDay] = [];
             }
@@ -212,16 +206,30 @@ export default function useCalendarModal(show, selectedCampaign) {
       value: { label: category.label, value: category.color },
     }));
 
-  // Get dot indicators for calendar dates
+  // Get unique task colors for calendar date indicators
   const getDateIndicators = (day) => {
     const dayTasks = calendarTasks[day] || [];
-    const hasDeadline = dayTasks.some((task) => task.tag.label === "Campaign Deadline");
-    const hasDraft = dayTasks.some((task) => task.tag.label === "1st Draft Deadline");
-    const hasOther = dayTasks.some(
-      (task) => !["Campaign Deadline", "1st Draft Deadline"].includes(task.tag.label)
-    );
 
-    return { hasDeadline, hasDraft, hasOther };
+    // Get unique task colors (avoid duplicates)
+    const uniqueColors = [];
+    const seenColors = new Set();
+
+    dayTasks.forEach((task) => {
+      const taskColor = task.tag?.value || task.tag?.color || "bg-gray-500 text-white";
+
+      // Create a unique key for the color
+      const colorKey = taskColor;
+
+      if (!seenColors.has(colorKey)) {
+        seenColors.add(colorKey);
+        uniqueColors.push({
+          color: taskColor,
+          label: task.tag?.label || "Task",
+        });
+      }
+    });
+
+    return { taskColors: uniqueColors };
   };
 
   // Handle date click
@@ -316,10 +324,19 @@ export default function useCalendarModal(show, selectedCampaign) {
     }
   };
 
-  // Get tag color
+  // Get tag color - supports both hex colors and Tailwind classes
   const getTagColor = (tagName) => {
     const tag = allCategories.find((t) => t.label === tagName);
-    return tag ? tag.color : "bg-gray-100 text-gray-800";
+    if (!tag) return "bg-gray-100 text-gray-800";
+
+    // If it's a hex color, return it as-is (will be used with inline styles)
+    // If it's a Tailwind class, return it
+    return tag.color;
+  };
+
+  // Check if color is hex format
+  const isHexColor = (color) => {
+    return typeof color === "string" && color.startsWith("#");
   };
 
   // Handle new task text change
@@ -332,9 +349,9 @@ export default function useCalendarModal(show, selectedCampaign) {
     setNewTagName(e.target.value);
   };
 
-  // Handle new tag color change
-  const handleNewTagColorChange = (color) => {
-    setNewTagColor(color);
+  // Handle new tag color change (now accepts hex color)
+  const handleNewTagColorChange = (hexColor) => {
+    setNewTagColor(hexColor);
   };
 
   // Handle tag selection
@@ -351,6 +368,7 @@ export default function useCalendarModal(show, selectedCampaign) {
   const cancelAddTag = () => {
     setShowAddTag(false);
     setNewTagName("");
+    setNewTagColor("#6366f1"); // Reset to default color
   };
 
   // Handle delete category click
@@ -369,8 +387,7 @@ export default function useCalendarModal(show, selectedCampaign) {
       setShowDeleteConfirmation(false);
       setCategoryToDelete(null);
     } catch (error) {
-      const errorMessage =
-        error?.message || error?.payload?.message || "Unknown error";
+      const errorMessage = error?.message || error?.payload?.message || "Unknown error";
       alert(`Failed to delete category: ${errorMessage}`);
     }
   };
@@ -394,7 +411,7 @@ export default function useCalendarModal(show, selectedCampaign) {
     categoryOptions,
     allCategories,
     monthNames,
-    colorOptions,
+    isHexColor,
 
     // Redux states
     createTaskState,

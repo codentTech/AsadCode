@@ -24,7 +24,7 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
     formatNumber,
     isLoading,
     hasData,
-  } = useBrandCampaignCompleted();
+  } = useBrandCampaignCompleted(!!parentSelectedCampaign); // Disable auto-select if parent is managing selection
 
   const selectedCampaign = parentSelectedCampaign || hookSelectedCampaign;
 
@@ -94,16 +94,26 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
   const selectedCampaignIdRef = useRef(null);
 
   useEffect(() => {
-    if (selectedCampaign?.id !== selectedCampaignIdRef.current) {
-      hasNotifiedParent.current = false;
-      selectedCampaignIdRef.current = selectedCampaign?.id || null;
+    const currentId = selectedCampaign?.id;
+    const previousId = selectedCampaignIdRef.current;
+    
+    // Only notify parent if the campaign ID actually changed
+    if (currentId !== previousId) {
+      selectedCampaignIdRef.current = currentId || null;
+      
+      // Only notify if we have a campaign and haven't notified for this ID yet
+      if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
+        onCampaignSelect(selectedCampaign);
+        hasNotifiedParent.current = true;
+      }
     }
     
-    if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      onCampaignSelect(selectedCampaign);
-      hasNotifiedParent.current = true;
+    // Reset notification flag when campaign becomes null
+    if (!selectedCampaign && previousId !== null) {
+      hasNotifiedParent.current = false;
+      selectedCampaignIdRef.current = null;
     }
-  }, [selectedCampaign, onCampaignSelect]);
+  }, [selectedCampaign?.id, onCampaignSelect]);
 
   useEffect(() => {
     if (!isMultiCreator) {

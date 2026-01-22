@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { getUser } from "@/common/utils/users.util";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { isCreatorMode, getUser } from "@/common/utils/users.util";
 import { avatar } from "@/common/constants/auth.constant";
 
 const normalizePlatformConnection = (connection) => {
@@ -52,8 +53,17 @@ const normalizePlatformConnection = (connection) => {
   return null;
 };
 
-export default function useBrandPortfolioData(refreshKey = 0) {
+export default function useBrandPortfolio() {
+  const router = useRouter();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [brandUser, setBrandUser] = useState(null);
+
+  useEffect(() => {
+    if (isCreatorMode()) {
+      router.replace("/creator-portfolio");
+    }
+  }, [router]);
 
   useEffect(() => {
     const user = getUser();
@@ -175,14 +185,26 @@ export default function useBrandPortfolioData(refreshKey = 0) {
     }
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    refreshBrandData();
+    setRefreshKey((prev) => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 300);
+  }, [refreshBrandData]);
+
+  const handleEditProfile = useCallback(() => {
+    router.push("/settings/brand-profile/profile-information");
+  }, [router]);
+
   return {
-    brandUser,
-    brandProfile,
     brandBasics,
-    brandPreferences,
     brandOverview,
+    brandPreferences,
     verifiedConnections,
     audienceSummary,
-    refreshBrandData,
+    refreshKey,
+    isRefreshing,
+    handleRefresh,
+    handleEditProfile,
   };
 }

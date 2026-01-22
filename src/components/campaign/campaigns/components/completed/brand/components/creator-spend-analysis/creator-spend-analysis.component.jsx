@@ -302,7 +302,11 @@ const CreatorSpendAnalysisCompleted = ({
         onClose={() => setShowBrandCalendar(false)}
         selectedCampaign={selectedCampaign}
       />
-      <TaskManagerModal show={showTaskManager} onClose={() => setShowTaskManager(false)} />
+      <TaskManagerModal 
+        show={showTaskManager} 
+        onClose={() => setShowTaskManager(false)}
+        isMultiCreator={isMultiCreator}
+      />
     </div>
   );
 };
