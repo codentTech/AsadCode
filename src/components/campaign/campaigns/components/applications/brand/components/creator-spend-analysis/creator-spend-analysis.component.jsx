@@ -21,6 +21,7 @@ const CreatorSpendAnalysis = ({
   onFilterChange,
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
+  onSwitchToRejected,
 }) => {
   const {
     open,
@@ -60,7 +61,14 @@ const CreatorSpendAnalysis = ({
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="mb-3">
+          <div className="bg-indigo-100 rounded-lg p-3 mb-3 flex justify-between items-center gap-3">
+            {onSwitchToRejected && (
+              <CustomButton
+                text="Rejected"
+                onClick={onSwitchToRejected}
+                className="btn-outline !h-9"
+              />
+            )}
             <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
               <CustomSwitch
                 label="Campaign Type"
@@ -73,7 +81,7 @@ const CreatorSpendAnalysis = ({
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            {isMultiCreator && (
+            {isMultiCreator ? (
               <div className="min-w-[240px] w-[260px]">
                 <SimpleSelect
                   placeHolder="Select a campaign"
@@ -87,6 +95,8 @@ const CreatorSpendAnalysis = ({
                   }}
                 />
               </div>
+            ) : (
+              <div></div>
             )}
 
             <div className="flex items-center gap-3">

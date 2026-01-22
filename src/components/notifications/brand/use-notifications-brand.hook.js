@@ -275,26 +275,56 @@ function useNotificationsBrand() {
 
       switch (notification.type) {
         case NOTIFICATION_TYPE.APPLICATION:
-          router.push(`/campaign?tab=4&application=1`);
+          router.push(`/campaign?tab=2`);
           break;
         case NOTIFICATION_TYPE.INVITATION_ACCEPTED:
-          router.push(`/campaign?tab=4&application=2`);
+          router.push(`/campaign?tab=2`);
           break;
         case NOTIFICATION_TYPE.DELIVERABLE_SUBMITTED:
-          router.push(`/campaign?tab=4&application=3`);
+          router.push(`/campaign?tab=3`);
           break;
         case NOTIFICATION_TYPE.DELIVERABLE_APPROVED:
-          router.push(`/campaign?tab=4&application=4`);
+          router.push(`/campaign?tab=3`);
           break;
         case NOTIFICATION_TYPE.DELIVERABLE_REJECTED:
-          router.push(`/campaign?tab=4&application=5`);
+          router.push(`/campaign?tab=3&view=2`);
           break;
         case NOTIFICATION_TYPE.CAMPAIGN_COMPLETE:
-          router.push(`/campaign?tab=4&application=6`);
+          router.push(`/campaign?tab=4`);
+          break;
+        case NOTIFICATION_TYPE.REJECTION:
+          router.push(`/campaign?tab=2&view=2`);
+          break;
+        case NOTIFICATION_TYPE.HIRE:
+          router.push(`/campaign?tab=3`);
+          break;
+        case NOTIFICATION_TYPE.APPLICANT_WITHDREW:
+          router.push(`/campaign?tab=2&view=1`);
+          break;
+        case NOTIFICATION_TYPE.DEADLINE_EXTENDED:
+        case NOTIFICATION_TYPE.DEADLINE_MISSED:
+        case NOTIFICATION_TYPE.DEADLINE_REMINDER:
+        case NOTIFICATION_TYPE.CREATOR_MARKED_DELAYED:
+        case NOTIFICATION_TYPE.DELIVERABLE_DUE_SOON:
+        case NOTIFICATION_TYPE.DELIVERABLE_SUBMITTED:
+        case NOTIFICATION_TYPE.DRAFT_SUBMITTED:
+        case NOTIFICATION_TYPE.POST_SUBMITTED:
+        case NOTIFICATION_TYPE.DELIVERABLE_APPROVED:
+        case NOTIFICATION_TYPE.DRAFT_APPROVED:
+        case NOTIFICATION_TYPE.REVISION_APPROVED:
+        case NOTIFICATION_TYPE.DELIVERABLE_REJECTED:
+        case NOTIFICATION_TYPE.REVISION_REQUESTED:
+        case NOTIFICATION_TYPE.DELIVERABLE_OVERDUE:
+          router.push(`/campaign?tab=3`);
+          break;
+        case NOTIFICATION_TYPE.PAYMENT_RELEASED:
+          router.push(`/campaign?tab=4`);
+          break;
+        case NOTIFICATION_TYPE.REVIEW:
+        default:
+          router.push(`/campaign?tab=1`);
+          break;
       }
-
-      // // Navigate to Active tab (tab id = 2)
-      // router.push(`/campaign?tab=active`);
     },
     [router, dispatch, campaignsData]
   );

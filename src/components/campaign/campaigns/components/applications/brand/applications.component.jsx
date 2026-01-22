@@ -7,7 +7,7 @@ import DeliverablesProgress from "./components/deliverables-progress/deliverable
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
 import useBrandApplications from "./use-brand-applications.hook";
 
-function BrandApplications() {
+function BrandApplications({ onSwitchToRejected }) {
   const {
     appliedCreatorsData,
     appliedCreatorsLoading,
@@ -84,6 +84,7 @@ function BrandApplications() {
         onFilterChange={handleFilterChange}
         onClearFilters={clearFilters}
         fetchIndividualCollaborations={fetchIndividualCollaborations}
+        onSwitchToRejected={onSwitchToRejected}
       />
 
       {renderRightPane()}
