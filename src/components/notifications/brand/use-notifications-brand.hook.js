@@ -12,6 +12,7 @@ import {
   getNotificationSection,
   NOTIFICATION_SECTION,
 } from "@/common/utils/notification-categorizer.util";
+import { NOTIFICATION_TYPE } from "@/common/constants/notification.constant";
 
 const POLLING_INTERVAL = 30000; // 30 seconds
 
@@ -258,10 +259,64 @@ function useNotificationsBrand() {
 
       if (!campaignId) return;
 
-      router.push(`/campaign`);
+      // Find the campaign from campaigns data
+      const allCampaigns = Array.isArray(campaignsData?.data) ? campaignsData.data : [];
+      const campaign = allCampaigns.find((c) => c.id === campaignId);
+
+      if (campaign) {
+        // Set campaign in Redux context (similar to use-brand.hook.js)
+        dispatch(
+          setSelectedCampaign({
+            campaignId: campaign.id,
+            collaborationType: campaign.collaboration_type || null,
+          })
+        );
+      }
+
+      switch (notification.type) {
+        case NOTIFICATION_TYPE.APPLICATION:
+          router.push(`/campaign?tab=4&application=1`);
+          break;
+        case NOTIFICATION_TYPE.INVITATION_ACCEPTED:
+          router.push(`/campaign?tab=4&application=2`);
+          break;
+        case NOTIFICATION_TYPE.DELIVERABLE_SUBMITTED:
+          router.push(`/campaign?tab=4&application=3`);
+          break;
+        case NOTIFICATION_TYPE.DELIVERABLE_APPROVED:
+          router.push(`/campaign?tab=4&application=4`);
+          break;
+        case NOTIFICATION_TYPE.DELIVERABLE_REJECTED:
+          router.push(`/campaign?tab=4&application=5`);
+          break;
+        case NOTIFICATION_TYPE.CAMPAIGN_COMPLETE:
+          router.push(`/campaign?tab=4&application=6`);
+      }
+
+      // // Navigate to Active tab (tab id = 2)
+      // router.push(`/campaign?tab=active`);
     },
-    [router]
+    [router, dispatch, campaignsData]
   );
+
+  // Tab management
+  const [activeTab, setActiveTab] = useState("all");
+
+  // Calculate notification counts
+  const totalEventNotifications = useMemo(() => {
+    return Object.values(categorizedNotifications).reduce((sum, arr) => sum + arr.length, 0);
+  }, [categorizedNotifications]);
+
+  const totalNotifications = useMemo(() => {
+    return actionRequiredNotifications.length + totalEventNotifications;
+  }, [actionRequiredNotifications.length, totalEventNotifications]);
+
+  const unreadEventCount = useMemo(() => {
+    return Object.values(categorizedNotifications).reduce(
+      (sum, arr) => sum + arr.filter((n) => !n.is_read).length,
+      0
+    );
+  }, [categorizedNotifications]);
 
   return {
     // Campaign
@@ -275,6 +330,13 @@ function useNotificationsBrand() {
     categorizedNotifications,
     isLoading,
     isRefreshing,
+    totalEventNotifications,
+    totalNotifications,
+    unreadEventCount,
+
+    // Tab management
+    activeTab,
+    setActiveTab,
 
     // Actions
     refreshNotifications,
@@ -286,4 +348,3 @@ function useNotificationsBrand() {
 }
 
 export default useNotificationsBrand;
-

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
+import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
@@ -24,16 +24,25 @@ function useCreatorSpendAnalysis({
 
   const dispatch = useDispatch();
 
-  const { data: campaignsData, isLoading: campaignsLoading } = useSelector(
-    (state) => state.campaigns.getBrandCampaignsExcludingCompleted
+  const { data: allCampaignsData, isLoading: campaignsLoading } = useSelector(
+    (state) => state.campaigns.getAllBrandCampaigns
   );
+
+  // Filter out completed campaigns on frontend
+  const campaignsData = useMemo(() => {
+    if (!allCampaignsData?.data || !Array.isArray(allCampaignsData.data)) return allCampaignsData;
+    return {
+      ...allCampaignsData,
+      data: allCampaignsData.data.filter((campaign) => campaign.status !== "COMPLETE"),
+    };
+  }, [allCampaignsData]);
 
   const { data: shortlistsData, isLoading: shortlistsLoading } = useSelector(
     (state) => state.shortlist.getAllShortlists
   );
 
   useEffect(() => {
-    dispatch(getBrandCampaignsExcludingCompleted());
+    dispatch(getAllBrandCampaigns());
   }, [dispatch]);
 
   useEffect(() => {

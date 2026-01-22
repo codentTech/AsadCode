@@ -78,8 +78,6 @@ const CreatorSpendAnalysis = ({
                 <SimpleSelect
                   placeHolder="Select a campaign"
                   options={filteredCampaignOptions}
-                  isSearchable={true}
-                  isMulti={false}
                   isLoading={campaignsLoading}
                   value={selectedCampaignValue}
                   onChange={(opt) => {
