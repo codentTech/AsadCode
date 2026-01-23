@@ -4,6 +4,7 @@ import {
   getCreatorApplications,
   withdrawApplication,
 } from "@/provider/features/campaigns/campaigns.slice";
+import { getPendingContractsForCreator } from "@/provider/features/contracts/contracts.slice";
 import invitationService from "@/provider/features/invitation/invitation.service";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { useSearchParams } from "next/navigation";
@@ -36,9 +37,20 @@ function useCreatorApplications() {
     (state) => state.campaigns.getCreatorApplications || {}
   );
 
-  const { data: offersData } = useSelector(
+  const { data: offersDataRaw } = useSelector(
     (state) => state.contracts.getPendingContractsForCreator || {}
   );
+
+  // Handle both array and nested data structure
+  const offersData = (() => {
+    if (Array.isArray(offersDataRaw)) {
+      return offersDataRaw;
+    }
+    if (offersDataRaw?.data && Array.isArray(offersDataRaw.data)) {
+      return offersDataRaw.data;
+    }
+    return [];
+  })();
 
   const { isLoading: withdrawLoading } = useSelector(
     (state) => state.campaigns.withdrawApplication || {}
@@ -46,7 +58,9 @@ function useCreatorApplications() {
 
   useEffect(() => {
     fetchAllApplications();
-  }, []);
+    // Fetch pending contracts for offers count
+    dispatch(getPendingContractsForCreator());
+  }, [dispatch]);
 
   useEffect(() => {
     setActiveTab(tab || 2);
