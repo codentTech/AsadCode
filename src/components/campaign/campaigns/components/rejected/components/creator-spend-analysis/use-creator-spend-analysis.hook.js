@@ -4,6 +4,7 @@ import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.sl
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
+import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -21,8 +22,12 @@ function useCreatorSpendAnalysis({
   const [open, setOpen] = useState(false);
   const [isMultiCreator, setIsMultiCreator] = useState(true);
   const hasAutoSelectedCampaignRef = useRef(false);
+  const hasRestoredFromContext = useRef(false);
+  const lastRestoredCampaignIdRef = useRef(null);
 
   const dispatch = useDispatch();
+
+  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
 
   const { data: allCampaignsData, isLoading: campaignsLoading } = useSelector(
     (state) => state.campaigns.getAllBrandCampaigns
@@ -48,6 +53,37 @@ function useCreatorSpendAnalysis({
   useEffect(() => {
     dispatch(getAllShortlists());
   }, [dispatch]);
+
+  // Restore campaign from Redux context
+  useEffect(() => {
+    // Reset restoration flag if selectedCampaignId from Redux changed
+    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
+      hasRestoredFromContext.current = false;
+    }
+  }, [selectedCampaignId]);
+
+  useEffect(() => {
+    if (
+      !campaignsLoading &&
+      campaignsData?.data &&
+      selectedCampaignId &&
+      !hasRestoredFromContext.current &&
+      !selectedCampaign &&
+      typeof onCampaignSelect === "function"
+    ) {
+      const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+      const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
+      if (restoredCampaign) {
+        onCampaignSelect(restoredCampaign);
+        hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = selectedCampaignId;
+      }
+    } else if (!selectedCampaignId) {
+      // Reset when Redux context is cleared
+      lastRestoredCampaignIdRef.current = null;
+      hasRestoredFromContext.current = false;
+    }
+  }, [campaignsLoading, campaignsData, selectedCampaignId, selectedCampaign, onCampaignSelect]);
 
   const campaignOptions = useMemo(
     () =>
