@@ -11,6 +11,7 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
   const previousCampaignIdsRef = useRef(null);
+  const lastRestoredCampaignIdRef = useRef(null);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -48,6 +49,13 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
   }, [dispatch]);
 
   useEffect(() => {
+    // Reset restoration flag if selectedCampaignId from Redux changed
+    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
+      hasRestoredFromContext.current = false;
+    }
+  }, [selectedCampaignId]);
+
+  useEffect(() => {
     if (campaignsSuccess && campaignsData?.data && selectedCampaignId && !hasRestoredFromContext.current) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
@@ -55,7 +63,12 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         setSelectedCampaign(restoredCampaign);
         hasAutoSelected.current = true;
         hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = selectedCampaignId;
       }
+    } else if (!selectedCampaignId) {
+      // Reset when Redux context is cleared
+      lastRestoredCampaignIdRef.current = null;
+      hasRestoredFromContext.current = false;
     }
   }, [campaignsSuccess, campaignsData, selectedCampaignId]);
 
