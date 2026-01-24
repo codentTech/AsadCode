@@ -16,8 +16,12 @@ import {
   CAMPAIGN_TYPE_OPTIONS,
 } from "@/common/constants/options.constant";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
+import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
+import { AlertCircle } from "lucide-react";
 
 export default function HireCreatorModal({
   show,
@@ -30,6 +34,14 @@ export default function HireCreatorModal({
   isError = false,
 }) {
   const [showPreview, setShowPreview] = useState(false);
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const { data: hasPaymentMethodData, isLoading: isCheckingPaymentMethod } = useSelector(
+    (state) => state.collaborationPayment.hasPaymentMethod || {}
+  );
+
+  const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
 
   const {
     register,
@@ -47,6 +59,13 @@ export default function HireCreatorModal({
     isValid,
     createEnrichedContractData,
   } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
+
+  // Check payment method when modal opens
+  useEffect(() => {
+    if (show) {
+      dispatch(checkHasPaymentMethod());
+    }
+  }, [show, dispatch]);
 
   const revisionsLimitValue = watch?.revisionsLimit?.toString?.() || "";
   const usageRightsValue = watch?.usageRights || "no_usage";
@@ -86,6 +105,30 @@ export default function HireCreatorModal({
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
+      {/* Payment Method Warning */}
+      {!isCheckingPaymentMethod && !hasPaymentMethod && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-900 mb-1">Payment method required</p>
+              <p className="text-xs text-yellow-700 mb-3">
+                You must add a payment method before sending offers. No charge occurs when sending
+                an offer - payment is only processed when the creator accepts.
+              </p>
+              <CustomButton
+                text="Add Payment Method"
+                className="btn-primary text-xs"
+                onClick={() => {
+                  onClose();
+                  router.push("/settings/payments/payment-methods");
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         {/* General Information */}
         <div>
@@ -257,7 +300,12 @@ export default function HireCreatorModal({
             type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton text="Send Offer" className="btn-primary" type="submit" />
+          <CustomButton
+            text="Send Offer"
+            className="btn-primary"
+            type="submit"
+            disabled={!hasPaymentMethod || isCheckingPaymentMethod}
+          />
         </div>
       </form>
 
