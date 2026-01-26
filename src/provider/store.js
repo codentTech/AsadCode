@@ -25,6 +25,7 @@ import invitationReducer from "./features/invitation/invitation.slice";
 import notificationReducer from "./features/notification/notification.slice";
 import campaignContextReducer from "./features/campaign-context/campaign-context.slice";
 import creatorApplicationsReducer from "./features/creator-applications/creator-applications.slice";
+import collaborationPaymentReducer from "./features/collaboration-payment/collaboration-payment.slice";
 
 const persistConfig = {
   key: "root",
@@ -56,6 +57,7 @@ const rootReducer = combineReducers({
   notification: notificationReducer,
   campaignContext: campaignContextReducer,
   creatorApplications: creatorApplicationsReducer,
+  collaborationPayment: collaborationPaymentReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
