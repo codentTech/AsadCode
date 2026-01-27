@@ -58,6 +58,7 @@ const DeliverablesProgress = ({
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
+    handleViewCreatorPortfolio,
   } = useDeliverablesProgress(
     selectedCampaign,
     selectedCreator,
@@ -96,7 +97,12 @@ const DeliverablesProgress = ({
         </Avatar>
       </div>
       <h3>
-        {creator.name}
+        <button
+          onClick={handleViewCreatorPortfolio}
+          className="hover:text-primary transition-colors cursor-pointer"
+        >
+          {creator.name}
+        </button>
         <span className="text-lg text-gray-500 ml-1">{creator.rating}</span>
         <span className="text-lg text-gray-500 ml-1">({creator.reviewCount || 0})</span>
       </h3>
@@ -198,7 +204,7 @@ const DeliverablesProgress = ({
                 <span className="font-medium">
                   {selectedContract.usageRights
                     ? selectedContract.usageRights?.split("_").join(" ")
-                    : "Not specified"}
+                    : "None"}
                 </span>
               </span>
             </li>
@@ -210,7 +216,7 @@ const DeliverablesProgress = ({
                 <span className="font-medium">
                   {selectedContract.exclusivityClause
                     ? selectedContract.exclusivityClause?.split("_").join(" ")
-                    : "Not specified"}
+                    : "None"}
                 </span>
               </span>
             </li>

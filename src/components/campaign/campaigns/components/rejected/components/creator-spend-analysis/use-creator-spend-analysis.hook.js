@@ -68,8 +68,7 @@ function useCreatorSpendAnalysis({
       campaignsData?.data &&
       selectedCampaignId &&
       !hasRestoredFromContext.current &&
-      !selectedCampaign &&
-      typeof onCampaignSelect === "function"
+      !selectedCampaign
     ) {
       const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
@@ -115,7 +114,7 @@ function useCreatorSpendAnalysis({
       Array.isArray(campaignsData?.data) &&
       campaignsData.data.length > 0 &&
       filteredCampaignOptions.length > 0 &&
-      typeof onCampaignSelect === "function"
+      !hasRestoredFromContext.current
     ) {
       const firstCampaign = campaignsData.data.find(
         (c) => c.id === filteredCampaignOptions[0]?.value
@@ -123,6 +122,12 @@ function useCreatorSpendAnalysis({
       if (firstCampaign) {
         onCampaignSelect(firstCampaign);
         hasAutoSelectedCampaignRef.current = true;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: firstCampaign.id,
+            collaborationType: firstCampaign.collaboration_type || null,
+          })
+        );
       }
     }
   }, [
@@ -132,6 +137,8 @@ function useCreatorSpendAnalysis({
     campaignsLoading,
     filteredCampaignOptions.length,
     onCampaignSelect,
+    dispatch,
+    hasRestoredFromContext.current,
   ]);
 
   const isSelectedCampaignValid =
