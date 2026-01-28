@@ -14,17 +14,51 @@ const useInvitationModal = () => {
   const [customMessage, setCustomMessage] = useState("");
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
+  const calculateRemainingBudget = (campaign) => {
+    if (!campaign || campaign.compensation_type !== COMPENSATION_TYPE.PAID) {
+      return null;
+    }
+
+    const totalBudget = campaign.budget || 0;
+    if (totalBudget === 0) return null;
+
+    const creators = campaign.creators || [];
+    const spent = creators.reduce((sum, creatorEntry) => {
+      let contract = creatorEntry.contract || null;
+
+      if (!contract && creatorEntry.creator) {
+        const creatorContracts = creatorEntry.creator.creatorContracts || [];
+        contract = creatorContracts.find(
+          (c) =>
+            (c.campaign?.id === campaign.id) ||
+            (c.campaign_id === campaign.id) ||
+            (c.campaign === campaign.id)
+        );
+      }
+
+      const compensation = contract?.total_compensation || contract?.totalCompensation || 0;
+      return sum + (compensation || 0);
+    }, 0);
+
+    return Math.max(0, totalBudget - spent);
+  };
+
   const formatCompensation = (campaign) => {
     const type = campaign.compensation_type;
 
     if (type === COMPENSATION_TYPE.PAID) {
-      if (campaign.creator_fixed_price) return `$${campaign.creator_fixed_price}`;
-      if (campaign.budget) return `$${campaign.remaining_budget}`;
-      if (campaign.suggested_min && campaign.suggested_max) {
-        return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
+      const remainingBudget = calculateRemainingBudget(campaign);
+      if (remainingBudget !== null) {
+        return remainingBudget.toFixed(2);
       }
-      if (campaign.suggested_min) return `From $${campaign.suggested_min}`;
-      if (campaign.suggested_max) return `Up to $${campaign.suggested_max}`;
+
+      if (campaign.creator_fixed_price) return campaign.creator_fixed_price.toFixed(2);
+      if (campaign.budget) return campaign.budget.toFixed(2);
+      if (campaign.suggested_min && campaign.suggested_max) {
+        return `${campaign.suggested_min} - ${campaign.suggested_max}`;
+      }
+      if (campaign.suggested_min) return `From ${campaign.suggested_min}`;
+      if (campaign.suggested_max) return `Up to ${campaign.suggested_max}`;
     } else if (type === COMPENSATION_TYPE.GIFTED_PRODUCT) {
       if (campaign.product_value) return `Product ($${campaign.product_value} value)`;
       return "Gifted Product";
@@ -43,7 +77,6 @@ const useInvitationModal = () => {
   const handleSendInvitation = async (creator, onSuccess, collaborationType) => {
     if (!creator) return;
 
-    // Validate based on collaboration type
     if (collaborationType === COLLABORATION_TYPE.MULTI_CREATOR && !selectedCampaign) {
       return;
     }
@@ -89,7 +122,7 @@ const useInvitationModal = () => {
       },
       collaborationType
     );
-    // Close modal after successful invitation
+
     if (onClose) {
       onClose();
     }
