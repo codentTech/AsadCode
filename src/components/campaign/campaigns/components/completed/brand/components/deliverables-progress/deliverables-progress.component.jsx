@@ -27,6 +27,7 @@ const DeliverablesProgressCompleted = ({
     messageThreadHook,
     handleMessageClick,
     creator,
+    creatorUserId,
     privateNotes,
     editingNote,
     newNoteText,
@@ -48,6 +49,7 @@ const DeliverablesProgressCompleted = ({
     campaignReviews,
     reviewStatus,
     isReviewsLoading,
+    handleViewCreatorPortfolio,
   } = useDeliverablesProgress(selectedCampaign, selectedCreator, isIndividualCreator);
 
   const renderCampaignSelectionMessage = () => (
@@ -87,7 +89,12 @@ const DeliverablesProgressCompleted = ({
         </Avatar>
       </div>
       <h3>
-        {creator?.name}
+        <button
+          onClick={handleViewCreatorPortfolio}
+          className="hover:text-primary transition-colors cursor-pointer"
+        >
+          {creator?.name}
+        </button>
         <span className="text-lg text-gray-500 ml-1">{creator?.rating}</span>
         <span className="text-lg text-gray-500 ml-1">({creator?.reviewCount || 0})</span>
       </h3>
@@ -182,7 +189,9 @@ const DeliverablesProgressCompleted = ({
               <span>
                 Usage Rights:{" "}
                 <span className="font-medium">
-                  {selectedContract.usageRights?.split("_").join(" ")}
+                  {selectedContract.usageRights
+                    ? selectedContract.usageRights?.split("_").join(" ")
+                    : "None"}
                 </span>
               </span>
             </li>
@@ -192,7 +201,9 @@ const DeliverablesProgressCompleted = ({
               <span>
                 Exclusivity:{" "}
                 <span className="font-medium">
-                  {selectedContract.exclusivityClause?.split("_").join(" ")}
+                  {selectedContract.exclusivityClause
+                    ? selectedContract.exclusivityClause?.split("_").join(" ")
+                    : "None"}
                 </span>
               </span>
             </li>
