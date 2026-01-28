@@ -15,12 +15,11 @@ import {
   USAGE_RIGHTS_OPTIONS,
   CAMPAIGN_TYPE_OPTIONS,
 } from "@/common/constants/options.constant";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
-import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 import { AlertCircle } from "lucide-react";
 
 export default function HireCreatorModal({
@@ -37,12 +36,6 @@ export default function HireCreatorModal({
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const { data: hasPaymentMethodData, isLoading: isCheckingPaymentMethod } = useSelector(
-    (state) => state.collaborationPayment.hasPaymentMethod || {}
-  );
-
-  const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
-
   const {
     register,
     handleSubmit,
@@ -58,14 +51,9 @@ export default function HireCreatorModal({
     trigger,
     isValid,
     createEnrichedContractData,
-  } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading });
-
-  // Check payment method when modal opens
-  useEffect(() => {
-    if (show) {
-      dispatch(checkHasPaymentMethod());
-    }
-  }, [show, dispatch]);
+    hasPaymentMethod,
+    isCheckingPaymentMethod,
+  } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading, showModal: show });
 
   const revisionsLimitValue = watch?.revisionsLimit?.toString?.() || "";
   const usageRightsValue = watch?.usageRights || "no_usage";
@@ -98,9 +86,15 @@ export default function HireCreatorModal({
   };
 
   const handleFormSubmit = async (data) => {
-    // Trigger validation for all fields
-    await trigger();
-    onSubmit(data);
+    try {
+      // Trigger validation for all fields
+      await trigger();
+      await onSubmit(data);
+    } catch (error) {
+      // Error from onSubmit (e.g., payment method missing) is already shown via snackbar
+      // in the hook. We just need to prevent form submission.
+      // The error message has already been displayed to the user.
+    }
   };
 
   return (

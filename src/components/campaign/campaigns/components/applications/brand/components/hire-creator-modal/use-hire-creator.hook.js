@@ -1,12 +1,15 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { enqueueSnackbar } from "notistack";
 import {
   COMPENSATION_TYPE,
   COLLABORATION_TYPE,
   CAMPAIGN_TYPE,
 } from "@/common/constants/campaign.constant";
+import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 const createValidationSchema = (isIndividual) => {
   const baseSchema = {
@@ -106,7 +109,23 @@ const createValidationSchema = (isIndividual) => {
   return Yup.object().shape(baseSchema);
 };
 
-export default function useHireCreator({ creatorData, campaignData, onSendOffer, isLoading }) {
+export default function useHireCreator({ creatorData, campaignData, onSendOffer, isLoading, showModal = false }) {
+  const dispatch = useDispatch();
+  
+  // Get current payment method status from Redux
+  const { data: hasPaymentMethodData, isLoading: isCheckingPaymentMethod } = useSelector(
+    (state) => state.collaborationPayment.hasPaymentMethod || {}
+  );
+
+  const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
+
+  // Refresh payment method status when modal opens
+  useEffect(() => {
+    if (showModal) {
+      dispatch(checkHasPaymentMethod());
+    }
+  }, [showModal, dispatch]);
+
   const isIndividual = campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
   const validationSchema = createValidationSchema(isIndividual);
 
@@ -210,20 +229,24 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
   );
 
   const onSubmit = async (values) => {
-    try {
       // Trigger validation for all fields to ensure errors are shown
       const isValid = await trigger();
       if (!isValid) {
         return;
       }
 
+      // CRITICAL: Validate payment method exists before submission
+      // Uses Redux state value which is kept in sync when payment methods are added/removed
+      if (!hasPaymentMethod) {
+        const errorMessage =
+          "Payment method is required to send offers. Please add a payment method in Settings > Payments > Payment Methods.";
+        enqueueSnackbar(errorMessage, { variant: "error" });
+      }
+
       // Prepare contract data for API
       const contractData = createEnrichedContractData(values);
-
       await onSendOffer(contractData);
-    } catch (error) {
-      // Error handled by parent component
-    }
+ 
   };
 
   const getCompensationInputLabel = useCallback(() => {
@@ -258,5 +281,7 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     trigger,
     isValid,
     createEnrichedContractData,
+    hasPaymentMethod,
+    isCheckingPaymentMethod,
   };
 }

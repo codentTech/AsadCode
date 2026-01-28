@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -50,8 +50,22 @@ function usePaymentMethods() {
     isSuccess: removeSuccess,
   } = useSelector((state) => state.collaborationPayment.removePaymentMethod || {});
 
-  const paymentMethods = Array.isArray(paymentMethodsData) ? paymentMethodsData : [];
-  const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
+  // Handle payment methods data - could be array directly or nested
+  const paymentMethods = useMemo(() => {
+    if (!paymentMethodsData) return [];
+    if (Array.isArray(paymentMethodsData)) return paymentMethodsData;
+    if (Array.isArray(paymentMethodsData.paymentMethods)) return paymentMethodsData.paymentMethods;
+    if (Array.isArray(paymentMethodsData.data)) return paymentMethodsData.data;
+    return [];
+  }, [paymentMethodsData]);
+
+  // Handle hasPaymentMethod - check both the flag and actual payment methods
+  const hasPaymentMethod = useMemo(() => {
+    // If we have payment methods, we have a payment method
+    if (paymentMethods && paymentMethods.length > 0) return true;
+    // Otherwise check the flag
+    return hasPaymentMethodData?.hasPaymentMethod || false;
+  }, [hasPaymentMethodData, paymentMethods]);
 
   // Initialize Stripe
   useEffect(() => {

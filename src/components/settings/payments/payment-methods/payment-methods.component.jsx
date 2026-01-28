@@ -226,11 +226,11 @@ const PaymentMethodsPage = () => {
             />
           </div>
 
-          {isChecking ? (
+          {isChecking || isLoading ? (
             <div className="text-center py-8">
               <p className="text-sm text-gray-500">Checking payment methods...</p>
             </div>
-          ) : hasPaymentMethod && paymentMethods.length > 0 ? (
+          ) : paymentMethods.length > 0 ? (
             <div className="space-y-3">
               {paymentMethods.map((method) => (
                 <div
