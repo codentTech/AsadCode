@@ -8,7 +8,7 @@ import AudienceSnapshot from "./components/audience-snapshot/audience-snapshot";
 import Reviews from "./components/reviews/reviews.component";
 import useBrandPortfolio from "./use-brand-portfolio.hook";
 
-export default function BrandPortfolio() {
+export default function BrandPortfolio({ brandId = null }) {
   const {
     brandBasics,
     brandOverview,
@@ -19,7 +19,8 @@ export default function BrandPortfolio() {
     isRefreshing,
     handleRefresh,
     handleEditProfile,
-  } = useBrandPortfolio();
+    canEdit,
+  } = useBrandPortfolio(brandId);
 
   return (
     <HeaderLayout className="min-h-screen bg-gray-50">
@@ -31,7 +32,7 @@ export default function BrandPortfolio() {
           preferences={brandPreferences}
           audienceSummary={audienceSummary}
           onEditProfile={handleEditProfile}
-          canEdit
+          canEdit={canEdit}
         />
 
         <AboutUs overview={brandOverview} website={brandBasics.website} />
