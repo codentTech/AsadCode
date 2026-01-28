@@ -186,7 +186,7 @@ const InvitationModal = ({
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xs text-primary font-medium">
                             {campaign.compensation_type === COMPENSATION_TYPE.PAID
-                              ? `Budget Remaining: ${formatCompensation(campaign)}`
+                              ? `Budget Remaining: $${formatCompensation(campaign)}`
                               : formatCompensation(campaign)}
                           </span>
                           {campaign.total_collaborators && (
