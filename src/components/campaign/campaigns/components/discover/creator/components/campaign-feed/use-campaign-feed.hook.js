@@ -62,6 +62,7 @@ export function useCampaignFeed() {
       id: campaign.id,
       brandLogo: campaign.created_by?.brand_profile?.brand_logo_url,
       brandName: campaign.created_by?.brand_profile?.brand_name,
+      brandId: campaign.created_by?.id,
       title: campaign.campaign_title,
       type: campaign.campaign_type,
       compensation: getCompensationType(campaign),

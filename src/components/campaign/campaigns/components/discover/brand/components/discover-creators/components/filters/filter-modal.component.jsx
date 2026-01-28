@@ -11,8 +11,10 @@ import {
   GENDER_OPTIONS,
   PLATFORM_OPTIONS,
 } from "@/common/constants/options.constant";
+import COUNTRIES from "@/common/constants/countries.constant";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import { X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const FilterModal = ({
   show,
@@ -35,6 +37,70 @@ const FilterModal = ({
   onClearAllFilters,
   onApplyFilters,
 }) => {
+  const [countrySelectValue, setCountrySelectValue] = useState(null);
+
+  const selectedCountries = Array.isArray(filters.countries)
+    ? filters.countries
+    : filters.country
+      ? [filters.country]
+      : [];
+  const selectedCountryDetails = useMemo(() => {
+    return selectedCountries
+      .map((countryName) => {
+        const countryMeta = COUNTRIES.find(
+          (country) => country.label === countryName || country.code === countryName
+        );
+        return {
+          code: countryMeta?.code || countryName,
+          name: countryMeta?.label || countryName,
+        };
+      })
+      .filter((country) => Boolean(country.code));
+  }, [selectedCountries]);
+
+  const allowedCountryCodes = useMemo(
+    () => selectedCountryDetails.map((country) => String(country.code).toUpperCase()),
+    [selectedCountryDetails]
+  );
+
+  const primaryCountryCode = selectedCountryDetails[0]?.code || null;
+
+  const handleCountrySelect = (country) => {
+    if (!country) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const countryName = country.countryName || country.label || "";
+    if (!countryName) return;
+
+    const existing = selectedCountries || [];
+    if (existing.includes(countryName)) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const updated = [...existing, countryName];
+    onFiltersChange({
+      ...filters,
+      countries: updated,
+      country_code: country.countryCode || "",
+      city: "",
+      city_country_code: "",
+    });
+    setCountrySelectValue(null);
+  };
+
+  const handleCountryRemove = (countryName) => {
+    const updated = selectedCountries.filter((c) => c !== countryName);
+    onFiltersChange({
+      ...filters,
+      countries: updated,
+      city: "",
+      city_country_code: "",
+    });
+  };
+
   const FilterButton = ({ active, onClick, children }) => (
     <button
       onClick={onClick}
@@ -144,47 +210,61 @@ const FilterModal = ({
             </div>
 
             {/* Location */}
-            <div className="grid grid-cols-2 gap-4">
-              <CountrySelect
-                label="Country"
-                value={
-                  filters.country
-                    ? {
-                        countryName: filters.country,
-                        countryCode: filters.country_code || "",
-                      }
-                    : null
-                }
-                onChange={(option) =>
-                  onFiltersChange({
-                    ...filters,
-                    country: option?.countryName || "",
-                    country_code: option?.countryCode || "",
-                    city: "",
-                    city_country_code: "",
-                  })
-                }
-              />
-              <CitySelect
-                label="City"
-                countryCode={filters.country_code || ""}
-                value={
-                  filters.city
-                    ? {
-                        cityName: filters.city,
-                        countryCode: filters.city_country_code || filters.country_code || "",
-                      }
-                    : null
-                }
-                onChange={(option) =>
-                  onFiltersChange({
-                    ...filters,
-                    city: option?.cityName || "",
-                    city_country_code: option?.countryCode || "",
-                  })
-                }
-                disabled={!filters.country}
-              />
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">Country</h4>
+                <CountrySelect
+                  label="Add country"
+                  value={countrySelectValue}
+                  onChange={handleCountrySelect}
+                />
+                {selectedCountryDetails.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedCountryDetails.map((country) => (
+                      <span
+                        key={country.code}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                      >
+                        {country.name}
+                        <button
+                          type="button"
+                          onClick={() => handleCountryRemove(country.name)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <CitySelect
+                  label="City"
+                  countryCode={primaryCountryCode || filters.country_code || ""}
+                  countryCodes={allowedCountryCodes}
+                  value={
+                    filters.city
+                      ? {
+                          cityName: filters.city,
+                          countryCode:
+                            filters.city_country_code ||
+                            primaryCountryCode ||
+                            filters.country_code ||
+                            "",
+                        }
+                      : null
+                  }
+                  onChange={(option) =>
+                    onFiltersChange({
+                      ...filters,
+                      city: option?.cityName || "",
+                      city_country_code: option?.countryCode || "",
+                    })
+                  }
+                  disabled={selectedCountryDetails.length === 0}
+                />
+              </div>
             </div>
 
             {/* Niche Categories and Language */}

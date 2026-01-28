@@ -12,7 +12,7 @@ const DeliverablesProgress = ({
   onMessageClick,
   isIndividualCreator = false,
 }) => {
-  const { creatorData, creatorProfileId } = useDeliverablesProgress(
+  const { creatorData, creatorProfileId, handleViewCreatorPortfolio } = useDeliverablesProgress(
     selectedCreator,
     isIndividualCreator
   );
@@ -34,7 +34,12 @@ const DeliverablesProgress = ({
           </Avatar>
         </div>
         <h3>
-          {creatorData.name}
+          <button
+            onClick={handleViewCreatorPortfolio}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
+            {creatorData.name}
+          </button>
           <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
           <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
         </h3>

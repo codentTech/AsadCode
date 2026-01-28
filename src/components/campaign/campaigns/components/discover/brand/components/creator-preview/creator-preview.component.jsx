@@ -24,15 +24,15 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
   // Mock data - replace with actual API data
   const mockData = {
     platforms: [
-      { name: "Instagram", followers: "285K" },
-      { name: "YouTube", followers: "95K" },
-      { name: "Twitter", followers: "42K" },
+      { name: "Instagram", followers: "0" },
+      { name: "YouTube", followers: "0" },
+      { name: "Twitter", followers: "0" },
     ],
-    authenticAudience: 72,
-    engagementRate: "1.84%",
-    averageReach: "35%",
-    averageViews: 651,
-    postingFrequency: "4/Month",
+    authenticAudience: 0,
+    engagementRate: "0",
+    averageReach: "0",
+    averageViews: 0,
+    postingFrequency: "0/Month",
   };
 
   return (
@@ -48,19 +48,24 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
             />
             <div className="flex flex-col gap-1 items-start">
               <h3 className="text-xl font-bold">{previewCreator.name}</h3>
-              <p className="text-xs text-gray-600">
-                @{previewCreator.username || "sophia.creates"}
-              </p>
+
               <div className="flex items-center gap-1 text-xs text-gray-600">
                 <MapPin className="w-3 h-3" />
                 <span>{previewCreator.location}</span>
               </div>
               <div className="flex items-center justify-start text-xs text-yellow-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-current" />
-                ))}
+                {[...Array(5)].map((_, i) => {
+                  const rating = previewCreator.rating || 0;
+                  const isFilled = i < Math.floor(rating);
+                  return (
+                    <Star
+                      key={i}
+                      className={`w-3 h-3 ${isFilled ? "fill-current" : "fill-none"}`}
+                    />
+                  );
+                })}
                 <span className="text-xs text-gray-700">
-                  {previewCreator.rating} ({previewCreator.reviewCount})
+                  {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
                 </span>
               </div>
             </div>
@@ -134,7 +139,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
         <CustomButton
           text="View Full Profile"
           className="btn-primary"
-          onClick={() => window.open("creator-portfolio", "_blank")}
+          onClick={() => window.open("brand-portfolio", "_blank")}
         />
       </div>
     </div>

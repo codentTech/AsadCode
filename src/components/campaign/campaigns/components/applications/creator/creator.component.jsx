@@ -1,5 +1,7 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { Gift, Package } from "lucide-react";
+import NotFound from "@/common/components/not-found/not-found.component";
+import Loader from "@/common/components/loader/loader.component";
+import { Gift } from "lucide-react";
 import ApplicationCard from "./components/application-card/application-card.component";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import ApplicationMessageThread from "./components/message-thread-modal/application-message-thread.component";
@@ -74,14 +76,14 @@ const CreatorApplications = () => {
                 )}
               </button>
 
-              {/* Tab Pills - Simple Theme Design */}
-              <div className="flex items-center gap-0 bg-gray-100 rounded-lg p-0.5">
+              {/* Tab Navigation */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleTabChange(1)}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
                     activeTab === 1
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Invites</span>
@@ -97,10 +99,10 @@ const CreatorApplications = () => {
                 </button>
                 <button
                   onClick={() => handleTabChange(2)}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
                     activeTab === 2
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Negotiations</span>
@@ -116,10 +118,10 @@ const CreatorApplications = () => {
                 </button>
                 <button
                   onClick={() => handleTabChange(3)}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
                     activeTab === 3
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Pending</span>
@@ -135,10 +137,10 @@ const CreatorApplications = () => {
                 </button>
                 <button
                   onClick={() => handleTabChange(4)}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
                     activeTab === 4
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Rejected</span>
@@ -162,20 +164,16 @@ const CreatorApplications = () => {
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="max-w-7xl mx-auto px-6 py-8">
           {applicationsLoading ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
-              title="Loading applications..."
-              description="Please wait while we fetch the campaign applications."
-            />
+            <div className="flex justify-center items-center py-12">
+              <Loader />
+            </div>
           ) : applicationsError ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
+            <NotFound
               title="Error loading applications"
               description="Failed to fetch campaign applications. Please try again later."
             />
           ) : filteredData.length === 0 ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
+            <NotFound
               title={`No ${
                 activeTab === 1
                   ? "invites"
@@ -259,15 +257,5 @@ const CreatorApplications = () => {
     </div>
   );
 };
-
-const EmptyState = ({ icon, title, description }) => (
-  <div className="text-center py-12">
-    <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-      {icon}
-    </div>
-    <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
-  </div>
-);
 
 export default CreatorApplications;
