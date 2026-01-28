@@ -29,6 +29,7 @@ const initialState = {
   retryFunding: generalState,
   getPaymentByCollaboration: generalState,
   getBrandPayments: generalState,
+  getCreatorPayments: generalState,
 };
 
 // Get payment methods
@@ -178,6 +179,22 @@ export const getBrandPayments = createAsyncThunk(
   }
 );
 
+// Get creator payments
+export const getCreatorPayments = createAsyncThunk(
+  "collaborationPayment/getCreatorPayments",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getCreatorPayments();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get creator payments")
+      );
+    }
+  }
+);
+
 const collaborationPaymentSlice = createSlice({
   name: "collaborationPayment",
   initialState,
@@ -190,6 +207,9 @@ const collaborationPaymentSlice = createSlice({
     },
     resetAttachPaymentMethod: (state) => {
       state.attachPaymentMethod = generalState;
+    },
+    resetRemovePaymentMethod: (state) => {
+      state.removePaymentMethod = generalState;
     },
     resetFundCollaboration: (state) => {
       state.fundCollaboration = generalState;
@@ -362,6 +382,25 @@ const collaborationPaymentSlice = createSlice({
         state.getBrandPayments.message =
           action.payload?.message || "Failed to get brand payments";
         state.getBrandPayments.data = null;
+      })
+      // Get Creator Payments
+      .addCase(getCreatorPayments.pending, (state) => {
+        state.getCreatorPayments.isLoading = true;
+        state.getCreatorPayments.isSuccess = false;
+        state.getCreatorPayments.isError = false;
+        state.getCreatorPayments.message = "";
+      })
+      .addCase(getCreatorPayments.fulfilled, (state, action) => {
+        state.getCreatorPayments.isLoading = false;
+        state.getCreatorPayments.isSuccess = true;
+        state.getCreatorPayments.data = action.payload.data;
+      })
+      .addCase(getCreatorPayments.rejected, (state, action) => {
+        state.getCreatorPayments.isLoading = false;
+        state.getCreatorPayments.isError = true;
+        state.getCreatorPayments.message =
+          action.payload?.message || "Failed to get creator payments";
+        state.getCreatorPayments.data = null;
       });
   },
 });
@@ -370,6 +409,7 @@ export const {
   resetGetPaymentMethods,
   resetCreateSetupIntent,
   resetAttachPaymentMethod,
+  resetRemovePaymentMethod,
   resetFundCollaboration,
 } = collaborationPaymentSlice.actions;
 

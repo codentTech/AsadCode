@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
-import { CreditCard, Plus, Trash2, AlertCircle, CheckCircle2 } from "lucide-react";
+import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
+import { CreditCard, Plus, Trash2, AlertCircle, CheckCircle2, AlertCircleIcon, XIcon } from "lucide-react";
 import usePaymentMethods from "./use-payment-methods.hook";
 
 // Card Form Component
@@ -36,7 +37,75 @@ function CardFormComponent({
       });
 
       if (error) {
-        onError(error.message);
+        // Provide user-friendly error messages for all error types
+        let errorMessage = error.message || "An error occurred while processing your card.";
+        
+        // Handle specific error codes
+        switch (error.code) {
+          case "card_declined":
+            errorMessage = "Your card was declined. Please check your card details or try a different payment method.";
+            break;
+          case "expired_card":
+            errorMessage = "Your card has expired. Please use a valid card with a future expiration date.";
+            break;
+          case "incorrect_cvc":
+            errorMessage = "The card's security code (CVC) is incorrect. Please check the 3-digit code on the back of your card and try again.";
+            break;
+          case "incorrect_number":
+            errorMessage = "The card number is incorrect. Please check your card number and try again.";
+            break;
+          case "insufficient_funds":
+            errorMessage = "Insufficient funds. Please ensure your card has sufficient balance or try a different payment method.";
+            break;
+          case "invalid_cvc":
+            errorMessage = "The card's security code is invalid. Please enter a valid 3-digit CVC code.";
+            break;
+          case "invalid_expiry_month":
+            errorMessage = "The card's expiration month is invalid. Please enter a valid month (01-12).";
+            break;
+          case "invalid_expiry_year":
+            errorMessage = "The card's expiration year is invalid. Please enter a valid future year.";
+            break;
+          case "invalid_number":
+            errorMessage = "The card number is invalid. Please check your card number and try again.";
+            break;
+          case "processing_error":
+            errorMessage = "An error occurred while processing your payment. Please try again in a few moments.";
+            break;
+          case "generic_decline":
+            errorMessage = "Your card was declined. Please contact your bank or try a different payment method.";
+            break;
+          case "lost_card":
+            errorMessage = "Your card has been reported as lost. Please use a different payment method.";
+            break;
+          case "stolen_card":
+            errorMessage = "Your card has been reported as stolen. Please use a different payment method.";
+            break;
+          case "pickup_card":
+            errorMessage = "Your card has been flagged for pickup. Please contact your bank or use a different payment method.";
+            break;
+          case "restricted_card":
+            errorMessage = "Your card has restrictions that prevent this transaction. Please contact your bank or use a different payment method.";
+            break;
+          case "card_not_supported":
+            errorMessage = "This card type is not supported. Please use a different payment method.";
+            break;
+          default:
+            // Handle by error type
+            if (error.type === "card_error") {
+              errorMessage = error.message || "Card validation failed. Please check your card details and try again.";
+            } else if (error.type === "validation_error") {
+              errorMessage = "Please check all card details and try again.";
+            } else if (error.type === "api_error") {
+              errorMessage = "A temporary error occurred. Please try again in a few moments.";
+            } else if (error.type === "rate_limit_error") {
+              errorMessage = "Too many requests. Please wait a moment and try again.";
+            } else {
+              errorMessage = error.message || "An unexpected error occurred. Please try again.";
+            }
+        }
+        
+        onError(errorMessage);
         setIsProcessing(false);
         return;
       }
@@ -45,7 +114,16 @@ function CardFormComponent({
         onSuccess(setupIntent.payment_method);
       }
     } catch (err) {
-      onError(err.message || "An error occurred");
+      // Handle unexpected errors
+      let errorMessage = "An unexpected error occurred while processing your card.";
+      
+      if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.error?.message) {
+        errorMessage = err.error.message;
+      }
+      
+      onError(errorMessage);
       setIsProcessing(false);
     }
   };
@@ -80,6 +158,7 @@ const PaymentMethodsPage = () => {
     hasPaymentMethod,
     isLoading,
     isChecking,
+    isCreatingSetupIntent,
     showAddCardModal,
     setShowAddCardModal,
     handleAddCardSuccess,
@@ -92,7 +171,22 @@ const PaymentMethodsPage = () => {
     setIsProcessing,
     errorMessage,
     setErrorMessage,
+    isUpdateMode,
+    updatingPaymentMethodId,
+    isRemoving,
   } = usePaymentMethods();
+
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState({
+    open: false,
+    paymentMethodId: null,
+    cardInfo: null,
+    isDefault: false,
+  });
+
+  // Get the payment method being updated
+  const updatingPaymentMethod = isUpdateMode
+    ? paymentMethods.find((pm) => pm.id === updatingPaymentMethodId)
+    : null;
 
   // Reset error when modal closes
   useEffect(() => {
@@ -150,19 +244,23 @@ const PaymentMethodsPage = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-gray-900 capitalize">
-                          {method.card?.brand || "Card"}
+                          {(method.card?.brand || method.brand || "Card").toLowerCase()}
                         </span>
-                        {method.id === paymentMethods[0]?.id && (
+                        {method.isDefault && (
                           <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
                             Default
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        •••• •••• •••• {method.card?.last4 || "****"}
+                        •••• •••• •••• {method.card?.last4 || method.last4 || "****"}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Expires {method.card?.exp_month || "MM"}/{method.card?.exp_year || "YYYY"}
+                        Expires{" "}
+                        {String(
+                          method.card?.exp_month || method.expMonth || "MM"
+                        ).padStart(2, "0")}
+                        /{method.card?.exp_year || method.expYear || "YYYY"}
                       </p>
                     </div>
                   </div>
@@ -173,16 +271,22 @@ const PaymentMethodsPage = () => {
                       onClick={() => handleUpdateCard(method.id)}
                       disabled={isProcessing}
                     />
-                    {paymentMethods.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveCard(method.id)}
-                        disabled={isProcessing}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="Remove card"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        const cardBrand = (method.card?.brand || method.brand || "Card").toLowerCase();
+                        const cardLast4 = method.card?.last4 || method.last4 || "****";
+                        setDeleteConfirmationModal({
+                          open: true,
+                          paymentMethodId: method.id,
+                          cardInfo: `${cardBrand} ending in ${cardLast4}`,
+                        });
+                      }}
+                      disabled={isProcessing || isRemoving}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Remove card"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -204,7 +308,7 @@ const PaymentMethodsPage = () => {
           )}
 
           {/* Info Banner */}
-          {hasPaymentMethod && (
+          {!hasPaymentMethod && (
             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -219,6 +323,15 @@ const PaymentMethodsPage = () => {
               </div>
             </div>
           )}
+
+          {/* Security Info */}
+          {hasPaymentMethod && (
+            <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700">
+                <strong>Security:</strong> Your payment information is securely stored by Stripe. CleerCut does not store your card details.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -226,13 +339,13 @@ const PaymentMethodsPage = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">How payments work</h2>
-          <ul className="space-y-3">
+          <ul className="space-y-3 mb-6">
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Add payment method</p>
                 <p className="text-xs text-gray-600">
-                  Save a card securely. Required before sending offers.
+                  Save a card securely. Required before sending offers. Your card information is encrypted and stored by Stripe.
                 </p>
               </div>
             </li>
@@ -241,7 +354,7 @@ const PaymentMethodsPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-900">Send offer</p>
                 <p className="text-xs text-gray-600">
-                  No charge occurs when sending an offer. This is just a precondition.
+                  No charge occurs when sending an offer. This is just a precondition to ensure you can pay when needed.
                 </p>
               </div>
             </li>
@@ -250,8 +363,7 @@ const PaymentMethodsPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-900">Creator accepts</p>
                 <p className="text-xs text-gray-600">
-                  When creator accepts, your card is automatically charged. Funds are held in
-                  escrow.
+                  When creator accepts your offer, your card is automatically charged. Funds are securely held in escrow until work is completed.
                 </p>
               </div>
             </li>
@@ -260,36 +372,155 @@ const PaymentMethodsPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-900">Release payment</p>
                 <p className="text-xs text-gray-600">
-                  After you mark work complete and submit a review, funds are released to the
-                  creator.
+                  After you mark work complete and submit a review, funds are automatically released to the creator's account.
                 </p>
               </div>
             </li>
           </ul>
+
+          <div className="pt-4 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Frequently Asked Questions</h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">
+                  Is my payment information secure?
+                </h4>
+                <p className="text-xs text-gray-600">
+                  Yes! Stripe is a PCI-compliant payment processor trusted by millions of businesses. CleerCut never sees or stores your card details.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">
+                  When am I charged?
+                </h4>
+                <p className="text-xs text-gray-600">
+                  You are only charged when a creator accepts your offer. Sending an offer does not charge your card. Funds are held in escrow until work is completed.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">
+                  What if I need to update my card?
+                </h4>
+                <p className="text-xs text-gray-600">
+                  You can update your payment method at any time. Click "Update" on your saved card or add a new one. The new card will be used for future payments.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">
+                  Can I use multiple payment methods?
+                </h4>
+                <p className="text-xs text-gray-600">
+                  Yes, you can add multiple cards. The first card you add becomes your default payment method, but you can manage which card to use for each collaboration.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">
+                  What happens if my payment fails?
+                </h4>
+                <p className="text-xs text-gray-600">
+                  If a payment fails, you'll be notified immediately. You can update your payment method and retry. The creator will not receive payment until the charge succeeds.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Add Card Modal */}
+      {/* Add/Update Card Modal */}
       <Modal
         show={showAddCardModal}
         onClose={() => {
           setShowAddCardModal(false);
           setErrorMessage(null);
         }}
-        title="Add Payment Method"
+        title={isUpdateMode ? "Update Payment Method" : "Add Payment Method"}
         size="md"
       >
         <div className="p-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Add a card to fund creator collaborations. Your card information is securely stored by
-            Stripe.
-          </p>
+          <div className="mb-4 space-y-3">
+            <p className="text-sm text-gray-700 font-medium">
+              {isUpdateMode
+                ? "Replace your payment method with a new card"
+                : "Add a payment method to fund creator collaborations"}
+            </p>
+            <p className="text-xs text-gray-600">
+              Your card information is securely encrypted and stored by Stripe. CleerCut never sees your full card details.
+            </p>
+            {isUpdateMode && updatingPaymentMethod && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-xs text-gray-700 mb-2">
+                  <strong>Current card:</strong>
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CreditCard className="w-4 h-4 text-gray-500" />
+                  <span className="text-xs text-gray-600 capitalize">
+                    {(updatingPaymentMethod.card?.brand ||
+                      updatingPaymentMethod.brand ||
+                      "Card").toLowerCase()}{" "}
+                    ending in{" "}
+                    {updatingPaymentMethod.card?.last4 ||
+                      updatingPaymentMethod.last4 ||
+                      "****"}
+                  </span>
+                  {(updatingPaymentMethod.card?.exp_month ||
+                    updatingPaymentMethod.card?.expYear ||
+                    updatingPaymentMethod.expMonth ||
+                    updatingPaymentMethod.expYear) && (
+                    <span className="text-xs text-gray-500">
+                      • Expires{" "}
+                      {String(
+                        updatingPaymentMethod.card?.exp_month ||
+                          updatingPaymentMethod.expMonth ||
+                          "MM"
+                      ).padStart(2, "0")}
+                      /
+                      {updatingPaymentMethod.card?.exp_year ||
+                        updatingPaymentMethod.expYear ||
+                        "YYYY"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Enter your new card details below to replace this card.
+                </p>
+              </div>
+            )}
+            {!isUpdateMode && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  <strong>Note:</strong> No charge occurs when adding a card. You'll only be charged when a creator accepts your offer.
+                </p>
+              </div>
+            )}
+          </div>
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700">{errorMessage}</p>
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                <AlertCircleIcon className="w-4 h-4 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-red-700 whitespace-pre-wrap">{errorMessage}</p>
+                </div>
+               
+                 <XIcon className="w-4 h-4 text-red-600"   onClick={() => setErrorMessage(null)} />
+              </div>
             </div>
           )}
-          {stripePromise && setupIntentClientSecret ? (
+          {!stripePromise ? (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700">
+                Stripe is not configured. Please contact support.
+              </p>
+            </div>
+          ) : isCreatingSetupIntent ? (
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                <p className="text-sm text-gray-600">Initializing payment form...</p>
+              </div>
+            </div>
+          ) : setupIntentClientSecret ? (
             <Elements stripe={stripePromise}>
               <CardFormComponent
                 stripePromise={stripePromise}
@@ -300,15 +531,9 @@ const PaymentMethodsPage = () => {
                 setIsProcessing={setIsProcessing}
               />
             </Elements>
-          ) : (
-            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600">
-                {!setupIntentClientSecret
-                  ? "Initializing payment form..."
-                  : "Stripe is not configured. Please contact support."}
-              </p>
-            </div>
-          )}
+          ) : 
+           null
+          }
           <div className="flex items-center justify-end gap-3">
             <CustomButton
               text="Cancel"
@@ -320,7 +545,7 @@ const PaymentMethodsPage = () => {
               disabled={isProcessing}
             />
             <CustomButton
-              text={isProcessing ? "Processing..." : "Add Card"}
+              text={isProcessing ? "Processing" : isUpdateMode ? "Update Card" : "Add Card"}
               className="btn-primary"
               onClick={handleAddCard}
               loading={isProcessing}
@@ -329,6 +554,91 @@ const PaymentMethodsPage = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmationModal.paymentMethodId && (
+        <DeleteConfirmationModal
+          id={deleteConfirmationModal.paymentMethodId}
+          confirmationRef={null}
+          openConfirmationPopup={deleteConfirmationModal.open}
+          setOpenConfirmationPopup={(open) => {
+            if (!open) {
+              setDeleteConfirmationModal({
+                open: false,
+                paymentMethodId: null,
+                cardInfo: null,
+                isDefault: false,
+              });
+            }
+          }}
+          mainText="Are you sure you want to remove this payment method?"
+          mainStyling=""
+          subText={
+            deleteConfirmationModal.cardInfo
+              ? deleteConfirmationModal.isDefault
+                ? `This is your default payment method. Removing it may affect active payments. ${deleteConfirmationModal.cardInfo} will be permanently removed.`
+                : `This will permanently remove the ${deleteConfirmationModal.cardInfo} card from your account.`
+              : "This action cannot be undone."
+          }
+          subStyling=""
+          confirmText="Remove"
+          closeText="Cancel"
+          action={async (id) => {
+            // Prevent duplicate calls
+            if (isProcessing || isRemoving) {
+              return;
+            }
+            
+            // Use the id parameter from the modal, or fallback to state
+            const paymentMethodIdToRemove = id || deleteConfirmationModal.paymentMethodId;
+            if (paymentMethodIdToRemove) {
+              try {
+                await handleRemoveCard(paymentMethodIdToRemove);
+                setDeleteConfirmationModal({
+                  open: false,
+                  paymentMethodId: null,
+                  cardInfo: null,
+                  isDefault: false,
+                });
+                setErrorMessage(null);
+              } catch (error) {
+                // Extract and format error message
+                let errorMsg = "Failed to remove payment method. Please try again.";
+                
+                if (error?.message) {
+                  errorMsg = error.message;
+                  
+                  // Provide specific messages for common errors
+                  if (error.message.includes("default") && (error.message.includes("pending") || error.message.includes("active"))) {
+                    errorMsg = "Cannot remove default payment method while there are active payments or pending payouts. Please wait for all transactions to complete or set a different card as default first.";
+                  } else if (error.message.includes("not found") || error.message.includes("does not belong")) {
+                    errorMsg = "Payment method not found. It may have already been removed.";
+                  } else if (error.message.includes("network") || error.message.includes("connection")) {
+                    errorMsg = "Network error. Please check your internet connection and try again.";
+                  } else if (error.message.includes("timeout")) {
+                    errorMsg = "Request timed out. Please try again.";
+                  }
+                } else if (error?.response?.data?.message) {
+                  errorMsg = error.response.data.message;
+                } else if (error?.error?.message) {
+                  errorMsg = error.error.message;
+                }
+                
+                // Set error message in the add card modal area (will be visible)
+                setErrorMessage(errorMsg);
+                // Keep modal open so user can see the error, but close delete confirmation
+                setDeleteConfirmationModal({
+                  open: false,
+                  paymentMethodId: null,
+                  cardInfo: null,
+                  isDefault: false,
+                });
+              }
+            }
+          }}
+          type="delete"
+        />
+      )}
     </>
   );
 };

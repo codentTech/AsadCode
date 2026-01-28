@@ -14,7 +14,9 @@ const hasPaymentMethod = async () => {
 
 // Create SetupIntent for saving payment method
 const createSetupIntent = async () => {
-  const response = await api().post("/collaboration-payments/payment-methods/setup-intent");
+  const response = await api({
+    "x-skip-toast": "true",
+  }).post("/collaboration-payments/payment-methods/setup-intent");
   return response.data;
 };
 
@@ -61,6 +63,12 @@ const getBrandPayments = async () => {
   return response.data;
 };
 
+// Get all payments for current creator
+const getCreatorPayments = async () => {
+  const response = await api().get("/collaboration-payments/creator/payments");
+  return response.data;
+};
+
 const collaborationPaymentService = {
   getPaymentMethods,
   hasPaymentMethod,
@@ -71,6 +79,7 @@ const collaborationPaymentService = {
   retryFunding,
   getPaymentByCollaboration,
   getBrandPayments,
+  getCreatorPayments,
 };
 
 export default collaborationPaymentService;
