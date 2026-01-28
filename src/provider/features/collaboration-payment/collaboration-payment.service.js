@@ -1,7 +1,6 @@
 import api from "@/common/utils/api";
 
-const createCreatorOnboardingLink = async (params) => {
-  const { returnUrl, refreshUrl } = params;
+const createCreatorOnboardingLink = async (returnUrl, refreshUrl) => {
   const response = await api().post("/collaboration-payments/creator/connect/create", {
     returnUrl,
     refreshUrl,
@@ -19,10 +18,22 @@ const checkCreatorPayoutReady = async () => {
   return response.data;
 };
 
+const getCreatorPayments = async () => {
+  const response = await api().get("/collaboration-payments/creator/payments");
+  return response.data;
+};
+
+const checkConnectStatus = async () => {
+  const response = await api().get("/collaboration-payments/connect/status");
+  return response.data;
+};
+
 const collaborationPaymentService = {
   createCreatorOnboardingLink,
   getCreatorAccountStatus,
   checkCreatorPayoutReady,
+  getCreatorPayments,
+  checkConnectStatus,
 };
 
 export default collaborationPaymentService;

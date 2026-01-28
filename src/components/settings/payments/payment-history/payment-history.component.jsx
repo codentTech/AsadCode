@@ -1,61 +1,23 @@
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import { CheckCircle, Clock, Eye } from "lucide-react";
+import { CheckCircle, Clock, Eye, X } from "lucide-react";
 import { useState } from "react";
+import usePaymentHistory from "./use-payment-history.hook";
+import Loader from "@/common/components/loader/loader.component";
+import Modal from "@/common/components/modal/modal.component";
 
 const PaymentHistoryPage = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPayments, setSelectedPayments] = useState([]);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const { payments, isLoading } = usePaymentHistory();
 
   const statusOptions = [
     { value: "all", label: "All Status" },
     { value: "paid", label: "Paid" },
     { value: "pending", label: "Pending Release" },
-  ];
-
-  // Sample payment data - Payments received by creator
-  const payments = [
-    {
-      id: "TXN-001",
-      campaignName: "Summer Fashion Campaign",
-      brandName: "ZARA",
-      amount: 850,
-      status: "paid",
-      datePaid: "2024-06-15",
-    },
-    {
-      id: "TXN-002",
-      campaignName: "Skincare Review Series",
-      brandName: "Glossier",
-      amount: 650,
-      status: "pending",
-      datePaid: null,
-    },
-    {
-      id: "TXN-003",
-      campaignName: "Tech Product Unboxing",
-      brandName: "Apple",
-      amount: 1200,
-      status: "paid",
-      datePaid: "2024-06-08",
-    },
-    {
-      id: "TXN-004",
-      campaignName: "Fitness Equipment Review",
-      brandName: "Nike",
-      amount: 420,
-      status: "pending",
-      datePaid: null,
-    },
-    {
-      id: "TXN-005",
-      campaignName: "Home Decor Collaboration",
-      brandName: "IKEA",
-      amount: 300,
-      status: "paid",
-      datePaid: "2024-06-01",
-    },
   ];
 
   // Define table columns
@@ -159,8 +121,8 @@ const PaymentHistoryPage = () => {
   const filteredPayments = payments.filter((payment) => {
     const matchesStatus = filterStatus === "all" || payment.status === filterStatus;
     const matchesSearch =
-      payment.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.brandName.toLowerCase().includes(searchTerm.toLowerCase());
+      payment.campaignName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.brandName?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -168,7 +130,8 @@ const PaymentHistoryPage = () => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        // View payment details
+        setSelectedPayment(row);
+        setShowDetailsModal(true);
         break;
       default:
         break;
@@ -213,20 +176,142 @@ const PaymentHistoryPage = () => {
         </div>
 
         {/* Custom Data Table */}
-        <CustomDataTable
-          columns={columns}
-          data={filteredPayments}
-          selectable={true}
-          selectedIds={selectedPayments}
-          searchValue={searchTerm}
-          onSearchChange={handleSearchChange}
-          onSelectionChange={handleSelectionChange}
-          actions={actions}
-          onActionClick={handleActionClick}
-          customCellRenderer={customCellRenderer}
-          emptyMessage="No payments found"
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader loading={true} />
+          </div>
+        ) : (
+          <CustomDataTable
+            columns={columns}
+            data={filteredPayments}
+            selectable={true}
+            selectedIds={selectedPayments}
+            searchValue={searchTerm}
+            onSearchChange={handleSearchChange}
+            onSelectionChange={handleSelectionChange}
+            actions={actions}
+            onActionClick={handleActionClick}
+            customCellRenderer={customCellRenderer}
+            emptyMessage="No payments found"
+          />
+        )}
       </div>
+
+      {/* Payment Details Modal */}
+      {showDetailsModal && selectedPayment && (
+        <Modal
+          show={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedPayment(null);
+          }}
+          title="Payment Details"
+        >
+          <div className="space-y-4">
+            {/* Campaign & Brand Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Campaign</label>
+                <p className="text-sm text-gray-900 mt-1">{selectedPayment.campaignName}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Brand</label>
+                <p className="text-sm text-gray-900 mt-1">{selectedPayment.brandName}</p>
+              </div>
+            </div>
+
+            {/* Amount Info */}
+            <div className="border-t pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Gross Amount</label>
+                  <p className="text-lg font-semibold text-gray-900 mt-1">
+                    {selectedPayment.currency} ${selectedPayment.amount.toLocaleString()}
+                  </p>
+                </div>
+                {selectedPayment.netPayoutCents && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Net Payout</label>
+                    <p className="text-lg font-semibold text-gray-900 mt-1">
+                      {selectedPayment.currency} $
+                      {(selectedPayment.netPayoutCents / 100).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Status Info */}
+            <div className="border-t pt-4 space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Funding Status</label>
+                <div className="mt-1">
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      selectedPayment.fundingStatus === "COMPLETED"
+                        ? "text-green-700 bg-green-100"
+                        : selectedPayment.fundingStatus === "FAILED"
+                        ? "text-red-700 bg-red-100"
+                        : "text-yellow-700 bg-yellow-100"
+                    }`}
+                  >
+                    {selectedPayment.fundingStatus || "PENDING"}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Payout Status</label>
+                <div className="mt-1">
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      selectedPayment.payoutStatus === "COMPLETED"
+                        ? "text-green-700 bg-green-100"
+                        : selectedPayment.payoutStatus === "FAILED"
+                        ? "text-red-700 bg-red-100"
+                        : "text-yellow-700 bg-yellow-100"
+                    }`}
+                  >
+                    {selectedPayment.payoutStatus || "PENDING"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dates */}
+            {selectedPayment.paymentData && (
+              <div className="border-t pt-4 space-y-2">
+                {selectedPayment.paymentData.funded_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Funded At</label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {new Date(selectedPayment.paymentData.funded_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {selectedPayment.paymentData.paid_out_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Paid Out At</label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {new Date(selectedPayment.paymentData.paid_out_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {selectedPayment.paymentData.created_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Created At</label>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {new Date(selectedPayment.paymentData.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </>
   );
 };

@@ -27,6 +27,8 @@ const initialState = {
   createCreatorOnboardingLink: generalState,
   getCreatorAccountStatus: generalState,
   checkCreatorPayoutReady: generalState,
+  getCreatorPayments: generalState,
+  checkConnectStatus: generalState,
 };
 
 export const createCreatorOnboardingLink = createAsyncThunk(
@@ -63,6 +65,32 @@ export const checkCreatorPayoutReady = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await collaborationPaymentService.checkCreatorPayoutReady();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const getCreatorPayments = createAsyncThunk(
+  "collaborationPayment/getCreatorPayments",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getCreatorPayments();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const checkConnectStatus = createAsyncThunk(
+  "collaborationPayment/checkConnectStatus",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.checkConnectStatus();
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -154,6 +182,52 @@ const collaborationPaymentSlice = createSlice({
         state.checkCreatorPayoutReady.isError = true;
         state.checkCreatorPayoutReady.message =
           action.payload?.message || "Failed to check payout readiness";
+      });
+
+    // Get Creator Payments
+    builder
+      .addCase(getCreatorPayments.pending, (state) => {
+        state.getCreatorPayments.isLoading = true;
+        state.getCreatorPayments.isSuccess = false;
+        state.getCreatorPayments.isError = false;
+        state.getCreatorPayments.message = "";
+      })
+      .addCase(getCreatorPayments.fulfilled, (state, action) => {
+        state.getCreatorPayments.isLoading = false;
+        state.getCreatorPayments.isSuccess = true;
+        state.getCreatorPayments.isError = false;
+        state.getCreatorPayments.data = action.payload.data;
+        state.getCreatorPayments.message = action.payload.message || "";
+      })
+      .addCase(getCreatorPayments.rejected, (state, action) => {
+        state.getCreatorPayments.isLoading = false;
+        state.getCreatorPayments.isSuccess = false;
+        state.getCreatorPayments.isError = true;
+        state.getCreatorPayments.message =
+          action.payload?.message || "Failed to get creator payments";
+      });
+
+    // Check Connect Status
+    builder
+      .addCase(checkConnectStatus.pending, (state) => {
+        state.checkConnectStatus.isLoading = true;
+        state.checkConnectStatus.isSuccess = false;
+        state.checkConnectStatus.isError = false;
+        state.checkConnectStatus.message = "";
+      })
+      .addCase(checkConnectStatus.fulfilled, (state, action) => {
+        state.checkConnectStatus.isLoading = false;
+        state.checkConnectStatus.isSuccess = true;
+        state.checkConnectStatus.isError = false;
+        state.checkConnectStatus.data = action.payload.data;
+        state.checkConnectStatus.message = action.payload.message || "";
+      })
+      .addCase(checkConnectStatus.rejected, (state, action) => {
+        state.checkConnectStatus.isLoading = false;
+        state.checkConnectStatus.isSuccess = false;
+        state.checkConnectStatus.isError = true;
+        state.checkConnectStatus.message =
+          action.payload?.message || "Failed to check Connect status";
       });
   },
 });
