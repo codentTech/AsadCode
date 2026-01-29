@@ -176,15 +176,15 @@ const CreatorSpendAnalysisCompleted = ({
                               )}
                             </div>
                             {creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-                            creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
-                              <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
-                                Creator Fee:
-                                <span className="font-bold text-primary">
-                                  {" "}
-                                  ${creator.totalSpent || creator.total_spent || 0}
-                                </span>
-                              </div>
-                            ) : null}
+                              creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
+                                <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                                  Creator Fee:
+                                  <span className="font-bold text-primary">
+                                    {" "}
+                                    ${creator?.contract?.totalCompensation}
+                                  </span>
+                                </div>
+                              ) : null}
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-1 text-xs">

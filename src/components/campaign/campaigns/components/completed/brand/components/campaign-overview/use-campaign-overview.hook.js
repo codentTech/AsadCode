@@ -32,11 +32,29 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
     data: creatorsData,
     isSuccess: creatorsSuccess,
   } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+  
   const budgetData = useMemo(() => {
-    if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
-      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
+    if (parentSelectedCampaign) {
       const totalBudget = parentSelectedCampaign.budget || 0;
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
+      const allCreators = parentSelectedCampaign.creators || [];
+
+      const spent = allCreators.reduce((sum, creatorEntry) => {
+        let contract = creatorEntry.contract || null;
+
+        if (!contract && creatorEntry.creator) {
+          const creatorContracts = creatorEntry.creator.creatorContracts || [];
+          contract = creatorContracts.find(
+            (c) =>
+              (c.campaign?.id === parentSelectedCampaign.id) ||
+              (c.campaign_id === parentSelectedCampaign.id) ||
+              (c.campaign === parentSelectedCampaign.id)
+          );
+        }
+
+        const compensation = contract?.total_compensation || contract?.totalCompensation || 0;
+        return sum + (compensation || 0);
+      }, 0);
+
       const saved = Math.max(0, totalBudget - spent);
       return {
         totalBudget,
@@ -46,17 +64,35 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
       };
     }
     return hookBudgetData;
-  }, [parentSelectedCampaign, creatorsSuccess, creatorsData, hookBudgetData]);
+  }, [parentSelectedCampaign, hookBudgetData]);
 
   const performanceMetrics = useMemo(() => {
     if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
-      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
-      const totalViews = creators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
-      const totalEngagement = creators.reduce(
+      const filteredCreators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
+      const totalViews = filteredCreators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
+      const totalEngagement = filteredCreators.reduce(
         (sum, creator) => sum + (creator.total_engagement || 0),
         0
       );
+
+      const allCreators = parentSelectedCampaign.creators || [];
+      const spent = allCreators.reduce((sum, creatorEntry) => {
+        let contract = creatorEntry.contract || null;
+
+        if (!contract && creatorEntry.creator) {
+          const creatorContracts = creatorEntry.creator.creatorContracts || [];
+          contract = creatorContracts.find(
+            (c) =>
+              (c.campaign?.id === parentSelectedCampaign.id) ||
+              (c.campaign_id === parentSelectedCampaign.id) ||
+              (c.campaign === parentSelectedCampaign.id)
+          );
+        }
+
+        const compensation = contract?.total_compensation || contract?.totalCompensation || 0;
+        return sum + (compensation || 0);
+      }, 0);
+
       const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
       const costPerEngagement = totalEngagement > 0 ? spent / totalEngagement : 0;
       return {
