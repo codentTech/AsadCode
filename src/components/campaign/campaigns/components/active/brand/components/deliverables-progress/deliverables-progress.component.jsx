@@ -402,8 +402,8 @@ const DeliverablesProgress = ({
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800">
-                    <span className="font-semibold">Notice:</span> Marking complete will
-                    automatically release the payment to the creator and close this collaboration.
+                    <span className="font-semibold">Notice:</span> After you mark complete and submit the review, 
+                    the payment will be automatically released to the creator and this collaboration will be closed.
                   </p>
                 </div>
               </div>
