@@ -5,7 +5,7 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
-import { CreditCard, Plus, Trash2, AlertCircle, CheckCircle2, AlertCircleIcon, XIcon } from "lucide-react";
+import { CreditCard, Plus, Trash2, AlertCircle, CheckCircle2, AlertCircleIcon, XIcon, RefreshCw } from "lucide-react";
 import usePaymentMethods from "./use-payment-methods.hook";
 
 // Card Form Component
@@ -165,6 +165,7 @@ const PaymentMethodsPage = () => {
     handleAddCardError,
     handleRemoveCard,
     handleUpdateCard,
+    handleRefreshPaymentMethods,
     stripePromise,
     setupIntentClientSecret,
     isProcessing,
@@ -217,13 +218,23 @@ const PaymentMethodsPage = () => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Saved Payment Methods</h2>
-            <CustomButton
-              text="Add Card"
-              className="btn-primary"
-              onClick={() => setShowAddCardModal(true)}
-              icon={<Plus className="w-4 h-4" />}
-              disabled={isLoading || isChecking}
-            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefreshPaymentMethods}
+                disabled={isLoading || isChecking}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                title="Refresh payment methods"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading || isChecking ? "animate-spin" : ""}`} />
+              </button>
+              <CustomButton
+                text="Add Card"
+                className="btn-primary"
+                onClick={() => setShowAddCardModal(true)}
+                icon={<Plus className="w-4 h-4" />}
+                disabled={isLoading || isChecking}
+              />
+            </div>
           </div>
 
           {isChecking || isLoading ? (

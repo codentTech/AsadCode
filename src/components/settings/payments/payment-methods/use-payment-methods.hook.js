@@ -88,7 +88,7 @@ function usePaymentMethods() {
     dispatch(checkHasPaymentMethod());
   }, [dispatch]);
 
-  // Reset SetupIntent state when modal closes
+  // Reset SetupIntent state when modal closes and refresh payment methods
   useEffect(() => {
     if (!showAddCardModal) {
       setSetupIntentClientSecret(null);
@@ -97,22 +97,30 @@ function usePaymentMethods() {
       setIsUpdateMode(false);
       setUpdatingPaymentMethodId(null);
       setupIntentRequestedRef.current = false;
+      // Refresh payment methods when modal closes to ensure we have the latest data
+      dispatch(getPaymentMethods());
+      dispatch(checkHasPaymentMethod());
     }
-  }, [showAddCardModal]);
+  }, [showAddCardModal, dispatch]);
 
   // Refresh payment methods after attach/remove
   useEffect(() => {
     if (attachSuccess) {
-      dispatch(getPaymentMethods());
-      dispatch(checkHasPaymentMethod());
-      dispatch(resetAttachPaymentMethod());
-      setShowAddCardModal(false);
-      setSetupIntentClientSecret(null);
-      setIsProcessing(false);
-      setErrorMessage(null);
-      setIsUpdateMode(false);
-      setUpdatingPaymentMethodId(null);
-      setupIntentRequestedRef.current = false;
+      // Small delay to ensure Stripe has processed the attachment
+      const refreshTimer = setTimeout(() => {
+        dispatch(getPaymentMethods());
+        dispatch(checkHasPaymentMethod());
+        dispatch(resetAttachPaymentMethod());
+        setShowAddCardModal(false);
+        setSetupIntentClientSecret(null);
+        setIsProcessing(false);
+        setErrorMessage(null);
+        setIsUpdateMode(false);
+        setUpdatingPaymentMethodId(null);
+        setupIntentRequestedRef.current = false;
+      }, 500);
+      
+      return () => clearTimeout(refreshTimer);
     }
   }, [attachSuccess, dispatch]);
 
@@ -182,13 +190,18 @@ function usePaymentMethods() {
       } catch (error) {
         // Extract and format error message
         let errorMsg = "Failed to add payment method. Please try again.";
+        let isDuplicateError = false;
         
         if (error?.message) {
           errorMsg = error.message;
+          isDuplicateError = error.message.includes("already added") || error.message.includes("duplicate");
           
           // Provide specific messages for common errors
-          if (error.message.includes("already added") || error.message.includes("duplicate")) {
+          if (isDuplicateError) {
             errorMsg = "This card is already added to your account. Please use a different card or remove the existing one first.";
+            // Refresh payment methods to show the existing card
+            dispatch(getPaymentMethods());
+            dispatch(checkHasPaymentMethod());
           } else if (error.message.includes("expired")) {
             errorMsg = "Your card has expired. Please use a valid card with a future expiration date.";
           } else if (error.message.includes("invalid")) {
@@ -200,8 +213,20 @@ function usePaymentMethods() {
           }
         } else if (error?.response?.data?.message) {
           errorMsg = error.response.data.message;
+          isDuplicateError = errorMsg.includes("already added") || errorMsg.includes("duplicate");
+          if (isDuplicateError) {
+            // Refresh payment methods to show the existing card
+            dispatch(getPaymentMethods());
+            dispatch(checkHasPaymentMethod());
+          }
         } else if (error?.error?.message) {
           errorMsg = error.error.message;
+          isDuplicateError = errorMsg.includes("already added") || errorMsg.includes("duplicate");
+          if (isDuplicateError) {
+            // Refresh payment methods to show the existing card
+            dispatch(getPaymentMethods());
+            dispatch(checkHasPaymentMethod());
+          }
         }
         
         setErrorMessage(errorMsg);
@@ -248,6 +273,11 @@ function usePaymentMethods() {
     []
   );
 
+  const handleRefreshPaymentMethods = useCallback(() => {
+    dispatch(getPaymentMethods());
+    dispatch(checkHasPaymentMethod());
+  }, [dispatch]);
+
   return {
     paymentMethods,
     hasPaymentMethod,
@@ -269,6 +299,7 @@ function usePaymentMethods() {
     isUpdateMode,
     updatingPaymentMethodId,
     isRemoving,
+    handleRefreshPaymentMethods,
   };
 }
 
