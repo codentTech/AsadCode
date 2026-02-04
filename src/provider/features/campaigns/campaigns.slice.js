@@ -27,6 +27,7 @@ const initialState = {
   applyToCampaign: { ...generalState },
   withdrawApplication: { ...generalState },
   getAllBrandCampaigns: { ...generalState },
+  getBrandCampaignsExcludingCompleted: { ...generalState },
   getAppliedCreators: { ...generalState },
   getHiredCreators: { ...generalState }, // Separate state for active-completed tab
   getRejectedCreators: { ...generalState },
@@ -227,6 +228,20 @@ export const getAllBrandCampaigns = createAsyncThunk(
   }
 );
 
+// [DEPRECATED] Get brand campaigns excluding completed ones
+// Use getAllBrandCampaigns instead and filter on frontend
+export const getBrandCampaignsExcludingCompleted = createAsyncThunk(
+  "campaigns/getBrandCampaignsExcludingCompleted",
+  async (_, thunkAPI) => {
+    try {
+      const response = await campaignsService.getBrandCampaignsExcludingCompleted();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
 
 // Get rejected creators
 export const getRejectedCreators = createAsyncThunk(
@@ -399,6 +414,9 @@ export const campaignsSlice = createSlice({
     },
     resetGetAllBrandCampaigns: (state) => {
       state.getAllBrandCampaigns = { ...generalState };
+    },
+    resetGetBrandCampaignsExcludingCompleted: (state) => {
+      state.getBrandCampaignsExcludingCompleted = { ...generalState };
     },
     resetGetAppliedCreators: (state) => {
       state.getAppliedCreators = { ...generalState };
@@ -617,6 +635,26 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.isLoading = false;
         state.getAllBrandCampaigns.isError = true;
         state.getAllBrandCampaigns.data = null;
+      })
+      // getBrandCampaignsExcludingCompleted
+      .addCase(getBrandCampaignsExcludingCompleted.pending, (state) => {
+        state.getBrandCampaignsExcludingCompleted.isLoading = true;
+        state.getBrandCampaignsExcludingCompleted.message = "";
+        state.getBrandCampaignsExcludingCompleted.isError = false;
+        state.getBrandCampaignsExcludingCompleted.isSuccess = false;
+        state.getBrandCampaignsExcludingCompleted.data = null;
+      })
+      .addCase(getBrandCampaignsExcludingCompleted.fulfilled, (state, action) => {
+        state.getBrandCampaignsExcludingCompleted.isLoading = false;
+        state.getBrandCampaignsExcludingCompleted.isSuccess = true;
+        state.getBrandCampaignsExcludingCompleted.data = action.payload;
+      })
+      .addCase(getBrandCampaignsExcludingCompleted.rejected, (state, action) => {
+        state.getBrandCampaignsExcludingCompleted.message =
+          action.payload?.message || "Failed to fetch brand campaigns";
+        state.getBrandCampaignsExcludingCompleted.isLoading = false;
+        state.getBrandCampaignsExcludingCompleted.isError = true;
+        state.getBrandCampaignsExcludingCompleted.data = null;
       })
       // getAppliedCreators
       .addCase(getAppliedCreators.pending, (state) => {
@@ -857,6 +895,7 @@ export const {
   resetFilteredCampaigns,
   resetGetAllCampaigns,
   resetGetAllBrandCampaigns,
+  resetGetBrandCampaignsExcludingCompleted,
   resetGetAppliedCreators,
 } = campaignsSlice.actions;
 export default campaignsSlice.reducer;

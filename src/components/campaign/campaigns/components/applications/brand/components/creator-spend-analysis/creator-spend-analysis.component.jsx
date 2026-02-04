@@ -3,12 +3,11 @@ import CustomSwitch from "@/common/components/custom-switch/custom-switch.compon
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import Modal from "@/common/components/modal/modal.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filters/filter-modal.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { Filter, List } from "lucide-react";
+import { Filter } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -22,7 +21,6 @@ const CreatorSpendAnalysis = ({
   onFilterChange,
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
-  onSwitchToRejected,
 }) => {
   const {
     open,
@@ -42,10 +40,6 @@ const CreatorSpendAnalysis = ({
     handleToggleChange,
     handleCreatorPreview,
     handleSaveToShortlist,
-    confirmSaveToShortlist,
-    showSaveToShortlistModal,
-    setShowSaveToShortlistModal,
-    shortlists,
     mapCreatorForCard,
     handleSortChange,
     sortOptions,
@@ -66,24 +60,16 @@ const CreatorSpendAnalysis = ({
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="mb-3 flex justify-between items-center gap-3">
-            <div className="bg-gray-100 rounded-lg p-3 max-w-[300px]">
+          <div className="mb-3">
+            <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
               <CustomSwitch
                 label="Campaign Type"
                 checked={isMultiCreator}
                 onChange={handleToggleChange}
                 rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
                 parentDivClassName="justify-between"
-                rightLabelClassName="flex w-full items-center justify-end gap-[108px] text-xs font-medium not-italic leading-6 text-text-dark-gray"
               />
             </div>
-            {onSwitchToRejected && (
-              <CustomButton
-                text="Rejected"
-                onClick={onSwitchToRejected}
-                className="btn-outline !h-9"
-              />
-            )}
           </div>
 
           <div className="flex items-center justify-between gap-3">
@@ -92,6 +78,8 @@ const CreatorSpendAnalysis = ({
                 <SimpleSelect
                   placeHolder="Select a campaign"
                   options={filteredCampaignOptions}
+                  isSearchable={true}
+                  isMulti={false}
                   isLoading={campaignsLoading}
                   value={selectedCampaignValue}
                   onChange={(opt) => {
@@ -102,36 +90,39 @@ const CreatorSpendAnalysis = ({
                 />
               </div>
             )}
-          </div>
-          <div className="flex justify-end gap-3">
-            <div className="w-full max-w-[230px]">
-              <SimpleSelect
-                placeHolder="Sort by"
-                options={sortOptions}
-                value={
-                  filters?.sort
-                    ? {
-                        value: filters.sort,
-                        label: sortOptions.find((opt) => opt.value === filters.sort)?.label,
-                      }
-                    : null
-                }
-                onChange={handleSortChange}
-              />
+
+            <div className="flex items-center gap-3">
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect
+                  placeHolder="Sort by"
+                  options={sortOptions}
+                  value={
+                    filters?.sort
+                      ? {
+                          value: filters.sort,
+                          label: sortOptions.find((opt) => opt.value === filters.sort)?.label,
+                        }
+                      : null
+                  }
+                  onChange={handleSortChange}
+                />
+              </div>
+              <div className="relative">
+                <CustomButton
+                  text="Filters"
+                  onClick={() => setShowFilterModal(true)}
+                  startIcon={<Filter size={18} />}
+                  className="btn-outline !h-10"
+                />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
+                />
+              </div>
             </div>
-            <div className="relative">
-              <CustomButton
-                text="Filters"
-                onClick={() => setShowFilterModal(true)}
-                startIcon={<Filter size={18} />}
-                className="btn-outline !h-10"
-              />
-            </div>
-            <CustomButton
-              text="Start a new campaign"
-              onClick={handleOpenModal}
-              className="btn-primary !h-10"
-            />
           </div>
         </div>
       </div>
@@ -316,39 +307,6 @@ const CreatorSpendAnalysis = ({
           setShowFilterModal(false);
         }}
       />
-
-      <Modal
-        title="Save to Shortlist"
-        show={showSaveToShortlistModal}
-        onClose={() => setShowSaveToShortlistModal(false)}
-      >
-        <div>
-          <h5 className="text-primary font-bold mb-2">Click the shortlist to save</h5>
-          <hr className="border border-primary" />
-          {shortlists.length === 0 ? (
-            <NotFound
-              title="No Shortlists Found"
-              description="Create a shortlist first to save creators."
-              icon={List}
-              showAnimation={false}
-              className="py-8"
-            />
-          ) : (
-            <ul className="space-y-2 mt-4">
-              {shortlists.map((shortlist) => (
-                <li key={shortlist.id}>
-                  <div
-                    className="w-full text-sm p-2 border border-gray-200 hover:border-primary hover:bg-indigo-50 rounded-lg cursor-pointer transition-all flex items-center"
-                    onClick={() => confirmSaveToShortlist(shortlist.id)}
-                  >
-                    {shortlist.name}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 };

@@ -11,7 +11,6 @@ export default function useBrandCampaign(isCompleted = false) {
   const dispatch = useDispatch();
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
-  const lastRestoredCampaignIdRef = useRef(null);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -49,13 +48,6 @@ export default function useBrandCampaign(isCompleted = false) {
   }, [dispatch]);
 
   useEffect(() => {
-    // Reset restoration flag if selectedCampaignId from Redux changed
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
-      hasRestoredFromContext.current = false;
-    }
-  }, [selectedCampaignId]);
-
-  useEffect(() => {
     if (campaignsSuccess && campaignsData?.data && selectedCampaignId) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
@@ -68,12 +60,7 @@ export default function useBrandCampaign(isCompleted = false) {
         setSelectedCampaign(restoredCampaign);
         hasAutoSelected.current = true;
         hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
       }
-    } else if (!selectedCampaignId) {
-      // Reset when Redux context is cleared
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
     }
   }, [campaignsSuccess, campaignsData, selectedCampaignId, selectedCampaign]);
 
@@ -139,29 +126,14 @@ export default function useBrandCampaign(isCompleted = false) {
       dispatch(getAppliedCreators({ campaignId: selectedCampaign.id, filters }));
     }
   }, [selectedCampaign, dispatch, isCompleted]);
-
   useEffect(() => {
-    if (selectedCampaign) {
+    if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
+      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
       const totalBudget = selectedCampaign.budget || 0;
-      const allCreators = selectedCampaign.creators || [];
-
-      const spent = allCreators.reduce((sum, creatorEntry) => {
-        let contract = creatorEntry.contract || null;
-
-        if (!contract && creatorEntry.creator) {
-          const creatorContracts = creatorEntry.creator.creatorContracts || [];
-          contract = creatorContracts.find(
-            (c) =>
-              (c.campaign?.id === selectedCampaign.id) ||
-              (c.campaign_id === selectedCampaign.id) ||
-              (c.campaign === selectedCampaign.id)
-          );
-        }
-
-        const compensation = contract?.total_compensation || contract?.totalCompensation || 0;
-        return sum + (compensation || 0);
-      }, 0);
-
+      const spent = creators.reduce(
+        (sum, creator) => sum + (creator.contract?.total_compensation || 0),
+        0
+      );
       const remaining = totalBudget - spent;
       const saved = isCompleted ? Math.max(0, remaining) : 0;
 
@@ -174,9 +146,8 @@ export default function useBrandCampaign(isCompleted = false) {
 
       setDeliverables(selectedCampaign.deliverables || []);
 
-      const filteredCreators = Array.isArray(creatorsData?.data) ? creatorsData.data : [];
-      const totalViews = filteredCreators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
-      const totalEngagement = filteredCreators.reduce(
+      const totalViews = creators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
+      const totalEngagement = creators.reduce(
         (sum, creator) => sum + (creator.total_engagement || 0),
         0
       );

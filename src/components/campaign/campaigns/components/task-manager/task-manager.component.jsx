@@ -2,7 +2,7 @@ import { getUser } from "@/common/utils/users.util";
 import ROLES from "@/common/constants/role.constant";
 import TaskManagerBrandModal from "./brand/task-manager-brand.component";
 
-const TaskManagerModal = ({ show, onClose, selectedCampaignId = null, isMultiCreator = true }) => {
+const TaskManagerModal = ({ show, onClose, selectedCampaignId = null }) => {
   const currentUser = getUser();
   const isBrand = currentUser?.role === ROLES.BRAND;
 
@@ -14,7 +14,6 @@ const TaskManagerModal = ({ show, onClose, selectedCampaignId = null, isMultiCre
         show={show}
         onClose={onClose}
         selectedCampaignId={selectedCampaignId}
-        isMultiCreator={isMultiCreator}
       />
     );
   }

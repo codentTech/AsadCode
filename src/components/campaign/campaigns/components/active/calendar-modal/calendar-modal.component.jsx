@@ -21,7 +21,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
     categoryOptions,
     allCategories,
     monthNames,
-    isHexColor,
+    colorOptions,
 
     // Redux states
     createTaskState,
@@ -85,7 +85,8 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
               {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
                 const indicators = getDateIndicators(day);
                 const isSelected = selectedDate === day;
-                const hasAnyTask = indicators.taskColors && indicators.taskColors.length > 0;
+                const hasAnyTask =
+                  indicators.hasDeadline || indicators.hasDraft || indicators.hasOther;
 
                 return (
                   <div
@@ -101,25 +102,18 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
                   >
                     {day}
 
-                    {/* Compact dot indicators - show unique colors from tasks */}
-                    {hasAnyTask && (
-                      <div className="absolute -top-0.5 -right-6 flex gap-0.5 flex-wrap max-w-[20px]">
-                        {indicators.taskColors.map((taskColor, index) => (
-                          <div
-                            key={index}
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isHexColor(taskColor.color)
-                                ? ""
-                                : taskColor.color.split(" ")[0] || "bg-gray-500"
-                            }`}
-                            style={
-                              isHexColor(taskColor.color)
-                                ? { backgroundColor: taskColor.color }
-                                : undefined
-                            }
-                            title={taskColor.label}
-                          />
-                        ))}
+                    {/* Compact dot indicators */}
+                    {(indicators.hasDeadline || indicators.hasDraft || indicators.hasOther) && (
+                      <div className="absolute -top-0.5 -right-0.5 flex gap-0.5">
+                        {indicators.hasDeadline && (
+                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                        )}
+                        {indicators.hasDraft && (
+                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                        )}
+                        {indicators.hasOther && (
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -140,14 +134,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
                     .map((category) => (
                       <div key={category.label} className="flex items-center gap-2 text-xs">
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            isHexColor(category.color) ? "" : category.color.split(" ")[0]
-                          }`}
-                          style={
-                            isHexColor(category.color)
-                              ? { backgroundColor: category.color }
-                              : undefined
-                          }
+                          className={`w-2 h-2 rounded-full ${category.color.split(" ")[0]}`}
                         ></div>
                         <span className="text-gray-600">{category.label}</span>
                       </div>
@@ -176,14 +163,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
                         >
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-2 h-2 rounded-full ${
-                                isHexColor(category.color) ? "" : category.color.split(" ")[0]
-                              }`}
-                              style={
-                                isHexColor(category.color)
-                                  ? { backgroundColor: category.color }
-                                  : undefined
-                              }
+                              className={`w-2 h-2 rounded-full ${category.color.split(" ")[0]}`}
                             ></div>
                             <span className="text-gray-600">{category.label}</span>
                           </div>
@@ -212,21 +192,18 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
                     value={newTagName}
                     onChange={handleNewTagNameChange}
                   />
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-600 font-medium">Color:</label>
-                    <input
-                      type="color"
-                      value={
-                        typeof newTagColor === "string" && newTagColor.startsWith("#")
-                          ? newTagColor
-                          : "#6366f1"
-                      }
-                      onChange={(e) => handleNewTagColorChange(e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                      title="Choose a color"
-                    />
+                  <div className="flex gap-1">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => handleNewTagColorChange(color)}
+                        className={`w-5 h-5 rounded-full ${color.split(" ")[0]} ${
+                          newTagColor === color ? "ring-1 ring-gray-400" : ""
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={addColorTag}
                       className="px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-gray-800"
@@ -306,16 +283,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
 
                           <div className="flex items-center justify-between mt-1">
                             <span
-                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${
-                                isHexColor(getTagColor(task.tag.label))
-                                  ? "text-white"
-                                  : getTagColor(task.tag.label)
-                              }`}
-                              style={
-                                isHexColor(getTagColor(task.tag.label))
-                                  ? { backgroundColor: getTagColor(task.tag.label) }
-                                  : undefined
-                              }
+                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${getTagColor(task.tag.label)}`}
                             >
                               {task.tag.label}
                             </span>

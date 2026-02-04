@@ -120,19 +120,17 @@ function useNotifications() {
         case "INVITATION":
         case "INVITE_EXPIRED":
           // Navigate to Applications tab -> Invites
-          router.push(`/campaign?tab=4&application=1`);
-
+          router.push(`/campaign?tab=4${invitationId ? `&invitationId=${invitationId}` : ""}`);
           break;
 
         case "HIRE":
           // Navigate to Active tab
-          router.push(`/campaign?tab=4`);
-
+          router.push(`/campaign?tab=2${campaignId ? `&campaignId=${campaignId}` : ""}`);
           break;
 
         case "REJECTION":
           // Navigate to Applications tab -> Rejected
-          router.push(`/campaign?tab=4&application=4`);
+          router.push(`/campaign?tab=4`);
           break;
 
         case "APPLICANT_WITHDREW":
@@ -144,14 +142,12 @@ function useNotifications() {
         case "CONTRACT_CREATED":
         case "CONTRACT_READY_FOR_REVIEW":
           // Navigate to Applications tab -> Offers
-          router.push(`/campaign?tab=4`);
-
+          router.push(`/campaign?tab=4${contractId ? `&contractId=${contractId}` : ""}`);
           break;
 
         case "CONTRACT_SIGNED":
           // Navigate to Active tab
-          router.push(`/campaign?tab=2`);
-
+          router.push(`/campaign?tab=2${campaignId ? `&campaignId=${campaignId}` : ""}`);
           break;
 
         // Active Collaboration
@@ -169,8 +165,14 @@ function useNotifications() {
         case "DEADLINE_REMINDER":
         case "CREATOR_MARKED_DELAYED":
           // Navigate to Active tab -> Campaign -> Timeline/Deliverables
-          router.push(`/campaign?tab=2`);
+          router.push(`/campaign?tab=2${campaignId ? `&campaignId=${campaignId}` : ""}`);
+          break;
 
+        // Messaging
+        case "MESSAGE":
+        case "UNREAD_MESSAGE_REMINDER":
+          // Navigate to Chat Inbox
+          router.push(`/chat-inbox${conversationId ? `?conversationId=${conversationId}` : ""}`);
           break;
 
         // Completed
@@ -181,7 +183,7 @@ function useNotifications() {
         case "REVIEW_RECEIVED":
         case "PERFORMANCE_METRICS_UPDATED":
           // Navigate to Completed tab
-          router.push(`/campaign?tab=3`);
+          router.push(`/campaign?tab=3${campaignId ? `&campaignId=${campaignId}` : ""}`);
           break;
 
         // Payment Issues
@@ -222,7 +224,7 @@ function useNotifications() {
         default:
           // Default: navigate to Active tab with campaign if available
           if (campaignId) {
-            router.push(`/campaign?tab=2`);
+            router.push(`/campaign?tab=2&campaignId=${campaignId}`);
           } else {
             router.push(`/campaign`);
           }
@@ -245,3 +247,4 @@ function useNotifications() {
 }
 
 export default useNotifications;
+

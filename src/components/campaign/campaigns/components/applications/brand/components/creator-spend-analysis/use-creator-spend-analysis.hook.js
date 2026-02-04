@@ -1,12 +1,8 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
-import {
-  getAllShortlists,
-  addUserToShortlist,
-} from "@/provider/features/shortlist/shortlist.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { sortOptions } from "@/common/constants/auth.constant";
 
@@ -37,16 +33,6 @@ function useCreatorSpendAnalysis({
   const { isSuccess: reinstateInvitationSuccess } = useSelector(
     (state) => state.invitation.reinstateInvitation || {}
   );
-
-  const shortlistState = useSelector((state) => state.shortlist || {});
-
-  const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
-  const [creatorToSave, setCreatorToSave] = useState(null);
-
-  // Fetch shortlists on mount
-  useEffect(() => {
-    dispatch(getAllShortlists());
-  }, [dispatch]);
 
   const individualCollaborations = (individualCollaborationsData?.data || []).filter(
     (invitation) => invitation.status === "PENDING"
@@ -186,28 +172,7 @@ function useCreatorSpendAnalysis({
     }
   };
 
-  const handleSaveToShortlist = (creator) => {
-    setCreatorToSave(creator);
-    setShowSaveToShortlistModal(true);
-  };
-
-  const confirmSaveToShortlist = async (shortlistId) => {
-    if (creatorToSave) {
-      const creatorId = creatorToSave.id || creatorToSave.creator?.id;
-      if (creatorId) {
-        await dispatch(
-          addUserToShortlist({
-            shortlistId,
-            userId: creatorId,
-          })
-        );
-        // Refetch shortlists to get updated counts
-        await dispatch(getAllShortlists());
-      }
-    }
-    setShowSaveToShortlistModal(false);
-    setCreatorToSave(null);
-  };
+  const handleSaveToShortlist = (creator) => {};
 
   const mapCreatorForCard = (data) => {
     const creatorData = data.creator;
@@ -278,10 +243,6 @@ function useCreatorSpendAnalysis({
     handleToggleChange,
     handleCreatorPreview,
     handleSaveToShortlist,
-    confirmSaveToShortlist,
-    showSaveToShortlistModal,
-    setShowSaveToShortlistModal,
-    shortlists: shortlistState.getAllShortlists?.data || [],
     mapCreatorForCard,
     handleSortChange,
     sortOptions,

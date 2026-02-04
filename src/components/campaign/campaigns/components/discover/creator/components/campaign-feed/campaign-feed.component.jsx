@@ -9,10 +9,8 @@ import Niche from "@/components/niche/niche";
 import { DollarSign, Gift, Globe, Loader2, Users, Zap } from "lucide-react";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import { useCampaignFeed } from "./use-campaign-feed.hook";
-import { useRouter } from "next/navigation";
 
 function CampaignFeed() {
-  const router = useRouter();
   const {
     sortBy,
     handleSortChange,
@@ -143,14 +141,7 @@ function CampaignFeed() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 text-sm truncate">
-                          <button
-                            onClick={() =>
-                              campaign.brandId && router.push(`/brand-profile/${campaign.brandId}`)
-                            }
-                            className="hover:text-primary transition-colors cursor-pointer"
-                          >
-                            {campaign.brandName}
-                          </button>
+                          {campaign.brandName}
                         </h3>
                         <h4 className="text-sm text-gray-700 line-clamp-1 font-medium">
                           {campaign.title}

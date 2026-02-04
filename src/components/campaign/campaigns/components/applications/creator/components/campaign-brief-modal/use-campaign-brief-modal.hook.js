@@ -139,15 +139,14 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
           : [],
       creator_country: campaign.creator_country,
       creator_city: campaign.creator_city,
-      language_requirement: campaign.language_requirement,
+      language_requirement: campaign.language || campaign.creator_language,
       creator_language: campaign.creator_language || campaign.language,
-      gender_requirement: campaign.gender_requirement,
+      gender_requirement: campaign.creator_gender,
       creator_gender: campaign.creator_gender,
       min_age: campaign.min_age,
       max_age: campaign.max_age,
       campaign_image: campaign.productImage || campaign.campaign_image,
       usage_rights: campaign.usage_rights,
-      usage_rights_requirement: campaign.usage_rights_requirement,
       exclusivity_clause: campaign.exclusivity_clause,
     };
   }, [campaign, isIndividualCreator]);
@@ -346,13 +345,7 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
           normalizedCampaign.creator_language !== ""
             ? normalizedCampaign.creator_language
             : normalizedCampaign.language_requirement;
-        const formattedLanguage = formatLanguageForDisplay(language);
-        const requirement = normalizedCampaign.language_requirement;
-        if (formattedLanguage && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
-          return `${formattedLanguage} (${requirementLabel})`;
-        }
-        return formattedLanguage;
+        return formatLanguageForDisplay(language);
       })(),
     },
     {
@@ -366,29 +359,15 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
           normalizedCampaign.creator_gender !== ""
             ? normalizedCampaign.creator_gender
             : normalizedCampaign.gender_requirement;
-        const formattedGender = formatGenderForDisplay(gender);
-        const requirement = normalizedCampaign.gender_requirement;
-        if (formattedGender && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
-          return `${formattedGender} (${requirementLabel})`;
-        }
-        return formattedGender;
+        return formatGenderForDisplay(gender);
       })(),
     },
     { label: "Age Range", value: ageRangeSummary },
     {
       label: "Usage Rights",
-      value: (() => {
-        const usageRights = normalizedCampaign.usage_rights
-          ? usageRightsMap[normalizedCampaign.usage_rights] || normalizedCampaign.usage_rights
-          : null;
-        const requirement = normalizedCampaign.usage_rights_requirement;
-        if (usageRights && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
-          return `${usageRights} (${requirementLabel})`;
-        }
-        return usageRights;
-      })(),
+      value: normalizedCampaign.usage_rights
+        ? usageRightsMap[normalizedCampaign.usage_rights] || normalizedCampaign.usage_rights
+        : null,
     },
     {
       label: "Exclusivity Clause",

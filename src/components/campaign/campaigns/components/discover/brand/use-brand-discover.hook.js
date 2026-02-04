@@ -8,13 +8,13 @@ import {
   addUserToShortlist,
   removeUserFromShortlist,
 } from "@/provider/features/shortlist/shortlist.slice";
-import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
+import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 
 function useDiscover() {
   const dispatch = useDispatch();
   const shortlistState = useSelector((state) => state.shortlist);
   const campaignsState = useSelector(
-    (state) => state.campaigns?.getAllBrandCampaigns
+    (state) => state.campaigns?.getBrandCampaignsExcludingCompleted
   );
 
   const [selectedShortlist, setSelectedShortlist] = useState(null);
@@ -29,16 +29,12 @@ function useDiscover() {
 
   useEffect(() => {
     dispatch(getAllShortlists());
-    dispatch(getAllBrandCampaigns());
+    dispatch(getBrandCampaignsExcludingCompleted());
   }, [dispatch]);
 
   useEffect(() => {
     if (campaignsState?.data?.data && Array.isArray(campaignsState.data.data)) {
-      // Filter out completed campaigns on frontend
-      const activeCampaigns = campaignsState.data.data.filter(
-        (campaign) => campaign.status !== "COMPLETE"
-      );
-      setUserCampaigns(activeCampaigns);
+      setUserCampaigns(campaignsState.data.data);
     }
   }, [campaignsState]);
 

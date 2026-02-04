@@ -4,6 +4,7 @@ import { NOTIFICATION_SECTION } from "@/common/utils/notification-categorizer.ut
 import { AlertCircle, Bell, CheckCircle2, Info, RefreshCw, Sparkles, Users } from "lucide-react";
 import NotificationCard from "./components/notification-card.component";
 import useNotificationsBrand from "./use-notifications-brand.hook";
+import { useState } from "react";
 
 function NotificationsBrand() {
   const {
@@ -20,12 +21,20 @@ function NotificationsBrand() {
     dismissNotification,
     markAllAsRead,
     handleNotificationClick,
-    totalEventNotifications,
-    totalNotifications,
-    unreadEventCount,
-    activeTab,
-    setActiveTab,
   } = useNotificationsBrand();
+
+  const [activeTab, setActiveTab] = useState("all");
+
+  const totalEventNotifications = Object.values(categorizedNotifications).reduce(
+    (sum, arr) => sum + arr.length,
+    0
+  );
+  const totalNotifications = actionRequiredNotifications.length + totalEventNotifications;
+
+  const unreadEventCount = Object.values(categorizedNotifications).reduce(
+    (sum, arr) => sum + arr.filter((n) => !n.is_read).length,
+    0
+  );
 
   return (
     <HeaderLayout>

@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
+import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -22,67 +21,24 @@ function useCreatorSpendAnalysis({
   const [open, setOpen] = useState(false);
   const [isMultiCreator, setIsMultiCreator] = useState(true);
   const hasAutoSelectedCampaignRef = useRef(false);
-  const hasRestoredFromContext = useRef(false);
-  const lastRestoredCampaignIdRef = useRef(null);
 
   const dispatch = useDispatch();
 
-  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
-
-  const { data: allCampaignsData, isLoading: campaignsLoading } = useSelector(
-    (state) => state.campaigns.getAllBrandCampaigns
+  const { data: campaignsData, isLoading: campaignsLoading } = useSelector(
+    (state) => state.campaigns.getBrandCampaignsExcludingCompleted
   );
-
-  // Filter out completed campaigns on frontend
-  const campaignsData = useMemo(() => {
-    if (!allCampaignsData?.data || !Array.isArray(allCampaignsData.data)) return allCampaignsData;
-    return {
-      ...allCampaignsData,
-      data: allCampaignsData.data.filter((campaign) => campaign.status !== "COMPLETE"),
-    };
-  }, [allCampaignsData]);
 
   const { data: shortlistsData, isLoading: shortlistsLoading } = useSelector(
     (state) => state.shortlist.getAllShortlists
   );
 
   useEffect(() => {
-    dispatch(getAllBrandCampaigns());
+    dispatch(getBrandCampaignsExcludingCompleted());
   }, [dispatch]);
 
   useEffect(() => {
     dispatch(getAllShortlists());
   }, [dispatch]);
-
-  // Restore campaign from Redux context
-  useEffect(() => {
-    // Reset restoration flag if selectedCampaignId from Redux changed
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
-      hasRestoredFromContext.current = false;
-    }
-  }, [selectedCampaignId]);
-
-  useEffect(() => {
-    if (
-      !campaignsLoading &&
-      campaignsData?.data &&
-      selectedCampaignId &&
-      !hasRestoredFromContext.current &&
-      !selectedCampaign
-    ) {
-      const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
-      if (restoredCampaign) {
-        onCampaignSelect(restoredCampaign);
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-      }
-    } else if (!selectedCampaignId) {
-      // Reset when Redux context is cleared
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
-    }
-  }, [campaignsLoading, campaignsData, selectedCampaignId, selectedCampaign, onCampaignSelect]);
 
   const campaignOptions = useMemo(
     () =>
@@ -114,7 +70,7 @@ function useCreatorSpendAnalysis({
       Array.isArray(campaignsData?.data) &&
       campaignsData.data.length > 0 &&
       filteredCampaignOptions.length > 0 &&
-      !hasRestoredFromContext.current
+      typeof onCampaignSelect === "function"
     ) {
       const firstCampaign = campaignsData.data.find(
         (c) => c.id === filteredCampaignOptions[0]?.value
@@ -122,12 +78,6 @@ function useCreatorSpendAnalysis({
       if (firstCampaign) {
         onCampaignSelect(firstCampaign);
         hasAutoSelectedCampaignRef.current = true;
-        dispatch(
-          setSelectedCampaignContext({
-            campaignId: firstCampaign.id,
-            collaborationType: firstCampaign.collaboration_type || null,
-          })
-        );
       }
     }
   }, [
@@ -137,8 +87,6 @@ function useCreatorSpendAnalysis({
     campaignsLoading,
     filteredCampaignOptions.length,
     onCampaignSelect,
-    dispatch,
-    hasRestoredFromContext.current,
   ]);
 
   const isSelectedCampaignValid =
