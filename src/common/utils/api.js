@@ -65,12 +65,23 @@ const api = (headers = null) => {
         return;
       }
 
+      // Check if toast should be skipped for this request
+      const skipToast =
+        error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
+      
+      // Skip toast for payment method errors (they're shown in the component)
+      const isPaymentMethodError = 
+        responseURL?.includes("/payment-methods/attach") ||
+        responseURL?.includes("/payment-methods/setup-intent");
+
       // Handle message display
-      if (Array.isArray(message)) {
-        message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
-      } else {
-        if (message !== "Record Not Found") {
-          enqueueSnackbar(message, { variant: "error" });
+      if (!skipToast && !isPaymentMethodError) {
+        if (Array.isArray(message)) {
+          message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
+        } else {
+          if (message !== "Record Not Found") {
+            enqueueSnackbar(message, { variant: "error" });
+          }
         }
       }
 
