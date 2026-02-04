@@ -22,7 +22,9 @@ const createSetupIntent = async () => {
 
 // Attach payment method to brand
 const attachPaymentMethod = async (paymentMethodId) => {
-  const response = await api().post("/collaboration-payments/payment-methods/attach", {
+  const response = await api({
+    "x-skip-toast": "true", // Skip toast - errors are shown in the component
+  }).post("/collaboration-payments/payment-methods/attach", {
     paymentMethodId,
   });
   return response.data;
