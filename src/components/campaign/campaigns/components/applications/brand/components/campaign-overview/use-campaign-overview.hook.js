@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getAllBrandCampaigns,
   createContract,
   sendContract,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 
 const COUNTRIES = [
   { value: "United States", label: "United States" },
@@ -54,10 +53,6 @@ function useCampaignOverview({
   onRejectCreator,
 } = {}) {
   const dispatch = useDispatch();
-  const hasRestoredFromContext = useRef(false);
-  const lastRestoredCampaignIdRef = useRef(null);
-
-  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
 
   const [openFilterModal, setOpenFilterModal] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -91,38 +86,11 @@ function useCampaignOverview({
     dispatch(getAllBrandCampaigns());
   }, [dispatch]);
 
-  // Restore campaign from Redux context
-  useEffect(() => {
-    // Reset restoration flag if selectedCampaignId from Redux changed
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
-      hasRestoredFromContext.current = false;
-    }
-  }, [selectedCampaignId]);
-
-  useEffect(() => {
-    if (campaignsSuccess && campaignsData?.data && selectedCampaignId && !hasRestoredFromContext.current) {
-      const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
-      if (restoredCampaign) {
-        setSelectedCampaign(restoredCampaign);
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-        if (onCampaignSelect) {
-          onCampaignSelect(restoredCampaign);
-        }
-      }
-    } else if (!selectedCampaignId) {
-      // Reset when Redux context is cleared
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
-    }
-  }, [campaignsSuccess, campaignsData, selectedCampaignId, onCampaignSelect]);
-
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data) {
       const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       setAllCampaigns(campaigns);
-      if (campaigns.length > 0 && !selectedCampaign && !hasRestoredFromContext.current) {
+      if (campaigns.length > 0 && !selectedCampaign) {
         setSelectedCampaign(campaigns[0]);
       }
     } else {

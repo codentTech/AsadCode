@@ -19,14 +19,13 @@ export default function CustomSwitch({
   labelClassName = "",
   readOnly = false,
   rightLabelText = null,
-  rightLabelClassName = "flex w-full items-center justify-end gap-6 text-xs font-medium not-italic leading-6 text-text-dark-gray",
 }) {
   return (
     <div className="">
       <div
         className={` ${
           inlineLabel
-            ? rightLabelClassName
+            ? "flex w-full  items-center justify-end gap-3 text-xs font-medium not-italic leading-6 text-text-dark-gray"
             : "text-xs font-medium not-italic leading-6 text-text-black"
         } ${parentDivClassName} `}
       >
@@ -49,7 +48,7 @@ export default function CustomSwitch({
           <FieldLabel
             label={rightLabelText ?? label}
             isRequired={isRequired}
-            className={`${labelClassName}`}
+            className={labelClassName}
           />
         )}
       </div>
@@ -78,5 +77,4 @@ CustomSwitch.propTypes = {
   readOnly: PropTypes.bool,
   labelRight: PropTypes.bool,
   rightLabelText: PropTypes.string,
-  rightLabelClassName: PropTypes.string,
 };

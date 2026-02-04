@@ -94,6 +94,13 @@ const getAllBrandCampaigns = async () => {
   return response.data;
 };
 
+// [DEPRECATED] Get brand campaigns excluding completed ones
+// Use getAllBrandCampaigns instead and filter on frontend
+const getBrandCampaignsExcludingCompleted = async () => {
+  const response = await api().get("/campaigns/brand/active");
+  return response.data;
+};
+
 // Get creator applications
 const getCreatorApplications = async (status) => {
   const response = await api().get("/campaigns/creator/applications", {
@@ -144,6 +151,7 @@ const campaignsService = {
   applyToCampaign,
   withdrawApplication,
   getAllBrandCampaigns,
+  getBrandCampaignsExcludingCompleted,
   getAppliedCreators,
   getCreatorApplications,
   rejectCreator,

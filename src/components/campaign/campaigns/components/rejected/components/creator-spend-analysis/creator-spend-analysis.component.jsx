@@ -22,7 +22,6 @@ const CreatorSpendAnalysis = ({
   sortBy,
   onSortChange,
   onSaveToShortlist,
-  onSwitchToApplications,
 }) => {
   const individualCollaborationsState = useSelector(
     (state) => state.invitation.getBrandRejectedIndividualCollaborations || {}
@@ -69,28 +68,20 @@ const CreatorSpendAnalysis = ({
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="p-4">
-          <div className="mb-3 flex justify-between items-center gap-3">
-            <div className="bg-gray-100 rounded-lg p-3 max-w-[300px]">
+          <div className="mb-3">
+            <div className="bg-gray-100 rounded-lg p-3 max-w-[200px]">
               <CustomSwitch
                 label="Campaign Type"
                 checked={isMultiCreator}
                 onChange={handleToggleChange}
                 rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
                 parentDivClassName="justify-between"
-                rightLabelClassName="flex w-full items-center justify-end gap-[108px] text-xs font-medium not-italic leading-6 text-text-dark-gray"
               />
             </div>
-            {onSwitchToApplications && (
-              <CustomButton
-                text="Applications"
-                onClick={onSwitchToApplications}
-                className="btn-outline !h-9"
-              />
-            )}
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            {isMultiCreator && (
+            {isMultiCreator ? (
               <div className="min-w-[240px] w-[260px]">
                 <SimpleSelect
                   placeHolder="Select a campaign"
@@ -106,29 +97,32 @@ const CreatorSpendAnalysis = ({
                   }}
                 />
               </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-3">
-            <div className="w-full max-w-[230px]">
-              <SimpleSelect
-                placeHolder="Sort by"
-                options={sortOptions}
-                value={
-                  sortBy
-                    ? {
-                        value: sortBy,
-                        label: sortOptions.find((opt) => opt.value === sortBy)?.label,
-                      }
-                    : null
-                }
-                onChange={handleSortChange}
-              />
+            ) : null}
+
+            <div className="flex items-center gap-3">
+              <div className="w-full min-w-[230px]">
+                <SimpleSelect
+                  placeHolder="Sort by"
+                  options={sortOptions}
+                  value={
+                    sortBy
+                      ? {
+                          value: sortBy,
+                          label: sortOptions.find((opt) => opt.value === sortBy)?.label,
+                        }
+                      : null
+                  }
+                  onChange={handleSortChange}
+                />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <CustomButton
+                  text="Start a new campaign"
+                  onClick={handleOpenModal}
+                  className="btn-primary !h-10"
+                />
+              </div>
             </div>
-            <CustomButton
-              text="Start a new campaign"
-              onClick={handleOpenModal}
-              className="btn-primary !h-10"
-            />
           </div>
         </div>
       </div>
@@ -153,12 +147,10 @@ const CreatorSpendAnalysis = ({
           if (isIndividualMode) {
             if (!dataToDisplay || !Array.isArray(dataToDisplay) || dataToDisplay.length === 0) {
               return (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <NotFound
-                    title="No Rejected Creators"
-                    description="No rejected individual creators found."
-                  />
-                </div>
+                <NotFound
+                  title="No Rejected Creators"
+                  description="No rejected individual creators found."
+                />
               );
             }
 
@@ -205,12 +197,10 @@ const CreatorSpendAnalysis = ({
 
           if (!dataToDisplay || !Array.isArray(dataToDisplay) || dataToDisplay.length === 0) {
             return (
-              <div className="flex flex-col items-center justify-center py-20">
-                <NotFound
-                  title="No Rejected Creators"
-                  description="No creators have been rejected for this campaign yet."
-                />
-              </div>
+              <NotFound
+                title="No Rejected Creators"
+                description="No creators have been rejected for this campaign yet."
+              />
             );
           }
 

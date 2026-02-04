@@ -281,7 +281,6 @@ const CreatorSpendAnalysis = ({
         show={showTaskManager}
         onClose={() => setShowTaskManager(false)}
         selectedCampaignId={selectedCampaign?.id || null}
-        isMultiCreator={isMultiCreator}
       />
     </div>
   );

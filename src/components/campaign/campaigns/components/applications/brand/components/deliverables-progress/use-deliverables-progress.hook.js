@@ -1,10 +1,8 @@
-import { useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { avatar } from "@/common/constants/auth.constant";
 import { getAge } from "@/common/utils/date.utils";
 
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
-  const router = useRouter();
   const getCreatorData = () => {
     if (!selectedCreator) return null;
 
@@ -42,22 +40,9 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
     );
   }, [selectedCreator]);
 
-  const creatorUserId = useMemo(() => {
-    if (!selectedCreator) return null;
-    return selectedCreator?.creator?.id || selectedCreator?.id || null;
-  }, [selectedCreator]);
-
-  const handleViewCreatorPortfolio = useCallback(() => {
-    if (creatorUserId) {
-      router.push(`/creator-profile/${creatorUserId}`);
-    }
-  }, [creatorUserId, router]);
-
   return {
     creatorData,
     creatorProfileId,
-    creatorUserId,
-    handleViewCreatorPortfolio,
   };
 };
 

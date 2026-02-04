@@ -1,26 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import HeaderLayout from "@/common/layouts/header.layout";
+import { isCreatorMode } from "@/common/utils/users.util";
+import { useRouter } from "next/navigation";
+import useBrandPortfolioData from "./use-brand-portfolio-data.hook";
 import ProfileOverview from "./components/profile-overview/profile-overview";
 import AboutUs from "./components/about-us/about-us";
 import ActiveCampaigns from "./components/active-campaigns/active-campaigns";
 import AudienceSnapshot from "./components/audience-snapshot/audience-snapshot";
-import Reviews from "./components/reviews/reviews.component";
-import useBrandPortfolio from "./use-brand-portfolio.hook";
 
-export default function BrandPortfolio({ brandId = null }) {
+export default function BrandPortfolio() {
+  const router = useRouter();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (isCreatorMode()) {
+      router.replace("/creator-portfolio");
+    }
+  }, [router]);
+
   const {
     brandBasics,
     brandOverview,
     brandPreferences,
     verifiedConnections,
     audienceSummary,
-    refreshKey,
-    isRefreshing,
-    handleRefresh,
-    handleEditProfile,
-    canEdit,
-  } = useBrandPortfolio(brandId);
+    refreshBrandData,
+  } = useBrandPortfolioData(refreshKey);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    refreshBrandData();
+    setRefreshKey((prev) => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 300);
+  };
 
   return (
     <HeaderLayout className="min-h-screen bg-gray-50">
@@ -31,8 +46,8 @@ export default function BrandPortfolio({ brandId = null }) {
           connections={verifiedConnections}
           preferences={brandPreferences}
           audienceSummary={audienceSummary}
-          onEditProfile={handleEditProfile}
-          canEdit={canEdit}
+          onEditProfile={() => router.push("/settings/brand-profile/profile-information")}
+          canEdit
         />
 
         <AboutUs overview={brandOverview} website={brandBasics.website} />
@@ -45,8 +60,6 @@ export default function BrandPortfolio({ brandId = null }) {
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
         />
-
-        <Reviews />
       </main>
     </HeaderLayout>
   );

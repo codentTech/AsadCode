@@ -40,12 +40,9 @@ export const createCampaignReview = createAsyncThunk(
 // Get campaign reviews
 export const getCampaignReviews = createAsyncThunk(
   "campaignReviews/getCampaignReviews",
-  async ({ campaignId, params = {} }, thunkAPI) => {
+  async (campaignId, thunkAPI) => {
     try {
-      const response = await campaignReviewsService.getCampaignReviews(
-        campaignId,
-        params
-      );
+      const response = await campaignReviewsService.getCampaignReviews(campaignId);
       if (response.success) {
         return response.data;
       }

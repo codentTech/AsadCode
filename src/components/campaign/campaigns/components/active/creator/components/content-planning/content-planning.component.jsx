@@ -86,8 +86,6 @@ const ContentPlanning = ({ selectedCampaign, setSelectedCampaign, getCampaignByI
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [renamingSectionId, setRenamingSectionId] = useState(null);
   const [renameInput, setRenameInput] = useState("");
-  const [goalTitles, setGoalTitles] = useState({}); // Local state for goal titles
-  const updateTimeoutsRef = useRef({}); // Track debounce timeouts per goal
 
   const editorRef = useRef(null);
 
@@ -105,15 +103,6 @@ const ContentPlanning = ({ selectedCampaign, setSelectedCampaign, getCampaignByI
     "November",
     "December",
   ];
-
-  // Sync goal titles with Redux state when goals change
-  useEffect(() => {
-    const titles = {};
-    campaignGoals.forEach((goal) => {
-      titles[goal.id] = goal.title;
-    });
-    setGoalTitles(titles);
-  }, [campaignGoals]);
 
   // Handle adding new goal
   const handleAddGoalClick = (weekNumber) => {
@@ -588,35 +577,8 @@ const ContentPlanning = ({ selectedCampaign, setSelectedCampaign, getCampaignByI
                         <div className="flex-1">
                           <input
                             type="text"
-                            value={goalTitles[goal.id] ?? goal.title}
-                            onChange={(e) => {
-                              const newTitle = e.target.value;
-                              // Update local state immediately for responsive UI
-                              setGoalTitles((prev) => ({
-                                ...prev,
-                                [goal.id]: newTitle,
-                              }));
-                              // Clear existing timeout for this goal
-                              if (updateTimeoutsRef.current[goal.id]) {
-                                clearTimeout(updateTimeoutsRef.current[goal.id]);
-                              }
-                              // Set new timeout to debounce API call
-                              updateTimeoutsRef.current[goal.id] = setTimeout(() => {
-                                updateGoalTitle(goal, newTitle);
-                                delete updateTimeoutsRef.current[goal.id];
-                              }, 800); // 800ms debounce
-                            }}
-                            onBlur={(e) => {
-                              // Clear timeout and update immediately on blur
-                              if (updateTimeoutsRef.current[goal.id]) {
-                                clearTimeout(updateTimeoutsRef.current[goal.id]);
-                                delete updateTimeoutsRef.current[goal.id];
-                              }
-                              // Only update if value changed
-                              if (goalTitles[goal.id] !== goal.title) {
-                                updateGoalTitle(goal, goalTitles[goal.id] ?? e.target.value);
-                              }
-                            }}
+                            value={goal.title}
+                            onChange={(e) => updateGoalTitle(goal, e.target.value)}
                             disabled={updateMonthlyGoalState.isLoading}
                             className={`w-full text-sm bg-transparent border-b ${colors[index]} outline-none pb-1 ${
                               goal.completed ? "line-through text-gray-500" : "text-gray-700"

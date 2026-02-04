@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllBrandCampaigns,
@@ -6,12 +6,10 @@ import {
 } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 
-export default function useBrandCampaignCompleted(disableAutoSelect = false) {
+export default function useBrandCampaignCompleted() {
   const dispatch = useDispatch();
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
-  const previousCampaignIdsRef = useRef(null);
-  const lastRestoredCampaignIdRef = useRef(null);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -49,13 +47,6 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
   }, [dispatch]);
 
   useEffect(() => {
-    // Reset restoration flag if selectedCampaignId from Redux changed
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
-      hasRestoredFromContext.current = false;
-    }
-  }, [selectedCampaignId]);
-
-  useEffect(() => {
     if (campaignsSuccess && campaignsData?.data && selectedCampaignId && !hasRestoredFromContext.current) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
@@ -63,80 +54,50 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         setSelectedCampaign(restoredCampaign);
         hasAutoSelected.current = true;
         hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
       }
-    } else if (!selectedCampaignId) {
-      // Reset when Redux context is cleared
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
     }
   }, [campaignsSuccess, campaignsData, selectedCampaignId]);
 
-  // Memoize campaigns array to prevent unnecessary re-renders
-  const allCampaigns = useMemo(() => {
-    if (!campaignsSuccess || !campaignsData?.data) return [];
-    return Array.isArray(campaignsData.data) ? campaignsData.data : [];
-  }, [campaignsSuccess, campaignsData?.data]);
-
-  // Create stable reference for campaign IDs to detect actual changes
-  const campaignIdsString = useMemo(() => {
-    return allCampaigns.map((c) => c.id).sort().join(",");
-  }, [allCampaigns]);
-
-  // Update campaign options only when campaign IDs actually change
   useEffect(() => {
-    if (campaignsSuccess && allCampaigns.length > 0) {
-      // Only update if campaign IDs have changed
-      if (campaignIdsString !== previousCampaignIdsRef.current) {
-        const options = allCampaigns.map((campaign) => ({
-          value: campaign.id,
-          label: campaign.campaign_title || "Untitled Campaign",
-          campaign: campaign,
-        }));
-        setCampaignOptions(options);
-        previousCampaignIdsRef.current = campaignIdsString;
-      }
-    } else if (campaignsSuccess && allCampaigns.length === 0) {
-      setCampaignOptions([]);
-      previousCampaignIdsRef.current = null;
-    }
-  }, [campaignsSuccess, allCampaigns, campaignIdsString]);
+    if (campaignsSuccess && campaignsData?.data) {
+      const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+      const options = allCampaigns.map((campaign) => ({
+        value: campaign.id,
+        label: campaign.campaign_title || "Untitled Campaign",
+        campaign: campaign,
+      }));
 
-  // Handle auto-selection separately to avoid loops
-  useEffect(() => {
-    if (!campaignsSuccess || allCampaigns.length === 0) return;
+      setCampaignOptions(options);
 
-    const selectedCampaignId = selectedCampaign?.id;
-
-    // If selected campaign is no longer in the list, select first one
-    if (
-      selectedCampaignId &&
-      !allCampaigns.some((c) => c.id === selectedCampaignId)
-    ) {
-      if (!hasAutoSelected.current) {
+      if (
+        selectedCampaign &&
+        allCampaigns.length > 0 &&
+        !allCampaigns.some((c) => c.id === selectedCampaign.id)
+      ) {
         setSelectedCampaign(allCampaigns[0]);
         hasAutoSelected.current = true;
+        return;
       }
-      return;
-    }
 
-    // Auto-select first campaign if none selected and auto-select is enabled
-    if (
-      !disableAutoSelect &&
-      !selectedCampaignId &&
-      !hasAutoSelected.current &&
-      !hasRestoredFromContext.current
-    ) {
-      setSelectedCampaign(allCampaigns[0]);
-      hasAutoSelected.current = true;
-      dispatch(
-        setSelectedCampaignContext({
-          campaignId: allCampaigns[0].id,
-          collaborationType: allCampaigns[0].collaboration_type || null,
-        })
-      );
+      if (
+        allCampaigns.length > 0 &&
+        !selectedCampaign &&
+        !hasAutoSelected.current &&
+        !hasRestoredFromContext.current
+      ) {
+        setSelectedCampaign(allCampaigns[0]);
+        hasAutoSelected.current = true;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: allCampaigns[0].id,
+            collaborationType: allCampaigns[0].collaboration_type || null,
+          })
+        );
+      }
+    } else if (campaignsSuccess) {
+      setCampaignOptions([]);
     }
-  }, [campaignsSuccess, allCampaigns, selectedCampaign?.id, disableAutoSelect, dispatch]);
+  }, [campaignsSuccess, campaignsData, selectedCampaign, dispatch]);
 
   useEffect(() => {
     if (selectedCampaign?.id) {
@@ -144,7 +105,7 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         getAppliedCreators({ campaignId: selectedCampaign.id, filters: { status: "COMPLETED" } })
       );
     }
-  }, [selectedCampaign?.id, dispatch]);
+  }, [selectedCampaign, dispatch]);
 
   useEffect(() => {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
@@ -192,7 +153,7 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         costPerEngagement: 0,
       });
     }
-  }, [creatorsSuccess, creatorsData, selectedCampaign?.id, selectedCampaign?.budget, selectedCampaign?.deliverables]);
+  }, [creatorsSuccess, creatorsData, selectedCampaign]);
 
   const handleCampaignSelect = useCallback((selectedOption) => {
     if (selectedOption) {

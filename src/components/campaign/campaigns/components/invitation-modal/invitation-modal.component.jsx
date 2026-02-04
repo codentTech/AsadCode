@@ -5,7 +5,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Loader from "@/common/components/loader/loader.component";
 import useInvitationModal from "./use-invitation-modal.hook";
-import { COLLABORATION_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 const InvitationModal = ({
   isOpen,
@@ -185,9 +185,7 @@ const InvitationModal = ({
                         </h4>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xs text-primary font-medium">
-                            {campaign.compensation_type === COMPENSATION_TYPE.PAID
-                              ? `Budget Remaining: $${formatCompensation(campaign)}`
-                              : formatCompensation(campaign)}
+                            {formatCompensation(campaign)}
                           </span>
                           {campaign.total_collaborators && (
                             <span className="text-xs text-gray-500">

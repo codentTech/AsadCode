@@ -9,7 +9,6 @@ import {
   AUDIENCE_AGE_OPTIONS,
   COUNTRY_OPTIONS,
 } from "@/common/constants/options.constant";
-import COUNTRIES from "@/common/constants/countries.constant";
 
 const FilterTag = ({ children, onRemove, color = "blue" }) => {
   const colorClasses = {
@@ -57,14 +56,13 @@ const ActiveFilters = ({
   onClearAllFilters,
 }) => {
   const countActiveFilters = () => {
-    const countriesCount = Array.isArray(filters.countries) ? filters.countries.length : 0;
     return (
       filters.niches.length +
       filters.platforms.length +
       (filters.minFollowers ? 1 : 0) +
       (filters.gender ? 1 : 0) +
       (filters.ageRange ? 1 : 0) +
-      countriesCount +
+      (filters.country ? 1 : 0) +
       (filters.city ? 1 : 0) +
       (filters.languages?.length || 0) +
       (audienceFilters.audienceGender ? 1 : 0) +
@@ -75,16 +73,15 @@ const ActiveFilters = ({
   };
 
   const hasCreatorFilters = () => {
-    const hasCountries = Array.isArray(filters.countries) && filters.countries.length > 0;
     return (
       filters.niches.length > 0 ||
       filters.platforms.length > 0 ||
       filters.minFollowers ||
       filters.gender ||
       filters.ageRange ||
-      hasCountries ||
+      filters.country ||
       filters.city ||
-      (filters.languages && filters.languages.length > 0)
+      filters.languages?.length > 0
     );
   };
 
@@ -169,43 +166,25 @@ const ActiveFilters = ({
                 )}
 
                 {/* Language Filters */}
-                {filters.languages &&
-                  filters.languages.length > 0 &&
-                  filters.languages.map((language) => (
-                    <FilterTag
-                      key={language}
-                      onRemove={() => onLanguageToggle(language)}
-                      color="blue"
-                    >
-                      {LANGUAGE_OPTIONS.find((l) => l.value === language)?.label || language}
-                    </FilterTag>
-                  ))}
+                {filters.languages?.map((language) => (
+                  <FilterTag
+                    key={language}
+                    onRemove={() => onLanguageToggle(language)}
+                    color="blue"
+                  >
+                    {LANGUAGE_OPTIONS.find((l) => l.value === language)?.label}
+                  </FilterTag>
+                ))}
 
-                {/* Country Filters */}
-                {Array.isArray(filters.countries) &&
-                  filters.countries.length > 0 &&
-                  filters.countries.map((countryName) => {
-                    const countryLabel =
-                      COUNTRIES.find((c) => c.label === countryName || c.code === countryName)
-                        ?.label || countryName;
-                    return (
-                      <FilterTag
-                        key={countryName}
-                        onRemove={() => {
-                          const updatedCountries = filters.countries.filter(
-                            (c) => c !== countryName
-                          );
-                          onFiltersChange({
-                            ...filters,
-                            countries: updatedCountries,
-                          });
-                        }}
-                        color="blue"
-                      >
-                        Country: {countryLabel}
-                      </FilterTag>
-                    );
-                  })}
+                {/* Country Filter */}
+                {filters.country && (
+                  <FilterTag
+                    onRemove={() => onFiltersChange({ ...filters, country: "" })}
+                    color="blue"
+                  >
+                    Country: {filters.country}
+                  </FilterTag>
+                )}
 
                 {/* City Filter */}
                 {filters.city && (
@@ -252,22 +231,15 @@ const ActiveFilters = ({
                 ))}
 
                 {/* Audience Country Filters */}
-                {audienceFilters.audienceCountries &&
-                  audienceFilters.audienceCountries.length > 0 &&
-                  audienceFilters.audienceCountries.map((countryName) => {
-                    const countryLabel =
-                      COUNTRIES.find((c) => c.label === countryName || c.code === countryName)
-                        ?.label || countryName;
-                    return (
-                      <FilterTag
-                        key={countryName}
-                        onRemove={() => onAudienceCountryToggle(countryName)}
-                        color="purple"
-                      >
-                        Audience Country: {countryLabel}
-                      </FilterTag>
-                    );
-                  })}
+                {audienceFilters.audienceCountries.map((country) => (
+                  <FilterTag
+                    key={country}
+                    onRemove={() => onAudienceCountryToggle(country)}
+                    color="purple"
+                  >
+                    {COUNTRY_OPTIONS.find((c) => c.value === country)?.label}
+                  </FilterTag>
+                ))}
 
                 {/* Audience City Filter */}
                 {audienceFilters.audienceCity && (

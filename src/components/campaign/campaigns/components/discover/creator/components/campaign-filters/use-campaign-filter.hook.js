@@ -75,7 +75,8 @@ function useCampaignFilter() {
       age_range: undefined,
       gender: undefined,
       language: undefined,
-      brand_country: filters.brandCountry?.countryName || undefined,
+      eligible_only: filters.eligibleOnly || undefined,
+      brand_country: filters.brandCountry?.countryCode || undefined,
       brand_city: filters.brandCity?.cityName || undefined,
     };
 

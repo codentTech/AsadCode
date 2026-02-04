@@ -10,8 +10,6 @@ import {
 } from "@/provider/features/invitation/invitation.slice";
 import { addUserToShortlist } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
-import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 
 function useRejected() {
   // State
@@ -22,15 +20,6 @@ function useRejected() {
 
   // Redux State
   const dispatch = useDispatch();
-  const hasRestoredFromContext = useRef(false);
-  const lastRestoredCampaignIdRef = useRef(null);
-
-  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
-  const {
-    data: campaignsData,
-    isLoading: campaignsLoading,
-    isSuccess: campaignsSuccess,
-  } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const {
     data: rejectedCreatorsData,
@@ -61,73 +50,6 @@ function useRejected() {
   const initialLoadRef = useRef(false);
   const lastModeRef = useRef(null);
   const justReinstatedRef = useRef(false);
-
-  // Fetch campaigns on mount
-  useEffect(() => {
-    dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
-
-  // Restore campaign from Redux context
-  useEffect(() => {
-    // Reset restoration flag if selectedCampaignId from Redux changed
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
-      hasRestoredFromContext.current = false;
-    }
-  }, [selectedCampaignId]);
-
-  useEffect(() => {
-    // Restore campaign from Redux context - check if campaigns data exists (regardless of success flag)
-    if (
-      !campaignsLoading &&
-      campaignsData?.data &&
-      Array.isArray(campaignsData.data) &&
-      selectedCampaignId &&
-      !hasRestoredFromContext.current
-    ) {
-      const campaigns = campaignsData.data;
-      const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
-      
-      // Only restore if the current selectedCampaign doesn't match the Redux context
-      if (restoredCampaign && selectedCampaign?.id !== selectedCampaignId) {
-        setSelectedCampaign(restoredCampaign);
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-
-        // Fetch data for restored campaign
-        if (restoredCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
-          if (!rejectedIndividualCollaborationsData?.data && !rejectedIndividualCollaborationsLoading) {
-            dispatch(getBrandRejectedIndividualCollaborations());
-          }
-        } else {
-          dispatch(
-            getRejectedCreators({
-              campaignId: restoredCampaign.id,
-              filters: { ...filters, status: "REJECTED" },
-              sortBy,
-            })
-          );
-        }
-      } else if (restoredCampaign && selectedCampaign?.id === selectedCampaignId) {
-        // Already have the correct campaign selected, just mark as restored
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-      }
-    } else if (!selectedCampaignId) {
-      // Reset when Redux context is cleared
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
-    }
-  }, [
-    campaignsLoading,
-    campaignsData,
-    selectedCampaignId,
-    selectedCampaign?.id,
-    dispatch,
-    filters,
-    sortBy,
-    rejectedIndividualCollaborationsData?.data,
-    rejectedIndividualCollaborationsLoading,
-  ]);
 
   useEffect(() => {
     if (!initialLoadRef.current) {
@@ -282,18 +204,6 @@ function useRejected() {
       setSelectedCreator(null);
       autoSelectedForCampaignRef.current = null;
       setSelectedCampaign(campaign);
-
-      // Save to Redux context for persistence across tabs
-      if (campaign) {
-        dispatch(
-          setSelectedCampaignContext({
-            campaignId: campaign.id,
-            collaborationType: campaign.collaboration_type || null,
-          })
-        );
-      } else {
-        dispatch(setSelectedCampaignContext({ campaignId: null, collaborationType: null }));
-      }
 
       if (campaign?.id) {
         if (campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {

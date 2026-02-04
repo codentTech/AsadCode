@@ -71,6 +71,8 @@ export default function CampaignOverview({
       <SimpleSelect
         placeHolder="Select a campaign"
         options={campaignOptions}
+        isSearchable={true}
+        isMulti={false}
         onChange={handleCampaignChange}
         isLoading={campaignsLoading}
         value={
