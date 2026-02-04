@@ -18,8 +18,6 @@ function usePaymentMethods() {
   const [setupIntentClientSecret, setSetupIntentClientSecret] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isUpdateMode, setIsUpdateMode] = useState(false);
-  const [updatingPaymentMethodId, setUpdatingPaymentMethodId] = useState(null);
   const setupIntentRequestedRef = useRef(false);
 
   const {
@@ -43,6 +41,8 @@ function usePaymentMethods() {
   const {
     isLoading: isAttaching,
     isSuccess: attachSuccess,
+    isError: attachError,
+    message: attachErrorMessage,
   } = useSelector((state) => state.collaborationPayment.attachPaymentMethod || {});
 
   const {
@@ -94,8 +94,6 @@ function usePaymentMethods() {
       setSetupIntentClientSecret(null);
       setErrorMessage(null);
       setIsProcessing(false);
-      setIsUpdateMode(false);
-      setUpdatingPaymentMethodId(null);
       setupIntentRequestedRef.current = false;
       // Refresh payment methods when modal closes to ensure we have the latest data
       dispatch(getPaymentMethods());
@@ -115,14 +113,26 @@ function usePaymentMethods() {
         setSetupIntentClientSecret(null);
         setIsProcessing(false);
         setErrorMessage(null);
-        setIsUpdateMode(false);
-        setUpdatingPaymentMethodId(null);
         setupIntentRequestedRef.current = false;
       }, 500);
       
       return () => clearTimeout(refreshTimer);
     }
   }, [attachSuccess, dispatch]);
+
+  // Check for attach errors to refresh and prevent duplicates from showing
+  useEffect(() => {
+    if (attachError && attachErrorMessage) {
+      const isDuplicate = attachErrorMessage.includes("already added") || attachErrorMessage.includes("duplicate");
+      if (isDuplicate) {
+        // Refresh to show existing cards and prevent duplicate display
+        setTimeout(() => {
+          dispatch(getPaymentMethods());
+          dispatch(checkHasPaymentMethod());
+        }, 300);
+      }
+    }
+  }, [attachError, attachErrorMessage, dispatch]);
 
   // Separate effect for remove to prevent duplicate refreshes
   useEffect(() => {
@@ -182,58 +192,58 @@ function usePaymentMethods() {
   const handleAddCardSuccess = useCallback(
     async (paymentMethodId) => {
       try {
-        if (isUpdateMode && updatingPaymentMethodId) {
-          // Remove old payment method first, then attach new one
-          await dispatch(removePaymentMethod(updatingPaymentMethodId)).unwrap();
-        }
         await dispatch(attachPaymentMethod(paymentMethodId)).unwrap();
       } catch (error) {
         // Extract and format error message
         let errorMsg = "Failed to add payment method. Please try again.";
         let isDuplicateError = false;
+        let isCardError = false;
         
-        if (error?.message) {
-          errorMsg = error.message;
-          isDuplicateError = error.message.includes("already added") || error.message.includes("duplicate");
+        // Check error message from various sources
+        const errorMessage = 
+          error?.message || 
+          error?.response?.data?.message || 
+          error?.error?.message || 
+          "";
+        
+        if (errorMessage) {
+          errorMsg = errorMessage;
+          isDuplicateError = errorMessage.includes("already added") || errorMessage.includes("duplicate");
+          isCardError = 
+            isDuplicateError ||
+            errorMessage.includes("expired") ||
+            errorMessage.includes("invalid") ||
+            errorMessage.includes("declined") ||
+            errorMessage.includes("card") ||
+            errorMessage.includes("payment method");
           
           // Provide specific messages for common errors
           if (isDuplicateError) {
             errorMsg = "This card is already added to your account. Please use a different card or remove the existing one first.";
-            // Refresh payment methods to show the existing card
-            dispatch(getPaymentMethods());
-            dispatch(checkHasPaymentMethod());
-          } else if (error.message.includes("expired")) {
+            // Refresh payment methods to show the existing card (don't add new one)
+            setTimeout(() => {
+              dispatch(getPaymentMethods());
+              dispatch(checkHasPaymentMethod());
+            }, 300);
+          } else if (errorMessage.includes("expired")) {
             errorMsg = "Your card has expired. Please use a valid card with a future expiration date.";
-          } else if (error.message.includes("invalid")) {
+          } else if (errorMessage.includes("invalid")) {
             errorMsg = "Invalid card details. Please check your card information and try again.";
-          } else if (error.message.includes("declined")) {
+          } else if (errorMessage.includes("declined")) {
             errorMsg = "Your card was declined. Please check your card details or try a different payment method.";
-          } else if (error.message.includes("network") || error.message.includes("connection")) {
+          } else if (errorMessage.includes("network") || errorMessage.includes("connection")) {
             errorMsg = "Network error. Please check your internet connection and try again.";
-          }
-        } else if (error?.response?.data?.message) {
-          errorMsg = error.response.data.message;
-          isDuplicateError = errorMsg.includes("already added") || errorMsg.includes("duplicate");
-          if (isDuplicateError) {
-            // Refresh payment methods to show the existing card
-            dispatch(getPaymentMethods());
-            dispatch(checkHasPaymentMethod());
-          }
-        } else if (error?.error?.message) {
-          errorMsg = error.error.message;
-          isDuplicateError = errorMsg.includes("already added") || errorMsg.includes("duplicate");
-          if (isDuplicateError) {
-            // Refresh payment methods to show the existing card
-            dispatch(getPaymentMethods());
-            dispatch(checkHasPaymentMethod());
           }
         }
         
         setErrorMessage(errorMsg);
         setIsProcessing(false);
+        
+        // Don't refresh payment methods for card errors (except duplicate) - we don't want to show a card that wasn't actually added
+        // The duplicate case is handled above to show the existing card
       }
     },
-    [dispatch, isUpdateMode, updatingPaymentMethodId]
+    [dispatch]
   );
 
   const handleAddCardError = useCallback((error) => {
@@ -264,15 +274,6 @@ function usePaymentMethods() {
     [dispatch, isRemoving]
   );
 
-  const handleUpdateCard = useCallback(
-    (paymentMethodId) => {
-      setIsUpdateMode(true);
-      setUpdatingPaymentMethodId(paymentMethodId);
-      setShowAddCardModal(true);
-    },
-    []
-  );
-
   const handleRefreshPaymentMethods = useCallback(() => {
     dispatch(getPaymentMethods());
     dispatch(checkHasPaymentMethod());
@@ -289,17 +290,14 @@ function usePaymentMethods() {
     handleAddCardSuccess,
     handleAddCardError,
     handleRemoveCard,
-    handleUpdateCard,
+    handleRefreshPaymentMethods,
     stripePromise,
     setupIntentClientSecret,
     isProcessing,
     setIsProcessing,
     errorMessage,
     setErrorMessage,
-    isUpdateMode,
-    updatingPaymentMethodId,
     isRemoving,
-    handleRefreshPaymentMethods,
   };
 }
 

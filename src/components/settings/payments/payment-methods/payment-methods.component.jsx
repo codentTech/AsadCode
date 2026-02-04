@@ -164,7 +164,6 @@ const PaymentMethodsPage = () => {
     handleAddCardSuccess,
     handleAddCardError,
     handleRemoveCard,
-    handleUpdateCard,
     handleRefreshPaymentMethods,
     stripePromise,
     setupIntentClientSecret,
@@ -172,8 +171,6 @@ const PaymentMethodsPage = () => {
     setIsProcessing,
     errorMessage,
     setErrorMessage,
-    isUpdateMode,
-    updatingPaymentMethodId,
     isRemoving,
   } = usePaymentMethods();
 
@@ -183,11 +180,6 @@ const PaymentMethodsPage = () => {
     cardInfo: null,
     isDefault: false,
   });
-
-  // Get the payment method being updated
-  const updatingPaymentMethod = isUpdateMode
-    ? paymentMethods.find((pm) => pm.id === updatingPaymentMethodId)
-    : null;
 
   // Reset error when modal closes
   useEffect(() => {
@@ -276,12 +268,6 @@ const PaymentMethodsPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CustomButton
-                      text="Update"
-                      className="btn-secondary text-xs"
-                      onClick={() => handleUpdateCard(method.id)}
-                      disabled={isProcessing}
-                    />
                     <button
                       onClick={() => {
                         const cardBrand = (method.card?.brand || method.brand || "Card").toLowerCase();
@@ -413,7 +399,7 @@ const PaymentMethodsPage = () => {
                   What if I need to update my card?
                 </h4>
                 <p className="text-xs text-gray-600">
-                  You can update your payment method at any time. Click "Update" on your saved card or add a new one. The new card will be used for future payments.
+                  You can manage your payment methods at any time. Remove an existing card and add a new one as needed. The new card will be used for future payments.
                 </p>
               </div>
               <div>
@@ -437,72 +423,29 @@ const PaymentMethodsPage = () => {
         </div>
       </div>
 
-      {/* Add/Update Card Modal */}
+      {/* Add Card Modal */}
       <Modal
         show={showAddCardModal}
         onClose={() => {
           setShowAddCardModal(false);
           setErrorMessage(null);
         }}
-        title={isUpdateMode ? "Update Payment Method" : "Add Payment Method"}
+        title="Add Payment Method"
         size="md"
       >
         <div className="p-4">
           <div className="mb-4 space-y-3">
             <p className="text-sm text-gray-700 font-medium">
-              {isUpdateMode
-                ? "Replace your payment method with a new card"
-                : "Add a payment method to fund creator collaborations"}
+              Add a payment method to fund creator collaborations
             </p>
             <p className="text-xs text-gray-600">
               Your card information is securely encrypted and stored by Stripe. CleerCut never sees your full card details.
             </p>
-            {isUpdateMode && updatingPaymentMethod && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-700 mb-2">
-                  <strong>Current card:</strong>
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <CreditCard className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs text-gray-600 capitalize">
-                    {(updatingPaymentMethod.card?.brand ||
-                      updatingPaymentMethod.brand ||
-                      "Card").toLowerCase()}{" "}
-                    ending in{" "}
-                    {updatingPaymentMethod.card?.last4 ||
-                      updatingPaymentMethod.last4 ||
-                      "****"}
-                  </span>
-                  {(updatingPaymentMethod.card?.exp_month ||
-                    updatingPaymentMethod.card?.expYear ||
-                    updatingPaymentMethod.expMonth ||
-                    updatingPaymentMethod.expYear) && (
-                    <span className="text-xs text-gray-500">
-                      • Expires{" "}
-                      {String(
-                        updatingPaymentMethod.card?.exp_month ||
-                          updatingPaymentMethod.expMonth ||
-                          "MM"
-                      ).padStart(2, "0")}
-                      /
-                      {updatingPaymentMethod.card?.exp_year ||
-                        updatingPaymentMethod.expYear ||
-                        "YYYY"}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Enter your new card details below to replace this card.
-                </p>
-              </div>
-            )}
-            {!isUpdateMode && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
-                  <strong>Note:</strong> No charge occurs when adding a card. You'll only be charged when a creator accepts your offer.
-                </p>
-              </div>
-            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> No charge occurs when adding a card. You'll only be charged when a creator accepts your offer.
+              </p>
+            </div>
           </div>
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -556,7 +499,7 @@ const PaymentMethodsPage = () => {
               disabled={isProcessing}
             />
             <CustomButton
-              text={isProcessing ? "Processing" : isUpdateMode ? "Update Card" : "Add Card"}
+              text={isProcessing ? "Processing" : "Add Card"}
               className="btn-primary"
               onClick={handleAddCard}
               loading={isProcessing}
