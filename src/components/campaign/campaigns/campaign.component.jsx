@@ -3,6 +3,7 @@ import Active from "./components/active/active.component";
 import CampaignApplication from "./components/applications/applications.component";
 import Completed from "./components/completed/completed.component";
 import Discover from "./components/discover/discover.component";
+import Rejected from "./components/rejected/rejected.component";
 import useCampaign from "./use-campaign.hook";
 
 export default function Campaign() {
@@ -38,11 +39,13 @@ export default function Campaign() {
           {activeTab === 1 ? (
             <Discover />
           ) : activeTab === 2 ? (
-            <CampaignApplication />
-          ) : activeTab === 3 ? (
             <Active />
-          ) : activeTab === 4 ? (
+          ) : activeTab === 3 ? (
             <Completed />
+          ) : activeTab === 4 ? (
+            <CampaignApplication />
+          ) : activeTab === 5 ? (
+            <Rejected />
           ) : (
             <Discover />
           )}

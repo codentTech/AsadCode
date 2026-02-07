@@ -7,13 +7,18 @@ function useCampaign() {
   const mainTabs = useMemo(() => {
     const tabs = [
       { id: 1, label: "Discover+" },
-      { id: 2, label: "Applications" },
-      { id: 3, label: "Active" },
-      { id: 4, label: "Completed" },
+      { id: 2, label: "Active" },
+      { id: 3, label: "Completed" },
+      { id: 4, label: "Applications" },
+      { id: 5, label: "Rejected" },
     ];
 
+    if (isCreatorMode()) {
+      return tabs.filter((tab) => tab.label !== "Rejected");
+    }
+
     return tabs;
-  }, []);
+  }, [isCreatorMode()]);
 
   return {
     activeTab,

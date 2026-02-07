@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
+import FundingStatusBadge from "../funding-status-badge/funding-status-badge.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -191,6 +192,10 @@ const DeliverablesProgress = ({
               Payment: <span className="font-medium">{formatCompensation()}</span>
             </span>
           </li>
+          <FundingStatusBadge
+            contractId={selectedContract.id}
+            compensationType={selectedContract.compensationType}
+          />
           {selectedContract.usageRights && (
             <li className="flex items-center justify-between">
               <span>
