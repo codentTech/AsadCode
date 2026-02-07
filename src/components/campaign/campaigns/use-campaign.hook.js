@@ -5,6 +5,7 @@ function useCampaign() {
   const [activeTab, setActiveTab] = useState(1);
 
   const mainTabs = useMemo(() => {
+    // Campaign tabs
     const tabs = [
       { id: 1, label: "Discover+" },
       { id: 2, label: "Active" },
