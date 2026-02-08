@@ -5,11 +5,13 @@ import {
   getAppliedCreators,
   rejectCreator,
   sendContract,
+  getAllBrandCampaigns,
 } from "@/provider/features/campaigns/campaigns.slice";
 import {
   getBrandIndividualCollaborations,
   rejectInvitation,
 } from "@/provider/features/invitation/invitation.slice";
+import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import useMessageThread from "../../message-thread-modal/use-message-thread.hook";
 import { avatar } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -17,6 +19,15 @@ import { getUser } from "@/common/utils/users.util";
 
 function useBrandApplications() {
   const dispatch = useDispatch();
+  const hasRestoredFromContext = useRef(false);
+  const lastRestoredCampaignIdRef = useRef(null);
+
+  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
+  const {
+    data: campaignsData,
+    isLoading: campaignsLoading,
+    isSuccess: campaignsSuccess,
+  } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const {
     data: appliedCreatorsData,
@@ -62,7 +73,7 @@ function useBrandApplications() {
     max_followers: "",
     min_rating: "",
     max_rating: "",
-    country: "",
+    countries: [],
     city: "",
     niches: [],
     platforms: [],
@@ -75,10 +86,75 @@ function useBrandApplications() {
     dispatch(getBrandIndividualCollaborations());
   }, [dispatch]);
 
+  // Fetch campaigns on mount
+  useEffect(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
+
+  // Restore campaign from Redux context
+  useEffect(() => {
+    // Reset restoration flag if selectedCampaignId from Redux changed
+    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
+      hasRestoredFromContext.current = false;
+    }
+  }, [selectedCampaignId]);
+
+  useEffect(() => {
+    if (
+      campaignsSuccess &&
+      campaignsData?.data &&
+      selectedCampaignId &&
+      !hasRestoredFromContext.current
+    ) {
+      const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+      const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
+      if (restoredCampaign) {
+        setSelectedCampaign(restoredCampaign);
+        hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = selectedCampaignId;
+
+        // Fetch data for restored campaign
+        if (restoredCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
+          fetchIndividualCollaborations();
+        } else {
+          dispatch(
+            getAppliedCreators({
+              campaignId: restoredCampaign.id,
+              filters: filters,
+            })
+          );
+        }
+      }
+    } else if (!selectedCampaignId) {
+      // Reset when Redux context is cleared
+      lastRestoredCampaignIdRef.current = null;
+      hasRestoredFromContext.current = false;
+    }
+  }, [
+    campaignsSuccess,
+    campaignsData,
+    selectedCampaignId,
+    dispatch,
+    filters,
+    fetchIndividualCollaborations,
+  ]);
+
   const handleCampaignSelect = (campaign) => {
     setSelectedCreator(null);
     autoSelectedForCampaignRef.current = null;
     setSelectedCampaign(campaign);
+
+    // Save to Redux context for persistence across tabs
+    if (campaign) {
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: campaign.id,
+          collaborationType: campaign.collaboration_type || null,
+        })
+      );
+    } else {
+      dispatch(setSelectedCampaignContext({ campaignId: null, collaborationType: null }));
+    }
 
     if (campaign) {
       if (campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
@@ -271,7 +347,7 @@ function useBrandApplications() {
       max_followers: "",
       min_rating: "",
       max_rating: "",
-      country: "",
+      countries: [],
       city: "",
       niches: [],
       platforms: [],

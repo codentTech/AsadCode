@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { avatar } from "@/common/constants/auth.constant";
 import { getAge } from "@/common/utils/date.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
 function useDeliverablesProgress({ onReinstateCreator, selectedCreator, isIndividualCreator }) {
   const [showReinstateConfirmation, setShowReinstateConfirmation] = useState(false);
+  const router = useRouter();
 
   const creatorData = useMemo(() => {
     if (!selectedCreator) {
@@ -83,12 +85,26 @@ function useDeliverablesProgress({ onReinstateCreator, selectedCreator, isIndivi
     setShowReinstateConfirmation(false);
   };
 
+  const creatorUserId = useMemo(() => {
+    if (!selectedCreator) return null;
+    const originalData = selectedCreator.originalData || selectedCreator;
+    const creator = originalData.creator || selectedCreator.creator || originalData;
+    return creator?.id || selectedCreator?.id || null;
+  }, [selectedCreator]);
+
+  const handleViewCreatorPortfolio = useCallback(() => {
+    if (creatorUserId) {
+      router.push(`/creator-profile/${creatorUserId}`);
+    }
+  }, [creatorUserId, router]);
+
   return {
     showReinstateConfirmation,
     creatorData,
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
+    handleViewCreatorPortfolio,
   };
 }
 

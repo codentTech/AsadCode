@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { product as defaultProduct } from "@/common/constants/auth.constant";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
-import { getBrandCampaignsExcludingCompleted } from "@/provider/features/campaigns/campaigns.slice";
+import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { Loader2 } from "lucide-react";
 
 const formatCurrency = (value) => {
@@ -92,17 +92,26 @@ const normalizeCampaigns = (data) => {
 function ActiveCampaigns({ refreshKey }) {
   const dispatch = useDispatch();
   const { data, isLoading, isError, message } = useSelector(
-    (state) => state.campaigns.getBrandCampaignsExcludingCompleted || {}
+    (state) => state.campaigns.getAllBrandCampaigns || {}
   );
 
   useEffect(() => {
-    dispatch(getBrandCampaignsExcludingCompleted());
+    dispatch(getAllBrandCampaigns());
   }, [dispatch, refreshKey]);
 
-  const campaigns = useMemo(() => normalizeCampaigns(data), [data]);
+  // Filter out completed campaigns on frontend
+  const activeCampaignsData = useMemo(() => {
+    if (!data?.data || !Array.isArray(data.data)) return null;
+    return {
+      ...data,
+      data: data.data.filter((campaign) => campaign.status !== "COMPLETE"),
+    };
+  }, [data]);
+
+  const campaigns = useMemo(() => normalizeCampaigns(activeCampaignsData), [activeCampaignsData]);
 
   const handleRefresh = () => {
-    dispatch(getBrandCampaignsExcludingCompleted());
+    dispatch(getAllBrandCampaigns());
   };
 
   return (

@@ -7,12 +7,11 @@ import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.
 import { formatDate } from "@/common/utils/formate-date";
 import { getUser } from "@/common/utils/users.util";
 import { Avatar } from "@mui/material";
-import { Edit2, Star, Trash2 } from "lucide-react";
+import { Check, Copy, Edit2, MapPin, Package, Star, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
-import FundingStatusBadge from "../funding-status-badge/funding-status-badge.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -30,6 +29,9 @@ const DeliverablesProgress = ({
     handleMessageClick,
     creator,
     creatorUserId,
+    formatShippingAddress,
+    onCopyShippingAddress,
+    isAddressCopied,
     privateNotes,
     editingNote,
     newNoteText,
@@ -59,6 +61,7 @@ const DeliverablesProgress = ({
     handleMarkCompleteClick,
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
+    handleViewCreatorPortfolio,
   } = useDeliverablesProgress(
     selectedCampaign,
     selectedCreator,
@@ -86,7 +89,7 @@ const DeliverablesProgress = ({
   );
 
   const renderCreatorProfile = () => (
-    <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
+    <div className="flex flex-col items-center pt-3 pb-4 px-3 border-b sticky gap-1 top-0 bg-white z-10">
       <div className="relative">
         <Avatar
           src={creator?.image}
@@ -97,14 +100,61 @@ const DeliverablesProgress = ({
         </Avatar>
       </div>
       <h3>
-        {creator.name}
+        <button
+          onClick={handleViewCreatorPortfolio}
+          className="hover:text-primary transition-colors cursor-pointer"
+        >
+          {creator.name}
+        </button>
         <span className="text-lg text-gray-500 ml-1">{creator.rating}</span>
         <span className="text-lg text-gray-500 ml-1">({creator.reviewCount || 0})</span>
       </h3>
       <p className="flex items-center text-sm text-gray-500 -mt-1">
         {creator.age} • <span className="ml-1">{creator.location}</span>
       </p>
-      <p className="text-sm text-gray-500 -mt-1">{creator?.bio}</p>
+      {/* Shipping Address Section - Replaces Bio on Active Campaign Screen */}
+      {creator?.shippingAddress ? (
+        <div className="mt-3 w-full">
+          <div className="bg-white rounded border border-gray-200 shadow-sm p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <h4 className="text-sm font-semibold text-gray-800">Shipping Address</h4>
+            </div>
+            <div className="space-y-1.5 mb-4">
+              {formatShippingAddress(creator.shippingAddress)?.map((line, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-gray-700 leading-relaxed">{line}</p>
+                </div>
+              ))}
+            </div>
+            <CustomButton
+              text={isAddressCopied ? "Copied!" : "Copy Shipping Address"}
+              className={`text-xs w-full ${
+                isAddressCopied
+                  ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                  : "btn-secondary"
+              }`}
+              onClick={() => onCopyShippingAddress(creator.shippingAddress)}
+              icon={
+                isAddressCopied ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )
+              }
+              disabled={isAddressCopied}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-3 w-full">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-500 italic">Shipping address not provided</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -192,10 +242,6 @@ const DeliverablesProgress = ({
               Payment: <span className="font-medium">{formatCompensation()}</span>
             </span>
           </li>
-          <FundingStatusBadge
-            contractId={selectedContract.id}
-            compensationType={selectedContract.compensationType}
-          />
           {selectedContract.usageRights && (
             <li className="flex items-center justify-between">
               <span>
@@ -203,7 +249,7 @@ const DeliverablesProgress = ({
                 <span className="font-medium">
                   {selectedContract.usageRights
                     ? selectedContract.usageRights?.split("_").join(" ")
-                    : "Not specified"}
+                    : "None"}
                 </span>
               </span>
             </li>
@@ -215,7 +261,7 @@ const DeliverablesProgress = ({
                 <span className="font-medium">
                   {selectedContract.exclusivityClause
                     ? selectedContract.exclusivityClause?.split("_").join(" ")
-                    : "Not specified"}
+                    : "None"}
                 </span>
               </span>
             </li>

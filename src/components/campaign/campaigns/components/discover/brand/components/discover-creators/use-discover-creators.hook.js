@@ -78,7 +78,7 @@ export default function useDiscoverCreators() {
   const [filters, setFilters] = useState({
     platforms: [],
     minFollowers: "",
-    country: "",
+    countries: [],
     city: "",
     gender: "",
     ageRange: "",
@@ -119,6 +119,7 @@ export default function useDiscoverCreators() {
       filters.gender ||
       filters.ageRange ||
       filters.country ||
+      (Array.isArray(filters.countries) && filters.countries.length > 0) ||
       filters.city ||
       filters.languages?.length > 0 ||
       audienceFilters.audienceGender ||
@@ -135,7 +136,9 @@ export default function useDiscoverCreators() {
     if (selectedSort) params.sortBy = selectedSort;
     if (filters.niches.length > 0) params.niches = filters.niches.join(",");
     if (filters.platforms.length > 0) params.platforms = filters.platforms.join(",");
-    if (filters.country) params.country = filters.country;
+    if (Array.isArray(filters.countries) && filters.countries.length > 0) {
+      params.countries = filters.countries.join(",");
+    }
     if (filters.city) params.city = filters.city;
     if (filters.languages?.length > 0) params.languages = filters.languages.join(",");
     if (filters.minFollowers) params.minFollowers = Number(filters.minFollowers);
@@ -172,7 +175,7 @@ export default function useDiscoverCreators() {
     setFilters({
       platforms: [],
       minFollowers: "",
-      country: "",
+      countries: [],
       city: "",
       gender: "",
       ageRange: "",

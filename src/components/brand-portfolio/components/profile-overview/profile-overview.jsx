@@ -73,7 +73,7 @@ function ProfileOverview({
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
-              {basics.email && (
+              {/* {basics.email && (
                 <a
                   href={`mailto:${basics.email}`}
                   className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition"
@@ -81,7 +81,7 @@ function ProfileOverview({
                   <Mail className="w-4 h-4" />
                   {basics.email}
                 </a>
-              )}
+              )} */}
             </div>
 
             {preferences?.targetNiches?.length ? (

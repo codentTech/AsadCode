@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import useRejected from "./use-rejected.hook";
 
-function Rejected() {
+function Rejected({ onSwitchToApplications }) {
   const [showShortlistModalForDetails, setShowShortlistModalForDetails] = useState(false);
 
   const {
@@ -81,6 +81,7 @@ function Rejected() {
           onClearFilters={handleClearFilters}
           onSortChange={handleSortChange}
           onSaveToShortlist={handleSaveToShortlist}
+          onSwitchToApplications={onSwitchToApplications}
         />
 
         {renderRightPane()}

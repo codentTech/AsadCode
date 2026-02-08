@@ -22,8 +22,6 @@ function CampaignFilters() {
     applyFilters,
     hasActiveFilters,
     isLoading,
-    isError,
-    message,
   } = useCampaignFilter();
 
   const platformOptions = [
@@ -62,12 +60,6 @@ function CampaignFilters() {
               <RotateCcw size={12} />
               Clear all
             </button>
-          </div>
-        )}
-        {/* Error Message */}
-        {isError && (
-          <div className="mt-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-            {message || "Error applying filters"}
           </div>
         )}
       </div>
