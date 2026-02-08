@@ -129,11 +129,20 @@ const ActiveFilters = ({
 
               <div className="flex flex-wrap gap-2">
                 {/* Niche Filters */}
-                {filters.niches.map((niche) => (
-                  <FilterTag key={niche} onRemove={() => onNicheToggle(niche)} color="blue">
-                    {NICHE_OPTIONS.find((n) => n.value === niche)?.label}
-                  </FilterTag>
-                ))}
+                {filters.niches.map((niche) => {
+                  // Try to find label in NICHE_OPTIONS (case-insensitive)
+                  const nicheOption = NICHE_OPTIONS.find(
+                    (n) => n.value.toLowerCase() === niche.toLowerCase()
+                  );
+                  // If not found, use the niche value itself (capitalize first letter)
+                  const nicheLabel = nicheOption?.label || 
+                    (niche.charAt(0).toUpperCase() + niche.slice(1).toLowerCase());
+                  return (
+                    <FilterTag key={niche} onRemove={() => onNicheToggle(niche)} color="blue">
+                      {nicheLabel}
+                    </FilterTag>
+                  );
+                })}
 
                 {/* Platform Filters */}
                 {filters.platforms.map((platform) => (
@@ -149,7 +158,7 @@ const ActiveFilters = ({
                 {/* Min Followers Filter */}
                 {filters.minFollowers && (
                   <FilterTag onRemove={() => onFollowerSelect(filters.minFollowers)} color="blue">
-                    {FOLLOWER_OPTIONS.find((f) => f.value === filters.minFollowers)?.label}+
+                    {FOLLOWER_OPTIONS.find((f) => f.value === filters.minFollowers)?.label}
                     followers
                   </FilterTag>
                 )}
