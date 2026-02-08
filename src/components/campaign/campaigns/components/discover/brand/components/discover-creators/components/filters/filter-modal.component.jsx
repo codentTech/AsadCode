@@ -283,30 +283,7 @@ const FilterModal = ({
                   }}
                 />
 
-                {filters.niches && filters.niches.length > 0 && (
-                  <div className="space-y-1 mt-2">
-                    <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
-                    <div className="flex flex-wrap gap-1">
-                      {filters.niches?.map((niche) => (
-                        <span
-                          key={niche}
-                          className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
-                        >
-                          {niche}
-                          <CustomButton
-                            text=""
-                            onClick={() => {
-                              const updatedNiches = filters.niches.filter((n) => n !== niche);
-                              onFiltersChange({ ...filters, niches: updatedNiches });
-                            }}
-                            className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
-                            startIcon={<X className="text-black w-3 h-3 ml-4" />}
-                          />
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          
               </div>
 
               {/* Language */}
