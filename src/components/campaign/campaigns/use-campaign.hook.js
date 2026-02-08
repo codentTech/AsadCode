@@ -8,6 +8,7 @@ function useCampaign() {
   const [activeTab, setActiveTab] = useState(tab || 1);
 
   const mainTabs = useMemo(() => {
+<<<<<<< HEAD
     const brandTabs = [
       { id: 1, label: "Discover+" },
       { id: 2, label: "Applications" },
@@ -16,6 +17,9 @@ function useCampaign() {
     ];
 
     const creatorTabs = [
+=======
+    const tabs = [
+>>>>>>> a5159f35022f88726e1d03be107e98f125d40fbc
       { id: 1, label: "Discover+" },
       { id: 2, label: "Active" },
       { id: 3, label: "Completed" },
