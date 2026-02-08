@@ -23,8 +23,9 @@ import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
 } from "@/provider/features/contracts/contracts.slice";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const useDeliverablesProgress = (
@@ -37,6 +38,7 @@ const useDeliverablesProgress = (
   const creatorMode = isCreatorMode();
   const user = getUser();
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const {
     createCampaignNote: createNoteState,
@@ -573,6 +575,12 @@ const useDeliverablesProgress = (
     setIsMarkingComplete(false);
   };
 
+  const handleViewCreatorPortfolio = useCallback(() => {
+    if (creatorUserId) {
+      router.push(`/creator-profile/${creatorUserId}`);
+    }
+  }, [creatorUserId, router]);
+
   return {
     messageThreadHook,
     handleMessageClick,
@@ -612,6 +620,7 @@ const useDeliverablesProgress = (
     campaignReviews: getReviewsByCreatorProfileState.data || [],
     reviewStatus: getReviewStatusState.data || null,
     isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
+    handleViewCreatorPortfolio,
   };
 };
 

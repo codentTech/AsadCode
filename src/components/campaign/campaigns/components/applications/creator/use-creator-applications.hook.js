@@ -4,13 +4,17 @@ import {
   getCreatorApplications,
   withdrawApplication,
 } from "@/provider/features/campaigns/campaigns.slice";
+import { getPendingContractsForCreator } from "@/provider/features/contracts/contracts.slice";
 import invitationService from "@/provider/features/invitation/invitation.service";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { useSearchParams } from "next/navigation";
 
 function useCreatorApplications() {
+  const searchParams = useSearchParams();
+  const tab = Number(searchParams.get("application")) || 2;
   const dispatch = useDispatch();
 
-  const [activeTab, setActiveTab] = useState("negotiations");
+  const [activeTab, setActiveTab] = useState(tab || 2);
   const [allApplications, setAllApplications] = useState({
     invites: [],
     negotiations: [],
@@ -33,9 +37,20 @@ function useCreatorApplications() {
     (state) => state.campaigns.getCreatorApplications || {}
   );
 
-  const { data: offersData } = useSelector(
+  const { data: offersDataRaw } = useSelector(
     (state) => state.contracts.getPendingContractsForCreator || {}
   );
+
+  // Handle both array and nested data structure
+  const offersData = (() => {
+    if (Array.isArray(offersDataRaw)) {
+      return offersDataRaw;
+    }
+    if (offersDataRaw?.data && Array.isArray(offersDataRaw.data)) {
+      return offersDataRaw.data;
+    }
+    return [];
+  })();
 
   const { isLoading: withdrawLoading } = useSelector(
     (state) => state.campaigns.withdrawApplication || {}
@@ -43,7 +58,13 @@ function useCreatorApplications() {
 
   useEffect(() => {
     fetchAllApplications();
-  }, []);
+    // Fetch pending contracts for offers count
+    dispatch(getPendingContractsForCreator());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setActiveTab(tab || 2);
+  }, [tab]);
 
   const normalizeInvitation = (invitation) => ({
     ...invitation,
@@ -119,13 +140,13 @@ function useCreatorApplications() {
   };
 
   const filteredData =
-    activeTab === "invites"
+    activeTab === 1
       ? allApplications.invites.filter((item) => item.isInvitation === true)
-      : activeTab === "negotiations"
+      : activeTab === 2
         ? allApplications.negotiations.filter((item) => !item.isInvitation)
-        : activeTab === "offers"
+        : activeTab === 5
           ? allApplications.offers.filter((item) => !item.isInvitation)
-          : activeTab === "pending"
+          : activeTab === 3
             ? allApplications.pending.filter((item) => !item.isInvitation)
             : allApplications.rejected.filter((item) => !item.isInvitation);
 

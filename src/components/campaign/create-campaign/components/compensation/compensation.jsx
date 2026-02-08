@@ -193,7 +193,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
         <div className="space-y-4">
           <div className="w-full max-w-sm">
             <CustomInput
-              label="Product Value"
+              label="Product Value in USD"
               type="number"
               name="product_value"
               placeholder="e.g., 75"

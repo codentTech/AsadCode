@@ -18,6 +18,7 @@ const DeliverablesProgress = ({
     handleReinstateClick,
     handleConfirmReinstate,
     handleCancelReinstate,
+    handleViewCreatorPortfolio,
   } = useDeliverablesProgress({
     onReinstateCreator,
     selectedCreator,
@@ -45,7 +46,12 @@ const DeliverablesProgress = ({
           </Avatar>
         </div>
         <h3>
-          {creatorData.name}
+          <button
+            onClick={handleViewCreatorPortfolio}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
+            {creatorData.name}
+          </button>
           <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
           <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
         </h3>

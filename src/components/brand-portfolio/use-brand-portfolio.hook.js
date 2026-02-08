@@ -1,6 +1,8 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { getUser } from "@/common/utils/users.util";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { isCreatorMode, getUser } from "@/common/utils/users.util";
 import { avatar } from "@/common/constants/auth.constant";
+import usersService from "@/provider/features/users/users.service";
 
 const normalizePlatformConnection = (connection) => {
   if (!connection) return null;
@@ -52,15 +54,45 @@ const normalizePlatformConnection = (connection) => {
   return null;
 };
 
-export default function useBrandPortfolioData(refreshKey = 0) {
+export default function useBrandPortfolio(brandId = null) {
+  const router = useRouter();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [brandUser, setBrandUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const user = getUser();
-    if (user?.brand_profile) {
-      setBrandUser(user);
+    if (!brandId && isCreatorMode()) {
+      router.replace("/creator-portfolio");
     }
-  }, [refreshKey]);
+  }, [router, brandId]);
+
+  useEffect(() => {
+    const loadBrandData = async () => {
+      setIsLoading(true);
+      try {
+        if (brandId) {
+          // Fetch brand by ID
+          const result = await usersService.getUserById(brandId);
+          if (result.success && result.data) {
+            setBrandUser(result.data);
+          }
+        } else {
+          // Use current user
+          const user = getUser();
+          if (user?.brand_profile) {
+            setBrandUser(user);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load brand data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBrandData();
+  }, [brandId, refreshKey]);
 
   const brandProfile = useMemo(() => brandUser?.brand_profile || null, [brandUser]);
 
@@ -175,14 +207,30 @@ export default function useBrandPortfolioData(refreshKey = 0) {
     }
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    refreshBrandData();
+    setRefreshKey((prev) => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 300);
+  }, [refreshBrandData]);
+
+  const handleEditProfile = useCallback(() => {
+    router.push("/settings/brand-profile/profile-information");
+  }, [router]);
+
+  const canEdit = !brandId; // Only allow editing if viewing own profile
+
   return {
-    brandUser,
-    brandProfile,
     brandBasics,
-    brandPreferences,
     brandOverview,
+    brandPreferences,
     verifiedConnections,
     audienceSummary,
-    refreshBrandData,
+    refreshKey,
+    isRefreshing,
+    handleRefresh,
+    handleEditProfile,
+    canEdit,
+    isLoading,
   };
 }

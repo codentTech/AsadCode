@@ -113,7 +113,7 @@ export default function useMonthlyGoals(selectedCampaign) {
     [updateGoal]
   );
 
-  // Update goal title
+  // Update goal title (with debouncing handled in component)
   const updateGoalTitle = useCallback(
     async (goal, newTitle) => {
       await updateGoal(goal.id, {

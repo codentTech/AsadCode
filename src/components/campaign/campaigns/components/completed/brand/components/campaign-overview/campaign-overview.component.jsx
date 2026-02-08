@@ -133,7 +133,7 @@ export default function CampaignOverviewCompleted({
             <>
               <hr />
               <div className="bg-blue-50 rounded-lg p-4">
-                <h5 className="font-bold text-blue-800 mb-3">Performance Overview</h5>
+                <h5 className="font-bold text-blue-800 mb-3">Combined Performance Overview</h5>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Views:</span>

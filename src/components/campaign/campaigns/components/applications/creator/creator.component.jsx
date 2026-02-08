@@ -1,5 +1,7 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { Gift, Package } from "lucide-react";
+import NotFound from "@/common/components/not-found/not-found.component";
+import Loader from "@/common/components/loader/loader.component";
+import { Gift } from "lucide-react";
 import ApplicationCard from "./components/application-card/application-card.component";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import ApplicationMessageThread from "./components/message-thread-modal/application-message-thread.component";
@@ -74,23 +76,21 @@ const CreatorApplications = () => {
                 )}
               </button>
 
-              {/* Tab Pills - Simple Theme Design */}
-              <div className="flex items-center gap-0 bg-gray-100 rounded-lg p-0.5">
+              {/* Tab Navigation */}
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleTabChange("invites")}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "invites"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                  onClick={() => handleTabChange(1)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 1
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Invites</span>
                   {allApplications.invites?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "invites"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 1 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.invites?.length || 0}
@@ -98,20 +98,18 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("negotiations")}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "negotiations"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                  onClick={() => handleTabChange(2)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 2
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Negotiations</span>
                   {allApplications.negotiations?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "negotiations"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 2 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.negotiations?.length || 0}
@@ -119,20 +117,18 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("pending")}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "pending"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                  onClick={() => handleTabChange(3)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 3
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Pending</span>
                   {allApplications.pending?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "pending"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 3 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.pending?.length || 0}
@@ -140,20 +136,18 @@ const CreatorApplications = () => {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange("rejected")}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all duration-150 ${
-                    activeTab === "rejected"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                  onClick={() => handleTabChange(4)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 4
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                   }`}
                 >
                   <span>Rejected</span>
                   {allApplications.rejected?.length > 0 && (
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        activeTab === "rejected"
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200 text-gray-600"
+                        activeTab === 4 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {allApplications.rejected?.length || 0}
@@ -170,39 +164,35 @@ const CreatorApplications = () => {
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="max-w-7xl mx-auto px-6 py-8">
           {applicationsLoading ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
-              title="Loading applications..."
-              description="Please wait while we fetch the campaign applications."
-            />
+            <div className="flex justify-center items-center py-12">
+              <Loader />
+            </div>
           ) : applicationsError ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
+            <NotFound
               title="Error loading applications"
               description="Failed to fetch campaign applications. Please try again later."
             />
           ) : filteredData.length === 0 ? (
-            <EmptyState
-              icon={<Package className="w-8 h-8 text-gray-400" />}
+            <NotFound
               title={`No ${
-                activeTab === "invites"
+                activeTab === 1
                   ? "invites"
-                  : activeTab === "negotiations"
+                  : activeTab === 2
                     ? "negotiations"
-                    : activeTab === "offers"
+                    : activeTab === 5
                       ? "offers"
-                      : activeTab === "pending"
+                      : activeTab === 3
                         ? "pending"
                         : "rejected"
-              } ${activeTab === "invites" ? "" : "applications"}`}
+              } ${activeTab === 1 ? "" : "applications"}`}
               description={
-                activeTab === "invites"
+                activeTab === 1
                   ? "You don't have any invitations from brands yet. Brands will send you invitations to collaborate."
-                  : activeTab === "negotiations"
+                  : activeTab === 2
                     ? "Brands haven't started conversations about your applications yet."
                     : activeTab === "offers"
                       ? "You don't have any offers at the moment. Keep applying to campaigns!"
-                      : activeTab === "pending"
+                      : activeTab === 3
                         ? "You don't have any pending applications at the moment."
                         : "You don't have any rejected applications."
               }
@@ -267,15 +257,5 @@ const CreatorApplications = () => {
     </div>
   );
 };
-
-const EmptyState = ({ icon, title, description }) => (
-  <div className="text-center py-12">
-    <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-      {icon}
-    </div>
-    <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
-  </div>
-);
 
 export default CreatorApplications;
