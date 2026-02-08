@@ -23,7 +23,7 @@ import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
 } from "@/provider/features/contracts/contracts.slice";
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
@@ -71,6 +71,7 @@ const useDeliverablesProgress = (
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [markCompleteRating, setMarkCompleteRating] = useState(0);
   const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
+  const [isAddressCopied, setIsAddressCopied] = useState(false);
 
   // Track the last called keys to prevent duplicate calls
   const lastCalledKeysRef = useRef({
@@ -147,6 +148,7 @@ const useDeliverablesProgress = (
         rating: parseFloat(selectedCreator.rating) || parseFloat(contractProfile?.rating) || 0,
         reviewCount: selectedCreator.reviewCount || contractProfile?.review_count || 0,
         bio: selectedCreator.bio || contractProfile?.bio || "No bio available",
+        shippingAddress: contractProfile?.shipping_address || selectedCreator?.creator?.creator_profile?.shipping_address || null,
         age: selectedCreator.age,
       };
     }
@@ -171,6 +173,7 @@ const useDeliverablesProgress = (
         rating: parseFloat(profile?.rating) || parseFloat(selectedCreator.rating) || 0,
         reviewCount: profile?.review_count || selectedCreator.reviewCount || 0,
         bio: profile?.bio || selectedCreator.bio || "No bio available",
+        shippingAddress: profile?.shipping_address || null,
         age:
           selectedCreator.age ||
           (creator.date_of_birth
@@ -189,6 +192,7 @@ const useDeliverablesProgress = (
       rating: parseFloat(selectedCreator.rating) || 0,
       reviewCount: selectedCreator.reviewCount || 0,
       bio: selectedCreator.bio || "No bio available",
+      shippingAddress: selectedCreator?.creator?.creator_profile?.shipping_address || null,
       age: selectedCreator.age,
     };
   };
@@ -223,6 +227,8 @@ const useDeliverablesProgress = (
       selectedCreator?.contract?.creator?.creator_profile?.rating,
       selectedCreator?.contract?.creator?.creator_profile?.review_count,
       selectedCreator?.contract?.creator?.creator_profile?.bio,
+      selectedCreator?.contract?.creator?.creator_profile?.shipping_address,
+      selectedCreator?.creator?.creator_profile?.shipping_address,
       creatorProfileId,
       isIndividualCreator,
     ]
@@ -575,6 +581,58 @@ const useDeliverablesProgress = (
     setIsMarkingComplete(false);
   };
 
+  // Format shipping address for display
+  const formatShippingAddress = useCallback((address) => {
+    if (!address) return null;
+
+    const lines = [];
+    if (address.street) lines.push(address.street);
+    if (address.line2) lines.push(address.line2);
+    if (address.line3) lines.push(address.line3);
+
+    const cityStateZip = [
+      address.city,
+      address.state,
+      address.zipCode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    if (cityStateZip) lines.push(cityStateZip);
+    if (address.country) lines.push(address.country);
+
+    return lines;
+  }, []);
+
+  // Copy shipping address to clipboard
+  const handleCopyShippingAddress = useCallback(async (address) => {
+    if (!address) return false;
+
+    const addressLines = formatShippingAddress(address);
+    if (!addressLines || addressLines.length === 0) return false;
+
+    const formattedAddress = addressLines.join("\n");
+
+    try {
+      await navigator.clipboard.writeText(formattedAddress);
+      return true;
+    } catch (error) {
+      console.error("Failed to copy address:", error);
+      return false;
+    }
+  }, [formatShippingAddress]);
+
+  // Handle copy shipping address with state management
+  const onCopyShippingAddress = useCallback(async (address) => {
+    const success = await handleCopyShippingAddress(address);
+    if (success) {
+      setIsAddressCopied(true);
+      setTimeout(() => {
+        setIsAddressCopied(false);
+      }, 2000);
+    }
+  }, [handleCopyShippingAddress]);
+  
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
       router.push(`/creator-profile/${creatorUserId}`);
@@ -586,6 +644,10 @@ const useDeliverablesProgress = (
     handleMessageClick,
     creator,
     creatorUserId,
+    formatShippingAddress,
+    handleCopyShippingAddress,
+    onCopyShippingAddress,
+    isAddressCopied,
     privateNotes,
     editingNote,
     newNoteText,
