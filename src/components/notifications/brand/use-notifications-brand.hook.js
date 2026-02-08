@@ -48,8 +48,8 @@ function useNotificationsBrand() {
   // Campaign options
   const campaignOptions = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
-    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-    const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
+    const activeCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    // const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
 
     // Add "All Campaigns" option at the beginning
     return [
