@@ -1,42 +1,39 @@
 import api from "@/common/utils/api";
 
-// Get brand's payment methods
+// Brand payment methods
 const getPaymentMethods = async () => {
   const response = await api().get("/collaboration-payments/payment-methods");
   return response.data;
 };
 
-// Check if brand has a valid payment method
 const hasPaymentMethod = async () => {
   const response = await api().get("/collaboration-payments/payment-methods/check");
   return response.data;
 };
 
-// Create SetupIntent for saving payment method
 const createSetupIntent = async () => {
-  const response = await api({
-    "x-skip-toast": "true",
-  }).post("/collaboration-payments/payment-methods/setup-intent");
+  const response = await api({ "x-skip-toast": "true" }).post(
+    "/collaboration-payments/payment-methods/setup-intent"
+  );
   return response.data;
 };
 
-// Attach payment method to brand
 const attachPaymentMethod = async (paymentMethodId) => {
-  const response = await api({
-    "x-skip-toast": "true", // Skip toast - errors are shown in the component
-  }).post("/collaboration-payments/payment-methods/attach", {
-    paymentMethodId,
-  });
+  const response = await api({ "x-skip-toast": "true" }).post(
+    "/collaboration-payments/payment-methods/attach",
+    { paymentMethodId }
+  );
   return response.data;
 };
 
-// Remove payment method
 const removePaymentMethod = async (paymentMethodId) => {
-  const response = await api().delete(`/collaboration-payments/payment-methods/${paymentMethodId}`);
+  const response = await api().delete(
+    `/collaboration-payments/payment-methods/${paymentMethodId}`
+  );
   return response.data;
 };
 
-// Fund a collaboration (charge brand)
+// Brand funding / escrow flows
 const fundCollaboration = async (collaborationId) => {
   const response = await api().post("/collaboration-payments/fund", {
     collaborationId,
@@ -44,8 +41,7 @@ const fundCollaboration = async (collaborationId) => {
   return response.data;
 };
 
-// Retry funding a failed collaboration
-const retryFunding = async (collaborationId, paymentMethodId = null) => {
+const retryFunding = async ({ collaborationId, paymentMethodId = null }) => {
   const response = await api().post("/collaboration-payments/retry-funding", {
     collaborationId,
     paymentMethodId,
@@ -53,35 +49,75 @@ const retryFunding = async (collaborationId, paymentMethodId = null) => {
   return response.data;
 };
 
-// Get payment details for a collaboration
 const getPaymentByCollaboration = async (collaborationId) => {
-  const response = await api().get(`/collaboration-payments/collaboration/${collaborationId}`);
+  const response = await api().get(
+    `/collaboration-payments/collaboration/${collaborationId}`
+  );
   return response.data;
 };
 
-// Get all payments for current brand
+// Payments history
 const getBrandPayments = async () => {
   const response = await api().get("/collaboration-payments/brand/payments");
   return response.data;
 };
 
-// Get all payments for current creator
 const getCreatorPayments = async () => {
   const response = await api().get("/collaboration-payments/creator/payments");
   return response.data;
 };
 
+// Creator Stripe Connect (payout method)
+const createCreatorOnboardingLink = async ({ returnUrl, refreshUrl }) => {
+  const response = await api().post(
+    "/collaboration-payments/creator/connect/create",
+    { returnUrl, refreshUrl }
+  );
+  return response.data;
+};
+
+const getCreatorAccountStatus = async () => {
+  const response = await api().get("/collaboration-payments/creator/connect/status");
+  return response.data;
+};
+
+const checkCreatorPayoutReady = async () => {
+  const response = await api().get(
+    "/collaboration-payments/creator/connect/payout-ready"
+  );
+  return response.data;
+};
+
+// Platform Connect availability check (brand dashboard / env readiness)
+const checkConnectStatus = async () => {
+  const response = await api().get("/collaboration-payments/connect/status");
+  return response.data;
+};
+
 const collaborationPaymentService = {
+  // Brand payment methods
   getPaymentMethods,
   hasPaymentMethod,
   createSetupIntent,
   attachPaymentMethod,
   removePaymentMethod,
+
+  // Escrow / funding
   fundCollaboration,
   retryFunding,
   getPaymentByCollaboration,
+
+  // Payment history
   getBrandPayments,
   getCreatorPayments,
+
+  // Creator payouts
+  createCreatorOnboardingLink,
+  getCreatorAccountStatus,
+  checkCreatorPayoutReady,
+
+  // Connect status
+  checkConnectStatus,
 };
 
 export default collaborationPaymentService;

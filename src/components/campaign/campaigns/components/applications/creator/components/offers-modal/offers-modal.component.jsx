@@ -3,7 +3,7 @@ import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import ContractPreviewModal from "../../../brand/components/contract-preview-modal/contract-preview-modal.component";
 import { avatar } from "@/common/constants/auth.constant";
-import { Clock } from "lucide-react";
+import { Clock, CreditCard, AlertCircle } from "lucide-react";
 import Loader from "@/common/components/loader/loader.component";
 import useOffersModal from "./use-offers-modal.hook";
 
@@ -17,12 +17,67 @@ export default function OffersModal({ show, onClose, onContractAction }) {
     contractPreviewData,
     signLoading,
     declineLoading,
+    showStripePrompt,
     formatTimeAgo,
     handleReviewContract,
     handleAccept,
     handleDecline,
     handleBackToList,
+    handleSetupStripe,
   } = useOffersModal({ show, onClose, onContractAction });
+
+  // Stripe Setup Prompt Modal
+  if (showStripePrompt) {
+    return (
+      <Modal
+        title="Stripe Account Required"
+        show={showStripePrompt}
+        onClose={handleBackToList}
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-yellow-900 mb-1">
+                Payment Setup Required
+              </h3>
+              <p className="text-sm text-yellow-800">
+                This is a paid collaboration. You need to connect your Stripe account to receive
+                payments before accepting this offer.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <CreditCard className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 mb-1">Why Stripe?</p>
+                <p className="text-sm text-gray-600">
+                  Stripe securely handles your payout information and identity verification. CleerCut
+                  never stores your bank details.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <CustomButton
+              text="Cancel"
+              className="btn-outline px-6 py-2"
+              onClick={handleBackToList}
+            />
+            <CustomButton
+              text="Set Up Stripe"
+              className="btn-primary px-6 py-2"
+              onClick={handleSetupStripe}
+            />
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   // If showing contract preview
   if (showContractPreview && contractPreviewData) {

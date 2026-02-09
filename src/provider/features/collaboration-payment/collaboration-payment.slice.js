@@ -1,38 +1,51 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import collaborationPaymentService from "./collaboration-payment.service";
 
-const getSerializableError = (error, defaultMessage = "An unexpected error occurred") => {
-  if (error?.response?.data) {
-    return error.response.data;
-  }
-  if (error?.message) {
-    return { message: error.message };
-  }
+const getSerializableError = (
+  error,
+  defaultMessage = "An unexpected error occurred"
+) => {
+  if (error?.response?.data) return error.response.data;
+  if (typeof error === "string") return { message: error };
+  if (error?.message) return { message: error.message };
   return { message: defaultMessage };
 };
 
-const generalState = {
+const makeRequestState = () => ({
   isLoading: false,
   isSuccess: false,
   isError: false,
   message: "",
   data: null,
-};
+});
 
 const initialState = {
-  getPaymentMethods: generalState,
-  hasPaymentMethod: generalState,
-  createSetupIntent: generalState,
-  attachPaymentMethod: generalState,
-  removePaymentMethod: generalState,
-  fundCollaboration: generalState,
-  retryFunding: generalState,
-  getPaymentByCollaboration: generalState,
-  getBrandPayments: generalState,
-  getCreatorPayments: generalState,
+  // Brand payment methods
+  getPaymentMethods: makeRequestState(),
+  hasPaymentMethod: makeRequestState(),
+  createSetupIntent: makeRequestState(),
+  attachPaymentMethod: makeRequestState(),
+  removePaymentMethod: makeRequestState(),
+
+  // Escrow funding
+  fundCollaboration: makeRequestState(),
+  retryFunding: makeRequestState(),
+  getPaymentByCollaboration: makeRequestState(),
+
+  // Payment history
+  getBrandPayments: makeRequestState(),
+  getCreatorPayments: makeRequestState(),
+
+  // Creator Stripe Connect (payout method)
+  createCreatorOnboardingLink: makeRequestState(),
+  getCreatorAccountStatus: makeRequestState(),
+  checkCreatorPayoutReady: makeRequestState(),
+
+  // Platform Connect availability
+  checkConnectStatus: makeRequestState(),
 };
 
-// Get payment methods
+// Brand: payment methods
 export const getPaymentMethods = createAsyncThunk(
   "collaborationPayment/getPaymentMethods",
   async (_, thunkAPI) => {
@@ -48,7 +61,6 @@ export const getPaymentMethods = createAsyncThunk(
   }
 );
 
-// Check if brand has payment method
 export const checkHasPaymentMethod = createAsyncThunk(
   "collaborationPayment/checkHasPaymentMethod",
   async (_, thunkAPI) => {
@@ -64,7 +76,6 @@ export const checkHasPaymentMethod = createAsyncThunk(
   }
 );
 
-// Create SetupIntent
 export const createSetupIntent = createAsyncThunk(
   "collaborationPayment/createSetupIntent",
   async (_, thunkAPI) => {
@@ -80,12 +91,12 @@ export const createSetupIntent = createAsyncThunk(
   }
 );
 
-// Attach payment method
 export const attachPaymentMethod = createAsyncThunk(
   "collaborationPayment/attachPaymentMethod",
   async (paymentMethodId, thunkAPI) => {
     try {
-      const response = await collaborationPaymentService.attachPaymentMethod(paymentMethodId);
+      const response =
+        await collaborationPaymentService.attachPaymentMethod(paymentMethodId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -96,12 +107,12 @@ export const attachPaymentMethod = createAsyncThunk(
   }
 );
 
-// Remove payment method
 export const removePaymentMethod = createAsyncThunk(
   "collaborationPayment/removePaymentMethod",
   async (paymentMethodId, thunkAPI) => {
     try {
-      const response = await collaborationPaymentService.removePaymentMethod(paymentMethodId);
+      const response =
+        await collaborationPaymentService.removePaymentMethod(paymentMethodId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -112,12 +123,13 @@ export const removePaymentMethod = createAsyncThunk(
   }
 );
 
-// Fund collaboration
+// Brand: escrow / funding
 export const fundCollaboration = createAsyncThunk(
   "collaborationPayment/fundCollaboration",
   async (collaborationId, thunkAPI) => {
     try {
-      const response = await collaborationPaymentService.fundCollaboration(collaborationId);
+      const response =
+        await collaborationPaymentService.fundCollaboration(collaborationId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -128,15 +140,14 @@ export const fundCollaboration = createAsyncThunk(
   }
 );
 
-// Retry funding
 export const retryFunding = createAsyncThunk(
   "collaborationPayment/retryFunding",
   async ({ collaborationId, paymentMethodId }, thunkAPI) => {
     try {
-      const response = await collaborationPaymentService.retryFunding(
+      const response = await collaborationPaymentService.retryFunding({
         collaborationId,
-        paymentMethodId
-      );
+        paymentMethodId,
+      });
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -147,12 +158,14 @@ export const retryFunding = createAsyncThunk(
   }
 );
 
-// Get payment by collaboration
 export const getPaymentByCollaboration = createAsyncThunk(
   "collaborationPayment/getPaymentByCollaboration",
   async (collaborationId, thunkAPI) => {
     try {
-      const response = await collaborationPaymentService.getPaymentByCollaboration(collaborationId);
+      const response =
+        await collaborationPaymentService.getPaymentByCollaboration(
+          collaborationId
+        );
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -163,7 +176,7 @@ export const getPaymentByCollaboration = createAsyncThunk(
   }
 );
 
-// Get brand payments
+// Payment history
 export const getBrandPayments = createAsyncThunk(
   "collaborationPayment/getBrandPayments",
   async (_, thunkAPI) => {
@@ -179,7 +192,6 @@ export const getBrandPayments = createAsyncThunk(
   }
 );
 
-// Get creator payments
 export const getCreatorPayments = createAsyncThunk(
   "collaborationPayment/getCreatorPayments",
   async (_, thunkAPI) => {
@@ -195,222 +207,305 @@ export const getCreatorPayments = createAsyncThunk(
   }
 );
 
+// Creator Stripe Connect (payout method)
+export const createCreatorOnboardingLink = createAsyncThunk(
+  "collaborationPayment/createCreatorOnboardingLink",
+  async ({ returnUrl, refreshUrl }, thunkAPI) => {
+    try {
+      const response =
+        await collaborationPaymentService.createCreatorOnboardingLink({
+          returnUrl,
+          refreshUrl,
+        });
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to create onboarding link")
+      );
+    }
+  }
+);
+
+export const getCreatorAccountStatus = createAsyncThunk(
+  "collaborationPayment/getCreatorAccountStatus",
+  async (_, thunkAPI) => {
+    try {
+      const response =
+        await collaborationPaymentService.getCreatorAccountStatus();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get account status")
+      );
+    }
+  }
+);
+
+export const checkCreatorPayoutReady = createAsyncThunk(
+  "collaborationPayment/checkCreatorPayoutReady",
+  async (_, thunkAPI) => {
+    try {
+      const response =
+        await collaborationPaymentService.checkCreatorPayoutReady();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to check payout readiness")
+      );
+    }
+  }
+);
+
+// Platform: Connect enabled?
+export const checkConnectStatus = createAsyncThunk(
+  "collaborationPayment/checkConnectStatus",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.checkConnectStatus();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to check Connect status")
+      );
+    }
+  }
+);
+
+const setPending = (state) => {
+  state.isLoading = true;
+  state.isSuccess = false;
+  state.isError = false;
+  state.message = "";
+};
+
+const setFulfilled = (state, action, { setData = true } = {}) => {
+  state.isLoading = false;
+  state.isSuccess = true;
+  state.isError = false;
+  state.message = action.payload?.message || "";
+  if (setData) state.data = action.payload?.data ?? null;
+};
+
+const setRejected = (state, action, defaultMessage) => {
+  state.isLoading = false;
+  state.isSuccess = false;
+  state.isError = true;
+  state.message = action.payload?.message || defaultMessage;
+  state.data = null;
+};
+
 const collaborationPaymentSlice = createSlice({
   name: "collaborationPayment",
   initialState,
   reducers: {
     resetGetPaymentMethods: (state) => {
-      state.getPaymentMethods = generalState;
+      state.getPaymentMethods = makeRequestState();
+    },
+    resetHasPaymentMethod: (state) => {
+      state.hasPaymentMethod = makeRequestState();
     },
     resetCreateSetupIntent: (state) => {
-      state.createSetupIntent = generalState;
+      state.createSetupIntent = makeRequestState();
     },
     resetAttachPaymentMethod: (state) => {
-      state.attachPaymentMethod = generalState;
+      state.attachPaymentMethod = makeRequestState();
     },
     resetRemovePaymentMethod: (state) => {
-      state.removePaymentMethod = generalState;
+      state.removePaymentMethod = makeRequestState();
     },
     resetFundCollaboration: (state) => {
-      state.fundCollaboration = generalState;
+      state.fundCollaboration = makeRequestState();
+    },
+    resetRetryFunding: (state) => {
+      state.retryFunding = makeRequestState();
+    },
+    resetGetPaymentByCollaboration: (state) => {
+      state.getPaymentByCollaboration = makeRequestState();
+    },
+    resetGetBrandPayments: (state) => {
+      state.getBrandPayments = makeRequestState();
+    },
+    resetGetCreatorPayments: (state) => {
+      state.getCreatorPayments = makeRequestState();
+    },
+    resetCreateCreatorOnboardingLink: (state) => {
+      state.createCreatorOnboardingLink = makeRequestState();
+    },
+    resetGetCreatorAccountStatus: (state) => {
+      state.getCreatorAccountStatus = makeRequestState();
+    },
+    resetCheckCreatorPayoutReady: (state) => {
+      state.checkCreatorPayoutReady = makeRequestState();
+    },
+    resetCheckConnectStatus: (state) => {
+      state.checkConnectStatus = makeRequestState();
     },
   },
   extraReducers: (builder) => {
+    // Payment methods
     builder
-      // Get Payment Methods
-      .addCase(getPaymentMethods.pending, (state) => {
-        state.getPaymentMethods.isLoading = true;
-        state.getPaymentMethods.isSuccess = false;
-        state.getPaymentMethods.isError = false;
-        state.getPaymentMethods.message = "";
-      })
-      .addCase(getPaymentMethods.fulfilled, (state, action) => {
-        state.getPaymentMethods.isLoading = false;
-        state.getPaymentMethods.isSuccess = true;
-        state.getPaymentMethods.data = action.payload.data;
-      })
-      .addCase(getPaymentMethods.rejected, (state, action) => {
-        state.getPaymentMethods.isLoading = false;
-        state.getPaymentMethods.isError = true;
-        state.getPaymentMethods.message =
-          action.payload?.message || "Failed to get payment methods";
-        state.getPaymentMethods.data = null;
-      })
-      // Check Has Payment Method
-      .addCase(checkHasPaymentMethod.pending, (state) => {
-        state.hasPaymentMethod.isLoading = true;
-        state.hasPaymentMethod.isSuccess = false;
-        state.hasPaymentMethod.isError = false;
-        state.hasPaymentMethod.message = "";
-      })
-      .addCase(checkHasPaymentMethod.fulfilled, (state, action) => {
-        state.hasPaymentMethod.isLoading = false;
-        state.hasPaymentMethod.isSuccess = true;
-        state.hasPaymentMethod.data = action.payload.data;
-      })
-      .addCase(checkHasPaymentMethod.rejected, (state, action) => {
-        state.hasPaymentMethod.isLoading = false;
-        state.hasPaymentMethod.isError = true;
-        state.hasPaymentMethod.message =
-          action.payload?.message || "Failed to check payment method";
-        state.hasPaymentMethod.data = null;
-      })
-      // Create Setup Intent
-      .addCase(createSetupIntent.pending, (state) => {
-        state.createSetupIntent.isLoading = true;
-        state.createSetupIntent.isSuccess = false;
-        state.createSetupIntent.isError = false;
-        state.createSetupIntent.message = "";
-      })
-      .addCase(createSetupIntent.fulfilled, (state, action) => {
-        state.createSetupIntent.isLoading = false;
-        state.createSetupIntent.isSuccess = true;
-        state.createSetupIntent.data = action.payload.data;
-      })
-      .addCase(createSetupIntent.rejected, (state, action) => {
-        state.createSetupIntent.isLoading = false;
-        state.createSetupIntent.isError = true;
-        state.createSetupIntent.message =
-          action.payload?.message || "Failed to create setup intent";
-        state.createSetupIntent.data = null;
-      })
-      // Attach Payment Method
-      .addCase(attachPaymentMethod.pending, (state) => {
-        state.attachPaymentMethod.isLoading = true;
-        state.attachPaymentMethod.isSuccess = false;
-        state.attachPaymentMethod.isError = false;
-        state.attachPaymentMethod.message = "";
-      })
-      .addCase(attachPaymentMethod.fulfilled, (state) => {
-        state.attachPaymentMethod.isLoading = false;
-        state.attachPaymentMethod.isSuccess = true;
-      })
+      .addCase(getPaymentMethods.pending, (state) => setPending(state.getPaymentMethods))
+      .addCase(getPaymentMethods.fulfilled, (state, action) =>
+        setFulfilled(state.getPaymentMethods, action)
+      )
+      .addCase(getPaymentMethods.rejected, (state, action) =>
+        setRejected(state.getPaymentMethods, action, "Failed to get payment methods")
+      );
+
+    builder
+      .addCase(checkHasPaymentMethod.pending, (state) => setPending(state.hasPaymentMethod))
+      .addCase(checkHasPaymentMethod.fulfilled, (state, action) =>
+        setFulfilled(state.hasPaymentMethod, action)
+      )
+      .addCase(checkHasPaymentMethod.rejected, (state, action) =>
+        setRejected(state.hasPaymentMethod, action, "Failed to check payment method")
+      );
+
+    builder
+      .addCase(createSetupIntent.pending, (state) => setPending(state.createSetupIntent))
+      .addCase(createSetupIntent.fulfilled, (state, action) =>
+        setFulfilled(state.createSetupIntent, action)
+      )
+      .addCase(createSetupIntent.rejected, (state, action) =>
+        setRejected(state.createSetupIntent, action, "Failed to create setup intent")
+      );
+
+    builder
+      .addCase(attachPaymentMethod.pending, (state) => setPending(state.attachPaymentMethod))
+      .addCase(attachPaymentMethod.fulfilled, (state, action) =>
+        setFulfilled(state.attachPaymentMethod, action, { setData: false })
+      )
       .addCase(attachPaymentMethod.rejected, (state, action) => {
         state.attachPaymentMethod.isLoading = false;
+        state.attachPaymentMethod.isSuccess = false;
         state.attachPaymentMethod.isError = true;
         state.attachPaymentMethod.message =
           action.payload?.message || "Failed to attach payment method";
-      })
-      // Remove Payment Method
-      .addCase(removePaymentMethod.pending, (state) => {
-        state.removePaymentMethod.isLoading = true;
-        state.removePaymentMethod.isSuccess = false;
-        state.removePaymentMethod.isError = false;
-        state.removePaymentMethod.message = "";
-      })
-      .addCase(removePaymentMethod.fulfilled, (state) => {
-        state.removePaymentMethod.isLoading = false;
-        state.removePaymentMethod.isSuccess = true;
-      })
-      .addCase(removePaymentMethod.rejected, (state, action) => {
-        state.removePaymentMethod.isLoading = false;
-        state.removePaymentMethod.isError = true;
-        state.removePaymentMethod.message =
-          action.payload?.message || "Failed to remove payment method";
-      })
-      // Fund Collaboration
-      .addCase(fundCollaboration.pending, (state) => {
-        state.fundCollaboration.isLoading = true;
-        state.fundCollaboration.isSuccess = false;
-        state.fundCollaboration.isError = false;
-        state.fundCollaboration.message = "";
-      })
-      .addCase(fundCollaboration.fulfilled, (state, action) => {
-        state.fundCollaboration.isLoading = false;
-        state.fundCollaboration.isSuccess = true;
-        state.fundCollaboration.data = action.payload.data;
-      })
-      .addCase(fundCollaboration.rejected, (state, action) => {
-        state.fundCollaboration.isLoading = false;
-        state.fundCollaboration.isError = true;
-        state.fundCollaboration.message =
-          action.payload?.message || "Failed to fund collaboration";
-        state.fundCollaboration.data = null;
-      })
-      // Retry Funding
-      .addCase(retryFunding.pending, (state) => {
-        state.retryFunding.isLoading = true;
-        state.retryFunding.isSuccess = false;
-        state.retryFunding.isError = false;
-        state.retryFunding.message = "";
-      })
-      .addCase(retryFunding.fulfilled, (state, action) => {
-        state.retryFunding.isLoading = false;
-        state.retryFunding.isSuccess = true;
-        state.retryFunding.data = action.payload.data;
-      })
-      .addCase(retryFunding.rejected, (state, action) => {
-        state.retryFunding.isLoading = false;
-        state.retryFunding.isError = true;
-        state.retryFunding.message = action.payload?.message || "Failed to retry funding";
-        state.retryFunding.data = null;
-      })
-      // Get Payment By Collaboration
-      .addCase(getPaymentByCollaboration.pending, (state) => {
-        state.getPaymentByCollaboration.isLoading = true;
-        state.getPaymentByCollaboration.isSuccess = false;
-        state.getPaymentByCollaboration.isError = false;
-        state.getPaymentByCollaboration.message = "";
-      })
-      .addCase(getPaymentByCollaboration.fulfilled, (state, action) => {
-        state.getPaymentByCollaboration.isLoading = false;
-        state.getPaymentByCollaboration.isSuccess = true;
-        state.getPaymentByCollaboration.data = action.payload.data;
-      })
-      .addCase(getPaymentByCollaboration.rejected, (state, action) => {
-        state.getPaymentByCollaboration.isLoading = false;
-        state.getPaymentByCollaboration.isError = true;
-        state.getPaymentByCollaboration.message =
-          action.payload?.message || "Failed to get payment details";
-        state.getPaymentByCollaboration.data = null;
-      })
-      // Get Brand Payments
-      .addCase(getBrandPayments.pending, (state) => {
-        state.getBrandPayments.isLoading = true;
-        state.getBrandPayments.isSuccess = false;
-        state.getBrandPayments.isError = false;
-        state.getBrandPayments.message = "";
-      })
-      .addCase(getBrandPayments.fulfilled, (state, action) => {
-        state.getBrandPayments.isLoading = false;
-        state.getBrandPayments.isSuccess = true;
-        state.getBrandPayments.data = action.payload.data;
-      })
-      .addCase(getBrandPayments.rejected, (state, action) => {
-        state.getBrandPayments.isLoading = false;
-        state.getBrandPayments.isError = true;
-        state.getBrandPayments.message =
-          action.payload?.message || "Failed to get brand payments";
-        state.getBrandPayments.data = null;
-      })
-      // Get Creator Payments
-      .addCase(getCreatorPayments.pending, (state) => {
-        state.getCreatorPayments.isLoading = true;
-        state.getCreatorPayments.isSuccess = false;
-        state.getCreatorPayments.isError = false;
-        state.getCreatorPayments.message = "";
-      })
-      .addCase(getCreatorPayments.fulfilled, (state, action) => {
-        state.getCreatorPayments.isLoading = false;
-        state.getCreatorPayments.isSuccess = true;
-        state.getCreatorPayments.data = action.payload.data;
-      })
-      .addCase(getCreatorPayments.rejected, (state, action) => {
-        state.getCreatorPayments.isLoading = false;
-        state.getCreatorPayments.isError = true;
-        state.getCreatorPayments.message =
-          action.payload?.message || "Failed to get creator payments";
-        state.getCreatorPayments.data = null;
       });
+
+    builder
+      .addCase(removePaymentMethod.pending, (state) => setPending(state.removePaymentMethod))
+      .addCase(removePaymentMethod.fulfilled, (state, action) =>
+        setFulfilled(state.removePaymentMethod, action, { setData: false })
+      )
+      .addCase(removePaymentMethod.rejected, (state, action) =>
+        setRejected(state.removePaymentMethod, action, "Failed to remove payment method")
+      );
+
+    // Funding / escrow
+    builder
+      .addCase(fundCollaboration.pending, (state) => setPending(state.fundCollaboration))
+      .addCase(fundCollaboration.fulfilled, (state, action) =>
+        setFulfilled(state.fundCollaboration, action)
+      )
+      .addCase(fundCollaboration.rejected, (state, action) =>
+        setRejected(state.fundCollaboration, action, "Failed to fund collaboration")
+      );
+
+    builder
+      .addCase(retryFunding.pending, (state) => setPending(state.retryFunding))
+      .addCase(retryFunding.fulfilled, (state, action) =>
+        setFulfilled(state.retryFunding, action)
+      )
+      .addCase(retryFunding.rejected, (state, action) =>
+        setRejected(state.retryFunding, action, "Failed to retry funding")
+      );
+
+    builder
+      .addCase(getPaymentByCollaboration.pending, (state) =>
+        setPending(state.getPaymentByCollaboration)
+      )
+      .addCase(getPaymentByCollaboration.fulfilled, (state, action) =>
+        setFulfilled(state.getPaymentByCollaboration, action)
+      )
+      .addCase(getPaymentByCollaboration.rejected, (state, action) =>
+        setRejected(state.getPaymentByCollaboration, action, "Failed to get payment details")
+      );
+
+    // Payment history
+    builder
+      .addCase(getBrandPayments.pending, (state) => setPending(state.getBrandPayments))
+      .addCase(getBrandPayments.fulfilled, (state, action) =>
+        setFulfilled(state.getBrandPayments, action)
+      )
+      .addCase(getBrandPayments.rejected, (state, action) =>
+        setRejected(state.getBrandPayments, action, "Failed to get brand payments")
+      );
+
+    builder
+      .addCase(getCreatorPayments.pending, (state) => setPending(state.getCreatorPayments))
+      .addCase(getCreatorPayments.fulfilled, (state, action) =>
+        setFulfilled(state.getCreatorPayments, action)
+      )
+      .addCase(getCreatorPayments.rejected, (state, action) =>
+        setRejected(state.getCreatorPayments, action, "Failed to get creator payments")
+      );
+
+    // Creator Connect
+    builder
+      .addCase(createCreatorOnboardingLink.pending, (state) =>
+        setPending(state.createCreatorOnboardingLink)
+      )
+      .addCase(createCreatorOnboardingLink.fulfilled, (state, action) =>
+        setFulfilled(state.createCreatorOnboardingLink, action)
+      )
+      .addCase(createCreatorOnboardingLink.rejected, (state, action) =>
+        setRejected(state.createCreatorOnboardingLink, action, "Failed to create onboarding link")
+      );
+
+    builder
+      .addCase(getCreatorAccountStatus.pending, (state) =>
+        setPending(state.getCreatorAccountStatus)
+      )
+      .addCase(getCreatorAccountStatus.fulfilled, (state, action) =>
+        setFulfilled(state.getCreatorAccountStatus, action)
+      )
+      .addCase(getCreatorAccountStatus.rejected, (state, action) =>
+        setRejected(state.getCreatorAccountStatus, action, "Failed to get account status")
+      );
+
+    builder
+      .addCase(checkCreatorPayoutReady.pending, (state) =>
+        setPending(state.checkCreatorPayoutReady)
+      )
+      .addCase(checkCreatorPayoutReady.fulfilled, (state, action) =>
+        setFulfilled(state.checkCreatorPayoutReady, action)
+      )
+      .addCase(checkCreatorPayoutReady.rejected, (state, action) =>
+        setRejected(state.checkCreatorPayoutReady, action, "Failed to check payout readiness")
+      );
+
+    // Connect status
+    builder
+      .addCase(checkConnectStatus.pending, (state) => setPending(state.checkConnectStatus))
+      .addCase(checkConnectStatus.fulfilled, (state, action) =>
+        setFulfilled(state.checkConnectStatus, action)
+      )
+      .addCase(checkConnectStatus.rejected, (state, action) =>
+        setRejected(state.checkConnectStatus, action, "Failed to check Connect status")
+      );
   },
 });
 
 export const {
   resetGetPaymentMethods,
+  resetHasPaymentMethod,
   resetCreateSetupIntent,
   resetAttachPaymentMethod,
   resetRemovePaymentMethod,
   resetFundCollaboration,
+  resetRetryFunding,
+  resetGetPaymentByCollaboration,
+  resetGetBrandPayments,
+  resetGetCreatorPayments,
+  resetCreateCreatorOnboardingLink,
+  resetGetCreatorAccountStatus,
+  resetCheckCreatorPayoutReady,
+  resetCheckConnectStatus,
 } = collaborationPaymentSlice.actions;
 
 export default collaborationPaymentSlice.reducer;

@@ -1,10 +1,10 @@
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import Loader from "@/common/components/loadar/loading.component";
+import Loader from "@/common/components/loader/loader.component";
+import Modal from "@/common/components/modal/modal.component";
 import { CheckCircle, Clock, Eye, XCircle } from "lucide-react";
 import { useState } from "react";
 import usePaymentHistory from "./use-payment-history.hook";
-import Modal from "@/common/components/modal/modal.component";
 
 const PaymentHistoryPage = () => {
   const { payments, isLoading, isCreator } = usePaymentHistory();
@@ -128,8 +128,9 @@ const PaymentHistoryPage = () => {
   const filteredPayments = payments.filter((payment) => {
     const matchesStatus = filterStatus === "all" || payment.status === filterStatus;
     const matchesSearch =
-      payment.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.collaboratorName.toLowerCase().includes(searchTerm.toLowerCase());
+      payment.campaignName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.collaboratorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.brandName?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -137,7 +138,7 @@ const PaymentHistoryPage = () => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        setSelectedPayment(row.payment);
+        setSelectedPayment(row.payment || row);
         setShowDetailsModal(true);
         break;
       default:
@@ -168,113 +169,262 @@ const PaymentHistoryPage = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader />
+          <Loader loading={true} />
         </div>
       ) : (
         <>
           {/* Payment History Table using CustomDataTable */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Payments ({filteredPayments.length})
-            </h3>
-            {/* Filters */}
-            <div className="w-full max-w-[300px]">
-              <SimpleSelect
-                placeHolder="Select status"
-                options={statusOptions}
-                value={filterStatus}
-                onChange={(value) => setFilterStatus(value)}
-              />
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Payments ({filteredPayments.length})
+                </h3>
+                {/* Filters */}
+                <div className="w-full max-w-[300px]">
+                  <SimpleSelect
+                    placeHolder="Select status"
+                    options={statusOptions}
+                    value={filterStatus}
+                    onChange={(value) => setFilterStatus(value)}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Custom Data Table */}
-        <CustomDataTable
-          columns={columns}
-          data={filteredPayments}
-          selectable={true}
-          selectedIds={selectedPayments}
-          searchValue={searchTerm}
-          onSearchChange={handleSearchChange}
-          onSelectionChange={handleSelectionChange}
-          actions={actions}
-          onActionClick={handleActionClick}
-          customCellRenderer={customCellRenderer}
-          emptyMessage="No payments found"
-        />
-        </div>
+            {/* Custom Data Table */}
+            <CustomDataTable
+              columns={columns}
+              data={filteredPayments}
+              selectable={true}
+              selectedIds={selectedPayments}
+              searchValue={searchTerm}
+              onSearchChange={handleSearchChange}
+              onSelectionChange={handleSelectionChange}
+              actions={actions}
+              onActionClick={handleActionClick}
+              customCellRenderer={customCellRenderer}
+              emptyMessage="No payments found"
+            />
+          </div>
         </>
       )}
 
       {/* Payment Details Modal */}
-      <Modal
-        show={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false);
-          setSelectedPayment(null);
-        }}
-        title="Payment Details"
-        size="md"
-      >
-        {selectedPayment && (
+      {showDetailsModal && selectedPayment && (
+        <Modal
+          show={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedPayment(null);
+          }}
+          title="Payment Details"
+          size="md"
+        >
           <div className="p-4 space-y-4">
+            {/* Campaign & Collaborator Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Campaign</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {selectedPayment.campaign?.campaign_title || "N/A"}
+                  {selectedPayment.campaignName ||
+                    selectedPayment.campaign?.campaign_title ||
+                    selectedPayment.paymentData?.collaboration?.campaign?.campaign_title ||
+                    "N/A"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Amount</p>
+                <p className="text-xs text-gray-500 mb-1">{isCreator ? "Brand" : "Creator"}</p>
                 <p className="text-sm font-medium text-gray-900">
-                  ${((selectedPayment.gross_amount_cents || 0) / 100).toFixed(2)}
+                  {selectedPayment.collaboratorName ||
+                    selectedPayment.brandName ||
+                    (isCreator
+                      ? selectedPayment.payment?.brand?.brand_profile?.brand_name ||
+                        selectedPayment.payment?.brand?.first_name ||
+                        "Unknown Brand"
+                      : selectedPayment.payment?.creator?.user?.first_name ||
+                        "Unknown Creator") ||
+                    "N/A"}
                 </p>
               </div>
+            </div>
+
+            {/* Amount Info */}
+            <div className="border-t pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Gross Amount</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {selectedPayment.currency || "USD"} $
+                    {selectedPayment.amount
+                      ? selectedPayment.amount.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : selectedPayment.grossAmountCents
+                      ? (selectedPayment.grossAmountCents / 100).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : selectedPayment.payment?.gross_amount_cents
+                      ? (selectedPayment.payment.gross_amount_cents / 100).toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )
+                      : "0.00"}
+                  </p>
+                </div>
+                {(selectedPayment.netPayoutCents ||
+                  selectedPayment.payment?.net_payout_cents) && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Net Payout</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {selectedPayment.currency || "USD"} $
+                      {(
+                        (selectedPayment.netPayoutCents ||
+                          selectedPayment.payment?.net_payout_cents) /
+                        100
+                      ).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Status Info */}
+            <div className="border-t pt-4 space-y-3">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Funding Status</p>
-                <p className="text-sm font-medium text-gray-900 capitalize">
-                  {selectedPayment.funding_status?.toLowerCase().replace("_", " ") || "N/A"}
-                </p>
+                <div className="mt-1">
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      (selectedPayment.fundingStatus === "SUCCEEDED" ||
+                        selectedPayment.payment?.funding_status === "SUCCEEDED") &&
+                      "text-green-700 bg-green-100"
+                    } ${
+                      (selectedPayment.fundingStatus === "FAILED" ||
+                        selectedPayment.payment?.funding_status === "FAILED") &&
+                      "text-red-700 bg-red-100"
+                    } ${
+                      !(
+                        selectedPayment.fundingStatus === "SUCCEEDED" ||
+                        selectedPayment.payment?.funding_status === "SUCCEEDED" ||
+                        selectedPayment.fundingStatus === "FAILED" ||
+                        selectedPayment.payment?.funding_status === "FAILED"
+                      ) && "text-yellow-700 bg-yellow-100"
+                    }`}
+                  >
+                    {selectedPayment.fundingStatus ||
+                      selectedPayment.payment?.funding_status ||
+                      "PENDING"}
+                  </span>
+                </div>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Payout Status</p>
-                <p className="text-sm font-medium text-gray-900 capitalize">
-                  {selectedPayment.payout_status?.toLowerCase().replace("_", " ") || "N/A"}
-                </p>
+                <div className="mt-1">
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      (selectedPayment.payoutStatus === "COMPLETED" ||
+                        selectedPayment.payoutStatus === "PAID" ||
+                        selectedPayment.payment?.payout_status === "COMPLETED" ||
+                        selectedPayment.payment?.payout_status === "PAID") &&
+                      "text-green-700 bg-green-100"
+                    } ${
+                      (selectedPayment.payoutStatus === "FAILED" ||
+                        selectedPayment.payment?.payout_status === "FAILED") &&
+                      "text-red-700 bg-red-100"
+                    } ${
+                      !(
+                        selectedPayment.payoutStatus === "COMPLETED" ||
+                        selectedPayment.payoutStatus === "PAID" ||
+                        selectedPayment.payment?.payout_status === "COMPLETED" ||
+                        selectedPayment.payment?.payout_status === "PAID" ||
+                        selectedPayment.payoutStatus === "FAILED" ||
+                        selectedPayment.payment?.payout_status === "FAILED"
+                      ) && "text-yellow-700 bg-yellow-100"
+                    }`}
+                  >
+                    {selectedPayment.payoutStatus ||
+                      selectedPayment.payment?.payout_status ||
+                      "PENDING"}
+                  </span>
+                </div>
               </div>
-              {selectedPayment.funded_at && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Funded At</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {new Date(selectedPayment.funded_at).toLocaleString()}
-                  </p>
-                </div>
-              )}
-              {selectedPayment.payout_released_at && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Released At</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {new Date(selectedPayment.payout_released_at).toLocaleString()}
-                  </p>
-                </div>
-              )}
             </div>
-            {selectedPayment.stripe_payment_intent_id && (
+
+            {/* Dates */}
+            {(selectedPayment.paymentData ||
+              selectedPayment.payment ||
+              selectedPayment.funded_at ||
+              selectedPayment.payout_released_at) && (
+              <div className="border-t pt-4 space-y-2">
+                {(selectedPayment.paymentData?.funded_at ||
+                  selectedPayment.payment?.funded_at ||
+                  selectedPayment.funded_at) && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Funded At</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(
+                        selectedPayment.paymentData?.funded_at ||
+                          selectedPayment.payment?.funded_at ||
+                          selectedPayment.funded_at
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {(selectedPayment.paymentData?.paid_out_at ||
+                  selectedPayment.paymentData?.payout_released_at ||
+                  selectedPayment.payment?.payout_released_at ||
+                  selectedPayment.payout_released_at) && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Paid Out At</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(
+                        selectedPayment.paymentData?.paid_out_at ||
+                          selectedPayment.paymentData?.payout_released_at ||
+                          selectedPayment.payment?.payout_released_at ||
+                          selectedPayment.payout_released_at
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {(selectedPayment.paymentData?.created_at ||
+                  selectedPayment.payment?.created_at) && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Created At</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(
+                        selectedPayment.paymentData?.created_at ||
+                          selectedPayment.payment?.created_at
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Stripe Payment Intent ID */}
+            {(selectedPayment.payment?.stripe_payment_intent_id ||
+              selectedPayment.paymentData?.stripe_payment_intent_id) && (
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-xs text-gray-500 mb-1">Stripe Payment Intent ID</p>
                 <p className="text-xs font-mono text-gray-700 break-all">
-                  {selectedPayment.stripe_payment_intent_id}
+                  {selectedPayment.payment?.stripe_payment_intent_id ||
+                    selectedPayment.paymentData?.stripe_payment_intent_id}
                 </p>
               </div>
             )}
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </>
   );
 };
