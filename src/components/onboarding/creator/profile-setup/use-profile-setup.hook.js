@@ -4,23 +4,25 @@ import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util
 import { reset } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
+import { getSocialAccounts } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
+import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 
 const validationSchema = Yup.object().shape({
   profilePhoto: Yup.mixed().required("Profile photo is required"),
   bio: Yup.string().max(100, "Bio must be less than 100 characters"),
-  // socialPlatforms: Yup.array()
-  //   .min(1, "At least one social platform is required")
-  //   .of(
-  //     Yup.object().shape({
-  //       platform: Yup.string().required(),
-  //       username: Yup.string().required("Username is required"),
-  //     })
-  //   ),
+  socialPlatforms: Yup.array()
+    .min(1, "At least one connected social account is required")
+    .of(
+      Yup.object().shape({
+        platform: Yup.string().required(),
+        username: Yup.string().required("Username is required"),
+      })
+    ),
   categories: Yup.array()
     .min(1, "At least one category is required")
     .max(5, "Maximum 5 categories allowed"),
@@ -41,10 +43,11 @@ export default function useProfileSetup({ onNext }) {
   const { isLoading } = useSelector((state) => state.auth);
   const { uploadSingleFile: uploadState } = useSelector((state) => state.uploadFile);
 
+  const { openConnect: openPhylloConnect } = usePhylloConnect();
+
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
-  const [platformUsernames, setPlatformUsernames] = useState({});
+  const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [keywordTags, setKeywordTags] = useState([]);
   const [bio, setBio] = useState("");
@@ -53,7 +56,7 @@ export default function useProfileSetup({ onNext }) {
 
   const fileInputRef = useRef(null);
 
-  const platforms = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook"];
+  const platforms = ["instagram", "tiktok", "youtube", "twitter", "facebook"];
 
   const {
     handleSubmit,
@@ -71,6 +74,53 @@ export default function useProfileSetup({ onNext }) {
       contentRates: [],
     },
   });
+
+  const loadConnectedAccounts = async () => {
+    try {
+      const result = await dispatch(getSocialAccounts()).unwrap();
+      if (result?.success) {
+        const accounts = Array.isArray(result.data) ? result.data : [];
+        setConnectedAccounts(accounts);
+
+        const socialPlatforms = accounts
+          .filter((acc) => acc?.platform)
+          .map((acc) => ({
+            platform: acc.platform,
+            username:
+              acc?.profile_data?.username ||
+              acc?.profile_data?.handle ||
+              acc?.profile_data?.name ||
+              "connected",
+          }));
+
+        setValue("socialPlatforms", socialPlatforms, { shouldValidate: true });
+      }
+    } catch (error) {}
+  };
+
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const pollConnectedAccounts = async (attempts = 18, intervalMs = 5000) => {
+    for (let i = 0; i < attempts; i++) {
+      await loadConnectedAccounts();
+      await wait(intervalMs);
+    }
+  };
+
+  useEffect(() => {
+    loadConnectedAccounts();
+
+    const onWindowFocus = () => {
+      loadConnectedAccounts();
+    };
+
+    window.addEventListener("focus", onWindowFocus);
+
+    return () => {
+      window.removeEventListener("focus", onWindowFocus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFileUpload = async (file) => {
     if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
@@ -90,10 +140,8 @@ export default function useProfileSetup({ onNext }) {
           setProfilePhotoUrl(uploadedUrl);
         }
       } else {
-        console.error("File size too large. Maximum 5MB allowed.");
       }
     } else {
-      console.error("Invalid file type. Only JPG and PNG are allowed.");
     }
   };
 
@@ -122,19 +170,11 @@ export default function useProfileSetup({ onNext }) {
     }
   };
 
-  const togglePlatform = (platform) => {
-    const newSelectedPlatforms = selectedPlatforms.includes(platform)
-      ? selectedPlatforms.filter((p) => p !== platform)
-      : [...selectedPlatforms, platform];
-
-    setSelectedPlatforms(newSelectedPlatforms);
-    updateSocialPlatforms(newSelectedPlatforms, platformUsernames);
-  };
-
-  const handleUsernameChange = (platform, username) => {
-    const newUsernames = { ...platformUsernames, [platform]: username };
-    setPlatformUsernames(newUsernames);
-    updateSocialPlatforms(selectedPlatforms, newUsernames);
+  const handleConnectSocialAccounts = async () => {
+    await openPhylloConnect();
+    // Webhook ingestion can lag while user finishes Connect flow.
+    // Poll briefly so UI reflects newly linked accounts without manual refresh.
+    await pollConnectedAccounts();
   };
 
   const handleCategoryChange = (niches) => {
@@ -193,16 +233,12 @@ export default function useProfileSetup({ onNext }) {
     );
   };
 
-  const updateSocialPlatforms = (platforms, usernames) => {
-    const socialPlatforms = platforms
-      .map((platform) => ({
-        platform,
-        username: usernames[platform] || "",
-      }))
-      .filter((item) => item.username.trim() !== "");
+  const isPlatformConnected = (platform) => {
+    return connectedAccounts.some((account) => account.platform === platform);
+  };
 
-    setValue("socialPlatforms", socialPlatforms);
-    return socialPlatforms;
+  const getConnectedAccountData = (platform) => {
+    return connectedAccounts.find((account) => account.platform === platform);
   };
 
   const updateCategories = (categories) => {
@@ -246,20 +282,10 @@ export default function useProfileSetup({ onNext }) {
   };
 
   const onSubmit = async (values) => {
-    const socialPlatforms =
-      values.socialPlatforms && values.socialPlatforms.length > 0
-        ? values.socialPlatforms
-        : [
-            {
-              platform: "Instagram",
-              username: "not_connected",
-            },
-          ];
-
     const payload = {
       profilePhotoUrl,
       bio: values.bio.trim(),
-      socialPlatforms,
+      socialPlatforms: values.socialPlatforms,
       categories: values.categories,
       keywordTags: values.keywordTags,
       contentRates: values.contentRates,
@@ -284,12 +310,13 @@ export default function useProfileSetup({ onNext }) {
     handlePhotoUpload,
     fileInputRef,
     profilePhotoPreview,
-    // Social platforms
+    // Social platforms (Phyllo-backed)
     platforms,
-    selectedPlatforms,
-    platformUsernames,
-    togglePlatform,
-    handleUsernameChange,
+    connectedAccounts,
+    isPlatformConnected,
+    getConnectedAccountData,
+    handleConnectSocialAccounts,
+    loadConnectedAccounts,
     // Categories
     selectedCategories,
     handleCategoryChange,
