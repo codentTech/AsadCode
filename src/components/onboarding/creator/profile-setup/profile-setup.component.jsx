@@ -4,7 +4,16 @@ import SearchableNicheInput from "@/components/campaign/create-campaign/componen
 import TextArea from "@/common/components/text-area/text-area.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { AddCircle } from "@mui/icons-material";
-import { ArrowLeft, Camera, DollarSign, Link, Upload, X, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  DollarSign,
+  Link,
+  Upload,
+  X,
+  CheckCircle,
+  RefreshCw,
+} from "lucide-react";
 import useProfileSetup from "./use-profile-setup.hook";
 
 const ProfileSetup = ({ onNext, onBack }) => {
@@ -19,10 +28,11 @@ const ProfileSetup = ({ onNext, onBack }) => {
     fileInputRef,
     profilePhotoPreview,
     platforms,
-    selectedPlatforms,
-    platformUsernames,
-    togglePlatform,
-    handleUsernameChange,
+    connectedAccounts,
+    isPlatformConnected,
+    getConnectedAccountData,
+    handleConnectSocialAccounts,
+    loadConnectedAccounts,
     selectedCategories,
     handleCategoryChange,
     handleCategoryRemove,
@@ -130,18 +140,32 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Social Platforms */}
-              {/* <div className="bg-white rounded-lg shadow-lg p-4">
+              <div className="bg-white rounded-lg shadow-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">
                     Connect Social Media Platforms <span className="text-red-500">*</span>
                   </h3>
+                  <div className="flex items-center gap-2">
+                    <CustomButton
+                      text="Refresh"
+                      type="button"
+                      onClick={loadConnectedAccounts}
+                      className="btn-outline text-xs px-3 py-1.5"
+                      startIcon={<RefreshCw className="w-3 h-3" />}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">
                   {platforms.map((platform) => {
-                    const isSelected = selectedPlatforms.includes(platform);
+                    const isConnected = isPlatformConnected(platform);
                     const platformColor = getPlatformColor(platform);
-                    const username = platformUsernames[platform] || "";
+                    const connectedData = getConnectedAccountData(platform);
+                    const username =
+                      connectedData?.profile_data?.username ||
+                      connectedData?.profile_data?.handle ||
+                      connectedData?.profile_data?.name ||
+                      "";
 
                     return (
                       <div
@@ -149,8 +173,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
                         className={`
                           relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md
                           ${
-                            isSelected && username
-                              ? "border-green-200 bg-green-50"
+                            isConnected
+                              ? "border-indigo-200 bg-indigo-50"
                               : "border-gray-200 bg-white hover:border-gray-300"
                           }
                         `}
@@ -160,7 +184,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                             <div
                               className={`
                                 w-9 h-9 rounded-full flex items-center justify-center
-                                ${isSelected && username ? platformColor : "bg-gray-100"}
+                                ${isConnected ? platformColor : "bg-gray-100"}
                               `}
                             >
                               {getPlatformIcon(platform)}
@@ -170,13 +194,15 @@ const ProfileSetup = ({ onNext, onBack }) => {
                               <span className="font-semibold text-gray-900 text-sm">
                                 {platform}
                               </span>
-                              {isSelected && username ? (
+                              {isConnected ? (
                                 <div className="flex items-center space-x-2">
-                                  <CheckCircle className="w-3 h-3 text-green-500" />
-                                  <span className="text-xs text-green-600 font-medium">
+                                  <CheckCircle className="w-3 h-3 text-indigo-500" />
+                                  <span className="text-xs text-indigo-600 font-medium">
                                     Connected
                                   </span>
-                                  <span className="text-xs text-gray-500">@{username}</span>
+                                  {username ? (
+                                    <span className="text-xs text-gray-500">@{username}</span>
+                                  ) : null}
                                 </div>
                               ) : (
                                 <span className="text-xs text-gray-500">Click to connect</span>
@@ -185,19 +211,14 @@ const ProfileSetup = ({ onNext, onBack }) => {
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            {isSelected && username ? (
-                              <CustomButton
-                                text="Remove"
-                                onClick={() => togglePlatform(platform)}
-                                className="btn-danger text-xs px-3 py-1 h-7"
-                              />
-                            ) : (
+                            {!isConnected ? (
                               <CustomButton
                                 text="Connect"
-                                onClick={() => togglePlatform(platform)}
+                                type="button"
+                                onClick={handleConnectSocialAccounts}
                                 className="btn-primary text-xs px-4 py-1 h-7"
                               />
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>
@@ -211,7 +232,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 {errors.socialPlatforms && (
                   <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
                 )}
-              </div> */}
+              </div>
             </div>
 
             {/* Right Column */}
@@ -255,15 +276,15 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       ))}
                     </div>
                   )}
-                  {selectedPlatforms.length > 0 && (
+                  {connectedAccounts.length > 0 && (
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {selectedPlatforms.map((platform, idx) => (
+                      {connectedAccounts.map((account, idx) => (
                         <span
                           key={idx}
                           className="flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
                         >
                           <Link className="h-3 w-3 text-indigo-400" />
-                          {platform}
+                          {account?.platform}
                         </span>
                       ))}
                     </div>
