@@ -59,11 +59,11 @@ const api = (headers = null) => {
       if (responseURL.includes("onboarding")) return null;
 
       // Handle unauthorized
-      if (error.response?.status === 401) {
-        removeUser();
-        window.location.href = "/login";
-        return;
-      }
+      // if (error.response?.status === 401) {
+      //   removeUser();
+      //   window.location.href = "/login";
+      //   return;
+      // }
 
       // Check if toast should be skipped for this request
       const skipToast =
