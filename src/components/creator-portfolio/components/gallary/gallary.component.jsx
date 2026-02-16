@@ -1,7 +1,7 @@
 import React from "react";
 import { RefreshCw } from "lucide-react";
-import useGallary from "./use-gallary";
 import Niche from "@/components/niche/niche";
+import useGallary from "./use-gallary.hook";
 
 const Gallary = ({ refreshKey, creatorId = null }) => {
   const {
@@ -10,7 +10,6 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
     selectedNiche,
     setSelectedNiche,
     filteredPortfolio,
-    portfolioItems,
     creatorCategories,
     isLoading,
     refreshGallery,
@@ -40,7 +39,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
     <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
       <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900">Portfolio Gallery</h3>
+          <h3 className="text-lg font-semibold text-primary">Portfolio Gallery</h3>
           <button
             onClick={refreshGallery}
             className="p-1 text-gray-500 hover:text-indigo-600 transition-colors"
