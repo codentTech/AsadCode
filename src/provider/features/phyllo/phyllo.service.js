@@ -27,12 +27,26 @@ export const fetchCreatorSocialAccounts = async (creatorId) => {
   return response.data;
 };
 
+// Fetch campaign combined demographics
+export const fetchCampaignCombinedDemographics = async (campaignId) => {
+  const response = await api().get(`/phyllo/campaigns/${campaignId}/combined-demographics`);
+  return response.data;
+};
+
+// Fetch campaign performance metrics
+export const fetchCampaignPerformanceMetrics = async (campaignId) => {
+  const response = await api().get(`/phyllo/campaigns/${campaignId}/performance-metrics`);
+  return response.data;
+};
+
 const phylloService = {
   fetchCreatorStats,
   fetchCreatorPreview,
   fetchCreatorProfile,
   fetchCreatorAudience,
   fetchCreatorSocialAccounts,
+  fetchCampaignCombinedDemographics,
+  fetchCampaignPerformanceMetrics,
 };
 
 export default phylloService;
