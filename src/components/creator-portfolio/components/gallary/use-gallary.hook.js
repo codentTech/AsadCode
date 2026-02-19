@@ -1,5 +1,4 @@
-import { avatar } from "@/common/constants/auth.constant";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useCreatorData from "../../use-creator-data.hook";
 
 function useGallary(refreshKey = 0, creatorId = null) {
@@ -77,7 +76,6 @@ function useGallary(refreshKey = 0, creatorId = null) {
     selectedNiche,
     setSelectedNiche,
     filteredPortfolio,
-    portfolioItems,
     creatorCategories: getCreatorCategories(),
     isLoading,
     error,

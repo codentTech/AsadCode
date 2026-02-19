@@ -2,7 +2,7 @@
 
 import Auth from "@/auth/auth.component";
 import AUTH from "@/common/constants/auth.constant";
-import CreatorPortfolio from "@/components/creator-portfolio/creator-portfolio";
+import CreatorPortfolio from "@/components/creator-portfolio/creator-portfolio.component";
 
 export default function Page() {
   return <Auth component={<CreatorPortfolio />} type={AUTH.PRIVATE} />;

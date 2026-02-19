@@ -76,7 +76,7 @@ const SavedDefaultFilters = () => {
                         relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md
                         ${
                           isConnected
-                            ? "border-green-200 bg-green-50"
+                            ? "border-indigo-200 bg-indigo-50"
                             : "border-gray-200 bg-white hover:border-gray-300"
                         }
                       `}
@@ -99,8 +99,8 @@ const SavedDefaultFilters = () => {
                             <span className="font-semibold text-gray-900 text-sm">{platform}</span>
                             {isConnected ? (
                               <div className="flex items-center space-x-2">
-                                <CheckCircle className="w-3 h-3 text-green-500" />
-                                <span className="text-xs text-green-600 font-medium">
+                                <CheckCircle className="w-3 h-3 text-indigo-500" />
+                                <span className="text-xs text-indigo-600 font-medium">
                                   Connected
                                 </span>
                                 {connectedData?.profile_data?.username && (
@@ -118,22 +118,14 @@ const SavedDefaultFilters = () => {
                         {/* Right side - Action buttons */}
                         <div className="flex items-center space-x-2">
                           {isConnected ? (
-                            <>
-                              <CustomButton
-                                text="Profile"
-                                onClick={() =>
-                                  window.open(connectedData?.profile_data?.profile_url, "_blank")
-                                }
-                                className="btn-outline text-xs px-3 py-1 h-7"
-                                startIcon={<ExternalLink className="w-3 h-3" />}
-                              />
-                              <CustomButton
-                                text="Disconnect"
-                                onClick={() => handleDisconnectSocialMedia(platform)}
-                                className="btn-danger text-xs px-3 py-1 h-7"
-                                disabled={isDisconnecting}
-                              />
-                            </>
+                            <CustomButton
+                              text="Profile"
+                              onClick={() =>
+                                window.open(connectedData?.profile_data?.profile_url, "_blank")
+                              }
+                              className="btn-outline text-xs px-3 py-1 h-7"
+                              startIcon={<ExternalLink className="w-3 h-3" />}
+                            />
                           ) : (
                             <CustomButton
                               text="Connect"
@@ -148,7 +140,7 @@ const SavedDefaultFilters = () => {
                       {/* Connection status indicator */}
                       {isConnected && (
                         <div className="absolute top-2 right-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
                         </div>
                       )}
                     </div>
