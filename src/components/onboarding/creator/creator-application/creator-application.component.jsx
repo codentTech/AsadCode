@@ -144,9 +144,6 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
                     );
                   })}
                 </div>
-                {errors.primary_social_links && (
-                  <p className="text-xs text-red-600 mt-2">{errors.primary_social_links.message}</p>
-                )}
               </div>
             </div>
 
