@@ -1,54 +1,53 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPlatformAnalytics,
   setCurrentPlatform,
 } from "@/provider/features/analytics/analytics.slice";
-import {
-  TrendingUp,
-  Users,
-  Eye,
-  Heart,
-  MessageCircle,
-  Share2,
-  RefreshCw,
-  AlertCircle,
-} from "lucide-react";
+import { TrendingUp, Users, Eye, Heart, MessageCircle, RefreshCw, AlertCircle } from "lucide-react";
 
-function PlatformAnalytics({ platform }) {
+export default function PlatformAnalytics({ platform }) {
   const dispatch = useDispatch();
-  const { platformAnalytics, isLoading, isError, message, currentPlatform } = useSelector(
-    (state) => state.analytics
-  );
+
+  const analyticsState = useSelector((state) => state.analytics) || {};
+
+  const {
+    platformAnalytics = {},
+    isLoading: globalLoading = false,
+    isError: globalError = false,
+    message: globalMessage = "",
+    currentPlatform = null,
+  } = analyticsState;
 
   const [analyticsData, setAnalyticsData] = useState(null);
 
-  // Fetch platform-specific analytics
+  // Fetch analytics for this platform
   useEffect(() => {
-    if (platform) {
-      dispatch(setCurrentPlatform(platform));
-      dispatch(fetchPlatformAnalytics(platform));
-    }
+    if (!platform) return;
+    dispatch(setCurrentPlatform(platform));
+    dispatch(fetchPlatformAnalytics(platform));
   }, [platform, dispatch]);
 
-  // Update local state when analytics are fetched
+  // Update local state when platform data changes
   useEffect(() => {
-    if (platformAnalytics[platform]) {
+    if (platformAnalytics && platformAnalytics[platform]) {
       setAnalyticsData(platformAnalytics[platform]);
+    } else {
+      setAnalyticsData(null);
     }
   }, [platformAnalytics, platform]);
 
   // Format numbers for display
   const formatNumber = (num) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + "M";
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "K";
-    }
+    if (!num && num !== 0) return "-";
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
     return num.toString();
   };
 
-  // Get platform-specific metrics
+  // Map metrics to UI per platform
   const getPlatformMetrics = () => {
     if (!analyticsData?.summary) return [];
 
@@ -60,79 +59,59 @@ function PlatformAnalytics({ platform }) {
         metrics.push(
           {
             label: "Impressions",
-            value: formatNumber(summary.total_impressions || 0),
+            value: formatNumber(summary.total_impressions),
             icon: Eye,
             color: "text-blue-500",
           },
           {
             label: "Reach",
-            value: formatNumber(summary.total_reach || 0),
+            value: formatNumber(summary.total_reach),
             icon: Users,
             color: "text-green-500",
           },
           {
             label: "Profile Views",
-            value: formatNumber(summary.profile_views || 0),
+            value: formatNumber(summary.profile_views),
             icon: TrendingUp,
             color: "text-purple-500",
           }
         );
         break;
+
       case "facebook":
         metrics.push(
           {
             label: "Impressions",
-            value: formatNumber(summary.total_impressions || 0),
+            value: formatNumber(summary.total_impressions),
             icon: Eye,
             color: "text-blue-500",
           },
           {
             label: "Engagement",
-            value: formatNumber(summary.total_engagement || 0),
+            value: formatNumber(summary.total_engagement),
             icon: Heart,
             color: "text-red-500",
           },
           {
             label: "New Followers",
-            value: formatNumber(summary.new_followers || 0),
+            value: formatNumber(summary.new_followers),
             icon: Users,
             color: "text-green-500",
           }
         );
         break;
-      case "twitter":
-        metrics.push(
-          {
-            label: "Total Tweets",
-            value: formatNumber(summary.total_tweets || 0),
-            icon: MessageCircle,
-            color: "text-blue-500",
-          },
-          {
-            label: "Total Likes",
-            value: formatNumber(summary.total_likes || 0),
-            icon: Heart,
-            color: "text-red-500",
-          },
-          {
-            label: "Engagement Rate",
-            value: `${summary.engagement_rate || 0}%`,
-            icon: TrendingUp,
-            color: "text-green-500",
-          }
-        );
-        break;
+
       case "tiktok":
         metrics.push(
           {
             label: "Total Videos",
-            value: formatNumber(summary.total_videos || 0),
+            value: formatNumber(summary.total_videos),
             icon: TrendingUp,
             color: "text-purple-500",
           },
           {
             label: "Total Views",
-            value: formatNumber(summary.total_views || 0),
+            value: formatNumber(summary.total_views),
             icon: Eye,
             color: "text-blue-500",
           },
@@ -144,28 +123,30 @@ function PlatformAnalytics({ platform }) {
           }
         );
         break;
+
       case "youtube":
         metrics.push(
           {
             label: "Total Views",
-            value: formatNumber(summary.total_views || 0),
+            value: formatNumber(summary.total_views),
             icon: Eye,
             color: "text-blue-500",
           },
           {
             label: "Subscribers",
-            value: formatNumber(summary.total_subscribers || 0),
+            value: formatNumber(summary.total_subscribers),
             icon: Users,
             color: "text-green-500",
           },
           {
             label: "Total Videos",
-            value: formatNumber(summary.total_videos || 0),
+            value: formatNumber(summary.total_videos),
             icon: TrendingUp,
             color: "text-red-500",
           }
         );
         break;
+
       default:
         break;
     }
@@ -173,10 +154,15 @@ function PlatformAnalytics({ platform }) {
     return metrics;
   };
 
-  // Refresh analytics for this platform
+  // Refresh platform analytics
   const handleRefresh = () => {
-    dispatch(fetchPlatformAnalytics(platform));
+    if (platform) dispatch(fetchPlatformAnalytics(platform));
   };
+
+  // Conditional loading/error
+  const isLoading = globalLoading && currentPlatform === platform;
+  const isError = globalError && currentPlatform === platform;
+  const message = globalMessage;
 
   if (!platform) return null;
 
@@ -198,8 +184,8 @@ function PlatformAnalytics({ platform }) {
         </button>
       </div>
 
-      {/* Error Display */}
-      {isError && currentPlatform === platform && (
+      {/* Error State */}
+      {isError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center gap-2 text-red-700">
             <AlertCircle className="w-5 h-5" />
@@ -210,7 +196,7 @@ function PlatformAnalytics({ platform }) {
       )}
 
       {/* Loading State */}
-      {isLoading && currentPlatform === platform && (
+      {isLoading && !analyticsData && (
         <div className="mb-6 text-center py-8">
           <div className="flex items-center justify-center">
             <RefreshCw className="w-6 h-6 text-indigo-600 animate-spin mr-3" />
@@ -222,7 +208,6 @@ function PlatformAnalytics({ platform }) {
       {/* Analytics Content */}
       {!isLoading && analyticsData && (
         <div className="space-y-6">
-          {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {getPlatformMetrics().map((metric, index) => (
               <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
@@ -235,8 +220,8 @@ function PlatformAnalytics({ platform }) {
             ))}
           </div>
 
-          {/* Raw Metrics Data */}
-          {analyticsData.metrics && analyticsData.metrics.length > 0 && (
+          {/* Raw Metrics */}
+          {analyticsData.metrics?.length > 0 && (
             <div>
               <h4 className="text-md font-semibold text-gray-800 mb-3">Raw Metrics Data</h4>
               <div className="bg-gray-50 rounded-lg p-4">
@@ -249,7 +234,7 @@ function PlatformAnalytics({ platform }) {
         </div>
       )}
 
-      {/* No Data State */}
+      {/* No Data */}
       {!isLoading && !analyticsData && !isError && (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -262,5 +247,3 @@ function PlatformAnalytics({ platform }) {
     </div>
   );
 }
-
-export default PlatformAnalytics;

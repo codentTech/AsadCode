@@ -19,7 +19,7 @@ const api = (headers = null) => {
     : { ...defaultHeaders, ...headers };
 
   const apiInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:3000/api",
+    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
     headers: combinedHeaders,
   });
 
@@ -53,7 +53,7 @@ const api = (headers = null) => {
       }
 
       const message = error.response?.data?.message || error.message || error.toString();
-
+      console.log("Error:", error);
       const responseURL = error.request?.responseURL;
 
       if (responseURL.includes("onboarding")) return null;
@@ -68,9 +68,9 @@ const api = (headers = null) => {
       // Check if toast should be skipped for this request
       const skipToast =
         error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
-      
+
       // Skip toast for payment method errors (they're shown in the component)
-      const isPaymentMethodError = 
+      const isPaymentMethodError =
         responseURL?.includes("/payment-methods/attach") ||
         responseURL?.includes("/payment-methods/setup-intent");
 

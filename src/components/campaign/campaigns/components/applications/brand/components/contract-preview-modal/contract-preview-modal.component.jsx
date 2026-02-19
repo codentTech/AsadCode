@@ -2,6 +2,7 @@ import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { useState } from "react";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { formatDate } from "@/common/utils/date.utils";
 
 export default function ContractPreviewModal({
   show,
@@ -17,20 +18,6 @@ export default function ContractPreviewModal({
   // Generate stable timestamp when modal opens
   const [signatureTimestamp] = useState(() => new Date().toISOString());
   const [dateSigned] = useState(() => new Date().toLocaleDateString());
-
-  // Helper function to format dates
-  const formatDate = (dateString) => {
-    if (!dateString) return "[enter date]";
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch (error) {
-      return dateString;
-    }
-  };
 
   // Helper function to get deliverables
   const getDeliverables = () => {

@@ -26,11 +26,21 @@ import notificationReducer from "./features/notification/notification.slice";
 import campaignContextReducer from "./features/campaign-context/campaign-context.slice";
 import creatorApplicationsReducer from "./features/creator-applications/creator-applications.slice";
 import collaborationPaymentReducer from "./features/collaboration-payment/collaboration-payment.slice";
+import phylloReducer from "./features/phyllo/phyllo.slice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "dashboard", "onboarding", "users", "brandProfile", "shortlist", "contracts"],
+  whitelist: [
+    "auth",
+    "dashboard",
+    "onboarding",
+    "users",
+    "brandProfile",
+    "shortlist",
+    "contracts",
+    "phyllo",
+  ],
 };
 
 const rootReducer = combineReducers({
@@ -58,6 +68,7 @@ const rootReducer = combineReducers({
   campaignContext: campaignContextReducer,
   creatorApplications: creatorApplicationsReducer,
   collaborationPayment: collaborationPaymentReducer,
+  phyllo: phylloReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
