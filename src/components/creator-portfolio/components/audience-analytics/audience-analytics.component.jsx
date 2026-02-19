@@ -78,7 +78,7 @@ function AudienceAnalytics({ creatorId }) {
         </>
       )}
 
-      {!isLoading && !statsData && !isError && (
+      {!isLoading && !statsData && (
         <div className="text-center py-12 text-gray-600">
           <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-4" />
           <p>No Analytics Data Available</p>
