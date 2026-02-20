@@ -5,6 +5,7 @@ import Gallary from "./components/gallary/gallary.component";
 import AudienceAnalytics from "./components/audience-analytics/audience-analytics.component";
 import Reviews from "./components/reviews/reviews.component";
 import { useState, useCallback } from "react";
+import CreatorMetricsDashboard from "./components/matrix-dashboard/matrix-dashboard.component";
 
 export default function CreatorPortfolio({ creatorId = null }) {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -21,10 +22,11 @@ export default function CreatorPortfolio({ creatorId = null }) {
           refreshKey={refreshKey}
           onProfileUpdate={handleProfileUpdate}
         />
-        <BioPricing creatorId={creatorId} refreshKey={refreshKey} />
-        <Gallary creatorId={creatorId} refreshKey={refreshKey} />
+        <CreatorMetricsDashboard creatorId={creatorId} />
         <AudienceAnalytics creatorId={creatorId} />
         <Reviews creatorId={creatorId} />
+        <Gallary creatorId={creatorId} refreshKey={refreshKey} />
+        <BioPricing creatorId={creatorId} refreshKey={refreshKey} />
       </main>
     </HeaderLayout>
   );

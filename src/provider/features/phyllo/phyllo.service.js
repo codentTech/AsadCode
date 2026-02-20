@@ -39,6 +39,12 @@ export const fetchCampaignPerformanceMetrics = async (campaignId) => {
   return response.data;
 };
 
+// Fetch creator metrics
+export const fetchCreatorMetrics = async (creatorId) => {
+  const response = await api().get(`/phyllo/creators/metrics?creatorId=${creatorId}`);
+  return response.data;
+};
+
 const phylloService = {
   fetchCreatorStats,
   fetchCreatorPreview,
@@ -47,6 +53,7 @@ const phylloService = {
   fetchCreatorSocialAccounts,
   fetchCampaignCombinedDemographics,
   fetchCampaignPerformanceMetrics,
+  fetchCreatorMetrics,
 };
 
 export default phylloService;

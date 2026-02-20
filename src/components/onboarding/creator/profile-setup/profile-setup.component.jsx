@@ -143,7 +143,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Connect Social Media Platforms <span className="text-red-500">*</span>
+                    Connect <span className="text-red-500">*</span>
                   </h3>
                   <div className="flex items-center gap-2">
                     <CustomButton
