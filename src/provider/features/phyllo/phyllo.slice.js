@@ -19,6 +19,7 @@ const initialState = {
   fetchCreatorSocialAccounts: { ...generalState },
   fetchCampaignCombinedDemographics: { ...generalState },
   fetchCampaignPerformanceMetrics: { ...generalState },
+  fetchCreatorMetrics: { ...generalState },
 };
 
 // === Async thunks ===
@@ -93,6 +94,21 @@ export const fetchCampaignPerformanceMetrics = createAsyncThunk(
   }
 );
 
+export const fetchCreatorMetrics = createAsyncThunk(
+  "phyllo/fetchCreatorMetrics",
+  async (creatorId, thunkAPI) => {
+    try {
+      const response = await phylloService.fetchCreatorMetrics(creatorId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to fetch creator metrics")
+      );
+    }
+  }
+);
+
 // === Slice ===
 export const phylloSlice = createSlice({
   name: "phyllo",
@@ -113,6 +129,9 @@ export const phylloSlice = createSlice({
     },
     resetPerformanceMetrics: (state) => {
       state.fetchCampaignPerformanceMetrics = { ...generalState };
+    },
+    resetMetrics: (state) => {
+      state.fetchCreatorMetrics = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -197,6 +216,25 @@ export const phylloSlice = createSlice({
         state.fetchCampaignPerformanceMetrics.isError = true;
         state.fetchCampaignPerformanceMetrics.message =
           action.payload?.message || "Failed to fetch campaign performance metrics";
+      })
+
+      // ===== CREATOR METRICS =====
+      .addCase(fetchCreatorMetrics.pending, (state) => {
+        state.fetchCreatorMetrics = {
+          ...generalState,
+          isLoading: true,
+        };
+      })
+      .addCase(fetchCreatorMetrics.fulfilled, (state, action) => {
+        state.fetchCreatorMetrics.isLoading = false;
+        state.fetchCreatorMetrics.isSuccess = true;
+        state.fetchCreatorMetrics.data = action.payload;
+      })
+      .addCase(fetchCreatorMetrics.rejected, (state, action) => {
+        state.fetchCreatorMetrics.isLoading = false;
+        state.fetchCreatorMetrics.isError = true;
+        state.fetchCreatorMetrics.message =
+          action.payload?.message || "Failed to fetch creator metrics";
       });
   },
 });
@@ -212,7 +250,16 @@ export const selectCampaignCombinedDemographics = (state) =>
 export const selectCampaignPerformanceMetrics = (state) =>
   state.phyllo?.fetchCampaignPerformanceMetrics || { ...generalState };
 
+// ===== CREATOR METRICS =====
+export const selectCreatorMetrics = (state) =>
+  state.phyllo?.fetchCreatorMetrics || { ...generalState };
+
 // === Exports ===
-export const { reset, resetAudience, resetCampaignDemographics, resetPerformanceMetrics } =
-  phylloSlice.actions;
+export const {
+  reset,
+  resetAudience,
+  resetCampaignDemographics,
+  resetPerformanceMetrics,
+  resetMetrics,
+} = phylloSlice.actions;
 export default phylloSlice.reducer;

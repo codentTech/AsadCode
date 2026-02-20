@@ -60,7 +60,7 @@ const BioPricing = ({ refreshKey, creatorId = null }) => {
   return (
     <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-primary">Bio & Pricing</h2>
+        <h2 className="text-lg font-semibold text-primary">Bio & Pricing</h2>
         <button
           onClick={handleManualRefresh}
           className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

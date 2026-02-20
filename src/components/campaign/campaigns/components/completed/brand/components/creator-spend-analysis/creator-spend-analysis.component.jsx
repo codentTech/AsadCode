@@ -48,10 +48,10 @@ const CreatorSpendAnalysisCompleted = ({
     }
   };
 
-  const totalViews = "10,000";
-  const totalEngagement = "10,000";
-  const engagementRate = "10,000";
-  const costPerEngagement = "10,000";
+  const totalViews = "0";
+  const totalEngagement = "0";
+  const engagementRate = "0";
+  const costPerEngagement = "0";
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -302,8 +302,8 @@ const CreatorSpendAnalysisCompleted = ({
         onClose={() => setShowBrandCalendar(false)}
         selectedCampaign={selectedCampaign}
       />
-      <TaskManagerModal 
-        show={showTaskManager} 
+      <TaskManagerModal
+        show={showTaskManager}
         onClose={() => setShowTaskManager(false)}
         isMultiCreator={isMultiCreator}
       />
