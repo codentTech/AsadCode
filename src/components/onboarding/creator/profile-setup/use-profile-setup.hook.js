@@ -56,7 +56,7 @@ export default function useProfileSetup({ onNext }) {
 
   const fileInputRef = useRef(null);
 
-  const platforms = ["instagram", "tiktok", "youtube", "twitter", "facebook"];
+  const platforms = ["instagram", "tiktok", "youtube"];
 
   const {
     handleSubmit,

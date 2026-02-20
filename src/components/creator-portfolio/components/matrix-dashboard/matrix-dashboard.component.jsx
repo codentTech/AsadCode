@@ -61,12 +61,12 @@ const CreatorMetricsDashboard = ({ creatorId }) => {
   ];
 
   return (
-    <div className="space-y-4 bg-white rounded-lg shadow-md p-6">
+    <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-primary">Performance Metrics</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-xs md:text-sm text-gray-600 mt-1">
             Based on {metadata?.postsAnalyzed ?? "—"} recent posts •{" "}
             {(metadata?.totalFollowers ?? 0).toLocaleString()} followers
           </p>
@@ -79,34 +79,34 @@ const CreatorMetricsDashboard = ({ creatorId }) => {
           <MetricCard key={idx} icon={c.icon} metric={c.metric} tone={c.tone} />
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
 const tones = {
-  blue: { ring: "ring-blue-200", icon: "text-blue-600", badge: "bg-blue-100 text-blue-700" },
+  blue: { ring: "ring-blue-200", icon: "text-blue-600", badge: "bg-blue-50 text-blue-700" },
   purple: {
     ring: "ring-purple-200",
     icon: "text-purple-600",
-    badge: "bg-purple-100 text-purple-700",
+    badge: "bg-purple-50 text-purple-700",
   },
-  green: { ring: "ring-green-200", icon: "text-green-600", badge: "bg-green-100 text-green-700" },
+  green: { ring: "ring-green-200", icon: "text-green-600", badge: "bg-green-50 text-green-700" },
   indigo: {
     ring: "ring-indigo-200",
     icon: "text-indigo-600",
-    badge: "bg-indigo-100 text-indigo-700",
+    badge: "bg-indigo-50 text-indigo-700",
   },
-  teal: { ring: "ring-teal-200", icon: "text-teal-600", badge: "bg-teal-100 text-teal-700" },
-  pink: { ring: "ring-pink-200", icon: "text-pink-600", badge: "bg-pink-100 text-pink-700" },
+  teal: { ring: "ring-teal-200", icon: "text-teal-600", badge: "bg-teal-50 text-teal-700" },
+  pink: { ring: "ring-pink-200", icon: "text-pink-600", badge: "bg-pink-50 text-pink-700" },
   orange: {
     ring: "ring-orange-200",
     icon: "text-orange-600",
-    badge: "bg-orange-100 text-orange-700",
+    badge: "bg-orange-50 text-orange-700",
   },
   emerald: {
     ring: "ring-emerald-200",
     icon: "text-emerald-600",
-    badge: "bg-emerald-100 text-emerald-700",
+    badge: "bg-emerald-50 text-emerald-700",
   },
 };
 
@@ -134,13 +134,13 @@ const MetricCard = ({ icon: Icon, metric, tone = "blue" }) => {
       className={[
         "group relative rounded-xl bg-white",
         "p-3 md:p-4",
-        "border border-gray-100 shadow-lg",
+        "border border-gray-100 shadow-sm",
         "transition-all hover:shadow-md hover:-translate-y-[1px]",
         "ring-1 ring-transparent hover:" + t.ring,
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${t.badge}`}>
             <Icon className={`h-4 w-4 ${t.icon}`} />
           </span>

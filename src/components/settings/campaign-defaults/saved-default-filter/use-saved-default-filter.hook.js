@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 
-const platforms = ["facebook", "instagram", "tiktok", "youtube", "twitter"];
+const platforms = ["facebook", "instagram", "tiktok"];
 const categories = [
   "Fashion",
   "Fitness",
