@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { Bookmark, Star, User } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -16,22 +17,28 @@ const CreatorCard = ({
   onReinstateClick,
   onViewNotesClick,
   isReinstateLoading = false,
+  hideActions = false,
+  creatorType,
 }) => {
   const router = useRouter();
   const { getPlatformIcon } = useGetplatform();
+  const isClickable = typeof onCreatorPreview === "function";
 
   const handleSaveClick = (e) => {
     e.stopPropagation();
+    if (typeof onSaveToShortlist !== "function" && typeof onRemoveFromShortlist !== "function") {
+      return;
+    }
     if (isShortlist) {
-      onRemoveFromShortlist(creator.id);
+      onRemoveFromShortlist?.(creator.id);
     } else {
-      onSaveToShortlist(creator);
+      onSaveToShortlist?.(creator);
     }
   };
 
   const handleInviteClickInternal = (e) => {
     e.stopPropagation();
-    onInviteClick(creator, e);
+    onInviteClick?.(creator, e);
   };
 
   const handleReinstateClickInternal = (e) => {
@@ -62,29 +69,54 @@ const CreatorCard = ({
     <div
       className={`relative flex-shrink-0 snap-start ${
         isShortlist ? "w-full" : "w-64"
-      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
-      onClick={() => onCreatorPreview(creator)}
+      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
+        isClickable ? "cursor-pointer" : "cursor-default"
+      } bg-white border border-gray-200 overflow-hidden`}
+      onClick={() => {
+        if (isClickable) onCreatorPreview(creator);
+      }}
     >
       {/* Cover Images Section */}
       <div className="relative h-32 bg-gray-100 overflow-hidden">
-        {creator.portfolioImages && creator.portfolioImages.length >= 3 ? (
+        {Array.isArray(creator.portfolioImages) && creator.portfolioImages.some(Boolean) ? (
           <div className="flex h-full">
-            {creator.portfolioImages.slice(0, 3).map((image, index) => (
-              <div key={index} className="flex-1 relative">
-                <img
-                  src={image}
-                  alt={`Portfolio ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                {index < 2 && (
-                  <div className="absolute right-0 top-0 w-px h-full bg-white/30"></div>
-                )}
-              </div>
-            ))}
+            {[0, 1, 2].map((index) => {
+              const image = creator.portfolioImages[index];
+              return (
+                <div key={index} className="flex-1 relative">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={`Portfolio ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary"></div>
+                  )}
+                  {index < 2 && (
+                    <div className="absolute right-0 top-0 w-px h-full bg-white/30"></div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100"></div>
+          <div className="w-full h-full bg-primary"></div>
         )}
+
+        {creatorType === CAMPAIGN_TYPE.UGC ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-indigo-200 bg-indigo-100 rounded-lg">
+            UGC
+          </div>
+        ) : creatorType === CAMPAIGN_TYPE.INFLUENCER ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-purple-200 bg-purple-100 rounded-lg">
+            INFLUENCER
+          </div>
+        ) : creatorType === CAMPAIGN_TYPE.HYBRID ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-green-200 bg-green-100 rounded-lg">
+            HYBRID
+          </div>
+        ) : null}
       </div>
 
       {/* Content Section */}
@@ -92,22 +124,28 @@ const CreatorCard = ({
         {/* Profile Image */}
         <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2">
           <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
-            <img
-              src={creator.profileImage}
-              alt={creator.name}
-              className="w-full h-full object-cover"
-            />
+            {creator.profileImage ? (
+              <img
+                src={creator.profileImage}
+                alt={creator.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white bg-primary rounded-full w-full h-full flex items-center justify-center font-semibold text-2xl">
+                {creator.name?.charAt(0) + creator.name?.split(" ")[1]?.charAt(0)}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Name, Rating and Location */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <h4 className="text-gray-900 font-semibold text-sm">{creator.name}</h4>
-            <div className="flex items-center space-x-1">
-              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-              <span className="text-xs text-gray-500">{creator.rating}</span>
-              <span className="text-xs text-gray-400">({creator.reviewCount || 0})</span>
+            <h4 className="text-gray-900 font-semibold text-md">{creator.name}</h4>
+            <div className="flex items-center space-x-1 mt-1">
+              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+              <span className="text-sm text-gray-500">{creator.rating}</span>
+              <span className="text-sm text-gray-400">({creator.reviewCount || 0})</span>
             </div>
           </div>
           <p className="text-gray-500 text-xs">
@@ -152,20 +190,23 @@ const CreatorCard = ({
         )}
 
         {/* Bio */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500 line-clamp-2">
-            {creator.bio
-              ? creator.bio.length > 100
-                ? creator.bio.substring(0, 100) + "..."
-                : creator.bio
-              : creator.tagline || ""}
-          </p>
+        <div className=" bg-gray-100 p-2 rounded-lg text-center">
+          <p className="text-xs text-gray-500 line-clamp-2">{creator.bio || ""}</p>
         </div>
 
+        {/* Long Bio */}
+        {creator.id === "onboarding-preview" && (
+          <div className="text-center bg-gray-100 p-2 rounded-lg">
+            <p className="text-xs text-gray-500 break-all">{creator.longBio || ""}</p>
+          </div>
+        )}
+
         {/* Stats */}
-        <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
-          <span className="font-medium">{formatFollowers(creator.followers)} Followers</span>
-        </div>
+        {creator.followers !== 0 && (
+          <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-2">
+            <span className="font-medium">{formatFollowers(creator.followers)} Followers</span>
+          </div>
+        )}
 
         {/* Social Icons */}
         <div className="flex justify-center space-x-4">
@@ -194,7 +235,7 @@ const CreatorCard = ({
         </div>
 
         {/* Icon Buttons (Discover tab) */}
-        {tab === "discover" && (
+        {!hideActions && tab === "discover" && (
           <div className="flex justify-center items-center gap-3">
             <div className="relative group">
               <button
@@ -227,37 +268,38 @@ const CreatorCard = ({
         )}
 
         {/* Actions Row */}
-        {tab === "discover" ? (
-          <div className="flex items-center gap-3">
-            <CustomButton
-              text="Invite to Apply"
-              onClick={handleInviteClickInternal}
-              className="btn-outline w-full rounded-lg"
-            />
-          </div>
-        ) : tab === "rejected" ? (
-          <div className="flex flex-col items-center gap-3">
-            <CustomButton
-              text="Reinstate to Applications"
-              className="w-full btn-secondary rounded-lg"
-              onClick={handleReinstateClickInternal}
-              disabled={isReinstateLoading}
-            />
-            <CustomButton
-              text="View Notes"
-              className="w-full btn-outline rounded-lg"
-              onClick={handleViewNotesClickInternal}
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <CustomButton
-              text={isShortlist ? "Remove" : "Save"}
-              className="w-full btn-secondary rounded-lg"
-              onClick={handleSaveClick}
-            />
-          </div>
-        )}
+        {!hideActions &&
+          (tab === "discover" ? (
+            <div className="flex items-center gap-3">
+              <CustomButton
+                text="Invite to Apply"
+                onClick={handleInviteClickInternal}
+                className="btn-outline w-full rounded-lg"
+              />
+            </div>
+          ) : tab === "rejected" ? (
+            <div className="flex flex-col items-center gap-3">
+              <CustomButton
+                text="Reinstate to Applications"
+                className="w-full btn-secondary rounded-lg"
+                onClick={handleReinstateClickInternal}
+                disabled={isReinstateLoading}
+              />
+              <CustomButton
+                text="View Notes"
+                className="w-full btn-outline rounded-lg"
+                onClick={handleViewNotesClickInternal}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <CustomButton
+                text={isShortlist ? "Remove" : "Save"}
+                className="w-full btn-secondary rounded-lg"
+                onClick={handleSaveClick}
+              />
+            </div>
+          ))}
       </div>
     </div>
   );

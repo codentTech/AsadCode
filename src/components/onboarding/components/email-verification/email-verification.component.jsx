@@ -11,6 +11,14 @@ const EmailVerification = ({ onNext, onBack }) => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-2xl font-bold text-white mb-1">
+            Verify Your Email to Continue
+          </h1>
+          <p className="text-sm lg:text-md text-white">
+            We’ve sent you an email with a verification link.
+          </p>
+        </div>
         {/* Progress */}
         <div className="mb-6">
           <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
@@ -25,7 +33,7 @@ const EmailVerification = ({ onNext, onBack }) => {
             <span className="text-gray-500">60% Complete</span>
           </div>
           <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full w-[60%] bg-gradient-to-r from-indigo-500 to-purple-600 transition-all rounded-full" />
+            <div className="h-full w-[60%] bg-primary transition-all rounded-full" />
           </div>
         </div>
 

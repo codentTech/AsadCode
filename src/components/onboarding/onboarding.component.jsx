@@ -4,7 +4,7 @@ import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-pref
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
 import AccountType from "./components/account-type/account-type.component";
-import EmailVerification from "./components/email-verification/email-verification";
+import EmailVerification from "./components/email-verification/email-verification.component";
 import Register from "./components/register/register.component";
 import CampaignPreferences from "./creator/campaign-preferences/campaign-preferences.component";
 import ProfileSetup from "./creator/profile-setup/profile-setup.component";

@@ -14,9 +14,9 @@ const Register = ({ onNext, onBack, inviteToken }) => {
     inviteToken,
   });
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-  
+
   const email = watch("email");
-  
+
   // When invite token exists, we need to validate it and get the email
   // For now, we'll validate in the hook on submit
   // The email should be pre-filled from URL params or validated
@@ -191,6 +191,14 @@ const Register = ({ onNext, onBack, inviteToken }) => {
   return (
     <div className="py-8 px-4 bg-gray-100">
       <div className="max-w-xl mx-auto">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
+            Account Owner Information
+          </h1>
+          <p className="text-sm lg:text-lg text-white">
+            Let's set up your profile to start connecting with creators
+          </p>
+        </div>
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
             <button
@@ -203,21 +211,12 @@ const Register = ({ onNext, onBack, inviteToken }) => {
             <span>Step 2 of 5</span>
             <span>40% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-2/5 transition-all duration-500"></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-2/5 transition-all duration-500"></div>
           </div>
         </div>
 
-        <div className="text-center mb-5">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
-            Account Owner Information
-          </h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Let's set up your profile to start connecting with creators
-          </p>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+        <div className="bg-white rounded-lg shadow-2xl p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CustomInput
