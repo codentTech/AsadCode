@@ -1,10 +1,23 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { avatar } from "@/common/constants/auth.constant";
 import { getAge } from "@/common/utils/date.utils";
+import {
+  fetchCreatorMetrics,
+  fetchCreatorAudience,
+  selectCreatorMetrics,
+  selectCreatorAudience,
+  resetMetrics,
+  resetAudience,
+} from "@/provider/features/phyllo/phyllo.slice";
 
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const creatorMetricsState = useSelector(selectCreatorMetrics);
+  const creatorAudienceState = useSelector(selectCreatorAudience);
+
   const getCreatorData = () => {
     if (!selectedCreator) return null;
 
@@ -53,11 +66,46 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
     }
   }, [creatorUserId, router]);
 
+  useEffect(() => {
+    if (creatorUserId) {
+      dispatch(fetchCreatorMetrics(creatorUserId));
+    }
+    return () => dispatch(resetMetrics());
+  }, [creatorUserId, dispatch]);
+
+  const metricsPayload = creatorMetricsState?.data?.data ?? null;
+  const performanceMetrics = useMemo(() => {
+    if (!metricsPayload?.metrics) return null;
+    const m = metricsPayload.metrics;
+    const meta = metricsPayload.metadata ?? {};
+    return {
+      engagement_rate:
+        m.engagementRate?.value != null ? `${Number(m.engagementRate.value).toFixed(1)}%` : null,
+      average_reach:
+        meta.medianReach != null
+          ? Number(meta.medianReach).toLocaleString()
+          : m.reachEfficiency?.value != null
+            ? `${Number(m.reachEfficiency.value).toFixed(1)}%`
+            : null,
+      average_views:
+        m.averageViews?.value != null ? Number(m.averageViews.value).toLocaleString() : null,
+      posting_frequency:
+        meta.postsPerMonth != null ? `${Number(meta.postsPerMonth).toFixed(1)}/mo` : null,
+    };
+  }, [metricsPayload]);
+
+  const audienceData = creatorAudienceState?.data ?? null;
+  const audienceLoading = creatorAudienceState?.isLoading ?? false;
+
   return {
     creatorData,
     creatorProfileId,
     creatorUserId,
     handleViewCreatorPortfolio,
+    performanceMetrics,
+    performanceMetricsLoading: creatorMetricsState?.isLoading ?? false,
+    audienceData,
+    audienceLoading,
   };
 };
 

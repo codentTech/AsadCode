@@ -9,7 +9,13 @@ const mapUserToCreator = (user) => {
 
   const platforms = socialAccounts.map((s) => s.platform).filter(Boolean);
   const platformStats = socialAccounts.reduce((acc, s) => {
-    const followers = s.profile_data?.followers || s.profile_data?.followers_count || 0;
+    const pd = s.profile_data || {};
+    const followers =
+      Number(pd.followers) ||
+      Number(pd.followers_count) ||
+      Number(pd.follower_count) ||
+      Number(pd.subscriber_count) ||
+      0;
     if (s.platform) acc[s.platform] = { followers };
     return acc;
   }, {});

@@ -212,7 +212,42 @@ function useCreatorSpendAnalysis({
   const mapCreatorForCard = (data) => {
     const creatorData = data.creator;
     const profile = creatorData?.creator_profile;
+    const socialAccounts = creatorData?.social_accounts || [];
     const appliedDate = data.applied_at || data.created_at;
+
+    const platformStatsFromAccounts = socialAccounts.reduce((acc, s) => {
+      const pd = s.profile_data || {};
+      const followers =
+        Number(pd.followers) ||
+        Number(pd.followers_count) ||
+        Number(pd.follower_count) ||
+        Number(pd.subscriber_count) ||
+        0;
+      if (s.platform) acc[s.platform] = { followers };
+      return acc;
+    }, {});
+
+    const totalFromAccounts = Object.values(platformStatsFromAccounts).reduce(
+      (sum, stat) => sum + (stat?.followers || 0),
+      0
+    );
+
+    const platforms =
+      Object.keys(platformStatsFromAccounts).length > 0
+        ? Object.keys(platformStatsFromAccounts)
+        : (profile?.social_platforms || [])
+            .map((p) => (typeof p === "object" ? p.platform : p))
+            .filter(Boolean);
+
+    const platformStats =
+      Object.keys(platformStatsFromAccounts).length > 0
+        ? platformStatsFromAccounts
+        : platforms.reduce((acc, platformName) => {
+            if (platformName) acc[platformName] = { followers: 0 };
+            return acc;
+          }, {});
+
+    const followers = totalFromAccounts > 0 ? totalFromAccounts : (profile?.total_followers || 0);
 
     return {
       id: creatorData?.id,
@@ -228,17 +263,9 @@ function useCreatorSpendAnalysis({
         "Location not specified",
       rating: parseFloat(profile?.rating) || 0,
       reviewCount: profile?.review_count || 0,
-      followers: profile?.total_followers || 0,
-      platforms: (profile?.social_platforms || [])
-        .map((p) => (typeof p === "object" ? p.platform : p))
-        .filter(Boolean),
-      platformStats: (profile?.social_platforms || []).reduce((acc, platform) => {
-        const platformName = typeof platform === "object" ? platform.platform : platform;
-        if (platformName) {
-          acc[platformName] = { followers: 0 };
-        }
-        return acc;
-      }, {}),
+      followers,
+      platforms,
+      platformStats,
       portfolioImages: profile?.mini_profile_pictures || [],
       niches: profile?.categories || [],
       tagline: data.custom_message || data.pitch || profile?.bio || "",
