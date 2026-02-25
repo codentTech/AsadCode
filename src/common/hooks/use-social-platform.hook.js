@@ -47,8 +47,16 @@ function useGetplatform() {
       return count ? count.toString() : "—";
     }
 
-    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${Math.round(count / 1_000)}K`;
+    if (count >= 1_000_000) {
+      const whole = Math.floor(count / 1_000_000);
+      const frac = Math.floor((count % 1_000_000) / 100_000);
+      return frac === 0 ? `${whole}M` : `${whole}.${frac}M`;
+    }
+    if (count >= 1_000) {
+      const whole = Math.floor(count / 1_000);
+      const frac = Math.floor((count % 1_000) / 100);
+      return frac === 0 ? `${whole}K` : `${whole}.${frac}K`;
+    }
     return count.toString();
   };
 

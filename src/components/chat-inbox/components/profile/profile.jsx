@@ -2,7 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
 import React from "react";

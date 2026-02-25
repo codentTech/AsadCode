@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 
-const platforms = ["facebook", "instagram", "tiktok"];
+const platforms = ["INSTAGRAM", "TIKTOK", "YOUTUBE"];
 const categories = [
   "Fashion",
   "Fitness",
@@ -57,6 +57,15 @@ export default function useSavedDefaultFilter() {
     } catch (error) {}
   };
 
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const pollConnectedAccounts = async (attempts = 18, intervalMs = 5000) => {
+    for (let i = 0; i < attempts; i++) {
+      await loadConnectedAccounts();
+      await wait(intervalMs);
+    }
+  };
+
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -83,12 +92,24 @@ export default function useSavedDefaultFilter() {
     };
 
     loadUserData();
+
+    const onWindowFocus = () => {
+      loadConnectedAccounts();
+    };
+
+    window.addEventListener("focus", onWindowFocus);
+
+    return () => {
+      window.removeEventListener("focus", onWindowFocus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleConnectSocialMedia = async () => {
     try {
       await openPhylloConnect();
       await loadConnectedAccounts();
+      pollConnectedAccounts(18, 5000);
     } catch (error) {}
   };
 

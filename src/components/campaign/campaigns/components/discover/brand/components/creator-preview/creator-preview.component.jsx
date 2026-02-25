@@ -1,12 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import Loading from "@/common/components/loadar/loading.component";
 import { avatar } from "@/common/constants/auth.constant";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import useCreatorPreview from "./use-creator-preview.hook";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { VerifiedRounded } from "@mui/icons-material";
 import { MapPin, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Loading from "@/common/components/loadar/loading.component";
+import useCreatorPreview from "./use-creator-preview.hook";
 
 function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
   const router = useRouter();
@@ -102,22 +102,6 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
             </div>
           ))}
         </div>
-
-        {/* Total Followers Summary */}
-        {!isLoading && stats.data?.connected_platforms > 0 && (
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Total Reach</p>
-                <p className="text-xs">{formatFollowers(stats.data.total_followers)}</p>
-              </div>
-              <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Platforms</p>
-                <p className="text-xs">{stats.data.connected_platforms}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Metrics Section */}
@@ -145,19 +129,11 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
       {/* Audience Demographics */}
       <div className="px-2 py-4">
         <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
-        {audience.isLoading ? (
-          <div className="space-y-3">
-            <div className="h-32 bg-gray-200 animate-pulse rounded-lg"></div>
-            <div className="h-32 bg-gray-200 animate-pulse rounded-lg"></div>
-          </div>
-        ) : (
-          audience.data && (
-            <AudienceDemographics
-              className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2"
-              audienceData={audience.data}
-            />
-          )
-        )}
+        <AudienceDemographics
+          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2"
+          audienceData={audience.data ?? null}
+          loading={audience.isLoading}
+        />
       </div>
 
       {/* Footer Actions */}
@@ -166,11 +142,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
         <CustomButton
           text="View Full Profile"
           className="btn-primary"
-          onClick={() =>
-            previewCreator.id
-              ? router.push(`/brand-portfolio/${previewCreator.id}`)
-              : window.open("brand-portfolio", "_blank")
-          }
+          onClick={() => window.open(`/creator-profile/${previewCreator.id}`, "_blank")}
         />
       </div>
     </div>

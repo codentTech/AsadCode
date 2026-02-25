@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
 import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";

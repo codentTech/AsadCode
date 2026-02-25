@@ -120,6 +120,7 @@ export const phylloSlice = createSlice({
       state.fetchCreatorSocialAccounts = { ...generalState };
       state.fetchCampaignCombinedDemographics = { ...generalState };
       state.fetchCampaignPerformanceMetrics = { ...generalState };
+      state.fetchCreatorMetrics = { ...generalState };
     },
     resetAudience: (state) => {
       state.fetchCreatorAudience = { ...generalState };
