@@ -12,10 +12,15 @@ const DeliverablesProgress = ({
   onMessageClick,
   isIndividualCreator = false,
 }) => {
-  const { creatorData, creatorProfileId, handleViewCreatorPortfolio } = useDeliverablesProgress(
-    selectedCreator,
-    isIndividualCreator
-  );
+  const {
+    creatorData,
+    creatorProfileId,
+    handleViewCreatorPortfolio,
+    performanceMetrics,
+    performanceMetricsLoading,
+    audienceData,
+    audienceLoading,
+  } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
 
   if (!creatorData) {
     return <Loading />;
@@ -59,37 +64,60 @@ const DeliverablesProgress = ({
         <>
           <div className="bg-white rounded-lg border p-3">
             <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="border rounded p-2">
-                <p className="text-[11px] text-gray-500">Engagement Rate</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {creatorData?.profile?.engagement_rate ?? "N/A"}
-                </p>
+            {performanceMetricsLoading ? (
+              <div className="grid grid-cols-2 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="border rounded p-2 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-16 mb-1" />
+                    <div className="h-4 bg-gray-100 rounded w-12" />
+                  </div>
+                ))}
               </div>
-              <div className="border rounded p-2">
-                <p className="text-[11px] text-gray-500">Average Reach</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {creatorData?.profile?.average_reach ?? "N/A"}
-                </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Engagement Rate</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.engagement_rate ??
+                      creatorData?.profile?.engagement_rate ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Reach</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.average_reach ??
+                      creatorData?.profile?.average_reach ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Views</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.average_views ??
+                      creatorData?.profile?.average_views ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Posting Frequency</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.posting_frequency ??
+                      creatorData?.profile?.posting_frequency ??
+                      "N/A"}
+                  </p>
+                </div>
               </div>
-              <div className="border rounded p-2">
-                <p className="text-[11px] text-gray-500">Average Views</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {creatorData?.profile?.average_views ?? "N/A"}
-                </p>
-              </div>
-              <div className="border rounded p-2">
-                <p className="text-[11px] text-gray-500">Posting Frequency</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {creatorData?.profile?.posting_frequency ?? "N/A"}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="bg-white border rounded-lg p-3">
             <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
-            <AudienceDemographics className="flex flex-col" />
+            <AudienceDemographics
+              audienceData={audienceData}
+              loading={audienceLoading}
+              className="flex flex-col"
+            />
           </div>
         </>
 
