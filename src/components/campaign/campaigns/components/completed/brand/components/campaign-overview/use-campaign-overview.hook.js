@@ -4,10 +4,17 @@ import useBrandCampaignCompleted from "../../use-brand.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 
-export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleChange, parentIsMultiCreator, parentSelectedCampaign) {
+export default function useCampaignOverviewCompleted(
+  onCampaignSelect,
+  onToggleChange,
+  parentIsMultiCreator,
+  parentSelectedCampaign
+) {
   const dispatch = useDispatch();
-  const [isMultiCreator, setIsMultiCreator] = useState(parentIsMultiCreator !== undefined ? parentIsMultiCreator : true);
-  
+  const [isMultiCreator, setIsMultiCreator] = useState(
+    parentIsMultiCreator !== undefined ? parentIsMultiCreator : true
+  );
+
   useEffect(() => {
     if (parentIsMultiCreator !== undefined) {
       setIsMultiCreator(parentIsMultiCreator);
@@ -28,10 +35,9 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
 
   const selectedCampaign = parentSelectedCampaign || hookSelectedCampaign;
 
-  const {
-    data: creatorsData,
-    isSuccess: creatorsSuccess,
-  } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+  const { data: creatorsData, isSuccess: creatorsSuccess } = useSelector(
+    (state) => state.campaigns.getAppliedCreators || {}
+  );
   const budgetData = useMemo(() => {
     if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
@@ -48,9 +54,70 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
     return hookBudgetData;
   }, [parentSelectedCampaign, creatorsSuccess, creatorsData, hookBudgetData]);
 
+  const timelinesByKey = useSelector((state) => state.campaignTimeline?.timelinesByKey || {});
+
   const performanceMetrics = useMemo(() => {
     if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
+
+      // Collect per-creator metrics from timeline FINAL_PUBLISHED steps
+      const creatorMetrics = creators
+        .map((c) => {
+          const creatorUserId = c.creator?.id || c.creatorUserId;
+          if (!creatorUserId || !parentSelectedCampaign.id) return null;
+
+          const key = `${parentSelectedCampaign.id}-${creatorUserId}`;
+          const timelineSource = timelinesByKey[key];
+          const steps = Array.isArray(timelineSource?.data) ? timelineSource.data : [];
+
+          const publishedStep = steps.find(
+            (s) => s.step_type === "FINAL_PUBLISHED" || s.step === "FINAL_PUBLISHED"
+          );
+          const engagement = publishedStep?.engagement || publishedStep?.data?.engagement || null;
+          if (!publishedStep?.published_url && !publishedStep?.data?.published_url) return null;
+          if (!engagement) return null;
+
+          const views = Number(engagement.view_count ?? engagement.views ?? 0);
+          const likes = Number(engagement.like_count ?? engagement.likes ?? 0);
+          const comments = Number(engagement.comment_count ?? engagement.comments ?? 0);
+          const shares = Number(engagement.share_count ?? engagement.shares ?? 0);
+          const saves = Number(engagement.save_count ?? engagement.saves ?? 0);
+          const totalEngagement = likes + comments + shares + saves;
+          const fee = c.total_spent || c.totalSpent || 0;
+
+          return {
+            views,
+            totalEngagement,
+            engagementRate: views > 0 ? totalEngagement / views : 0,
+            costPerEngagement: totalEngagement > 0 ? fee / totalEngagement : null,
+          };
+        })
+        .filter(Boolean);
+
+      if (creatorMetrics.length > 0) {
+        const totalViews = creatorMetrics.reduce((s, m) => s + m.views, 0);
+        const totalEngagement = creatorMetrics.reduce((s, m) => s + m.totalEngagement, 0);
+
+        // Spec §3: ER = average of individual ERs (not recalculated from totals)
+        const engagementRate =
+          creatorMetrics.reduce((s, m) => s + m.engagementRate, 0) / creatorMetrics.length;
+
+        // Spec §3: CPE = average of individual CPEs (not total spend / total engagement)
+        const cpeValues = creatorMetrics
+          .map((m) => m.costPerEngagement)
+          .filter((v) => v !== null && v !== undefined);
+        const costPerEngagement =
+          cpeValues.length > 0 ? cpeValues.reduce((s, v) => s + v, 0) / cpeValues.length : 0;
+
+        return {
+          totalViews,
+          totalEngagement,
+          engagementRate: engagementRate * 100,
+          costPerEngagement,
+        };
+      }
+
+      // Fallback: use stored creator-level aggregates when timeline data not yet loaded
       const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
       const totalViews = creators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
       const totalEngagement = creators.reduce(
@@ -59,20 +126,22 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
       );
       const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
       const costPerEngagement = totalEngagement > 0 ? spent / totalEngagement : 0;
-      return {
-        totalViews,
-        totalEngagement,
-        engagementRate,
-        costPerEngagement,
-      };
+      return { totalViews, totalEngagement, engagementRate, costPerEngagement };
     }
     return hookPerformanceMetrics;
-  }, [parentSelectedCampaign, creatorsSuccess, creatorsData, hookPerformanceMetrics]);
+  }, [
+    parentSelectedCampaign,
+    creatorsSuccess,
+    creatorsData,
+    hookPerformanceMetrics,
+    timelinesByKey,
+  ]);
 
   const filteredCampaignOptions = useMemo(() => {
     return campaignOptions.filter((option) => {
       if (!option || !option.campaign) return false;
-      const collaborationType = option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      const collaborationType =
+        option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
       return isMultiCreator
         ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
         : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
@@ -82,7 +151,8 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
   const isSelectedCampaignValid =
     selectedCampaign &&
     (isMultiCreator
-      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) === COLLABORATION_TYPE.MULTI_CREATOR
+      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+        COLLABORATION_TYPE.MULTI_CREATOR
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
 
   const showMultiCreatorUI = isMultiCreator && isSelectedCampaignValid;
@@ -96,18 +166,18 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
   useEffect(() => {
     const currentId = selectedCampaign?.id;
     const previousId = selectedCampaignIdRef.current;
-    
+
     // Only notify parent if the campaign ID actually changed
     if (currentId !== previousId) {
       selectedCampaignIdRef.current = currentId || null;
-      
+
       // Only notify if we have a campaign and haven't notified for this ID yet
       if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
         onCampaignSelect(selectedCampaign);
         hasNotifiedParent.current = true;
       }
     }
-    
+
     // Reset notification flag when campaign becomes null
     if (!selectedCampaign && previousId !== null) {
       hasNotifiedParent.current = false;
@@ -128,8 +198,10 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
   );
 
   useEffect(() => {
-    const dataChanged = JSON.stringify(individualContractsData) !== JSON.stringify(lastIndividualContractsDataRef.current);
-    
+    const dataChanged =
+      JSON.stringify(individualContractsData) !==
+      JSON.stringify(lastIndividualContractsDataRef.current);
+
     if (
       !isMultiCreator &&
       individualContractsSuccess &&
@@ -142,7 +214,7 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
       const completedContracts = individualContractsData.filter(
         (contract) => contract.campaign?.status === "COMPLETE"
       );
-      
+
       if (completedContracts.length > 0) {
         const firstContract = completedContracts[0];
         const campaignId = firstContract.campaignId || firstContract.campaign?.id;
@@ -155,19 +227,16 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
           creator: firstContract.creator,
         };
         hasAutoSelectedIndividual.current = true;
-        lastIndividualContractsDataRef.current = JSON.parse(JSON.stringify(individualContractsData));
-        
+        lastIndividualContractsDataRef.current = JSON.parse(
+          JSON.stringify(individualContractsData)
+        );
+
         if (onCampaignSelect) {
           onCampaignSelect(individualCampaign);
         }
       }
     }
-  }, [
-    isMultiCreator,
-    individualContractsSuccess,
-    individualContractsData,
-    selectedCampaign,
-  ]);
+  }, [isMultiCreator, individualContractsSuccess, individualContractsData, selectedCampaign]);
 
   useEffect(() => {
     if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
@@ -269,4 +338,3 @@ export default function useCampaignOverviewCompleted(onCampaignSelect, onToggleC
     individualContractsSuccess,
   };
 }
-

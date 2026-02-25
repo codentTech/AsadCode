@@ -4,9 +4,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Loader from "@/common/components/loader/loader.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
   fetchCampaignCombinedDemographics,
   fetchCreatorAudience,
@@ -108,9 +109,11 @@ export default function CampaignOverviewCompleted({
   const performanceData =
     campaignPerformance?.isSuccess && campaignPerformance?.data
       ? campaignPerformance.data
-      : performanceMetrics; // Fallback to hook data
+      : performanceMetrics;
 
   const performanceLoading = campaignPerformance?.isLoading || false;
+
+  const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -205,11 +208,14 @@ export default function CampaignOverviewCompleted({
             </div>
           )}
 
-          {showMultiCreatorUI && hasData && (
+          {showMultiCreatorUI && hasData && !isUgc && (
             <>
               <hr />
               <div className="bg-blue-50 rounded-lg p-4">
-                <h5 className="font-bold text-blue-800 mb-3">Combined Performance Overview</h5>
+                <h5 className="font-bold text-blue-800 mb-1">Combined Performance Overview</h5>
+                <p className="text-[11px] text-blue-500 mb-3">
+                  ER &amp; CPE are averaged across creators, not recalculated from totals.
+                </p>
                 {performanceLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader loading={true} />
@@ -229,15 +235,17 @@ export default function CampaignOverviewCompleted({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Engagement Rate:</span>
+                      <span className="text-gray-600">Avg Engagement Rate:</span>
                       <span className="font-medium text-blue-800">
                         {(performanceData?.engagementRate || 0).toFixed(1)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Cost per Engagement:</span>
+                      <span className="text-gray-600">Avg Cost per Engagement:</span>
                       <span className="font-medium text-blue-800">
-                        {formatCurrency(performanceData?.costPerEngagement || 0)}
+                        {performanceData?.costPerEngagement
+                          ? formatCurrency(performanceData.costPerEngagement)
+                          : "N/A"}
                       </span>
                     </div>
                     {performanceData?.totalPosts && (

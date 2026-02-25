@@ -2,7 +2,7 @@ import Loading from "@/common/components/loadar/loading.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { VerifiedRounded } from "@mui/icons-material";
 import { TrendingUp } from "lucide-react";
 import useAudienceAnalytics from "./use-audience-analytics";
@@ -73,8 +73,10 @@ function AudienceAnalytics({ creatorId }) {
             ))}
           </div>
 
-          <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
-          <AudienceDemographics audienceData={audienceData} />
+          <h3 className="text-lg font-semibold text-primary mb-4 border-t border-gray-200 pt-4">
+            Audience Demographics
+          </h3>
+          <AudienceDemographics audienceData={audienceData} loading={isLoading} />
         </>
       )}
 

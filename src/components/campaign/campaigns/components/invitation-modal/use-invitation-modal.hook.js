@@ -18,13 +18,21 @@ const useInvitationModal = () => {
     const type = campaign.compensation_type;
 
     if (type === COMPENSATION_TYPE.PAID) {
-      if (campaign.creator_fixed_price) return `$${campaign.creator_fixed_price}`;
-      if (campaign.budget) return `$${campaign.remaining_budget}`;
-      if (campaign.suggested_min && campaign.suggested_max) {
-        return `$${campaign.suggested_min} - $${campaign.suggested_max}`;
+      if (campaign.creator_fixed_price)
+        return `$${Number(campaign.creator_fixed_price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+      if (campaign.budget != null) {
+        const remaining = Number(campaign.remaining_budget);
+        const total = Number(campaign.budget);
+        const value = Number.isFinite(remaining) && remaining >= 0 ? remaining : total;
+        return `$${Number(value).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
       }
-      if (campaign.suggested_min) return `From $${campaign.suggested_min}`;
-      if (campaign.suggested_max) return `Up to $${campaign.suggested_max}`;
+      if (campaign.suggested_min != null && campaign.suggested_max != null) {
+        return `$${Number(campaign.suggested_min).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} - $${Number(campaign.suggested_max).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+      }
+      if (campaign.suggested_min != null)
+        return `From $${Number(campaign.suggested_min).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+      if (campaign.suggested_max != null)
+        return `Up to $${Number(campaign.suggested_max).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
     } else if (type === COMPENSATION_TYPE.GIFTED_PRODUCT) {
       if (campaign.product_value) return `Product ($${campaign.product_value} value)`;
       return "Gifted Product";

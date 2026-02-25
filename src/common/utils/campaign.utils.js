@@ -1,11 +1,11 @@
+import AudienceRequirementsExperience from "@/components/campaign/create-campaign/components/audience-requirements-experience/audience-requirements-experience";
+import CampaignTypeNiche from "@/components/campaign/create-campaign/components/campaign-type-niche.component/campaign-type-niche.component";
+import Compensation from "@/components/campaign/create-campaign/components/compensation/compensation";
+import Description from "@/components/campaign/create-campaign/components/description/description";
+import Eligibility from "@/components/campaign/create-campaign/components/eligibility/eligibility";
+import Preview from "@/components/campaign/create-campaign/components/preview/preview";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "../constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "../constants/options.constant";
-import CampaignTypeNiche from "@/components/campaign/create-campaign/components/campaign-type-niche.component/campaign-type-niche.component";
-import AudienceRequirementsExperience from "@/components/campaign/create-campaign/components/audience-requirements-experience/audience-requirements-experience";
-import Compensation from "@/components/campaign/create-campaign/components/compensation/compensation";
-import Eligibility from "@/components/campaign/create-campaign/components/eligibility/eligibility";
-import Description from "@/components/campaign/create-campaign/components/description/description";
-import Preview from "@/components/campaign/create-campaign/components/preview/preview";
 import { capitalizeFirstWord } from "./helper.utils";
 
 export const CAMPAIGN_TYPE_MAP = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
@@ -635,3 +635,44 @@ export const getDefaultValues = () => ({
 
   termsAgreed: false,
 });
+
+/**
+ * Aggregates per-creator metrics into combined campaign-level metrics.
+ *
+ * Formula reference (spec §3):
+ *   combinedViews       = sum of all views
+ *   combinedEngagement  = sum of all engagement
+ *   combinedER          = AVERAGE of individual ERs  (NOT recalculated from totals)
+ *   combinedCPE         = AVERAGE of individual CPEs (NOT total spend / total engagement)
+ */
+export function computeCombinedMetrics(creatorMetricsArray) {
+  const valid = creatorMetricsArray.filter((m) => m?.metrics != null);
+  if (valid.length === 0) return null;
+
+  const combinedViews = valid.reduce((sum, m) => sum + m.metrics.views, 0);
+  const combinedEngagement = valid.reduce((sum, m) => sum + m.metrics.totalEngagement, 0);
+
+  const erValues = valid.map((m) => m.metrics.engagementRate);
+  const combinedEngagementRate = erValues.reduce((s, v) => s + v, 0) / erValues.length;
+
+  const cpeValues = valid
+    .map((m) => m.metrics.costPerEngagement)
+    .filter((v) => v !== null && v !== undefined);
+  const combinedCostPerEngagement =
+    cpeValues.length > 0 ? cpeValues.reduce((s, v) => s + v, 0) / cpeValues.length : null;
+
+  return {
+    totalViews: combinedViews,
+    totalEngagement: combinedEngagement,
+    engagementRate: combinedEngagementRate,
+    costPerEngagement: combinedCostPerEngagement,
+    creatorCount: valid.length,
+  };
+}
+
+/**
+ * Returns true when the campaign type is UGC — metrics should be hidden.
+ */
+export function isUgcCampaign(campaign) {
+  return campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+}
