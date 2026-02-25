@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import NotFound from "@/common/components/not-found/not-found.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
 import Loading from "@/common/components/loadar/loading.component";
 import {

@@ -5,7 +5,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { MapPin, Star } from "lucide-react";
+import { AlertCircle, ExternalLink, MapPin, Star } from "lucide-react";
 import CalendarModal from "../../../../active/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "../../../../task-manager/task-manager.component";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
@@ -32,8 +32,9 @@ const CreatorSpendAnalysisCompleted = ({
     setShowBrandCalendar,
     showTaskManager,
     setShowTaskManager,
-    getPlatformEntries,
-    getPerformanceComparison,
+    isUgc,
+    getCreatorMetrics,
+    getCreatorComparisons,
   } = useCreatorSpendAnalysisCompleted({
     selectedCampaign,
     selectedCreator,
@@ -48,10 +49,13 @@ const CreatorSpendAnalysisCompleted = ({
     }
   };
 
-  const totalViews = "0";
-  const totalEngagement = "0";
-  const engagementRate = "0";
-  const costPerEngagement = "0";
+  const formatMetricValue = (value, type) => {
+    if (value == null) return "—";
+    if (type === "views" || type === "engagement") return formatFollowers(value);
+    if (type === "rate") return `${(value * 100).toFixed(1)}%`;
+    if (type === "currency") return `$${value.toFixed(2)}`;
+    return String(value);
+  };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -133,10 +137,11 @@ const CreatorSpendAnalysisCompleted = ({
           <div className="space-y-3">
             {creators.map((creator) => {
               const isSelected = selectedCreator?.id === creator.id;
-              const viewsComparison = getPerformanceComparison();
-              const engagementComparison = getPerformanceComparison();
-              const rateComparison = getPerformanceComparison();
-              const costComparison = getPerformanceComparison();
+              const creatorMetrics = getCreatorMetrics(creator);
+              const comparisons = getCreatorComparisons(creatorMetrics);
+              const showMetrics = !isUgc;
+              const metricsUnavailable = creatorMetrics?.metricsUnavailable;
+
               return (
                 <div
                   key={creator.id}
@@ -191,7 +196,11 @@ const CreatorSpendAnalysisCompleted = ({
                               <MapPin className="w-4 h-4" />
                               <span>{creator.location}</span>
                             </div>
-                            <span className="text-xs text-gray-600">(27 Years Old)</span>
+                            {creator.age && (
+                              <span className="text-xs text-gray-600">
+                                ({creator.age} Years Old)
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -215,7 +224,7 @@ const CreatorSpendAnalysisCompleted = ({
                         </span>
                       </div>
 
-                      <div className="flex items-center space-x-4 text-xs">
+                      <div className="flex items-center space-x-4 text-xs mb-3">
                         <div
                           className={`px-2 py-1 rounded-full ${getSuccessRateColor(
                             creator.successRate || creator.success_rate
@@ -223,70 +232,107 @@ const CreatorSpendAnalysisCompleted = ({
                         >
                           {`${creator.successRate || creator.success_rate || 0}% Success Rate`}
                         </div>
-                        <div className="bg-gray-100 rounded-lg px-2 py-1 text-gray-600">
-                          <span className="font-bold">Total Views:</span>{" "}
-                          {formatFollowers(
-                            getPlatformEntries(creator.platforms).reduce(
-                              (sum, [, data]) => sum + (data.followers || 0),
-                              0
-                            )
-                          )}
-                        </div>
+                        {showMetrics && creatorMetrics?.publishedUrl && (
+                          <a
+                            href={creatorMetrics.publishedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Published Post
+                          </a>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-gray-700">Total Views</span>
+                      {/* UGC: show usage rights + completion status instead of metrics */}
+                      {isUgc ? (
+                        <div className="grid grid-cols-2 gap-3 mt-1">
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
+                              Usage Rights
+                            </span>
+                            <span className="text-xs text-gray-900">
+                              {creator.contract?.usageRights
+                                ? creator.contract.usageRights.split("_").join(" ")
+                                : "—"}
+                            </span>
                           </div>
-                          <div className="text-xs font-bold text-gray-900 mb-1">{totalViews}</div>
-                          <div className={`text-xs ${viewsComparison.textColor}`}>
-                            {`+${viewsComparison.difference} above campaign average`}
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
+                              Creator Fee
+                            </span>
+                            <span className="text-xs font-bold text-primary">
+                              ${creator.totalSpent || creator.total_spent || 0}
+                            </span>
                           </div>
                         </div>
+                      ) : showMetrics && !creatorMetrics ? (
+                        /* No published post yet */
+                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 bg-gray-50 rounded-lg p-2 border border-dashed border-gray-200">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          No published post link submitted yet.
+                        </div>
+                      ) : showMetrics && metricsUnavailable ? (
+                        /* Post exists but Phyllo hasn't returned engagement data */
+                        <div className="flex items-center gap-2 mt-2 text-xs text-amber-700 bg-amber-50 rounded-lg p-2 border border-amber-200">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          Metrics unavailable — engagement data is being fetched.
+                        </div>
+                      ) : showMetrics && creatorMetrics ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
+                              Total Views
+                            </span>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {formatMetricValue(creatorMetrics.views, "views")}
+                            </div>
+                            <div className={`text-xs ${comparisons.views.textColor}`}>
+                              {comparisons.views.label}
+                            </div>
+                          </div>
 
-                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-gray-700">
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
                               Total Engagement
                             </span>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {formatMetricValue(creatorMetrics.totalEngagement, "engagement")}
+                            </div>
+                            <div className={`text-xs ${comparisons.engagement.textColor}`}>
+                              {comparisons.engagement.label}
+                            </div>
                           </div>
-                          <div className="text-xs font-bold text-gray-900 mb-1">
-                            {totalEngagement}
-                          </div>
-                          <div className={`text-xs ${engagementComparison.textColor}`}>
-                            {`+${engagementComparison.difference} above campaign average`}
-                          </div>
-                        </div>
 
-                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-gray-700">
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
                               Engagement Rate
                             </span>
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {formatMetricValue(creatorMetrics.engagementRate, "rate")}
+                            </div>
+                            <div className={`text-xs ${comparisons.er.textColor}`}>
+                              {comparisons.er.label}
+                            </div>
                           </div>
-                          <div className="text-xs font-bold text-gray-900 mb-1">
-                            {engagementRate}%
-                          </div>
-                          <div className={`text-xs ${rateComparison.textColor}`}>
-                            {`+${rateComparison.difference} above campaign average`}
-                          </div>
-                        </div>
 
-                        <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-gray-700">
+                          <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
+                            <span className="text-xs font-semibold text-gray-700 block mb-1">
                               Cost Per Engagement
                             </span>
-                          </div>
-                          <div className="text-xs font-bold text-gray-900 mb-1">
-                            ${costPerEngagement}
-                          </div>
-                          <div className={`text-xs ${costComparison.textColor}`}>
-                            {`+${costComparison.difference} above campaign average`}
+                            <div className="text-xs font-bold text-gray-900 mb-1">
+                              {creatorMetrics.costPerEngagement === null
+                                ? "N/A"
+                                : formatMetricValue(creatorMetrics.costPerEngagement, "currency")}
+                            </div>
+                            <div className={`text-xs ${comparisons.cpe.textColor}`}>
+                              {comparisons.cpe.label}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>

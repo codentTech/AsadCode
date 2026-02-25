@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loading from "@/common/components/loadar/loading.component";
 import ReadMore from "@/common/components/readmore/readmore.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
