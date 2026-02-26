@@ -38,21 +38,67 @@ export default function useCampaignOverviewCompleted(
   const { data: creatorsData, isSuccess: creatorsSuccess } = useSelector(
     (state) => state.campaigns.getAppliedCreators || {}
   );
+  const { data: budgetCreatorsData, isSuccess: budgetCreatorsSuccess } = useSelector(
+    (state) => state.campaigns.getAppliedCreatorsForBudget || {}
+  );
+
   const budgetData = useMemo(() => {
-    if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
-      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-      const totalBudget = parentSelectedCampaign.budget || 0;
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
-      const saved = Math.max(0, totalBudget - spent);
+    if (!parentSelectedCampaign) return hookBudgetData;
+    const totalBudget = Number(parentSelectedCampaign.budget) || 0;
+    // Prefer getAppliedCreatorsForBudget (all creators) so spent matches active tab
+    const budgetCreators = budgetCreatorsData?.data?.data ?? budgetCreatorsData?.data ?? [];
+    const budgetList = Array.isArray(budgetCreators) ? budgetCreators : [];
+    if (budgetCreatorsSuccess && budgetList.length >= 0) {
+      const spent = budgetList.reduce((sum, creator) => {
+        const raw =
+          creator.contract?.total_compensation ??
+          creator.contract?.totalCompensation ??
+          creator.total_spent ??
+          0;
+        const comp = Array.isArray(raw)
+          ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
+          : Number(raw) || 0;
+        return Number(sum) + comp;
+      }, 0);
+      const saved = Math.max(0, totalBudget - Number(spent));
       return {
         totalBudget,
-        spent,
+        spent: Number(spent),
         remaining: 0,
-        saved,
+        saved: Number(saved),
+      };
+    }
+    // Fallback: use COMPLETED-only list (will show lower spent until budget fetch completes)
+    if (creatorsSuccess && creatorsData?.data) {
+      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
+      const spent = creators.reduce((sum, creator) => {
+        const raw =
+          creator.contract?.total_compensation ??
+          creator.contract?.totalCompensation ??
+          creator.total_spent ??
+          0;
+        const comp = Array.isArray(raw)
+          ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
+          : Number(raw) || 0;
+        return Number(sum) + comp;
+      }, 0);
+      const saved = Math.max(0, totalBudget - Number(spent));
+      return {
+        totalBudget,
+        spent: Number(spent),
+        remaining: 0,
+        saved: Number(saved),
       };
     }
     return hookBudgetData;
-  }, [parentSelectedCampaign, creatorsSuccess, creatorsData, hookBudgetData]);
+  }, [
+    parentSelectedCampaign,
+    budgetCreatorsSuccess,
+    budgetCreatorsData,
+    creatorsSuccess,
+    creatorsData,
+    hookBudgetData,
+  ]);
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline?.timelinesByKey || {});
 
@@ -118,10 +164,20 @@ export default function useCampaignOverviewCompleted(
       }
 
       // Fallback: use stored creator-level aggregates when timeline data not yet loaded
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
-      const totalViews = creators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
+      const spent = creators.reduce((sum, creator) => {
+        const raw =
+          creator.contract?.total_compensation ??
+          creator.contract?.totalCompensation ??
+          creator.total_spent ??
+          0;
+        return Number(sum) + (Number(raw) || 0);
+      }, 0);
+      const totalViews = creators.reduce(
+        (sum, creator) => Number(sum) + (Number(creator.total_views) || 0),
+        0
+      );
       const totalEngagement = creators.reduce(
-        (sum, creator) => sum + (creator.total_engagement || 0),
+        (sum, creator) => Number(sum) + (Number(creator.total_engagement) || 0),
         0
       );
       const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
@@ -297,13 +353,14 @@ export default function useCampaignOverviewCompleted(
 
   const handleViewAnalytics = () => {};
 
+  // Use creatorsData from Redux so we show content when parent passes campaign and data has loaded
   const computedHasData = useMemo(() => {
     if (!selectedCampaign) return false;
     if (isMultiCreator && isSelectedCampaignValid) {
-      return hasData;
+      return Array.isArray(creatorsData?.data) && creatorsData.data.length > 0;
     }
     return selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  }, [selectedCampaign, isMultiCreator, isSelectedCampaignValid, hasData]);
+  }, [selectedCampaign, isMultiCreator, isSelectedCampaignValid, creatorsData]);
   useEffect(() => {
     if (parentSelectedCampaign && parentSelectedCampaign.id !== hookSelectedCampaign?.id) {
       internalHandleCampaignSelect(

@@ -7,7 +7,6 @@ import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
   fetchCampaignCombinedDemographics,
   fetchCreatorAudience,
@@ -57,10 +56,19 @@ export default function CampaignOverviewCompleted({
   const individualDemographics = useSelector(selectCreatorAudience);
   const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
 
-  // Fetch demographics and performance when campaign changes
+  // Resolve creator user id for individual completed (creator may be on campaign or contract)
+  const individualCreatorId =
+    selectedCampaign?.creator?.id ??
+    selectedCampaign?.creator_id ??
+    selectedCampaign?.contract?.creator?.id ??
+    selectedCampaign?.contract?.creator_id;
+
+  const campaignId =
+    selectedCampaign?.id ?? selectedCampaign?.campaign?.id ?? selectedCampaign?.campaignId;
+
+  // Fetch demographics and performance when campaign or (for individual) creator changes
   useEffect(() => {
-    if (!selectedCampaign?.id) {
-      // Clear all data when no campaign selected
+    if (!campaignId) {
       dispatch(resetCampaignDemographics());
       dispatch(resetAudience());
       dispatch(resetPerformanceMetrics());
@@ -68,20 +76,19 @@ export default function CampaignOverviewCompleted({
     }
 
     if (isMultiCreator) {
-      // Fetch combined demographics and performance for multi-creator campaigns
-      dispatch(fetchCampaignCombinedDemographics(selectedCampaign.id));
-      dispatch(fetchCampaignPerformanceMetrics(selectedCampaign.id));
-      dispatch(resetAudience()); // Clear individual demographics
+      dispatch(fetchCampaignCombinedDemographics(campaignId));
+      dispatch(fetchCampaignPerformanceMetrics(campaignId));
+      dispatch(resetAudience());
     } else {
-      // Fetch individual creator demographics for individual collaborations
-      const creatorId = selectedCampaign.creator?.id || selectedCampaign.creator_id;
-      if (creatorId) {
-        dispatch(fetchCreatorAudience(creatorId));
-        dispatch(resetCampaignDemographics()); // Clear campaign demographics
-        dispatch(resetPerformanceMetrics()); // Clear performance metrics
+      if (individualCreatorId) {
+        dispatch(fetchCreatorAudience(individualCreatorId));
+        dispatch(resetCampaignDemographics());
+        dispatch(resetPerformanceMetrics());
+      } else {
+        dispatch(resetAudience());
       }
     }
-  }, [selectedCampaign?.id, isMultiCreator, dispatch]);
+  }, [campaignId, isMultiCreator, individualCreatorId, dispatch]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -112,8 +119,6 @@ export default function CampaignOverviewCompleted({
       : performanceMetrics;
 
   const performanceLoading = campaignPerformance?.isLoading || false;
-
-  const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -189,6 +194,7 @@ export default function CampaignOverviewCompleted({
         );
       })()}
 
+      {/* Budget + Performance: only when we have creator data. Demographics: always when campaign selected. */}
       {selectedCampaign && (
         <>
           {showMultiCreatorUI && hasData && (
@@ -196,19 +202,19 @@ export default function CampaignOverviewCompleted({
               <div className="flex flex-col justify-between">
                 <h5 className="text-primary text-sm">Budget Spent</h5>
                 <h6 className="text-primary text-sm font-bold">
-                  {formatCurrency(budgetData.spent)}
+                  {formatCurrency(budgetData?.spent ?? 0)}
                 </h6>
               </div>
               <div className="flex flex-col justify-between">
                 <h5 className="text-green-600 text-sm">Budget Saved</h5>
                 <h6 className="text-green-600 text-sm font-bold">
-                  {formatCurrency(budgetData.saved)}
+                  {formatCurrency(budgetData?.saved ?? 0)}
                 </h6>
               </div>
             </div>
           )}
 
-          {showMultiCreatorUI && hasData && !isUgc && (
+          {showMultiCreatorUI && (
             <>
               <hr />
               <div className="bg-blue-50 rounded-lg p-4">
@@ -271,61 +277,68 @@ export default function CampaignOverviewCompleted({
             </>
           )}
 
-          {selectedCampaign && (
-            <>
-              <hr />
-              <div className="mb-1">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                    {showMultiCreatorUI
-                      ? "Combined Audience Demographics"
-                      : "Audience Demographics"}
-                  </h3>
-                  {showMultiCreatorUI && hasDemographicsData && demographicsData && (
-                    <p className="text-xs text-gray-500">
-                      Aggregated across{" "}
-                      {demographicsData.creators_with_data || demographicsData.total_creators || 0}{" "}
-                      creators · {(demographicsData.total_followers || 0).toLocaleString()} total
-                      followers
-                    </p>
-                  )}
-                </div>
-
-                {/* Demographics Charts */}
-                <AudienceDemographics
-                  audienceData={demographicsData}
-                  loading={demographicsLoading}
-                  className="flex flex-col"
-                />
-
-                {/* Campaign Completion Summary for Multi-Creator */}
-                {showMultiCreatorUI && hasDemographicsData && demographicsData && (
-                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
-                    <p className="text-xs text-green-800">
-                      <strong>Campaign Completed:</strong> Your campaign reached{" "}
-                      {(demographicsData.total_followers || 0).toLocaleString()} total followers
-                      across {demographicsData.creators_with_data || 0} creators with diverse
-                      audience demographics.
-                    </p>
-                  </div>
-                )}
-              </div>
-              <hr />
-              {showMultiCreatorUI && (
-                <div className="flex flex-col gap-2 mt-1">
-                  <CustomButton
-                    text="Export Campaign Data"
-                    onClick={handleExportData}
-                    className="w-full btn-primary"
-                  />
-                  <CustomButton
-                    text="View Full Analytics"
-                    onClick={handleViewAnalytics}
-                    className="w-full btn-outline"
-                  />
-                </div>
+          {/* Audience Demographics Section – same structure as active tab */}
+          <hr />
+          <div className="mb-1">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
+              </h3>
+              {showMultiCreatorUI && hasDemographicsData && demographicsData && (
+                <p className="text-xs text-gray-500">
+                  Aggregated across{" "}
+                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
+                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
+                  followers
+                </p>
               )}
-            </>
+              {!showMultiCreatorUI &&
+                (selectedCampaign?.creator || selectedCampaign?.contract?.creator) && (
+                  <p className="text-xs text-gray-500">
+                    From{" "}
+                    {[
+                      selectedCampaign?.creator?.first_name ??
+                        selectedCampaign?.contract?.creator?.first_name,
+                      selectedCampaign?.creator?.last_name ??
+                        selectedCampaign?.contract?.creator?.last_name,
+                    ]
+                      .filter(Boolean)
+                      .join(" ") || "creator"}
+                  </p>
+                )}
+            </div>
+
+            <AudienceDemographics
+              audienceData={demographicsData ?? null}
+              loading={demographicsLoading}
+              className="flex flex-col"
+            />
+
+            {showMultiCreatorUI && hasDemographicsData && demographicsData && (
+              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
+                <p className="text-xs text-green-800">
+                  <strong>Campaign Completed:</strong> Your campaign reached{" "}
+                  {(demographicsData.total_followers ?? 0).toLocaleString()} total followers across{" "}
+                  {demographicsData.creators_with_data ?? 0} creators with diverse audience
+                  demographics.
+                </p>
+              </div>
+            )}
+          </div>
+          <hr />
+          {showMultiCreatorUI && (
+            <div className="flex flex-col gap-2 mt-1">
+              <CustomButton
+                text="Export Campaign Data"
+                onClick={handleExportData}
+                className="w-full btn-primary"
+              />
+              <CustomButton
+                text="View Full Analytics"
+                onClick={handleViewAnalytics}
+                className="w-full btn-outline"
+              />
+            </div>
           )}
         </>
       )}

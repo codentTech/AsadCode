@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   getAllBrandCampaigns,
   getAppliedCreators,
+  getAppliedCreatorsForBudget,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 
@@ -27,6 +28,10 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
     isError: creatorsError,
     data: creatorsData,
   } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+
+  const { isSuccess: budgetCreatorsSuccess, data: budgetCreatorsData } = useSelector(
+    (state) => state.campaigns.getAppliedCreatorsForBudget || {}
+  );
 
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [campaignOptions, setCampaignOptions] = useState([]);
@@ -56,7 +61,12 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
   }, [selectedCampaignId]);
 
   useEffect(() => {
-    if (campaignsSuccess && campaignsData?.data && selectedCampaignId && !hasRestoredFromContext.current) {
+    if (
+      campaignsSuccess &&
+      campaignsData?.data &&
+      selectedCampaignId &&
+      !hasRestoredFromContext.current
+    ) {
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
       const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
       if (restoredCampaign) {
@@ -72,15 +82,19 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
     }
   }, [campaignsSuccess, campaignsData, selectedCampaignId]);
 
-  // Memoize campaigns array to prevent unnecessary re-renders
+  // Memoize campaigns array – completed tab: only campaigns with status COMPLETE
   const allCampaigns = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
-    return Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const list = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    return list.filter((c) => c.status === "COMPLETE");
   }, [campaignsSuccess, campaignsData?.data]);
 
   // Create stable reference for campaign IDs to detect actual changes
   const campaignIdsString = useMemo(() => {
-    return allCampaigns.map((c) => c.id).sort().join(",");
+    return allCampaigns
+      .map((c) => c.id)
+      .sort()
+      .join(",");
   }, [allCampaigns]);
 
   // Update campaign options only when campaign IDs actually change
@@ -109,10 +123,7 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
     const selectedCampaignId = selectedCampaign?.id;
 
     // If selected campaign is no longer in the list, select first one
-    if (
-      selectedCampaignId &&
-      !allCampaigns.some((c) => c.id === selectedCampaignId)
-    ) {
+    if (selectedCampaignId && !allCampaigns.some((c) => c.id === selectedCampaignId)) {
       if (!hasAutoSelected.current) {
         setSelectedCampaign(allCampaigns[0]);
         hasAutoSelected.current = true;
@@ -143,24 +154,42 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
       dispatch(
         getAppliedCreators({ campaignId: selectedCampaign.id, filters: { status: "COMPLETED" } })
       );
+      dispatch(getAppliedCreatorsForBudget(selectedCampaign.id));
     }
   }, [selectedCampaign?.id, dispatch]);
 
+  // Budget: use getAppliedCreatorsForBudget (all creators) so spent matches active tab
+  useEffect(() => {
+    if (!budgetCreatorsSuccess || !selectedCampaign) return;
+    const budgetCreators = budgetCreatorsData?.data?.data ?? budgetCreatorsData?.data ?? [];
+    const creators = Array.isArray(budgetCreators) ? budgetCreators : [];
+    const totalBudget = Number(selectedCampaign.budget) || 0;
+    const spent = creators.reduce((sum, creator) => {
+      const raw =
+        creator.contract?.total_compensation ??
+        creator.contract?.totalCompensation ??
+        creator.total_spent ??
+        0;
+      const comp = Array.isArray(raw)
+        ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
+        : Number(raw) || 0;
+      return Number(sum) + comp;
+    }, 0);
+    const remaining = Math.max(0, totalBudget - Number(spent));
+    const saved = Math.max(0, remaining);
+
+    setBudgetData({
+      totalBudget: Number(totalBudget),
+      spent: Number(spent),
+      remaining: 0,
+      saved: Number(saved),
+    });
+  }, [budgetCreatorsSuccess, budgetCreatorsData, selectedCampaign?.id, selectedCampaign?.budget]);
+
+  // List, deliverables, performance: use getAppliedCreators (COMPLETED only)
   useEffect(() => {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-      const totalBudget = selectedCampaign.budget || 0;
-      const spent = creators.reduce((sum, creator) => sum + (creator.total_spent || 0), 0);
-      const remaining = totalBudget - spent;
-      const saved = Math.max(0, remaining);
-
-      setBudgetData({
-        totalBudget,
-        spent,
-        remaining: 0,
-        saved,
-      });
-
       setDeliverables(selectedCampaign.deliverables || []);
 
       const totalViews = creators.reduce((sum, creator) => sum + (creator.total_views || 0), 0);
@@ -168,6 +197,14 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         (sum, creator) => sum + (creator.total_engagement || 0),
         0
       );
+      const spent = creators.reduce((sum, creator) => {
+        const raw =
+          creator.contract?.total_compensation ??
+          creator.contract?.totalCompensation ??
+          creator.total_spent ??
+          0;
+        return Number(sum) + (Number(raw) || 0);
+      }, 0);
       const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
       const costPerEngagement = totalEngagement > 0 ? spent / totalEngagement : 0;
 
@@ -178,12 +215,6 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         costPerEngagement,
       });
     } else if (creatorsSuccess && !creatorsData?.data && selectedCampaign) {
-      setBudgetData({
-        totalBudget: selectedCampaign.budget || 0,
-        spent: 0,
-        remaining: 0,
-        saved: selectedCampaign.budget || 0,
-      });
       setDeliverables(selectedCampaign.deliverables || []);
       setPerformanceMetrics({
         totalViews: 0,
@@ -192,35 +223,40 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
         costPerEngagement: 0,
       });
     }
-  }, [creatorsSuccess, creatorsData, selectedCampaign?.id, selectedCampaign?.budget, selectedCampaign?.deliverables]);
+  }, [creatorsSuccess, creatorsData, selectedCampaign?.id, selectedCampaign?.deliverables]);
 
-  const handleCampaignSelect = useCallback((selectedOption) => {
-    if (selectedOption) {
-      setSelectedCampaign(selectedOption.campaign);
-      dispatch(
-        setSelectedCampaignContext({
-          campaignId: selectedOption.campaign.id,
-          collaborationType: selectedOption.campaign.collaboration_type || null,
-        })
-      );
-    } else {
-      setSelectedCampaign(null);
-      dispatch(
-        setSelectedCampaignContext({
-          campaignId: null,
-          collaborationType: null,
-        })
-      );
-    }
-  }, [dispatch]);
+  const handleCampaignSelect = useCallback(
+    (selectedOption) => {
+      if (selectedOption) {
+        setSelectedCampaign(selectedOption.campaign);
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: selectedOption.campaign.id,
+            collaborationType: selectedOption.campaign.collaboration_type || null,
+          })
+        );
+      } else {
+        setSelectedCampaign(null);
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: null,
+            collaborationType: null,
+          })
+        );
+      }
+    },
+    [dispatch]
+  );
 
   const formatCurrency = useCallback((amount) => {
+    const value = Number(amount);
+    if (value !== value) return "$0";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(value);
   }, []);
 
   const formatNumber = useCallback((num) => {

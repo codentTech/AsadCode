@@ -69,8 +69,12 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   useEffect(() => {
     if (creatorUserId) {
       dispatch(fetchCreatorMetrics(creatorUserId));
+      dispatch(fetchCreatorAudience(creatorUserId));
     }
-    return () => dispatch(resetMetrics());
+    return () => {
+      dispatch(resetMetrics());
+      dispatch(resetAudience());
+    };
   }, [creatorUserId, dispatch]);
 
   const metricsPayload = creatorMetricsState?.data?.data ?? null;

@@ -81,14 +81,33 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     return `${hours}h left`;
   }, []);
 
-  // Validate URL
-  const validateUrl = (url) => {
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-    const socialPlatforms = ["instagram.com", "tiktok.com", "youtube.com", "twitter.com", "x.com"];
-
-    if (!urlPattern.test(url)) return false;
-    return socialPlatforms.some((platform) => url.includes(platform));
-  };
+  // Validate URL (avoid complex regex to prevent catastrophic backtracking on paste)
+  const validateUrl = useCallback((url) => {
+    if (!url || typeof url !== "string") return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    try {
+      const parsed = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+      const host = parsed.hostname.toLowerCase();
+      const allowed = [
+        "instagram.com",
+        "www.instagram.com",
+        "tiktok.com",
+        "www.tiktok.com",
+        "youtube.com",
+        "www.youtube.com",
+        "youtu.be",
+        "twitter.com",
+        "www.twitter.com",
+        "x.com",
+        "www.x.com",
+      ];
+      return allowed.some((domain) => host === domain || host.endsWith(`.${domain}`));
+    } catch {
+      return false;
+    }
+  }, []);
 
   // Step 1: Mark content as recorded (NO UPLOAD)
   const handleMarkComplete = useCallback(

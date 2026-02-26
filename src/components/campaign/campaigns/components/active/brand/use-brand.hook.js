@@ -135,7 +135,8 @@ export default function useBrandCampaign(isCompleted = false) {
 
   useEffect(() => {
     if (selectedCampaign?.id) {
-      const filters = isCompleted ? {} : { status: "HIRED" };
+      // No status filter: include HIRED and COMPLETED so budget spent stays correct after marking creators complete
+      const filters = isCompleted ? {} : {};
       dispatch(getAppliedCreators({ campaignId: selectedCampaign.id, filters }));
     }
   }, [selectedCampaign, dispatch, isCompleted]);
@@ -143,19 +144,26 @@ export default function useBrandCampaign(isCompleted = false) {
   useEffect(() => {
     if (creatorsSuccess && creatorsData?.data && selectedCampaign) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-      const totalBudget = selectedCampaign.budget || 0;
-      const spent = creators.reduce(
-        (sum, creator) => sum + (creator.contract?.total_compensation || 0),
-        0
-      );
-      const remaining = totalBudget - spent;
+      const totalBudget = Number(selectedCampaign.budget) || 0;
+      const spent = creators.reduce((sum, creator) => {
+        const raw =
+          creator.contract?.total_compensation ??
+          creator.contract?.totalCompensation ??
+          creator.total_spent ??
+          0;
+        const comp = Array.isArray(raw)
+          ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
+          : Number(raw) || 0;
+        return Number(sum) + comp;
+      }, 0);
+      const remaining = Math.max(0, totalBudget - Number(spent));
       const saved = isCompleted ? Math.max(0, remaining) : 0;
 
       setBudgetData({
-        totalBudget,
-        spent,
-        remaining: isCompleted ? 0 : remaining,
-        saved,
+        totalBudget: Number(totalBudget),
+        spent: Number(spent),
+        remaining: isCompleted ? 0 : Number(remaining),
+        saved: Number(saved),
       });
 
       setDeliverables(selectedCampaign.deliverables || []);
@@ -175,10 +183,11 @@ export default function useBrandCampaign(isCompleted = false) {
         costPerEngagement,
       });
     } else if (creatorsSuccess && !creatorsData?.data && selectedCampaign) {
+      const total = Number(selectedCampaign.budget) || 0;
       setBudgetData({
-        totalBudget: selectedCampaign.budget || 0,
+        totalBudget: total,
         spent: 0,
-        remaining: selectedCampaign.budget || 0,
+        remaining: total,
         saved: 0,
       });
       setDeliverables(selectedCampaign.deliverables || []);
@@ -215,12 +224,14 @@ export default function useBrandCampaign(isCompleted = false) {
   );
 
   const formatCurrency = useCallback((amount) => {
+    const value = Number(amount);
+    if (value !== value) return "$0";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(value);
   }, []);
 
   const formatNumber = useCallback((num) => {

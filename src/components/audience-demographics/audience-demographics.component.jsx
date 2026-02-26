@@ -119,7 +119,7 @@ function AudienceDemographics({
   if (!audienceData?.has_data) {
     return (
       <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-        <EmptyState message="No audience demographics available yet. Connect accounts and sync with Phyllo for real data." />
+        <EmptyState message="No audience demographics available yet." />
       </div>
     );
   }
