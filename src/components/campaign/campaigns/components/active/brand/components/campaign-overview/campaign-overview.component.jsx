@@ -36,28 +36,33 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const individualDemographics = useSelector(selectCreatorAudience);
 
-  // Fetch demographics when campaign changes
+  // Resolve creator user id for individual campaigns (creator may be nested or from contract)
+  const individualCreatorId =
+    selectedCampaign?.creator?.id ??
+    selectedCampaign?.creator_id ??
+    selectedCampaign?.contract?.creator?.id ??
+    selectedCampaign?.contract?.creator_id;
+
+  // Fetch demographics when campaign or (for individual) creator changes
   useEffect(() => {
     if (!selectedCampaign?.id) {
-      // Clear demographics when no campaign selected
       dispatch(resetCampaignDemographics());
       dispatch(resetAudience());
       return;
     }
 
     if (isMultiCreator) {
-      // Fetch combined demographics for multi-creator campaigns
       dispatch(fetchCampaignCombinedDemographics(selectedCampaign.id));
-      dispatch(resetAudience()); // Clear individual demographics
+      dispatch(resetAudience());
     } else {
-      // Fetch individual creator demographics for individual collaborations
-      const creatorId = selectedCampaign.creator?.id || selectedCampaign.creator_id;
-      if (creatorId) {
-        dispatch(fetchCreatorAudience(creatorId));
-        dispatch(resetCampaignDemographics()); // Clear campaign demographics
+      if (individualCreatorId) {
+        dispatch(fetchCreatorAudience(individualCreatorId));
+        dispatch(resetCampaignDemographics());
+      } else {
+        dispatch(resetAudience());
       }
     }
-  }, [selectedCampaign?.id, isMultiCreator, dispatch]);
+  }, [selectedCampaign?.id, isMultiCreator, individualCreatorId, dispatch]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -135,12 +140,14 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
         <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
           <div className="flex flex-col justify-between">
             <h5 className="text-primary text-sm">Budget Spent</h5>
-            <h6 className="text-primary text-sm font-bold">{formatCurrency(budgetData.spent)}</h6>
+            <h6 className="text-primary text-sm font-bold">
+              {formatCurrency(budgetData?.spent ?? 0)}
+            </h6>
           </div>
           <div className="flex flex-col justify-between">
             <h5 className="text-green-600 text-sm">Budget Remaining</h5>
             <h6 className="text-green-600 text-sm font-bold">
-              {formatCurrency(budgetData.remaining)}
+              {formatCurrency(budgetData?.remaining ?? 0)}
             </h6>
           </div>
         </div>
@@ -159,16 +166,24 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
               {showMultiCreatorUI && hasDemographicsData && demographicsData && (
                 <p className="text-xs text-gray-500">
                   Aggregated across{" "}
-                  {demographicsData.creators_with_data || demographicsData.total_creators || 0}{" "}
-                  creators · {(demographicsData.total_followers || 0).toLocaleString()} total
+                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
+                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
                   followers
+                </p>
+              )}
+              {!showMultiCreatorUI && selectedCampaign?.creator && (
+                <p className="text-xs text-gray-500">
+                  From{" "}
+                  {[selectedCampaign.creator.first_name, selectedCampaign.creator.last_name]
+                    .filter(Boolean)
+                    .join(" ") || "creator"}
                 </p>
               )}
             </div>
 
-            {/* Demographics Charts */}
+            {/* Demographics Charts – same component for multi (combined) and individual (creator) */}
             <AudienceDemographics
-              audienceData={demographicsData}
+              audienceData={demographicsData ?? null}
               loading={demographicsLoading}
               className="flex flex-col"
             />
@@ -177,8 +192,8 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
             {showMultiCreatorUI && hasDemographicsData && demographicsData && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <p className="text-xs text-blue-800">
-                  <strong>Tip:</strong> Use this data to identify gaps in your campaign's reach.
-                  Consider adding creators from underrepresented demographics.
+                  <strong>Tip:</strong> Use this data to identify gaps in your campaign&apos;s
+                  reach. Consider adding creators from underrepresented demographics.
                 </p>
               </div>
             )}

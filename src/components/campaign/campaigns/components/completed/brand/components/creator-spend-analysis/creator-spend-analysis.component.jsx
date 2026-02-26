@@ -186,7 +186,7 @@ const CreatorSpendAnalysisCompleted = ({
                                 Creator Fee:
                                 <span className="font-bold text-primary">
                                   {" "}
-                                  ${creator.totalSpent || creator.total_spent || 0}
+                                  ${creator?.contract?.totalCompensation || 1}
                                 </span>
                               </div>
                             ) : null}
@@ -264,7 +264,7 @@ const CreatorSpendAnalysisCompleted = ({
                               Creator Fee
                             </span>
                             <span className="text-xs font-bold text-primary">
-                              ${creator.totalSpent || creator.total_spent || 0}
+                              ${creator?.contract?.totalCompensation || 1}
                             </span>
                           </div>
                         </div>

@@ -3,6 +3,35 @@ import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 
+const DEFAULT_PLATFORMS = {
+  instagram: { followers: 0, verified: false },
+  youtube: { followers: 0, verified: false },
+  twitter: { followers: 0, verified: false },
+  tiktok: { followers: 0, verified: false },
+};
+
+function buildPlatformsFromSocialAccounts(creator) {
+  const accounts = creator?.social_accounts || [];
+  const out = { ...DEFAULT_PLATFORMS };
+  for (const acc of accounts) {
+    const platform = String(acc.platform || "").toLowerCase();
+    if (!platform) continue;
+    const pd = acc.profile_data || {};
+    const followers =
+      Number(pd.followers) ||
+      Number(pd.followers_count) ||
+      Number(pd.follower_count) ||
+      Number(pd.subscriber_count) ||
+      0;
+    if (!out[platform]) out[platform] = { followers: 0, verified: false };
+    out[platform] = {
+      followers,
+      verified: acc.is_verified ?? out[platform].verified ?? false,
+    };
+  }
+  return out;
+}
+
 export const useCreatorSpendAnalysis = (
   selectedCampaign,
   isCompleted = false,
@@ -88,20 +117,7 @@ export const useCreatorSpendAnalysis = (
           totalSpent: contract.totalCompensation || 0,
           rating: creatorProfile?.rating || 0,
           reviewCount: 0,
-          platforms: {
-            instagram: {
-              followers: 0,
-              verified: false,
-            },
-            youtube: {
-              followers: 0,
-              verified: false,
-            },
-            twitter: {
-              followers: 0,
-              verified: false,
-            },
-          },
+          platforms: buildPlatformsFromSocialAccounts(creator),
           projects: 0,
           successRate: 0,
           avgDeliveryTime: "N/A",
@@ -141,20 +157,31 @@ export const useCreatorSpendAnalysis = (
         totalSpent: creator.total_spent || 0,
         rating: creator.creator?.rating || 0,
         reviewCount: creator.creator?.review_count || 0,
-        platforms: {
-          instagram: {
-            followers: creator.creator?.instagram_followers || 0,
-            verified: creator.creator?.instagram_verified || false,
-          },
-          youtube: {
-            followers: creator.creator?.youtube_followers || 0,
-            verified: creator.creator?.youtube_verified || false,
-          },
-          twitter: {
-            followers: creator.creator?.twitter_followers || 0,
-            verified: creator.creator?.twitter_verified || false,
-          },
-        },
+        platforms: (() => {
+          const fromAccounts = buildPlatformsFromSocialAccounts(creator.creator);
+          const c = creator.creator;
+          if (
+            !Array.isArray(c?.social_accounts) ||
+            (c.social_accounts && c.social_accounts.length === 0)
+          ) {
+            return {
+              instagram: {
+                followers: c?.instagram_followers ?? 0,
+                verified: c?.instagram_verified ?? false,
+              },
+              youtube: {
+                followers: c?.youtube_followers ?? 0,
+                verified: c?.youtube_verified ?? false,
+              },
+              twitter: {
+                followers: c?.twitter_followers ?? 0,
+                verified: c?.twitter_verified ?? false,
+              },
+              tiktok: { followers: 0, verified: false },
+            };
+          }
+          return fromAccounts;
+        })(),
         projects: creator.creator?.total_projects || 0,
         successRate: creator.creator?.success_rate || 0,
         avgDeliveryTime: creator.creator?.avg_delivery_time || "N/A",

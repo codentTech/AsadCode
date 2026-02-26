@@ -28,6 +28,7 @@ const initialState = {
   withdrawApplication: { ...generalState },
   getAllBrandCampaigns: { ...generalState },
   getAppliedCreators: { ...generalState },
+  getAppliedCreatorsForBudget: { ...generalState }, // No status filter; used for budget calculation on completed tab
   getHiredCreators: { ...generalState }, // Separate state for active-completed tab
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
@@ -197,6 +198,22 @@ export const getAppliedCreators = createAsyncThunk(
   }
 );
 
+// Get applied creators with no status filter (for budget calculation on completed tab only)
+export const getAppliedCreatorsForBudget = createAsyncThunk(
+  "campaigns/getAppliedCreatorsForBudget",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, {});
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get creators for budget")
+      );
+    }
+  }
+);
+
 // Get hired creators for a campaign (separate from applied creators)
 export const getHiredCreators = createAsyncThunk(
   "campaigns/getHiredCreators",
@@ -226,7 +243,6 @@ export const getAllBrandCampaigns = createAsyncThunk(
     }
   }
 );
-
 
 // Get rejected creators
 export const getRejectedCreators = createAsyncThunk(
@@ -637,6 +653,26 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
+      })
+      // getAppliedCreatorsForBudget
+      .addCase(getAppliedCreatorsForBudget.pending, (state) => {
+        state.getAppliedCreatorsForBudget.isLoading = true;
+        state.getAppliedCreatorsForBudget.message = "";
+        state.getAppliedCreatorsForBudget.isError = false;
+        state.getAppliedCreatorsForBudget.isSuccess = false;
+        state.getAppliedCreatorsForBudget.data = null;
+      })
+      .addCase(getAppliedCreatorsForBudget.fulfilled, (state, action) => {
+        state.getAppliedCreatorsForBudget.isLoading = false;
+        state.getAppliedCreatorsForBudget.isSuccess = true;
+        state.getAppliedCreatorsForBudget.data = action.payload;
+      })
+      .addCase(getAppliedCreatorsForBudget.rejected, (state, action) => {
+        state.getAppliedCreatorsForBudget.message =
+          action.payload?.message || "Failed to get creators for budget";
+        state.getAppliedCreatorsForBudget.isLoading = false;
+        state.getAppliedCreatorsForBudget.isError = true;
+        state.getAppliedCreatorsForBudget.data = null;
       })
       // getHiredCreators
       .addCase(getHiredCreators.pending, (state) => {

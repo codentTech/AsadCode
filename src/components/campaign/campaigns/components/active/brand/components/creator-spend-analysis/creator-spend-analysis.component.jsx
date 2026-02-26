@@ -244,24 +244,28 @@ const CreatorSpendAnalysis = ({
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                          {Object.entries(creator.platforms).map(([platform, data]) => (
-                            <div
-                              key={platform}
-                              className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3 hover:bg-gray-100/80 transition-colors duration-200"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
-                                  {getPlatformIcon(platform)}
-                                </span>
-                                <span className="text-xs capitalize font-semibold text-gray-700">
-                                  {platform}
-                                </span>
+                          {Object.entries(creator.platforms)
+                            ?.filter(
+                              ([platform]) => platform !== "twitter" && platform !== "facebook"
+                            )
+                            .map(([platform, data]) => (
+                              <div
+                                key={platform}
+                                className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3 hover:bg-gray-100/80 transition-colors duration-200"
+                              >
+                                <div className="flex items-center space-x-2 gap-2">
+                                  <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
+                                    {getPlatformIcon(platform)}
+                                  </span>
+                                  <span className="text-xs capitalize font-semibold text-gray-700">
+                                    {platform}
+                                  </span>
+                                </div>
+                                <div className="text-sm font-bold text-gray-900">
+                                  {formatFollowers(data.followers)}
+                                </div>
                               </div>
-                              <div className="text-sm font-bold text-gray-900">
-                                {formatFollowers(data.followers)}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </div>
                     </div>
