@@ -3,6 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-brand.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
+import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
+import {
+  fetchCampaignCombinedDemographics,
+  fetchCreatorAudience,
+  fetchCampaignPerformanceMetrics,
+  resetCampaignDemographics,
+  resetAudience,
+  resetPerformanceMetrics,
+  selectCampaignCombinedDemographics,
+  selectCreatorAudience,
+  selectCampaignPerformanceMetrics,
+} from "@/provider/features/phyllo/phyllo.slice";
 
 export default function useCampaignOverviewCompleted(
   onCampaignSelect,
@@ -16,13 +28,16 @@ export default function useCampaignOverviewCompleted(
   );
 
   useEffect(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
+
+  useEffect(() => {
     if (parentIsMultiCreator !== undefined) {
       setIsMultiCreator(parentIsMultiCreator);
     }
   }, [parentIsMultiCreator]);
 
   const {
-    campaignOptions,
     selectedCampaign: hookSelectedCampaign,
     budgetData: hookBudgetData,
     performanceMetrics: hookPerformanceMetrics,
@@ -31,9 +46,27 @@ export default function useCampaignOverviewCompleted(
     formatNumber,
     isLoading,
     hasData,
-  } = useBrandCampaignCompleted(!!parentSelectedCampaign); // Disable auto-select if parent is managing selection
+  } = useBrandCampaignCompleted(!!parentSelectedCampaign);
 
   const selectedCampaign = parentSelectedCampaign || hookSelectedCampaign;
+
+  const { data: campaignsApiData, isSuccess: campaignsSuccess } = useSelector(
+    (state) => state.campaigns.getAllBrandCampaigns || {}
+  );
+  const completedCampaignOptions = useMemo(() => {
+    if (!campaignsSuccess || !campaignsApiData?.data) return [];
+    const list = Array.isArray(campaignsApiData.data) ? campaignsApiData.data : [];
+    const completed = list.filter(
+      (c) =>
+        c.status === "COMPLETE" ||
+        (Array.isArray(c.creators) && c.creators.some((cr) => cr.status === "COMPLETED"))
+    );
+    return completed.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.campaign_title || "Untitled Campaign",
+      campaign,
+    }));
+  }, [campaignsSuccess, campaignsApiData?.data]);
 
   const { data: creatorsData, isSuccess: creatorsSuccess } = useSelector(
     (state) => state.campaigns.getAppliedCreators || {}
@@ -41,11 +74,16 @@ export default function useCampaignOverviewCompleted(
   const { data: budgetCreatorsData, isSuccess: budgetCreatorsSuccess } = useSelector(
     (state) => state.campaigns.getAppliedCreatorsForBudget || {}
   );
+  const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
+  const individualDemographics = useSelector(selectCreatorAudience);
+  const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
+  const { data: individualContractsData, isSuccess: individualContractsSuccess } = useSelector(
+    (state) => state.contracts.getIndividualCollaborationContracts || {}
+  );
 
   const budgetData = useMemo(() => {
     if (!parentSelectedCampaign) return hookBudgetData;
     const totalBudget = Number(parentSelectedCampaign.budget) || 0;
-    // Prefer getAppliedCreatorsForBudget (all creators) so spent matches active tab
     const budgetCreators = budgetCreatorsData?.data?.data ?? budgetCreatorsData?.data ?? [];
     const budgetList = Array.isArray(budgetCreators) ? budgetCreators : [];
     if (budgetCreatorsSuccess && budgetList.length >= 0) {
@@ -106,7 +144,6 @@ export default function useCampaignOverviewCompleted(
     if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
       const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
 
-      // Collect per-creator metrics from timeline FINAL_PUBLISHED steps
       const creatorMetrics = creators
         .map((c) => {
           const creatorUserId = c.creator?.id || c.creatorUserId;
@@ -144,11 +181,8 @@ export default function useCampaignOverviewCompleted(
         const totalViews = creatorMetrics.reduce((s, m) => s + m.views, 0);
         const totalEngagement = creatorMetrics.reduce((s, m) => s + m.totalEngagement, 0);
 
-        // Spec §3: ER = average of individual ERs (not recalculated from totals)
         const engagementRate =
           creatorMetrics.reduce((s, m) => s + m.engagementRate, 0) / creatorMetrics.length;
-
-        // Spec §3: CPE = average of individual CPEs (not total spend / total engagement)
         const cpeValues = creatorMetrics
           .map((m) => m.costPerEngagement)
           .filter((v) => v !== null && v !== undefined);
@@ -163,7 +197,6 @@ export default function useCampaignOverviewCompleted(
         };
       }
 
-      // Fallback: use stored creator-level aggregates when timeline data not yet loaded
       const spent = creators.reduce((sum, creator) => {
         const raw =
           creator.contract?.total_compensation ??
@@ -193,8 +226,9 @@ export default function useCampaignOverviewCompleted(
     timelinesByKey,
   ]);
 
+  // Same filter as active tab: by collaboration type (multi vs individual)
   const filteredCampaignOptions = useMemo(() => {
-    return campaignOptions.filter((option) => {
+    return completedCampaignOptions.filter((option) => {
       if (!option || !option.campaign) return false;
       const collaborationType =
         option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
@@ -202,7 +236,7 @@ export default function useCampaignOverviewCompleted(
         ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
         : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
     });
-  }, [campaignOptions, isMultiCreator]);
+  }, [completedCampaignOptions, isMultiCreator]);
 
   const isSelectedCampaignValid =
     selectedCampaign &&
@@ -212,6 +246,68 @@ export default function useCampaignOverviewCompleted(
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
 
   const showMultiCreatorUI = isMultiCreator && isSelectedCampaignValid;
+
+  const campaignId =
+    selectedCampaign?.id ?? selectedCampaign?.campaign?.id ?? selectedCampaign?.campaignId;
+  const individualCreatorId =
+    selectedCampaign?.creator?.id ??
+    selectedCampaign?.creator_id ??
+    selectedCampaign?.contract?.creator?.id ??
+    selectedCampaign?.contract?.creator_id;
+
+  useEffect(() => {
+    if (!campaignId) {
+      dispatch(resetCampaignDemographics());
+      dispatch(resetAudience());
+      dispatch(resetPerformanceMetrics());
+      return;
+    }
+    if (isMultiCreator) {
+      dispatch(fetchCampaignCombinedDemographics(campaignId));
+      dispatch(fetchCampaignPerformanceMetrics(campaignId));
+      dispatch(resetAudience());
+    } else {
+      if (individualCreatorId) {
+        dispatch(fetchCreatorAudience(individualCreatorId));
+        dispatch(resetCampaignDemographics());
+        dispatch(resetPerformanceMetrics());
+      } else {
+        dispatch(resetAudience());
+      }
+    }
+  }, [campaignId, isMultiCreator, individualCreatorId, dispatch]);
+
+  const demographicsData = isMultiCreator
+    ? campaignDemographics?.data
+    : individualDemographics?.data;
+  const demographicsLoading = isMultiCreator
+    ? campaignDemographics?.isLoading || false
+    : individualDemographics?.isLoading || false;
+  const hasDemographicsData = isMultiCreator
+    ? campaignDemographics?.isSuccess && demographicsData?.has_data
+    : individualDemographics?.isSuccess && demographicsData?.has_data;
+
+  const performanceData =
+    campaignPerformance?.isSuccess && campaignPerformance?.data
+      ? campaignPerformance.data
+      : hookPerformanceMetrics;
+  const performanceLoading = campaignPerformance?.isLoading || false;
+
+  const showEmptyState = useMemo(() => {
+    if (isLoading) return false;
+    if (selectedCampaign) return false;
+    if (isMultiCreator) return filteredCampaignOptions.length === 0;
+    const completedCount =
+      individualContractsData?.filter((c) => c.campaign?.status === "COMPLETE")?.length || 0;
+    return individualContractsSuccess && completedCount === 0;
+  }, [
+    isLoading,
+    selectedCampaign,
+    isMultiCreator,
+    filteredCampaignOptions.length,
+    individualContractsData,
+    individualContractsSuccess,
+  ]);
 
   const hasNotifiedParent = useRef(false);
   const hasAutoSelectedFiltered = useRef(false);
@@ -223,18 +319,13 @@ export default function useCampaignOverviewCompleted(
     const currentId = selectedCampaign?.id;
     const previousId = selectedCampaignIdRef.current;
 
-    // Only notify parent if the campaign ID actually changed
     if (currentId !== previousId) {
       selectedCampaignIdRef.current = currentId || null;
-
-      // Only notify if we have a campaign and haven't notified for this ID yet
       if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
         onCampaignSelect(selectedCampaign);
         hasNotifiedParent.current = true;
       }
     }
-
-    // Reset notification flag when campaign becomes null
     if (!selectedCampaign && previousId !== null) {
       hasNotifiedParent.current = false;
       selectedCampaignIdRef.current = null;
@@ -248,10 +339,6 @@ export default function useCampaignOverviewCompleted(
       lastIndividualContractsDataRef.current = null;
     }
   }, [isMultiCreator, dispatch]);
-
-  const { data: individualContractsData, isSuccess: individualContractsSuccess } = useSelector(
-    (state) => state.contracts.getIndividualCollaborationContracts || {}
-  );
 
   useEffect(() => {
     const dataChanged =
@@ -296,7 +383,10 @@ export default function useCampaignOverviewCompleted(
 
   useEffect(() => {
     if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
-      if (!isSelectedCampaignValid && !hasAutoSelectedFiltered.current) {
+      const parentHasNoCampaign = !parentSelectedCampaign;
+      const needToSyncParent =
+        (parentHasNoCampaign || !isSelectedCampaignValid) && !hasAutoSelectedFiltered.current;
+      if (needToSyncParent) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
           internalHandleCampaignSelect(firstFilteredOption);
@@ -314,6 +404,7 @@ export default function useCampaignOverviewCompleted(
     filteredCampaignOptions,
     isSelectedCampaignValid,
     isLoading,
+    parentSelectedCampaign,
     internalHandleCampaignSelect,
     onCampaignSelect,
   ]);
@@ -353,7 +444,6 @@ export default function useCampaignOverviewCompleted(
 
   const handleViewAnalytics = () => {};
 
-  // Use creatorsData from Redux so we show content when parent passes campaign and data has loaded
   const computedHasData = useMemo(() => {
     if (!selectedCampaign) return false;
     if (isMultiCreator && isSelectedCampaignValid) {
@@ -382,7 +472,12 @@ export default function useCampaignOverviewCompleted(
     showMultiCreatorUI,
     selectedCampaign,
     budgetData,
-    performanceMetrics,
+    performanceData,
+    performanceLoading,
+    demographicsData,
+    demographicsLoading,
+    hasDemographicsData,
+    showEmptyState,
     formatCurrency,
     formatNumber,
     isLoading,
