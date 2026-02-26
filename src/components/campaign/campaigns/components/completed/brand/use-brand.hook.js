@@ -11,7 +11,6 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
   const dispatch = useDispatch();
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
-  const previousCampaignIdsRef = useRef(null);
   const lastRestoredCampaignIdRef = useRef(null);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
@@ -82,39 +81,30 @@ export default function useBrandCampaignCompleted(disableAutoSelect = false) {
     }
   }, [campaignsSuccess, campaignsData, selectedCampaignId]);
 
-  // Memoize campaigns array – completed tab: only campaigns with status COMPLETE
+  // Memoize campaigns array – completed tab: campaign COMPLETE or has at least one creator COMPLETED
   const allCampaigns = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
     const list = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-    return list.filter((c) => c.status === "COMPLETE");
+    return list.filter(
+      (c) =>
+        c.status === "COMPLETE" ||
+        (Array.isArray(c.creators) && c.creators.some((cr) => cr.status === "COMPLETED"))
+    );
   }, [campaignsSuccess, campaignsData?.data]);
 
-  // Create stable reference for campaign IDs to detect actual changes
-  const campaignIdsString = useMemo(() => {
-    return allCampaigns
-      .map((c) => c.id)
-      .sort()
-      .join(",");
-  }, [allCampaigns]);
-
-  // Update campaign options only when campaign IDs actually change
+  // Set campaign options when we have data (same pattern as active tab)
   useEffect(() => {
-    if (campaignsSuccess && allCampaigns.length > 0) {
-      // Only update if campaign IDs have changed
-      if (campaignIdsString !== previousCampaignIdsRef.current) {
-        const options = allCampaigns.map((campaign) => ({
-          value: campaign.id,
-          label: campaign.campaign_title || "Untitled Campaign",
-          campaign: campaign,
-        }));
-        setCampaignOptions(options);
-        previousCampaignIdsRef.current = campaignIdsString;
-      }
-    } else if (campaignsSuccess && allCampaigns.length === 0) {
+    if (campaignsSuccess && campaignsData?.data) {
+      const options = allCampaigns.map((campaign) => ({
+        value: campaign.id,
+        label: campaign.campaign_title || "Untitled Campaign",
+        campaign: campaign,
+      }));
+      setCampaignOptions(options);
+    } else if (campaignsSuccess) {
       setCampaignOptions([]);
-      previousCampaignIdsRef.current = null;
     }
-  }, [campaignsSuccess, allCampaigns, campaignIdsString]);
+  }, [campaignsSuccess, campaignsData?.data, allCampaigns]);
 
   // Handle auto-selection separately to avoid loops
   useEffect(() => {

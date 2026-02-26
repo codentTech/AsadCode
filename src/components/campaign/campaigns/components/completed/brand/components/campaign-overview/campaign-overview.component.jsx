@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
@@ -7,25 +5,12 @@ import Loader from "@/common/components/loader/loader.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
-import {
-  fetchCampaignCombinedDemographics,
-  fetchCreatorAudience,
-  fetchCampaignPerformanceMetrics,
-  resetCampaignDemographics,
-  resetAudience,
-  resetPerformanceMetrics,
-  selectCampaignCombinedDemographics,
-  selectCreatorAudience,
-  selectCampaignPerformanceMetrics,
-} from "@/provider/features/phyllo/phyllo.slice";
 
 export default function CampaignOverviewCompleted({
   onCampaignSelect,
   onToggleChange,
   parentSelectedCampaign,
 }) {
-  const dispatch = useDispatch();
-
   const {
     isMultiCreator,
     filteredCampaignOptions,
@@ -33,7 +18,12 @@ export default function CampaignOverviewCompleted({
     showMultiCreatorUI,
     selectedCampaign,
     budgetData,
-    performanceMetrics, // Keep this as fallback for now
+    performanceData,
+    performanceLoading,
+    demographicsData,
+    demographicsLoading,
+    hasDemographicsData,
+    showEmptyState,
     formatCurrency,
     formatNumber,
     isLoading,
@@ -42,83 +32,12 @@ export default function CampaignOverviewCompleted({
     handleToggleChange,
     handleExportData,
     handleViewAnalytics,
-    individualContractsData,
-    individualContractsSuccess,
   } = useCampaignOverviewCompleted(
     onCampaignSelect,
     onToggleChange,
     undefined,
     parentSelectedCampaign
   );
-
-  // Get demographics data from Redux using selectors
-  const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
-  const individualDemographics = useSelector(selectCreatorAudience);
-  const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
-
-  // Resolve creator user id for individual completed (creator may be on campaign or contract)
-  const individualCreatorId =
-    selectedCampaign?.creator?.id ??
-    selectedCampaign?.creator_id ??
-    selectedCampaign?.contract?.creator?.id ??
-    selectedCampaign?.contract?.creator_id;
-
-  const campaignId =
-    selectedCampaign?.id ?? selectedCampaign?.campaign?.id ?? selectedCampaign?.campaignId;
-
-  // Fetch demographics and performance when campaign or (for individual) creator changes
-  useEffect(() => {
-    if (!campaignId) {
-      dispatch(resetCampaignDemographics());
-      dispatch(resetAudience());
-      dispatch(resetPerformanceMetrics());
-      return;
-    }
-
-    if (isMultiCreator) {
-      dispatch(fetchCampaignCombinedDemographics(campaignId));
-      dispatch(fetchCampaignPerformanceMetrics(campaignId));
-      dispatch(resetAudience());
-    } else {
-      if (individualCreatorId) {
-        dispatch(fetchCreatorAudience(individualCreatorId));
-        dispatch(resetCampaignDemographics());
-        dispatch(resetPerformanceMetrics());
-      } else {
-        dispatch(resetAudience());
-      }
-    }
-  }, [campaignId, isMultiCreator, individualCreatorId, dispatch]);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      dispatch(resetCampaignDemographics());
-      dispatch(resetAudience());
-      dispatch(resetPerformanceMetrics());
-    };
-  }, [dispatch]);
-
-  // Determine which demographics data to use with safe access
-  const demographicsData = isMultiCreator
-    ? campaignDemographics?.data
-    : individualDemographics?.data;
-
-  const demographicsLoading = isMultiCreator
-    ? campaignDemographics?.isLoading || false
-    : individualDemographics?.isLoading || false;
-
-  const hasDemographicsData = isMultiCreator
-    ? campaignDemographics?.isSuccess && demographicsData?.has_data
-    : individualDemographics?.isSuccess && demographicsData?.has_data;
-
-  // Use Phyllo performance metrics data or fallback to hook data
-  const performanceData =
-    campaignPerformance?.isSuccess && campaignPerformance?.data
-      ? campaignPerformance.data
-      : performanceMetrics;
-
-  const performanceLoading = campaignPerformance?.isLoading || false;
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -160,41 +79,19 @@ export default function CampaignOverviewCompleted({
         </div>
       )}
 
-      {(() => {
-        let shouldShowNotFound = false;
+      {showEmptyState && (
+        <NotFound
+          title={
+            isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
+          }
+          description={
+            isMultiCreator
+              ? "You don't have any completed campaigns."
+              : "You don't have any completed individual collaborations."
+          }
+        />
+      )}
 
-        if (isMultiCreator) {
-          shouldShowNotFound =
-            !isLoading && !selectedCampaign && filteredCampaignOptions.length === 0;
-        } else {
-          const completedContractsCount =
-            individualContractsData?.filter((contract) => contract.campaign?.status === "COMPLETE")
-              .length || 0;
-
-          shouldShowNotFound =
-            !isLoading &&
-            !selectedCampaign &&
-            individualContractsSuccess &&
-            completedContractsCount === 0;
-        }
-
-        return (
-          shouldShowNotFound && (
-            <NotFound
-              title={
-                isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
-              }
-              description={
-                isMultiCreator
-                  ? "You don't have any completed campaigns."
-                  : "You don't have any completed individual collaborations."
-              }
-            />
-          )
-        );
-      })()}
-
-      {/* Budget + Performance: only when we have creator data. Demographics: always when campaign selected. */}
       {selectedCampaign && (
         <>
           {showMultiCreatorUI && hasData && (
@@ -223,8 +120,13 @@ export default function CampaignOverviewCompleted({
                   ER &amp; CPE are averaged across creators, not recalculated from totals.
                 </p>
                 {performanceLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader loading={true} />
+                  <div className="space-y-2 text-sm animate-pulse">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <div className="h-4 w-32 bg-blue-200/60 rounded" />
+                        <div className="h-4 w-16 bg-blue-200/60 rounded" />
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="space-y-2 text-sm">
@@ -277,7 +179,6 @@ export default function CampaignOverviewCompleted({
             </>
           )}
 
-          {/* Audience Demographics Section – same structure as active tab */}
           <hr />
           <div className="mb-1">
             <div className="mb-4">
@@ -287,9 +188,8 @@ export default function CampaignOverviewCompleted({
               {showMultiCreatorUI && hasDemographicsData && demographicsData && (
                 <p className="text-xs text-gray-500">
                   Aggregated across{" "}
-                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
-                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
-                  followers
+                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0} creators
+                  · {(demographicsData.total_followers ?? 0).toLocaleString()} total followers
                 </p>
               )}
               {!showMultiCreatorUI &&
