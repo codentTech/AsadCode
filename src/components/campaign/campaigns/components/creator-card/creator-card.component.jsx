@@ -109,27 +109,28 @@ const CreatorCard = ({
         </p>
 
         {/* Social Platforms */}
-        {/* Social Platforms */}
-        <div className="flex justify-center bg-gray-100 py-2 rounded-lg">
-          {(creator.platforms || []).map((platform, index, arr) => (
-            <div key={platform} className="flex items-center">
-              {/* Platform item */}
-              <div className="flex flex-col items-center px-3">
-                <div className="w-8 h-8 flex items-center justify-center">
-                  {getPlatformIcon(platform)}
+        {creator.platforms && creator.platforms.length > 0 && (
+          <div className="flex justify-center bg-gray-100 py-2 rounded-lg">
+            {(creator.platforms || []).map((platform, index, arr) => (
+              <div key={platform} className="flex items-center">
+                {/* Platform item */}
+                <div className="flex flex-col items-center px-3">
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    {getPlatformIcon(platform)}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {formatFollowers(getPlatformFollowers(platform))}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {formatFollowers(getPlatformFollowers(platform))}
-                </span>
-              </div>
 
-              {/* Vertical divider (only if more than 1 & not last) */}
-              {arr.length > 1 && index < arr.length - 1 && (
-                <div className="h-10 w-px bg-indigo-300" />
-              )}
-            </div>
-          ))}
-        </div>
+                {/* Vertical divider (only if more than 1 & not last) */}
+                {arr.length > 1 && index < arr.length - 1 && (
+                  <div className="h-10 w-px bg-indigo-300" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Discover actions */}
         {tab === "discover" && (

@@ -5,7 +5,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
-import { AlertCircle, ExternalLink, MapPin, Star } from "lucide-react";
+import { ExternalLink, MapPin, Star } from "lucide-react";
 import CalendarModal from "../../../../active/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "../../../../task-manager/task-manager.component";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
@@ -269,16 +269,18 @@ const CreatorSpendAnalysisCompleted = ({
                           </div>
                         </div>
                       ) : showMetrics && !creatorMetrics ? (
-                        /* No published post yet */
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 bg-gray-50 rounded-lg p-2 border border-dashed border-gray-200">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                          No published post link submitted yet.
-                        </div>
-                      ) : showMetrics && metricsUnavailable ? (
-                        /* Post exists but Phyllo hasn't returned engagement data */
-                        <div className="flex items-center gap-2 mt-2 text-xs text-amber-700 bg-amber-50 rounded-lg p-2 border border-amber-200">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                          Metrics unavailable — engagement data is being fetched.
+                        /* Skeleton while engagement data is being fetched */
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                          {[1, 2, 3, 4].map((i) => (
+                            <div
+                              key={i}
+                              className="bg-gray-100 rounded-lg p-3 border border-gray-200 animate-pulse"
+                            >
+                              <div className="h-3.5 w-20 bg-gray-300 rounded mb-2" />
+                              <div className="h-4 w-14 bg-gray-300 rounded mb-1" />
+                              <div className="h-3 w-16 bg-gray-200 rounded" />
+                            </div>
+                          ))}
                         </div>
                       ) : showMetrics && creatorMetrics ? (
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">

@@ -6,7 +6,7 @@ import DeliverablesProgressCompleted from "./components/deliverables-progress/de
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
-import { getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
+import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 
 function CompletedBrandCampaign() {
   const dispatch = useDispatch();
@@ -14,6 +14,11 @@ function CompletedBrandCampaign() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [isMultiCreator, setIsMultiCreator] = useState(true);
   const autoSelectedForCampaignRef = useRef(null);
+
+  // Fetch brand campaigns when Completed tab mounts (same as Active/Applications) so dropdown has data
+  useEffect(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isMultiCreator) {

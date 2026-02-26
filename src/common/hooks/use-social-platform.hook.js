@@ -9,14 +9,14 @@ function useGetplatform() {
   const getPlatformIcon = (platform) => {
     const value = platform?.toLowerCase();
     switch (value) {
-      // case "facebook":
-      //   return <FacebookIcon className="w-4 h-4" />;
+      case "facebook":
+        return <FacebookIcon className="w-4 h-4" />;
       case "instagram":
         return <InstagramIcon className="w-4 h-4" />;
       case "youtube":
         return <YoutubeIcon className="w-4 h-4" />;
-      // case "twitter":
-      //   return <TwitterIcon className="w-4 h-4" />;
+      case "twitter":
+        return <TwitterIcon className="w-4 h-4" />;
       case "tiktok":
         return <TikTokIcon className="w-4 h-4" />;
       default:
