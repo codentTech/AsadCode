@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreatorSpendAnalysis } from "../../../../active/brand/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
+import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
 import { TIMELINE_STEPS, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
@@ -83,8 +84,20 @@ export const useCreatorSpendAnalysisCompleted = ({
   const hookData = useCreatorSpendAnalysis(selectedCampaign, isCompleted, isMultiCreator);
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline.timelinesByKey || {});
+  const performanceData = useSelector(
+    (state) => state.phyllo?.fetchCampaignPerformanceMetrics?.data || null
+  );
+  const creatorBreakdown = performanceData?.creator_breakdown || {};
 
   const { data: creatorsData } = useSelector((state) => state.campaigns.getAppliedCreators || {});
+
+  const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+
+  useEffect(() => {
+    if (selectedCampaign?.id && !isUgc) {
+      dispatch(fetchCampaignPerformanceMetrics(selectedCampaign.id));
+    }
+  }, [dispatch, selectedCampaign?.id, isUgc]);
 
   const handleOpenModal = () => setOpen(true);
   const handleCloseModal = () => setOpen(false);
@@ -96,10 +109,9 @@ export const useCreatorSpendAnalysisCompleted = ({
     return Object.entries(platforms || {});
   };
 
-  const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
-
   /**
-   * Per-creator metrics map: creatorUserId → metrics object
+   * Per-creator metrics map: creatorUserId → metrics object.
+   * Prefer API creator_breakdown (from campaign performance metrics); fallback to timeline engagement.
    */
   const creatorMetricsMap = useMemo(() => {
     if (isUgc || !selectedCampaign?.id) return {};
@@ -112,13 +124,38 @@ export const useCreatorSpendAnalysisCompleted = ({
       if (!creatorUserId) return;
 
       const fee = c.total_spent || c.totalSpent || c.contract?.totalCompensation || 0;
+      const fromApi = creatorBreakdown[creatorUserId];
+      const fromTimeline = extractCreatorMetrics(
+        timelinesByKey,
+        selectedCampaign.id,
+        creatorUserId,
+        fee
+      );
 
-      const result = extractCreatorMetrics(timelinesByKey, selectedCampaign.id, creatorUserId, fee);
-      map[creatorUserId] = result;
+      if (fromApi && (fromApi.views != null || fromApi.totalEngagement != null)) {
+        map[creatorUserId] = {
+          publishedUrl: fromApi.publishedUrl || fromTimeline?.publishedUrl,
+          views: fromApi.views ?? 0,
+          totalEngagement: fromApi.totalEngagement ?? 0,
+          engagementRate: fromApi.engagementRate ?? 0,
+          costPerEngagement:
+            fromApi.costPerEngagement != null
+              ? fromApi.costPerEngagement
+              : (fromApi.totalEngagement > 0 && fee ? fee / fromApi.totalEngagement : null),
+        };
+      } else {
+        map[creatorUserId] = fromTimeline;
+      }
     });
 
     return map;
-  }, [isUgc, selectedCampaign?.id, creatorsData, timelinesByKey]);
+  }, [
+    isUgc,
+    selectedCampaign?.id,
+    creatorsData,
+    timelinesByKey,
+    creatorBreakdown,
+  ]);
 
   /**
    * Campaign-level averages (for comparison labels).

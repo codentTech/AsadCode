@@ -306,7 +306,7 @@ const CreatorTimelineSteps = ({
                 placeholder="https://instagram.com/p/..."
               />
               <p className="text-xs text-gray-500 mt-1">
-                Must be a valid URL from Instagram, TikTok, YouTube, or Twitter/X
+                Must be a valid URL from Instagram, TikTok or YouTube
               </p>
             </div>
             {publishedUrl && !validateUrl(publishedUrl) && (
