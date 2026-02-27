@@ -13,12 +13,14 @@ const generalState = {
   data: null,
 };
 
+const performanceMetricsInitialState = { ...generalState, campaignId: null };
+
 const initialState = {
   fetchCreatorStats: { ...generalState },
   fetchCreatorAudience: { ...generalState },
   fetchCreatorSocialAccounts: { ...generalState },
   fetchCampaignCombinedDemographics: { ...generalState },
-  fetchCampaignPerformanceMetrics: { ...generalState },
+  fetchCampaignPerformanceMetrics: { ...performanceMetricsInitialState },
   fetchCreatorMetrics: { ...generalState },
 };
 
@@ -119,7 +121,7 @@ export const phylloSlice = createSlice({
       state.fetchCreatorAudience = { ...generalState };
       state.fetchCreatorSocialAccounts = { ...generalState };
       state.fetchCampaignCombinedDemographics = { ...generalState };
-      state.fetchCampaignPerformanceMetrics = { ...generalState };
+      state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
       state.fetchCreatorMetrics = { ...generalState };
     },
     resetAudience: (state) => {
@@ -129,7 +131,7 @@ export const phylloSlice = createSlice({
       state.fetchCampaignCombinedDemographics = { ...generalState };
     },
     resetPerformanceMetrics: (state) => {
-      state.fetchCampaignPerformanceMetrics = { ...generalState };
+      state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
     },
     resetMetrics: (state) => {
       state.fetchCreatorMetrics = { ...generalState };
@@ -204,13 +206,40 @@ export const phylloSlice = createSlice({
 
     // Campaign Performance Metrics
     builder
-      .addCase(fetchCampaignPerformanceMetrics.pending, (state) => {
-        state.fetchCampaignPerformanceMetrics = { ...generalState, isLoading: true };
+      .addCase(fetchCampaignPerformanceMetrics.pending, (state, action) => {
+        const requestedCampaignId = action.meta?.arg;
+        if (requestedCampaignId !== state.fetchCampaignPerformanceMetrics.campaignId) {
+          state.fetchCampaignPerformanceMetrics.data = null;
+          state.fetchCampaignPerformanceMetrics.campaignId = null;
+        }
+        state.fetchCampaignPerformanceMetrics.isLoading = true;
       })
       .addCase(fetchCampaignPerformanceMetrics.fulfilled, (state, action) => {
         state.fetchCampaignPerformanceMetrics.isLoading = false;
         state.fetchCampaignPerformanceMetrics.isSuccess = true;
-        state.fetchCampaignPerformanceMetrics.data = action.payload.data;
+        const campaignId = action.meta?.arg;
+        const newData = action.payload?.data;
+        const currentData = state.fetchCampaignPerformanceMetrics.data;
+        const currentCampaignId = state.fetchCampaignPerformanceMetrics.campaignId;
+
+        const isNewDataZeros =
+          newData &&
+          newData.totalViews === 0 &&
+          newData.totalEngagement === 0 &&
+          (newData.creators_with_data === 0 ||
+            Object.keys(newData.creator_breakdown || {}).length === 0);
+
+        const isSameCampaign = campaignId === currentCampaignId;
+        const hasCurrentData =
+          currentData &&
+          (currentData.totalViews > 0 || currentData.totalEngagement > 0);
+
+        if (isSameCampaign && hasCurrentData && isNewDataZeros) {
+          return;
+        }
+
+        state.fetchCampaignPerformanceMetrics.data = newData;
+        state.fetchCampaignPerformanceMetrics.campaignId = campaignId;
       })
       .addCase(fetchCampaignPerformanceMetrics.rejected, (state, action) => {
         state.fetchCampaignPerformanceMetrics.isLoading = false;
