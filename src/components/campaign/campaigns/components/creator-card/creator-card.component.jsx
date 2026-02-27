@@ -19,14 +19,13 @@ const CreatorCard = ({
 }) => {
   const {
     getPlatformIcon,
+    getPlatformProfileUrlFor,
     handleCardClick,
     handleSaveClick,
     handleInviteClickInternal,
     handleReinstateClickInternal,
     handleViewNotesClickInternal,
-    handleViewProfileClick,
     formatFollowers,
-    combinedFollowers,
     getPlatformFollowers,
   } = useCreatorCard({
     creator,
@@ -62,7 +61,6 @@ const CreatorCard = ({
         )}
       </div>
 
-      {/* Content */}
       <div className="relative px-4 pb-4 space-y-3">
         {/* Avatar */}
         <div className="absolute top-[-70px] left-1/2 -translate-x-1/2">
@@ -91,7 +89,6 @@ const CreatorCard = ({
         </div>
 
         {/* Niches */}
-        {/* Niches */}
         <div className="flex flex-wrap justify-center gap-1">
           {(creator.niches || []).slice(0, 3).map((niche) => (
             <span
@@ -110,10 +107,13 @@ const CreatorCard = ({
 
         {/* Social Platforms */}
         {creator.platforms && creator.platforms.length > 0 && (
-          <div className="flex justify-center bg-gray-100 py-2 rounded-lg">
-            {(creator.platforms || []).map((platform, index, arr) => (
-              <div key={platform} className="flex items-center">
-                {/* Platform item */}
+          <div
+            className="flex justify-center bg-gray-100 py-2 rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(creator.platforms || []).map((platform, index, arr) => {
+              const profileUrl = getPlatformProfileUrlFor(platform);
+              const platformBlock = (
                 <div className="flex flex-col items-center px-3">
                   <div className="w-8 h-8 flex items-center justify-center">
                     {getPlatformIcon(platform)}
@@ -122,13 +122,27 @@ const CreatorCard = ({
                     {formatFollowers(getPlatformFollowers(platform))}
                   </span>
                 </div>
-
-                {/* Vertical divider (only if more than 1 & not last) */}
-                {arr.length > 1 && index < arr.length - 1 && (
-                  <div className="h-10 w-px bg-indigo-300" />
-                )}
-              </div>
-            ))}
+              );
+              return (
+                <div key={platform} className="flex items-center">
+                  {profileUrl ? (
+                    <a
+                      href={profileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center px-3 hover:opacity-80 transition-opacity"
+                    >
+                      {platformBlock}
+                    </a>
+                  ) : (
+                    platformBlock
+                  )}
+                  {arr.length > 1 && index < arr.length - 1 && (
+                    <div className="h-10 w-px bg-indigo-300" />
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -137,6 +151,7 @@ const CreatorCard = ({
           <>
             <div className="flex justify-center gap-3">
               <button
+                type="button"
                 onClick={handleSaveClick}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
               >
@@ -146,20 +161,17 @@ const CreatorCard = ({
                   }`}
                 />
               </button>
-
-              <button
-                onClick={handleViewProfileClick}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+              <a
+                href={`/creator-profile/${creator.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 inline-flex"
               >
                 <User className="w-5 h-5 text-gray-600" />
-              </button>
+              </a>
             </div>
-
-            <CustomButton
-              text="Invite to Apply"
-              onClick={handleInviteClickInternal}
-              // className="btn-outline w-full rounded-lg"
-            />
+            <CustomButton text="Invite to Apply" onClick={handleInviteClickInternal} />
           </>
         )}
 

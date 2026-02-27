@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 import Niche from "@/components/niche/niche";
 import { BookmarkPlus, Edit, MapPin, Share2, Star, StarHalf } from "lucide-react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
@@ -100,11 +101,32 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                 </div>
               ) : connectedAccounts?.data?.length > 0 ? (
                 <div className="flex space-x-3 justify-center md:justify-start mb-3">
-                  {connectedAccounts?.data?.map(({ platform }, idx) => (
-                    <div key={idx} className={`${getPlatformColor(platform)} p-1 rounded-md`}>
-                      {getPlatformIcon(platform)}
-                    </div>
-                  ))}
+                  {connectedAccounts?.data?.map((account, idx) => {
+                    const platform = account.platform ?? account.platform_name;
+                    const profileUrl =
+                      account.profile_url ||
+                      getPlatformProfileUrl(platform, account.username);
+                    const icon = (
+                      <div
+                        key={idx}
+                        className={`${getPlatformColor(platform)} p-1 rounded-md ${profileUrl ? "cursor-pointer hover:opacity-80" : ""}`}
+                      >
+                        {getPlatformIcon(platform)}
+                      </div>
+                    );
+                    return profileUrl ? (
+                      <a
+                        key={idx}
+                        href={profileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {icon}
+                      </a>
+                    ) : (
+                      icon
+                    );
+                  })}
                 </div>
               ) : (
                 <Loading height={4} width={4} />

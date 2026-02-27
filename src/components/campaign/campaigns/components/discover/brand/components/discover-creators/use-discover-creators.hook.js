@@ -16,7 +16,11 @@ const mapUserToCreator = (user) => {
       Number(pd.follower_count) ||
       Number(pd.subscriber_count) ||
       0;
-    if (s.platform) acc[s.platform] = { followers };
+    const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
+    const profileUrl = pd.profile_url ?? pd.url ?? null;
+    if (s.platform) {
+      acc[s.platform] = { followers, username, profile_url: profileUrl };
+    }
     return acc;
   }, {});
 

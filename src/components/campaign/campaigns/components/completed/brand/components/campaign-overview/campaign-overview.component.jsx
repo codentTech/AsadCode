@@ -148,13 +148,29 @@ export default function CampaignOverviewCompleted({
                         {(performanceData?.engagementRate || 0).toFixed(1)}%
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Avg Cost per Engagement:</span>
-                      <span className="font-medium text-blue-800">
-                        {performanceData?.costPerEngagement
-                          ? formatCurrency(performanceData.costPerEngagement)
-                          : "N/A"}
-                      </span>
+                    <div className="rounded-lg bg-indigo-200 p-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-700 font-medium">Cost per:</span>
+                        <div className="text-right space-y-0.5">
+                          <div className="font-medium text-blue-800">
+                            View:{" "}
+                            {performanceData?.costPerView != null && performanceData.costPerView > 0
+                              ? formatCurrency(performanceData.costPerView)
+                              : performanceData?.totalViews > 0 && budgetData?.spent != null
+                                ? formatCurrency(
+                                    Number(budgetData.spent) / Number(performanceData.totalViews)
+                                  )
+                                : 0}
+                          </div>
+                          <div className="font-medium text-blue-800">
+                            Engagement:{" "}
+                            {performanceData?.costPerEngagement != null &&
+                            performanceData.costPerEngagement > 0
+                              ? formatCurrency(performanceData.costPerEngagement)
+                              : 0}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     {performanceData?.totalPosts && (
                       <>
@@ -188,8 +204,9 @@ export default function CampaignOverviewCompleted({
               {showMultiCreatorUI && hasDemographicsData && demographicsData && (
                 <p className="text-xs text-gray-500">
                   Aggregated across{" "}
-                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0} creators
-                  · {(demographicsData.total_followers ?? 0).toLocaleString()} total followers
+                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
+                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
+                  followers
                 </p>
               )}
               {!showMultiCreatorUI &&
