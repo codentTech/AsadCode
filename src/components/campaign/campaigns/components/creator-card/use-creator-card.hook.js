@@ -1,5 +1,5 @@
-import { useRouter } from "next/navigation";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 
 export const useCreatorCard = ({
   creator,
@@ -11,7 +11,6 @@ export const useCreatorCard = ({
   onReinstateClick,
   onViewNotesClick,
 }) => {
-  const router = useRouter();
   const { getPlatformIcon } = useGetplatform();
 
   const handleCardClick = () => {
@@ -44,7 +43,14 @@ export const useCreatorCard = ({
 
   const handleViewProfileClick = (e) => {
     e.stopPropagation();
-    router.push(`/creator-profile/${creator.id}`);
+    window.open(`/creator-profile/${creator.id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const getPlatformProfileUrlFor = (platform) => {
+    const stat = creator.platformStats?.[platform];
+    const username = stat?.username ?? stat?.handle ?? creator.social_links?.[platform];
+    const profileUrl = stat?.profile_url ?? stat?.profileUrl;
+    return getPlatformProfileUrl(platform, username, profileUrl);
   };
 
   const formatFollowers = (followers) => {
@@ -88,8 +94,8 @@ export const useCreatorCard = ({
   const getPlatformFollowers = (platform) => getStatFollowers(creator.platformStats?.[platform]);
 
   return {
-    router,
     getPlatformIcon,
+    getPlatformProfileUrlFor,
     handleCardClick,
     handleSaveClick,
     handleInviteClickInternal,

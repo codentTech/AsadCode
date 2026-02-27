@@ -14,12 +14,13 @@ const generalState = {
 };
 
 const performanceMetricsInitialState = { ...generalState, campaignId: null };
+const combinedDemographicsInitialState = { ...generalState, campaignId: null };
 
 const initialState = {
   fetchCreatorStats: { ...generalState },
   fetchCreatorAudience: { ...generalState },
   fetchCreatorSocialAccounts: { ...generalState },
-  fetchCampaignCombinedDemographics: { ...generalState },
+  fetchCampaignCombinedDemographics: { ...combinedDemographicsInitialState },
   fetchCampaignPerformanceMetrics: { ...performanceMetricsInitialState },
   fetchCreatorMetrics: { ...generalState },
 };
@@ -120,7 +121,7 @@ export const phylloSlice = createSlice({
       state.fetchCreatorStats = { ...generalState };
       state.fetchCreatorAudience = { ...generalState };
       state.fetchCreatorSocialAccounts = { ...generalState };
-      state.fetchCampaignCombinedDemographics = { ...generalState };
+      state.fetchCampaignCombinedDemographics = { ...combinedDemographicsInitialState };
       state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
       state.fetchCreatorMetrics = { ...generalState };
     },
@@ -128,7 +129,7 @@ export const phylloSlice = createSlice({
       state.fetchCreatorAudience = { ...generalState };
     },
     resetCampaignDemographics: (state) => {
-      state.fetchCampaignCombinedDemographics = { ...generalState };
+      state.fetchCampaignCombinedDemographics = { ...combinedDemographicsInitialState };
     },
     resetPerformanceMetrics: (state) => {
       state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
@@ -189,13 +190,45 @@ export const phylloSlice = createSlice({
 
     // Campaign Combined Demographics
     builder
-      .addCase(fetchCampaignCombinedDemographics.pending, (state) => {
-        state.fetchCampaignCombinedDemographics = { ...generalState, isLoading: true };
+      .addCase(fetchCampaignCombinedDemographics.pending, (state, action) => {
+        const requestedCampaignId = action.meta?.arg;
+        if (requestedCampaignId !== state.fetchCampaignCombinedDemographics.campaignId) {
+          state.fetchCampaignCombinedDemographics.data = null;
+          state.fetchCampaignCombinedDemographics.campaignId = null;
+        }
+        state.fetchCampaignCombinedDemographics.isLoading = true;
       })
       .addCase(fetchCampaignCombinedDemographics.fulfilled, (state, action) => {
         state.fetchCampaignCombinedDemographics.isLoading = false;
         state.fetchCampaignCombinedDemographics.isSuccess = true;
-        state.fetchCampaignCombinedDemographics.data = action.payload.data;
+        const campaignId = action.meta?.arg;
+        const newData = action.payload?.data;
+        const currentData = state.fetchCampaignCombinedDemographics.data;
+        const currentCampaignId = state.fetchCampaignCombinedDemographics.campaignId;
+
+        const newHasAge =
+          Array.isArray(newData?.audience_age_distribution) &&
+          newData.audience_age_distribution.length > 0;
+        const newHasCountry =
+          Array.isArray(newData?.audience_country_distribution) &&
+          newData.audience_country_distribution.length > 0;
+        const currentHasAge =
+          Array.isArray(currentData?.audience_age_distribution) &&
+          currentData.audience_age_distribution.length > 0;
+        const currentHasCountry =
+          Array.isArray(currentData?.audience_country_distribution) &&
+          currentData.audience_country_distribution.length > 0;
+
+        const isSameCampaign = campaignId === currentCampaignId;
+        const keepCurrent =
+          isSameCampaign && (currentHasAge || currentHasCountry) && !newHasAge && !newHasCountry;
+
+        if (keepCurrent) {
+          return;
+        }
+
+        state.fetchCampaignCombinedDemographics.data = newData;
+        state.fetchCampaignCombinedDemographics.campaignId = campaignId;
       })
       .addCase(fetchCampaignCombinedDemographics.rejected, (state, action) => {
         state.fetchCampaignCombinedDemographics.isLoading = false;
@@ -231,8 +264,7 @@ export const phylloSlice = createSlice({
 
         const isSameCampaign = campaignId === currentCampaignId;
         const hasCurrentData =
-          currentData &&
-          (currentData.totalViews > 0 || currentData.totalEngagement > 0);
+          currentData && (currentData.totalViews > 0 || currentData.totalEngagement > 0);
 
         if (isSameCampaign && hasCurrentData && isNewDataZeros) {
           return;

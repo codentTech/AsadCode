@@ -141,7 +141,9 @@ export const useCreatorSpendAnalysisCompleted = ({
           costPerEngagement:
             fromApi.costPerEngagement != null
               ? fromApi.costPerEngagement
-              : (fromApi.totalEngagement > 0 && fee ? fee / fromApi.totalEngagement : null),
+              : fromApi.totalEngagement > 0 && fee
+                ? fee / fromApi.totalEngagement
+                : null,
         };
       } else {
         map[creatorUserId] = fromTimeline;
@@ -149,13 +151,7 @@ export const useCreatorSpendAnalysisCompleted = ({
     });
 
     return map;
-  }, [
-    isUgc,
-    selectedCampaign?.id,
-    creatorsData,
-    timelinesByKey,
-    creatorBreakdown,
-  ]);
+  }, [isUgc, selectedCampaign?.id, creatorsData, timelinesByKey, creatorBreakdown]);
 
   /**
    * Campaign-level averages (for comparison labels).

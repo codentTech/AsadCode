@@ -91,15 +91,21 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS) =
     const empty = { ageData: [], genderData: [], locationData: [] };
     if (!audienceData?.has_data) return empty;
 
-    // Age
     const ageDist = audienceData.audience_age_distribution;
-    const ageData =
-      Array.isArray(ageDist) && ageDist.length > 0
-        ? ageDist.map((d) => ({
-            name: d.range,
-            value: Math.round(Number(d.percentage) || 0),
-          }))
-        : [];
+    const ageRangesOnly = audienceData.audience_age_ranges;
+    let ageData = [];
+    if (Array.isArray(ageDist) && ageDist.length > 0) {
+      ageData = ageDist.map((d) => ({
+        name: d.range,
+        value: Math.round(Number(d.percentage) || 0),
+      }));
+    } else if (Array.isArray(ageRangesOnly) && ageRangesOnly.length > 0) {
+      const pct = Math.round(100 / ageRangesOnly.length);
+      ageData = ageRangesOnly.map((range, i, arr) => ({
+        name: range,
+        value: i === arr.length - 1 ? 100 - pct * (arr.length - 1) : pct,
+      }));
+    }
 
     // Gender
     const genderDist = audienceData.audience_gender_distribution;
@@ -123,18 +129,24 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS) =
       }
     }
 
-    // Location
     const countryDist = audienceData.audience_country_distribution;
-    const locationData =
-      Array.isArray(countryDist) && countryDist.length > 0
-        ? countryDist
-            .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
-            .slice(0, 12)
-            .map((d) => ({
-              name: COUNTRY_NAMES[d.country_code] || d.country_code,
-              value: Math.round(Number(d.percentage) || 0),
-            }))
-        : [];
+    const countriesOnly = audienceData.audience_countries;
+    let locationData = [];
+    if (Array.isArray(countryDist) && countryDist.length > 0) {
+      locationData = countryDist
+        .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
+        .slice(0, 12)
+        .map((d) => ({
+          name: COUNTRY_NAMES[d.country_code] || d.country_code,
+          value: Math.round(Number(d.percentage) || 0),
+        }));
+    } else if (Array.isArray(countriesOnly) && countriesOnly.length > 0) {
+      const pct = Math.round(100 / countriesOnly.length);
+      locationData = countriesOnly.slice(0, 12).map((code, i, arr) => ({
+        name: COUNTRY_NAMES[code] || code,
+        value: i === arr.length - 1 ? Math.max(0, 100 - pct * (arr.length - 1)) : pct,
+      }));
+    }
 
     return { ageData, genderData, locationData };
   }, [audienceData]);
