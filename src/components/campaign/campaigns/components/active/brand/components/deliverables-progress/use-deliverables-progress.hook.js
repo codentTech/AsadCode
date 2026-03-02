@@ -79,11 +79,7 @@ const useDeliverablesProgress = (
     notes: null,
     timeline: null,
     reviews: null,
-    individualContracts: false,
   });
-
-  // Track previous mode to detect mode switches
-  const prevModeRef = useRef(isIndividualCreator);
 
   // Extract stable IDs to prevent unnecessary recalculations - extract once at the top
   const selectedCreatorContractCampaignId = selectedCreator?.contract?.campaignId;
@@ -306,46 +302,7 @@ const useDeliverablesProgress = (
     isIndividualCreator,
   ]);
 
-  useEffect(() => {
-    const modeChanged = prevModeRef.current !== isIndividualCreator;
-
-    if (isIndividualCreator) {
-      // Update mode ref immediately to prevent multiple triggers
-      if (modeChanged) {
-        prevModeRef.current = isIndividualCreator;
-        // Reset other refs when mode changes to allow fresh data fetch
-        lastCalledKeysRef.current.notes = null;
-        lastCalledKeysRef.current.timeline = null;
-        lastCalledKeysRef.current.reviews = null;
-        lastCalledKeysRef.current.individualContracts = false;
-      }
-
-      // Check if we already have data or are currently loading - if yes, don't fetch again
-      const hasData =
-        Array.isArray(getIndividualContractsState.data) &&
-        getIndividualContractsState.data.length > 0;
-      const isCurrentlyLoading = getIndividualContractsState.isLoading;
-
-      // Only fetch if mode changed (switching TO individual creator) AND we haven't fetched yet
-      // OR if we don't have data and we're not loading and haven't marked as fetched
-      const shouldFetch =
-        (modeChanged && !lastCalledKeysRef.current.individualContracts) ||
-        (!hasData && !isCurrentlyLoading && !lastCalledKeysRef.current.individualContracts);
-
-      if (shouldFetch) {
-        // Mark as fetched BEFORE dispatching to prevent duplicate calls
-        lastCalledKeysRef.current.individualContracts = true;
-        dispatch(getIndividualCollaborationContracts(false));
-      }
-    } else {
-      // Reset flag when switching away from individual creator mode
-      if (modeChanged) {
-        prevModeRef.current = isIndividualCreator;
-        lastCalledKeysRef.current.individualContracts = false;
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, isIndividualCreator]);
+  // Individual collaboration contracts list is fetched by the parent (Active: use-active-brand, Completed: brand handleToggleChange). This hook only reads from Redux — do not dispatch here or the right pane mounts/unmounts on loading and causes an infinite loop on Completed tab.
 
   const effectiveCampaignId = useMemo(() => {
     if (isIndividualCreator) {

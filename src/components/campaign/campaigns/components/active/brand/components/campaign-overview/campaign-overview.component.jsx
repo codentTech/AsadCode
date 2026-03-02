@@ -1,23 +1,11 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import useCampaignOverview from "./use-campaign-overview.hook";
-import Loading from "@/common/components/loadar/loading.component";
-import {
-  fetchCampaignCombinedDemographics,
-  fetchCreatorAudience,
-  resetCampaignDemographics,
-  resetAudience,
-  selectCampaignCombinedDemographics,
-  selectCreatorAudience,
-} from "@/provider/features/phyllo/phyllo.slice";
 
 export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
-  const dispatch = useDispatch();
-
   const {
     isMultiCreator,
     filteredCampaignOptions,
@@ -30,60 +18,10 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
     hasData,
     handleCampaignSelect,
     handleToggleChange,
+    demographicsData,
+    demographicsLoading,
+    hasDemographicsData,
   } = useCampaignOverview(onCampaignSelect, onToggleChange);
-
-  // Get demographics data from Redux using selectors (selectors provide safe defaults)
-  const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
-  const individualDemographics = useSelector(selectCreatorAudience);
-
-  // Resolve creator user id for individual campaigns (creator may be nested or from contract)
-  const individualCreatorId =
-    selectedCampaign?.creator?.id ??
-    selectedCampaign?.creator_id ??
-    selectedCampaign?.contract?.creator?.id ??
-    selectedCampaign?.contract?.creator_id;
-
-  // Fetch demographics when campaign or (for individual) creator changes
-  useEffect(() => {
-    if (!selectedCampaign?.id) {
-      dispatch(resetCampaignDemographics());
-      dispatch(resetAudience());
-      return;
-    }
-
-    if (isMultiCreator) {
-      dispatch(fetchCampaignCombinedDemographics(selectedCampaign.id));
-      dispatch(resetAudience());
-    } else {
-      if (individualCreatorId) {
-        dispatch(fetchCreatorAudience(individualCreatorId));
-        dispatch(resetCampaignDemographics());
-      } else {
-        dispatch(resetAudience());
-      }
-    }
-  }, [selectedCampaign?.id, isMultiCreator, individualCreatorId, dispatch]);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      dispatch(resetCampaignDemographics());
-      dispatch(resetAudience());
-    };
-  }, [dispatch]);
-
-  // Determine which demographics data to use with safe access
-  const demographicsData = isMultiCreator
-    ? campaignDemographics?.data
-    : individualDemographics?.data;
-
-  const demographicsLoading = isMultiCreator
-    ? campaignDemographics?.isLoading || false
-    : individualDemographics?.isLoading || false;
-
-  const hasDemographicsData = isMultiCreator
-    ? campaignDemographics?.isSuccess && demographicsData?.has_data
-    : individualDemographics?.isSuccess && demographicsData?.has_data;
 
   return (
     <div className="w-[23%] border-r flex flex-col h-screen overflow-y-scroll bg-white p-4 gap-4">
@@ -121,7 +59,25 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
       <hr />
 
       {/* Loading State */}
-      {isLoading && <Loading />}
+      {isLoading && (
+        <div className="space-y-4">
+          <div className="flex justify-between bg-gray-100 p-2 rounded-lg gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-14" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-20 w-full rounded" />
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {!hasData && !isLoading && (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
@@ -181,14 +137,12 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
               )}
             </div>
 
-            {/* Demographics Charts – same component for multi (combined) and individual (creator) */}
             <AudienceDemographics
               audienceData={demographicsData ?? null}
               loading={demographicsLoading}
               className="flex flex-col"
             />
 
-            {/* Helper Text for Multi-Creator */}
             {showMultiCreatorUI && hasDemographicsData && demographicsData && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <p className="text-xs text-blue-800">

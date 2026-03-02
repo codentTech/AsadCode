@@ -14,7 +14,7 @@ import useOnboarding from "./use-onboarding.hook";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import invitesService from "@/provider/features/invites/invites.service";
-import FullPageLoader from "@/common/components/full-page-loader/full-page-loader.component";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import AccessDenied from "@/app/components/access-denied.component";
 
 export default function Onboarding() {

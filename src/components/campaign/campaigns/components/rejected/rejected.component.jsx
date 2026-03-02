@@ -1,6 +1,6 @@
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
 import { useState } from "react";

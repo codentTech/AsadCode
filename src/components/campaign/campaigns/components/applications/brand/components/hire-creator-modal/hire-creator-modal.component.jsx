@@ -3,24 +3,18 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import {
-  COMPENSATION_TYPE,
-  COLLABORATION_TYPE,
-  CAMPAIGN_TYPE,
-} from "@/common/constants/campaign.constant";
-import {
+  CAMPAIGN_TYPE_OPTIONS,
   COMPENSATION_TYPE_OPTIONS,
   EXCLUSIVITY_CLAUSE_OPTIONS,
   REVISION_LIMIT_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
-  CAMPAIGN_TYPE_OPTIONS,
 } from "@/common/constants/options.constant";
-import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
-import { AlertCircle } from "lucide-react";
 
 export default function HireCreatorModal({
   show,
@@ -29,73 +23,36 @@ export default function HireCreatorModal({
   campaignData,
   onSendOffer,
   isLoading = false,
-  isSuccess = false,
-  isError = false,
 }) {
-  const [showPreview, setShowPreview] = useState(false);
-  const dispatch = useDispatch();
   const router = useRouter();
-
   const {
     register,
     handleSubmit,
     errors,
-    onSubmit,
-    watch,
     setValue,
-    reset,
-    initializeForm,
+    watch,
     getCompensationInputLabel,
     isCompensationRequired,
-    isSubmitting,
-    trigger,
-    isValid,
     createEnrichedContractData,
     hasPaymentMethod,
     isCheckingPaymentMethod,
-  } = useHireCreator({ creatorData, campaignData, onSendOffer, isLoading, showModal: show });
-
-  const revisionsLimitValue = watch?.revisionsLimit?.toString?.() || "";
-  const usageRightsValue = watch?.usageRights || "no_usage";
-  const exclusivityValue = watch?.exclusivityClause || "none";
-  const campaignTypeValue = watch?.campaignType || "";
-  const isIndividualCollaboration =
-    campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-
-  // Initialize form when modal opens
-  useEffect(() => {
-    if (show && campaignData && creatorData) {
-      initializeForm();
-    }
-  }, [show, campaignData, creatorData, initializeForm]);
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!show) {
-      reset();
-      setShowPreview(false);
-    }
-  }, [show, reset]);
-
-  const handleSaveDraft = () => {
-    // TODO: Implement save draft functionality
-  };
-
-  const handlePreviewContract = () => {
-    setShowPreview(true);
-  };
-
-  const handleFormSubmit = async (data) => {
-    try {
-      // Trigger validation for all fields
-      await trigger();
-      await onSubmit(data);
-    } catch (error) {
-      // Error from onSubmit (e.g., payment method missing) is already shown via snackbar
-      // in the hook. We just need to prevent form submission.
-      // The error message has already been displayed to the user.
-    }
-  };
+    showPreview,
+    setShowPreview,
+    handlePreviewContract,
+    handleFormSubmit,
+    revisionsLimitValue,
+    usageRightsValue,
+    exclusivityValue,
+    campaignTypeValue,
+    isIndividualCollaboration,
+  } = useHireCreator({
+    creatorData,
+    campaignData,
+    onSendOffer,
+    isLoading,
+    showModal: show,
+    onClose,
+  });
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
@@ -286,7 +243,7 @@ export default function HireCreatorModal({
             text="Save Draft"
             className="btn-outline"
             type="button"
-            onClick={handleSaveDraft}
+            onClick={() => {}}
           />
           <CustomButton
             text="Preview Contract"

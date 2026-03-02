@@ -1,21 +1,13 @@
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import { PLATFORM_OPTIONS } from "@/common/constants/options.constant";
-
-const PLATFORM_MINIMUMS = [
-  { key: "instagram", label: "Instagram" },
-  { key: "tiktok", label: "TikTok" },
-  { key: "youtube", label: "YouTube" },
-  { key: "facebook", label: "Facebook" },
-  { key: "pinterest", label: "Pinterest" },
-];
 
 function AudienceRequirementsExperience({ errors = {}, register, setValue, watch }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h4 className="text-sm font-bold text-gray-800">Follower Requirements</h4>
-        <div className="w-full max-w-xs">
+        <div className="w-full max-w-[200px]">
           <CustomInput
             label="Minimum Combined Followers"
             type="number"
@@ -24,6 +16,7 @@ function AudienceRequirementsExperience({ errors = {}, register, setValue, watch
             placeholder="e.g., 2000"
             errors={errors}
             register={register}
+            className="w-full max-w-[200px]"
           />
         </div>
       </div>

@@ -9,15 +9,17 @@ import {
   formatCountriesDisplay,
   createTagArray,
   createPlatformMinimums,
+  formatGenderForDisplay,
+  formatLanguageForDisplay,
+} from "@/common/utils/campaign.utils";
+import {
   buildHeroStats,
   buildCompensationItems,
   buildWorkMode,
-  buildLocationMeta,
-  buildCreatorRequirements,
   buildContentSections,
   buildGuidelineGroups,
-  buildQuickFields,
-} from "@/common/utils/campaign.utils";
+} from "./preview-builders";
+import { buildQuickFields } from "./quick-field-definitions";
 
 export default function usePreview(campaignData = {}) {
   const [imageSrc, setImageSrc] = useState("");
@@ -114,32 +116,6 @@ export default function usePreview(campaignData = {}) {
     [campaignData.isRemote, campaignData.inPersonRequired]
   );
 
-  const locationMeta = useMemo(
-    () => buildLocationMeta(campaignData, countriesDisplay),
-    [
-      campaignData.location_details,
-      countriesDisplay,
-      campaignData.creator_countries?.length,
-      campaignData.creator_city,
-      campaignData.creator_city_region,
-    ]
-  );
-
-  const creatorRequirements = useMemo(
-    () => buildCreatorRequirements(campaignData),
-    [
-      campaignData.countryRequirement,
-      campaignData.cityRequirement,
-      campaignData.ageRequirement,
-      campaignData.min_age,
-      campaignData.max_age,
-      campaignData.genderRequirement,
-      campaignData.creator_gender,
-      campaignData.languageRequirement,
-      campaignData.creator_language,
-    ]
-  );
-
   const ageRangeSummary = useMemo(
     () =>
       campaignData.min_age || campaignData.max_age
@@ -178,7 +154,7 @@ export default function usePreview(campaignData = {}) {
 
   const quickFields = useMemo(
     () =>
-      buildQuickFields(
+      buildQuickFields({
         campaignData,
         campaignTypeLabel,
         compensationItems,
@@ -188,8 +164,10 @@ export default function usePreview(campaignData = {}) {
         applicationDeadlineLabel,
         workMode,
         countriesDisplay,
-        ageRangeSummary
-      ),
+        ageRangeSummary,
+        formatGenderForDisplay,
+        formatLanguageForDisplay,
+      }),
     [
       campaignData,
       campaignTypeLabel,

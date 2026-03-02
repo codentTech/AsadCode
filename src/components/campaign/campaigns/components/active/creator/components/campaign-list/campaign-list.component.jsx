@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import { formatDate, getDaysUntilDeadline } from "@/common/utils/date.utils";
 import TrackExternalCampaignModal from "./components/track-external-campaign-modal/track-external-campaign-modal.component";
 import useTrackExternalCampaign from "./components/track-external-campaign-modal/use-track-external-campaign.hook";

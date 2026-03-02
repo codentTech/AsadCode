@@ -233,10 +233,6 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
   ].filter(Boolean);
 
   const heroStats = [
-    normalizedCampaign.budget && {
-      label: "Budget",
-      value: formatCurrency(normalizedCampaign.budget),
-    },
     normalizedCampaign.min_combined_followers && {
       label: "Min Followers",
       value: formatNumber(normalizedCampaign.min_combined_followers),
@@ -349,7 +345,9 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
         const formattedLanguage = formatLanguageForDisplay(language);
         const requirement = normalizedCampaign.language_requirement;
         if (formattedLanguage && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
+          const requirementLabel = (
+            requirement.charAt(0).toUpperCase() + requirement.slice(1)
+          )?.replace("_", " ");
           return `${formattedLanguage} (${requirementLabel})`;
         }
         return formattedLanguage;
@@ -369,7 +367,9 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
         const formattedGender = formatGenderForDisplay(gender);
         const requirement = normalizedCampaign.gender_requirement;
         if (formattedGender && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
+          const requirementLabel = (
+            requirement.charAt(0).toUpperCase() + requirement.slice(1)
+          )?.replace("_", " ");
           return `${formattedGender} (${requirementLabel})`;
         }
         return formattedGender;
@@ -384,7 +384,9 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
           : null;
         const requirement = normalizedCampaign.usage_rights_requirement;
         if (usageRights && requirement && requirement !== "none") {
-          const requirementLabel = requirement.charAt(0).toUpperCase() + requirement.slice(1);
+          const requirementLabel = (
+            requirement.charAt(0).toUpperCase() + requirement.slice(1)
+          )?.replace("_", " ");
           return `${usageRights} (${requirementLabel})`;
         }
         return usageRights;

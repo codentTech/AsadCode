@@ -115,65 +115,6 @@ function ProfileOverview({
             )}
           </div>
         </div>
-
-        {/* Connections */}
-        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 w-full lg:w-80">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-indigo-900">Verified Connections</h3>
-            <span className="text-xs text-indigo-600">
-              {connections.length ? `${connections.length} linked` : "No connections"}
-            </span>
-          </div>
-
-          {connections.length ? (
-            <ul className="space-y-3">
-              {connections.map((connection) => {
-                const followersValue = Number(connection.followers);
-                const followerDisplay = Number.isFinite(followersValue)
-                  ? formatFollowers(followersValue)
-                  : connection.followers || "—";
-                const engagementValue = Number(connection.engagementRate);
-                const hasEngagement = Number.isFinite(engagementValue);
-
-                return (
-                  <li
-                    key={connection.id}
-                    className="flex items-center justify-between gap-3 bg-white rounded-lg px-3 py-2 border border-indigo-100"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span
-                        className={`w-9 h-9 rounded-full flex items-center justify-center ${getPlatformColor(
-                          connection.platform
-                        )}`}
-                      >
-                        {getPlatformIcon(connection.platform)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">
-                          {connection.name}
-                        </p>
-                        <p className="text-xs text-gray-500">Followers: {followerDisplay}</p>
-                        {hasEngagement && (
-                          <p className="text-xs text-gray-400">
-                            Engagement: {engagementValue.toFixed(1)}%
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {connection.verified && (
-                      <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="text-sm text-indigo-700 bg-indigo-100 rounded-lg p-3">
-              Connect your brand's social accounts to unlock audience analytics and build trust with
-              creators.
-            </div>
-          )}
-        </div>
       </div>
     </section>
   );

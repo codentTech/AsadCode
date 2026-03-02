@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import Loading from "@/common/components/loadar/loading.component";
 import { avatar, sortOptions } from "@/common/constants/auth.constant";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
@@ -120,47 +120,68 @@ const CreatorSpendAnalysis = ({
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {!selectedCampaign && !creatorsLoading && !isMultiCreator && creators.length === 0 && (
-            <div className="py-16">
-              <NotFound
-                title="No Individual Collaborations"
-                description="You don't have any active individual collaborations at the moment."
-              />
+          {creatorsLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-lg bg-white shadow-sm border border-gray-100 flex items-start space-x-4"
+                >
+                  <Skeleton circle className="w-20 h-20 flex-shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                    <div className="flex gap-2 pt-2">
+                      <Skeleton className="h-8 w-24 rounded" />
+                      <Skeleton className="h-8 w-24 rounded" />
+                      <Skeleton className="h-8 w-24 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-          {!selectedCampaign && !creatorsLoading && isMultiCreator && (
-            <div className="py-16">
-              <NotFound
-                title="No Active Campaign Selected"
-                description="Select an active campaign from the left panel to view and manage creators."
-              />
-            </div>
-          )}
+          ) : (
+            <>
+              {!selectedCampaign && !isMultiCreator && creators.length === 0 && (
+                <div className="py-16">
+                  <NotFound
+                    title="No Individual Collaborations"
+                    description="You don't have any active individual collaborations at the moment."
+                  />
+                </div>
+              )}
+              {!selectedCampaign && isMultiCreator && (
+                <div className="py-16">
+                  <NotFound
+                    title="No Active Campaign Selected"
+                    description="Select an active campaign from the left panel to view and manage creators."
+                  />
+                </div>
+              )}
 
-          {creatorsLoading && <Loading />}
+              {creatorsError && (
+                <div className="py-16">
+                  <NotFound
+                    title="Error Loading Creators"
+                    description="There was an error loading the creators for this campaign. Please try again."
+                  />
+                </div>
+              )}
 
-          {creatorsError && (
-            <div className="py-16">
-              <NotFound
-                title="Error Loading Creators"
-                description="There was an error loading the creators for this campaign. Please try again."
-              />
-            </div>
-          )}
+              {creatorsSuccess && creators.length === 0 && selectedCampaign && (
+                <div className="py-16">
+                  <NotFound
+                    title="No Creators Found"
+                    description="Try adjusting filters or selecting a different campaign."
+                  />
+                </div>
+              )}
 
-          {creatorsSuccess && creators.length === 0 && selectedCampaign && (
-            <div className="py-16">
-              <NotFound
-                title="No Creators Found"
-                description="Try adjusting filters or selecting a different campaign."
-              />
-            </div>
-          )}
-
-          {creatorsSuccess &&
-          creators.length > 0 &&
-          (selectedCampaign || (!isMultiCreator && creators.length > 0))
-            ? creators.map((creator) => {
+              {creatorsSuccess &&
+                creators.length > 0 &&
+                (selectedCampaign || (!isMultiCreator && creators.length > 0)) &&
+                creators.map((creator) => {
                 const isSelected = selectedCreator?.id === creator.id;
 
                 return (
@@ -271,8 +292,9 @@ const CreatorSpendAnalysis = ({
                     </div>
                   </div>
                 );
-              })
-            : null}
+              })}
+            </>
+          )}
         </div>
       </div>
 

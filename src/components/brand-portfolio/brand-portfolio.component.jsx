@@ -1,10 +1,9 @@
 "use client";
 
 import HeaderLayout from "@/common/layouts/header.layout";
-import ProfileOverview from "./components/profile-overview/profile-overview";
 import AboutUs from "./components/about-us/about-us";
 import ActiveCampaigns from "./components/active-campaigns/active-campaigns";
-import AudienceSnapshot from "./components/audience-snapshot/audience-snapshot";
+import ProfileOverview from "./components/profile-overview/profile-overview.component";
 import Reviews from "./components/reviews/reviews.component";
 import useBrandPortfolio from "./use-brand-portfolio.hook";
 
@@ -16,8 +15,6 @@ export default function BrandPortfolio({ brandId = null }) {
     verifiedConnections,
     audienceSummary,
     refreshKey,
-    isRefreshing,
-    handleRefresh,
     handleEditProfile,
     canEdit,
   } = useBrandPortfolio(brandId);
@@ -38,13 +35,6 @@ export default function BrandPortfolio({ brandId = null }) {
         <AboutUs overview={brandOverview} website={brandBasics.website} />
 
         <ActiveCampaigns refreshKey={refreshKey} />
-
-        <AudienceSnapshot
-          connections={verifiedConnections}
-          summary={audienceSummary}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
-        />
 
         <Reviews />
       </main>

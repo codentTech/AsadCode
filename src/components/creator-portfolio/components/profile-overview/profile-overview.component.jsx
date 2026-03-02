@@ -7,7 +7,7 @@ import Niche from "@/components/niche/niche";
 import { BookmarkPlus, Edit, MapPin, Share2, Star, StarHalf } from "lucide-react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 import useProfileOverview from "./use-profile-overview.hook";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 
 export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
   const {
@@ -104,8 +104,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                   {connectedAccounts?.data?.map((account, idx) => {
                     const platform = account.platform ?? account.platform_name;
                     const profileUrl =
-                      account.profile_url ||
-                      getPlatformProfileUrl(platform, account.username);
+                      account.profile_url || getPlatformProfileUrl(platform, account.username);
                     const icon = (
                       <div
                         key={idx}
@@ -115,12 +114,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                       </div>
                     );
                     return profileUrl ? (
-                      <a
-                        key={idx}
-                        href={profileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a key={idx} href={profileUrl} target="_blank" rel="noopener noreferrer">
                         {icon}
                       </a>
                     ) : (

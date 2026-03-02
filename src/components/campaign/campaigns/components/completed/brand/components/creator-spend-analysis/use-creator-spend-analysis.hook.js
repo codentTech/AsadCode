@@ -218,6 +218,20 @@ export const useCreatorSpendAnalysisCompleted = ({
     };
   };
 
+  const handleSortChange = (option) => {
+    if (onSortChange && option?.value) {
+      onSortChange(option.value);
+    }
+  };
+
+  const formatMetricValue = (value, type) => {
+    if (value == null) return "—";
+    if (type === "views" || type === "engagement") return formatFollowers(value);
+    if (type === "rate") return `${(value * 100).toFixed(1)}%`;
+    if (type === "currency") return `$${value.toFixed(2)}`;
+    return String(value);
+  };
+
   return {
     ...hookData,
     open,
@@ -228,5 +242,7 @@ export const useCreatorSpendAnalysisCompleted = ({
     getCreatorMetrics,
     getCreatorComparisons,
     campaignAverages,
+    handleSortChange,
+    formatMetricValue,
   };
 };

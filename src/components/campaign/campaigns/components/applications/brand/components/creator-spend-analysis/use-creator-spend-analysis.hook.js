@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import useCampaignOverview from "../campaign-overview/use-campaign-overview.hook";
+import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
@@ -27,9 +27,31 @@ function useCreatorSpendAnalysis({
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
   const [isMultiCreator, setIsMultiCreator] = useState(true);
-  const { campaignsData, campaignsLoading, campaignOptions } = useCampaignOverview();
   const hasAutoSelected = useRef(false);
   const hasFetchedIndividual = useRef(false);
+
+  const {
+    data: campaignsApiData,
+    isLoading: campaignsLoading,
+    isSuccess: campaignsSuccess,
+  } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
+
+  const campaignsData = useMemo(
+    () => ({ data: Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [] }),
+    [campaignsApiData?.data]
+  );
+
+  const campaignOptions = useMemo(() => {
+    const list = campaignsData?.data || [];
+    return list.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.campaign_title || "Untitled Campaign",
+    }));
+  }, [campaignsData?.data]);
+
+  useEffect(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
 
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
     useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});

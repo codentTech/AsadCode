@@ -44,7 +44,7 @@ export default function CampaignCreationWizard({ open, close }) {
           <div className="p-4">
             {/* Step Header */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{steps[currentStep]}</h3>
+              <h3 className="text-lg font-semibold text-primary">{steps[currentStep]}</h3>
             </div>
 
             {/* Step Content */}

@@ -24,12 +24,16 @@ const usePrivateHeader = () => {
       {
         icon: <User size={16} />,
         label: "My Profile",
-        action: () => {},
+        action: () => {
+          router.push("/settings/account-settings/personal-information");
+        },
       },
       {
         icon: <Settings size={16} />,
         label: "Account Settings",
-        action: () => {},
+        action: () => {
+          router.push("/settings/account-settings/security-settings");
+        },
       },
       {
         icon: <Shield size={16} />,

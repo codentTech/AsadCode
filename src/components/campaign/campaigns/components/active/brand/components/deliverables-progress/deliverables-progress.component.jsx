@@ -1,5 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loading from "@/common/components/loadar/loading.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
+import Loading from "@/common/components/loader/loading.component";
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
@@ -135,13 +136,7 @@ const DeliverablesProgress = ({
                   : "btn-secondary"
               }`}
               onClick={() => onCopyShippingAddress(creator.shippingAddress)}
-              icon={
-                isAddressCopied ? (
-                  <Check className="w-3 h-3" />
-                ) : (
-                  <Copy className="w-3 h-3" />
-                )
-              }
+              icon={isAddressCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               disabled={isAddressCopied}
             />
           </div>
@@ -178,11 +173,12 @@ const DeliverablesProgress = ({
     if (isContractsLoading) {
       return (
         <div className="bg-white rounded border p-3">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-            Contract Agreement
-          </h4>
-          <div className="flex justify-center py-3">
-            <Loading />
+          <Skeleton className="h-4 w-36 mb-2" />
+          <div className="space-y-2 py-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-full" />
           </div>
         </div>
       );
@@ -305,7 +301,11 @@ const DeliverablesProgress = ({
     <div className="bg-white rounded border p-3">
       <h4 className="text-sm font-semibold text-gray-800 mb-2">Campaign Notes</h4>
       {isNotesLoading ? (
-        <Loading />
+        <div className="space-y-2 py-2">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-3/4" />
+        </div>
       ) : (
         <div className="space-y-2 text-xs text-gray-700 mb-3">
           {privateNotes && privateNotes.length > 0 ? (
@@ -453,8 +453,9 @@ const DeliverablesProgress = ({
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800">
-                    <span className="font-semibold">Notice:</span> After you mark complete and submit the review, 
-                    the payment will be automatically released to the creator and this collaboration will be closed.
+                    <span className="font-semibold">Notice:</span> After you mark complete and
+                    submit the review, the payment will be automatically released to the creator and
+                    this collaboration will be closed.
                   </p>
                 </div>
               </div>

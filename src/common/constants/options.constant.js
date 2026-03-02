@@ -128,17 +128,17 @@ export const LOCATION_OPTIONS = [
 
 export const USAGE_RIGHTS_OPTIONS = [
   { value: "no_usage", label: "No Usage Rights" },
-  { value: "3", label: "3 Months Usage" },
-  { value: "6", label: "6 Months Usage" },
-  { value: "12", label: "12 Months Usage" },
+  { value: "3 months", label: "3 Months Usage" },
+  { value: "6 months", label: "6 Months Usage" },
+  { value: "12 months", label: "12 Months Usage" },
   { value: "permanent", label: "Permanent Usage" },
 ];
 
 export const EXCLUSIVITY_CLAUSE_OPTIONS = [
   { value: "none", label: "None" },
-  { value: "3", label: "3 Months" },
-  { value: "6", label: "6 Months" },
-  { value: "12", label: "12 Months" },
+  { value: "3 months", label: "3 Months" },
+  { value: "6 months", label: "6 Months" },
+  { value: "12 months", label: "12 Months" },
 ];
 
 export const REVISION_LIMIT_OPTIONS = [

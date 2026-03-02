@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";

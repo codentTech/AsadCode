@@ -1,25 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
-import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import {
   IMAGE_FILE_TYPES,
-  STYLE_GUIDE_FILE_TYPES,
   MAX_IMAGE_UPLOAD_SIZE,
   MAX_STYLE_GUIDE_UPLOAD_SIZE,
+  STYLE_GUIDE_FILE_TYPES,
 } from "@/common/constants/file.constant";
-
-const getUploadedFileUrl = (payload) => {
-  if (!payload) return "";
-  if (payload.url) return payload.url;
-  if (Array.isArray(payload) && payload[0]?.url) return payload[0].url;
-  return payload.location || payload.fileUrl || "";
-};
-
-const sanitizeGuidelineList = (list) => {
-  if (!Array.isArray(list) || list.length === 0) return [""];
-  const normalized = list.map((item) => (typeof item === "string" ? item : ""));
-  return normalized.length ? normalized : [""];
-};
+import { getUploadedFileUrl, sanitizeGuidelineList } from "@/common/utils/common.utils";
+import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
+import { useCallback, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function useDescription({ campaignData, setValue }) {
   const dispatch = useDispatch();

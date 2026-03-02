@@ -1,4 +1,4 @@
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
@@ -42,8 +42,7 @@ function AudienceAnalytics({ creatorId }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
             {platforms.map((platform, index) => {
               const profileUrl =
-                platform.profileUrl ||
-                getPlatformProfileUrl(platform.name, platform.username);
+                platform.profileUrl || getPlatformProfileUrl(platform.name, platform.username);
               const platformContent = (
                 <div className="flex items-center space-x-2">
                   <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
@@ -66,7 +65,9 @@ function AudienceAnalytics({ creatorId }) {
                 <div
                   key={platform.name + index}
                   className={`flex items-center justify-between bg-gray-100 rounded-lg p-2 pr-3 transition-colors duration-200 ${
-                    platform.loading || platform.notConnected ? "opacity-50" : "hover:bg-gray-100/80"
+                    platform.loading || platform.notConnected
+                      ? "opacity-50"
+                      : "hover:bg-gray-100/80"
                   }`}
                 >
                   {profileUrl ? (
