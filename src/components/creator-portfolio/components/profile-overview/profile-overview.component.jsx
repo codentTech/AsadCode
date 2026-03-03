@@ -3,11 +3,11 @@ import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { isCreatorMode } from "@/common/utils/users.util";
 import Niche from "@/components/niche/niche";
 import { BookmarkPlus, Edit, MapPin, Share2, Star, StarHalf } from "lucide-react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
 import useProfileOverview from "./use-profile-overview.hook";
-import Loading from "@/common/components/loader/loading.component";
 
 export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
   const {
@@ -22,7 +22,6 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
     confirmSaveToShortlist,
     renderRatingStars,
     shortlists,
-    isCreatorMode,
     connectedAccounts,
   } = useProfileOverview(creatorId, refreshKey);
 
@@ -122,9 +121,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                     );
                   })}
                 </div>
-              ) : (
-                <Loading height={4} width={4} />
-              )}
+              ) : null}
 
               {/* Location */}
               <div className="flex text-xs items-center justify-center md:justify-start text-gray-600 mb-3">
@@ -139,7 +136,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
 
           {/* Right Side - Actions */}
           <div className="mt-6 md:mt-0 flex flex-col items-center md:items-end">
-            {isCreatorMode && !creatorId && (
+            {isCreatorMode() && (
               <div
                 className="self-end p-2 text-white bg-primary rounded-lg cursor-pointer hover:bg-indigo-700 mb-4 transition duration-200"
                 onClick={() => setIsEditModalOpen(true)}
@@ -149,7 +146,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              {creatorId && (
+              {isCreatorMode() && (
                 <CustomButton
                   text="Shortlist"
                   startIcon={<BookmarkPlus className="w-4 h-4" />}
@@ -157,7 +154,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                 />
               )}
               <CustomButton
-                text={creatorId ? "Share" : "Share Your Profile"}
+                text={isCreatorMode() ? "Share" : "Share Your Profile"}
                 className="btn-outline"
                 startIcon={<Share2 className="w-4 h-4" />}
                 onClick={handleShare}
@@ -168,7 +165,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
       </section>
 
       {/* Shortlist Modal */}
-      {creatorId && (
+      {isCreatorMode() && (
         <Modal
           title="Save to Shortlist"
           show={saveToShortlistDialogOpen}

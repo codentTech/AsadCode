@@ -1,74 +1,65 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import useCreatorData from "../../use-creator-data.hook";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCreatorGallery,
+  selectGalleryItems,
+  refreshMetricsThunk,
+} from "@/provider/features/gallery/gallery.slice";
 
 function useGallary(refreshKey = 0, creatorId = null) {
+  const dispatch = useDispatch();
+
   const [activeTab, setActiveTab] = useState("all");
   const [selectedNiche, setSelectedNiche] = useState("all");
-  const [portfolioItems, setPortfolioItems] = useState([]);
-  const { isLoading, error, getCreatorGallery, getCreatorCategories, refreshData } = useCreatorData(
-    creatorId,
-    refreshKey
-  );
 
-  const transformGalleryData = useCallback((gallery) => {
-    if (!gallery || !Array.isArray(gallery)) {
-      return [];
-    }
+  const galleryState = useSelector(selectGalleryItems);
+  const { data: galleryItems, isLoading } = galleryState;
 
-    const transformedItems = [];
-
-    gallery.forEach((niche) => {
-      if (niche.media && Array.isArray(niche.media)) {
-        niche.media.forEach((mediaUrl, index) => {
-          const isVideo =
-            mediaUrl.includes(".mp4") ||
-            mediaUrl.includes(".mov") ||
-            mediaUrl.includes(".avi") ||
-            mediaUrl.includes(".webm");
-          const isImage =
-            mediaUrl.includes(".jpg") ||
-            mediaUrl.includes(".jpeg") ||
-            mediaUrl.includes(".png") ||
-            mediaUrl.includes(".gif") ||
-            mediaUrl.includes(".webp");
-
-          if (isVideo || isImage) {
-            transformedItems.push({
-              id: `${niche.niche}-${index}`,
-              image: mediaUrl,
-              caption: `${niche.niche} - ${isVideo ? "Video" : "Image"}`,
-              type: isVideo ? "video" : "image",
-              niche: niche.niche,
-              url: mediaUrl,
-            });
-          }
-        });
-      }
-    });
-
-    return transformedItems;
-  }, []);
-
-  // Transform gallery data when it changes
   useEffect(() => {
-    if (!isLoading && !error) {
-      const gallery = getCreatorGallery();
-      const transformedItems = transformGalleryData(gallery);
-      setPortfolioItems(transformedItems);
-    }
-  }, [isLoading, error, getCreatorGallery, transformGalleryData]);
+    dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
+  }, [creatorId, refreshKey, dispatch]);
 
   const refreshGallery = useCallback(() => {
-    refreshData();
-  }, [refreshData]);
+    dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
+  }, [creatorId, dispatch]);
+
+  const handleRefreshMetrics = useCallback(
+    (galleryId) => {
+      dispatch(refreshMetricsThunk(galleryId));
+    },
+    [dispatch]
+  );
+
+  const niches = useMemo(() => {
+    if (!galleryItems) return [];
+    const seen = new Set();
+    const result = [];
+    galleryItems.forEach((item) => {
+      if (item.niche_id && item.niche_name && !seen.has(item.niche_id)) {
+        seen.add(item.niche_id);
+        result.push({ id: item.niche_id, name: item.niche_name });
+      }
+    });
+    return result;
+  }, [galleryItems]);
 
   const filteredPortfolio = useMemo(() => {
-    return portfolioItems.filter((item) => {
-      const matchesTab = activeTab === "all" || item.type === activeTab;
-      const matchesNiche = selectedNiche === "all" || item.niche === selectedNiche;
+    if (!galleryItems) return [];
+    return galleryItems.filter((item) => {
+      const matchesTab = activeTab === "all" || item.media_type === activeTab;
+      const matchesNiche = selectedNiche === "all" || item.niche_id === selectedNiche;
       return matchesTab && matchesNiche;
     });
-  }, [portfolioItems, activeTab, selectedNiche]);
+  }, [galleryItems, activeTab, selectedNiche]);
+
+  const canRefreshMetrics = useCallback((item) => {
+    if (item.source_type !== "post_link") return false;
+    if (!item.last_metrics_refresh_at) return true;
+    const now = new Date();
+    const lastRefresh = new Date(item.last_metrics_refresh_at);
+    const hoursSince = (now.getTime() - lastRefresh.getTime()) / (1000 * 60 * 60);
+    return hoursSince >= 24;
+  }, []);
 
   return {
     activeTab,
@@ -76,10 +67,11 @@ function useGallary(refreshKey = 0, creatorId = null) {
     selectedNiche,
     setSelectedNiche,
     filteredPortfolio,
-    creatorCategories: getCreatorCategories(),
+    niches,
     isLoading,
-    error,
     refreshGallery,
+    handleRefreshMetrics,
+    canRefreshMetrics,
   };
 }
 

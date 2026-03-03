@@ -9,8 +9,13 @@ import CreatorMetricsDashboard from "./components/matrix-dashboard/matrix-dashbo
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { useSelector } from "react-redux";
 import { selectCreatorAudience } from "@/provider/features/phyllo/phyllo.slice";
+import { getUser } from "@/common/utils/users.util";
+import { isCreatorMode } from "@/common/utils/users.util";
 
 export default function CreatorPortfolio({ creatorId = null }) {
+  const user = getUser();
+  console.log(user);
+  const id = isCreatorMode() ? user?.id : creatorId;
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
@@ -24,40 +29,35 @@ export default function CreatorPortfolio({ creatorId = null }) {
     setSelectedPlatform(platform);
   }, []);
 
+  console.log(id);
+
   return (
     <HeaderLayout className="min-h-screen bg-gray-50">
       <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%] bg-gray-50">
         <ProfileOverview
-          creatorId={creatorId}
+          creatorId={id}
           refreshKey={refreshKey}
           onProfileUpdate={handleProfileUpdate}
         />
 
-        {creatorId && (
-          <>
-            <AudienceAnalytics
-              creatorId={creatorId}
-              selectedPlatform={selectedPlatform}
-              onPlatformSelect={handlePlatformSelect}
-            />
-            <CreatorMetricsDashboard
-              creatorId={creatorId}
-              selectedPlatform={selectedPlatform}
-            />
-            <section className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
-              <AudienceDemographics
-                audienceData={audienceState?.data}
-                loading={audienceState?.isLoading}
-                platform={selectedPlatform}
-              />
-            </section>
-          </>
-        )}
+        <AudienceAnalytics
+          creatorId={id}
+          selectedPlatform={selectedPlatform}
+          onPlatformSelect={handlePlatformSelect}
+        />
+        <CreatorMetricsDashboard creatorId={id} selectedPlatform={selectedPlatform} />
+        <section className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
+          <AudienceDemographics
+            audienceData={audienceState?.data}
+            loading={audienceState?.isLoading}
+            platform={selectedPlatform}
+          />
+        </section>
 
-        <Reviews creatorId={creatorId} />
-        <Gallary creatorId={creatorId} refreshKey={refreshKey} />
-        <BioPricing creatorId={creatorId} refreshKey={refreshKey} />
+        <Reviews creatorId={id} />
+        <Gallary creatorId={id} refreshKey={refreshKey} />
+        <BioPricing creatorId={id} refreshKey={refreshKey} />
       </main>
     </HeaderLayout>
   );
