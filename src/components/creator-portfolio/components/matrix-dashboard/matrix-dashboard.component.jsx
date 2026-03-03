@@ -14,9 +14,9 @@ import {
 import MetricCard from "./metric-card/metric-card.component";
 import { useCreatorMetricsDashboard } from "./use-matrix-dashboard.hook";
 
-const CreatorMetricsDashboard = ({ creatorId }) => {
+const CreatorMetricsDashboard = ({ creatorId, selectedPlatform = null }) => {
   const { isLoading, matrixDashboardData, metrics, metadata } =
-    useCreatorMetricsDashboard(creatorId);
+    useCreatorMetricsDashboard(creatorId, selectedPlatform);
 
   const cards = useMemo(
     () => [
