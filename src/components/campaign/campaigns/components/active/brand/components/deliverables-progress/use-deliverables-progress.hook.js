@@ -20,6 +20,7 @@ import {
   markCreatorComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { fetchCampaignCombinedDemographics } from "@/provider/features/phyllo/phyllo.slice";
+import { getBrandTasks } from "@/provider/features/campaign-tasks/campaign-tasks.slice";
 import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
@@ -513,6 +514,8 @@ const useDeliverablesProgress = (
     await dispatch(
       markCreatorComplete({ campaignId: effectiveCampaignId, creatorId: creatorUserId })
     ).unwrap();
+
+    dispatch(getBrandTasks(null));
 
     if (isIndividualCreator) {
       // Refetch both active and completed contracts

@@ -34,6 +34,7 @@ const initialState = {
   login: generalState,
   signUp: generalState,
   verifyEmail: generalState,
+  sendVerificationEmail: generalState,
   resendEmail: generalState,
   logout: generalState,
   loginAndSignUpWithOAuth: generalState,
@@ -73,6 +74,19 @@ export const verifyEmail = createAsyncThunk("auth/verifyEmail", async (payload, 
   }
 });
 
+export const sendVerificationEmail = createAsyncThunk(
+  "auth/sendVerificationEmail",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.sendVerificationEmail(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const resendEmail = createAsyncThunk("auth/resendEmail", async (payload, thunkAPI) => {
   try {
     const response = await authService.resendEmail(payload);
@@ -104,6 +118,7 @@ export const authSlice = createSlice({
       state.logout = generalState;
       state.signUp = generalState;
       state.verifyEmail = generalState;
+      state.sendVerificationEmail = generalState;
       state.resendEmail = generalState;
       state.loginAndSignUpWithOAuth = generalState;
       state.loginAndSignUpWithLinkedin = generalState;
@@ -164,6 +179,27 @@ export const authSlice = createSlice({
         state.verifyEmail.isLoading = false;
         state.verifyEmail.isError = true;
         state.verifyEmail.data = null;
+      })
+      .addCase(sendVerificationEmail.pending, (state) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.isLoading = true;
+        state.sendVerificationEmail.message = "";
+        state.sendVerificationEmail.isError = false;
+        state.sendVerificationEmail.isSuccess = false;
+        state.sendVerificationEmail.data = null;
+      })
+      .addCase(sendVerificationEmail.fulfilled, (state, action) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.isLoading = false;
+        state.sendVerificationEmail.isSuccess = true;
+        state.sendVerificationEmail.data = action.payload;
+      })
+      .addCase(sendVerificationEmail.rejected, (state, action) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.message = action.payload?.message || "Failed to send email";
+        state.sendVerificationEmail.isLoading = false;
+        state.sendVerificationEmail.isError = true;
+        state.sendVerificationEmail.data = null;
       })
       .addCase(resendEmail.pending, (state) => {
         state.resendEmail.isLoading = true;

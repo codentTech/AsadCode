@@ -4,6 +4,7 @@ import CustomRadioGroup from "@/common/components/radio-group/radio-group.compon
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
 import useCompensation from "./use-compensation.hook";
+import { Lock } from "lucide-react";
 
 function Compensation({ campaignData, errors = {}, register, setValue }) {
   const {
@@ -40,18 +41,19 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
           <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
             <div className="flex justify-between">
               <p className="text-sm font-medium text-indigo-900 mb-1">Compensation Type</p>
-              {!isGiftedCampaign && (
-                <p className="text-sm font-medium text-indigo-900 mb-1">
-                  <span className="font-bold">Creator Fee:</span>{" "}
-                  {creatorCompOption === "none" ? (
-                    <span>Negotiable</span>
-                  ) : typeof creatorFee === "string" ? (
-                    `$${creatorFee}`
-                  ) : (
-                    `$${creatorFee}`
-                  )}
-                </p>
-              )}
+              {!isGiftedCampaign &&
+                campaignData.compensation_type !== COMPENSATION_TYPE.COMMISSION && (
+                  <p className="text-sm font-medium text-indigo-900 mb-1">
+                    <span className="font-bold">Creator Fee:</span>{" "}
+                    {creatorCompOption === "none" ? (
+                      <span>Negotiable</span>
+                    ) : typeof creatorFee === "string" ? (
+                      `$${creatorFee}`
+                    ) : (
+                      `$${creatorFee}`
+                    )}
+                  </p>
+                )}
             </div>
             <p className="text-sm text-indigo-700">
               {campaignData.compensation_type === COMPENSATION_TYPE.PAID &&
@@ -75,13 +77,28 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
                 </>
               ) : null}
               {campaignData.compensation_type === COMPENSATION_TYPE.COMMISSION && (
-                <>
-                  <span className="font-semibold">Commission-based (Percentage per sale)</span>
-                  <br />
-                  <span className="text-xs text-indigo-600">
-                    Creator payout per sale (Automatically calculates % x product price)
-                  </span>
-                </>
+                // <>
+                //   <span className="font-semibold">Commission-based (Percentage per sale)</span>
+                //   <br />
+                //   <span className="text-xs text-indigo-600">
+                //     Creator payout per sale (Automatically calculates % x product price)
+                //   </span>
+                // </>
+
+                <div className="flex items-start gap-2 opacity-60 cursor-not-allowed">
+                  <Lock className="w-4 h-4 mt-1 text-gray-500" />
+
+                  <div>
+                    <span className="font-semibold text-gray-500">
+                      Commission Based – Coming Soon
+                    </span>
+                    <br />
+
+                    <span className="text-xs text-gray-500">
+                      Requires Shopify or ecommerce integration for automated tracking and payouts.
+                    </span>
+                  </div>
+                </div>
               )}
             </p>
           </div>
@@ -205,7 +222,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
         </div>
       ) : null}
 
-      {campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE && (
+      {/* {campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CustomInput
@@ -213,22 +230,24 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
               type="number"
               name="product_price"
               placeholder="e.g., 49.99"
-              errors={errors}
-              register={register}
+              // errors={errors}
+              // register={register}
               isRequired={true}
+              disabled={true}
             />
             <CustomInput
               label="% commission per sale"
               type="number"
               name="commission_percentage"
               placeholder="e.g., 10"
-              errors={errors}
-              register={register}
+              // errors={errors}
+              // register={register}
               isRequired={true}
+              disabled={true}
             />
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

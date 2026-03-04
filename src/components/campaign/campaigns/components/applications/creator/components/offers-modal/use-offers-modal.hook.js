@@ -12,7 +12,7 @@ import {
   createCreatorOnboardingLink,
 } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 import { getUser } from "@/common/utils/users.util";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { COMPENSATION_TYPE, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 
 const useOffersModal = ({ show, onClose, onContractAction }) => {
   const dispatch = useDispatch();
@@ -90,12 +90,36 @@ const useOffersModal = ({ show, onClose, onContractAction }) => {
     [dispatch]
   );
 
+  // Gifted/affiliate offers bypass Stripe check per creator-stripe-workflow.md
   const checkIfPaidContract = useCallback((contract) => {
-    const compensationType =
+    const compensationType = (
       contractPreviewData?.compensationType ||
       contractPreviewData?.compensation_type ||
       contract?.compensationType ||
-      contract?.compensation_type;
+      contract?.compensation_type ||
+      ""
+    ).toUpperCase();
+    const campaignType = (
+      contractPreviewData?.campaign_type ||
+      contractPreviewData?.campaignType ||
+      contractPreviewData?.campaign?.campaign_type ||
+      contract?.campaign_type ||
+      contract?.campaignType ||
+      contract?.campaign?.campaign_type ||
+      ""
+    ).toUpperCase();
+
+    // Bypass: gifted product or commission (no cash payout through platform)
+    if (
+      compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+      compensationType === COMPENSATION_TYPE.COMMISSION
+    ) {
+      return false;
+    }
+    // Bypass: gifted or affiliate campaign type
+    if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+      return false;
+    }
     return compensationType === COMPENSATION_TYPE.PAID;
   }, [contractPreviewData]);
 
