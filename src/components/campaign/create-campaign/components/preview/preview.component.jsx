@@ -1,7 +1,7 @@
-import { ClipboardList, FileText, HelpCircle, Layers3, Target } from "lucide-react";
+import { ClipboardList, FileText, Layers3, Target } from "lucide-react";
 import usePreview from "./use-preview.hook";
 
-function Preview({ campaignData, handleChange, isError = false, message = "", errors = {} }) {
+function Preview({ campaignData, handleChange }) {
   const {
     title,
     imageSrc,
@@ -21,23 +21,17 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 text-gray-900">
-      {isError && message && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {message}
-        </div>
-      )}
-
-      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 space-y-3">
             <h1 className="text-lg uppercase font-bold leading-snug text-indigo-900 sm:text-xl truncate">
-              ----- {title} -----
+              {title}
             </h1>
 
             {quickFields.length > 0 && (
               <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
                 {quickFields.map((field) => (
-                  <div key={field.label} className="space-y-1">
+                  <div key={field.id} className="space-y-1">
                     <dt className="text-xs uppercase tracking-wide text-gray-500">{field.label}</dt>
                     <dd className="font-medium text-gray-900">{field.value}</dd>
                   </div>
@@ -62,7 +56,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
 
           {imageSrc && (
             <div className="flex justify-end sm:pl-6">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow">
+              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow">
                 <img
                   src={imageSrc}
                   alt="Campaign visual"
@@ -77,7 +71,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           {(nicheTags.length > 0 || deliverableTags.length > 0) && (
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
               <header className="flex items-center gap-2">
                 <Layers3 className="h-4 w-4 text-indigo-600" />
                 <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
@@ -126,7 +120,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
           {(contentSections.length > 0 ||
             guidelineGroups.length > 0 ||
             trimmedQuestions.length > 0) && (
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
               <header className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-indigo-600" />
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-900">
@@ -223,7 +217,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
           {(campaignData.min_combined_followers ||
             requiredPlatforms.length > 0 ||
             platformMinimums.length > 0) && (
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
               <header className="flex items-center gap-2">
                 <Target className="h-4 w-4  -indigo-600" />
                 <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
@@ -282,7 +276,7 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
         </div>
       </section>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <header className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-indigo-600" />
           <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
@@ -313,26 +307,6 @@ function Preview({ campaignData, handleChange, isError = false, message = "", er
           )}
         </div>
       </div>
-
-      {errors && Object.keys(errors).length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm text-sm text-amber-800">
-          <header className="mb-3 flex items-center gap-2 font-semibold uppercase tracking-wide">
-            <HelpCircle className="h-4 w-4" />
-            Validation Notes
-          </header>
-          <ul className="space-y-2">
-            {Object.entries(errors).map(([field, error]) => (
-              <li key={field} className="flex items-start gap-2">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-600" />
-                <span>
-                  <span className="font-medium capitalize">{field.replace(/_/g, " ")}: </span>
-                  {error?.message || String(error)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

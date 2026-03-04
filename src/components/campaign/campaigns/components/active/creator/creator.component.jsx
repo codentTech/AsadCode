@@ -5,7 +5,7 @@ import ContentPlanning from "./components/content-planning/content-planning.comp
 import TaskManagerCreator from "../../task-manager/creator/task-manager-creator.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import useActiveCampaign from "./use-creator.hook";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 
 const ActiveCampaign = () => {
   const {

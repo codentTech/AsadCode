@@ -1,11 +1,10 @@
-import React, { useState } from "react";
-import { Send, User, Calendar, Users, UserPlus } from "lucide-react";
-import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import Loader from "@/common/components/loader/loader.component";
-import useInvitationModal from "./use-invitation-modal.hook";
+import Modal from "@/common/components/modal/modal.component";
 import { COLLABORATION_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { Calendar, User, UserPlus, Users } from "lucide-react";
+import { useState } from "react";
+import useInvitationModal from "./use-invitation-modal.hook";
 
 const InvitationModal = ({
   isOpen,
@@ -247,15 +246,13 @@ const InvitationModal = ({
             disabled={isSending}
           />
           <CustomButton
-            text={isSending ? "Sending..." : "Send Invitation"}
+            text="Send Invitation"
             className="btn-primary"
+            loading={isSending}
             onClick={async () => {
               await handleSubmit(selectedCreator, onInviteSent, handleModalClose, invitationType);
             }}
             disabled={isSending || !canSubmit()}
-            startIcon={
-              isSending ? <Loader loading={true} size="small" /> : <Send className="w-4 h-4" />
-            }
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import Loader from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
@@ -18,7 +19,6 @@ const DeliverablesProgressCompleted = ({
   selectedCampaign,
   selectedCreator,
   isIndividualCreator = false,
-  isLoading: parentLoading = false,
 }) => {
   const [showContractPreview, setShowContractPreview] = useState(false);
   const user = getUser();
@@ -70,13 +70,6 @@ const DeliverablesProgressCompleted = ({
     </div>
   );
 
-  const renderLoading = () => (
-    <div className="py-16 flex flex-col items-center justify-center">
-      <Loader loading={true} />
-      <p className="text-sm text-gray-500 mt-2">Loading creator details...</p>
-    </div>
-  );
-
   const renderCreatorProfile = () => (
     <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
       <div className="relative">
@@ -121,11 +114,12 @@ const DeliverablesProgressCompleted = ({
     if (isContractsLoading) {
       return (
         <div className="bg-white rounded border p-3">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2 border-b pb-1">
-            Contract Agreement
-          </h4>
-          <div className="flex justify-center py-3">
-            <Loader loading={true} />
+          <Skeleton className="h-4 w-36 mb-2" />
+          <div className="space-y-2 py-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-full" />
           </div>
         </div>
       );
@@ -255,9 +249,11 @@ const DeliverablesProgressCompleted = ({
     if (isReviewsLoading) {
       return (
         <div className="bg-white rounded border p-3">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2">Reviews</h4>
-          <div className="flex justify-center py-3">
-            <Loader loading={true} />
+          <Skeleton className="h-4 w-20 mb-2" />
+          <div className="space-y-2 py-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+            <Skeleton className="h-3 w-3/4" />
           </div>
         </div>
       );
@@ -342,8 +338,10 @@ const DeliverablesProgressCompleted = ({
     <div className="bg-white rounded border p-3">
       <h4 className="text-sm font-semibold text-gray-800 mb-2">Campaign Notes</h4>
       {isNotesLoading ? (
-        <div className="flex justify-center py-3">
-          <Loader loading={true} />
+        <div className="space-y-2 py-2">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-3/4" />
         </div>
       ) : (
         <div className="space-y-2 text-xs text-gray-700 mb-3">

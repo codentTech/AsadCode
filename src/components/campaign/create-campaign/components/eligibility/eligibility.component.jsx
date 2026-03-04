@@ -1,15 +1,15 @@
 import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
-import TextArea from "@/common/components/text-area/text-area.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
-import { LOCATION_OPTIONS, GENDER_OPTIONS } from "@/common/constants/options.constant";
+import TextArea from "@/common/components/text-area/text-area.component";
 import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
-import useEligibility from "./use-eligibility.hook";
+import { GENDER_OPTIONS, LOCATION_OPTIONS } from "@/common/constants/options.constant";
 import { X } from "lucide-react";
+import useEligibility from "./use-eligibility.hook";
 
 /**
  * Eligibility Component

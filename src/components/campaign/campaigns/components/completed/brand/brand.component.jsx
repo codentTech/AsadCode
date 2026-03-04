@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CampaignOverviewCompleted from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysisCompleted from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgressCompleted from "./components/deliverables-progress/deliverables-progress.component";
+import RightPaneSkeleton from "../../right-pane-skeleton/right-pane-skeleton.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
@@ -19,12 +20,6 @@ function CompletedBrandCampaign() {
   useEffect(() => {
     dispatch(getAllBrandCampaigns());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(true));
-    }
-  }, [isMultiCreator, dispatch]);
 
   useEffect(() => {
     if (
@@ -223,6 +218,9 @@ function CompletedBrandCampaign() {
     setSelectedCampaign(null);
     setSelectedCreator(null);
     autoSelectedForCampaignRef.current = null;
+    if (newIsMultiCreator === false) {
+      dispatch(getIndividualCollaborationContracts(true));
+    }
   };
 
   const handleSortChange = (sortValue) => {
@@ -262,12 +260,15 @@ function CompletedBrandCampaign() {
         isCompleted={true}
       />
 
-      <DeliverablesProgressCompleted
-        selectedCampaign={selectedCampaign}
-        selectedCreator={selectedCreator}
-        isIndividualCreator={isIndividualCreator}
-        isLoading={isLoading}
-      />
+      {isLoading ? (
+        <RightPaneSkeleton />
+      ) : (
+        <DeliverablesProgressCompleted
+          selectedCampaign={selectedCampaign}
+          selectedCreator={selectedCreator}
+          isIndividualCreator={isIndividualCreator}
+        />
+      )}
     </div>
   );
 }

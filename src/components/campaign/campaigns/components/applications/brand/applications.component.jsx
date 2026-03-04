@@ -1,10 +1,10 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
+import RightPaneSkeleton from "../../right-pane-skeleton/right-pane-skeleton.component";
 import useBrandApplications from "./use-brand-applications.hook";
 
 function BrandApplications({ onSwitchToRejected }) {
@@ -44,11 +44,7 @@ function BrandApplications({ onSwitchToRejected }) {
 
   const renderRightPane = () => {
     if (rightPaneState.type === "loading") {
-      return (
-        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-          <Loading />
-        </div>
-      );
+      return <RightPaneSkeleton />;
     }
 
     if (rightPaneState.type === "notFound") {

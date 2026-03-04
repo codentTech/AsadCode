@@ -1,12 +1,12 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
-import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { useSelector } from "react-redux";
 

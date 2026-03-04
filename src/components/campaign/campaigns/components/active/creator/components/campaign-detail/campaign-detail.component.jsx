@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import { formatDate } from "@/common/utils/formate-date";
 import { getUser } from "@/common/utils/users.util";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";

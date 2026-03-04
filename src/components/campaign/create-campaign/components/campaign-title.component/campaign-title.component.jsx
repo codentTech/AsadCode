@@ -8,7 +8,7 @@ import {
 } from "@/common/constants/options.constant";
 import QuantityDeliverableInput from "../quantity-deliverable-input/quantity-deliverable-input.component";
 import SearchableNicheInput from "../searchable-niche-input/searchable-niche-input.component";
-import useCampaignTypeNiche from "./use-campaign-type-niche.hook";
+import useCampaignTitle from "./use-campaign-title.hook";
 
 /**
  * Campaign Type & Niche Selection Component
@@ -16,7 +16,7 @@ import useCampaignTypeNiche from "./use-campaign-type-niche.hook";
  * Handles campaign title input, niche selection, and deliverable management.
  * First step in the campaign creation wizard.
  */
-function CampaignTypeNiche({ register, errors = {}, watch, setValue }) {
+function CampaignTitle({ register, errors = {}, watch, setValue }) {
   const {
     selectedNiches,
     selectedDeliverables,
@@ -27,7 +27,7 @@ function CampaignTypeNiche({ register, errors = {}, watch, setValue }) {
     handleNicheChange,
     handleDeliverableChange,
     handleNicheRemove,
-  } = useCampaignTypeNiche({ watch, setValue });
+  } = useCampaignTitle({ watch, setValue });
 
   return (
     <div className="space-y-4">
@@ -45,16 +45,16 @@ function CampaignTypeNiche({ register, errors = {}, watch, setValue }) {
             className="w-full"
           />
         </div>
+      </div>
 
-        {/* Niche Selection */}
-        <div className="flex-1">
-          <SearchableNicheInput
-            selectedNiches={selectedNiches}
-            onNichesChange={handleNicheChange}
-            placeholder="Type to search niches..."
-            handleNicheRemove={handleNicheRemove}
-          />
-        </div>
+      {/* Niche Selection */}
+      <div className="flex-1">
+        <SearchableNicheInput
+          selectedNiches={selectedNiches}
+          onNichesChange={handleNicheChange}
+          placeholder="Type to search niches..."
+          handleNicheRemove={handleNicheRemove}
+        />
       </div>
 
       {/* Deliverables */}
@@ -125,4 +125,4 @@ function CampaignTypeNiche({ register, errors = {}, watch, setValue }) {
   );
 }
 
-export default CampaignTypeNiche;
+export default CampaignTitle;

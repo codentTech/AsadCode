@@ -41,7 +41,7 @@ function Description({ campaignData, errors = {}, register, setValue }) {
           name="short_description"
           isRequired={true}
           className="w-full"
-          placeholder="Brief overview of your campaign..."
+          placeholder="Brief overview of your campaign (max 100 characters)"
           errors={errors}
           register={register}
         />
@@ -50,7 +50,7 @@ function Description({ campaignData, errors = {}, register, setValue }) {
           label="Long Description"
           name="long_description"
           className="w-full"
-          placeholder="Detailed campaign information..."
+          placeholder="Detailed campaign information (max 1000 characters)"
           errors={errors}
           register={register}
         />

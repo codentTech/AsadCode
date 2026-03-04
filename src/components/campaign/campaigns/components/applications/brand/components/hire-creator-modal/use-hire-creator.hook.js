@@ -1,7 +1,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { enqueueSnackbar } from "notistack";
 import {
@@ -109,9 +109,16 @@ const createValidationSchema = (isIndividual) => {
   return Yup.object().shape(baseSchema);
 };
 
-export default function useHireCreator({ creatorData, campaignData, onSendOffer, isLoading, showModal = false }) {
+export default function useHireCreator({
+  creatorData,
+  campaignData,
+  onSendOffer,
+  isLoading,
+  showModal: show = false,
+}) {
   const dispatch = useDispatch();
-  
+  const [showPreview, setShowPreview] = useState(false);
+
   // Get current payment method status from Redux
   const { data: hasPaymentMethodData, isLoading: isCheckingPaymentMethod } = useSelector(
     (state) => state.collaborationPayment.hasPaymentMethod || {}
@@ -121,10 +128,10 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
 
   // Refresh payment method status when modal opens
   useEffect(() => {
-    if (showModal) {
+    if (show) {
       dispatch(checkHasPaymentMethod());
     }
-  }, [showModal, dispatch]);
+  }, [show, dispatch]);
 
   const isIndividual = campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
   const validationSchema = createValidationSchema(isIndividual);
@@ -192,6 +199,21 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     }
   }, [campaignData, creatorData, setValue, isIndividual]);
 
+  // Initialize form when modal opens
+  useEffect(() => {
+    if (show && campaignData && creatorData) {
+      initializeForm();
+    }
+  }, [show, campaignData, creatorData, initializeForm]);
+
+  // Reset form and preview when modal closes
+  useEffect(() => {
+    if (!show) {
+      reset();
+      setShowPreview(false);
+    }
+  }, [show, reset]);
+
   // Function to create enriched contract data for preview/submission
   const createEnrichedContractData = useCallback(
     (values) => {
@@ -229,24 +251,23 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
   );
 
   const onSubmit = async (values) => {
-      // Trigger validation for all fields to ensure errors are shown
-      const isValid = await trigger();
-      if (!isValid) {
-        return;
-      }
+    // Trigger validation for all fields to ensure errors are shown
+    const isValid = await trigger();
+    if (!isValid) {
+      return;
+    }
 
-      // CRITICAL: Validate payment method exists before submission
-      // Uses Redux state value which is kept in sync when payment methods are added/removed
-      if (!hasPaymentMethod) {
-        const errorMessage =
-          "Payment method is required to send offers. Please add a payment method in Settings > Payments > Payment Methods.";
-        enqueueSnackbar(errorMessage, { variant: "error" });
-      }
+    // CRITICAL: Validate payment method exists before submission
+    // Uses Redux state value which is kept in sync when payment methods are added/removed
+    if (!hasPaymentMethod) {
+      const errorMessage =
+        "Payment method is required to send offers. Please add a payment method in Settings > Payments > Payment Methods.";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+    }
 
-      // Prepare contract data for API
-      const contractData = createEnrichedContractData(values);
-      await onSendOffer(contractData);
- 
+    // Prepare contract data for API
+    const contractData = createEnrichedContractData(values);
+    await onSendOffer(contractData);
   };
 
   const getCompensationInputLabel = useCallback(() => {
@@ -266,6 +287,23 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     return true;
   }, []);
 
+  const handlePreviewContract = useCallback(() => {
+    setShowPreview(true);
+  }, []);
+
+  const handleFormSubmit = useCallback(
+    async (data) => {
+      await trigger();
+      await onSubmit(data);
+    },
+    [trigger, onSubmit]
+  );
+
+  const revisionsLimitValue = watchedValues?.revisionsLimit?.toString?.() || "";
+  const usageRightsValue = watchedValues?.usageRights || "no_usage";
+  const exclusivityValue = watchedValues?.exclusivityClause || "none";
+  const campaignTypeValue = watchedValues?.campaignType || "";
+
   return {
     register,
     handleSubmit,
@@ -283,5 +321,14 @@ export default function useHireCreator({ creatorData, campaignData, onSendOffer,
     createEnrichedContractData,
     hasPaymentMethod,
     isCheckingPaymentMethod,
+    showPreview,
+    setShowPreview,
+    handlePreviewContract,
+    handleFormSubmit,
+    revisionsLimitValue,
+    usageRightsValue,
+    exclusivityValue,
+    campaignTypeValue,
+    isIndividualCollaboration: isIndividual,
   };
 }

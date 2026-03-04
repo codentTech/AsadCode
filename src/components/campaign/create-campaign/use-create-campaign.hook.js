@@ -6,13 +6,8 @@ import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 
 import { validationSchema } from "./validation.scheme";
-import {
-  transformDataForAPI,
-  STEP_NAMES,
-  STEP_FIELDS,
-  STEP_COMPONENTS,
-  getDefaultValues,
-} from "@/common/utils/campaign.utils";
+import { transformDataForAPI, getDefaultValues } from "@/common/utils/campaign.utils";
+import { STEP_NAMES, STEP_FIELDS, STEP_COMPONENTS } from "./wizard-config";
 
 export default function useCreateCampaign(close) {
   const dispatch = useDispatch();

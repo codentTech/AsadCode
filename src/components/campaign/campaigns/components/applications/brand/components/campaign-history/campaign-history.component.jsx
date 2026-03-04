@@ -1,4 +1,4 @@
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import { formatDate } from "@/common/utils/formate-date";
 import { Star } from "lucide-react";
 import useCreatorCollaborationHistory from "./use-creator-collaboration-history.hook";

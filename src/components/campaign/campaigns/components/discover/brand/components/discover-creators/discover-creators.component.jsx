@@ -1,9 +1,10 @@
-import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import FilterModal from "./components/filters/filter-modal.component";
 import InvitationModal from "@/components/campaign/campaigns/components/invitation-modal/invitation-modal.component";
 import ShortlistView from "./components/views/shortlist-view.component";
 import CategoryView from "./components/views/category-view.component";
 import DiscoverView from "./components/views/discover-view.component";
+import { Skeleton, SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import useDiscoverCreators from "./use-discover-creators.hook";
 
 function DiscoverCreators({
@@ -60,7 +61,21 @@ function DiscoverCreators({
   if (loading) {
     return (
       <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
-        <div className="text-center py-12 text-gray-600 text-sm">Loading creators...</div>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-72" />
+            <div className="flex gap-2">
+              <Skeleton className="h-10 flex-1 max-w-md" />
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+          <SkeletonCardGrid
+            count={8}
+            gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
+          />
+        </div>
       </div>
     );
   }

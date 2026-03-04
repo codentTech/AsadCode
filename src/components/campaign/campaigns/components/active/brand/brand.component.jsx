@@ -1,9 +1,8 @@
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
-import Loading from "@/common/components/loadar/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import RightPaneSkeleton from "../../right-pane-skeleton/right-pane-skeleton.component";
 import useActiveBrand from "./use-active-brand.hook";
 
 function ActiveBrandCampaign() {
@@ -22,11 +21,7 @@ function ActiveBrandCampaign() {
 
   const renderRightPane = () => {
     if (rightPaneState.type === "loading") {
-      return (
-        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-          <Loading />
-        </div>
-      );
+      return <RightPaneSkeleton />;
     }
 
     if (rightPaneState.type === "notFound") {
@@ -50,7 +45,10 @@ function ActiveBrandCampaign() {
 
   return (
     <div className="relative flex">
-      <CampaignOverview onCampaignSelect={handleCampaignSelect} onToggleChange={handleToggleChange} />
+      <CampaignOverview
+        onCampaignSelect={handleCampaignSelect}
+        onToggleChange={handleToggleChange}
+      />
 
       <CreatorSpendAnalysis
         selectedCampaign={selectedCampaign}

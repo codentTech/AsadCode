@@ -1,9 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
+import RightPaneSkeleton from "../../../../right-pane-skeleton/right-pane-skeleton.component";
 import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
-import Loading from "@/common/components/loadar/loading.component";
 
 const DeliverablesProgress = ({
   selectedCreator,
@@ -23,7 +23,7 @@ const DeliverablesProgress = ({
   } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
 
   if (!creatorData) {
-    return <Loading />;
+    return <RightPaneSkeleton />;
   }
 
   return (

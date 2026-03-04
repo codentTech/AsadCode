@@ -1,13 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import Loading from "@/common/components/loadar/loading.component";
-import NotFound from "@/common/components/not-found/not-found.component";
+import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import Modal from "@/common/components/modal/modal.component";
+import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filters/filter-modal.component";
-import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign";
+import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import { Filter, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
@@ -61,6 +61,10 @@ const CreatorSpendAnalysis = ({
     onClearFilters,
     fetchIndividualCollaborations: fetchFromHook,
   });
+
+  const leftContentLoading =
+    campaignsLoading ||
+    (selectedCampaign && (appliedCreatorsLoading || individualCollaborationsLoading));
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-100">
@@ -137,9 +141,12 @@ const CreatorSpendAnalysis = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {campaignsLoading && <Loading />}
-
-        {selectedCampaign ? (
+        {leftContentLoading ? (
+          <SkeletonCardGrid
+            count={8}
+            gridClass="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
+          />
+        ) : selectedCampaign ? (
           <>
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h2 className="text-sm font-semibold text-gray-900 mb-2">
@@ -155,10 +162,7 @@ const CreatorSpendAnalysis = ({
             </div>
 
             {selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ? (
-              individualCollaborationsLoading ? (
-                <Loading />
-              ) : Array.isArray(individualCollaborations) &&
-                individualCollaborations.length === 0 ? (
+              Array.isArray(individualCollaborations) && individualCollaborations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <NotFound
                     title="No Creators Found"
@@ -185,46 +189,39 @@ const CreatorSpendAnalysis = ({
                   })}
                 </div>
               )
+            ) : Array.isArray(appliedCreatorsData?.data) && appliedCreatorsData.data.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                {appliedCreatorsData.data.map((creator) => {
+                  const mapped = mapCreatorForCard(creator);
+                  return (
+                    <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
+                      <CreatorCard
+                        creator={mapped}
+                        tab="applications"
+                        appliedDate={mapped.appliedDate}
+                        onCreatorPreview={handleCreatorPreview}
+                        onSaveToShortlist={handleSaveToShortlist}
+                        onRemoveFromShortlist={() => {}}
+                        onInviteClick={() => {}}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <>
-                {appliedCreatorsLoading ? (
-                  <Loading />
-                ) : Array.isArray(appliedCreatorsData?.data) &&
-                  appliedCreatorsData.data.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-                    {appliedCreatorsData.data.map((creator) => {
-                      const mapped = mapCreatorForCard(creator);
-                      return (
-                        <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
-                          <CreatorCard
-                            creator={mapped}
-                            tab="applications"
-                            appliedDate={mapped.appliedDate}
-                            onCreatorPreview={handleCreatorPreview}
-                            onSaveToShortlist={handleSaveToShortlist}
-                            onRemoveFromShortlist={() => {}}
-                            onInviteClick={() => {}}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <NotFound
-                      title="No Creators Found"
-                      description="No creators have applied to this campaign yet. Try adjusting your filters or selecting a different campaign."
-                    />
-                  </div>
-                )}
-              </>
+              <div className="flex flex-col items-center justify-center py-20">
+                <NotFound
+                  title="No Creators Found"
+                  description="No creators have applied to this campaign yet. Try adjusting your filters or selecting a different campaign."
+                />
+              </div>
             )}
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-20">
             <NotFound
-              title="No Creators Found"
-              description="No creators have applied to this campaign yet. Try adjusting your filters or selecting a different campaign."
+              title="No Campaign Selected"
+              description="Select a campaign to view applications."
             />
           </div>
         )}

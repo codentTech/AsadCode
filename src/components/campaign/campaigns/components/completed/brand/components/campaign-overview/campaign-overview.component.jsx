@@ -1,9 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import Loader from "@/common/components/loader/loader.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import useCampaignOverviewCompleted from "./use-campaign-overview.hook";
 
 export default function CampaignOverviewCompleted({
@@ -73,26 +73,37 @@ export default function CampaignOverviewCompleted({
       <hr />
 
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <Loader loading={true} />
-          <p className="text-sm text-gray-500 mt-3">Loading campaigns...</p>
+        <div className="space-y-4">
+          <div className="flex justify-between bg-gray-100 p-2 rounded-lg gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-14" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-20 w-full rounded" />
+          </div>
         </div>
       )}
 
       {showEmptyState && (
         <NotFound
-          title={
-            isMultiCreator ? "No Completed Campaigns" : "No Completed Individual Collaborations"
-          }
+          title={isMultiCreator ? "No Campaigns" : "No Individual Collaborations"}
           description={
             isMultiCreator
-              ? "You don't have any completed campaigns."
-              : "You don't have any completed individual collaborations."
+              ? "You don't have any campaigns"
+              : "You don't have any individual collaborations"
           }
         />
       )}
 
-      {selectedCampaign && (
+      {selectedCampaign && !isLoading && (
         <>
           {showMultiCreatorUI && hasData && (
             <div className="flex justify-between bg-gray-100 p-2 rounded-lg">
@@ -111,7 +122,7 @@ export default function CampaignOverviewCompleted({
             </div>
           )}
 
-          {showMultiCreatorUI && (
+          {showMultiCreatorUI && !isLoading && (
             <>
               <hr />
               <div className="bg-blue-50 rounded-lg p-4">
@@ -201,7 +212,7 @@ export default function CampaignOverviewCompleted({
               <h3 className="text-lg font-semibold text-gray-800 mb-1">
                 {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
               </h3>
-              {showMultiCreatorUI && hasDemographicsData && demographicsData && (
+              {showMultiCreatorUI && hasDemographicsData && demographicsData && !isLoading && (
                 <p className="text-xs text-gray-500">
                   Aggregated across{" "}
                   {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
@@ -210,6 +221,7 @@ export default function CampaignOverviewCompleted({
                 </p>
               )}
               {!showMultiCreatorUI &&
+                !isLoading &&
                 (selectedCampaign?.creator || selectedCampaign?.contract?.creator) && (
                   <p className="text-xs text-gray-500">
                     From{" "}

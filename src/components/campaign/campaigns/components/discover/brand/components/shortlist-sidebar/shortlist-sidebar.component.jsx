@@ -1,7 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
-import Loader from "@/common/components/loader/loader.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import { AddCircle, Delete, Edit, MoreVert } from "@mui/icons-material";
 import useShortlistSidebar from "./use-shortlist-sidebar.hook";
 
@@ -97,12 +97,22 @@ function ShortlistSidebar({
         )}
 
         {shortlistState.getAllShortlists.isLoading ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Loader loading={true} />
-            </div>
-            <p className="text-gray-500 text-sm">Loading shortlists...</p>
-          </div>
+          <ul className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <li key={i} className="bg-white rounded-lg border border-gray-200 p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-20" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : shortlists.length === 0 ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -169,7 +179,7 @@ function ShortlistSidebar({
                             </h3>
                             {(shortlistState.updateShortlist.isLoading ||
                               shortlistState.deleteShortlist.isLoading) && (
-                              <Loader loading={true} />
+                              <Skeleton className="w-4 h-4 flex-shrink-0" />
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
@@ -223,7 +233,7 @@ function ShortlistSidebar({
                                 }
                               >
                                 {shortlistState.updateShortlist.isLoading ? (
-                                  <Loader loading={true} />
+                                  <Skeleton className="w-4 h-4 rounded" />
                                 ) : (
                                   <Edit className="w-4 h-4 text-gray-500" />
                                 )}
@@ -238,7 +248,7 @@ function ShortlistSidebar({
                                 }
                               >
                                 {shortlistState.deleteShortlist.isLoading ? (
-                                  <Loader loading={true} />
+                                  <Skeleton className="w-4 h-4 rounded" />
                                 ) : (
                                   <Delete className="w-4 h-4 text-red-500" />
                                 )}

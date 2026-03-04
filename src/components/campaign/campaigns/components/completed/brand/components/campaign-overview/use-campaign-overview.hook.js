@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-brand.hook";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import {
   fetchCampaignCombinedDemographics,
@@ -68,18 +67,22 @@ export default function useCampaignOverviewCompleted(
     }));
   }, [campaignsSuccess, campaignsApiData?.data]);
 
-  const { data: creatorsData, isSuccess: creatorsSuccess } = useSelector(
-    (state) => state.campaigns.getAppliedCreators || {}
-  );
+  const {
+    data: creatorsData,
+    isSuccess: creatorsSuccess,
+    isLoading: appliedCreatorsLoading,
+  } = useSelector((state) => state.campaigns.getAppliedCreators || {});
   const { data: budgetCreatorsData, isSuccess: budgetCreatorsSuccess } = useSelector(
     (state) => state.campaigns.getAppliedCreatorsForBudget || {}
   );
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const individualDemographics = useSelector(selectCreatorAudience);
   const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
-  const { data: individualContractsData, isSuccess: individualContractsSuccess } = useSelector(
-    (state) => state.contracts.getIndividualCollaborationContracts || {}
-  );
+  const {
+    data: individualContractsData,
+    isSuccess: individualContractsSuccess,
+    isLoading: individualContractsLoading,
+  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const budgetData = useMemo(() => {
     if (!parentSelectedCampaign) return hookBudgetData;
@@ -293,15 +296,23 @@ export default function useCampaignOverviewCompleted(
       : hookPerformanceMetrics;
   const performanceLoading = campaignPerformance?.isLoading || false;
 
+  const overviewLoading = useMemo(
+    () =>
+      isLoading ||
+      (!!selectedCampaign && !!appliedCreatorsLoading) ||
+      (!isMultiCreator && !!individualContractsLoading),
+    [isLoading, selectedCampaign, appliedCreatorsLoading, isMultiCreator, individualContractsLoading]
+  );
+
   const showEmptyState = useMemo(() => {
-    if (isLoading) return false;
+    if (overviewLoading) return false;
     if (selectedCampaign) return false;
     if (isMultiCreator) return filteredCampaignOptions.length === 0;
     const completedCount =
       individualContractsData?.filter((c) => c.campaign?.status === "COMPLETE")?.length || 0;
     return individualContractsSuccess && completedCount === 0;
   }, [
-    isLoading,
+    overviewLoading,
     selectedCampaign,
     isMultiCreator,
     filteredCampaignOptions.length,
@@ -334,11 +345,10 @@ export default function useCampaignOverviewCompleted(
 
   useEffect(() => {
     if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(true));
       hasAutoSelectedIndividual.current = false;
       lastIndividualContractsDataRef.current = null;
     }
-  }, [isMultiCreator, dispatch]);
+  }, [isMultiCreator]);
 
   useEffect(() => {
     const dataChanged =
@@ -382,7 +392,7 @@ export default function useCampaignOverviewCompleted(
   }, [isMultiCreator, individualContractsSuccess, individualContractsData, selectedCampaign]);
 
   useEffect(() => {
-    if (isMultiCreator && filteredCampaignOptions.length > 0 && !isLoading) {
+    if (isMultiCreator && filteredCampaignOptions.length > 0 && !overviewLoading) {
       const parentHasNoCampaign = !parentSelectedCampaign;
       const needToSyncParent =
         (parentHasNoCampaign || !isSelectedCampaignValid) && !hasAutoSelectedFiltered.current;
@@ -403,7 +413,7 @@ export default function useCampaignOverviewCompleted(
     isMultiCreator,
     filteredCampaignOptions,
     isSelectedCampaignValid,
-    isLoading,
+    overviewLoading,
     parentSelectedCampaign,
     internalHandleCampaignSelect,
     onCampaignSelect,
@@ -480,7 +490,7 @@ export default function useCampaignOverviewCompleted(
     showEmptyState,
     formatCurrency,
     formatNumber,
-    isLoading,
+    isLoading: overviewLoading,
     hasData: computedHasData,
     handleCampaignSelect,
     handleToggleChange,

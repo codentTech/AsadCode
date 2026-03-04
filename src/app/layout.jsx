@@ -1,6 +1,6 @@
 "use client";
 
-import FullPageLoader from "@/common/components/full-page-loader/full-page-loader.component";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-export default function useCampaignTypeNiche({ watch, setValue }) {
+export default function useCampaignTitle({ watch, setValue }) {
   const selectedNiches = watch("niches") || [];
   const selectedDeliverables = watch("deliverables") || [];
   const usageRightsValue = watch("usageRights") || "no_usage";

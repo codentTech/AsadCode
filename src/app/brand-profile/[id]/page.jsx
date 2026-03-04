@@ -2,7 +2,7 @@
 
 import Auth from "@/auth/auth.component";
 import AUTH from "@/common/constants/auth.constant";
-import BrandPortfolio from "@/components/brand-portfolio/brand-portfolio";
+import BrandPortfolio from "@/components/brand-portfolio/brand-portfolio.component";
 
 export default function BrandProfilePage({ params }) {
   const brandId = params.id;
