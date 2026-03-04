@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { avatar } from "@/common/constants/auth.constant";
@@ -6,17 +6,24 @@ import { getAge } from "@/common/utils/date.utils";
 import {
   fetchCreatorMetrics,
   fetchCreatorAudience,
+  fetchCreatorSocialAccounts,
   selectCreatorMetrics,
   selectCreatorAudience,
+  selectCreatorSocialAccounts,
   resetMetrics,
   resetAudience,
 } from "@/provider/features/phyllo/phyllo.slice";
 
+import { PLATFORM_PRIORITY, KNOWN_PLATFORMS } from "@/common/constants/genaric.constant";
+
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+
   const creatorMetricsState = useSelector(selectCreatorMetrics);
   const creatorAudienceState = useSelector(selectCreatorAudience);
+  const socialAccountsState = useSelector(selectCreatorSocialAccounts);
 
   const getCreatorData = () => {
     if (!selectedCreator) return null;
@@ -66,16 +73,66 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
     }
   }, [creatorUserId, router]);
 
+  // Fetch social accounts whenever the creator changes; also reset platform + data
   useEffect(() => {
-    if (creatorUserId) {
-      dispatch(fetchCreatorMetrics(creatorUserId));
-      dispatch(fetchCreatorAudience(creatorUserId));
-    }
+    if (!creatorUserId) return;
+    setSelectedPlatform(null);
+    dispatch(fetchCreatorSocialAccounts(creatorUserId));
     return () => {
       dispatch(resetMetrics());
       dispatch(resetAudience());
     };
   }, [creatorUserId, dispatch]);
+
+  // Derive connected platform names (used for disabled check + auto-select)
+  const connectedPlatforms = useMemo(() => {
+    const accounts = socialAccountsState?.data;
+    if (!Array.isArray(accounts)) return [];
+    return accounts.filter((a) => a.is_active).map((a) => String(a.platform).toLowerCase());
+  }, [socialAccountsState?.data]);
+
+  // Enriched platform list: all known platforms with username + followers
+  const platforms = useMemo(() => {
+    const accounts = socialAccountsState?.data;
+    const accountMap = {};
+    if (Array.isArray(accounts)) {
+      accounts
+        .filter((a) => a.is_active)
+        .forEach((a) => {
+          const name = String(a.platform).toLowerCase();
+          accountMap[name] = {
+            username: a.username || a.profile_data?.username || null,
+            followers: Number(
+              a.follower_count ??
+                a.profile_data?.follower_count ??
+                a.profile_data?.subscriber_count ??
+                0
+            ),
+          };
+        });
+    }
+    return KNOWN_PLATFORMS.map((name) => ({
+      name,
+      username: accountMap[name]?.username ?? null,
+      followers: accountMap[name]?.followers ?? 0,
+      isConnected: Boolean(accountMap[name]),
+    }));
+  }, [socialAccountsState?.data]);
+
+  // Auto-select default platform: Instagram first, then first available
+  useEffect(() => {
+    if (connectedPlatforms.length === 0) return;
+    const def =
+      PLATFORM_PRIORITY.find((p) => connectedPlatforms.includes(p)) || connectedPlatforms[0];
+    setSelectedPlatform(def);
+  }, [connectedPlatforms]);
+
+  // Fetch metrics + audience whenever creator or selected platform changes
+  useEffect(() => {
+    if (!creatorUserId || !selectedPlatform) return;
+    dispatch(fetchCreatorMetrics({ creatorId: creatorUserId, platform: selectedPlatform }));
+    dispatch(fetchCreatorAudience({ creatorId: creatorUserId, platform: selectedPlatform }));
+  }, [creatorUserId, selectedPlatform, dispatch]);
 
   const metricsPayload = creatorMetricsState?.data?.data ?? null;
   const performanceMetrics = useMemo(() => {
@@ -110,6 +167,10 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
     performanceMetricsLoading: creatorMetricsState?.isLoading ?? false,
     audienceData,
     audienceLoading,
+    selectedPlatform,
+    setSelectedPlatform,
+    connectedPlatforms,
+    platforms,
   };
 };
 
