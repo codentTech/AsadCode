@@ -1,21 +1,21 @@
 "use client";
 
+import AccessDenied from "@/app/components/access-denied.component";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
+import invitesService from "@/provider/features/invites/invites.service";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
 import AccountType from "./components/account-type/account-type.component";
-import EmailVerification from "./components/email-verification/email-verification";
+import EmailVerification from "./components/email-verification/email-verification.component";
 import Register from "./components/register/register.component";
 import CampaignPreferences from "./creator/campaign-preferences/campaign-preferences.component";
-import ProfileSetup from "./creator/profile-setup/profile-setup.component";
-import CreatorApplication from "./creator/creator-application/creator-application.component";
 import CreatorApplicationConfirmation from "./creator/creator-application-confirmation/creator-application-confirmation.component";
+import CreatorApplication from "./creator/creator-application/creator-application.component";
+import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 import useOnboarding from "./use-onboarding.hook";
-import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import invitesService from "@/provider/features/invites/invites.service";
-import FullPageLoader from "@/common/components/loader/full-page-loader.component";
-import AccessDenied from "@/app/components/access-denied.component";
 
 export default function Onboarding() {
   const searchParams = useSearchParams();
