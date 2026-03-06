@@ -17,7 +17,6 @@ const CreatorCard = ({
   onViewNotesClick,
   isReinstateLoading = false,
 }) => {
-  console.log(creator);
   const {
     getPlatformIcon,
     getPlatformProfileUrlFor,

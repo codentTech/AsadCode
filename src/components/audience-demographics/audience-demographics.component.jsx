@@ -89,6 +89,7 @@ function AudienceDemographics({
   audienceData,
   loading = false,
   className = "grid grid-cols-1 xl:grid-cols-2",
+  platform = null,
 }) {
   const {
     colors,
@@ -98,7 +99,11 @@ function AudienceDemographics({
     ageColorItems,
     genderColorItems,
     locationColorItems,
-  } = useAudienceDemographics(audienceData, DEFAULT_COLORS);
+    cityData,
+    cityColorItems,
+  } = useAudienceDemographics(audienceData, DEFAULT_COLORS, platform);
+
+  const showTopCities = platform?.toLowerCase() === "instagram" && Array.isArray(cityData) && cityData.length > 0;
 
   if (loading) {
     return (
@@ -246,6 +251,46 @@ function AudienceDemographics({
           <EmptyState message="No country distribution from Phyllo. API may not return percentage data for this account yet." />
         )}
       </div>
+
+      {/* Top Follower Cities: Instagram only (Phyllo does not provide for TikTok/YouTube) */}
+      {showTopCities && (
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+          <h5 className="text-sm font-medium text-gray-700 mb-4">Top Follower Cities</h5>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={cityData} margin={{ top: 10, right: 10, left: 0, bottom: 30 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 11, fill: "#6b7280" }}
+                axisLine={{ stroke: "#e5e7eb" }}
+                tickLine={false}
+                interval={0}
+                angle={-35}
+                textAnchor="end"
+              />
+              <YAxis
+                type="number"
+                tick={{ fontSize: 11, fill: "#6b7280" }}
+                unit="%"
+                axisLine={{ stroke: "#e5e7eb" }}
+                tickLine={false}
+                width={30}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24} name="Percentage">
+                {cityData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={colors.location[index % colors.location.length]}
+                    name={entry.name}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <CustomLegend items={cityColorItems} />
+        </div>
+      )}
     </div>
   );
 }

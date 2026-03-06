@@ -38,13 +38,16 @@ function extractCreatorMetrics(timelinesByKey, campaignId, creatorUserId, creato
 
   const totalEngagement = likes + comments + shares + saves;
   const engagementRate = views > 0 ? totalEngagement / views : 0;
-  const costPerEngagement = totalEngagement > 0 ? (creatorFee || 0) / totalEngagement : null;
+  const fee = creatorFee || 0;
+  const costPerView = views > 0 ? fee / views : null;
+  const costPerEngagement = totalEngagement > 0 ? fee / totalEngagement : null;
 
   return {
     publishedUrl,
     views,
     totalEngagement,
     engagementRate,
+    costPerView,
     costPerEngagement,
   };
 }
@@ -54,7 +57,7 @@ function extractCreatorMetrics(timelinesByKey, campaignId, creatorUserId, creato
  */
 function buildComparison(value, campaignAverage, formatFn, isRate = false, isCurrency = false) {
   if (value == null || campaignAverage == null) {
-    return { label: "—", textColor: "text-gray-400" };
+    return { label: "N/A", textColor: "text-gray-400" };
   }
   const diff = value - campaignAverage;
   const isAbove = diff >= 0;
@@ -133,16 +136,24 @@ export const useCreatorSpendAnalysisCompleted = ({
       );
 
       if (fromApi && (fromApi.views != null || fromApi.totalEngagement != null)) {
+        const apiViews = fromApi.views ?? 0;
+        const apiEngagement = fromApi.totalEngagement ?? 0;
         map[creatorUserId] = {
           publishedUrl: fromApi.publishedUrl || fromTimeline?.publishedUrl,
-          views: fromApi.views ?? 0,
-          totalEngagement: fromApi.totalEngagement ?? 0,
+          views: apiViews,
+          totalEngagement: apiEngagement,
           engagementRate: fromApi.engagementRate ?? 0,
+          costPerView:
+            fromApi.costPerView != null
+              ? fromApi.costPerView
+              : apiViews > 0 && fee
+                ? Number((fee / apiViews).toFixed(2))
+                : null,
           costPerEngagement:
             fromApi.costPerEngagement != null
               ? fromApi.costPerEngagement
-              : fromApi.totalEngagement > 0 && fee
-                ? fee / fromApi.totalEngagement
+              : apiEngagement > 0 && fee
+                ? Number((fee / apiEngagement).toFixed(2))
                 : null,
         };
       } else {
@@ -171,8 +182,11 @@ export const useCreatorSpendAnalysisCompleted = ({
       .filter((v) => v !== null && v !== undefined);
     const avgCPE =
       cpeValues.length > 0 ? cpeValues.reduce((s, v) => s + v, 0) / cpeValues.length : null;
+    const cpvValues = values.map((m) => m.costPerView).filter((v) => v !== null && v !== undefined);
+    const avgCPV =
+      cpvValues.length > 0 ? cpvValues.reduce((s, v) => s + v, 0) / cpvValues.length : null;
 
-    return { avgViews, avgEngagement, avgER, avgCPE };
+    return { avgViews, avgEngagement, avgER, avgCPE, avgCPV };
   }, [creatorMetricsMap]);
 
   /**
@@ -190,10 +204,11 @@ export const useCreatorSpendAnalysisCompleted = ({
   const getCreatorComparisons = (creatorMetrics) => {
     if (!creatorMetrics || creatorMetrics.metricsUnavailable || !campaignAverages) {
       return {
-        views: { label: "—", textColor: "text-gray-400" },
-        engagement: { label: "—", textColor: "text-gray-400" },
-        er: { label: "—", textColor: "text-gray-400" },
-        cpe: { label: "—", textColor: "text-gray-400" },
+        views: { label: "N/A", textColor: "text-gray-400" },
+        engagement: { label: "N/A", textColor: "text-gray-400" },
+        er: { label: "N/A", textColor: "text-gray-400" },
+        cpv: { label: "N/A", textColor: "text-gray-400" },
+        cpe: { label: "N/A", textColor: "text-gray-400" },
       };
     }
     return {
@@ -208,6 +223,7 @@ export const useCreatorSpendAnalysisCompleted = ({
         hookData.formatFollowers
       ),
       er: buildComparison(creatorMetrics.engagementRate, campaignAverages.avgER, null, true),
+      cpv: buildComparison(creatorMetrics.costPerView, campaignAverages.avgCPV, null, false, true),
       cpe: buildComparison(
         creatorMetrics.costPerEngagement,
         campaignAverages.avgCPE,
@@ -225,7 +241,7 @@ export const useCreatorSpendAnalysisCompleted = ({
   };
 
   const formatMetricValue = (value, type) => {
-    if (value == null) return "—";
+    if (value == null) return "N/A";
     if (type === "views" || type === "engagement") return formatFollowers(value);
     if (type === "rate") return `${(value * 100).toFixed(1)}%`;
     if (type === "currency") return `$${value.toFixed(2)}`;

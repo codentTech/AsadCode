@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
+import { KNOWN_PLATFORMS } from "@/common/constants/genaric.constant";
 
 const validationSchema = Yup.object().shape({
   profilePhoto: Yup.mixed().required("Profile photo is required"),
@@ -55,8 +56,6 @@ export default function useProfileSetup({ onNext }) {
   const [customRates, setCustomRates] = useState([{ contentType: "", price: "" }]);
 
   const fileInputRef = useRef(null);
-
-  const platforms = ["instagram", "tiktok", "youtube"];
 
   const {
     handleSubmit,
@@ -311,7 +310,7 @@ export default function useProfileSetup({ onNext }) {
     fileInputRef,
     profilePhotoPreview,
     // Social platforms (Phyllo-backed)
-    platforms,
+    platforms: KNOWN_PLATFORMS,
     connectedAccounts,
     isPlatformConnected,
     getConnectedAccountData,

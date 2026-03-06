@@ -3,8 +3,10 @@ import { Info } from "lucide-react";
 import { tones, useMetricCard } from "./use-metric-card.hook";
 
 const MetricCard = ({ icon: Icon, metric, tone = "blue" }) => {
-  const { showTooltip, onEnter, onLeave, formatValue } = useMetricCard();
+  const { showTooltip, onEnter, onLeave, formatValue, getGrowthColor } = useMetricCard();
   const t = tones[tone] || tones.blue;
+  const valueColor =
+    metric?.type === "growth" ? getGrowthColor(metric?.value) : "text-gray-900";
 
   return (
     <div
@@ -26,7 +28,7 @@ const MetricCard = ({ icon: Icon, metric, tone = "blue" }) => {
             <div className="text-[11px] md:text-xs font-medium text-gray-600 truncate">
               {metric?.label ?? "Metric"}
             </div>
-            <div className="text-lg md:text-xl font-semibold text-gray-900 leading-tight">
+            <div className={`text-lg md:text-xl font-semibold leading-tight ${valueColor}`}>
               {formatValue(metric?.value, metric?.type)}
             </div>
           </div>

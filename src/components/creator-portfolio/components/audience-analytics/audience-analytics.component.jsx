@@ -1,28 +1,27 @@
 import Loading from "@/common/components/loader/loading.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
-import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 import { formatNumber } from "@/common/utils/format.utils";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
-import { VerifiedRounded } from "@mui/icons-material";
 import { TrendingUp } from "lucide-react";
-import useAudienceAnalytics from "./use-audience-analytics";
+import useAudienceAnalytics from "./use-audience-analytics.hook";
 
-function AudienceAnalytics({ creatorId }) {
-  const { statsData, audienceData, socialData, isLoading } = useAudienceAnalytics(creatorId);
-  const { getPlatformColor, getPlatformIcon, formatFollowers } = useGetplatform();
+export default function AudienceAnalytics({
+  creatorId,
+  selectedPlatform: externalSelectedPlatform,
+  onPlatformSelect,
+}) {
+  const {
+    statsData,
+    socialData,
+    connectedPlatforms,
+    selectedPlatform,
+    platforms,
+    totalFollowersAllPlatforms,
+    handlePlatformClick,
+    isLoading,
+  } = useAudienceAnalytics(creatorId, externalSelectedPlatform, onPlatformSelect);
 
-  const totalFollowers = statsData?.total_followers ? formatNumber(statsData.total_followers) : "0";
-
-  const platforms = Array.isArray(socialData)
-    ? socialData.map((p) => ({
-        name: p.platform,
-        username: p.username,
-        profileUrl: p.profile_url,
-        followers: formatNumber(p.follower_count),
-        engagement: "", // Phyllo Stats object may not include engagement
-      }))
-    : [];
+  const { getPlatformColor, getPlatformIcon } = useGetplatform();
 
   return (
     <section className="bg-white rounded-lg shadow-md p-6">
@@ -30,80 +29,58 @@ function AudienceAnalytics({ creatorId }) {
         <h3 className="text-lg font-semibold text-primary">Audience Analytics Snapshot</h3>
       </div>
 
-      {isLoading && !statsData && <Loading />}
+      {isLoading && !statsData && !socialData?.length && <Loading />}
 
-      {!isLoading && statsData && (
+      {(!isLoading || platforms.length > 0) && (
         <>
           <div className="mb-8 text-center">
             <p className="text-sm font-medium text-gray-700">Total Followers</p>
-            <p className="text-4xl font-bold text-indigo-600">{totalFollowers}</p>
+            <p className="text-4xl font-bold text-indigo-600">
+              {formatNumber(totalFollowersAllPlatforms)}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
             {platforms.map((platform, index) => {
-              const profileUrl =
-                platform.profileUrl || getPlatformProfileUrl(platform.name, platform.username);
-              const platformContent = (
-                <div className="flex items-center space-x-2">
-                  <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
-                    {getPlatformIcon(platform.name)}
-                  </span>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1">
+              const isSelected = selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
+              const isDisabled = !connectedPlatforms.includes(platform.name);
+
+              return (
+                <button
+                  key={platform.name + index}
+                  type="button"
+                  onClick={() => handlePlatformClick(platform.name)}
+                  disabled={isDisabled}
+                  className={`
+                    flex items-center justify-between rounded-lg p-3 pr-4 transition-all
+                    ${isDisabled ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                    ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
+                  `}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
+                      {getPlatformIcon(platform.name)}
+                    </span>
+                    <div className="flex flex-col items-start">
                       <span className="text-xs capitalize font-semibold text-primary">
                         {capitalizeFirstLetter(platform.name)}
                       </span>
-                      {platform.isVerified && <VerifiedRounded className="w-3 h-3 text-blue-500" />}
+                      {platform.username && (
+                        <span className="text-[10px] text-gray-500">@{platform.username}</span>
+                      )}
                     </div>
-                    {platform.username && (
-                      <span className="text-[10px] text-gray-500">@{platform.username}</span>
-                    )}
                   </div>
-                </div>
-              );
-              return (
-                <div
-                  key={platform.name + index}
-                  className={`flex items-center justify-between bg-gray-100 rounded-lg p-2 pr-3 transition-colors duration-200 ${
-                    platform.loading || platform.notConnected
-                      ? "opacity-50"
-                      : "hover:bg-gray-100/80"
-                  }`}
-                >
-                  {profileUrl ? (
-                    <a
-                      href={profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-2"
-                    >
-                      {platformContent}
-                    </a>
-                  ) : (
-                    platformContent
-                  )}
                   <div className="text-sm font-bold text-gray-900">
-                    {platform.loading ? (
-                      <div className="h-4 w-12 bg-gray-200 animate-pulse rounded"></div>
-                    ) : platform.notConnected ? (
-                      <span className="text-xs text-gray-400">Not connected</span>
-                    ) : (
-                      formatFollowers(platform.followers)
-                    )}
+                    {formatNumber(platform.followers)}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
-
-          <h3 className="text-lg font-semibold text-primary mb-4 border-t border-gray-200 pt-4">
-            Audience Demographics
-          </h3>
-          <AudienceDemographics audienceData={audienceData} loading={isLoading} />
         </>
       )}
 
-      {!isLoading && !statsData && (
+      {!isLoading && !statsData && !platforms.length && (
         <div className="text-center py-12 text-gray-600">
           <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-4" />
           <p>No Analytics Data Available</p>
@@ -112,5 +89,3 @@ function AudienceAnalytics({ creatorId }) {
     </section>
   );
 }
-
-export default AudienceAnalytics;

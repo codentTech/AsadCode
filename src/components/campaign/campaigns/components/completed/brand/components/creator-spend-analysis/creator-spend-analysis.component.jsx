@@ -329,15 +329,23 @@ const CreatorSpendAnalysisCompleted = ({
 
                               <div className="bg-gray-100 rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all duration-200">
                                 <span className="text-xs font-semibold text-gray-700 block mb-1">
-                                  Cost Per Engagement
+                                  Cost Per
                                 </span>
-                                <div className="text-xs font-bold text-gray-900 mb-1">
-                                  {creatorMetrics.costPerEngagement === null
-                                    ? "N/A"
-                                    : formatMetricValue(
-                                        creatorMetrics.costPerEngagement,
-                                        "currency"
-                                      )}
+                                <div className="text-xs text-gray-900 mb-0.5">
+                                  <span className="text-gray-500">View: </span>
+                                  <span className="font-bold">
+                                    {creatorMetrics.costPerView === null
+                                      ? "N/A"
+                                      : formatMetricValue(creatorMetrics.costPerView, "currency")}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-900 mb-1">
+                                  <span className="text-gray-500">Engagement: </span>
+                                  <span className="font-bold">
+                                    {creatorMetrics.costPerEngagement === null
+                                      ? "N/A"
+                                      : formatMetricValue(creatorMetrics.costPerEngagement, "currency")}
+                                  </span>
                                 </div>
                                 <div className={`text-xs ${comparisons.cpe.textColor}`}>
                                   {comparisons.cpe.label}
