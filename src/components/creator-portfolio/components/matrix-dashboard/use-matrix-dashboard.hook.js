@@ -6,14 +6,17 @@ import {
   resetMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
 
-export const useCreatorMetricsDashboard = (creatorId) => {
+export const useCreatorMetricsDashboard = (creatorId, selectedPlatform = null) => {
   const dispatch = useDispatch();
   const { data, isLoading } = useSelector(selectCreatorMetrics);
 
   useEffect(() => {
-    if (creatorId) dispatch(fetchCreatorMetrics(creatorId));
+    if (creatorId) {
+      const payload = selectedPlatform ? { creatorId, platform: selectedPlatform } : creatorId;
+      dispatch(fetchCreatorMetrics(payload));
+    }
     return () => dispatch(resetMetrics());
-  }, [creatorId, dispatch]);
+  }, [creatorId, selectedPlatform, dispatch]);
 
   const matrixDashboardData = useMemo(() => data?.data ?? null, [data]);
 

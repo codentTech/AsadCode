@@ -5,7 +5,7 @@ import {
   TrendingUp,
   Shield,
   Activity,
-  Heart,
+  BarChart2,
   ThumbsUp,
   MessageCircle,
   Clock,
@@ -14,9 +14,9 @@ import {
 import MetricCard from "./metric-card/metric-card.component";
 import { useCreatorMetricsDashboard } from "./use-matrix-dashboard.hook";
 
-const CreatorMetricsDashboard = ({ creatorId }) => {
+const CreatorMetricsDashboard = ({ creatorId, selectedPlatform = null }) => {
   const { isLoading, matrixDashboardData, metrics, metadata } =
-    useCreatorMetricsDashboard(creatorId);
+    useCreatorMetricsDashboard(creatorId, selectedPlatform);
 
   const cards = useMemo(
     () => [
@@ -25,7 +25,7 @@ const CreatorMetricsDashboard = ({ creatorId }) => {
       { icon: TrendingUp, metric: metrics?.engagementRate, tone: "green" },
       { icon: Shield, metric: metrics?.authenticAudience, tone: "indigo" },
       { icon: Activity, metric: metrics?.performanceConsistency, tone: "teal" },
-      { icon: Heart, metric: metrics?.engagementDepth, tone: "pink" },
+      { icon: BarChart2, metric: metrics?.growthRate30d, tone: "green" },
       { icon: ThumbsUp, metric: metrics?.averageLikes, tone: "blue" },
       { icon: MessageCircle, metric: metrics?.averageComments, tone: "orange" },
       { icon: Clock, metric: metrics?.onTimeDelivery, tone: "emerald" },
@@ -61,9 +61,13 @@ const CreatorMetricsDashboard = ({ creatorId }) => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {cards.map((c, idx) => (
-          <MetricCard key={idx} icon={c.icon} metric={c.metric} tone={c.tone} />
-        ))}
+        {cards
+          .filter(
+            (c) => !(c.metric?.type === "growth" && c.metric?.value === null),
+          )
+          .map((c, idx) => (
+            <MetricCard key={idx} icon={c.icon} metric={c.metric} tone={c.tone} />
+          ))}
       </div>
     </section>
   );

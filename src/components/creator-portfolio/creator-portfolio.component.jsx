@@ -6,12 +6,22 @@ import AudienceAnalytics from "./components/audience-analytics/audience-analytic
 import Reviews from "./components/reviews/reviews.component";
 import { useState, useCallback } from "react";
 import CreatorMetricsDashboard from "./components/matrix-dashboard/matrix-dashboard.component";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
+import { useSelector } from "react-redux";
+import { selectCreatorAudience } from "@/provider/features/phyllo/phyllo.slice";
 
 export default function CreatorPortfolio({ creatorId = null }) {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+
+  const audienceState = useSelector(selectCreatorAudience);
 
   const handleProfileUpdate = useCallback(() => {
     setRefreshKey((prev) => prev + 1);
+  }, []);
+
+  const handlePlatformSelect = useCallback((platform) => {
+    setSelectedPlatform(platform);
   }, []);
 
   return (
@@ -22,8 +32,29 @@ export default function CreatorPortfolio({ creatorId = null }) {
           refreshKey={refreshKey}
           onProfileUpdate={handleProfileUpdate}
         />
-        <CreatorMetricsDashboard creatorId={creatorId} />
-        <AudienceAnalytics creatorId={creatorId} />
+
+        {creatorId && (
+          <>
+            <AudienceAnalytics
+              creatorId={creatorId}
+              selectedPlatform={selectedPlatform}
+              onPlatformSelect={handlePlatformSelect}
+            />
+            <CreatorMetricsDashboard
+              creatorId={creatorId}
+              selectedPlatform={selectedPlatform}
+            />
+            <section className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
+              <AudienceDemographics
+                audienceData={audienceState?.data}
+                loading={audienceState?.isLoading}
+                platform={selectedPlatform}
+              />
+            </section>
+          </>
+        )}
+
         <Reviews creatorId={creatorId} />
         <Gallary creatorId={creatorId} refreshKey={refreshKey} />
         <BioPricing creatorId={creatorId} refreshKey={refreshKey} />

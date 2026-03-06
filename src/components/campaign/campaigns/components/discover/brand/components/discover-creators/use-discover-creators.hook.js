@@ -11,10 +11,12 @@ const mapUserToCreator = (user) => {
   const platformStats = socialAccounts.reduce((acc, s) => {
     const pd = s.profile_data || {};
     const followers =
-      Number(pd.followers) ||
-      Number(pd.followers_count) ||
       Number(pd.follower_count) ||
       Number(pd.subscriber_count) ||
+      Number(pd.followers) ||
+      Number(pd.followers_count) ||
+      Number(pd.reputation?.follower_count) ||
+      Number(pd.reputation?.subscriber_count) ||
       0;
     const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
     const profileUrl = pd.profile_url ?? pd.url ?? null;

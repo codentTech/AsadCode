@@ -28,10 +28,12 @@ const initialState = {
 // === Async thunks ===
 export const fetchCreatorStats = createAsyncThunk(
   "phyllo/fetchCreatorStats",
-  async (creatorId, thunkAPI) => {
+  async (payload, thunkAPI) => {
     try {
-      const response = await phylloService.fetchCreatorStats(creatorId);
-      if (response.success) return response; // must have success
+      const creatorId = typeof payload === "object" ? payload?.creatorId : payload;
+      const platform = typeof payload === "object" ? payload?.platform : undefined;
+      const response = await phylloService.fetchCreatorStats(creatorId, platform);
+      if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to fetch stats"));
@@ -41,9 +43,11 @@ export const fetchCreatorStats = createAsyncThunk(
 
 export const fetchCreatorAudience = createAsyncThunk(
   "phyllo/fetchCreatorAudience",
-  async (creatorId, thunkAPI) => {
+  async (payload, thunkAPI) => {
     try {
-      const response = await phylloService.fetchCreatorAudience(creatorId);
+      const creatorId = typeof payload === "object" ? payload?.creatorId : payload;
+      const platform = typeof payload === "object" ? payload?.platform : undefined;
+      const response = await phylloService.fetchCreatorAudience(creatorId, platform);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -54,9 +58,11 @@ export const fetchCreatorAudience = createAsyncThunk(
 
 export const fetchCreatorSocialAccounts = createAsyncThunk(
   "phyllo/fetchCreatorSocialAccounts",
-  async (creatorId, thunkAPI) => {
+  async (payload, thunkAPI) => {
     try {
-      const response = await phylloService.fetchCreatorSocialAccounts(creatorId);
+      const creatorId = typeof payload === "object" ? payload?.creatorId : payload;
+      const platform = typeof payload === "object" ? payload?.platform : undefined;
+      const response = await phylloService.fetchCreatorSocialAccounts(creatorId, platform);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -99,9 +105,11 @@ export const fetchCampaignPerformanceMetrics = createAsyncThunk(
 
 export const fetchCreatorMetrics = createAsyncThunk(
   "phyllo/fetchCreatorMetrics",
-  async (creatorId, thunkAPI) => {
+  async (payload, thunkAPI) => {
     try {
-      const response = await phylloService.fetchCreatorMetrics(creatorId);
+      const creatorId = typeof payload === "object" ? payload?.creatorId : payload;
+      const platform = typeof payload === "object" ? payload?.platform : undefined;
+      const response = await phylloService.fetchCreatorMetrics(creatorId, platform);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {

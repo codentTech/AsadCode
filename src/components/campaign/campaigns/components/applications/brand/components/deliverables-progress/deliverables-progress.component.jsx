@@ -4,6 +4,9 @@ import { Avatar } from "@mui/material";
 import RightPaneSkeleton from "../../../../right-pane-skeleton/right-pane-skeleton.component";
 import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
+import { formatNumber } from "@/common/utils/format.utils";
 
 const DeliverablesProgress = ({
   selectedCreator,
@@ -20,7 +23,13 @@ const DeliverablesProgress = ({
     performanceMetricsLoading,
     audienceData,
     audienceLoading,
+    selectedPlatform,
+    setSelectedPlatform,
+    connectedPlatforms,
+    platforms,
   } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
+
+  const { getPlatformColor, getPlatformIcon } = useGetplatform();
 
   if (!creatorData) {
     return <RightPaneSkeleton />;
@@ -60,6 +69,48 @@ const DeliverablesProgress = ({
           <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
           <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
         </div>
+
+        {connectedPlatforms.length > 0 && (
+          <div className="flex flex-col gap-2 w-full">
+            {platforms.map((platform) => {
+              const isSelected =
+                selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
+              return (
+                <button
+                  key={platform.name}
+                  type="button"
+                  disabled={!platform.isConnected}
+                  onClick={() => setSelectedPlatform(platform.name)}
+                  className={`flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full
+                    ${!platform.isConnected ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                    ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
+                  `}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
+                      {getPlatformIcon(platform.name)}
+                    </span>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs capitalize font-semibold text-primary">
+                        {capitalizeFirstLetter(platform.name)}
+                      </span>
+                      {platform.username && (
+                        <span className="text-[10px] text-gray-500">
+                          @{platform.username}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {platform.isConnected && (
+                    <div className="text-sm font-bold text-gray-900">
+                      {formatNumber(platform.followers)}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <>
           <div className="bg-white rounded-lg border p-3">
@@ -116,6 +167,7 @@ const DeliverablesProgress = ({
             <AudienceDemographics
               audienceData={audienceData}
               loading={audienceLoading}
+              platform={selectedPlatform}
               className="flex flex-col"
             />
           </div>

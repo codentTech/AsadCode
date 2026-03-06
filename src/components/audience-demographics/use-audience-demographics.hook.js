@@ -86,9 +86,9 @@ export const generateCustomGenderColors = ({ colors, genderData }) =>
     id: `gender-${index}`,
   }));
 
-export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS) => {
-  const { ageData, genderData, locationData } = useMemo(() => {
-    const empty = { ageData: [], genderData: [], locationData: [] };
+export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS, platform = null) => {
+  const { ageData, genderData, locationData, cityData } = useMemo(() => {
+    const empty = { ageData: [], genderData: [], locationData: [], cityData: [] };
     if (!audienceData?.has_data) return empty;
 
     const ageDist = audienceData.audience_age_distribution;
@@ -148,8 +148,20 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS) =
       }));
     }
 
-    return { ageData, genderData, locationData };
-  }, [audienceData]);
+    // Top Follower Cities: only supported for Instagram (Phyllo does not provide for TikTok/YouTube)
+    let cityData = [];
+    if (platform?.toLowerCase() === "instagram" && audienceData.audience_city_distribution?.length > 0) {
+      cityData = audienceData.audience_city_distribution
+        .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
+        .slice(0, 10)
+        .map((d) => ({
+          name: d.city || d.name || d.code || "—",
+          value: Math.round(Number(d.percentage) || 0),
+        }));
+    }
+
+    return { ageData, genderData, locationData, cityData };
+  }, [audienceData, platform]);
 
   const ageColorItems = useMemo(
     () => generateCustomAgeColors({ colors, ageData }),
@@ -163,14 +175,20 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS) =
     () => generateCustomLocationColors({ colors, locationData }),
     [colors, locationData]
   );
+  const cityColorItems = useMemo(
+    () => generateCustomLocationColors({ colors, locationData: cityData || [] }),
+    [colors, cityData]
+  );
 
   return {
     colors,
     ageData,
     genderData,
     locationData,
+    cityData: cityData || [],
     ageColorItems,
     genderColorItems,
     locationColorItems,
+    cityColorItems,
   };
 };
