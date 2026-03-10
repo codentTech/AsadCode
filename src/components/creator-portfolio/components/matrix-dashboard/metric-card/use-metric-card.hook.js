@@ -63,6 +63,8 @@ export const useMetricCard = () => {
         const sign = value > 0 ? "+" : "";
         return `${sign}${Number(value).toFixed(1)}%`;
       }
+      case "text":
+        return typeof value === "string" ? value : "—";
       default:
         return value;
     }

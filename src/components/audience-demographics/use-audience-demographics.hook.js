@@ -1,5 +1,16 @@
 import { useMemo } from "react";
 
+const TOP_LOCATION_ITEMS = 6;
+
+const toTopPlusOther = (items, nameKey = "name", valueKey = "value") => {
+  if (!Array.isArray(items) || items.length <= TOP_LOCATION_ITEMS) return items;
+  const top = items.slice(0, TOP_LOCATION_ITEMS);
+  const rest = items.slice(TOP_LOCATION_ITEMS);
+  const otherValue = rest.reduce((sum, i) => sum + (Number(i[valueKey]) || 0), 0);
+  if (otherValue <= 0) return top;
+  return [...top, { [nameKey]: "Other", [valueKey]: Math.round(otherValue) }];
+};
+
 export const COUNTRY_NAMES = {
   US: "USA",
   GB: "UK",
@@ -133,31 +144,32 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS, p
     const countriesOnly = audienceData.audience_countries;
     let locationData = [];
     if (Array.isArray(countryDist) && countryDist.length > 0) {
-      locationData = countryDist
+      const all = countryDist
         .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
-        .slice(0, 12)
         .map((d) => ({
           name: COUNTRY_NAMES[d.country_code] || d.country_code,
           value: Math.round(Number(d.percentage) || 0),
         }));
+      locationData = toTopPlusOther(all);
     } else if (Array.isArray(countriesOnly) && countriesOnly.length > 0) {
       const pct = Math.round(100 / countriesOnly.length);
-      locationData = countriesOnly.slice(0, 12).map((code, i, arr) => ({
+      const all = countriesOnly.map((code, i, arr) => ({
         name: COUNTRY_NAMES[code] || code,
         value: i === arr.length - 1 ? Math.max(0, 100 - pct * (arr.length - 1)) : pct,
       }));
+      locationData = toTopPlusOther(all);
     }
 
     // Top Follower Cities: only supported for Instagram (Phyllo does not provide for TikTok/YouTube)
     let cityData = [];
     if (platform?.toLowerCase() === "instagram" && audienceData.audience_city_distribution?.length > 0) {
-      cityData = audienceData.audience_city_distribution
+      const allCities = audienceData.audience_city_distribution
         .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
-        .slice(0, 10)
         .map((d) => ({
           name: d.city || d.name || d.code || "—",
           value: Math.round(Number(d.percentage) || 0),
         }));
+      cityData = toTopPlusOther(allCities);
     }
 
     return { ageData, genderData, locationData, cityData };
