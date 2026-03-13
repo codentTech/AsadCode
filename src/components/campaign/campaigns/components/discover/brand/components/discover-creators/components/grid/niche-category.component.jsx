@@ -23,13 +23,13 @@ const NicheCategory = ({
       // Get the actual container width
       const container = containerRef.current;
       if (!container) return;
-      
+
       const containerWidth = container.clientWidth;
-      
+
       // Calculate how many cards can fit
       // Formula: (containerWidth + gap) / (cardWidth + gap)
       const visibleCount = Math.floor((containerWidth + gap) / (cardWidth + gap));
-      
+
       // Show "See More" if there are more creators than can fit
       // Also ensure at least 2 creators are needed to show "See More"
       setShouldShowSeeMore(category.creators.length > Math.max(visibleCount, 1));
@@ -37,10 +37,10 @@ const NicheCategory = ({
 
     // Calculate after a small delay to ensure DOM is ready
     const timeoutId = setTimeout(calculateVisibleCreators, 100);
-    
+
     // Recalculate on window resize
     window.addEventListener("resize", calculateVisibleCreators);
-    
+
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener("resize", calculateVisibleCreators);
@@ -87,4 +87,3 @@ const NicheCategory = ({
 };
 
 export default NicheCategory;
-

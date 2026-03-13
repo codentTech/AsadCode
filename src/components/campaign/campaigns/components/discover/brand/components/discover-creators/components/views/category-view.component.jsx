@@ -38,4 +38,3 @@ const CategoryView = ({
 };
 
 export default CategoryView;
-

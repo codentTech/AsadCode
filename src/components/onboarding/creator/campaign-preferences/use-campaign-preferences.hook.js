@@ -1,26 +1,58 @@
+// use-campaign-preferences.hook.js
+"use client";
+
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import { setupCreatorCampaignPreferences } from "@/provider/features/creator-profile/creator-profile.slice";
 import { getOnboardingEmail } from "@/common/utils/users.util";
 import { useRouter } from "next/navigation";
+import { Camera, DollarSign, Gift, Percent } from "lucide-react";
+
+const ETHNICITY_OPTIONS = [
+  "Asian",
+  "Black or African descent",
+  "Hispanic or Latino",
+  "Middle Eastern or North African",
+  "Native American or Indigenous",
+  "Pacific Islander",
+  "White",
+  "Mixed",
+  "Other",
+  "Prefer not to say",
+];
 
 const validationSchema = Yup.object().shape({
-  campaignTypes: Yup.array().min(1, "Select at least one campaign type"),
-  languages: Yup.array().min(1, "Select at least one language"),
-  inPersonOpportunities: Yup.boolean().required("Select an option"),
-  shippingAddress: Yup.object().shape({
-    street: Yup.string(),
-    line2: Yup.string(),
-    line3: Yup.string(),
-    city: Yup.string(),
-    city_country_code: Yup.string(),
-    state: Yup.string(),
-    zipCode: Yup.string(),
-    country: Yup.string(),
-    country_code: Yup.string(),
-  }),
+  campaignTypes: Yup.array().min(1, "Select at least one campaign type").required(),
+  languages: Yup.array().min(1, "Select at least one language").required(),
+
+  // Spec says "Optional" but also "Required: Yes" — we follow Required: Yes.
+  ethnicity: Yup.string()
+    .oneOf(ETHNICITY_OPTIONS, "Select a valid ethnicity option")
+    .required("Select an ethnicity option"),
+
+  // require explicit selection
+  inPersonOpportunities: Yup.boolean()
+    .nullable()
+    .required("Select an option")
+    .typeError("Select an option"),
+
+  // Shipping Address mandatory
+  shippingAddress: Yup.object()
+    .shape({
+      street: Yup.string().trim().required("Address line 1 is required"),
+      line2: Yup.string().trim(),
+      line3: Yup.string().trim(),
+      city: Yup.string().trim().required("City is required"),
+      city_country_code: Yup.string().trim(),
+      state: Yup.string().trim().required("State or Province is required"),
+      zipCode: Yup.string().trim().required("Postal code is required"),
+      country: Yup.string().trim().required("Country is required"),
+      country_code: Yup.string().trim().required("Country is required"),
+    })
+    .required("Shipping address is required"),
 });
 
 export default function useCampaignPreferences({ onNext }) {
@@ -28,10 +60,45 @@ export default function useCampaignPreferences({ onNext }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
-  const { isLoading } = useSelector((state) => state.auth || {});
+  const { isLoading: authLoading } = useSelector((state) => state.auth || {});
 
+  /**
+   * Campaign types list (logic side)
+   */
+  const campaignTypes = useMemo(
+    () => [
+      {
+        id: "sponsored",
+        label: "Sponsored Post",
+        desc: "Get paid to post on your own platform",
+        icon: DollarSign,
+      },
+      {
+        id: "ugc",
+        label: "UGC",
+        desc: "Create content for brands to post on their platforms or in ads",
+        icon: Camera,
+      },
+      {
+        id: "gifted",
+        label: "Gifted",
+        desc: "Receive free products in exchange for content",
+        icon: Gift,
+      },
+      {
+        id: "affiliate",
+        label: "Affiliate",
+        desc: "Earn commission for driving sales",
+        icon: Percent,
+      },
+    ],
+    []
+  );
+
+  /**
+   * Form
+   */
   const {
-    register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
@@ -44,7 +111,8 @@ export default function useCampaignPreferences({ onNext }) {
     defaultValues: {
       campaignTypes: [],
       languages: [],
-      inPersonOpportunities: false,
+      ethnicity: "",
+      inPersonOpportunities: null,
       shippingAddress: {
         street: "",
         line2: "",
@@ -59,36 +127,249 @@ export default function useCampaignPreferences({ onNext }) {
     },
   });
 
+  /**
+   * Watched fields (hook exposes to UI)
+   */
+  const selectedCampaignTypes = watch("campaignTypes");
+  const selectedLanguages = watch("languages");
+  const selectedEthnicity = watch("ethnicity");
+  const inPersonOpportunities = watch("inPersonOpportunities");
+  const shippingAddress = watch("shippingAddress");
+
+  /**
+   * Country/City select UI state (logic)
+   */
+  const [countrySelection, setCountrySelection] = useState(null);
+  const [citySelection, setCitySelection] = useState(null);
+
+  const countryCode = countrySelection?.countryCode || shippingAddress?.country_code || "";
+
+  /**
+   * Sync local select objects from form values (for controlled selects)
+   */
+  useEffect(() => {
+    if (shippingAddress?.country && shippingAddress?.country_code) {
+      setCountrySelection((prev) =>
+        prev?.countryCode === shippingAddress.country_code
+          ? prev
+          : {
+              name: shippingAddress.country,
+              countryCode: shippingAddress.country_code,
+              code: shippingAddress.country_code,
+            }
+      );
+    } else if (!shippingAddress?.country) {
+      setCountrySelection(null);
+    }
+  }, [shippingAddress?.country, shippingAddress?.country_code]);
+
+  useEffect(() => {
+    if (shippingAddress?.city) {
+      setCitySelection((prev) =>
+        prev?.name === shippingAddress.city
+          ? prev
+          : {
+              name: shippingAddress.city,
+              cityName: shippingAddress.city,
+              countryCode:
+                shippingAddress?.city_country_code || shippingAddress?.country_code || "",
+            }
+      );
+    } else {
+      setCitySelection(null);
+    }
+  }, [shippingAddress?.city, shippingAddress?.city_country_code, shippingAddress?.country_code]);
+
+  /**
+   * Handlers
+   */
+  const toggleCampaignType = (type) => {
+    const prev = getValues("campaignTypes") || [];
+    const next = prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type];
+    setValue("campaignTypes", next, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+  };
+
+  const handleLanguagesChange = (languages) => {
+    setValue("languages", languages, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleEthnicityChange = (ethnicity) => {
+    setValue("ethnicity", ethnicity, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleInPersonChange = (value) => {
+    setValue("inPersonOpportunities", value === "yes", {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleShippingChange = (field, value) => {
+    setValue(`shippingAddress.${field}`, value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleCountrySelect = (country) => {
+    if (!country) {
+      setCountrySelection(null);
+
+      setValue("shippingAddress.country", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.country_code", "", { shouldValidate: true, shouldDirty: true });
+
+      setCitySelection(null);
+      setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.city_country_code", "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return;
+    }
+
+    const normalized = {
+      name: country.countryName || country.label || country.name || "",
+      countryCode: country.countryCode || country.value || country.code || "",
+    };
+
+    setCountrySelection(normalized);
+
+    setValue("shippingAddress.country", normalized.name, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue("shippingAddress.country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+
+    // reset city when country changes
+    setCitySelection(null);
+    setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+    setValue("shippingAddress.city_country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleCitySelect = (city) => {
+    if (!city) {
+      setCitySelection(null);
+      setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.city_country_code", "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return;
+    }
+
+    const normalized = {
+      name: city.cityName || city.label || city.name || "",
+      countryCode: city.countryCode || city.country || countryCode || "",
+      cityName: city.cityName || city.label || city.name || "",
+    };
+
+    setCitySelection(normalized);
+
+    setValue("shippingAddress.city", normalized.name, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue("shippingAddress.city_country_code", normalized.countryCode, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  // Optional utility if you ever need to force re-sync from UI
+  const refreshCountryCityFromForm = () => {
+    const addr = getValues("shippingAddress") || {};
+    if (addr.country && addr.country_code) {
+      setCountrySelection({
+        name: addr.country,
+        countryCode: addr.country_code,
+        code: addr.country_code,
+      });
+    }
+    if (addr.city) {
+      setCitySelection({
+        name: addr.city,
+        cityName: addr.city,
+        countryCode: addr.city_country_code || addr.country_code || "",
+      });
+    }
+  };
+
+  /**
+   * Submit
+   */
   const onSubmit = async (values) => {
     try {
       const payload = {
         campaignTypes: values.campaignTypes,
         languages: values.languages,
+        ethnicity: values.ethnicity,
         inPersonOpportunities: values.inPersonOpportunities,
         shippingAddress: values.shippingAddress,
       };
 
       const response = await dispatch(setupCreatorCampaignPreferences({ payload, email }));
-      if (response.payload && response.payload.success) {
-        onNext && onNext();
+      if (response.payload?.success) {
+        onNext?.();
         resetForm();
         localStorage.removeItem("email");
         route.push("/login");
       }
     } catch (error) {
-      console.error("Form submission error:", error.message);
+      console.error("Form submission error:", error?.message || error);
     }
   };
 
   return {
-    register,
+    // form
     handleSubmit,
     errors,
     onSubmit,
-    setValue,
-    getValues,
-    watch,
-    isLoading: isLoading || isSubmitting,
-    resetForm,
+    isLoading: authLoading || isSubmitting,
+
+    // ui data
+    campaignTypes,
+    ethnicityOptions: ETHNICITY_OPTIONS,
+
+    // watched values
+    selectedCampaignTypes,
+    selectedLanguages,
+    selectedEthnicity,
+    inPersonOpportunities,
+    shippingAddress,
+
+    // select state
+    countrySelection,
+    citySelection,
+    countryCode,
+
+    // handlers
+    toggleCampaignType,
+    handleLanguagesChange,
+    handleEthnicityChange,
+    handleCountrySelect,
+    handleCitySelect,
+    handleInPersonChange,
+    handleShippingChange,
+    refreshCountryCityFromForm,
   };
 }
