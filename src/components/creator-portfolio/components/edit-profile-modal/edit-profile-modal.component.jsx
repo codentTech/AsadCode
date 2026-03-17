@@ -257,11 +257,13 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
 
                 {/* Mini Profile Pictures */}
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
+                  <h3 className="text-xs font-semibold text-gray-900 mb-3">
+                    Showcase Image Covers (3)
+                  </h3>
                   <div className="grid grid-cols-3 gap-3">
                     {profileData.miniCards.map((card, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg border-2 border-solid border-gray-200 flex items-center justify-center overflow-hidden hover:border-primary transition-all duration-300">
+                        <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-solid border-gray-200 flex items-center justify-center overflow-hidden hover:border-primary transition-all duration-300">
                           {card ? (
                             <img
                               src={card}
@@ -277,12 +279,21 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
                             </div>
                           )}
                         </div>
+                        <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                          Cover {index + 1}
+                        </span>
                         <button
                           onClick={() => handleMiniCardUpload(index)}
                           className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
                         >
                           <Camera className="w-4 h-4 text-white" />
                         </button>
+
+                        {profileData.miniCardsLoading?.[index] && (
+                          <div className="absolute inset-0 bg-white/75 rounded-lg flex items-center justify-center">
+                            <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
 
                         {/* Remove Button */}
                         {card && (

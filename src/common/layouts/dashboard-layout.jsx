@@ -3,13 +3,21 @@
 import DashboardHeader from "@/components/admin/header/header.component";
 import Sidebar from "@/components/admin/sidebar/sidebar.component";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const pathToCurrentBar = (path) => {
+  if (!path) return null;
+  if (path.startsWith("/admin/payments")) return "Payments";
+  if (path.startsWith("/admin/users")) return "Users";
+  return null;
+};
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname || "/admin/dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentBar = useMemo(() => pathToCurrentBar(pathname), [pathname]);
 
   // Update active route when pathname changes
   useEffect(() => {
@@ -56,7 +64,7 @@ export default function DashboardLayout({ children }) {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         setCurrentBar={null}
-        currentBar={null}
+        currentBar={currentBar}
       />
 
       {/* Main Content Area - With Left Margin for Sidebar */}
