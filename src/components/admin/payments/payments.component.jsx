@@ -1,0 +1,140 @@
+"use client";
+
+import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
+import DashboardLayout from "@/common/layouts/dashboard-layout";
+import Modal from "@/common/components/modal/modal.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
+import usePayments from "./use-payments.hook";
+
+const formatCents = (cents) => {
+  if (cents == null) return "—";
+  return `$${((Number(cents) || 0) / 100).toFixed(2)}`;
+};
+
+const DetailRow = ({ label, value, className = "" }) => (
+  <div className={`rounded-lg px-3 py-2.5 ${className || "bg-gray-100"}`}>
+    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">{label}</div>
+    <div className="text-sm text-gray-900">{value}</div>
+  </div>
+);
+
+const Payments = () => {
+  const {
+    columns,
+    payments,
+    total,
+    isLoading,
+    page,
+    pageSize,
+    handlePageChange,
+    handlePageSizeChange,
+    handleActionClick,
+    actions,
+    detailPayment,
+    detail,
+    detailLoading,
+    handleCloseDetail,
+  } = usePayments();
+
+  return (
+    <DashboardLayout>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Payment Monitoring</h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            View all collaboration payments, funding and payout status
+          </p>
+        </div>
+
+        <CustomDataTable
+          columns={columns}
+          data={payments}
+          selectable={false}
+          searchable={false}
+          paginated={true}
+          externalPagination={true}
+          currentPage={page}
+          pageSize={pageSize}
+          totalRecords={total}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          actions={actions}
+          onActionClick={handleActionClick}
+          emptyMessage="No payments found"
+          loading={isLoading}
+        />
+      </div>
+
+      <Modal
+        show={!!detailPayment}
+        title="Payment details"
+        onClose={handleCloseDetail}
+        size="md"
+      >
+        {detailLoading && (
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-14 w-2/3 rounded-lg" />
+          </div>
+        )}
+        {!detailLoading && detail && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <DetailRow
+                label="Brand"
+                value={
+                  detail.brand
+                    ? `${detail.brand.first_name || ""} ${detail.brand.last_name || ""}`.trim() ||
+                      detail.brand.email
+                    : "—"
+                }
+              />
+              <DetailRow
+                label="Creator"
+                value={
+                  detail.creator
+                    ? `${detail.creator.first_name || ""} ${detail.creator.last_name || ""}`.trim() ||
+                      detail.creator.email
+                    : "—"
+                }
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <DetailRow label="Gross amount" value={formatCents(detail.gross_amount_cents)} />
+              <DetailRow label="Stripe fee" value={formatCents(detail.stripe_fee_cents)} />
+              <DetailRow label="Net payout" value={formatCents(detail.net_payout_cents)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailRow
+                label="Funding status"
+                value={String(detail.funding_status || "").replace(/_/g, " ")}
+              />
+              <DetailRow
+                label="Payout status"
+                value={String(detail.payout_status || "").replace(/_/g, " ")}
+              />
+            </div>
+            {detail.payout_block_reason && (
+              <DetailRow
+                label="Block reason"
+                value={String(detail.payout_block_reason).replace(/_/g, " ")}
+              />
+            )}
+            {detail.funding_failed_reason && (
+              <DetailRow
+                label="Funding error"
+                value={detail.funding_failed_reason}
+                className="bg-red-50 border border-red-200"
+              />
+            )}
+          </div>
+        )}
+      </Modal>
+    </DashboardLayout>
+  );
+};
+
+export default Payments;

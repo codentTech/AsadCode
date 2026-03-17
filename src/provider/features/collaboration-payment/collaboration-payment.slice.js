@@ -43,6 +43,10 @@ const initialState = {
 
   // Platform Connect availability
   checkConnectStatus: makeRequestState(),
+
+  // Admin payment monitoring
+  getAdminPayments: makeRequestState(),
+  getAdminPaymentById: makeRequestState(),
 };
 
 // Brand: payment methods
@@ -275,6 +279,42 @@ export const checkConnectStatus = createAsyncThunk(
   }
 );
 
+// Admin: list payments
+export const getAdminPayments = createAsyncThunk(
+  "collaborationPayment/getAdminPayments",
+  async (params, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getAdminPayments(
+        params || {}
+      );
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get admin payments")
+      );
+    }
+  }
+);
+
+// Admin: single payment detail
+export const getAdminPaymentById = createAsyncThunk(
+  "collaborationPayment/getAdminPaymentById",
+  async (id, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getAdminPaymentById(
+        id
+      );
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get payment details")
+      );
+    }
+  }
+);
+
 const setPending = (state) => {
   state.isLoading = true;
   state.isSuccess = false;
@@ -343,6 +383,12 @@ const collaborationPaymentSlice = createSlice({
     },
     resetCheckConnectStatus: (state) => {
       state.checkConnectStatus = makeRequestState();
+    },
+    resetGetAdminPayments: (state) => {
+      state.getAdminPayments = makeRequestState();
+    },
+    resetGetAdminPaymentById: (state) => {
+      state.getAdminPaymentById = makeRequestState();
     },
   },
   extraReducers: (builder) => {
@@ -488,6 +534,27 @@ const collaborationPaymentSlice = createSlice({
       .addCase(checkConnectStatus.rejected, (state, action) =>
         setRejected(state.checkConnectStatus, action, "Failed to check Connect status")
       );
+
+    // Admin
+    builder
+      .addCase(getAdminPayments.pending, (state) => setPending(state.getAdminPayments))
+      .addCase(getAdminPayments.fulfilled, (state, action) =>
+        setFulfilled(state.getAdminPayments, action)
+      )
+      .addCase(getAdminPayments.rejected, (state, action) =>
+        setRejected(state.getAdminPayments, action, "Failed to get admin payments")
+      );
+
+    builder
+      .addCase(getAdminPaymentById.pending, (state) =>
+        setPending(state.getAdminPaymentById)
+      )
+      .addCase(getAdminPaymentById.fulfilled, (state, action) =>
+        setFulfilled(state.getAdminPaymentById, action)
+      )
+      .addCase(getAdminPaymentById.rejected, (state, action) =>
+        setRejected(state.getAdminPaymentById, action, "Failed to get payment details")
+      );
   },
 });
 
@@ -506,6 +573,8 @@ export const {
   resetGetCreatorAccountStatus,
   resetCheckCreatorPayoutReady,
   resetCheckConnectStatus,
+  resetGetAdminPayments,
+  resetGetAdminPaymentById,
 } = collaborationPaymentSlice.actions;
 
 export default collaborationPaymentSlice.reducer;

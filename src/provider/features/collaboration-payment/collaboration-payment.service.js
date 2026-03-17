@@ -94,6 +94,19 @@ const checkConnectStatus = async () => {
   return response.data;
 };
 
+// Admin: payment monitoring
+const getAdminPayments = async (params = {}) => {
+  const response = await api().get("/collaboration-payments/admin/all", {
+    params,
+  });
+  return response.data;
+};
+
+const getAdminPaymentById = async (id) => {
+  const response = await api().get(`/collaboration-payments/admin/${id}`);
+  return response.data;
+};
+
 const collaborationPaymentService = {
   // Brand payment methods
   getPaymentMethods,
@@ -118,6 +131,10 @@ const collaborationPaymentService = {
 
   // Connect status
   checkConnectStatus,
+
+  // Admin
+  getAdminPayments,
+  getAdminPaymentById,
 };
 
 export default collaborationPaymentService;
