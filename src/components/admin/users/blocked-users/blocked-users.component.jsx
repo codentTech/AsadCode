@@ -1,6 +1,6 @@
 "use client";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
-import { formatDateBySplit } from "@/common/utils/formate-date";
+import { formatDate } from "@/common/utils/date.utils";
 import { Download, Filter, ShieldOff, User } from "lucide-react";
 import useBlockedUsers from "./use-blocked-users.hook";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
@@ -57,7 +57,7 @@ const BlockedUsers = () => {
     },
     blocked_at: (value) => {
       if (!value) return <span className="text-sm text-gray-400">-</span>;
-      return <span className="text-sm text-red-600 font-medium">{formatDateBySplit(value)}</span>;
+      return <span className="text-sm text-red-600 font-medium">{formatDate(value)}</span>;
     },
   };
 

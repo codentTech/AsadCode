@@ -1,20 +1,9 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+import { ArrowBack } from "@mui/icons-material";
 import CheckIcon from "@mui/icons-material/Check";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import useCustomStepper from "./use-custom-stepper";
+import PropTypes from "prop-types";
+import React from "react";
 import CustomButton from "../custom-button/custom-button.component";
-import {
-  ArrowBack,
-  ArrowForward,
-  ChevronLeftOutlined,
-  SaveAlt,
-  SaveAltTwoTone,
-  SaveAs,
-  SaveOutlined,
-  SaveRounded,
-} from "@mui/icons-material";
+import useCustomStepper from "./use-custom-stepper";
 
 /**
  * CustomStepper - A flexible and reusable stepper component
@@ -43,54 +32,27 @@ const CustomStepper = ({
   colors = {},
   showLabels = true,
   children,
+  // New props for validation and submission
+  onNext = null,
+  onSave = null,
+  isLoading = false,
+  canProceed = true,
 }) => {
-  const { nextStep, prevStep, editCampaign } = useCustomStepper({
+  const {
+    nextStep: defaultNextStep,
+    prevStep,
+    editCampaign: defaultEditCampaign,
+  } = useCustomStepper({
     steps,
     activeStep,
     setActiveStep,
     showPreview,
     setShowPreview,
   });
-  // Merge default colors with custom colors
-  const defaultColors = {
-    active: "#3b82f6", // blue-500
-    completed: "#3b82f6", // blue-500
-    incomplete: "#9ca3af", // gray-400
-    text: {
-      active: "#1e40af", // blue-800
-      completed: "#3b82f6", // blue-500
-      incomplete: "#6b7280", // gray-500
-    },
-    progress: "#3b82f6", // blue-500
-    background: "#f9fafb", // gray-50
-  };
 
-  const mergedColors = { ...defaultColors, ...colors };
-
-  // Size configurations
-  const sizeConfig = {
-    small: {
-      circle: "w-6 h-6",
-      font: "text-xs",
-      icon: "h-3 w-3",
-      padding: "p-3",
-      line: "h-0.5",
-    },
-    medium: {
-      circle: "w-10 h-10",
-      font: "text-sm",
-      icon: "h-5 w-5",
-      padding: "p-5",
-      line: "h-0.5",
-    },
-    large: {
-      circle: "w-14 h-14",
-      font: "text-base",
-      icon: "h-6 w-6",
-      padding: "p-6",
-      line: "h-1",
-    },
-  };
+  // Use custom handlers if provided, otherwise use defaults
+  const handleNext = onNext || defaultNextStep;
+  const handleSave = onSave || defaultEditCampaign;
 
   // Handle click on a step
   const handleStepClick = (index) => {
@@ -98,9 +60,6 @@ const CustomStepper = ({
       onStepClick(index);
     }
   };
-
-  // Calculate progress percentage
-  const progressPercentage = (activeStep / (steps.length - 1)) * 100;
 
   // Render horizontal stepper
   const renderHorizontalStepper = () => (
@@ -217,10 +176,13 @@ const CustomStepper = ({
         />
 
         <CustomButton
-          text={activeStep < steps.length - 1 ? "Next" : "Save"}
-          onClick={activeStep < steps.length - 1 ? nextStep : editCampaign}
-          className="btn-primary"
-          endIcon={activeStep < steps.length - 1 ? <ArrowForward className="h-4 w-4 ml-1" /> : null}
+          text={
+            isLoading ? "Processing" : activeStep < steps.length - 1 ? "Next" : "Launch Campaign"
+          }
+          onClick={activeStep < steps.length - 1 ? handleNext : handleSave}
+          disabled={!canProceed || isLoading}
+          className={`btn-primary ${!canProceed || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          loading={isLoading}
         />
       </div>
     </div>

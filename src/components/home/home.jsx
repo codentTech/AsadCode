@@ -1,6 +1,6 @@
 "use client";
 
-import Loadar from "@/common/components/loadar/loadar.component";
+import Loading from "@/common/components/loader/loading.component";
 import Footer from "../home/footer/footer.component";
 import Header from "../home/header/header.component";
 import UserMiniProfile from "../home/user-mini-profile/user-mini-profile";
@@ -17,7 +17,7 @@ function HomePage() {
   const { loader } = useHome();
 
   if (loader) {
-    return <Loadar />;
+    return <Loading />;
   }
 
   return (

@@ -1,125 +1,289 @@
-import { enqueueSnackbar } from "notistack";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSnackbar } from "notistack";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
+import {
+  createPitch,
+  getAllPitches,
+  updatePitch,
+  deletePitch,
+  resetCreatePitch,
+  resetUpdatePitch,
+  resetDeletePitch,
+} from "@/provider/features/pitches/pitches.slice";
 
-function usePitchTemplate() {
-  const [pitchTemplates, setPitchTemplates] = useState([
-    {
-      id: 1,
-      name: "Airbnb Pitch",
-      content:
-        "Hi! I'd love to showcase your property to my travel-focused audience. My content consistently drives bookings and engagement...",
-    },
-    {
-      id: 2,
-      name: "Restaurant Pitch",
-      content:
-        "I specialize in food content and would love to feature your restaurant. My audience loves discovering new dining experiences...",
-    },
-    {
-      id: 3,
-      name: "Hotels Pitch",
-      content:
-        "As a travel creator, I'd be excited to create content for your hotel. My previous hotel collaborations have generated significant bookings...",
-    },
-    {
-      id: 4,
-      name: "Airline Pitch",
-      content:
-        "I create travel content and would love to partner with your airline. My audience values travel experiences and flight recommendations...",
-    },
-    {
-      id: 5,
-      name: "Tourism Board Pitch",
-      content:
-        "I'm passionate about destination marketing and would love to showcase your location to my engaged travel audience...",
-    },
-  ]);
+// Single validation schema for both create and update
+const pitchSchema = Yup.object().shape({
+  name: Yup.string().required("Pitch name is required").trim(),
+  content: Yup.string().required("Pitch content is required").trim(),
+});
 
-  const [showPitchPopup, setShowPitchPopup] = useState(false);
+const usePitchTemplate = () => {
+  const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
+
+  // Redux state selectors
+  const {
+    createPitch: createPitchState,
+    getAllPitches: getAllPitchesState,
+    updatePitch: updatePitchState,
+    deletePitch: deletePitchState,
+  } = useSelector((state) => state.pitches);
+
+  // Local state
+  const [showPitchPopup, setShowPitchPopup] = useState(null);
   const [showNewPitchForm, setShowNewPitchForm] = useState(false);
-  const [newPitchTitle, setNewPitchTitle] = useState("");
-  const [newPitchContent, setNewPitchContent] = useState("");
-  const [applicationPitch, setApplicationPitch] = useState("");
-
-  // Edit functionality states
   const [isEditing, setIsEditing] = useState(false);
-  const [editPitchTitle, setEditPitchTitle] = useState("");
-  const [editPitchContent, setEditPitchContent] = useState("");
+  const [applicationPitch, setApplicationPitch] = useState("");
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState({
+    open: false,
+    pitchId: null,
+    pitchName: "",
+  });
 
-  const copyPitchTemplate = (content) => {
-    navigator.clipboard.writeText(content);
-    setApplicationPitch(content);
-    enqueueSnackbar("Text copied to clipboard", { variant: "info" });
+  // Single form for both create and edit
+  const pitchForm = useForm({
+    resolver: yupResolver(pitchSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      content: "",
+    },
+  });
+
+  // Get pitch templates from Redux state
+  const pitchTemplates = getAllPitchesState.data?.data || [];
+
+  // Load pitches on component mount
+  useEffect(() => {
+    dispatch(getAllPitches());
+  }, [dispatch]);
+
+  // Update showPitchPopup when pitchTemplates change (for immediate reflection)
+  useEffect(() => {
+    if (showPitchPopup && pitchTemplates.length > 0) {
+      const updatedPitch = pitchTemplates.find((p) => p.id === showPitchPopup.id);
+      if (updatedPitch) {
+        setShowPitchPopup(updatedPitch);
+      }
+    }
+  }, [pitchTemplates, showPitchPopup]);
+
+  // Unified success handler for all operations
+  useEffect(() => {
+    if (createPitchState.isSuccess) {
+      handleOperationSuccess("create");
+    }
+    if (updatePitchState.isSuccess) {
+      handleOperationSuccess("update");
+    }
+    if (deletePitchState.isSuccess) {
+      handleOperationSuccess("delete");
+    }
+  }, [createPitchState.isSuccess, updatePitchState.isSuccess, deletePitchState.isSuccess]);
+
+  // Unified error handler for all operations
+  useEffect(() => {
+    if (createPitchState.isError) {
+      dispatch(resetCreatePitch());
+    }
+    if (updatePitchState.isError) {
+      dispatch(resetUpdatePitch());
+    }
+    if (deletePitchState.isError) {
+      dispatch(resetDeletePitch());
+    }
+  }, [createPitchState.isError, updatePitchState.isError, deletePitchState.isError, dispatch]);
+
+  // Unified success handler
+  const handleOperationSuccess = (operation) => {
+    switch (operation) {
+      case "create":
+        setShowNewPitchForm(false);
+        break;
+      case "update":
+        setIsEditing(false);
+        break;
+      case "delete":
+        setShowPitchPopup(null);
+        setDeleteConfirmationModal({ open: false, pitchId: null, pitchName: "" });
+        break;
+    }
+
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
+    dispatch(getAllPitches());
+
+    // Reset specific operation state
+    if (operation === "create") dispatch(resetCreatePitch());
+    if (operation === "update") dispatch(resetUpdatePitch());
+    if (operation === "delete") dispatch(resetDeletePitch());
   };
 
-  const createNewPitch = () => {
-    if (newPitchTitle && newPitchContent) {
-      const newPitch = {
-        id: Date.now(),
-        name: newPitchTitle,
-        content: newPitchContent,
-      };
-      setPitchTemplates([...pitchTemplates, newPitch]);
-      setNewPitchTitle("");
-      setNewPitchContent("");
-      setShowNewPitchForm(false);
-      enqueueSnackbar("Pitch template created successfully!", { variant: "success" });
-    } else {
-      enqueueSnackbar("Please fill in both pitch name and content", { variant: "error" });
+  // Unified action dispatcher
+  const dispatchPitchAction = (action, data) => {
+    dispatch(action(data));
+  };
+
+  const copyPitchTemplate = async (content) => {
+    try {
+      // Strip HTML tags to get plain text
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = content;
+      const plainText = tempDiv.textContent || tempDiv.innerText || "";
+
+      await navigator.clipboard.writeText(plainText);
+      setApplicationPitch(plainText);
+      enqueueSnackbar("Pitch copied to clipboard!", { variant: "success" });
+    } catch (error) {
+      console.error("Clipboard error:", error);
+      // Fallback for older browsers or when clipboard API fails
+      try {
+        // Strip HTML tags for fallback too
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = content;
+        const plainText = tempDiv.textContent || tempDiv.innerText || "";
+
+        const textArea = document.createElement("textarea");
+        textArea.value = plainText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        setApplicationPitch(plainText);
+        enqueueSnackbar("Pitch copied to clipboard!", { variant: "success" });
+      } catch (fallbackError) {
+        console.error("Fallback copy failed:", fallbackError);
+        enqueueSnackbar("Failed to copy pitch to clipboard", { variant: "error" });
+      }
     }
   };
 
-  const updatePitch = (id, newTitle, newContent) => {
-    if (newTitle && newContent) {
-      setPitchTemplates(
-        pitchTemplates.map((pitch) =>
-          pitch.id === id ? { ...pitch, name: newTitle, content: newContent } : pitch
-        )
-      );
+  // Form handlers
+  const handleSubmitForm = (data) => {
+    const trimmedData = {
+      name: data.name.trim(),
+      content: data.content.trim(),
+    };
 
-      // Update the showPitchPopup state to reflect the changes immediately
-      setShowPitchPopup((prev) =>
-        prev && prev.id === id ? { ...prev, name: newTitle, content: newContent } : prev
-      );
-
-      setEditPitchTitle("");
-      setEditPitchContent("");
-      enqueueSnackbar("Pitch template updated successfully!", { variant: "success" });
+    if (isEditing && showPitchPopup) {
+      dispatchPitchAction(updatePitch, {
+        id: showPitchPopup.id,
+        data: trimmedData,
+      });
+      resetUpdatePitch();
     } else {
-      enqueueSnackbar("Please fill in both pitch name and content", { variant: "error" });
+      dispatchPitchAction(createPitch, trimmedData);
+      resetCreatePitch();
     }
   };
 
-  const deletePitch = (id) => {
-    setPitchTemplates(pitchTemplates.filter((pitch) => pitch.id !== id));
-    setShowPitchPopup(false);
+  const handleEditPitch = () => {
+    if (showPitchPopup) {
+      pitchForm.reset({
+        name: showPitchPopup.name,
+        content: showPitchPopup.content,
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleOpenNewPitchForm = () => {
+    setShowNewPitchForm(true);
     setIsEditing(false);
-    enqueueSnackbar("Pitch template deleted", { variant: "info" });
+    // Ensure form is properly reset with default values
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    // Clear any validation errors
+    pitchForm.clearErrors();
+    resetCreatePitch();
   };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
+  };
+
+  const handleCloseNewPitchForm = () => {
+    setShowNewPitchForm(false);
+    pitchForm.reset({
+      name: "",
+      content: "",
+    });
+    pitchForm.clearErrors();
+  };
+
+  const handleDeletePitch = (id) => {
+    if (!id) {
+      enqueueSnackbar("Invalid pitch ID", { variant: "error" });
+      return;
+    }
+
+    const pitch = pitchTemplates.find((p) => p.id === id);
+    setDeleteConfirmationModal({
+      open: true,
+      pitchId: id,
+      pitchName: pitch?.name || "",
+    });
+  };
+
+  const confirmDeletePitch = () => {
+    if (deleteConfirmationModal.pitchId) {
+      dispatchPitchAction(deletePitch, deleteConfirmationModal.pitchId);
+      resetDeletePitch();
+    }
+  };
+
+  const closeDeleteConfirmationModal = () => {
+    setDeleteConfirmationModal({ open: false, pitchId: null, pitchName: "" });
+  };
+
+  // Loading states
+  const isLoading =
+    createPitchState.isLoading || updatePitchState.isLoading || deletePitchState.isLoading;
 
   return {
+    // State
     pitchTemplates,
-    copyPitchTemplate,
-    createNewPitch,
-    updatePitch,
-    deletePitch,
-    setShowPitchPopup,
-    setShowNewPitchForm,
     showPitchPopup,
     showNewPitchForm,
-    newPitchTitle,
-    newPitchContent,
-    setNewPitchTitle,
-    setNewPitchContent,
-    applicationPitch,
-    setApplicationPitch,
     isEditing,
+    applicationPitch,
+    isLoading,
+    deleteConfirmationModal,
+
+    // Form
+    pitchForm,
+
+    // Setters
+    setShowPitchPopup,
+    setShowNewPitchForm,
     setIsEditing,
-    editPitchTitle,
-    editPitchContent,
-    setEditPitchTitle,
-    setEditPitchContent,
+
+    // Actions
+    copyPitchTemplate,
+
+    // Event Handlers
+    handleSubmitForm,
+    handleEditPitch,
+    handleOpenNewPitchForm,
+    handleCancelEdit,
+    handleCloseNewPitchForm,
+    handleDeletePitch,
+    confirmDeletePitch,
+    closeDeleteConfirmationModal,
   };
-}
+};
 
 export default usePitchTemplate;

@@ -19,7 +19,7 @@ const api = (headers = null) => {
     : { ...defaultHeaders, ...headers };
 
   const apiInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:3000/api",
+    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
     headers: combinedHeaders,
   });
 
@@ -32,9 +32,13 @@ const api = (headers = null) => {
         (method === "get" && endpoint === "generate-otp") ||
         (["post", "patch", "delete", "put"].includes(method) &&
           !["get", "get-all"].includes(endpoint) &&
-          !["/upload/single", "/upload/multiple"].includes(response.config.url));
+          !["/upload", "/upload/multiple"].includes(response.config.url) &&
+          !response.config.url?.includes("/chat"));
 
-      if (isSuccessResponse) {
+      const skipToast =
+        response.config.headers?.["x-skip-toast"] ?? response.config.headers?.["X-Skip-Toast"];
+
+      if (isSuccessResponse && !skipToast) {
         enqueueSnackbar(response.data?.message || "Success", { variant: "success" });
         await delay(700);
       }
@@ -49,24 +53,32 @@ const api = (headers = null) => {
       }
 
       const message = error.response?.data?.message || error.message || error.toString();
-
-      const responseURL = error.request?.responseURL;
-
-      if (responseURL.includes("onboarding")) return null;
+      const responseURL = error.request?.responseURL || "";
 
       // Handle unauthorized
-      // if (status === 401) {
-      //   removeUser();
-      //   window.location.href = "/";
-      //   return;
-      // }
+      if (error.response?.status === 401) {
+        removeUser();
+        window.location.href = "/login";
+        return;
+      }
+
+      // Check if toast should be skipped for this request
+      const skipToast =
+        error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
+
+      // Skip toast for payment method errors (they're shown in the component)
+      const isPaymentMethodError =
+        responseURL?.includes("/payment-methods/attach") ||
+        responseURL?.includes("/payment-methods/setup-intent");
 
       // Handle message display
-      if (Array.isArray(message)) {
-        message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
-      } else {
-        if (message !== "Record Not Found") {
-          enqueueSnackbar(message, { variant: "error" });
+      if (!skipToast && !isPaymentMethodError) {
+        if (Array.isArray(message)) {
+          message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
+        } else {
+          if (message !== "Record Not Found") {
+            enqueueSnackbar(message, { variant: "error" });
+          }
         }
       }
 

@@ -2,8 +2,19 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import { useState } from "react";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  CAMPAIGN_TYPE_OPTIONS,
+  COMPENSATION_TYPE_OPTIONS,
+  EXCLUSIVITY_CLAUSE_OPTIONS,
+  REVISION_LIMIT_OPTIONS,
+  USAGE_RIGHTS_OPTIONS,
+} from "@/common/constants/options.constant";
+import { AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
+import useHireCreator from "./use-hire-creator.hook";
 
 export default function HireCreatorModal({
   show,
@@ -11,75 +22,87 @@ export default function HireCreatorModal({
   creatorData,
   campaignData,
   onSendOffer,
+  isLoading = false,
 }) {
-  const [contractData, setContractData] = useState({
-    // General Information (auto-filled)
-    campaignTitle: campaignData?.title || "",
-    partiesInvolved: campaignData?.brandName || "",
-    contractId: `CC-${Date.now()}`, // Auto-generated
-    startDate: "",
-
-    // Deliverables (auto-filled from campaign)
-    contentFormat: campaignData?.deliverables || "",
-    firstDraftDeadline: "",
-    completionDeadline: "",
-    revisionsLimit: 2,
-
-    // Payment Terms
-    compensationType: "fixed",
-    totalCompensation: "",
-
-    // Legal & Compliance
-    exclusivityClause: "none",
-    usageRights: "no_usage",
-    usageMonths: 0,
+  const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    errors,
+    setValue,
+    watch,
+    getCompensationInputLabel,
+    isCompensationRequired,
+    createEnrichedContractData,
+    hasPaymentMethod,
+    isCheckingPaymentMethod,
+    isPaymentRequired,
+    showPreview,
+    setShowPreview,
+    handlePreviewContract,
+    handleFormSubmit,
+    revisionsLimitValue,
+    usageRightsValue,
+    exclusivityValue,
+    campaignTypeValue,
+    isIndividualCollaboration,
+  } = useHireCreator({
+    creatorData,
+    campaignData,
+    onSendOffer,
+    isLoading,
+    showModal: show,
+    onClose,
   });
-
-  const [showPreview, setShowPreview] = useState(false);
-
-  const compensationOptions = [
-    { value: "fixed", label: "Fixed Payment" },
-    { value: "gifted", label: "Gifted Product" },
-    { value: "commission", label: "Commission" },
-  ];
-
-  const exclusivityOptions = [
-    { value: "none", label: "None" },
-    { value: "3", label: "3 Months" },
-    { value: "6", label: "6 Months" },
-    { value: "12", label: "12 Months" },
-  ];
-
-  const handleInputChange = (field, value) => {
-    setContractData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handlePreviewContract = () => {
-    setShowPreview(true);
-  };
-
-  const handleSendOffer = () => {
-    onSendOffer(contractData);
-    onClose();
-  };
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
-      <div className="space-y-4">
+      {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
+      {isPaymentRequired() && !isCheckingPaymentMethod && !hasPaymentMethod && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-900 mb-1">Payment method required</p>
+              <p className="text-xs text-yellow-700 mb-3">
+                You must add a payment method before sending offers. No charge occurs when sending
+                an offer - payment is only processed when the creator accepts.
+              </p>
+              <CustomButton
+                text="Add Payment Method"
+                className="btn-primary text-xs"
+                onClick={() => {
+                  onClose();
+                  router.push("/settings/payments/payment-methods");
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         {/* General Information */}
         <div>
           <h3 className="font-bold mb-2">General Information</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <CustomInput label="Campaign Title" value={contractData.campaignTitle} />
-            <CustomInput label="Contract ID" value={contractData.contractId} disabled />
+            <CustomInput
+              label="Campaign Title"
+              value={
+                isIndividualCollaboration
+                  ? "Individual Collaboration"
+                  : campaignData?.campaign_title || ""
+              }
+              disabled
+            />
+            <CustomInput label="Contract ID" value="DRAFT" disabled />
             <CustomInput
               label="Start Date"
               type="date"
-              value={contractData.startDate}
-              onChange={(e) => handleInputChange("startDate", e.target.value)}
+              register={register}
+              name="startDate"
+              errors={errors}
+              isRequired={true}
             />
           </div>
         </div>
@@ -89,69 +112,100 @@ export default function HireCreatorModal({
           <h3 className="font-bold mb-2">Deliverables</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <CustomInput
-              label="Content Format(s)"
-              value={contractData.contentFormat}
-              onChange={(e) => handleInputChange("contentFormat", e.target.value)}
-              placeholder="e.g., 1 TikTok, 3 Instagram Stories"
-            />
-            <CustomInput
               label="1st Draft Deadline (Optional)"
               type="date"
-              value={contractData.firstDraftDeadline}
-              onChange={(e) => handleInputChange("firstDraftDeadline", e.target.value)}
+              register={register}
+              name="firstDraftDeadline"
+              errors={errors}
             />
             <CustomInput
               label="Completion Deadline"
               type="date"
-              value={contractData.completionDeadline}
-              onChange={(e) => handleInputChange("completionDeadline", e.target.value)}
+              register={register}
+              name="completionDeadline"
+              errors={errors}
+              isRequired={true}
             />
-            <div>
-              <SimpleSelect
-                label="Revisions Limit"
-                value={contractData.revisionsLimit}
-                options={[
-                  { value: 0, label: "0" },
-                  { value: 1, label: "1" },
-                  { value: 2, label: "2" },
-                  { value: 3, label: "3" },
-                  { value: 4, label: "4" },
-                  { value: 5, label: "5" },
-                ]}
-                onChange={(value) => handleInputChange("revisionsLimit", value)}
+            <SimpleSelect
+              label="Revisions Limit"
+              options={REVISION_LIMIT_OPTIONS}
+              defaultValue={revisionsLimitValue}
+              onChange={(option) => setValue("revisionsLimit", option.value)}
+              errors={errors}
+              name="revisionsLimit"
+            />
+          </div>
+          <div className="w-full mt-4">
+            <TextArea
+              label="Content Format(s)"
+              register={register}
+              name="contentFormat"
+              errors={errors}
+              placeholder="e.g., 1 TikTok, 3 Instagram Stories"
+              isRequired={true}
+            />
+          </div>
+          {isIndividualCollaboration && (
+            <div className="w-full mt-4">
+              <TextArea
+                label="Content Guidelines / Brief"
+                register={register}
+                name="contentGuidelines"
+                errors={errors}
+                placeholder="Enter content guidelines and brief for this collaboration..."
+                isRequired={true}
               />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Payment Terms */}
         <div>
           <h3 className="font-bold mb-2">Payment Terms</h3>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {isIndividualCollaboration && (
+              <div>
+                <SimpleSelect
+                  label="Campaign Type"
+                  options={CAMPAIGN_TYPE_OPTIONS}
+                  defaultValue={campaignTypeValue}
+                  onChange={(option) => setValue("campaignType", option.value)}
+                  errors={errors}
+                  name="campaignType"
+                  isRequired={true}
+                />
+              </div>
+            )}
             <div>
               <SimpleSelect
                 label="Compensation Type"
-                value={contractData.compensationType}
-                options={compensationOptions}
-                onChange={(value) => handleInputChange("compensationType", value)}
+                options={COMPENSATION_TYPE_OPTIONS}
+                defaultValue={watch?.compensationType || COMPENSATION_TYPE.PAID}
+                onChange={(option) => setValue("compensationType", option.value)}
+                errors={errors}
+                name="compensationType"
               />
             </div>
-            {contractData.compensationType === "fixed" && (
+            {isCompensationRequired() && (
               <CustomInput
-                label="Total Compensation ($)"
+                label={getCompensationInputLabel()}
                 type="number"
-                value={contractData.totalCompensation}
-                onChange={(e) => handleInputChange("totalCompensation", e.target.value)}
+                register={register}
+                name="totalCompensation"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
-            {contractData.compensationType === "commission" && (
+            {watch?.compensationType === COMPENSATION_TYPE.COMMISSION && (
               <CustomInput
-                label="Commission Rate (%)"
+                label="Product Price ($)"
                 type="number"
-                value={contractData.totalCompensation}
-                onChange={(e) => handleInputChange("totalCompensation", e.target.value)}
+                register={register}
+                name="productPrice"
+                errors={errors}
                 placeholder="0"
+                isRequired={true}
               />
             )}
           </div>
@@ -164,46 +218,57 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
-                value={contractData.exclusivityClause}
-                options={exclusivityOptions}
-                onChange={(value) => handleInputChange("exclusivityClause", value)}
+                options={EXCLUSIVITY_CLAUSE_OPTIONS}
+                defaultValue={exclusivityValue}
+                onChange={(option) => setValue("exclusivityClause", option.value)}
+                errors={errors}
+                name="exclusivityClause"
               />
             </div>
-            <CustomInput
-              label="Usage Rights"
-              value={contractData.usageRights}
-              onChange={(e) => handleInputChange("usageRights", e.target.value)}
-              placeholder="No usage or X months"
-            />
+            <div>
+              <SimpleSelect
+                label="Usage Rights"
+                options={USAGE_RIGHTS_OPTIONS}
+                defaultValue={usageRightsValue}
+                onChange={(option) => setValue("usageRights", option.value)}
+                errors={errors}
+                name="usageRights"
+              />
+            </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
           <CustomButton
             text="Save Draft"
             className="btn-outline"
-            onClick={() => console.log("Save draft")}
+            type="button"
+            onClick={() => {}}
           />
           <CustomButton
             text="Preview Contract"
             className="btn-secondary"
+            type="button"
             onClick={handlePreviewContract}
           />
-          <CustomButton text="Send Offer" className="btn-primary" onClick={handleSendOffer} />
+          <CustomButton
+            text="Send Offer"
+            className="btn-primary"
+            type="submit"
+            disabled={
+              (isPaymentRequired() && !hasPaymentMethod) || isCheckingPaymentMethod
+            }
+          />
         </div>
-      </div>
+      </form>
 
       {/* Contract Preview Modal */}
-      {showPreview && (
-        <ContractPreviewModal
-          show={showPreview}
-          onClose={() => setShowPreview(false)}
-          contractData={contractData}
-          creatorData={creatorData}
-          campaignData={campaignData}
-        />
-      )}
+      <ContractPreviewModal
+        show={showPreview}
+        onClose={() => setShowPreview(false)}
+        contractData={createEnrichedContractData(watch)}
+      />
     </Modal>
   );
 }

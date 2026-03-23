@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { AddCircle } from "@mui/icons-material";
 import {
   Facebook,
@@ -89,7 +88,7 @@ const SocialLinks = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Social Links</h1>
@@ -255,7 +254,7 @@ const SocialLinks = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

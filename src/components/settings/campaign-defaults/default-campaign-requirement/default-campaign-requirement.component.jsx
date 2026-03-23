@@ -1,11 +1,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import FacebookIcon from "@/common/icons/facebook";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import COUNTRIES from "@/common/constants/countries.constant";
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
-import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import {
   setupBrandCampaignPreferences,
@@ -23,12 +22,12 @@ import {
   Hash,
   MapPin,
   Percent,
-  Search,
   TrendingUp,
   UserCheck,
   Users,
   Video,
   Wifi,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -59,6 +58,8 @@ const DefaultCampaignRequirements = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeSection, setActiveSection] = useState("preferences"); // "preferences" or "ideal"
+  const [countrySelectValue, setCountrySelectValue] = useState(null);
+  const [citySelectValue, setCitySelectValue] = useState(null);
 
   // Campaign Preferences Form
   const campaignPreferencesForm = useForm({
@@ -114,6 +115,14 @@ const DefaultCampaignRequirements = () => {
             idealCreatorForm.setValue("city", profile.city || "");
             idealCreatorForm.setValue("age_ranges", profile.age_ranges || []);
             idealCreatorForm.setValue("platforms", profile.platforms || []);
+
+            // Initialize city state if city exists
+            if (profile.city) {
+              setCitySelectValue({
+                cityName: profile.city,
+                countryCode: profile.city_country_code || profile.countries?.[0] || "",
+              });
+            }
           }
         }
       } catch (error) {
@@ -260,6 +269,24 @@ const DefaultCampaignRequirements = () => {
     { id: "in", label: "India", flag: "🇮🇳", creators: "1.8M" },
   ];
 
+  // Get country details for display
+  const selectedCountryDetails = selectedCountries
+    ? selectedCountries.map((code) => {
+        const countryMeta = COUNTRIES.find(
+          (country) => country.code.toUpperCase() === String(code).toUpperCase()
+        );
+        return {
+          code,
+          name: countryMeta?.label || code,
+        };
+      })
+    : [];
+
+  const allowedCountryCodes = selectedCountryDetails.map((country) =>
+    String(country.code).toUpperCase()
+  );
+  const primaryCountryCode = selectedCountryDetails[0]?.code || null;
+
   const ageRanges = [
     { id: "13-17", label: "13-17", desc: "Gen Z Early" },
     { id: "18-25", label: "18-25", desc: "Gen Z Core" },
@@ -273,8 +300,6 @@ const DefaultCampaignRequirements = () => {
     { id: "instagram", label: "Instagram", icon: InstagramIcon },
     { id: "tiktok", label: "TikTok", icon: TikTokIcon },
     { id: "youtube", label: "YouTube", icon: YoutubeIcon },
-    { id: "twitter", label: "Twitter", icon: TwitterIcon },
-    { id: "facebook", label: "Facebook", icon: FacebookIcon },
   ];
 
   const followerRanges = [
@@ -299,6 +324,55 @@ const DefaultCampaignRequirements = () => {
     } else {
       form.setValue(field, [...prev, item], { shouldValidate: true });
     }
+  };
+
+  const handleCountrySelect = (country) => {
+    if (!country) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const code = country.countryCode || country.value || country.code || "";
+    if (!code) return;
+
+    const normalizedCode = String(code).toUpperCase();
+    const existing = selectedCountries || [];
+
+    if (existing.includes(normalizedCode)) {
+      setCountrySelectValue(null);
+      return;
+    }
+
+    const updated = [...existing, normalizedCode];
+    idealCreatorForm.setValue("countries", updated, { shouldValidate: true });
+    setCountrySelectValue(null);
+  };
+
+  const handleCountryRemove = (code) => {
+    const updated = (selectedCountries || []).filter(
+      (existingCode) => existingCode.toUpperCase() !== String(code).toUpperCase()
+    );
+    idealCreatorForm.setValue("countries", updated, { shouldValidate: true });
+
+    if (
+      citySelectValue?.countryCode &&
+      citySelectValue.countryCode.toUpperCase() === String(code).toUpperCase()
+    ) {
+      setCitySelectValue(null);
+      idealCreatorForm.setValue("city", "", { shouldValidate: true });
+    }
+  };
+
+  const handleCitySelect = (city) => {
+    if (!city) {
+      setCitySelectValue(null);
+      idealCreatorForm.setValue("city", "", { shouldValidate: true });
+      return;
+    }
+
+    setCitySelectValue(city);
+    const cityName = city.cityName || city.label || "";
+    idealCreatorForm.setValue("city", cityName, { shouldValidate: true });
   };
 
   // Campaign Preferences Submit
@@ -360,7 +434,7 @@ const DefaultCampaignRequirements = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-8">
         <h1 className="text-xl font-bold text-white">Default Campaign Requirements</h1>
@@ -792,37 +866,33 @@ const DefaultCampaignRequirements = () => {
               {/* Countries */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">Select Countries</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {countries.map((country) => {
-                    const isSelected = selectedCountries?.includes(country.id);
-                    return (
-                      <button
-                        key={country.id}
-                        type="button"
-                        onClick={() =>
-                          toggleSelection(
-                            country.id,
-                            selectedCountries,
-                            "countries",
-                            idealCreatorForm
-                          )
-                        }
-                        className={`
-                            p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
-                              ${
-                                isSelected
-                                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                  : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                              }
-                            `}
+                <CountrySelect
+                  label="Add country"
+                  name="countries_selector"
+                  value={countrySelectValue}
+                  onChange={handleCountrySelect}
+                  isRequired={false}
+                  errors={idealCreatorForm.formState.errors}
+                />
+                {selectedCountryDetails.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedCountryDetails.map((country) => (
+                      <span
+                        key={country.code}
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
                       >
-                        <div className="text-lg mb-1">{country.flag}</div>
-                        <div className="text-xs">{country.label}</div>
-                        <div className="text-xs text-gray-500">{country.creators}</div>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {country.name}
+                        <button
+                          type="button"
+                          onClick={() => handleCountryRemove(country.code)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {idealCreatorForm.formState.errors.countries && (
                   <p className="text-xs text-red-600 mt-2">
                     {idealCreatorForm.formState.errors.countries.message}
@@ -831,15 +901,17 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* City Search */}
-              <div className="w-full max-w-md">
-                <CustomInput
-                  label="Specific City (Optional)"
-                  placeholder="Search for specific cities"
-                  value={citySearch}
-                  onChange={(e) =>
-                    idealCreatorForm.setValue("city", e.target.value, { shouldValidate: true })
-                  }
-                  icon={Search}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Specific City (Optional)</h4>
+                <CitySelect
+                  label="Search for cities"
+                  name="city_selector"
+                  countryCode={citySelectValue?.countryCode || primaryCountryCode}
+                  countryCodes={allowedCountryCodes}
+                  value={citySelectValue}
+                  onChange={handleCitySelect}
+                  isRequired={false}
+                  errors={idealCreatorForm.formState.errors}
                 />
               </div>
             </div>
@@ -940,7 +1012,7 @@ const DefaultCampaignRequirements = () => {
           </div>
         </form>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -1,245 +1,57 @@
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { Calendar, Clock, DollarSign, Eye, Gift, Package, Percent, X, XCircle } from "lucide-react";
-import { useState } from "react";
+import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
+import NotFound from "@/common/components/not-found/not-found.component";
+import Loader from "@/common/components/loader/loader.component";
+import { Gift } from "lucide-react";
+import ApplicationCard from "./components/application-card/application-card.component";
+import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
+import ApplicationMessageThread from "./components/message-thread-modal/application-message-thread.component";
+import OffersModal from "./components/offers-modal/offers-modal.component";
+import useCreatorApplications from "./use-creator-applications.hook";
 
 const CreatorApplications = () => {
-  const [activeTab, setActiveTab] = useState("pending");
+  const {
+    // State
+    activeTab,
+    allApplications,
+    selectedCampaign,
+    showCampaignBrief,
+    showWithdrawConfirmation,
+    showOffersModal,
+    setShowOffersModal,
 
-  // Extended mock data for applications
-  const applications = {
-    pending: [
-      {
-        id: 1,
-        brandLogo:
-          "https://images.unsplash.com/photo-1549924231-f129b911e442?w=40&h=40&fit=crop&crop=center",
-        brandName: "TechFlow",
-        campaignTitle: "Summer Tech Essentials Launch",
-        compensationType: "Paid",
-        deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
-        dateApplied: "2024-06-08",
-        status: "Pending",
-      },
-      {
-        id: 2,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop&crop=center",
-        brandName: "StyleCo",
-        campaignTitle: "Fashion Forward Collection",
-        compensationType: "Gifted",
-        deliverables: ["1 Instagram post", "1 Instagram Story"],
-        dateApplied: "2024-06-07",
-        status: "Pending",
-      },
-      {
-        id: 3,
-        brandLogo:
-          "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=40&h=40&fit=crop&crop=center",
-        brandName: "FitLife",
-        campaignTitle: "Wellness Journey Challenge",
-        compensationType: "Commission",
-        deliverables: ["2 TikTok videos", "1 Instagram Story"],
-        dateApplied: "2024-06-06",
-        status: "Pending",
-      },
-      {
-        id: 6,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472355-536de3962603?w=40&h=40&fit=crop&crop=center",
-        brandName: "BeautyBloom",
-        campaignTitle: "Natural Skincare Revolution",
-        compensationType: "Paid",
-        deliverables: ["3 TikTok videos", "2 Instagram posts", "1 Instagram Reel"],
-        dateApplied: "2024-06-05",
-        status: "Pending",
-      },
-      {
-        id: 7,
-        brandLogo:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=40&h=40&fit=crop&crop=center",
-        brandName: "EcoWear",
-        campaignTitle: "Sustainable Fashion Week",
-        compensationType: "Gifted",
-        deliverables: ["1 TikTok video", "2 Instagram posts", "3 Instagram Stories"],
-        dateApplied: "2024-06-04",
-        status: "Pending",
-      },
-      {
-        id: 8,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472355-a9a3c9f07308?w=40&h=40&fit=crop&crop=center",
-        brandName: "TravelGuru",
-        campaignTitle: "Hidden Gems Europe Tour",
-        compensationType: "Commission",
-        deliverables: ["4 TikTok videos", "2 Instagram posts", "Daily Stories"],
-        dateApplied: "2024-06-03",
-        status: "Pending",
-      },
-      {
-        id: 9,
-        brandLogo:
-          "https://images.unsplash.com/photo-1549924231-f129b911e442?w=40&h=40&fit=crop&crop=center",
-        brandName: "FoodieFinds",
-        campaignTitle: "Local Restaurant Discovery",
-        compensationType: "Paid",
-        deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
-        dateApplied: "2024-06-02",
-        status: "Pending",
-      },
-      {
-        id: 10,
-        brandLogo:
-          "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=40&h=40&fit=crop&crop=center",
-        brandName: "PetPals",
-        campaignTitle: "Pet Care Essentials Campaign",
-        compensationType: "Gifted",
-        deliverables: ["1 TikTok video", "2 Instagram posts"],
-        dateApplied: "2024-06-01",
-        status: "Pending",
-      },
-      {
-        id: 11,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop&crop=center",
-        brandName: "BookNook",
-        campaignTitle: "Summer Reading Challenge",
-        compensationType: "Commission",
-        deliverables: ["3 TikTok videos", "1 Instagram post", "Weekly Stories"],
-        dateApplied: "2024-05-31",
-        status: "Pending",
-      },
-      {
-        id: 12,
-        brandLogo:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=40&h=40&fit=crop&crop=center",
-        brandName: "GymGear",
-        campaignTitle: "Home Workout Equipment Review",
-        compensationType: "Paid",
-        deliverables: ["2 TikTok videos", "1 Instagram Reel", "2 Instagram Stories"],
-        dateApplied: "2024-05-30",
-        status: "Pending",
-      },
-    ],
-    rejected: [
-      {
-        id: 4,
-        brandLogo:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=40&h=40&fit=crop&crop=center",
-        brandName: "HomeDecor Plus",
-        campaignTitle: "Spring Home Makeover",
-        compensationType: "Paid",
-        deliverables: ["2 TikTok videos", "1 Instagram post"],
-        dateApplied: "2024-06-05",
-        status: "Rejected",
-      },
-      {
-        id: 5,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472355-536de3962603?w=40&h=40&fit=crop&crop=center",
-        brandName: "GourmetEats",
-        campaignTitle: "Local Food Discovery",
-        compensationType: "Gifted",
-        deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
-        dateApplied: "2024-06-04",
-        status: "Rejected",
-      },
-      {
-        id: 13,
-        brandLogo:
-          "https://images.unsplash.com/photo-1549924231-f129b911e442?w=40&h=40&fit=crop&crop=center",
-        brandName: "TechHub",
-        campaignTitle: "Latest Gadgets Review",
-        compensationType: "Commission",
-        deliverables: ["3 TikTok videos", "2 Instagram posts"],
-        dateApplied: "2024-05-29",
-        status: "Rejected",
-      },
-      {
-        id: 14,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop&crop=center",
-        brandName: "LuxuryLifestyle",
-        campaignTitle: "Premium Brand Showcase",
-        compensationType: "Paid",
-        deliverables: ["1 TikTok video", "3 Instagram posts", "Daily Stories"],
-        dateApplied: "2024-05-28",
-        status: "Rejected",
-      },
-      {
-        id: 15,
-        brandLogo:
-          "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=40&h=40&fit=crop&crop=center",
-        brandName: "ArtisticVibes",
-        campaignTitle: "Creative Arts Promotion",
-        compensationType: "Gifted",
-        deliverables: ["2 TikTok videos", "1 Instagram Reel"],
-        dateApplied: "2024-05-27",
-        status: "Rejected",
-      },
-      {
-        id: 16,
-        brandLogo:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=40&h=40&fit=crop&crop=center",
-        brandName: "UrbanStyle",
-        campaignTitle: "Street Fashion Trends",
-        compensationType: "Commission",
-        deliverables: ["4 TikTok videos", "2 Instagram posts"],
-        dateApplied: "2024-05-26",
-        status: "Rejected",
-      },
-      {
-        id: 17,
-        brandLogo:
-          "https://images.unsplash.com/photo-1560472355-536de3962603?w=40&h=40&fit=crop&crop=center",
-        brandName: "HealthFirst",
-        campaignTitle: "Wellness Product Line",
-        compensationType: "Paid",
-        deliverables: ["2 TikTok videos", "3 Instagram posts", "Weekly Stories"],
-        dateApplied: "2024-05-25",
-        status: "Rejected",
-      },
-      {
-        id: 18,
-        brandLogo:
-          "https://images.unsplash.com/photo-1549924231-f129b911e442?w=40&h=40&fit=crop&crop=center",
-        brandName: "GameZone",
-        campaignTitle: "Gaming Accessories Review",
-        compensationType: "Gifted",
-        deliverables: ["3 TikTok videos", "1 Instagram post"],
-        dateApplied: "2024-05-24",
-        status: "Rejected",
-      },
-    ],
-  };
+    // Redux state
+    applicationsLoading,
+    applicationsError,
+    withdrawLoading,
 
-  const handleWithdrawApplication = (applicationId) => {
-    console.log(`Withdrawing application ${applicationId}`);
-  };
+    // Computed data
+    filteredData,
 
-  const getCompensationColor = (type) => {
-    switch (type) {
-      case "Paid":
-        return "bg-green-100 text-green-700";
-      case "Gifted":
-        return "bg-blue-100 text-blue-700";
-      case "Commission":
-        return "bg-purple-100 text-purple-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
+    // Handlers
+    handleTabChange,
+    handleViewCampaign,
+    handleCloseCampaignBrief,
+    handleWithdraw,
+    handleConfirmWithdraw,
+    handleCancelWithdraw,
+    handleMessageClick,
+    handleCloseMessageModal,
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+    // Message thread state
+    messageModalState,
+
+    // Functions
+    fetchAllApplications,
+
+    // Helper functions
+    formatCompensationType,
+
+    offersData,
+  } = useCreatorApplications();
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      {/* Top Section - Toggle */}
+      {/* Header Section */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto p-3">
           <div className="flex items-center justify-between">
@@ -248,154 +60,200 @@ const CreatorApplications = () => {
               <p className="text-gray-600">Track and manage your brand applications</p>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex items-center space-x-1 bg-gray-100 p-1.5 rounded-xl shadow-inner">
-              <CustomButton
-                text={
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span>Pending</span>
-                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {applications.pending.length}
+            {/* Tab Navigation - Enhanced Color Design */}
+            <div className="flex items-center gap-3">
+              {/* My Offers - Simple Distinct Button */}
+              <button
+                onClick={() => setShowOffersModal(true)}
+                className="relative flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+              >
+                <Gift className="w-4 h-4" />
+                <span>My Offers</span>
+                {(offersData?.length || 0) > 0 && (
+                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-white/20 text-white text-xs font-bold rounded-full">
+                    {offersData?.length || 0}
+                  </span>
+                )}
+              </button>
+
+              {/* Tab Navigation */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleTabChange(1)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 1
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  <span>Invites</span>
+                  {allApplications.invites?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === 1 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.invites?.length || 0}
                     </span>
-                  </div>
-                }
-                onClick={() => setActiveTab("pending")}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "pending"
-                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                }`}
-              />
-              <CustomButton
-                text={
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span>Rejected</span>
-                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full min-w-[1.5rem] flex items-center justify-center">
-                      {applications.rejected.length}
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTabChange(2)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 2
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  <span>Negotiations</span>
+                  {allApplications.negotiations?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === 2 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.negotiations?.length || 0}
                     </span>
-                  </div>
-                }
-                onClick={() => setActiveTab("rejected")}
-                className={`px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "rejected"
-                    ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                }`}
-              />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTabChange(3)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 3
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  <span>Pending</span>
+                  {allApplications.pending?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === 3 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.pending?.length || 0}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTabChange(4)}
+                  className={`min-w-[100px] h-8 px-4 text-xs rounded-lg transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1.5 ${
+                    activeTab === 4
+                      ? "bg-primary text-white shadow"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  <span>Rejected</span>
+                  {allApplications.rejected?.length > 0 && (
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        activeTab === 4 ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {allApplications.rejected?.length || 0}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Grid View - Applications */}
+      {/* Content Section */}
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {applications[activeTab].length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Package className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No {activeTab} applications
-              </h3>
-              <p className="text-gray-600">
-                You don't have any {activeTab} campaign applications at the moment.
-              </p>
+          {applicationsLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader />
             </div>
+          ) : applicationsError ? (
+            <NotFound
+              title="Error loading applications"
+              description="Failed to fetch campaign applications. Please try again later."
+            />
+          ) : filteredData.length === 0 ? (
+            <NotFound
+              title={`No ${
+                activeTab === 1
+                  ? "invites"
+                  : activeTab === 2
+                    ? "negotiations"
+                    : activeTab === 5
+                      ? "offers"
+                      : activeTab === 3
+                        ? "pending"
+                        : "rejected"
+              } ${activeTab === 1 ? "" : "applications"}`}
+              description={
+                activeTab === 1
+                  ? "You don't have any invitations from brands yet. Brands will send you invitations to collaborate."
+                  : activeTab === 2
+                    ? "Brands haven't started conversations about your applications yet."
+                    : activeTab === "offers"
+                      ? "You don't have any offers at the moment. Keep applying to campaigns!"
+                      : activeTab === 3
+                        ? "You don't have any pending applications at the moment."
+                        : "You don't have any rejected applications."
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {applications[activeTab].map((application) => (
-                <div
-                  key={application.id}
-                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col"
-                >
-                  {/* Card Header */}
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-center space-x-3 mb-1">
-                      <img
-                        src={application.brandLogo}
-                        alt={`${application.brandName} logo`}
-                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
-                          {application.brandName}
-                        </h3>
-                        <h4 className="text-xs font-medium text-gray-600 leading-tight mb-3 line-clamp-2">
-                          {application.campaignTitle}
-                        </h4>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2">
-                      <span
-                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium ${getCompensationColor(application.compensationType)}`}
-                      >
-                        <span>{application.compensationType}</span>
-                      </span>
-                      <span
-                        className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${
-                          application.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {application.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-4 flex-1 flex flex-col">
-                    {/* Date Applied */}
-                    <div className="flex items-center space-x-1 text-xs text-gray-600 mb-3">
-                      <Calendar className="w-3 h-3" />
-                      <span className="text-xs text-gray-600 font-semibold">
-                        Applied on {formatDate(application.dateApplied)}
-                      </span>
-                    </div>
-
-                    {/* Deliverables */}
-                    <div className="flex-1">
-                      <h5 className="text-xs font-semibold text-gray-600 mb-2">Deliverables</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {application.deliverables.slice(0, 3).map((item, index) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md flex items-center gap-1"
-                          >
-                            <div className="w-1 h-1 bg-indigo-600 rounded-full" />
-                            {item}
-                          </span>
-                        ))}
-                        {application.deliverables.length > 3 && (
-                          <span className="text-xs text-gray-500 px-2 py-1">
-                            +{application.deliverables.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="p-4 border-t border-gray-100">
-                    <div className="flex flex-col space-y-2">
-                      {application.status === "Pending" && (
-                        <CustomButton
-                          text="Withdraw"
-                          className="btn-secondary"
-                          onClick={() => handleWithdrawApplication(application.id)}
-                        />
-                      )}
-                      <CustomButton text="View Campaign" className="btn-outline" />
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {filteredData.map((item) => (
+                <ApplicationCard
+                  key={item.id}
+                  application={item}
+                  formatCompensationType={formatCompensationType}
+                  handleViewCampaign={handleViewCampaign}
+                  handleWithdraw={handleWithdraw}
+                  handleMessageClick={handleMessageClick}
+                  withdrawLoading={withdrawLoading}
+                />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      {selectedCampaign && (
+        <CampaignBriefModal
+          show={showCampaignBrief}
+          onClose={handleCloseCampaignBrief}
+          campaign={selectedCampaign}
+        />
+      )}
+
+      <ConfirmationDialog
+        show={showWithdrawConfirmation}
+        onClose={handleCancelWithdraw}
+        onConfirm={handleConfirmWithdraw}
+        message="Withdraw Application"
+        content={
+          <div className="text-center">
+            <p className="text-gray-600 mb-2">
+              Are you sure you want to withdraw your application?
+            </p>
+            <p className="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
+        }
+      />
+
+      {/* Message Thread Modal */}
+      {messageModalState.isOpen && messageModalState.brandId && (
+        <ApplicationMessageThread
+          brandId={messageModalState.brandId}
+          application={messageModalState.application}
+          onClose={handleCloseMessageModal}
+        />
+      )}
+
+      {/* Offers Modal */}
+      <OffersModal
+        show={showOffersModal}
+        onClose={() => setShowOffersModal(false)}
+        onContractAction={fetchAllApplications}
+      />
     </div>
   );
 };

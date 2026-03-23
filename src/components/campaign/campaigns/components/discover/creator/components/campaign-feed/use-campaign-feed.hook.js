@@ -1,170 +1,223 @@
-import { useState, useMemo } from "react";
-
-const campaigns = [
-  {
-    id: 1,
-    brandLogo: "🏨",
-    brandName: "Luxury Hotels Co.",
-    title: "Summer Staycation Campaign",
-    type: "Sponsored Post",
-    compensation: "Paid",
-    compensationAmount: "$450",
-    compensationValue: 450, // For sorting
-    deliverables: ["2 TikTok videos", "1 Instagram post", "1 Instagram Story"],
-    niche: "Travel",
-    location: "US Creator Mandatory",
-    locationMandatory: true,
-    locationPreferred: false,
-    productImage: "🏖️",
-    language: "English Preferred",
-    followerMin: "5K Combined",
-    description:
-      "Create engaging content showcasing our luxury hotel experience during summer season.",
-    brief:
-      "Create engaging content showcasing our luxury hotel experience during summer season. Focus on amenities, views, and unique experiences.",
-    postedDate: new Date("2024-01-15"),
-  },
-  {
-    id: 2,
-    brandLogo: "🍕",
-    brandName: "Taste Buds Restaurant",
-    title: "New Menu Launch",
-    type: "UGC",
-    compensation: "Gifted",
-    compensationAmount: "Free Meal ($75 value)",
-    compensationValue: 75,
-    deliverables: ["3 TikTok videos", "2 Instagram posts"],
-    niche: "Food",
-    location: "New York, NY",
-    locationMandatory: true,
-    locationPreferred: false,
-    productImage: "🍽️",
-    language: "English Required",
-    followerMin: "3K Combined",
-    description:
-      "Showcase our new seasonal menu items with authentic reactions and honest reviews.",
-    brief:
-      "Showcase our new seasonal menu items with authentic reactions and honest reviews. Focus on taste, presentation, and dining experience.",
-    postedDate: new Date("2024-01-16"),
-  },
-  {
-    id: 3,
-    brandLogo: "✈️",
-    brandName: "Sky Airlines",
-    title: "Business Class Experience",
-    type: "Affiliate",
-    compensation: "Commission",
-    compensationAmount: "15% Commission",
-    compensationValue: 1000, // Estimated value for sorting
-    deliverables: ["1 YouTube video", "2 Instagram posts", "3 Instagram Stories"],
-    niche: "Travel",
-    location: "Remote",
-    locationMandatory: false,
-    locationPreferred: false,
-    productImage: "🛫",
-    language: "English Preferred",
-    followerMin: "10K Combined",
-    description: "Create content highlighting our premium business class experience.",
-    brief:
-      "Create content highlighting our premium business class experience. Include booking process, onboard amenities, and overall journey.",
-    postedDate: new Date("2024-01-17"),
-  },
-  {
-    id: 4,
-    brandLogo: "💄",
-    brandName: "Beauty Co.",
-    title: "Skincare Routine Challenge",
-    type: "Gifted",
-    compensation: "Product",
-    compensationAmount: "Product Bundle ($120 value)",
-    compensationValue: 120,
-    deliverables: ["5 TikTok videos", "3 Instagram posts", "Daily Stories"],
-    niche: "Beauty",
-    location: "Canada Preferred",
-    locationMandatory: false,
-    locationPreferred: true,
-    productImage: "🧴",
-    language: "English/French",
-    followerMin: "8K Combined",
-    description: "Document your 30-day skincare journey using our complete product line.",
-    brief:
-      "Document your 30-day skincare journey using our complete product line. Show before/after results and daily routine.",
-    postedDate: new Date("2024-01-18"),
-  },
-  {
-    id: 5,
-    brandLogo: "🎮",
-    brandName: "GameTech Studios",
-    title: "New Game Launch Campaign",
-    type: "Sponsored Post",
-    compensation: "Paid",
-    compensationAmount: "$800",
-    compensationValue: 800,
-    deliverables: ["3 YouTube videos", "5 TikTok videos", "10 Instagram Stories"],
-    niche: "Gaming",
-    location: "Remote",
-    locationMandatory: false,
-    locationPreferred: false,
-    productImage: "🎯",
-    language: "English Required",
-    followerMin: "15K Combined",
-    description: "Showcase our new mobile game with gameplay footage and honest reviews.",
-    brief:
-      "Showcase our new mobile game with gameplay footage and honest reviews. Focus on unique features and gameplay mechanics.",
-    postedDate: new Date("2024-01-19"),
-  },
-];
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  getAllCampaigns,
+  filterCampaigns,
+  resetFilteredCampaigns,
+  resetGetAllCampaigns,
+  applyToCampaign,
+} from "@/provider/features/campaigns/campaigns.slice";
+import { formatDate } from "@/common/utils/date.utils";
+import {
+  getCompensationType,
+  getCompensationTypeKey,
+  getCompensationAmount,
+  getCompensationValue,
+  formatCreatorFeeForDisplay,
+} from "@/common/utils/campaign.utils";
 
 export function useCampaignFeed() {
+  const dispatch = useDispatch();
+
+  // ===== STATES =====
+  const { data: allCampaignsData, isLoading: allCampaignsLoading } = useSelector(
+    (state) => state.campaigns.getAllCampaigns
+  );
+  const { data: filteredCampaignsData, isLoading: filteredCampaignsLoading } = useSelector(
+    (state) => state.campaigns.filterCampaigns
+  );
+  const { isLoading: isApplying } = useSelector((state) => state.campaigns.applyToCampaign);
+
   const [showFullBrief, setShowFullBrief] = useState(false);
   const [briefCampaign, setBriefCampaign] = useState(null);
   const [showApplication, setShowApplication] = useState(false);
   const [applicationCampaign, setApplicationCampaign] = useState(null);
   const [applicationPitch, setApplicationPitch] = useState("");
   const [sortBy, setSortBy] = useState("latest");
+  const [selectedNiche, setSelectedNiche] = useState("all");
 
-  // Sort campaigns based on selected criteria
-  const sortedCampaigns = useMemo(() => {
-    const sorted = [...campaigns];
+  const campaignsData =
+    filteredCampaignsData?.data !== undefined ? filteredCampaignsData.data : allCampaignsData?.data;
+  const isLoading = filteredCampaignsLoading || allCampaignsLoading;
 
-    switch (sortBy) {
-      case "latest":
-        return sorted.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
-
-      case "highest-value":
-        return sorted.sort((a, b) => b.compensationValue - a.compensationValue);
-
-      default:
-        return sorted;
+  // ===== LIFECYCLE METHODS =====
+  useEffect(() => {
+    if (!campaignsData) {
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          sort: sortBy,
+        })
+      );
     }
-  }, [sortBy]);
+  }, [dispatch, campaignsData, sortBy]);
 
-  const handleOpenBrief = (campaign) => {
+  // ===== COMPUTED VALUES =====
+  const transformedCampaigns = useMemo(() => {
+    if (!campaignsData?.campaigns) return [];
+
+    return campaignsData.campaigns.map((campaign) => ({
+      ...campaign,
+      id: campaign.id,
+      brandLogo: campaign.created_by?.brand_profile?.brand_logo_url,
+      brandName: campaign.created_by?.brand_profile?.brand_name,
+      brandId: campaign.created_by?.id,
+      title: campaign.campaign_title,
+      type: campaign.campaign_type,
+      compensation: getCompensationType(campaign),
+      compensationAmount: getCompensationAmount(campaign),
+      compensationValue: getCompensationValue(campaign),
+      deliverables: campaign.deliverables || [],
+      niche: campaign.niches,
+      location: campaign.remote ? "Remote" : "In-Person",
+      locationMandatory: campaign.in_person_required,
+      locationPreferred:
+        !campaign.in_person_required && (campaign.creator_country || campaign.creator_city),
+      productImage: campaign.campaign_image,
+      language: campaign.creator_language,
+      followerMin: `${campaign.min_combined_followers || 0} Combined`,
+      description:
+        campaign.short_description || campaign.long_description || "No description available",
+      brief: campaign.long_description || campaign.short_description || "No brief available",
+      postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
+      campaign_type: campaign.campaign_type,
+      compensation_type: getCompensationTypeKey(campaign),
+      required_platforms: campaign.required_platforms || [],
+      min_combined_followers: campaign.min_combined_followers,
+      remote: campaign.remote,
+      creator_country: campaign.creator_country,
+      creator_city: campaign.creator_city,
+      niches: campaign.niches || [],
+      creator_gender: campaign.creator_gender,
+      min_age: campaign.min_age,
+      max_age: campaign.max_age,
+      application_deadline: formatDate(campaign.application_deadline),
+      creator_fee: formatCreatorFeeForDisplay(campaign),
+      suggested_min: campaign.suggested_min,
+      suggested_max: campaign.suggested_max,
+      creator_fixed_price: campaign.creator_fixed_price,
+      product_value: campaign.product_value,
+      commission_percentage: campaign.commission_percentage,
+      platform_minimums: campaign.platform_minimums,
+      hashtags: campaign.hashtags,
+      style_guide: campaign.style_guide,
+      questions: campaign.questions,
+    }));
+  }, [campaignsData]);
+
+  const sortedCampaigns = transformedCampaigns;
+
+  // ===== COMMON FUNCTIONS =====
+  const handleNicheChange = useCallback(
+    (niche) => {
+      const nicheValue = typeof niche === "object" ? niche.value : niche;
+      setSelectedNiche(nicheValue);
+
+      if (nicheValue === "all") {
+        dispatch(resetFilteredCampaigns());
+        dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
+        return;
+      }
+
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          niches: nicheValue,
+          sort: sortBy,
+        })
+      );
+    },
+    [dispatch, sortBy]
+  );
+
+  const handleSortChange = useCallback(
+    (newSortBy) => {
+      const sortValue = typeof newSortBy === "object" ? newSortBy.value : newSortBy;
+      setSortBy(sortValue);
+
+      dispatch(
+        filterCampaigns({
+          page: 1,
+          limit: 10,
+          niches: selectedNiche !== "all" ? selectedNiche : undefined,
+          sort: sortValue,
+        })
+      );
+    },
+    [dispatch, selectedNiche]
+  );
+
+  const clearAllFilters = useCallback(() => {
+    setSelectedNiche("all");
+    setSortBy("latest");
+    dispatch(resetFilteredCampaigns());
+    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
+  }, [dispatch]);
+
+  const handleOpenBrief = useCallback((campaign) => {
     setBriefCampaign(campaign);
     setShowFullBrief(true);
-  };
+  }, []);
 
-  const handleOpenApplication = (campaign) => {
+  const handleOpenApplication = useCallback((campaign) => {
     setApplicationCampaign(campaign);
     setShowApplication(true);
-  };
+  }, []);
 
-  const closeBrief = () => {
+  const closeBrief = useCallback(() => {
     setShowFullBrief(false);
     setBriefCampaign(null);
-  };
+  }, []);
 
-  const closeApplication = () => {
+  const closeApplication = useCallback(() => {
     setShowApplication(false);
     setApplicationCampaign(null);
     setApplicationPitch("");
-  };
+  }, []);
+
+  const handleApply = useCallback(() => {
+    if (!applicationCampaign) return;
+
+    dispatch(
+      applyToCampaign({
+        campaignId: applicationCampaign.id,
+        pitch: applicationPitch.trim(),
+      })
+    )
+      .unwrap()
+      .then(() => {
+        closeApplication();
+
+        if (selectedNiche === "all") {
+          dispatch(resetGetAllCampaigns());
+          dispatch(resetFilteredCampaigns());
+          dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
+        } else {
+          dispatch(resetFilteredCampaigns());
+          dispatch(resetGetAllCampaigns());
+          dispatch(
+            filterCampaigns({
+              page: 1,
+              limit: 10,
+              sort: sortBy,
+              niches: selectedNiche,
+            })
+          );
+        }
+      });
+  }, [applicationCampaign, applicationPitch, closeApplication, dispatch, selectedNiche, sortBy]);
 
   return {
-    campaigns,
-    sortBy,
-    setSortBy,
+    campaigns: transformedCampaigns,
     sortedCampaigns,
+    isLoading,
+    sortBy,
+    handleSortChange,
+    selectedNiche,
+    handleNicheChange,
+    clearAllFilters,
     showFullBrief,
     briefCampaign,
     showApplication,
@@ -175,5 +228,8 @@ export function useCampaignFeed() {
     handleOpenApplication,
     closeBrief,
     closeApplication,
+    handleApply,
+    isApplying,
+    filteredCampaignsData,
   };
 }

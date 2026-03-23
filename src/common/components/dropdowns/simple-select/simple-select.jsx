@@ -30,12 +30,13 @@ export default function SimpleSelect({
   isSearchable,
   onChange,
   defaultValue,
+  value,
   className = "",
-  // New props for validation like CustomInput
   name,
   errors = null,
   register = null,
   isRequired = false,
+  isDisabled = false,
 }) {
   const {
     inputRef,
@@ -55,27 +56,46 @@ export default function SimpleSelect({
     isSearchable,
     onChange,
     defaultValue,
+    value,
   });
 
+  const handleClick = (event) => {
+    if (isDisabled) {
+      event.preventDefault();
+      return;
+    }
+    handleInputClick(event);
+  };
+
   return (
-    <div className="flex w-full flex-col gap-[6px] text-xs font-medium capitalize not-italic leading-6 text-text-black">
+    <div
+      className={`flex w-full flex-col gap-[6px] ${className} text-xs font-medium capitalize not-italic leading-6 text-text-black`}
+    >
       {label && <FieldLabel label={label} isRequired={isRequired} />}
 
       <div className="relative w-full">
         <div
           ref={inputRef}
-          onClick={handleInputClick}
+          onClick={handleClick}
           className={`flex justify-between items-center px-3 py-[9px] rounded-md border ${
             errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
-          } bg-white shadow-sm text-sm text-gray-700 cursor-pointer transition-colors`}
+          } ${isDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 cursor-pointer"} shadow-sm text-sm transition-colors`}
         >
           <div className="truncate">{getDisplay()}</div>
-          <Icon isOpen={showMenu} />
+          <Icon isOpen={showMenu && !isDisabled} />
         </div>
 
-        {showMenu && (
+        {showMenu && !isDisabled && (
           <div
-            className={`absolute z-50 mt-1 ${isSearchable && isMulti ? "top-16" : isSearchable ? "top-10" : label ? "top-16" : "top-10"} w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
+            className={`absolute z-50 mt-1 ${
+              isSearchable && isMulti
+                ? "top-10"
+                : isSearchable
+                  ? "top-10"
+                  : label
+                    ? "top-10"
+                    : "top-10"
+            } w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg`}
           >
             {isSearchable && (
               <div className="p-2 border-b border-gray-100">
@@ -128,11 +148,27 @@ SimpleSelect.propTypes = {
   isMulti: PropTypes.bool,
   isSearchable: PropTypes.bool,
   onChange: PropTypes.func,
-  defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  defaultValue: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  ]),
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  ]),
   // New prop types for validation
   name: PropTypes.string,
   errors: PropTypes.object,
   register: PropTypes.func,
   label: PropTypes.string,
   isRequired: PropTypes.bool,
+  isDisabled: PropTypes.bool,
 };

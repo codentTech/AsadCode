@@ -122,7 +122,7 @@ const EmailPreferencesPage = () => {
   );
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Email Preferences</h1>
@@ -476,7 +476,7 @@ const EmailPreferencesPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

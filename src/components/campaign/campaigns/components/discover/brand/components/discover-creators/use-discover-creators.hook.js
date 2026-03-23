@@ -3,15 +3,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { discoverCreators } from "@/provider/features/users/users.slice";
 import ROLES from "@/common/constants/role.constant";
 
-// Helper Functions
 const mapUserToCreator = (user) => {
   const creatorProfile = user?.creator_profile || {};
   const socialAccounts = user?.social_accounts || [];
 
   const platforms = socialAccounts.map((s) => s.platform).filter(Boolean);
   const platformStats = socialAccounts.reduce((acc, s) => {
-    const followers = s.profile_data?.followers || s.profile_data?.followers_count || 0;
-    if (s.platform) acc[s.platform] = { followers };
+    const pd = s.profile_data || {};
+    const followers =
+      Number(pd.follower_count) ||
+      Number(pd.subscriber_count) ||
+      Number(pd.followers) ||
+      Number(pd.followers_count) ||
+      Number(pd.reputation?.follower_count) ||
+      Number(pd.reputation?.subscriber_count) ||
+      0;
+    const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
+    const profileUrl = pd.profile_url ?? pd.url ?? null;
+    if (s.platform) {
+      acc[s.platform] = { followers, username, profile_url: profileUrl };
+    }
     return acc;
   }, {});
 
@@ -25,7 +36,7 @@ const mapUserToCreator = (user) => {
     const birthDate = new Date(user.date_of_birth);
     const today = new Date();
     const ageInYears = today.getFullYear() - birthDate.getFullYear();
-    age = `${ageInYears} years`;
+    age = `${ageInYears}`;
   }
 
   const location =
@@ -36,7 +47,7 @@ const mapUserToCreator = (user) => {
     name,
     profileImage: creatorProfile?.profile_photo_url || "/assets/images/account.png",
     portfolioImages,
-    rating: 4.5,
+    rating: 0,
     reviewCount: 0,
     age,
     location,
@@ -69,24 +80,17 @@ const groupCreatorsByNiche = (creators) => {
 };
 
 export default function useDiscoverCreators() {
-  // Refs
   const scrollRefs = useRef({});
-
-  // Redux
   const dispatch = useDispatch();
   const discoverCreatorsState = useSelector((state) => state.users?.discoverCreators);
 
-  // State
-  const [overflowStates, setOverflowStates] = useState({});
   const [creators, setCreators] = useState([]);
   const [nicheCategories, setNicheCategories] = useState([]);
-  const [total, setTotal] = useState(0);
 
-  // Filter states moved from main component
   const [filters, setFilters] = useState({
     platforms: [],
     minFollowers: "",
-    country: "",
+    countries: [],
     city: "",
     gender: "",
     ageRange: "",
@@ -98,7 +102,9 @@ export default function useDiscoverCreators() {
     audienceGender: "",
     audienceAgeRanges: [],
     audienceCountries: [],
+    audienceCountryCode: "",
     audienceCity: "",
+    audienceCityCountryCode: "",
   });
 
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -107,21 +113,16 @@ export default function useDiscoverCreators() {
   const [filteredCreators, setFilteredCreators] = useState([]);
   const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Modal states moved from main component
   const [open, setOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
 
-  // Computed Values
   const safeData = discoverCreatorsState?.data || {};
   const loading = discoverCreatorsState?.isLoading || false;
-  const error = discoverCreatorsState?.isError || false;
-  const message = discoverCreatorsState?.message || "";
   const isReduxReady = !!discoverCreatorsState;
 
-  // Computed functions moved from main component
   const hasActiveFilters = useCallback(() => {
     return (
       filters.niches.length > 0 ||
@@ -130,6 +131,7 @@ export default function useDiscoverCreators() {
       filters.gender ||
       filters.ageRange ||
       filters.country ||
+      (Array.isArray(filters.countries) && filters.countries.length > 0) ||
       filters.city ||
       filters.languages?.length > 0 ||
       audienceFilters.audienceGender ||
@@ -146,7 +148,9 @@ export default function useDiscoverCreators() {
     if (selectedSort) params.sortBy = selectedSort;
     if (filters.niches.length > 0) params.niches = filters.niches.join(",");
     if (filters.platforms.length > 0) params.platforms = filters.platforms.join(",");
-    if (filters.country) params.country = filters.country;
+    if (Array.isArray(filters.countries) && filters.countries.length > 0) {
+      params.countries = filters.countries.join(",");
+    }
     if (filters.city) params.city = filters.city;
     if (filters.languages?.length > 0) params.languages = filters.languages.join(",");
     if (filters.minFollowers) params.minFollowers = Number(filters.minFollowers);
@@ -166,7 +170,6 @@ export default function useDiscoverCreators() {
     return params;
   }, [filters, audienceFilters, searchKeyword, selectedSort, selectedCategory]);
 
-  // Callbacks
   const fetchCreators = useCallback(
     async (params = {}) => {
       const creatorParams = {
@@ -179,13 +182,12 @@ export default function useDiscoverCreators() {
   );
 
   const resetSearch = useCallback(() => {
-    // Reset all search and filter states
     setSearchKeyword("");
     setSelectedSort("");
     setFilters({
       platforms: [],
       minFollowers: "",
-      country: "",
+      countries: [],
       city: "",
       gender: "",
       ageRange: "",
@@ -196,24 +198,12 @@ export default function useDiscoverCreators() {
       audienceGender: "",
       audienceAgeRanges: [],
       audienceCountries: [],
+      audienceCountryCode: "",
       audienceCity: "",
+      audienceCityCountryCode: "",
     });
-    // Don't reset hasInitialized - we want to keep track that we've initialized
-    // The search clear effect will handle fetching all creators
   }, []);
 
-  const checkAllOverflows = useCallback(() => {
-    const newStates = {};
-    nicheCategories.forEach((category) => {
-      const el = scrollRefs.current[category.id];
-      if (el) {
-        newStates[category.id] = el.scrollWidth > el.clientWidth;
-      }
-    });
-    setOverflowStates(newStates);
-  }, [nicheCategories]);
-
-  // Handler functions moved from main component
   const handleNicheToggle = useCallback((niche) => {
     setFilters((prev) => ({
       ...prev,
@@ -298,8 +288,6 @@ export default function useDiscoverCreators() {
     setSelectedCategory(null);
     setFilteredCreators([]);
     setSelectedShortlist(null);
-    // Reset to show all creators when going back
-    // The consolidated useEffect will handle the API call automatically
   }, []);
 
   const clearAllFilters = useCallback(() => {
@@ -317,14 +305,14 @@ export default function useDiscoverCreators() {
       audienceGender: "",
       audienceAgeRanges: [],
       audienceCountries: [],
+      audienceCountryCode: "",
       audienceCity: "",
+      audienceCityCountryCode: "",
     });
     setSearchKeyword("");
     setSelectedSort("");
     setSelectedCategory(null);
     setFilteredCreators([]);
-    // Don't reset hasInitialized - we want to keep track that we've initialized
-    // The search clear effect will handle fetching all creators
   }, []);
 
   const handleInviteClick = useCallback((creator, e) => {
@@ -336,42 +324,23 @@ export default function useDiscoverCreators() {
   const handleSearchChange = useCallback((e) => {
     const value = e.target.value;
     setSearchKeyword(value);
-    // The consolidated useEffect will handle the API call
-    // No need to manually trigger anything here
   }, []);
 
   const handleApplyFilters = useCallback(() => {
-    // Close the modal first
     setShowFilterModal(false);
-
-    // Apply filters immediately after modal closes
-    // The useEffect will handle the actual API call
   }, []);
 
-  // Effects
   useEffect(() => {
     if (isReduxReady && safeData && safeData.users && Array.isArray(safeData.users)) {
       const mappedCreators = safeData.users.map(mapUserToCreator);
       setCreators(mappedCreators);
-      setTotal(safeData.total || 0);
-
       const groupedCategories = groupCreatorsByNiche(mappedCreators);
       setNicheCategories(groupedCategories);
     }
   }, [isReduxReady, safeData]);
 
   useEffect(() => {
-    if (nicheCategories.length > 0) {
-      setTimeout(() => {
-        checkAllOverflows();
-      }, 100);
-    }
-  }, [nicheCategories, checkAllOverflows]);
-
-  // Initial load effect - only runs once when component mounts
-  useEffect(() => {
     if (isReduxReady && !hasInitialized && !searchKeyword && !hasActiveFilters() && !selectedSort) {
-      // Only fetch initial data if we don't have any data yet
       if (!safeData.users || safeData.users.length === 0) {
         fetchCreators({});
         setHasInitialized(true);
@@ -387,19 +356,15 @@ export default function useDiscoverCreators() {
     safeData.users,
   ]);
 
-  // Effect to handle when search is cleared - fetch all creators
   useEffect(() => {
     if (isReduxReady && hasInitialized && !searchKeyword && !hasActiveFilters() && !selectedSort) {
-      // When search is cleared and no other filters are active, fetch all creators
       fetchCreators({});
     }
   }, [isReduxReady, hasInitialized, searchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
 
-  // Effect to handle filter changes (but not search or initial load)
   useEffect(() => {
     if (!isReduxReady || showFilterModal) return;
 
-    // Only trigger when filters actually change and we're not searching
     if (hasActiveFilters() && !searchKeyword) {
       const filterParams = buildQueryParams();
       fetchCreators(filterParams);
@@ -415,7 +380,6 @@ export default function useDiscoverCreators() {
     hasActiveFilters,
   ]);
 
-  // Effect to handle sort changes (but not search)
   useEffect(() => {
     if (!isReduxReady || showFilterModal || searchKeyword) return;
 
@@ -424,77 +388,44 @@ export default function useDiscoverCreators() {
     }
   }, [isReduxReady, showFilterModal, selectedSort, searchKeyword, fetchCreators]);
 
-  // Debounced search effect to prevent rapid API calls while typing
   useEffect(() => {
     if (!isReduxReady) return;
 
     const timeoutId = setTimeout(() => {
-      // Only trigger API call if search keyword has changed and we're not in filter modal
       if (searchKeyword && !showFilterModal) {
         const params = { search: searchKeyword };
         if (selectedSort) params.sortBy = selectedSort;
         fetchCreators(params);
       }
-    }, 300); // 300ms delay for search
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [isReduxReady, searchKeyword, selectedSort, showFilterModal, fetchCreators]);
 
-  useEffect(() => {
-    checkAllOverflows();
-    window.addEventListener("resize", checkAllOverflows);
-    return () => window.removeEventListener("resize", checkAllOverflows);
-  }, [checkAllOverflows]);
-
-  // Effects moved from main component
-  // Removed problematic useEffect that was causing filters to apply immediately
-  // Filters now only apply when "Apply Filters" button is clicked
-
   return {
-    // Data
     scrollRefs,
-    overflowStates,
     creators,
     nicheCategories,
     loading,
-    error: error ? message : null,
-    total,
-    isReduxReady,
-    hasInitialized,
-
-    // State
     filters,
     setFilters,
     audienceFilters,
     setAudienceFilters,
     searchKeyword,
-    setSearchKeyword,
     selectedSort,
     setSelectedSort,
     selectedCategory,
-    setSelectedCategory,
     filteredCreators,
-    setFilteredCreators,
-
-    // Modal states
     open,
     setOpen,
     showInviteModal,
     setShowInviteModal,
     selectedCreator,
-    setSelectedCreator,
     showFilterModal,
     setShowFilterModal,
     filterType,
     setFilterType,
-
-    // Functions
-    fetchCreators,
-    resetSearch,
     hasActiveFilters,
-    buildQueryParams,
-
-    // Handlers
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,

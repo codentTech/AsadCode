@@ -66,9 +66,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
           <CustomButton
             onClick={onNext}
             disabled={!selectedType}
-            text={`Continue as ${
-              selectedType === "creator" ? "Creator" : selectedType === "brand" ? "Brand" : "..."
-            }`}
+            text="Continue"
             className="btn-primary text-white"
           />
         </div>

@@ -1,6 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import { updateCreatorPreferences } from "@/provider/features/users/users.slice";
 import { CheckCircle, DollarSign, Gift, MapPin, Percent } from "lucide-react";
@@ -137,7 +136,7 @@ const PreferredCollaborationType = () => {
   // Use local loading state as fallback if Redux state is not available
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header - Keep the primary banner */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Preferred Collaboration Type</h1>
@@ -306,7 +305,7 @@ const PreferredCollaborationType = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

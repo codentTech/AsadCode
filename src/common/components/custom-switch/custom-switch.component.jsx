@@ -9,7 +9,6 @@ export default function CustomSwitch({
   onChange = null,
   parentDivClassName = "",
   className = "",
-  size = null,
   disabled = false,
   errors = null,
   register = null,
@@ -20,22 +19,19 @@ export default function CustomSwitch({
   labelClassName = "",
   readOnly = false,
   rightLabelText = null,
+  rightLabelClassName = "flex w-full items-center justify-end gap-6 text-xs font-medium not-italic leading-6 text-text-dark-gray",
 }) {
   return (
     <div className="">
       <div
         className={` ${
           inlineLabel
-            ? "flex w-full flex-row-reverse flex-wrap items-center justify-end gap-3 text-xs font-medium not-italic leading-6 leading-[18px] text-text-dark-gray"
+            ? rightLabelClassName
             : "text-xs font-medium not-italic leading-6 text-text-black"
         } ${parentDivClassName} `}
       >
         {label && !labelRight && (
-          <FieldLabel
-            label={label}
-            isRequired={isRequired}
-            className={` ${labelClassName}`}
-          />
+          <FieldLabel label={label} isRequired={isRequired} className={` ${labelClassName}`} />
         )}
 
         <input
@@ -53,14 +49,12 @@ export default function CustomSwitch({
           <FieldLabel
             label={rightLabelText ?? label}
             isRequired={isRequired}
-            className={labelClassName}
+            className={`${labelClassName}`}
           />
         )}
       </div>
 
-      {errors && errors[name] && (
-        <FieldError className="mt-1" error={errors[name].message} />
-      )}
+      {errors && errors[name] && <FieldError className="mt-1" error={errors[name].message} />}
     </div>
   );
 }
@@ -84,4 +78,5 @@ CustomSwitch.propTypes = {
   readOnly: PropTypes.bool,
   labelRight: PropTypes.bool,
   rightLabelText: PropTypes.string,
+  rightLabelClassName: PropTypes.string,
 };

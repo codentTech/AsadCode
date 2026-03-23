@@ -4,7 +4,10 @@ import { reset, signUp } from "@/provider/features/auth/auth.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 import * as Yup from "yup";
+import { useSearchParams } from "next/navigation";
+import api from "@/common/utils/api";
 
 // Dynamic validation schema based on creator mode
 const createValidationSchema = (isCreatorMode) => {
@@ -18,28 +21,46 @@ const createValidationSchema = (isCreatorMode) => {
       .matches(/[0-9]/, "Password requires a number")
       .matches(/[a-z]/, "Password requires a lowercase letter")
       .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^\w]/, "Use Special Character like @ # etc"),
+      .matches(/[^A-Za-z0-9]/, "Use Special Character like @ # etc"),
+    confirm_password: Yup.string()
+      .required("Please confirm your password")
+      .oneOf([Yup.ref("password"), null], "Passwords must match"),
     date_of_birth: Yup.date()
+      .transform((value, originalValue) => {
+        if (originalValue === "" || originalValue == null) {
+          return undefined;
+        }
+        return value;
+      })
       .required("Date of birth is required")
       .max(new Date(), "Date of birth cannot be in the future"),
     city: Yup.string().required("City is required"),
     country: Yup.string().required("Country is required"),
+    country_code: Yup.string().required("Country is required"),
+    city_country_code: Yup.string().required("City is required"),
     agree_terms: Yup.boolean().oneOf([true], "You must accept the terms and conditions"),
     marketing_emails: Yup.boolean().default(false),
+    latitude: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === "" ? null : value)),
+    longitude: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === "" ? null : value)),
   };
 
   // Add conditional fields based on mode
   if (!isCreatorMode) {
-    baseSchema.creator_type = Yup.string().required("Please select a creator type");
     baseSchema.account_type = Yup.string().required("Please select an account type");
   }
 
   return Yup.object().shape(baseSchema);
 };
 
-export default function useRegister({ onNext }) {
+export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
+  const token = inviteToken || searchParams?.get("token");
 
   const validationSchema = createValidationSchema(isCreatorMode);
 
@@ -56,39 +77,55 @@ export default function useRegister({ onNext }) {
     defaultValues: {
       marketing_emails: false,
       agree_terms: false,
+      country: "",
+      city: "",
+      country_code: "",
+      city_country_code: "",
+      confirm_password: "",
+      latitude: "",
+      longitude: "",
     },
   });
 
   const email = watch("email");
 
   const onSubmit = async (values) => {
-    try {
-      const payload = {
-        first_name: values.first_name.trim(),
-        last_name: values.last_name.trim(),
-        email: values.email.toLowerCase().trim(),
-        password: values.password,
-        date_of_birth: values.date_of_birth,
-        city: values.city.trim(),
-        country: values.country,
-        role: isCreatorMode ? "CREATOR" : "BRAND",
-        marketing_emails: values.marketing_emails || false,
-        agree_terms: values.agree_terms,
-      };
+    const payload = {
+      first_name: values.first_name.trim(),
+      last_name: values.last_name.trim(),
+      email: values.email.toLowerCase().trim(),
+      password: values.password,
+      date_of_birth: values.date_of_birth,
+      city: values.city.trim(),
+      country: values.country,
+      country_code: values.country_code,
+      city_country_code: values.city_country_code,
+      latitude:
+        values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
+      longitude:
+        values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
+      role: isCreatorMode ? "CREATOR" : "BRAND",
+      marketing_emails: values.marketing_emails || false,
+      agree_terms: values.agree_terms,
+    };
 
-      // Add type-specific fields
-      if (isCreatorMode) {
-        payload.creator_type = values.creator_type;
-        payload.account_type = values.account_type;
-      }
-      const response = await dispatch(signUp(payload));
-      if (response.payload.success) {
-        onNext();
-        dispatch(reset());
-        localStorage.setItem("email", email);
-      }
-    } catch (error) {
-      console.error("Form submission error:", error);
+    // Add invite token if present
+    if (token) {
+      payload.invite_token = token;
+      // Lock role to CREATOR for invites
+      payload.role = "CREATOR";
+    }
+
+    // Add type-specific fields
+    if (isCreatorMode && !token) {
+      payload.account_type = values.account_type;
+    }
+    const response = await dispatch(signUp(payload));
+    if (response.payload.success) {
+      onNext();
+      dispatch(reset());
+      localStorage.setItem("email", email);
+      localStorage.setItem("name", values.first_name + " " + values.last_name);
     }
   };
 

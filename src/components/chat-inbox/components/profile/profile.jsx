@@ -2,12 +2,14 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
 import React from "react";
+import useProfile from "./use-profile.hook";
 
-function Profile({ isCreatorMode, activeTab }) {
+function Profile({ isCreatorMode, activeTab, selectedChatId }) {
+  const { userProfile, currentConversation, otherUser } = useProfile(selectedChatId);
   const suggestedConnections = [
     {
       name: "Michelle Clarke",
@@ -58,38 +60,66 @@ function Profile({ isCreatorMode, activeTab }) {
     },
   ];
 
+  // Show empty state if no conversation selected
+  if (!selectedChatId || !userProfile) {
+    return (
+      <div className="w-1/4 border-l bg-white flex flex-col items-center justify-center">
+        <p className="text-gray-500 text-center px-4">
+          Select a conversation to view profile details
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-1/4 border-l bg-white flex flex-col">
       {/* Selected user profile - modern and clean design */}
       <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b">
         <div className="relative">
           <Avatar
-            src={avatar}
-            alt="Sam Waters"
+            src={userProfile.avatar}
+            alt={userProfile.name}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
-            S
+            {userProfile.name.charAt(0)}
           </Avatar>
-          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
+          {userProfile.isOnline && (
+            <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
+          )}
         </div>
-        <h3>Sam Waters</h3>
+        <h3 className="font-bold text-gray-800 mt-2">{userProfile.name}</h3>
 
-        <p className="primary-text text-center">
-          Fitness and lifestyle creator based in Los Angeles
-        </p>
-        {![1, 2].includes(activeTab) && (
-          <div className="w-full">
+        <p className="primary-text text-center text-sm">{userProfile.bio}</p>
+        {userProfile.rating > 0 && (
+          <div className="flex items-center mt-1">
+            <div className="text-yellow-500 text-sm mr-1">
+              {"★".repeat(Math.floor(userProfile.rating))}
+              {userProfile.rating % 1 >= 0.5 ? "½" : ""}
+            </div>
+            <span className="text-xs text-gray-500">{userProfile.rating.toFixed(1)}</span>
+          </div>
+        )}
+        {![1, 2].includes(activeTab) && userProfile.creatorProfile && (
+          <div className="w-full mt-2">
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="bg-gray-50 p-2 rounded-lg">
-                <div className="font-bold text-gray-800">458</div>
+                <div className="font-bold text-gray-800">{userProfile.posts}</div>
                 <div className="primary-text">Posts</div>
               </div>
               <div className="bg-gray-50 p-2 rounded-lg">
-                <div className="font-bold text-gray-800">24.5K</div>
+                <div className="font-bold text-gray-800">
+                  {userProfile.followers >= 1000
+                    ? `${(userProfile.followers / 1000).toFixed(1)}K`
+                    : userProfile.followers}
+                </div>
                 <div className="primary-text">Followers</div>
               </div>
               <div className="bg-gray-50 p-2 rounded-lg">
-                <div className="font-bold text-gray-800">1.2K</div>
+                <div className="font-bold text-gray-800">
+                  {userProfile.following >= 1000
+                    ? `${(userProfile.following / 1000).toFixed(1)}K`
+                    : userProfile.following}
+                </div>
                 <div className="primary-text">Following</div>
               </div>
             </div>

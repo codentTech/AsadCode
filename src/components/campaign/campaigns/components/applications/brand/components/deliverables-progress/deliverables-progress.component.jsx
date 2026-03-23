@@ -1,73 +1,179 @@
-import ReadMore from "@/common/components/readmore/readmore.component";
-import { avatar } from "@/common/constants/auth.constant";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
-import CampaignHistory from "../campaign-history/campaign-history.component";
+import RightPaneSkeleton from "../../../../right-pane-skeleton/right-pane-skeleton.component";
+import CollaborationHistory from "../campaign-history/campaign-history.component";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
+import { formatNumber } from "@/common/utils/format.utils";
 
-const DeliverablesProgress = ({ isCompleted = false }) => {
+const DeliverablesProgress = ({
+  selectedCreator,
+  onHireClick,
+  onRejectClick,
+  onMessageClick,
+  isIndividualCreator = false,
+}) => {
+  const {
+    creatorData,
+    creatorProfileId,
+    handleViewCreatorPortfolio,
+    performanceMetrics,
+    performanceMetricsLoading,
+    audienceData,
+    audienceLoading,
+    selectedPlatform,
+    setSelectedPlatform,
+    connectedPlatforms,
+    platforms,
+  } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
+
+  const { getPlatformColor, getPlatformIcon } = useGetplatform();
+
+  if (!creatorData) {
+    return <RightPaneSkeleton />;
+  }
+
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Sticky Profile Section */}
-      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
+      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
-            src={avatar}
-            alt="Sam Waters"
+            src={creatorData?.image}
+            alt={creatorData?.image}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
-            S
+            {creatorData.name?.charAt(0) || "C"}
           </Avatar>
-          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
-          {isCompleted && (
-            <span className="absolute -top-1 -right-1 h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-white" />
-            </span>
-          )}
         </div>
-        <h3>Sam Waters</h3>
-
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 ${
-                i < Math.floor(4) ? "text-yellow-400 fill-current" : "text-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <MapPin className="w-4 h-4" />
-          <span>Los Angeles, CA</span>
-        </div>
-        <p className="primary-text text-center">
-          Fitness and lifestyle creator based in Los Angeles
+        <h3>
+          <button
+            onClick={handleViewCreatorPortfolio}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
+            {creatorData.name}
+          </button>
+          <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
+          <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
+        </h3>
+        <p className="flex items-center text-sm text-gray-500 -mt-1">
+          {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
         </p>
-        {isCompleted && (
-          <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            Campaign Completed
-          </div>
-        )}
+        <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
       </div>
 
-      {/* Scrollable Content */}
       <div className="flex flex-col overflow-y-auto p-4 gap-4">
-        <div className="bg-white rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 pb-2">Application Message</h4>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <ReadMore text="I absolutely love your brand aesthetic and have been following you for years! I specialize in lifestyle content and have worked with similar brands. My audience is primarily 18-35 females who are interested in fashion and beauty. I would love to create authentic content that showcases your products in real-life scenarios." />
+        <div className="grid grid-cols-3 gap-2 w-full">
+          <CustomButton text="Message" className="btn-primary !py-1" onClick={onMessageClick} />
+          <CustomButton text="Hire" className="btn-outline !py-1" onClick={onHireClick} />
+          <CustomButton text="Reject" className="btn-danger !py-1" onClick={onRejectClick} />
+        </div>
+
+        {connectedPlatforms.length > 0 && (
+          <div className="flex flex-col gap-2 w-full">
+            {platforms.map((platform) => {
+              const isSelected =
+                selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
+              return (
+                <button
+                  key={platform.name}
+                  type="button"
+                  disabled={!platform.isConnected}
+                  onClick={() => setSelectedPlatform(platform.name)}
+                  className={`flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full
+                    ${!platform.isConnected ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                    ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
+                  `}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
+                      {getPlatformIcon(platform.name)}
+                    </span>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs capitalize font-semibold text-primary">
+                        {capitalizeFirstLetter(platform.name)}
+                      </span>
+                      {platform.username && (
+                        <span className="text-[10px] text-gray-500">
+                          @{platform.username}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {platform.isConnected && (
+                    <div className="text-sm font-bold text-gray-900">
+                      {formatNumber(platform.followers)}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
-          <AudienceDemographics className="flex flex-col" />
-        </div>
+        <>
+          <div className="bg-white rounded-lg border p-3">
+            <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+            {performanceMetricsLoading ? (
+              <div className="grid grid-cols-2 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="border rounded p-2 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-16 mb-1" />
+                    <div className="h-4 bg-gray-100 rounded w-12" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Engagement Rate</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.engagement_rate ??
+                      creatorData?.profile?.engagement_rate ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Reach</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.average_reach ??
+                      creatorData?.profile?.average_reach ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Average Views</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.average_views ??
+                      creatorData?.profile?.average_views ??
+                      "N/A"}
+                  </p>
+                </div>
+                <div className="border rounded p-2">
+                  <p className="text-[11px] text-gray-500">Posting Frequency</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {performanceMetrics?.posting_frequency ??
+                      creatorData?.profile?.posting_frequency ??
+                      "N/A"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
 
-        <hr />
+          <div className="bg-white border rounded-lg p-3">
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
+            <AudienceDemographics
+              audienceData={audienceData}
+              loading={audienceLoading}
+              platform={selectedPlatform}
+              className="flex flex-col"
+            />
+          </div>
+        </>
 
-        <CampaignHistory />
+        {creatorProfileId && <CollaborationHistory creatorProfileId={creatorProfileId} />}
       </div>
     </div>
   );

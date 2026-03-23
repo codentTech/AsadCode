@@ -1,0 +1,61 @@
+import api from "@/common/utils/api";
+
+// Create campaign review
+const createCampaignReview = async (campaignId, reviewData) => {
+  const response = await api().post(`/campaign-reviews/campaign/${campaignId}`, reviewData);
+  return response.data;
+};
+
+// Get all reviews for a campaign
+const getCampaignReviews = async (campaignId, params = {}) => {
+  const response = await api().get(`/campaign-reviews/campaign/${campaignId}`, {
+    params,
+  });
+  return response.data;
+};
+
+// Get all unlocked brand reviews for a creator (creator portfolio)
+const getCampaignReviewsByCreator = async (creatorId) => {
+  const response = await api().get(`/campaign-reviews/creator/${creatorId}`);
+  return response.data;
+};
+
+// Get reviews for a specific creator profile in a campaign
+const getCampaignReviewsByCreatorProfile = async (campaignId, creatorProfileId) => {
+  const response = await api().get(
+    `/campaign-reviews/campaign/${campaignId}/creator-profile/${creatorProfileId}`
+  );
+  return response.data;
+};
+
+// Get double-blind review status
+const getReviewStatus = async (campaignId, creatorProfileId) => {
+  const response = await api().get(
+    `/campaign-reviews/campaign/${campaignId}/creator-profile/${creatorProfileId}/status`
+  );
+  return response.data;
+};
+
+// Update campaign review
+const updateCampaignReview = async (reviewId, reviewData) => {
+  const response = await api().put(`/campaign-reviews/${reviewId}`, reviewData);
+  return response.data;
+};
+
+// Delete campaign review
+const deleteCampaignReview = async (reviewId) => {
+  const response = await api().delete(`/campaign-reviews/${reviewId}`);
+  return response.data;
+};
+
+const campaignReviewsService = {
+  createCampaignReview,
+  getCampaignReviews,
+  getCampaignReviewsByCreator,
+  getCampaignReviewsByCreatorProfile,
+  getReviewStatus,
+  updateCampaignReview,
+  deleteCampaignReview,
+};
+
+export default campaignReviewsService;

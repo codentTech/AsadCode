@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import CustomButton from '@/common/components/custom-button/custom-button.component';
-import useBackgroundEffect from '@/common/hooks/use-background-effect.hook';
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import useBackgroundEffect from "@/common/hooks/use-background-effect.hook";
 
 export default function CreatorBrandPrompt({ handleSelectMode }) {
   const { position } = useBackgroundEffect();
@@ -15,7 +15,7 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
           style={{
             left: `calc(10% + ${position.x}px)`,
             top: `calc(30% + ${position.y}px)`,
-            transition: 'all 0.3s ease',
+            transition: "all 0.3s ease",
           }}
         />
         <div
@@ -23,7 +23,7 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
           style={{
             right: `calc(15% + ${position.x * -1}px)`,
             bottom: `calc(20% + ${position.y * -1}px)`,
-            transition: 'all 0.5s ease',
+            transition: "all 0.5s ease",
           }}
         />
         <div
@@ -31,7 +31,7 @@ export default function CreatorBrandPrompt({ handleSelectMode }) {
           style={{
             left: `calc(50% + ${position.y}px)`,
             top: `calc(15% + ${position.x}px)`,
-            transition: 'all 0.4s ease',
+            transition: "all 0.4s ease",
           }}
         />
       </div>

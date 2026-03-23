@@ -26,6 +26,11 @@ const initialState = {
   disconnectSocialAccount: { ...generalState },
 };
 
+const getSerializableErrorMessage = (error, fallback = "Request failed") => {
+  if (typeof error === "string") return error;
+  return error?.response?.data?.message || error?.message || fallback;
+};
+
 export const getAllUsers = createAsyncThunk("users/getAllUsers", async (payload, thunkAPI) => {
   try {
     const response = await usersService.getAllUsers(payload);
@@ -46,9 +51,9 @@ export const discoverCreators = createAsyncThunk(
       if (response.success) {
         return response.data;
       }
-      return thunkAPI.rejectWithValue(response);
+      return thunkAPI.rejectWithValue(response.message || "Request failed");
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(error.message || "An error occurred");
     }
   }
 );
@@ -180,7 +185,9 @@ export const connectSocialMedia = createAsyncThunk(
       const response = await usersService.connectSocialMedia(platform);
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to connect social media")
+      );
     }
   }
 );
@@ -192,7 +199,9 @@ export const getSocialAccounts = createAsyncThunk(
       const response = await usersService.getSocialAccounts();
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to fetch social accounts")
+      );
     }
   }
 );
@@ -415,12 +424,16 @@ export const usersSlice = createSlice({
       .addCase(connectSocialMedia.pending, (state) => {
         if (state.connectSocialMedia) {
           state.connectSocialMedia.isLoading = true;
+          state.connectSocialMedia.isError = false;
+          state.connectSocialMedia.message = "";
         }
       })
       .addCase(connectSocialMedia.fulfilled, (state, action) => {
         if (state.connectSocialMedia) {
           state.connectSocialMedia.isLoading = false;
           state.connectSocialMedia.isSuccess = true;
+          state.connectSocialMedia.isError = false;
+          state.connectSocialMedia.message = "";
           state.connectSocialMedia.data = action.payload;
         }
       })
@@ -435,12 +448,16 @@ export const usersSlice = createSlice({
       .addCase(getSocialAccounts.pending, (state) => {
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = true;
+          state.getSocialAccounts.isError = false;
+          state.getSocialAccounts.message = "";
         }
       })
       .addCase(getSocialAccounts.fulfilled, (state, action) => {
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = false;
           state.getSocialAccounts.isSuccess = true;
+          state.getSocialAccounts.isError = false;
+          state.getSocialAccounts.message = "";
           state.getSocialAccounts.data = action.payload;
         }
       })
@@ -448,7 +465,8 @@ export const usersSlice = createSlice({
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = false;
           state.getSocialAccounts.isError = true;
-          state.getSocialAccounts.message = action.payload;
+          state.getSocialAccounts.message =
+            typeof action.payload === "string" ? action.payload : "Failed to fetch social accounts";
         }
       })
       // disconnectSocialAccount

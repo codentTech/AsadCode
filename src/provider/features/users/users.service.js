@@ -1,5 +1,5 @@
 import api from "@/common/utils/api";
-import { getUser } from "@/common/utils/users.util";
+import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
 
 const getAllUsers = async (payload) => {
   const response = await api().get("/user", { params: payload });
@@ -33,7 +33,6 @@ const updateUser = async (userData) => {
       };
     }
   } catch (error) {
-    console.error("Error in updateUser:", error);
     // Return a safe error response
     return {
       Succeeded: false,
@@ -88,7 +87,6 @@ const updateCampaignDefaults = async (defaults) => {
       };
     }
   } catch (error) {
-    console.error("Error in updateCampaignDefaults:", error);
     // Return a safe error response
     return {
       success: false,
@@ -132,45 +130,35 @@ const getCurrentUser = async () => {
 };
 
 const connectSocialMedia = async (platform) => {
-  try {
-    const user = getUser();
-    if (!user || !user.email) {
-      throw new Error("User not found");
-    }
-
-    // Get OAuth URL from backend
-    const response = await api().post(`/auth/${platform}/connect`);
-
-    if (response.data.success) {
-      // Redirect to OAuth URL
-      window.location.href = response.data.data.oauth_url;
-    } else {
-      throw new Error(response.data.message || "Failed to get OAuth URL");
-    }
-  } catch (error) {
-    console.error(`Error connecting to ${platform}:`, error);
-    throw error;
+  // Legacy per-platform OAuth flow removed. We now use Phyllo Connect.
+  // The `platform` argument is intentionally ignored (Phyllo Connect supports multi-platform).
+  // Recommended: create a microsite link which embeds Connect and guides the user.
+  const user = getUser();
+  const email = user?.email || getOnboardingEmail();
+  if (!email) {
+    throw new Error("User email not found for Phyllo connect link");
   }
+
+  const response = await api().post(`/auth/public/phyllo/link?email=${encodeURIComponent(email)}`);
+  return response.data;
 };
 
 const getSocialAccounts = async () => {
-  try {
-    const response = await api().get("/auth/social-accounts");
-    return response.data;
-  } catch (error) {
-    console.error("Error getting social accounts:", error);
-    throw error;
+  const user = getUser();
+  const email = user?.email || getOnboardingEmail();
+  if (!email) {
+    throw new Error("User email not found for social accounts");
   }
+
+  const response = await api().get(
+    `/auth/public/social-accounts?email=${encodeURIComponent(email)}`
+  );
+  return response.data;
 };
 
 const disconnectSocialAccount = async (platform) => {
-  try {
-    const response = await api().delete(`/auth/${platform}/disconnect`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error disconnecting from ${platform}:`, error);
-    throw error;
-  }
+  const response = await api().delete(`/auth/${platform}/disconnect`);
+  return response.data;
 };
 
 const usersService = {
@@ -185,6 +173,7 @@ const usersService = {
   getBlockedUsers,
   isUserBlocked,
   addUserToWaitlist,
+  getCurrentUser,
   connectSocialMedia,
   getSocialAccounts,
   disconnectSocialAccount,

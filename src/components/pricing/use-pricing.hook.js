@@ -1,8 +1,8 @@
+import { isCreatorMode } from "@/common/utils/users.util";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 
 function usePricingHook() {
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode = isCreatorMode();
   const [animateTable, setAnimateTable] = useState(false);
 
   // Trigger initial animation
@@ -12,7 +12,7 @@ function usePricingHook() {
   }, []);
 
   return {
-    isCreatorMode,
+    creatorMode,
     animateTable,
   };
 }

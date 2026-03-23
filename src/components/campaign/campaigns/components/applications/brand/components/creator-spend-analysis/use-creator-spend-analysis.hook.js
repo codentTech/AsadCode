@@ -1,171 +1,340 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
+import {
+  getAllShortlists,
+  addUserToShortlist,
+} from "@/provider/features/shortlist/shortlist.slice";
+import { avatar } from "@/common/constants/auth.constant";
+import { sortOptions } from "@/common/constants/auth.constant";
 
-export const useCreatorSpendAnalysis = () => {
+function useCreatorSpendAnalysis({
+  selectedCampaign,
+  appliedCreatorsData,
+  appliedCreatorsLoading,
+  onCreatorSelect,
+  filters,
+  onCampaignSelect,
+  onFilterChange,
+  onClearFilters,
+  fetchIndividualCollaborations: fetchFromHook,
+  onClearCreator,
+}) {
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterType, setFilterType] = useState("creator");
+  const [isMultiCreator, setIsMultiCreator] = useState(true);
+  const hasAutoSelected = useRef(false);
+  const hasFetchedIndividual = useRef(false);
 
-  const creators = [
-    {
-      id: 1,
-      name: "Sarah Martinez",
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      location: "Los Angeles, CA",
-      totalSpent: "12,500",
-      rating: 4.9,
-      reviewCount: 47,
-      platforms: {
-        instagram: { followers: 285000, verified: true },
-        youtube: { followers: 95000, verified: true },
-        twitter: { followers: 42000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 2,
-      name: "Marcus Thompson",
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-      location: "New York, NY",
-      totalSpent: "9,800",
-      rating: 4.7,
-      reviewCount: 32,
-      platforms: {
-        instagram: { followers: 150000, verified: true },
-        youtube: { followers: 180000, verified: true },
-        twitter: { followers: 67000, verified: true },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 3,
-      name: "Emma Chen",
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      location: "San Francisco, CA",
-      totalSpent: "8,200",
-      rating: 4.8,
-      reviewCount: 28,
-      platforms: {
-        instagram: { followers: 92000, verified: false },
-        youtube: { followers: 145000, verified: true },
-        twitter: { followers: 28000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 4,
-      name: "David Rodriguez",
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-      location: "Miami, FL",
-      totalSpent: "6,500",
-      rating: 4.6,
-      reviewCount: 19,
-      platforms: {
-        instagram: { followers: 75000, verified: false },
-        youtube: { followers: 52000, verified: false },
-        twitter: { followers: 15000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 5,
-      name: "Jessica Park",
-      image:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-      location: "Austin, TX",
-      totalSpent: "4,800",
-      rating: 4.9,
-      reviewCount: 25,
-      platforms: {
-        instagram: { followers: 68000, verified: false },
-        youtube: { followers: 89000, verified: true },
-        twitter: { followers: 22000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-    {
-      id: 6,
-      name: "Alex Kim",
-      image:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-      location: "Seattle, WA",
-      totalSpent: "3,200",
-      rating: 4.5,
-      reviewCount: 14,
-      platforms: {
-        instagram: { followers: 45000, verified: false },
-        youtube: { followers: 78000, verified: false },
-        twitter: { followers: 31000, verified: false },
-      },
-      appliedDate: "2024-05-15",
-      followers: "10000",
-      portfolioImages: [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      ],
-    },
-  ];
+  const {
+    data: campaignsApiData,
+    isLoading: campaignsLoading,
+    isSuccess: campaignsSuccess,
+  } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
-  const formatFollowers = (count) => {
-    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${(count / 1_000).toFixed(0)}K`;
-    return count.toString();
+  const campaignsData = useMemo(
+    () => ({ data: Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [] }),
+    [campaignsApiData?.data]
+  );
+
+  const campaignOptions = useMemo(() => {
+    const list = campaignsData?.data || [];
+    return list.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.campaign_title || "Untitled Campaign",
+    }));
+  }, [campaignsData?.data]);
+
+  useEffect(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
+
+  const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
+    useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});
+
+  const { isSuccess: reinstateInvitationSuccess } = useSelector(
+    (state) => state.invitation.reinstateInvitation || {}
+  );
+
+  const shortlistState = useSelector((state) => state.shortlist || {});
+
+  const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
+  const [creatorToSave, setCreatorToSave] = useState(null);
+
+  // Fetch shortlists on mount
+  useEffect(() => {
+    dispatch(getAllShortlists());
+  }, [dispatch]);
+
+  const individualCollaborations = (individualCollaborationsData?.data || []).filter(
+    (invitation) => invitation.status === "PENDING"
+  );
+
+  const filteredCampaignOptions = useMemo(() => {
+    return campaignOptions.filter((option) => {
+      if (!campaignsData?.data) return false;
+      const campaign = campaignsData.data.find((c) => c.id === option.value);
+      if (!campaign) return false;
+      const collaborationType = campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      return isMultiCreator
+        ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+        : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    });
+  }, [campaignOptions, campaignsData?.data, isMultiCreator]);
+
+  const isSelectedCampaignValid =
+    selectedCampaign &&
+    (isMultiCreator
+      ? (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+        COLLABORATION_TYPE.MULTI_CREATOR
+      : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+  const selectedCampaignValue = useMemo(() => {
+    if (isSelectedCampaignValid && selectedCampaign) {
+      return { value: selectedCampaign.id, label: selectedCampaign.campaign_title };
+    }
+    return null;
+  }, [isSelectedCampaignValid, selectedCampaign?.id, selectedCampaign?.campaign_title]);
+
+  const fetchIndividualCollaborations = async () => {
+    hasFetchedIndividual.current = true;
+    const result = await dispatch(getBrandIndividualCollaborations());
+
+    if (result.payload?.success && result.payload?.data?.length > 0) {
+      const collaborations = result.payload.data.filter(
+        (invitation) => invitation.status === "PENDING"
+      );
+      if (collaborations.length > 0) {
+        const currentIsIndividual =
+          selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+        if (!selectedCampaign || !currentIsIndividual) {
+          const firstCollaboration = collaborations[0];
+          const syntheticCampaign = {
+            id: firstCollaboration.campaign_id || firstCollaboration.campaign?.id,
+            collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+            campaign_title: "Individual Collaboration",
+            brand: firstCollaboration.brand,
+            created_by: firstCollaboration.brand,
+            invitation: firstCollaboration,
+          };
+          if (onCampaignSelect && syntheticCampaign.id) {
+            onCampaignSelect(syntheticCampaign);
+          }
+        }
+      }
+    }
   };
 
-  const getPlatformColor = (platform) => {
-    const colors = {
-      instagram: "text-pink-600",
-      youtube: "text-red-600",
-      twitter: "text-blue-600",
+  const handleToggleChange = (event) => {
+    const newIsMultiCreator = event.target.checked;
+    setIsMultiCreator(newIsMultiCreator);
+    hasAutoSelected.current = false;
+
+    if (onClearCreator) {
+      onClearCreator();
+    }
+
+    if (newIsMultiCreator) {
+      hasFetchedIndividual.current = false;
+    }
+
+    if (selectedCampaign) {
+      const campaignType = selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      const shouldReset =
+        (newIsMultiCreator && campaignType !== COLLABORATION_TYPE.MULTI_CREATOR) ||
+        (!newIsMultiCreator && campaignType !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
+
+      if (shouldReset) {
+        if (onCampaignSelect) {
+          onCampaignSelect(null);
+        }
+      }
+    } else if (!newIsMultiCreator) {
+      if (onCampaignSelect) {
+        onCampaignSelect(null);
+      }
+      hasFetchedIndividual.current = false;
+      fetchIndividualCollaborations();
+    }
+  };
+
+  useEffect(() => {
+    if (isMultiCreator) {
+      hasFetchedIndividual.current = false;
+      if (
+        !selectedCampaign &&
+        !campaignsLoading &&
+        filteredCampaignOptions.length > 0 &&
+        campaignsData?.data &&
+        typeof onCampaignSelect === "function"
+      ) {
+        const firstCampaign = campaignsData.data.find(
+          (c) => c.id === filteredCampaignOptions[0]?.value
+        );
+        if (firstCampaign) {
+          onCampaignSelect(firstCampaign);
+          hasAutoSelected.current = true;
+        }
+      }
+    } else {
+      const isSelectedIndividual =
+        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+      if (!hasFetchedIndividual.current && !isSelectedIndividual) {
+        fetchIndividualCollaborations();
+      }
+    }
+  }, [
+    isMultiCreator,
+    selectedCampaign?.id,
+    filteredCampaignOptions.length,
+    campaignsData?.data,
+    campaignsLoading,
+  ]);
+
+  useEffect(() => {
+    if (reinstateInvitationSuccess && !isMultiCreator) {
+      hasFetchedIndividual.current = false;
+      fetchIndividualCollaborations();
+    }
+  }, [reinstateInvitationSuccess, isMultiCreator]);
+
+  const handleCreatorPreview = (creator) => {
+    if (onCreatorSelect) {
+      onCreatorSelect(creator);
+    }
+  };
+
+  const handleSaveToShortlist = (creator) => {
+    setCreatorToSave(creator);
+    setShowSaveToShortlistModal(true);
+  };
+
+  const confirmSaveToShortlist = async (shortlistId) => {
+    if (creatorToSave) {
+      const creatorId = creatorToSave.id || creatorToSave.creator?.id;
+      if (creatorId) {
+        await dispatch(
+          addUserToShortlist({
+            shortlistId,
+            userId: creatorId,
+          })
+        );
+        // Refetch shortlists to get updated counts
+        await dispatch(getAllShortlists());
+      }
+    }
+    setShowSaveToShortlistModal(false);
+    setCreatorToSave(null);
+  };
+
+  const mapCreatorForCard = (data) => {
+    const creatorData = data.creator;
+    const profile = creatorData?.creator_profile;
+    const socialAccounts = creatorData?.social_accounts || [];
+    const appliedDate = data.applied_at || data.created_at;
+
+    const platformStatsFromAccounts = socialAccounts.reduce((acc, s) => {
+      const pd = s.profile_data || {};
+      const followers =
+        Number(pd.followers) ||
+        Number(pd.followers_count) ||
+        Number(pd.follower_count) ||
+        Number(pd.subscriber_count) ||
+        0;
+      if (s.platform) acc[s.platform] = { followers };
+      return acc;
+    }, {});
+
+    const totalFromAccounts = Object.values(platformStatsFromAccounts).reduce(
+      (sum, stat) => sum + (stat?.followers || 0),
+      0
+    );
+
+    const platforms =
+      Object.keys(platformStatsFromAccounts).length > 0
+        ? Object.keys(platformStatsFromAccounts)
+        : (profile?.social_platforms || [])
+            .map((p) => (typeof p === "object" ? p.platform : p))
+            .filter(Boolean);
+
+    const platformStats =
+      Object.keys(platformStatsFromAccounts).length > 0
+        ? platformStatsFromAccounts
+        : platforms.reduce((acc, platformName) => {
+            if (platformName) acc[platformName] = { followers: 0 };
+            return acc;
+          }, {});
+
+    const followers = totalFromAccounts > 0 ? totalFromAccounts : (profile?.total_followers || 0);
+
+    return {
+      id: creatorData?.id,
+      name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
+      profileImage: profile?.profile_photo_url || avatar,
+      age: creatorData?.date_of_birth
+        ? Math.floor(
+            (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
+          )
+        : "N/A",
+      location:
+        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
+        "Location not specified",
+      rating: parseFloat(profile?.rating) || 0,
+      reviewCount: profile?.review_count || 0,
+      followers,
+      platforms,
+      platformStats,
+      portfolioImages: profile?.mini_profile_pictures || [],
+      niches: profile?.categories || [],
+      tagline: data.custom_message || data.pitch || profile?.bio || "",
+      appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
     };
-    return colors[platform] || "text-gray-600";
   };
 
-  const handleOpenModal = () => setOpen(true);
+  const handleSortChange = (option) => {
+    if (onFilterChange && option?.value) {
+      onFilterChange("sort", option.value);
+    }
+  };
 
-  const handleCloseModal = () => setOpen(false);
+  const handleOpenModal = () => {
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+  };
 
   return {
-    creators,
-    formatFollowers,
-    getPlatformColor,
-    messageDialogOpen,
-    setMessageDialogOpen,
     open,
     handleOpenModal,
     handleCloseModal,
+    showFilterModal,
+    setShowFilterModal,
+    filterType,
+    setFilterType,
+    isMultiCreator,
+    individualCollaborations,
+    individualCollaborationsLoading,
+    campaignsData,
+    campaignsLoading,
+    filteredCampaignOptions,
+    selectedCampaignValue,
+    handleToggleChange,
+    handleCreatorPreview,
+    handleSaveToShortlist,
+    confirmSaveToShortlist,
+    showSaveToShortlistModal,
+    setShowSaveToShortlistModal,
+    shortlists: shortlistState.getAllShortlists?.data || [],
+    mapCreatorForCard,
+    handleSortChange,
+    sortOptions,
   };
-};
+}
+
+export default useCreatorSpendAnalysis;

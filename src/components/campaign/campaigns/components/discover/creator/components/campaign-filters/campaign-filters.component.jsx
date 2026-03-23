@@ -1,13 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import {
   CAMPAIGN_TYPE_OPTIONS,
   COMPENSATION_TYPE_OPTIONS,
   LOCATION_OPTIONS,
 } from "@/common/constants/options.constant";
-import { ChevronDown, ChevronUp, Filter, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, Filter, Loader2, RotateCcw } from "lucide-react";
 import useCampaignFilter from "./use-campaign-filter.hook";
 
 function CampaignFilters() {
@@ -20,6 +21,7 @@ function CampaignFilters() {
     handlePlatformChange,
     applyFilters,
     hasActiveFilters,
+    isLoading,
   } = useCampaignFilter();
 
   const platformOptions = [
@@ -27,8 +29,6 @@ function CampaignFilters() {
     { label: "Instagram", value: "Instagram" },
     { label: "YouTube", value: "YouTube" },
   ];
-
-  const recentOptions = [{ label: "Recently Posted", value: "Recently Posted" }];
 
   return (
     <div className="w-1/4 bg-white col-span-3 border-x">
@@ -42,17 +42,15 @@ function CampaignFilters() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600 bg-blue-100 px-2 py-1 rounded-full">
               {/* Count active filters */}
-              {
-                Object.values(filters).filter((value) =>
-                  Array.isArray(value)
-                    ? value.length > 0
-                    : typeof value === "string"
-                      ? value.trim() !== ""
-                      : typeof value === "number"
-                        ? value > 0
-                        : Boolean(value)
-                ).length
-              }{" "}
+              {Object.values(filters).filter((value) =>
+                Array.isArray(value)
+                  ? value.length > 0
+                  : typeof value === "string"
+                    ? value.trim() !== ""
+                    : typeof value === "number"
+                      ? value > 0
+                      : Boolean(value)
+              ).length - 1}{" "}
               active
             </span>
             <button
@@ -113,12 +111,25 @@ function CampaignFilters() {
           </button>
           {expandedFilters.platform && (
             <div className="mt-2 space-y-2">
-              <CustomCheckboxGroup
-                name="platformOptions"
-                options={platformOptions}
-                value={filters.platforms || []}
-                onChange={(values) => setFilters({ ...filters, platforms: values })}
-              />
+              <div className="space-y-2">
+                {platformOptions.map((option) => (
+                  <label key={option.value} className="flex items-center text-xs gap-2">
+                    <input
+                      type="checkbox"
+                      value={option.value}
+                      checked={filters.platforms?.includes(option.value) || false}
+                      onChange={(e) => {
+                        const newPlatforms = e.target.checked
+                          ? [...(filters.platforms || []), option.value]
+                          : (filters.platforms || []).filter((p) => p !== option.value);
+                        setFilters({ ...filters, platforms: newPlatforms });
+                      }}
+                      className="h-3.5 w-3.5 accent-primary cursor-pointer"
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -148,6 +159,48 @@ function CampaignFilters() {
           )}
         </div>
 
+        {/* Eligibility Filter */}
+        <div className="mb-4">
+          <button
+            onClick={() => toggleFilter("eligibility")}
+            className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
+          >
+            Eligibility
+            {expandedFilters.eligibility ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+          {expandedFilters.eligibility && (
+            <div className="mt-2">
+              <div
+                className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
+                title="Filters campaigns to only show those you qualify for based on your country, city, follower count, connected platforms, and gender."
+              >
+                <button
+                  type="button"
+                  onClick={() => setFilters({ ...filters, eligibleOnly: !filters.eligibleOnly })}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-medium transition-all duration-200 ${
+                    filters.eligibleOnly
+                      ? "bg-primary text-white shadow-sm hover:bg-primary/90"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span>Only Display campaigns I am eligible for</span>
+                  <span
+                    className={`ml-2 px-2 py-0.5 rounded text-[9px] font-semibold ${
+                      filters.eligibleOnly ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {filters.eligibleOnly ? "ON" : "OFF"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Location Filter */}
         <div className="mb-4">
           <button
@@ -162,12 +215,30 @@ function CampaignFilters() {
             )}
           </button>
           {expandedFilters.location && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-3">
               <SimpleSelect
                 placeHolder="Select location"
                 options={LOCATION_OPTIONS}
                 value={filters.location}
                 onChange={(value) => setFilters({ ...filters, location: value })}
+              />
+
+              <CountrySelect
+                label="Country (of brand)"
+                value={filters.brandCountry}
+                onChange={(selection) =>
+                  setFilters({ ...filters, brandCountry: selection, brandCity: null })
+                }
+                autoDetect={false}
+                isRequired={false}
+              />
+
+              <CitySelect
+                label="City (optional)"
+                countryCode={filters.brandCountry?.countryCode}
+                value={filters.brandCity}
+                onChange={(selection) => setFilters({ ...filters, brandCity: selection })}
+                isRequired={false}
               />
             </div>
           )}
@@ -205,46 +276,18 @@ function CampaignFilters() {
             </div>
           )}
         </div>
-
-        {/* Recently Posted Toggle */}
-        <div className="mb-6">
-          <button
-            onClick={() => toggleFilter("recent")}
-            className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
-          >
-            Recently Posted
-            {filters.recentlyPosted && (
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full mr-2">
-                Active
-              </span>
-            )}
-            {expandedFilters.recent ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-          {expandedFilters.recent && (
-            <div className="mt-2">
-              <CustomCheckboxGroup
-                name="recentOptions"
-                options={recentOptions}
-                value={filters.recentlyPosted ? [recentOptions[0].value] : []}
-                onChange={(values) => setFilters({ ...filters, recentlyPosted: values.length > 0 })}
-              />
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Action Buttons - Fixed at bottom */}
       <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
         <CustomButton
-          text="Apply Filters"
+          text={isLoading ? "Applying..." : "Apply Filters"}
           className="w-full btn-primary"
           onClick={applyFilters}
-          disabled={!hasActiveFilters()}
-        />
+          disabled={!hasActiveFilters() || isLoading}
+        >
+          {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+        </CustomButton>
       </div>
     </div>
   );
