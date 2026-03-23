@@ -1,5 +1,5 @@
 import { Close, Menu } from "@mui/icons-material";
-import useHeader from "./use-header";
+import useHeader from "./use-header.hook";
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
@@ -90,8 +90,8 @@ function Header() {
           ) : (
             <div className="flex items-center space-x-3 ml-4">
               <CustomButton
-                text="Dashboard"
-                onClick={() => router.push("/admin/dashboard")}
+                text="Campaigns"
+                onClick={() => router.push("/campaign")}
                 className="btn-success"
               />
               <div className="flex items-center space-x-2">
@@ -190,8 +190,8 @@ function Header() {
             ) : (
               <div className="flex flex-col space-y-3">
                 <CustomButton
-                  text="Dashboard"
-                  onClick={() => router.push("/dashboard")}
+                  text="Campaigns"
+                  onClick={() => router.push("/campaign")}
                   className="btn-success w-full"
                 />
                 <div className="text-sm text-gray-600">Hi, {user?.first_name || "User"}</div>

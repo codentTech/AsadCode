@@ -1,6 +1,5 @@
 "use client";
 
-import { isLoginVerified } from "@/common/utils/access-token.util";
 import { login } from "@/provider/features/auth/auth.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AES, enc } from "crypto-js";
@@ -21,7 +20,6 @@ export default function useLogin() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
   const {
@@ -66,7 +64,6 @@ export default function useLogin() {
   const onSubmit = async (values) => {
     setLoading(true);
     const response = await dispatch(login(values));
-    console.log(response);
     if (response.payload.success) {
       if (response.payload?.data?.user?.role === "ADMIN") {
         router.push("/admin/dashboard");

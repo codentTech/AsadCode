@@ -90,8 +90,9 @@ function useUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  const { users } = useSelector((state) => state.users.getAllUsers?.data);
-  const { isLoading } = useSelector((state) => state.users.getAllUsers);
+  const users =
+    useSelector((state) => state.users.getAllUsers?.data?.users) ?? [];
+  const isLoading = useSelector((state) => state.users.getAllUsers?.isLoading ?? false);
 
   const filteredUsers = users?.filter(
     (user) =>
