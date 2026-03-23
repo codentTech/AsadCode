@@ -1,14 +1,7 @@
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
 import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
-import {
-  Clipboard,
-  LayoutDashboard,
-  User2,
-  UserLock,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { Clipboard, LayoutDashboard, User2, UserLock, Users, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +13,12 @@ const adminNavItems = [
     icon: LayoutDashboard,
     isActive: true,
     href: "/admin/dashboard",
+  },
+  {
+    label: "Creator Applications",
+    icon: Clipboard,
+    isActive: false,
+    href: "/admin/creator-applications",
   },
   {
     label: "Users",
@@ -43,12 +42,7 @@ const adminNavItems = [
       },
     ],
   },
-  {
-    label: "Creator Applications",
-    icon: Clipboard,
-    isActive: false,
-    href: "/admin/creator-applications",
-  },
+
   {
     label: "Payments",
     icon: Wallet,
@@ -195,7 +189,6 @@ const adminNavItems = [
   //   ],
   // },
 ];
-
 
 function useSidebar() {
   const router = useRouter();

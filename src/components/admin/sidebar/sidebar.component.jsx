@@ -2,7 +2,7 @@
 
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
-import useSidebar from "./use-sidebar";
+import useSidebar from "./use-sidebar.hook";
 
 function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
   const currentUser = getUser();
