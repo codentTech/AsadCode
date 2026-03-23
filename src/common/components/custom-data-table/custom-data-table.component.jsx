@@ -305,19 +305,22 @@ const CustomDataTable = ({
                     )}
 
                     {/* Actions cell */}
-                    {actions.length > 0 && (
-                      <td className="px-4 py-3 relative">
-                        <button
-                          onClick={(e) => handleActionRowToggle(row.id, e)}
-                          ref={(el) => {
-                            if (el) actionButtonRefs.current[row.id] = el;
-                          }}
-                          className="p-2 rounded hover:bg-gray-100 transition-colors duration-150"
-                        >
-                          <ThreedotIcon />
-                        </button>
-                      </td>
-                    )}
+                    {(() => {
+                      const rowActions = typeof actions === "function" ? actions(row) : actions;
+                      return Array.isArray(rowActions) && rowActions.length > 0 ? (
+                        <td className="px-4 py-3 relative">
+                          <button
+                            onClick={(e) => handleActionRowToggle(row.id, e)}
+                            ref={(el) => {
+                              if (el) actionButtonRefs.current[row.id] = el;
+                            }}
+                            className="p-2 rounded hover:bg-gray-100 transition-colors duration-150"
+                          >
+                            <ThreedotIcon />
+                          </button>
+                        </td>
+                      ) : null;
+                    })()}
                   </tr>
                 </React.Fragment>
               ))
@@ -335,22 +338,26 @@ const CustomDataTable = ({
             }}
           >
             <div className="bg-white rounded-md shadow-lg border border-gray-200 py-1 min-w-[180px]">
-              {actions.map((action, index) => (
-                <button
-                  key={action.key}
-                  onClick={() => {
-                    const row = paginatedData.find((r) => r.id === activeActionRowId);
-                    handleActionClick(action.key, row, onActionClick);
-                    setActiveActionRowId(null);
-                  }}
-                  className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 ${
-                    index === 0 ? "rounded-t-md" : ""
-                  } ${index === actions.length - 1 ? "rounded-b-md" : ""}`}
-                >
-                  {action.icon && <span className="mr-2 flex-shrink-0">{action.icon}</span>}
-                  <span className="truncate">{action.label}</span>
-                </button>
-              ))}
+              {(() => {
+                const row = paginatedData.find((r) => r.id === activeActionRowId);
+                const rowActions = typeof actions === "function" ? actions(row) : actions;
+                const filteredActions = rowActions.filter((action) => action.hidden !== true);
+                return filteredActions.map((action, index) => (
+                  <button
+                    key={action.key}
+                    onClick={() => {
+                      handleActionClick(action.key, row, onActionClick);
+                      setActiveActionRowId(null);
+                    }}
+                    className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 ${
+                      index === 0 ? "rounded-t-md" : ""
+                    } ${index === filteredActions.length - 1 ? "rounded-b-md" : ""}`}
+                  >
+                    {action.icon && <span className="mr-2 flex-shrink-0">{action.icon}</span>}
+                    <span className="truncate">{action.label}</span>
+                  </button>
+                ));
+              })()}
             </div>
           </div>
         )}

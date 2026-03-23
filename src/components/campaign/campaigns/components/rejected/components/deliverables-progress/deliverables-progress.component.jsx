@@ -1,95 +1,133 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import Loading from "@/common/components/loader/loading.component";
 import ReadMore from "@/common/components/readmore/readmore.component";
-import { avatar } from "@/common/constants/auth.constant";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
-import { CheckCircle2, MapPin, Star } from "lucide-react";
+import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
-const DeliverablesProgress = ({ isCompleted = false }) => {
-  const { privateNotes } = useDeliverablesProgress();
+const DeliverablesProgress = ({
+  selectedCreator,
+  onReinstateCreator,
+  onSaveToShortlistClick,
+  isIndividualCreator,
+}) => {
+  const {
+    showReinstateConfirmation,
+    creatorData,
+    handleReinstateClick,
+    handleConfirmReinstate,
+    handleCancelReinstate,
+    handleViewCreatorPortfolio,
+  } = useDeliverablesProgress({
+    onReinstateCreator,
+    selectedCreator,
+    isIndividualCreator,
+  });
+
+  if (!creatorData) {
+    return (
+      <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
 
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">
-      {/* Sticky Profile Section */}
-      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-2 top-0 bg-white z-10">
+      <div className="flex flex-col items-center pt-3 pb-4 px-4 border-b sticky gap-1 top-0 bg-white z-10">
         <div className="relative">
           <Avatar
-            src={avatar}
-            alt="Sam Waters"
+            src={creatorData?.image}
+            alt={creatorData?.image}
             className="h-20 w-20 border-4 border-white shadow-md ring-2 ring-primary"
           >
-            S
+            {creatorData.name?.charAt(0) || "C"}
           </Avatar>
-          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 bg-green-500 rounded-full ring-2 ring-white"></span>
-          {isCompleted && (
-            <span className="absolute -top-1 -right-1 h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-white" />
-            </span>
-          )}
         </div>
-        <h3>Sam Waters</h3>
-
-        <div className="flex items-center">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 ${
-                i < Math.floor(4) ? "text-yellow-400 fill-current" : "text-gray-300"
-              }`}
-            />
-          ))}
-        </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <MapPin className="w-4 h-4" />
-          <span>Los Angeles, CA</span>
-        </div>
-        <p className="primary-text text-center">
-          Fitness and lifestyle creator based in Los Angeles
+        <h3>
+          <button
+            onClick={handleViewCreatorPortfolio}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
+            {creatorData.name}
+          </button>
+          <span className="text-lg text-gray-500 ml-1">{creatorData.rating}</span>
+          <span className="text-lg text-gray-500 ml-1">({creatorData.reviewCount || 0})</span>
+        </h3>
+        <p className="flex items-center text-sm text-gray-500 -mt-1">
+          {creatorData.age} • <span className="ml-1">{creatorData.location}</span>
         </p>
-        {isCompleted && (
-          <div className="mt-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            Campaign Completed
-          </div>
-        )}
+        <p className="text-sm text-gray-500 -mt-1">{creatorData?.bio}</p>
+        <div className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+          Application Rejected
+        </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {/* Header - Quick Actions */}
-
-        <div className="bg-white rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 pb-2">Application Message</h4>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <ReadMore text="I love fashion and have been creating content for 3 years. My audience is primarily 18-35 year old women interested in affordable fashion trends." />
+      <div className="flex flex-col overflow-y-auto p-4 gap-4">
+        <div className="bg-white rounded-lg border p-3">
+          <h4 className="text-sm font-bold text-gray-800 mb-2">Performance Metrics</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Engagement Rate</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.engagement_rate ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Reach</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_reach ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Average Views</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.average_views ?? "N/A"}
+              </p>
+            </div>
+            <div className="border rounded p-2">
+              <p className="text-[11px] text-gray-500">Posting Frequency</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {creatorData?.profile?.posting_frequency ?? "N/A"}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Audience Demographics</h3>
+        <div className="bg-white border rounded-lg p-3">
+          <h3 className="text-sm font-bold text-gray-800 mb-2">Audience Demographics</h3>
           <AudienceDemographics className="flex flex-col" />
         </div>
 
-        {/* Private Notes Section */}
-        <div className="bg-white rounded-lg m-4 p-4 shadow mt-4">
-          <h4 className="text-lg font-semibold text-gray-800 mb-2">Private Notes</h4>
-          <ul className="space-y-3 text-sm text-gray-700 mb-4">
-            {privateNotes.map((note, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-gray-500 mt-1">📝</span>
-                <div className="flex flex-col">
-                  <span>{note.text}</span>
-                  <span className="text-xs text-gray-400 mt-1">{note.timestamp}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <div className="bg-white border rounded-lg p-3">
+          <h4 className="text-sm font-bold text-gray-800 mb-2">Application Message</h4>
+          <div className="bg-gray-100 p-3 rounded-lg">
+            <ReadMore text={creatorData.pitch || "No application message."} maxLength={100} />
+          </div>
         </div>
-        <div className="flex flex-col justify-between mt-3 m-4 gap-3">
-          <CustomButton text="Reinstate to Applications" className="btn-primary" />
-          <CustomButton text="Move to saved shortlists" className="btn-outline" />
+
+        <div className="grid grid-cols-1 gap-2 w-full">
+          <CustomButton
+            text="Reinstate to Applications"
+            className="btn-primary !py-1"
+            onClick={handleReinstateClick}
+          />
+          <CustomButton
+            text="Save to shortlists"
+            className="btn-outline !py-1"
+            onClick={onSaveToShortlistClick}
+          />
         </div>
       </div>
+
+      <ConfirmationDialog
+        show={showReinstateConfirmation}
+        onClose={handleCancelReinstate}
+        onConfirm={handleConfirmReinstate}
+        message="Reinstate Creator to Applications?"
+        content={`Are you sure you want to reinstate ${creatorData.name} to the applications pool? This will move them from rejected status back to pending applications.`}
+      />
     </div>
   );
 };

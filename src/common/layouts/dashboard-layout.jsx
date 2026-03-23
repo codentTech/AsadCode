@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import Sidebar from "@/components/admin/sidebar/sidebar.component";
 import DashboardHeader from "@/components/admin/header/header.component";
+import Sidebar from "@/components/admin/sidebar/sidebar.component";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+const pathToCurrentBar = (path) => {
+  if (!path) return null;
+  if (path.startsWith("/admin/payments")) return "Payments";
+  if (path.startsWith("/admin/users")) return "Users";
+  return null;
+};
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [activeRoute, setActiveRoute] = useState(pathname || "/admin/dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentBar = useMemo(() => pathToCurrentBar(pathname), [pathname]);
 
   // Update active route when pathname changes
   useEffect(() => {
@@ -41,57 +49,6 @@ export default function DashboardLayout({ children }) {
     setMobileMenuOpen(false);
   }, [activeRoute]);
 
-  // Get page title from pathname
-  const getPageTitle = () => {
-    if (!activeRoute) return "Dashboard";
-
-    const pathSegments = activeRoute.split("/").filter(Boolean);
-    if (pathSegments.length <= 1) return "Dashboard";
-
-    const lastSegment = pathSegments[pathSegments.length - 1];
-    return lastSegment
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  // Get breadcrumbs from pathname
-  const getBreadcrumbs = () => {
-    if (!activeRoute) return [{ label: "Dashboard", path: "/admin" }];
-
-    const pathSegments = activeRoute.split("/").filter(Boolean);
-    const breadcrumbs = [{ label: "Home", path: "/admin" }];
-
-    let currentPath = "";
-    pathSegments.forEach((segment, index) => {
-      if (segment === "admin") return;
-
-      currentPath += `/${segment}`;
-      const label = segment
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-
-      breadcrumbs.push({
-        label,
-        path: `/admin${currentPath}`,
-        isLast: index === pathSegments.length - 1,
-      });
-    });
-
-    return breadcrumbs;
-  };
-
-  // Handle mobile menu toggle
-  const handleMobileMenuToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  // Handle sidebar toggle
-  const handleSidebarToggle = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   return (
     <div className="min-h-screen flex">
       {/* Mobile Overlay */}
@@ -102,13 +59,12 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Sidebar - Always Fixed */}
+      {/* Sidebar - Admin only */}
       <Sidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        collapsed={sidebarCollapsed}
-        onToggle={handleSidebarToggle}
-        activeRoute={activeRoute}
+        setCurrentBar={null}
+        currentBar={currentBar}
       />
 
       {/* Main Content Area - With Left Margin for Sidebar */}
@@ -117,17 +73,14 @@ export default function DashboardLayout({ children }) {
           sidebarCollapsed ? "ml-16" : "ml-72"
         }`}
       >
-        {/* Header */}
+        {/* Admin Header */}
         <DashboardHeader
-          onMenuClick={handleMobileMenuToggle}
+          onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           sidebarCollapsed={sidebarCollapsed}
-          onSidebarToggle={handleSidebarToggle}
-          pageTitle={getPageTitle()}
-          breadcrumbs={getBreadcrumbs()}
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden bg-gray-50">{children}</main>
+        <main className={`flex-1 px-4 lg:px-6 pt-24 overflow-x-hidden bg-gray-50`}>{children}</main>
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200 px-4 lg:px-6 py-4">

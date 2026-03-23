@@ -11,12 +11,16 @@ const CloseIcon = () => {
   );
 };
 
-function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange, defaultValue }) {
+function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange, defaultValue, value }) {
   const [showMenu, setShowMenu] = useState(false);
   const [selectedValue, setSelectedValue] = useState(isMulti ? [] : null);
   const [searchValue, setSearchValue] = useState("");
   const searchRef = useRef();
   const inputRef = useRef();
+
+  // Use controlled value if provided, otherwise use internal state
+  // If value is null/undefined, use selectedValue; otherwise use value directly
+  const currentValue = value !== undefined && value !== null ? value : selectedValue;
 
   useEffect(() => {
     setSearchValue("");
@@ -41,22 +45,117 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
     setShowMenu(!showMenu);
   };
 
-  const getDisplay = () => {
-    if (defaultValue) {
-      // If defaultValue is provided, find the corresponding option and return its label
-      const defaultOption = options && options.find((option) => option.value === defaultValue);
-      return defaultOption ? defaultOption.label : placeHolder || "";
+  // Handle defaultValue (uncontrolled) - only set on initial mount
+  useEffect(() => {
+    if (value !== undefined) return; // Don't use defaultValue if value is provided (controlled)
+
+    if (!options) return;
+
+    if (isMulti) {
+      if (Array.isArray(defaultValue) && defaultValue.length) {
+        const selectedOptions = options.filter((option) => defaultValue.includes(option.value));
+        setSelectedValue(selectedOptions);
+      } else if (!defaultValue || defaultValue.length === 0) {
+        setSelectedValue([]);
+      }
+      return;
     }
 
-    if (!selectedValue || selectedValue.length === 0) {
+    if (!defaultValue) {
+      setSelectedValue(null);
+      return;
+    }
+
+    if (typeof defaultValue === "object" && defaultValue?.value) {
+      setSelectedValue(defaultValue);
+      return;
+    }
+
+    const defaultOption = options.find((option) => option.value === defaultValue);
+    if (defaultOption) {
+      setSelectedValue(defaultOption);
+    }
+  }, [defaultValue, options, isMulti, value]);
+
+  // Handle controlled value prop - sync internal state for display
+  useEffect(() => {
+    if (value === undefined) return; // Not controlled
+
+    if (isMulti) {
+      if (Array.isArray(value) && value.length) {
+        const selectedOptions = options?.filter((option) => 
+          value.some((v) => (typeof v === 'object' ? v.value : v) === option.value)
+        ) || [];
+        // Only update if different to avoid infinite loops
+        const currentStr = JSON.stringify(selectedValue);
+        const newStr = JSON.stringify(selectedOptions);
+        if (currentStr !== newStr) {
+          setSelectedValue(selectedOptions);
+        }
+      } else {
+        if (selectedValue !== null && (!Array.isArray(selectedValue) || selectedValue.length > 0)) {
+          setSelectedValue([]);
+        }
+      }
+      return;
+    }
+
+    // For single select, if value is null, clear selection
+    if (value === null) {
+      if (selectedValue !== null) {
+        setSelectedValue(null);
+      }
+      return;
+    }
+
+    // If value is an object with value and label, use it directly
+    if (typeof value === "object" && value?.value !== undefined && value?.label !== undefined) {
+      // Only update if different to avoid infinite loops
+      if (selectedValue?.value !== value.value || selectedValue?.label !== value.label) {
+        setSelectedValue(value);
+      }
+      return;
+    }
+
+    // If value is a primitive, find matching option
+    if (typeof value !== "object") {
+      const valueOption = options?.find((option) => option.value === value);
+      if (valueOption) {
+        if (selectedValue?.value !== valueOption.value) {
+          setSelectedValue(valueOption);
+        }
+      } else {
+        if (selectedValue !== null) {
+          setSelectedValue(null);
+        }
+      }
+      return;
+    }
+
+    // Fallback: use value as-is if it's an object
+    const currentStr = JSON.stringify(selectedValue);
+    const newStr = JSON.stringify(value);
+    if (currentStr !== newStr) {
+      setSelectedValue(value);
+    }
+  }, [value, options, isMulti]);
+
+  const getDisplay = () => {
+    // Use value prop directly if provided (controlled), otherwise use selectedValue
+    const displayValue = value !== undefined && value !== null ? value : selectedValue;
+    
+    if (!displayValue) {
       return placeHolder || "";
     }
 
     if (isMulti) {
+      if (!Array.isArray(displayValue) || displayValue.length === 0) {
+        return placeHolder || "";
+      }
       return (
         // eslint-disable-next-line react/jsx-filename-extension
         <div className="flex flex-wrap gap-[5px]">
-          {selectedValue.map((option) => (
+          {displayValue.map((option) => (
             <div key={option.value} className="flex gap-3 items-center rounded-lg bg-gray-100 px-2">
               {option.label}
               <span onClick={(e) => onTagRemove(e, option)} className="flex items-center ml-1">
@@ -68,45 +167,59 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
       );
     }
 
-    return selectedValue.label;
-  };
+    // Single select - displayValue should be an object with label
+    if (typeof displayValue === "object" && displayValue.label) {
+      return displayValue.label;
+    }
 
-  const removeOption = (option) => {
-    return selectedValue.filter((o) => o.value !== option.value);
+    return placeHolder || "";
   };
 
   const onTagRemove = (e, option) => {
     e.stopPropagation();
-    const newValue = removeOption(option);
-    setSelectedValue(newValue);
+    const current = currentValue || [];
+    const newValue = current.filter((o) => o.value !== option.value);
+    
+    // Only update internal state if not controlled
+    if (value === undefined) {
+      setSelectedValue(newValue);
+    }
     onChange(newValue);
   };
 
   const onItemClick = (option) => {
     let newValue;
     if (isMulti) {
-      if (selectedValue.findIndex((o) => o.value === option.value) >= 0) {
-        newValue = removeOption(option);
+      const current = currentValue || [];
+      if (current.findIndex((o) => o.value === option.value) >= 0) {
+        newValue = current.filter((o) => o.value !== option.value);
       } else {
-        newValue = [...selectedValue, option];
+        newValue = [...current, option];
       }
     } else {
       newValue = option;
     }
-    setSelectedValue(newValue);
+    
+    // Only update internal state if not controlled
+    if (value === undefined) {
+      setSelectedValue(newValue);
+    }
     onChange(newValue);
   };
 
   const isSelected = (option) => {
+    const current = currentValue;
+    
     if (isMulti) {
-      return selectedValue.filter((o) => o.value === option.value).length > 0;
+      if (!Array.isArray(current)) return false;
+      return current.filter((o) => o.value === option.value).length > 0;
     }
 
-    if (!selectedValue) {
+    if (!current) {
       return false;
     }
 
-    return selectedValue.value === option.value;
+    return current.value === option.value;
   };
 
   const onSearch = (e) => {

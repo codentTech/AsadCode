@@ -1,13 +1,16 @@
+import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-function useLandingPageHook() {
+function useLandingPage() {
   const dispatch = useDispatch();
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const landingCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const creatorMode =
+    getUser() != null ? isCreatorMode() : landingCreatorMode;
 
   useEffect(() => {
-    if (typeof window !== undefined) {
+    if (typeof window !== "undefined") {
       const hash = window.location.hash;
       if (hash) {
         setTimeout(() => {
@@ -18,11 +21,17 @@ function useLandingPageHook() {
     }
   }, []);
 
-  const handleSelectMode = (isCreator) => {
-    dispatch(setIsCreatorModeMode(isCreator));
-  };
+  const handleSelectMode = useCallback(
+    (mode) => {
+      dispatch(setIsCreatorModeMode(mode));
+    },
+    [dispatch]
+  );
 
-  return { isCreatorMode, handleSelectMode };
+  return {
+    creatorMode,
+    handleSelectMode,
+  };
 }
 
-export default useLandingPageHook;
+export default useLandingPage;

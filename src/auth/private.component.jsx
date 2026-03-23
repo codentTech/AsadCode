@@ -1,6 +1,6 @@
 "use client";
 
-import { getAccessToken } from "@/common/utils/access-token.util";
+import { isLoginVerified } from "@/common/utils/access-token.util";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
@@ -16,8 +16,7 @@ export default function Private({ component }) {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = getAccessToken();
-      if (!token) {
+      if (!isLoginVerified()) {
         router.push("/login");
         return;
       }
@@ -32,7 +31,7 @@ export default function Private({ component }) {
     return null; // Don't render anything while redirecting
   }
 
-  return <div className="min-h-screen">{component}</div>;
+  return <div>{component}</div>;
 }
 
 Private.propTypes = {

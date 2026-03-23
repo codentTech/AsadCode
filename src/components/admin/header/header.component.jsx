@@ -1,13 +1,11 @@
 "use client";
 
-import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { notificationsMockData } from "@/common/constants/notifications.data.constant";
 import ROLES from "@/common/constants/role.constant";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import useHeader from "./use-header.hook";
 
-const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
+const DashboardHeader = ({ onMenuClick, sidebarCollapsed }) => {
   const {
     router,
     currentUser,
@@ -17,10 +15,18 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
     setShowProfileDropdown,
     getUserInitials,
     profileMenuItems,
+    notifications,
+    unreadCount,
+    handleNotificationClick,
   } = useHeader();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+    <header
+      className={`fixed top-0 bg-white shadow-sm border-b border-gray-200 z-50 transition-all duration-300 ${
+        sidebarCollapsed ? "left-16" : "left-72"
+      }`}
+      style={{ width: sidebarCollapsed ? "calc(100% - 4rem)" : "calc(100% - 18rem)" }}
+    >
       <div className="flex items-center justify-between mr-6 ml-1 py-[10px]">
         <div className="flex items-center space-x-4">
           <button onClick={onMenuClick} className="lg:hidden text-gray-600 hover:text-gray-900">
@@ -36,28 +42,11 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          {/* Notifications Bell */}
-          <button
-            onClick={() => {
-              setShowNotificationDropdown(!showNotificationDropdown);
-              setShowProfileDropdown(false);
-            }}
-            className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors relative"
-          >
-            <Bell size={20} />
-            {unreadCount !== 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
           {/* Profile Avatar */}
           <div className="relative">
             <button
               onClick={() => {
                 setShowProfileDropdown(!showProfileDropdown);
-                setShowNotificationDropdown(false);
               }}
               className="flex items-center space-x-2 p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -128,38 +117,6 @@ const DashboardHeader = ({ onMenuClick, unreadCount = 0, notifications }) => {
           </div>
         </div>
       </div>
-
-      {/* Notifications Dropdown */}
-      {showNotificationDropdown && (
-        <div className="absolute top-16 right-24 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-          <div className="py-2 px-4 border-b border-gray-200">
-            <h3 className="text-sm font-bold text-gray-900">Recent Notifications</h3>
-          </div>
-          <div className="max-h-64 overflow-y-auto">
-            {notificationsMockData["brand"].slice(0, 3).map((notification) => (
-              <div key={notification.id} className="p-3 border-b border-gray-100 hover:bg-gray-50">
-                <div className="flex items-start space-x-3">
-                  <span className="text-lg">{notification.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-gray-900 truncate">{notification.title}</p>
-                    <p className="text-xs text-gray-600 truncate">{notification.message}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="p-2 border-t border-gray-200">
-            <CustomButton
-              text="View All Notifications"
-              className="w-full btn-secondary"
-              onClick={() => {
-                router.push("notifications");
-                setShowNotificationDropdown(false);
-              }}
-            />
-          </div>
-        </div>
-      )}
     </header>
   );
 };

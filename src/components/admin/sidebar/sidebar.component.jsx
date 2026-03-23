@@ -1,11 +1,11 @@
 "use client";
 
-import { X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import useSidebar from "./use-sidebar";
+import ROLES from "@/common/constants/role.constant";
+import { getUser } from "@/common/utils/users.util";
+import useSidebar from "./use-sidebar.hook";
 
 function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
+  const currentUser = getUser();
   const { expandedSections, activeItem, navItems, handleItemClick } = useSidebar();
 
   const renderNavItem = (item, depth = 0, parentPath = "") => {
@@ -104,23 +104,24 @@ function Sidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-72 bg-white transform transition-transform duration-300 ease-in-out border-r flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between py-[14px] border-b border-gray-200 px-6">
-          <Link href="/" className="flex items-center cursor-pointer">
-            <Image src="/assets/images/horizontal-logo.png" alt="logo" width={120} height={120} />
-          </Link>
-          <button onClick={onClose} className="lg:hidden text-white hover:text-indigo-200">
-            <X size={24} />
-          </button>
+        {/* Logo */}
+        <div className="px-4 py-3.5 border-b border-gray-200">
+          <img
+            src="/assets/images/horizontal-logo.png"
+            alt="Cleercut Logo"
+            className="h-10 w-auto"
+          />
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 h-screen overflow-y-auto pb-10">
-          <div className="px-4 space-y-2">{navItems?.map((item) => renderNavItem(item))}</div>
+        <nav className="flex-1 py-4 overflow-y-auto">
+          <div className={`px-4 space-y-2 ${currentUser?.role === ROLES.ADMIN ? "pt-4" : "pt-4"}`}>
+            {navItems?.map((item) => renderNavItem(item))}
+          </div>
         </nav>
       </div>
     </>

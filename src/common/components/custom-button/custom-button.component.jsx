@@ -27,6 +27,7 @@ export default function CustomButton({
   endIcon = null,
   startIcon = null,
   loading = false,
+  title = "",
 }) {
   return (
     <Button
@@ -39,6 +40,7 @@ export default function CustomButton({
       endIcon={endIcon}
       startIcon={startIcon}
       className={`btn font-dm normal-case ${className}`}
+      title={title}
     >
       {loading ? <CircularProgress className="text-white" size={20} /> : text}
     </Button>
@@ -56,4 +58,6 @@ CustomButton.propTypes = {
   endIcon: PropTypes.element,
   startIcon: PropTypes.element,
   id: PropTypes.string,
+  title: PropTypes.string,
+  loading: PropTypes.bool,
 };

@@ -1,7 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import {
   AlertTriangle,
   Archive,
@@ -228,13 +227,10 @@ const InvoicesReceiptsPage = () => {
   const handleActionClick = (actionKey, row) => {
     switch (actionKey) {
       case "view":
-        console.log("View document:", row);
         break;
       case "download":
-        console.log("Download document:", row);
         break;
       case "email":
-        console.log("Email document:", row);
         break;
       default:
         break;
@@ -251,12 +247,11 @@ const InvoicesReceiptsPage = () => {
   };
 
   const downloadSelected = () => {
-    console.log("Downloading selected items:", selectedItems);
     // Implement download logic
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Invoices & Receipts</h1>
@@ -416,7 +411,7 @@ const InvoicesReceiptsPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

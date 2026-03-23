@@ -2,7 +2,7 @@ import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import useSolution from "./use-solution.hook";
 
 export default function CleerCutSolution() {
-  const { isCreatorMode, features } = useSolution();
+  const { creatorMode, features } = useSolution();
 
   return (
     <HeaderFooterLayout>
@@ -12,12 +12,12 @@ export default function CleerCutSolution() {
           <div className="max-w-7xl mx-auto py-2 md:py-4 px-4 sm:px-6 lg:px-8">
             <div className="mt-4 text-center">
               <h2 className="text-white text-sm md:text-lg xl:text-xl font-extrabold">
-                {isCreatorMode
+                {creatorMode
                   ? "CleerCut empowers creators to spend less time pitching — and more time getting paid."
                   : "CleerCut replaces outdated spreadsheets, ghosted DMs, and overpriced platforms — so you can actually scale."}
               </h2>
               <p className="mt-2 text-white text-sm md:text-lg xl:text-xl">
-                {isCreatorMode
+                {creatorMode
                   ? "0% commission. Just the standard 3.2% payment processing fee."
                   : "Work with creators who deliver, at a price that scales with your business."}
               </p>
