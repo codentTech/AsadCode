@@ -34,6 +34,12 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
   return (
     <div className="py-8 px-4 bg-gray-100 min-h-screen">
       <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">Apply to Join CleerCut</h1>
+          <p className="text-sm lg:text-md text-white">
+            Share your details and we'll review your application
+          </p>
+        </div>
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
             <button
@@ -44,15 +50,6 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
               Back
             </button>
           </div>
-        </div>
-
-        <div className="text-center mb-6">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-2">
-            Apply to Join CleerCut
-          </h1>
-          <p className="text-sm lg:text-base text-gray-600">
-            Share your details and we'll review your application
-          </p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl p-8">

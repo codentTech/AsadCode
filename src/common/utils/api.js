@@ -53,10 +53,7 @@ const api = (headers = null) => {
       }
 
       const message = error.response?.data?.message || error.message || error.toString();
-      console.log("Error:", error);
-      const responseURL = error.request?.responseURL;
-
-      if (responseURL.includes("onboarding")) return null;
+      const responseURL = error.request?.responseURL || "";
 
       // Handle unauthorized
       if (error.response?.status === 401) {

@@ -21,7 +21,7 @@ const matchLanguage = (term) => {
 };
 
 export default function LanguageSelect({
-  label = "Languages",
+  label = "",
   name = "languages",
   value = [],
   onChange,

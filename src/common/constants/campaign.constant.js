@@ -1,9 +1,19 @@
+export const MIN_FOLLOWERS = 2000;
+
+export const PLATFORM_TYPE = Object.freeze({
+  INSTAGRAM: "INSTAGRAM",
+  TIKTOK: "TIKTOK",
+  YOUTUBE: "YOUTUBE",
+});
+
 export const CAMPAIGN_STATUS = Object.freeze({
   INCOMPLETE: "INCOMPLETE",
   COMPLETE: "COMPLETE",
 });
 
 export const CAMPAIGN_TYPE = Object.freeze({
+  INFLUENCER: "INFLUENCER",
+  HYBRID: "HYBRID",
   GIFTED: "GIFTED",
   SPONSORED_POST: "SPONSORED_POST",
   AFFILIATE: "AFFILIATE",

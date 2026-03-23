@@ -41,4 +41,3 @@ const ShortlistView = ({
 };
 
 export default ShortlistView;
-

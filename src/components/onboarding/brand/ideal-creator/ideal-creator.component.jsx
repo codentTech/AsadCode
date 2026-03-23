@@ -228,6 +228,14 @@ const IdealCreator = ({ onNext, onBack }) => {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto px-4">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
+            Who Are You Looking to Work With?
+          </h1>
+          <p className="text-sm lg:text-md text-white">
+            Help us find the perfect creators for your campaigns
+          </p>
+        </div>
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
@@ -241,19 +249,9 @@ const IdealCreator = ({ onNext, onBack }) => {
             <span>Step 6 of 6</span>
             <span>100% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-full transition-all duration-500"></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-full transition-all duration-500"></div>
           </div>
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
-            Who Are You Looking to Work With?
-          </h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Help us find the perfect creators for your campaigns
-          </p>
         </div>
 
         <form>

@@ -257,12 +257,12 @@ export default function useHireCreator({
       return;
     }
 
-    // CRITICAL: Validate payment method exists before submission
-    // Uses Redux state value which is kept in sync when payment methods are added/removed
-    if (!hasPaymentMethod) {
+    // CRITICAL: Validate payment method exists before submission (only for paid offers)
+    if (isPaymentRequired() && !hasPaymentMethod) {
       const errorMessage =
         "Payment method is required to send offers. Please add a payment method in Settings > Payments > Payment Methods.";
       enqueueSnackbar(errorMessage, { variant: "error" });
+      return;
     }
 
     // Prepare contract data for API
@@ -304,6 +304,30 @@ export default function useHireCreator({
   const exclusivityValue = watchedValues?.exclusivityClause || "none";
   const campaignTypeValue = watchedValues?.campaignType || "";
 
+  // Payment not required for gifted/affiliate (campaign type) or gifted product/commission (compensation type)
+  const isPaymentRequired = useCallback(() => {
+    const compType = (watchedValues?.compensationType || "").toUpperCase();
+    const campType = (
+      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
+    )
+      ?.toUpperCase?.();
+    if (
+      compType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+      compType === COMPENSATION_TYPE.COMMISSION
+    ) {
+      return false;
+    }
+    if (campType === CAMPAIGN_TYPE.GIFTED || campType === CAMPAIGN_TYPE.AFFILIATE) {
+      return false;
+    }
+    return true;
+  }, [
+    watchedValues?.compensationType,
+    watchedValues?.campaignType,
+    isIndividual,
+    campaignData?.campaign_type,
+  ]);
+
   return {
     register,
     handleSubmit,
@@ -330,5 +354,6 @@ export default function useHireCreator({
     exclusivityValue,
     campaignTypeValue,
     isIndividualCollaboration: isIndividual,
+    isPaymentRequired,
   };
 }

@@ -36,6 +36,7 @@ export default function HireCreatorModal({
     createEnrichedContractData,
     hasPaymentMethod,
     isCheckingPaymentMethod,
+    isPaymentRequired,
     showPreview,
     setShowPreview,
     handlePreviewContract,
@@ -56,8 +57,8 @@ export default function HireCreatorModal({
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
-      {/* Payment Method Warning */}
-      {!isCheckingPaymentMethod && !hasPaymentMethod && (
+      {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
+      {isPaymentRequired() && !isCheckingPaymentMethod && !hasPaymentMethod && (
         <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -255,7 +256,9 @@ export default function HireCreatorModal({
             text="Send Offer"
             className="btn-primary"
             type="submit"
-            disabled={!hasPaymentMethod || isCheckingPaymentMethod}
+            disabled={
+              (isPaymentRequired() && !hasPaymentMethod) || isCheckingPaymentMethod
+            }
           />
         </div>
       </form>

@@ -167,10 +167,49 @@ function useDiscover() {
     // Invite logic would go here
   };
 
-  // Transform backend user data to frontend creator format
+  // Transform backend user data to frontend creator format (matches discover mapUserToCreator shape)
   const transformUserToCreator = (user) => {
     const creatorProfile = user.creator_profile || {};
-    const socialPlatforms = creatorProfile.social_platforms || [];
+    const socialAccounts = user.social_accounts || [];
+    const socialPlatformsFromProfile = creatorProfile.social_platforms || [];
+
+    const platformsFromAccounts = socialAccounts.map((s) => s.platform).filter(Boolean);
+    const platformStatsFromAccounts = socialAccounts.reduce((acc, s) => {
+      const pd = s.profile_data || {};
+      const followers =
+        Number(pd.follower_count) ||
+        Number(pd.subscriber_count) ||
+        Number(pd.followers) ||
+        Number(pd.followers_count) ||
+        Number(pd.reputation?.follower_count) ||
+        Number(pd.reputation?.subscriber_count) ||
+        0;
+      const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
+      const profileUrl = pd.profile_url ?? pd.url ?? null;
+      if (s.platform) {
+        acc[s.platform] = { followers, username, profile_url: profileUrl };
+      }
+      return acc;
+    }, {});
+
+    const platformsFromProfile = socialPlatformsFromProfile.map((sp) =>
+      typeof sp === "string" ? sp : (sp?.platform || sp?.name)
+    ).filter(Boolean);
+    const platforms =
+      platformsFromAccounts.length > 0 ? platformsFromAccounts : platformsFromProfile;
+    const platformStats =
+      Object.keys(platformStatsFromAccounts).length > 0
+        ? platformStatsFromAccounts
+        : socialPlatformsFromProfile.reduce((acc, sp) => {
+            const key = typeof sp === "string" ? sp : sp?.platform;
+            if (key) acc[key] = { followers: 0, username: sp?.username, profile_url: null };
+            return acc;
+          }, {});
+
+    const totalFollowers = Object.values(platformStats).reduce(
+      (sum, stat) => sum + (stat?.followers || 0),
+      0
+    );
 
     return {
       id: user.id,
@@ -182,20 +221,17 @@ function useDiscover() {
       location:
         `${user.city || ""}, ${user.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
         "Unknown Location",
-      rating: 4.5, // Default rating since it's not in the backend yet
-      reviewCount: 0, // Default review count
-      followers: 10000, // Default followers count
-      engagementRate: 3.2, // Default engagement rate
+      rating: 4.5,
+      reviewCount: 0,
+      followers: totalFollowers || 0,
+      engagementRate: 3.2,
       tagline: creatorProfile.bio || "Creating authentic content that resonates with audiences",
       niches: creatorProfile.categories || [],
-      platforms: socialPlatforms.map((sp) => sp.platform).filter(Boolean),
-      platformStats: socialPlatforms.reduce((acc, sp) => {
-        acc[sp.platform] = {
-          followers: Math.floor(Math.random() * 50000) + 1000, // Mock data for now
-        };
-        return acc;
-      }, {}),
-      portfolioImages: creatorProfile.mini_profile_pictures || [],
+      platforms,
+      platformStats,
+      portfolioImages: Array.isArray(creatorProfile.mini_profile_pictures)
+        ? creatorProfile.mini_profile_pictures
+        : [],
     };
   };
 

@@ -29,6 +29,11 @@ const verifyEmail = async (data) => {
   return response.data;
 };
 
+const sendVerificationEmail = async (email) => {
+  const response = await api().post("/auth/send-verification-email", { email });
+  return response.data;
+};
+
 const resendEmail = async (email) => {
   const response = await api().post("/auth/resend-email", { email });
   return response.data;
@@ -61,6 +66,7 @@ const authService = {
   login,
   signUp,
   verifyEmail,
+  sendVerificationEmail,
   resendEmail,
   loginAndSignUpWithOAuth,
   loginAndSignUpWithLinkedin,

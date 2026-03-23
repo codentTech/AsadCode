@@ -1,16 +1,35 @@
-import { Mail, CheckCircle, ArrowLeft } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
+import { ArrowLeft, Mail } from "lucide-react";
 import useEmailVerification from "./use-email-verification.hook";
 
 const EmailVerification = ({ onNext, onBack }) => {
-  const { email, emailSent, countdown, handleResendEmail, handleContinue, isLoading } =
-    useEmailVerification({
-      onNext,
-    });
+  const {
+    email,
+    emailSent,
+    countdown,
+    verificationCode,
+    handleSendVerificationEmail,
+    handleCodeChange,
+    handleCodePaste,
+    handleResendEmail,
+    handleContinue,
+    isLoading,
+    isSendingEmail,
+    canSubmit,
+  } = useEmailVerification({ onNext });
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-2xl font-bold text-white mb-1">
+            Verify Your Email to Continue
+          </h1>
+          <p className="text-sm lg:text-md text-white">
+            We’ve sent you an email with a verification link.
+          </p>
+        </div>
         {/* Progress */}
         <div className="mb-6">
           <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
@@ -25,7 +44,7 @@ const EmailVerification = ({ onNext, onBack }) => {
             <span className="text-gray-500">60% Complete</span>
           </div>
           <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full w-[60%] bg-gradient-to-r from-indigo-500 to-purple-600 transition-all rounded-full" />
+            <div className="h-full w-[60%] bg-primary transition-all rounded-full" />
           </div>
         </div>
 
@@ -39,13 +58,40 @@ const EmailVerification = ({ onNext, onBack }) => {
               </div>
             </div>
             <h2 className="text-xl font-bold text-gray-900">Verify Your Email to Continue</h2>
-            <p className="text-gray-600">We’ve sent a verification link to:</p>
+            <p className="text-gray-600">We will send a 6-digit verification code to:</p>
             <div className="text-sm bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg inline-block">
               {email}
             </div>
-            <p className="text-sm text-gray-500">
-              Click the link to confirm your account and begin setting up your profile.
-            </p>
+          </div>
+
+          {!emailSent ? (
+            <div className="pt-2">
+              <CustomButton
+                text="Send verification email"
+                className="btn-primary w-full"
+                onClick={handleSendVerificationEmail}
+                disabled={isSendingEmail}
+                loading={isSendingEmail}
+              />
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 text-center">
+                Enter the 6-digit code we sent to your email below.
+              </p>
+
+              <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Verification code</label>
+            <CustomInput
+              name="verificationCode"
+              type="text"
+              placeholder="000000"
+              value={verificationCode}
+              onChange={handleCodeChange}
+              onPaste={handleCodePaste}
+              inputProps={{ maxLength: 6, inputMode: "numeric", autoComplete: "one-time-code" }}
+              className="text-center text-lg tracking-[0.4em] font-mono"
+            />
           </div>
 
           {/* Resend Message */}
@@ -53,34 +99,30 @@ const EmailVerification = ({ onNext, onBack }) => {
             <p className="text-sm text-gray-600">Didn’t get it? Check your spam folder or</p>
             {countdown > 0 ? (
               <p className="text-sm text-gray-400">Resend available in {countdown}s</p>
-            ) : !emailSent ? (
+            ) : (
               <button
                 onClick={handleResendEmail}
                 className="text-indigo-600 hover:text-indigo-700 text-sm underline font-medium"
               >
                 Resend Email
               </button>
-            ) : (
-              <div className="inline-flex items-center justify-center bg-green-50 text-green-700 text-sm font-medium px-4 py-2 rounded-lg">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Email sent! Please check your inbox.
-              </div>
             )}
-          </div>
+              </div>
 
-          {/* Continue Button */}
-          <div className="pt-4 space-y-3">
+              <div className="pt-4 space-y-3">
             <CustomButton
               text="Continue to Profile Setup"
               className="btn-primary w-full"
               onClick={handleContinue}
-              disabled={isLoading}
+              disabled={isLoading || !canSubmit}
               loading={isLoading}
             />
             <p className="text-sm text-center text-gray-400 hover:text-gray-600 transition">
               Having trouble? <span className="underline cursor-pointer">Contact Support</span>
             </p>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

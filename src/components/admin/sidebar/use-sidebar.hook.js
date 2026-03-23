@@ -1,15 +1,9 @@
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
 import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
-import {
-  Clipboard,
-  LayoutDashboard,
-  User2,
-  UserLock,
-  Users,
-} from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { Clipboard, LayoutDashboard, User2, UserLock, Users, Wallet } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 // Define nav items for Admin users
@@ -19,6 +13,12 @@ const adminNavItems = [
     icon: LayoutDashboard,
     isActive: true,
     href: "/admin/dashboard",
+  },
+  {
+    label: "Creator Applications",
+    icon: Clipboard,
+    isActive: false,
+    href: "/admin/creator-applications",
   },
   {
     label: "Users",
@@ -42,11 +42,28 @@ const adminNavItems = [
       },
     ],
   },
+
   {
-    label: "Creator Applications",
-    icon: Clipboard,
+    label: "Payments",
+    icon: Wallet,
     isActive: false,
-    href: "/admin/creator-applications",
+    children: [
+      {
+        label: "All Payments",
+        href: "/admin/payments",
+        icon: Wallet,
+      },
+      {
+        label: "Funding Issues",
+        href: "/admin/payments?funding_status=failed_action_required",
+        icon: Wallet,
+      },
+      {
+        label: "Payout Issues",
+        href: "/admin/payments?payout_status=failed",
+        icon: Wallet,
+      },
+    ],
   },
   // {
   //   label: "Settings",
@@ -173,20 +190,19 @@ const adminNavItems = [
   // },
 ];
 
-
 function useSidebar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const currentUser = getUser();
 
   const { sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
 
-  // Use Redux state directly, fallback to empty object
   const expandedSections = sidebarSections || {};
   const activeItem = sidebarActiveItem || "Dashboard";
+  const hasAutoExpandedPayments = useRef(false);
 
-  // Memoize navItems to prevent recreation - Only admin items
   const navItems = useMemo(() => {
     if (currentUser && currentUser.role === ROLES.ADMIN) {
       return adminNavItems;
@@ -194,29 +210,62 @@ function useSidebar() {
     return [];
   }, [currentUser]);
 
-  // Memoize the active item finder function
-  const findActiveItemFromPath = useCallback((items, currentPath) => {
+  const findActiveItemFromPath = useCallback((items, currentPath, currentSearch) => {
     if (items?.length) {
       for (const item of items) {
-        if (item.href === currentPath) {
-          return item.label;
+        if (item.href) {
+          const [itemPath] = item.href.split("?");
+          if (itemPath !== currentPath) continue;
+          if (
+            currentSearch.get("funding_status") === "failed_action_required" &&
+            item.href.includes("funding_status=")
+          )
+            return item.label;
+          if (
+            currentSearch.get("payout_status") === "failed" &&
+            item.href.includes("payout_status=failed")
+          )
+            return item.label;
+          if (!currentSearch.get("funding_status") && !currentSearch.get("payout_status"))
+            return item.label;
         }
         if (item.children) {
-          const found = findActiveItemFromPath(item.children, currentPath);
+          const found = findActiveItemFromPath(item.children, currentPath, currentSearch);
           if (found) return found;
+        }
+      }
+      for (const item of items) {
+        if (item.href) {
+          const [itemPath] = item.href.split("?");
+          if (itemPath === currentPath) return item.label;
         }
       }
       return null;
     }
   }, []);
 
-  // Only update active item when pathname changes
   useEffect(() => {
-    const foundActiveItem = findActiveItemFromPath(navItems, pathname);
+    if (pathname?.startsWith("/admin/payments")) {
+      if (!hasAutoExpandedPayments.current) {
+        hasAutoExpandedPayments.current = true;
+        dispatch(
+          expandedSidebarSections({
+            ...expandedSections,
+            Payments: true,
+          })
+        );
+      }
+    } else {
+      hasAutoExpandedPayments.current = false;
+    }
+  }, [pathname, expandedSections, dispatch]);
+
+  useEffect(() => {
+    const foundActiveItem = findActiveItemFromPath(navItems, pathname, searchParams);
     if (foundActiveItem && foundActiveItem !== activeItem) {
       dispatch(setSidebarActiveItem(foundActiveItem));
     }
-  }, [pathname, navItems, findActiveItemFromPath, dispatch, activeItem]);
+  }, [pathname, searchParams, navItems, findActiveItemFromPath, dispatch, activeItem]);
 
   const toggleSection = useCallback(
     (sectionPath) => {

@@ -1,20 +1,16 @@
+"use client";
+
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
+import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
-import {
-  ArrowLeft,
-  Camera,
-  DollarSign,
-  Link,
-  Upload,
-  X,
-  CheckCircle,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle, DollarSign, RefreshCw, X } from "lucide-react";
 import useProfileSetup from "./use-profile-setup.hook";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { PLATFORM_TYPE } from "@/common/constants/campaign.constant";
 
 const ProfileSetup = ({ onNext, onBack }) => {
   const {
@@ -22,45 +18,99 @@ const ProfileSetup = ({ onNext, onBack }) => {
     errors,
     handleFormSubmit,
     isLoading,
-    handleFileUpload,
+
+    // Creator Type
+    creatorType,
+    handleCreatorTypeChange,
+
+    // Profile photo
     onFileChange,
     handlePhotoUpload,
     fileInputRef,
     profilePhotoPreview,
+    profilePhotoLoading,
+    handleRemoveProfilePhoto,
+
+    // Covers
+    miniProfilePictures,
+    miniProfilePicturesLoading,
+    handleMiniProfilePictureUpload,
+    removeMiniProfilePicture,
+
+    // Social
     platforms,
-    connectedAccounts,
     isPlatformConnected,
     getConnectedAccountData,
     handleConnectSocialAccounts,
     loadConnectedAccounts,
+
+    // Categories
     selectedCategories,
     handleCategoryChange,
     handleCategoryRemove,
+
+    // Keywords
     keywordTags,
     addKeywordTag,
     removeKeywordTag,
+
+    // Bio
     bio,
     handleBioChange,
+    longBio,
+    handleLongBioChange,
+
+    // Rates
     contentRates,
     customRates,
     handleRateChange,
     handleCustomRateChange,
     addCustomRateRow,
     removeCustomRate,
+
+    // Onboarding name
     name,
   } = useProfileSetup({ onNext });
 
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
+  const creatorCardPreviewData = {
+    id: "onboarding-preview",
+    name: name?.trim() || "Your name",
+    rating: 0,
+    reviewCount: 0,
+    age: "Creator",
+    location: "Profile preview",
+    profileImage: profilePhotoPreview,
+    portfolioImages: (miniProfilePictures || []).filter(Boolean),
+    niches: selectedCategories,
+    bio: bio?.trim() || "Add your tagline to preview your public card.",
+    longBio: longBio?.trim() || "Add your long bio to preview your public card.",
+    followers: 0,
+    platforms: [],
+    platformStats: {},
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
+            Build Your Public Profile
+          </h1>
+          <p className="text-sm lg:text-md text-white">
+            Showcase your content style and set your rates
+          </p>
+        </div>
+
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
             <button
               onClick={onBack}
               className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
+              type="button"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
@@ -68,43 +118,146 @@ const ProfileSetup = ({ onNext, onBack }) => {
             <span>Step 4 of 5</span>
             <span>80% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-4/5 transition-all duration-500"></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-4/5 transition-all duration-500" />
           </div>
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
-            Build Your Public Profile
-          </h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Showcase your content style and set your rates
-          </p>
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Column */}
             <div className="space-y-4">
+              {/* Creator Type */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Creator Type <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-gray-600 mb-3">What type of creator are you?</p>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      value: CAMPAIGN_TYPE.UGC,
+                      title: "UGC Specialist",
+                      desc: "I create content for brands to use on their own channels.",
+                      color: "border-indigo-200 bg-indigo-50",
+                    },
+                    {
+                      value: CAMPAIGN_TYPE.INFLUENCER,
+                      title: "Influencer",
+                      desc: "I promote brands by posting content to my own social media accounts and for my audience.",
+                      color: "border-purple-200 bg-purple-50",
+                    },
+                    {
+                      value: CAMPAIGN_TYPE.HYBRID,
+                      title: "Hybrid",
+                      desc: "I do both UGC content creation and I can also post organically to my own audience.",
+                      color: "border-green-200 bg-green-50",
+                    },
+                  ].map((opt) => {
+                    const active = creatorType === opt.value;
+
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleCreatorTypeChange(opt.value)}
+                        className={`w-full text-left rounded-xl border p-3 transition-all ${
+                          active
+                            ? `${opt.color} shadow-sm`
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{opt.title}</p>
+                            <p className="w-full max-w-[350px] text-xs text-gray-600 mt-1">
+                              {opt.desc}
+                            </p>
+                          </div>
+
+                          <div
+                            className={`mt-1 h-4 w-4 rounded-full border flex items-center justify-center ${
+                              active ? "border-indigo-600" : "border-gray-300"
+                            }`}
+                          >
+                            {active ? (
+                              <span className="h-2 w-2 rounded-full bg-indigo-600" />
+                            ) : null}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  {creatorType === CAMPAIGN_TYPE.UGC ? (
+                    <p className="text-xs text-gray-700">
+                      UGC Specialists can only connect Instagram. No minimum follower count
+                      required.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-700">
+                      Influencer/Hybrid must connect at least one account with <b>2000+</b>{" "}
+                      followers/subscribers. Any connected platform must meet the minimum.
+                    </p>
+                  )}
+                </div>
+
+                {errors.creatorType ? (
+                  <p className="text-xs text-red-600 mt-2">{errors.creatorType.message}</p>
+                ) : null}
+              </div>
+
               {/* Profile Photo */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Profile Photo <span className="text-red-500">*</span>
                 </h3>
-                <div className="flex items-center space-x-6">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
-                    {profilePhotoPreview ? (
-                      <img
-                        src={profilePhotoPreview}
-                        alt="Profile preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Camera className="h-8 w-8 text-gray-400" />
-                    )}
-                  </div>
-                  <div>
+
+                <div className="grid grid-cols-3 gap-3 items-start">
+                  <div className="col-span-3 md:col-span-1 space-y-2">
+                    <div className="relative aspect-[3/4] rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                      {profilePhotoPreview ? (
+                        <img
+                          src={profilePhotoPreview}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Camera className="h-5 w-5 text-gray-400" />
+                      )}
+
+                      {!!profilePhotoLoading && (
+                        <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        onClick={handlePhotoUpload}
+                        disabled={profilePhotoLoading}
+                      >
+                        {profilePhotoPreview ? "Change" : "Upload"}
+                      </button>
+
+                      {profilePhotoPreview && (
+                        <button
+                          type="button"
+                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          onClick={handleRemoveProfilePhoto}
+                          disabled={profilePhotoLoading}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -112,14 +265,14 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       accept="image/jpeg,image/png"
                       className="hidden"
                     />
-                    <CustomButton
-                      text="Upload Photo"
-                      className="btn-secondary"
-                      icon={Upload}
-                      type="button"
-                      onClick={handlePhotoUpload}
-                    />
-                    <p className="text-xs text-gray-600 mt-2">JPG or PNG, max 5MB</p>
+                  </div>
+
+                  <div className="col-span-3 md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 p-3">
+                    <p className="text-sm text-gray-700 font-medium">Upload guidelines</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      JPG or PNG, max 5MB. Choose a clear face shot — this will be your main profile
+                      image.
+                    </p>
                   </div>
                 </div>
                 {errors.profilePhoto && (
@@ -127,16 +280,100 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 )}
               </div>
 
+              {/* Showcase Covers */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Showcase Covers <span className="ml-1 text-red-500">*</span>
+                </h3>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {[0, 1, 2].map((index) => {
+                    const image = miniProfilePictures?.[index];
+                    const loading = miniProfilePicturesLoading?.[index];
+
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="relative aspect-[3/4] rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                          {image ? (
+                            <img
+                              src={image}
+                              alt={`Showcase cover ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Camera className="h-5 w-5 text-gray-400" />
+                          )}
+
+                          {loading && (
+                            <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            onClick={() => handleMiniProfilePictureUpload(index)}
+                            disabled={loading}
+                          >
+                            {image ? "Change" : "Upload"}
+                          </button>
+
+                          {image && (
+                            <button
+                              type="button"
+                              className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                              onClick={() => removeMiniProfilePicture(index)}
+                              disabled={loading}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {errors.miniProfilePictures ? (
+                  <p className="text-xs text-red-600 mt-3">{errors.miniProfilePictures.message}</p>
+                ) : null}
+              </div>
+
               {/* Bio */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <TextArea
-                  label="Bio (Optional)"
-                  placeholder="Tell brands about yourself and your content style..."
-                  maxLength={100}
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Tagline <span className="ml-1 text-red-500">*</span>
+                </h3>
+
+                <CustomInput
+                  placeholder="This will appear on your creator card in Discover."
                   value={bio}
                   onChange={handleBioChange}
+                  required={true}
+                  errors={errors}
+                  name="bio"
                 />
-                <p className="text-xs text-gray-600 mt-2">{bio.length}/100 characters</p>
+                <p className="text-xs text-gray-600 mt-2 text-right">{bio.length}/75 characters</p>
+              </div>
+
+              {/* Long Bio */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Long Bio <span className="ml-1 text-red-500">*</span>
+                </h3>
+
+                <TextArea
+                  placeholder="This will appear on your full profile only."
+                  value={longBio}
+                  onChange={handleLongBioChange}
+                  errors={errors}
+                />
+                <p className="text-xs text-gray-600 mt-2 text-right">
+                  {longBio.length}/500 characters
+                </p>
               </div>
 
               {/* Social Platforms */}
@@ -145,15 +382,14 @@ const ProfileSetup = ({ onNext, onBack }) => {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Connect <span className="text-red-500">*</span>
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <CustomButton
-                      text="Refresh"
-                      type="button"
-                      onClick={loadConnectedAccounts}
-                      className="btn-outline text-xs px-3 py-1.5"
-                      startIcon={<RefreshCw className="w-3 h-3" />}
-                    />
-                  </div>
+
+                  <CustomButton
+                    text="Refresh"
+                    type="button"
+                    onClick={loadConnectedAccounts}
+                    className="btn-outline text-xs px-3 py-1.5"
+                    startIcon={<RefreshCw className="w-3 h-3" />}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">
@@ -167,25 +403,24 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       connectedData?.profile_data?.name ||
                       "";
 
+                    const isDisabled =
+                      creatorType === CAMPAIGN_TYPE.UGC && platform !== PLATFORM_TYPE.INSTAGRAM;
+
                     return (
                       <div
                         key={platform}
-                        className={`
-                          relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md
-                          ${
-                            isConnected
-                              ? "border-indigo-200 bg-indigo-50"
-                              : "border-gray-200 bg-white hover:border-gray-300"
-                          }
-                        `}
+                        className={`relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                          isConnected
+                            ? "border-indigo-200 bg-indigo-50"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3 flex-1">
                             <div
-                              className={`
-                                w-9 h-9 rounded-full flex items-center justify-center
-                                ${isConnected ? platformColor : "bg-gray-100"}
-                              `}
+                              className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                                isConnected ? platformColor : "bg-gray-100"
+                              }`}
                             >
                               {getPlatformIcon(platform)}
                             </div>
@@ -194,6 +429,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                               <span className="font-semibold text-gray-900 text-sm">
                                 {platform}
                               </span>
+
                               {isConnected ? (
                                 <div className="flex items-center space-x-2">
                                   <CheckCircle className="w-3 h-3 text-indigo-500" />
@@ -205,30 +441,30 @@ const ProfileSetup = ({ onNext, onBack }) => {
                                   ) : null}
                                 </div>
                               ) : (
-                                <span className="text-xs text-gray-500">Click to connect</span>
+                                <span className="text-xs text-gray-500">
+                                  {isDisabled
+                                    ? "UGC Specialists can only connect Instagram"
+                                    : "Click to connect"}
+                                </span>
                               )}
                             </div>
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            {!isConnected ? (
-                              <CustomButton
-                                text="Connect"
-                                type="button"
-                                onClick={handleConnectSocialAccounts}
-                                className="btn-primary text-xs px-4 py-1 h-7"
-                              />
-                            ) : null}
-                          </div>
+                          {!isConnected ? (
+                            <CustomButton
+                              text="Connect"
+                              type="button"
+                              onClick={() => handleConnectSocialAccounts(platform)}
+                              className="btn-primary text-xs px-4 py-1 h-7"
+                              disabled={isDisabled}
+                            />
+                          ) : null}
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <p className="flex justify-end text-xs text-gray-600 mt-3">
-                  At least 1 platform required
-                </p>
                 {errors.socialPlatforms && (
                   <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
                 )}
@@ -237,71 +473,29 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
             {/* Right Column */}
             <div className="space-y-4">
-              {/* Live Preview */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Camera className="h-3 w-3 mr-1" />
-                    Public view
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 text-center">
-                  <div className="relative inline-block mb-4">
-                    {profilePhotoPreview ? (
-                      <img
-                        src={profilePhotoPreview}
-                        alt="Profile preview"
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center shadow-md">
-                        <Camera className="h-8 w-8 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-1">{name}</h4>
-                  <p className="text-xs text-gray-600 mb-3">
-                    {bio || "Your bio will appear here."}
-                  </p>
-                  {selectedCategories.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center mb-3">
-                      {selectedCategories.map((cat, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs"
-                        >
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {connectedAccounts.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {connectedAccounts.map((account, idx) => (
-                        <span
-                          key={idx}
-                          className="flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
-                        >
-                          <Link className="h-3 w-3 text-indigo-400" />
-                          {account?.platform}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {/* Creator Card Preview */}
+              <div className="flex justify-center items-center">
+                <CreatorCard
+                  creator={creatorCardPreviewData}
+                  creatorType={creatorType}
+                  hideActions
+                  isShortlist
+                />
               </div>
+
               {/* Categories */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Creator Categories <span className="text-red-500">*</span>
                 </h3>
+
                 <SearchableNicheInput
                   selectedNiches={selectedCategories}
                   onNichesChange={handleCategoryChange}
                   handleNicheRemove={handleCategoryRemove}
                   placeholder="Search and add categories"
                 />
+
                 {errors.categories && (
                   <p className="text-xs text-red-600 mt-2">{errors.categories.message}</p>
                 )}
@@ -310,8 +504,13 @@ const ProfileSetup = ({ onNext, onBack }) => {
               {/* Keywords */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Keyword Tags (Optional)
+                  Keyword Tags <span className="text-red-500">*</span>
                 </h3>
+
+                <p className="text-xs text-gray-600 my-2">
+                  Add at least <b>5</b> tags (suggested max <b>15</b>). Each tag must be <b>2–30</b>{" "}
+                  characters.
+                </p>
 
                 <div className="flex gap-2">
                   <CustomInput
@@ -326,11 +525,29 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     }}
                   />
                 </div>
-                <p className="text-xs text-gray-600 mt-2">Type and press enter to add a keyword</p>
+
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-600 mt-2">
+                    Type and press enter to add a keyword
+                  </p>
+                  <p className="text-xs text-gray-600 mt-2 text-right">
+                    {keywordTags.length}/15 tags
+                  </p>
+                </div>
+
+                <p className="text-xs text-white mt-2 bg-indigo-600 p-2 rounded-lg">
+                  <b>Examples:</b> Couple Comedy, Dog Creator, Luxury hotels, Budget travel, Couples
+                  content, Clean beauty, Street interviews
+                </p>
+
+                {errors.keywordTags && (
+                  <p className="text-xs text-red-600 mt-2">{errors.keywordTags.message}</p>
+                )}
+
                 <div className="flex flex-wrap gap-2 mt-3">
                   {keywordTags.map((tag, index) => (
                     <span
-                      key={index}
+                      key={`${tag}-${index}`}
                       className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
                     >
                       {tag}
@@ -351,6 +568,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Content Rates (Optional)
                 </h3>
+
                 <div className="space-y-3 text-sm">
                   {[
                     "1 sponsored Instagram post (photos)",
@@ -362,7 +580,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     "1 feature in a longform YouTube Video",
                   ].map((item, index) => (
                     <div
-                      key={index}
+                      key={item}
                       className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                     >
                       <span className="text-xs text-gray-600">{item}</span>
@@ -380,7 +598,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                   ))}
                 </div>
 
-                {/* Custom Rates Section */}
+                {/* Custom Rates */}
                 <div className="mt-4 p-3 border-2 border-dashed border-gray-300 rounded-lg">
                   {customRates.map((rate, idx) => (
                     <div key={idx} className="flex justify-between mb-2">

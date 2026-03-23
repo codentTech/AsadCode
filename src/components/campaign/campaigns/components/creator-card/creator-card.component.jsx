@@ -1,5 +1,6 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { Bookmark, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
 
@@ -16,8 +17,9 @@ const CreatorCard = ({
   onReinstateClick,
   onViewNotesClick,
   isReinstateLoading = false,
+  hideActions = false,
+  creatorType,
 }) => {
-  console.log(creator);
   const {
     getPlatformIcon,
     getPlatformProfileUrlFor,
@@ -26,6 +28,7 @@ const CreatorCard = ({
     handleInviteClickInternal,
     handleReinstateClickInternal,
     handleViewNotesClickInternal,
+    handleViewProfileClick,
     formatFollowers,
     getPlatformFollowers,
   } = useCreatorCard({
@@ -39,38 +42,75 @@ const CreatorCard = ({
     onViewNotesClick,
   });
 
+  const isClickable = typeof onCreatorPreview === "function";
+
   return (
     <div
       className={`relative flex-shrink-0 snap-start ${
         isShortlist ? "w-full" : "w-64"
-      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white border border-gray-200 overflow-hidden`}
-      onClick={handleCardClick}
+      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
+        isClickable ? "cursor-pointer" : "cursor-default"
+      } bg-white border border-gray-200 overflow-hidden`}
+      onClick={() => {
+        if (isClickable) handleCardClick();
+      }}
     >
       {/* Cover */}
       <div className="relative h-32 bg-gray-100 overflow-hidden">
-        {creator.portfolioImages?.length >= 3 ? (
+        {Array.isArray(creator.portfolioImages) && creator.portfolioImages.some(Boolean) ? (
           <div className="flex h-full">
-            {creator.portfolioImages.slice(0, 3).map((image, index) => (
-              <div key={index} className="flex-1 relative">
-                <img src={image} alt="" className="w-full h-full object-cover" />
-                {index < 2 && <div className="absolute right-0 top-0 w-px h-full bg-white/30" />}
-              </div>
-            ))}
+            {[0, 1, 2].map((index) => {
+              const image = creator.portfolioImages[index];
+              return (
+                <div key={index} className="flex-1 relative">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={`Portfolio ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary" />
+                  )}
+                  {index < 2 && <div className="absolute right-0 top-0 w-px h-full bg-white/30" />}
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100" />
+          <div className="w-full h-full bg-primary" />
         )}
+
+        {creatorType === CAMPAIGN_TYPE.UGC ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-indigo-200 bg-indigo-100 rounded-lg">
+            UGC
+          </div>
+        ) : creatorType === CAMPAIGN_TYPE.INFLUENCER ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-purple-200 bg-purple-100 rounded-lg">
+            INFLUENCER
+          </div>
+        ) : creatorType === CAMPAIGN_TYPE.HYBRID ? (
+          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-green-200 bg-green-100 rounded-lg">
+            HYBRID
+          </div>
+        ) : null}
       </div>
 
       <div className="relative px-4 pb-4 space-y-3">
         {/* Avatar */}
         <div className="absolute top-[-70px] left-1/2 -translate-x-1/2">
           <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
-            <img
-              src={creator.profileImage}
-              alt={creator.name}
-              className="w-full h-full object-cover"
-            />
+            {creator.profileImage ? (
+              <img
+                src={creator.profileImage}
+                alt={creator.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white bg-primary rounded-full w-full h-full flex items-center justify-center font-semibold text-2xl">
+                {creator.name?.charAt(0) + creator.name?.split(" ")[1]?.charAt(0)}
+              </span>
+            )}
           </div>
         </div>
 
@@ -105,6 +145,12 @@ const CreatorCard = ({
         <p className="text-xs text-gray-500 text-center line-clamp-2">
           {creator.bio || creator.tagline || ""}
         </p>
+
+        {creator.id === "onboarding-preview" && creator.longBio && (
+          <div className="text-center bg-gray-100 p-2 rounded-lg">
+            <p className="text-xs text-gray-500 break-all">{creator.longBio}</p>
+          </div>
+        )}
 
         {/* Social Platforms */}
         {creator.platforms && creator.platforms.length > 0 && (
@@ -148,7 +194,7 @@ const CreatorCard = ({
         )}
 
         {/* Discover actions */}
-        {tab === "discover" && (
+        {!hideActions && tab === "discover" && (
           <>
             <div className="flex justify-center gap-3">
               <button
@@ -162,22 +208,20 @@ const CreatorCard = ({
                   }`}
                 />
               </button>
-              <a
-                href={`/creator-profile/${creator.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={handleViewProfileClick}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 inline-flex"
               >
                 <User className="w-5 h-5 text-gray-600" />
-              </a>
+              </button>
             </div>
             <CustomButton text="Invite to Apply" onClick={handleInviteClickInternal} />
           </>
         )}
 
         {/* Rejected tab */}
-        {tab === "rejected" && (
+        {!hideActions && tab === "rejected" && (
           <div className="flex flex-col gap-3">
             <CustomButton
               text="Reinstate to Applications"
@@ -189,6 +233,17 @@ const CreatorCard = ({
               text="View Notes"
               className="btn-outline w-full rounded-lg"
               onClick={handleViewNotesClickInternal}
+            />
+          </div>
+        )}
+
+        {/* Applications / other tab */}
+        {!hideActions && tab !== "discover" && tab !== "rejected" && (
+          <div className="flex flex-col gap-3">
+            <CustomButton
+              text={isShortlist ? "Remove" : "Save"}
+              className={`${isShortlist ? "btn-danger" : "btn-primary"} w-full rounded-lg`}
+              onClick={handleSaveClick}
             />
           </div>
         )}

@@ -59,10 +59,23 @@ export const useMetricCard = () => {
       case "count":
       case "views":
         return Number(value).toLocaleString();
+      case "growth": {
+        const sign = value > 0 ? "+" : "";
+        return `${sign}${Number(value).toFixed(1)}%`;
+      }
+      case "text":
+        return typeof value === "string" ? value : "—";
       default:
         return value;
     }
   }, []);
 
-  return { showTooltip, onEnter, onLeave, formatValue };
+  const getGrowthColor = useCallback((value) => {
+    if (value === null || value === undefined) return "";
+    if (value > 3) return "text-green-600";
+    if (value >= 0) return "text-orange-500";
+    return "text-red-500";
+  }, []);
+
+  return { showTooltip, onEnter, onLeave, formatValue, getGrowthColor };
 };
