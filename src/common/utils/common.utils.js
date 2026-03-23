@@ -15,3 +15,8 @@ export const capitalizeFirstLetter = (str) => {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
+
+export const getSerializableErrorMessage = (error, fallback = "Request failed") => {
+  if (typeof error === "string") return error;
+  return error?.response?.data?.message || error?.message || fallback;
+};

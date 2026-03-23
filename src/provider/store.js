@@ -27,6 +27,7 @@ import campaignContextReducer from "./features/campaign-context/campaign-context
 import creatorApplicationsReducer from "./features/creator-applications/creator-applications.slice";
 import collaborationPaymentReducer from "./features/collaboration-payment/collaboration-payment.slice";
 import phylloReducer from "./features/phyllo/phyllo.slice";
+import galleryReducer from "./features/gallery/gallery.slice";
 
 const persistConfig = {
   key: "root",
@@ -69,6 +70,7 @@ const rootReducer = combineReducers({
   creatorApplications: creatorApplicationsReducer,
   collaborationPayment: collaborationPaymentReducer,
   phyllo: phylloReducer,
+  gallery: galleryReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
