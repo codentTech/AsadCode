@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import Loading from "@/common/components/loader/loading.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
@@ -8,7 +8,7 @@ import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.
 import { formatDate } from "@/common/utils/formate-date";
 import { getUser } from "@/common/utils/users.util";
 import { Avatar } from "@mui/material";
-import { Check, Copy, Edit2, MapPin, Package, Star, Trash2 } from "lucide-react";
+import { Check, Copy, Edit2, MapPin, Star, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";

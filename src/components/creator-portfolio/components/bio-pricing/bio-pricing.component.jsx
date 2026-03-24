@@ -1,34 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { DollarSign, RefreshCw } from "lucide-react";
-import useCreatorData from "../../use-creator-data.hook";
+import useBioPricing from "./use-bio-pricing.hook";
 
 const BioPricing = ({ refreshKey, creatorId = null }) => {
-  const [creator, setCreator] = useState(null);
-  const { isLoading, error, getCreatorBio, getCreatorPricing, refreshData } = useCreatorData(
-    creatorId,
-    refreshKey
-  );
-
-  useEffect(() => {
-    if (!isLoading && !error) {
-      const bio = getCreatorBio();
-      const pricing = getCreatorPricing();
-
-      setCreator({
-        bio:
-          bio ||
-          "Fashion and lifestyle creator specializing in sustainable fashion tips, minimal aesthetics, and travel diaries. I love creating authentic content that inspires and connects.",
-        pricing: pricing.map((rate) => ({
-          type: rate.contentType,
-          price: `$${rate.price || 0}`,
-        })),
-      });
-    }
-  }, [isLoading, error, getCreatorBio, getCreatorPricing]);
-
-  const handleManualRefresh = () => {
-    refreshData();
-  };
+  const { creator, isLoading, handleManualRefresh } = useBioPricing(creatorId, refreshKey);
 
   if (isLoading) {
     return (
@@ -47,11 +22,11 @@ const BioPricing = ({ refreshKey, creatorId = null }) => {
     );
   }
 
-  if (error || !creator) {
+  if (!creator) {
     return (
       <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <div className="text-center text-gray-500">
-          <p>{error || "Creator profile not found"}</p>
+          <p>Creator profile not found</p>
         </div>
       </section>
     );

@@ -95,27 +95,27 @@ export default function useCreatorPreview(previewCreator) {
     if (creatorMetrics.isLoading || !payload) {
       return {
         authenticAudience: null,
+        typicalViews: "N/A",
         engagementRate: "N/A",
-        averageReach: "N/A",
-        averageViews: "N/A",
-        postingFrequency: "N/A",
+        performanceConsistency: "N/A",
+        growthRate30d: "N/A",
       };
     }
 
     if (!hasMetrics) {
       return {
         authenticAudience: null,
+        typicalViews: "N/A",
         engagementRate: "N/A",
-        averageReach: "N/A",
-        averageViews: "N/A",
-        postingFrequency: "N/A",
+        performanceConsistency: "N/A",
+        growthRate30d: "N/A",
       };
     }
 
     const engagementRateVal = metrics.engagementRate?.value;
-    const averageViewsVal = metrics.averageViews?.value;
+    const performanceConsistencyVal = metrics.performanceConsistency?.value;
+    const growthRate30dVal = metrics.growthRate30d?.value;
     const medianReach = metadata.medianReach;
-    const postsPerMonth = metadata.postsPerMonth;
 
     const formatNum = (n) =>
       n >= 1_000_000
@@ -126,11 +126,17 @@ export default function useCreatorPreview(previewCreator) {
 
     return {
       authenticAudience: metrics.authenticAudience?.value ?? null,
+      typicalViews: medianReach != null ? formatNum(medianReach) : "N/A",
       engagementRate:
         engagementRateVal != null ? `${Number(engagementRateVal).toFixed(1)}%` : "N/A",
-      averageReach: medianReach != null ? formatNum(medianReach) : "N/A",
-      averageViews: averageViewsVal != null ? formatNum(averageViewsVal) : "N/A",
-      postingFrequency: postsPerMonth != null ? `${postsPerMonth}/Month` : "N/A",
+      performanceConsistency:
+        performanceConsistencyVal != null
+          ? `${Number(performanceConsistencyVal).toFixed(0)}`
+          : "N/A",
+      growthRate30d:
+        growthRate30dVal != null
+          ? `${growthRate30dVal > 0 ? "+" : ""}${Number(growthRate30dVal).toFixed(1)}%`
+          : "N/A",
     };
   }, [creatorMetrics.data, creatorMetrics.isLoading]);
 
