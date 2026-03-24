@@ -66,12 +66,12 @@ function Header() {
           >
             About
           </Link>
-          <div
+          {/* <div
             onClick={() => setShowDropdown(!showDropdown)}
             className="bg-gray-200 p-2 rounded-full cursor-pointer"
           >
             <Bell size={20} />
-          </div>
+          </div> */}
 
           {/* Authentication Buttons */}
           {!isAuthenticated ? (
