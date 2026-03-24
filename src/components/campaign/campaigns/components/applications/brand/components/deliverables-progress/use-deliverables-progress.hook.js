@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
 import { avatar } from "@/common/constants/auth.constant";
 import { getAge } from "@/common/utils/date.utils";
 import {
@@ -17,7 +16,6 @@ import {
 import { PLATFORM_PRIORITY, KNOWN_PLATFORMS } from "@/common/constants/genaric.constant";
 
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
-  const router = useRouter();
   const dispatch = useDispatch();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
@@ -69,9 +67,9 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
 
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
-      router.push(`/creator-profile/${creatorUserId}`);
+      window.open(`/creator-profile/${creatorUserId}`, "_blank", "noopener,noreferrer");
     }
-  }, [creatorUserId, router]);
+  }, [creatorUserId]);
 
   // Fetch social accounts whenever the creator changes; also reset platform + data
   useEffect(() => {
