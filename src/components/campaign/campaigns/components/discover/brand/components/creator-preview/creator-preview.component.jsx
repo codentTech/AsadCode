@@ -166,20 +166,20 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
           ) : (
             <>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Engagement Rate</p>
-                <p className="text-xs">{metricsData.engagementRate}</p>
+                <p className="text-xs font-semibold text-primary">Typical Views</p>
+                <p className="text-xs mt-1">{metricsData.typicalViews}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Average Reach</p>
-                <p className="text-xs">{metricsData.averageReach}</p>
+                <p className="text-xs font-semibold text-primary">Engagement Rate</p>
+                <p className="text-xs mt-1">{metricsData.engagementRate}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Average Views</p>
-                <p className="text-xs">{metricsData.averageViews}</p>
+                <p className="text-xs font-semibold text-primary">Performance Consistency</p>
+                <p className="text-xs mt-1">{metricsData.performanceConsistency}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-sm font-semibold text-primary">Posting Frequency</p>
-                <p className="text-xs">{metricsData.postingFrequency}</p>
+                <p className="text-xs font-semibold text-primary">30 Day Growth Rate</p>
+                <p className="text-xs mt-1">{metricsData.growthRate30d}</p>
               </div>
             </>
           )}

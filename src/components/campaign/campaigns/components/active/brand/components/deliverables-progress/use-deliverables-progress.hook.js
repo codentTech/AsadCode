@@ -27,7 +27,6 @@ import {
 } from "@/provider/features/contracts/contracts.slice";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 const useDeliverablesProgress = (
@@ -40,7 +39,6 @@ const useDeliverablesProgress = (
   const creatorMode = isCreatorMode();
   const user = getUser();
   const dispatch = useDispatch();
-  const router = useRouter();
 
   const {
     createCampaignNote: createNoteState,
@@ -601,9 +599,9 @@ const useDeliverablesProgress = (
 
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
-      router.push(`/creator-profile/${creatorUserId}`);
+      window.open(`/creator-profile/${creatorUserId}`, "_blank", "noopener,noreferrer");
     }
-  }, [creatorUserId, router]);
+  }, [creatorUserId]);
 
   return {
     messageThreadHook,

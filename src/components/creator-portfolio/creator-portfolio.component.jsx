@@ -1,35 +1,22 @@
 import HeaderLayout from "@/common/layouts/header.layout";
-import ProfileOverview from "./components/profile-overview/profile-overview.component";
+import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
+import AudienceAnalytics from "./components/audience-analytics/audience-analytics.component";
 import BioPricing from "./components/bio-pricing/bio-pricing.component";
 import Gallary from "./components/gallary/gallary.component";
-import AudienceAnalytics from "./components/audience-analytics/audience-analytics.component";
-import Reviews from "./components/reviews/reviews.component";
-import { useState, useCallback } from "react";
 import CreatorMetricsDashboard from "./components/matrix-dashboard/matrix-dashboard.component";
-import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
-import { useSelector } from "react-redux";
-import { selectCreatorAudience } from "@/provider/features/phyllo/phyllo.slice";
-import { getUser } from "@/common/utils/users.util";
-import { isCreatorMode } from "@/common/utils/users.util";
+import ProfileOverview from "./components/profile-overview/profile-overview.component";
+import Reviews from "./components/reviews/reviews.component";
+import useCreatorPortfolio from "./use-creator-portfolio.hook";
 
 export default function CreatorPortfolio({ creatorId = null }) {
-  const user = getUser();
-  console.log(user);
-  const id = isCreatorMode() ? user?.id : creatorId;
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [selectedPlatform, setSelectedPlatform] = useState(null);
-
-  const audienceState = useSelector(selectCreatorAudience);
-
-  const handleProfileUpdate = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-  }, []);
-
-  const handlePlatformSelect = useCallback((platform) => {
-    setSelectedPlatform(platform);
-  }, []);
-
-  console.log(id);
+  const {
+    id,
+    refreshKey,
+    selectedPlatform,
+    audienceState,
+    handleProfileUpdate,
+    handlePlatformSelect,
+  } = useCreatorPortfolio(creatorId);
 
   return (
     <HeaderLayout className="min-h-screen bg-gray-50">
