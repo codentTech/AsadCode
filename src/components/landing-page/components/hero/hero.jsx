@@ -40,8 +40,7 @@ function Hero({ isCreatorMode }) {
                 </p>
               )}
 
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                {/* Primary CTA with animation */}
+              {/* <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <button
                   onClick={() => setIsOpen(true)}
                   className="group relative px-8 py-2 overflow-hidden rounded-lg transition duration-300"
@@ -55,7 +54,7 @@ function Hero({ isCreatorMode }) {
                     Join
                   </span>
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
 
