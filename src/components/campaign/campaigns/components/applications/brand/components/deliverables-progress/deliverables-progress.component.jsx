@@ -7,6 +7,8 @@ import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
+import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { ExternalLink } from "lucide-react";
 
 const DeliverablesProgress = ({
   selectedCreator,
@@ -73,16 +75,17 @@ const DeliverablesProgress = ({
         {connectedPlatforms.length > 0 && (
           <div className="flex flex-col gap-2 w-full">
             {platforms.map((platform) => {
+              const isConnected = platform.isConnected;
               const isSelected =
                 selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
               return (
                 <button
                   key={platform.name}
                   type="button"
-                  disabled={!platform.isConnected}
+                  disabled={!isConnected}
                   onClick={() => setSelectedPlatform(platform.name)}
-                  className={`flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full
-                    ${!platform.isConnected ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                  className={`relative flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full
+                    ${!isConnected ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
                     ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
                   `}
                 >
@@ -101,11 +104,29 @@ const DeliverablesProgress = ({
                       )}
                     </div>
                   </div>
-                  {platform.isConnected && (
+                  {isConnected && (
                     <div className="text-sm font-bold text-gray-900">
                       {formatNumber(platform.followers)}
                     </div>
                   )}
+                  {(() => {
+                    const url = getPlatformProfileUrl(
+                      platform.name,
+                      platform.username,
+                      platform.profileUrl
+                    );
+                    return url && isConnected ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-1 top-3 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : null;
+                  })()}
                 </button>
               );
             })}
