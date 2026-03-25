@@ -179,7 +179,7 @@ function Header() {
                 <CustomButton
                   text="Login"
                   onClick={() => router.push("/auth/login")}
-                  className="btn-text w-full"
+                  className="btn-outline w-full"
                 />
                 <CustomButton
                   text="Sign Up"
