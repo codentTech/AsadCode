@@ -183,7 +183,7 @@ function Header() {
                 />
                 <CustomButton
                   text="Sign Up"
-                  onClick={() => router.push("/auth/signup")}
+                  onClick={() => router.push("/onboarding")}
                   className="btn-primary w-full"
                 />
               </div>

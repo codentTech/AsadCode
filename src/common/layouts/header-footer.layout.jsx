@@ -1,6 +1,6 @@
 "use client";
 
-import Header from "@/components/header/header,component";
+import Header from "@/components/header/header.component";
 import Footer from "@/components/home/footer/footer.component";
 
 export default function HeaderFooterLayout({ children, showBackButton = false }) {

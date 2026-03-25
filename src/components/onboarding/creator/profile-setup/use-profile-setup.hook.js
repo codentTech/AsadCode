@@ -73,10 +73,7 @@ const validationSchema = Yup.object().shape({
       }
     ),
 
-  categories: Yup.array()
-    .required("At least 3 niches are required")
-    .min(3, "Select at least 3 niches")
-    .max(5, "Maximum 5 niches allowed"),
+  categories: Yup.array().max(5, "Maximum 5 niches allowed"),
 
   keywordTags: Yup.array()
     .required("Keyword tags are required")
@@ -186,6 +183,7 @@ export default function useProfileSetup({ onNext }) {
     false,
     false,
   ]);
+  const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
 
   const platforms = useMemo(
     () => [PLATFORM_TYPE.INSTAGRAM, PLATFORM_TYPE.TIKTOK, PLATFORM_TYPE.YOUTUBE],
@@ -241,14 +239,19 @@ export default function useProfileSetup({ onNext }) {
   const loadConnectedAccounts = async () => {
     try {
       const result = await dispatch(getSocialAccounts()).unwrap();
-      if (!result?.success) return;
+      if (!result?.success) return [];
 
-      const accounts = Array.isArray(result.data) ? result.data : [];
-      setConnectedAccounts(accounts);
-
-      const socialPlatformsRaw = accounts
+      const accountsRaw = Array.isArray(result.data) ? result.data : [];
+      const accounts = accountsRaw
         .filter((acc) => acc?.platform)
         .map((acc) => ({
+          ...acc,
+          // Backend uses "instagram"/"tiktok"/"youtube"; frontend constants use "INSTAGRAM"/...
+          platform: String(acc.platform).toUpperCase(),
+        }));
+      setConnectedAccounts(accounts);
+
+      const socialPlatformsRaw = accounts.map((acc) => ({
           platform: acc.platform,
           username:
             acc?.profile_data?.username ||
@@ -264,8 +267,10 @@ export default function useProfileSetup({ onNext }) {
           : socialPlatformsRaw;
 
       setValue("socialPlatforms", socialPlatforms, { shouldValidate: true });
+      return accounts;
     } catch (e) {
       // silent by design
+      return [];
     }
   };
 
@@ -276,15 +281,61 @@ export default function useProfileSetup({ onNext }) {
     }
   };
 
-  const isPlatformConnected = (platform) => connectedAccounts.some((a) => a.platform === platform);
+  const pollUntilPlatformConnected = async (
+    targetPlatform,
+    attempts = 18,
+    intervalMs = 5000
+  ) => {
+    for (let i = 0; i < attempts; i++) {
+      const accounts = await loadConnectedAccounts();
+      const connected = accounts.some((a) => a.platform === targetPlatform);
+      if (connected) return true;
+      await wait(intervalMs);
+    }
+    return false;
+  };
+
+  const waitForFocusAndCheckPlatform = (targetPlatform, timeoutMs = 20000) =>
+    new Promise((resolve) => {
+      let settled = false;
+
+      const finalize = (value) => {
+        if (settled) return;
+        settled = true;
+        window.removeEventListener("focus", onFocus);
+        clearTimeout(timeoutId);
+        resolve(value);
+      };
+
+      const onFocus = async () => {
+        const accounts = await loadConnectedAccounts();
+        const connected = accounts.some((a) => a.platform === targetPlatform);
+        finalize(connected);
+      };
+
+      const timeoutId = setTimeout(() => finalize(false), timeoutMs);
+      window.addEventListener("focus", onFocus);
+    });
+
+  const isPlatformConnected = (platform) =>
+    connectedAccounts.some((a) => a.platform === platform);
 
   const getConnectedAccountData = (platform) =>
     connectedAccounts.find((a) => a.platform === platform);
 
   const handleConnectSocialAccounts = async (platform) => {
     if (creatorType === CAMPAIGN_TYPE.UGC && platform !== PLATFORM_TYPE.INSTAGRAM) return;
-    await openPhylloConnect();
-    await pollConnectedAccounts();
+    if (socialConnectLoadingMap?.[platform]) return;
+    setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: true }));
+    try {
+      await openPhylloConnect();
+      await Promise.race([
+        pollUntilPlatformConnected(platform),
+        waitForFocusAndCheckPlatform(platform),
+      ]);
+    } finally {
+      setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: false }));
+    }
   };
 
   /**
@@ -585,6 +636,7 @@ export default function useProfileSetup({ onNext }) {
     getConnectedAccountData,
     handleConnectSocialAccounts,
     loadConnectedAccounts,
+    socialConnectLoadingMap,
 
     // categories/keywords
     selectedCategories,
