@@ -43,6 +43,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
     getConnectedAccountData,
     handleConnectSocialAccounts,
     loadConnectedAccounts,
+    socialConnectLoadingMap,
 
     // Categories
     selectedCategories,
@@ -362,7 +363,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               {/* Long Bio */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Long Bio <span className="ml-1 text-red-500">*</span>
+                  Long Bio
                 </h3>
 
                 <TextArea
@@ -405,6 +406,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
                     const isDisabled =
                       creatorType === CAMPAIGN_TYPE.UGC && platform !== PLATFORM_TYPE.INSTAGRAM;
+                    const isPlatformLoading = Boolean(socialConnectLoadingMap?.[platform]);
 
                     return (
                       <div
@@ -456,7 +458,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
                               type="button"
                               onClick={() => handleConnectSocialAccounts(platform)}
                               className="btn-primary text-xs px-4 py-1 h-7"
-                              disabled={isDisabled}
+                              disabled={isDisabled || isPlatformLoading}
+                              loading={isPlatformLoading}
                             />
                           ) : null}
                         </div>
@@ -486,7 +489,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               {/* Categories */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Creator Categories <span className="text-red-500">*</span>
+                  Creator Categories
                 </h3>
 
                 <SearchableNicheInput
