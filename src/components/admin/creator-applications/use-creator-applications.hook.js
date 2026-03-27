@@ -156,8 +156,8 @@ function useCreatorApplications() {
     const filterStatus = statusFilter;
     await dispatch(
       getAllCreatorApplications({
-        status: filterStatus,
-        search: searchTerm,
+        status: filterStatus?.value || null,
+        search: searchTerm?.value || null,
         sortBy,
         sortOrder,
       })
