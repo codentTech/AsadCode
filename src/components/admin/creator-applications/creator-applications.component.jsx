@@ -96,7 +96,7 @@ const CreatorApplications = () => {
                   <SimpleSelect
                     label="Status"
                     value={statusFilter || "ALL"}
-                    onChange={(value) => handleStatusFilterChange(value)}
+                    onChange={(value) => handleStatusFilterChange(value.value)}
                     options={[
                       { value: "ALL", label: "All" },
                       { value: "PENDING", label: "Pending" },
