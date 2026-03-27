@@ -1,5 +1,5 @@
 import { formatDate } from "@/common/utils/date.utils";
-import { isOnboardingCompleted } from "@/common/utils/users.util";
+import { isOnboardingCompleted, onboardingSteps } from "@/common/utils/users.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
 import { useEffect, useState } from "react";
