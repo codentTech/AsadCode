@@ -32,7 +32,7 @@ const CreatorApplications = () => {
     const actions = [];
 
     // Only show approve action if status is not APPROVED
-    if (row?.status !== "APPROVED") {
+    if (row?.status !== "APPROVED" || row?.status !== "ONBOARDING_STARTED") {
       actions.push({
         key: "approve",
         label: "Approve and Invite",
@@ -41,7 +41,7 @@ const CreatorApplications = () => {
     }
 
     // Only show deny action if status is not APPROVED
-    if (row?.status !== "APPROVED") {
+    if (row?.status !== "APPROVED" || row?.status !== "ONBOARDING_STARTED") {
       actions.push({
         key: "deny",
         label: "Deny",
@@ -101,6 +101,8 @@ const CreatorApplications = () => {
                       { value: "ALL", label: "All" },
                       { value: "PENDING", label: "Pending" },
                       { value: "DENIED", label: "Denied" },
+                      { value: "ONBOARDING_STARTED", label: "Onboarding Started" },
+                      { value: "APPROVED", label: "Approved" },
                     ]}
                     className="w-44"
                   />
