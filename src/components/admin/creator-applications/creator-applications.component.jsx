@@ -32,7 +32,7 @@ const CreatorApplications = () => {
     const actions = [];
 
     // Only show approve action if status is not APPROVED
-    if (row?.status !== "APPROVED" || row?.status !== "ONBOARDING_STARTED") {
+    if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
       actions.push({
         key: "approve",
         label: "Approve and Invite",
@@ -41,7 +41,7 @@ const CreatorApplications = () => {
     }
 
     // Only show deny action if status is not APPROVED
-    if (row?.status !== "APPROVED" || row?.status !== "ONBOARDING_STARTED") {
+    if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
       actions.push({
         key: "deny",
         label: "Deny",
