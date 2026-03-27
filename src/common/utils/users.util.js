@@ -39,6 +39,10 @@ export const isOnboardingCompleted = (user) => {
   return user?.onboarding_step == ONBOARDING_STEPS.COMPLETED;
 };
 
+export const onboardingSteps = Object.fromEntries(
+  Object.entries(ONBOARDING_STEPS).map(([k, v]) => [v, k])
+);
+
 /**
  * Remove the user from local storage
  */

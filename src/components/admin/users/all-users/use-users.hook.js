@@ -79,7 +79,7 @@ const columns = [
           isOnboardingCompleted(row) ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
         }`}
       >
-        {isOnboardingCompleted(row) ? "Completed" : "In Progress"}
+        {onboardingSteps[row?.onboarding_step] + "" || "In Progress"}
       </span>
     ),
   },
