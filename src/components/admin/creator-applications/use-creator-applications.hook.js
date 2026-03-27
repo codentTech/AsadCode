@@ -116,7 +116,7 @@ function useCreatorApplications() {
 
   // Safety filter: Never show APPROVED applications on frontend
   const applications = Array.isArray(rawApplications)
-    ? rawApplications.filter((app) => app?.status !== "APPROVED")
+    ? rawApplications
     : [];
   const { isLoading } = useSelector((state) => state.creatorApplications.getAllApplications);
   const { isLoading: isApproving, isSuccess: approveSuccess } = useSelector(
