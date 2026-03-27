@@ -61,15 +61,16 @@ const validationSchema = Yup.object().shape({
       `Influencer/Hybrid must connect at least one account with ${MIN_FOLLOWERS}+ followers/subscribers (and any connected platform must meet the minimum).`,
       function (socialPlatforms) {
         const { creatorType } = this.parent;
-        if (creatorType === CAMPAIGN_TYPE.UGC) return true;
+        return true;
+        // if (creatorType === CAMPAIGN_TYPE.UGC) return true;
 
-        const list = socialPlatforms || [];
-        if (list.length === 0) return false;
+        // const list = socialPlatforms || [];
+        // if (list.length === 0) return false;
 
-        const eachMeetsMin = list.every((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
-        if (!eachMeetsMin) return false;
+        // const eachMeetsMin = list.every((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
+        // if (!eachMeetsMin) return false;
 
-        return list.some((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
+        // return list.some((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
       }
     ),
 
