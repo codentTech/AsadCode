@@ -15,6 +15,7 @@ const validateInviteQuery = async (token, email) => {
 const validateTokenOnly = async (token) => {
   const response = await api().get("/invites/validate-token", {
     params: { token },
+    validateStatus: (status) => status >= 200 && status < 500,
   });
   return response.data;
 };

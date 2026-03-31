@@ -26,6 +26,7 @@ const initialState = {
   disconnectSocialAccount: { ...generalState },
   adminGetConnectedAccounts: { ...generalState },
   adminRemoveConnectedAccount: { ...generalState },
+  adminDeleteUser: { ...generalState },
 };
 
 const getSerializableErrorMessage = (error, fallback = "Request failed") => {
@@ -250,6 +251,23 @@ export const adminRemoveConnectedAccount = createAsyncThunk(
   }
 );
 
+export const adminDeleteUser = createAsyncThunk(
+  "users/adminDeleteUser",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await usersService.adminDeleteUser(userId);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to delete user")
+      );
+    }
+  }
+);
+
 export const usersSlice = createSlice({
   name: "users",
   initialState,
@@ -268,6 +286,7 @@ export const usersSlice = createSlice({
       state.addUserToWaitlist = { ...generalState };
       state.adminGetConnectedAccounts = { ...generalState };
       state.adminRemoveConnectedAccount = { ...generalState };
+      state.adminDeleteUser = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -568,6 +587,31 @@ export const usersSlice = createSlice({
         state.adminRemoveConnectedAccount.isLoading = false;
         state.adminRemoveConnectedAccount.isError = true;
         state.adminRemoveConnectedAccount.message = action.payload;
+      })
+      .addCase(adminDeleteUser.pending, (state) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = true;
+      })
+      .addCase(adminDeleteUser.fulfilled, (state, action) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = false;
+        state.adminDeleteUser.isSuccess = true;
+        state.adminDeleteUser.data = action.payload;
+      })
+      .addCase(adminDeleteUser.rejected, (state, action) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = false;
+        state.adminDeleteUser.isError = true;
+        state.adminDeleteUser.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Failed to delete user");
       });
   },
 });

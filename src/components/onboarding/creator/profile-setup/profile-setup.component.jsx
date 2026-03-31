@@ -43,6 +43,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
     handleConnectSocialAccounts,
     loadConnectedAccounts,
     socialConnectLoadingMap,
+    removedPlatformMessages,
 
     // Categories
     selectedCategories,
@@ -384,6 +385,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     const isConnected = isPlatformConnected(platform);
                     const platformColor = getPlatformColor(platform);
                     const connectedData = getConnectedAccountData(platform);
+                    const removedMessage = removedPlatformMessages?.[platform];
                     const username =
                       connectedData?.profile_data?.username ||
                       connectedData?.profile_data?.handle ||
@@ -427,7 +429,9 @@ const ProfileSetup = ({ onNext, onBack }) => {
                                   ) : null}
                                 </div>
                               ) : (
-                                <span className="text-xs text-gray-500">Click to connect</span>
+                                <span className="text-xs text-gray-500">
+                                  {removedMessage ? removedMessage : "Click to connect"}
+                                </span>
                               )}
                             </div>
                           </div>
