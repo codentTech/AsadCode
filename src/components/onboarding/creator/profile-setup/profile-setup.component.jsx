@@ -7,10 +7,9 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
-import { ArrowLeft, Camera, CheckCircle, DollarSign, RefreshCw, X } from "lucide-react";
-import useProfileSetup from "./use-profile-setup.hook";
+import { ArrowLeft, Camera, CheckCircle, DollarSign, RefreshCw, Trash2, X } from "lucide-react";
+import useProfileSetup, { CONTENT_CHARACTERISTIC_GROUPS } from "./use-profile-setup.hook";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
-import { PLATFORM_TYPE } from "@/common/constants/campaign.constant";
 
 const ProfileSetup = ({ onNext, onBack }) => {
   const {
@@ -54,6 +53,13 @@ const ProfileSetup = ({ onNext, onBack }) => {
     keywordTags,
     addKeywordTag,
     removeKeywordTag,
+
+    subNichesForm,
+    addSubNicheTag,
+    removeSubNicheTag,
+
+    contentCharacteristics,
+    handleContentCharacteristicChange,
 
     // Bio
     bio,
@@ -130,9 +136,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
             <div className="space-y-4">
               {/* Creator Type */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Creator Type <span className="text-red-500">*</span>
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Creator Type</h3>
                 <p className="text-xs text-gray-600 mb-3">What type of creator are you?</p>
 
                 <div className="space-y-2">
@@ -193,17 +197,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 </div>
 
                 <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  {creatorType === CAMPAIGN_TYPE.UGC ? (
-                    <p className="text-xs text-gray-700">
-                      UGC Specialists can only connect Instagram. No minimum follower count
-                      required.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-gray-700">
-                      Influencer/Hybrid must connect at least one account with <b>2000+</b>{" "}
-                      followers/subscribers. Any connected platform must meet the minimum.
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-700">
+                    Choose the option that best describes how you work with brands. You can connect
+                    social accounts in the next section (optional).
+                  </p>
                 </div>
 
                 {errors.creatorType ? (
@@ -213,9 +210,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Profile Photo */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Profile Photo <span className="text-red-500">*</span>
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Profile Photo</h3>
 
                 <div className="grid grid-cols-3 gap-3 items-start">
                   <div className="col-span-3 md:col-span-1 space-y-2">
@@ -283,9 +278,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Showcase Covers */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Showcase Covers <span className="ml-1 text-red-500">*</span>
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Showcase Covers</h3>
 
                 <div className="grid grid-cols-3 gap-3">
                   {[0, 1, 2].map((index) => {
@@ -345,15 +338,12 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Bio */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Tagline <span className="ml-1 text-red-500">*</span>
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Tagline</h3>
 
                 <CustomInput
                   placeholder="This will appear on your creator card in Discover."
                   value={bio}
                   onChange={handleBioChange}
-                  required={true}
                   errors={errors}
                   name="bio"
                 />
@@ -362,9 +352,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Long Bio */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Long Bio
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Long Bio</h3>
 
                 <TextArea
                   placeholder="This will appear on your full profile only."
@@ -380,9 +368,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               {/* Social Platforms */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Connect <span className="text-red-500">*</span>
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Connect</h3>
 
                   <CustomButton
                     text="Refresh"
@@ -404,8 +390,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       connectedData?.profile_data?.name ||
                       "";
 
-                    const isDisabled =
-                      creatorType === CAMPAIGN_TYPE.UGC && platform !== PLATFORM_TYPE.INSTAGRAM;
                     const isPlatformLoading = Boolean(socialConnectLoadingMap?.[platform]);
 
                     return (
@@ -443,11 +427,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                                   ) : null}
                                 </div>
                               ) : (
-                                <span className="text-xs text-gray-500">
-                                  {isDisabled
-                                    ? "UGC Specialists can only connect Instagram"
-                                    : "Click to connect"}
-                                </span>
+                                <span className="text-xs text-gray-500">Click to connect</span>
                               )}
                             </div>
                           </div>
@@ -458,7 +438,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                               type="button"
                               onClick={() => handleConnectSocialAccounts(platform)}
                               className="btn-primary text-xs px-4 py-1 h-7"
-                              disabled={isDisabled || isPlatformLoading}
+                              disabled={isPlatformLoading}
                               loading={isPlatformLoading}
                             />
                           ) : null}
@@ -467,6 +447,11 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     );
                   })}
                 </div>
+
+                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+                  For influencer campaigns, accounts need at least 2,000 followers. Accounts below
+                  this threshold may not be eligible for campaign opportunities.
+                </p>
 
                 {errors.socialPlatforms && (
                   <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
@@ -488,9 +473,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
               {/* Categories */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Creator Categories
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Creator Categories</h3>
 
                 <SearchableNicheInput
                   selectedNiches={selectedCategories}
@@ -504,15 +487,65 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 )}
               </div>
 
+              {selectedCategories.length > 0 ? (
+                <div className="bg-white rounded-lg shadow-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Sub Niches (Optional)
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-3">
+                    This helps understand exactly what you specialize in and improves how you are
+                    matched to campaigns. For example, if your niche is Skincare, sub niches may
+                    include: &quot;Acne prone skin&quot;, &quot;Dry Skin&quot;,
+                    &quot;Esthetician&quot;, &quot;Dermatologist&quot;.
+                  </p>
+                  {selectedCategories.map((niche) => {
+                    const row = subNichesForm.find((r) => r.niche === niche) || {
+                      niche,
+                      tags: [],
+                    };
+                    return (
+                      <div key={niche} className="mb-4 last:mb-0">
+                        <p className="text-sm font-medium text-gray-800 mb-2">{niche}</p>
+                        <CustomInput
+                          type="text"
+                          placeholder="Add a sub-niche tag, press Enter"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter" && e.target.value.trim()) {
+                              e.preventDefault();
+                              addSubNicheTag(niche, e.target.value);
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {row.tags.map((tag, idx) => (
+                            <span
+                              key={`${niche}-${tag}-${idx}`}
+                              className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeSubNicheTag(niche, idx)}
+                                className="text-gray-500 hover:text-gray-700"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
               {/* Keywords */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Keyword Tags <span className="text-red-500">*</span>
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Keyword Tags</h3>
 
                 <p className="text-xs text-gray-600 my-2">
-                  Add at least <b>5</b> tags (suggested max <b>15</b>). Each tag must be <b>2–30</b>{" "}
-                  characters.
+                  Add up to <b>15</b> tags (optional). Each tag must be <b>2–30</b> characters.
                 </p>
 
                 <div className="flex gap-2">
@@ -564,6 +597,41 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Content Characteristics (Optional)
+                </h3>
+                <p className="text-xs text-gray-600 mb-4">
+                  Describe how your content is typically presented.
+                </p>
+                {CONTENT_CHARACTERISTIC_GROUPS.map((group) => (
+                  <div key={group.key} className="mb-4 last:mb-0">
+                    <p className="text-sm bg-indigo-200 py-1 px-2 font-medium text-gray-800 rounded-sm mb-2">
+                      {group.label}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {group.options.map((opt) => {
+                        const selected = contentCharacteristics[group.key] === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => handleContentCharacteristicChange(group.key, opt)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              selected
+                                ? "border-indigo-600 bg-indigo-50 text-indigo-900"
+                                : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Rates */}
