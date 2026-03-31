@@ -56,6 +56,7 @@ export default function Onboarding() {
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [tokenError, setTokenError] = useState(null);
   const [hasValidatedToken, setHasValidatedToken] = useState(false);
+  const [inviteResumeEmail, setInviteResumeEmail] = useState(null);
 
   const {
     currentStep,
@@ -65,7 +66,8 @@ export default function Onboarding() {
     prevStep,
     completeOnboarding,
     handleSelectMode,
-  } = useOnboarding();
+    loading: onboardingStatusLoading,
+  } = useOnboarding({ inviteResumeEmail });
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
@@ -91,6 +93,7 @@ export default function Onboarding() {
     if (!inviteToken) {
       setIsTokenValid(false);
       setTokenError(null);
+      setInviteResumeEmail(null);
       setHasValidatedToken(true);
       setIsValidatingToken(false);
       return;
@@ -103,12 +106,19 @@ export default function Onboarding() {
     invitesService
       .validateTokenOnly(inviteToken)
       .then((body) => {
-        const { valid, message } = parseInviteValidationBody(body);
+        const { valid, message, email: inviteEmail } = parseInviteValidationBody(body);
         if (valid) {
           setIsTokenValid(true);
           setTokenError(null);
+          if (inviteEmail) {
+            setInviteResumeEmail(inviteEmail);
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem("email", inviteEmail);
+            }
+          }
         } else {
           setIsTokenValid(false);
+          setInviteResumeEmail(null);
           setTokenError(
             message || body?.message || "This invite link is invalid or has expired."
           );
@@ -116,6 +126,7 @@ export default function Onboarding() {
       })
       .catch(() => {
         setIsTokenValid(false);
+        setInviteResumeEmail(null);
         setTokenError("Could not verify this invite link. Please try again.");
       })
       .finally(() => {
@@ -165,6 +176,15 @@ export default function Onboarding() {
           buttonRoute="/"
         />
       );
+    }
+
+    if (
+      inviteToken &&
+      isTokenValid &&
+      inviteResumeEmail &&
+      onboardingStatusLoading
+    ) {
+      return <FullPageLoader />;
     }
 
     if (showApplicationConfirmation) {
