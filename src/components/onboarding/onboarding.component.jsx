@@ -4,7 +4,7 @@ import AccessDenied from "@/app/components/access-denied.component";
 import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import invitesService from "@/provider/features/invites/invites.service";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
@@ -17,9 +17,39 @@ import CreatorApplication from "./creator/creator-application/creator-applicatio
 import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 import useOnboarding from "./use-onboarding.hook";
 
+function normalizeInviteToken(raw) {
+  if (raw == null || raw === "") return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+function parseInviteValidationBody(body) {
+  if (!body || typeof body !== "object") {
+    return { valid: false, message: "Invalid response" };
+  }
+  const inner = body.data?.data ?? body.data ?? body;
+  if (!inner || typeof inner !== "object") {
+    return { valid: false, message: body.message || "Invalid response" };
+  }
+  const valid =
+    inner.valid === true ||
+    (typeof inner.valid === "string" && inner.valid.toLowerCase() === "true");
+  return {
+    valid,
+    message: inner.message,
+    email: inner.email,
+  };
+}
+
 export default function Onboarding() {
   const searchParams = useSearchParams();
-  const inviteToken = searchParams?.get("token");
+  const [inviteToken, setInviteToken] = useState(null);
+  const [hasReadInviteFromUrl, setHasReadInviteFromUrl] = useState(false);
   const [showApplicationConfirmation, setShowApplicationConfirmation] = useState(false);
   const [showCreatorApplication, setShowCreatorApplication] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(false);
@@ -37,42 +67,63 @@ export default function Onboarding() {
     handleSelectMode,
   } = useOnboarding();
 
-  // Validate invite token if present
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const t = normalizeInviteToken(new URLSearchParams(window.location.search).get("token"));
+    setInviteToken(t);
+    setHasReadInviteFromUrl(true);
+  }, []);
+
   useEffect(() => {
-    const validateToken = async () => {
-      if (inviteToken) {
-        setIsValidatingToken(true);
-        setTokenError(null);
-        setHasValidatedToken(false);
-        try {
-          const response = await invitesService.validateTokenOnly(inviteToken);
-          if (response.success && response.data?.valid) {
-            setIsTokenValid(true);
-          } else {
-            setIsTokenValid(false);
-            setTokenError(response.message || "Invalid or expired invite token");
-          }
-        } catch (error) {
+    const fromParams = searchParams?.get("token");
+    const normalized = normalizeInviteToken(fromParams);
+    if (normalized != null) {
+      setInviteToken(normalized);
+      setHasReadInviteFromUrl(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!hasReadInviteFromUrl) {
+      return;
+    }
+
+    if (!inviteToken) {
+      setIsTokenValid(false);
+      setTokenError(null);
+      setHasValidatedToken(true);
+      setIsValidatingToken(false);
+      return;
+    }
+
+    setIsValidatingToken(true);
+    setTokenError(null);
+    setHasValidatedToken(false);
+
+    invitesService
+      .validateTokenOnly(inviteToken)
+      .then((body) => {
+        const { valid, message } = parseInviteValidationBody(body);
+        if (valid) {
+          setIsTokenValid(true);
+          setTokenError(null);
+        } else {
           setIsTokenValid(false);
-          setTokenError(error.response?.data?.message || "Invalid or expired invite token");
-        } finally {
-          setIsValidatingToken(false);
-          setHasValidatedToken(true);
+          setTokenError(
+            message || body?.message || "This invite link is invalid or has expired."
+          );
         }
-      } else {
+      })
+      .catch(() => {
         setIsTokenValid(false);
+        setTokenError("Could not verify this invite link. Please try again.");
+      })
+      .finally(() => {
+        setIsValidatingToken(false);
         setHasValidatedToken(true);
-      }
-    };
+      });
+  }, [hasReadInviteFromUrl, inviteToken]);
 
-    validateToken();
-  }, [inviteToken]);
-
-  // Check if we should show the creator application form
-  // This happens when:
-  // 1. Creator mode is selected
-  // 2. No invite token exists (or token is invalid)
-  // 3. User is on step 2 (after account type selection)
   useEffect(() => {
     if (
       isCreatorMode &&
@@ -97,12 +148,14 @@ export default function Onboarding() {
   };
 
   const renderStep = () => {
-    // Show loading state while validating token or if token exists but validation hasn't started yet
+    if (!hasReadInviteFromUrl) {
+      return <FullPageLoader />;
+    }
+
     if (inviteToken && (isValidatingToken || !hasValidatedToken)) {
       return <FullPageLoader />;
     }
 
-    // Show error if token is invalid (only after validation has completed)
     if (inviteToken && hasValidatedToken && !isTokenValid) {
       return (
         <AccessDenied
@@ -114,12 +167,10 @@ export default function Onboarding() {
       );
     }
 
-    // Show confirmation after application submission
     if (showApplicationConfirmation) {
       return <CreatorApplicationConfirmation />;
     }
 
-    // Show creator application form if creator mode and no invite token
     if (showCreatorApplication) {
       return (
         <CreatorApplication onBack={handleApplicationBack} onSuccess={handleApplicationSuccess} />
@@ -136,7 +187,6 @@ export default function Onboarding() {
           />
         );
       case 2:
-        // Only show Register form if token is valid (or no token at all)
         return (
           <Register
             onNext={nextStep}

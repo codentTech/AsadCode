@@ -171,6 +171,11 @@ const adminRemoveConnectedAccount = async (accountId) => {
   return response.data;
 };
 
+const adminDeleteUser = async (userId) => {
+  const response = await api().delete(`/user/admin/users/${userId}`);
+  return response.data;
+};
+
 const usersService = {
   getAllUsers,
   discoverCreators,
@@ -189,6 +194,7 @@ const usersService = {
   disconnectSocialAccount,
   adminGetConnectedAccounts,
   adminRemoveConnectedAccount,
+  adminDeleteUser,
 };
 
 export default usersService;
