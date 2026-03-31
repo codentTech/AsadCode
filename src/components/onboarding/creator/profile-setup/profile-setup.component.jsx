@@ -552,7 +552,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                   <CustomInput
                     type="text"
                     placeholder="e.g. Luxury Hotels"
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === "Enter" && e.target.value.trim()) {
                         e.preventDefault();
                         addKeywordTag(e.target.value);
