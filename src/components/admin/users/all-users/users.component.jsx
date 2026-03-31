@@ -1,7 +1,8 @@
 "use client";
+import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { Download, Filter, Shield, ShieldOff, User } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import useUsers from "./use-users.hook";
 
 const Users = () => {
@@ -15,26 +16,12 @@ const Users = () => {
     handleSelectionChange,
     handleActionClick,
     isLoading,
+    actions,
+    openDeleteModal,
+    setOpenDeleteModal,
+    userToDelete,
+    handleConfirmDelete,
   } = useUsers();
-
-  // Define actions
-  const actions = [
-    {
-      key: "view",
-      label: "View Details",
-      icon: <User size={16} />,
-    },
-    {
-      key: "block",
-      label: "Block",
-      icon: <Shield size={16} />,
-    },
-    {
-      key: "unblock",
-      label: "Unblock",
-      icon: <ShieldOff size={16} />,
-    },
-  ];
 
   return (
     <DashboardLayout>
@@ -71,9 +58,21 @@ const Users = () => {
           actions={actions}
           onActionClick={handleActionClick}
           emptyMessage="No users found"
-          isLoading={isLoading}
+          loading={isLoading}
         />
       </div>
+
+      <DeleteConfirmationModal
+        id={0}
+        openConfirmationPopup={openDeleteModal}
+        setOpenConfirmationPopup={setOpenDeleteModal}
+        mainText="Permanently delete this user account?"
+        subText={`This will remove ${userToDelete?.email || "this user"} and all related data. This cannot be undone.`}
+        confirmText="Delete account"
+        closeText="Cancel"
+        action={handleConfirmDelete}
+        type="admin-delete-user"
+      />
     </DashboardLayout>
   );
 };

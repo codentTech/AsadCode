@@ -189,6 +189,7 @@ export default function useProfileSetup({ onNext }) {
   const [profilePhotoLoading, setProfilePhotoLoading] = useState(false);
 
   const [connectedAccounts, setConnectedAccounts] = useState([]);
+  const [removedPlatformMessages, setRemovedPlatformMessages] = useState({});
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [keywordTags, setKeywordTags] = useState([]);
 
@@ -261,15 +262,29 @@ export default function useProfileSetup({ onNext }) {
     }
 
     const accountsRaw = Array.isArray(payload.data) ? payload.data : [];
-    const accounts = accountsRaw
+    const normalizedAccounts = accountsRaw
       .filter((acc) => acc?.platform)
       .map((acc) => ({
         ...acc,
         platform: String(acc.platform).toUpperCase(),
       }));
-    setConnectedAccounts(accounts);
 
-    const socialPlatformsRaw = accounts.map((acc) => ({
+    const activeAccounts = normalizedAccounts.filter((acc) => acc?.is_active !== false);
+    const removedByAdmin = normalizedAccounts.filter(
+      (acc) => acc?.is_active === false && acc?.removed_by_admin
+    );
+
+    const removedMessages = removedByAdmin.reduce((map, acc) => {
+      map[acc.platform] =
+        acc.removed_message ||
+        "This account was removed as it does not meet current platform requirements.";
+      return map;
+    }, {});
+
+    setRemovedPlatformMessages(removedMessages);
+    setConnectedAccounts(activeAccounts);
+
+    const socialPlatformsRaw = activeAccounts.map((acc) => ({
       platform: acc.platform,
       username:
         acc?.profile_data?.username ||
@@ -280,7 +295,7 @@ export default function useProfileSetup({ onNext }) {
     }));
 
     setValue("socialPlatforms", socialPlatformsRaw, { shouldValidate: true });
-    return accounts;
+    return activeAccounts;
   };
 
   const pollConnectedAccounts = async (attempts = 18, intervalMs = 5000) => {
@@ -290,11 +305,7 @@ export default function useProfileSetup({ onNext }) {
     }
   };
 
-  const pollUntilPlatformConnected = async (
-    targetPlatform,
-    attempts = 18,
-    intervalMs = 5000
-  ) => {
+  const pollUntilPlatformConnected = async (targetPlatform, attempts = 18, intervalMs = 5000) => {
     for (let i = 0; i < attempts; i++) {
       const accounts = await loadConnectedAccounts();
       const connected = accounts.some((a) => a.platform === targetPlatform);
@@ -326,8 +337,7 @@ export default function useProfileSetup({ onNext }) {
       window.addEventListener("focus", onFocus);
     });
 
-  const isPlatformConnected = (platform) =>
-    connectedAccounts.some((a) => a.platform === platform);
+  const isPlatformConnected = (platform) => connectedAccounts.some((a) => a.platform === platform);
 
   const getConnectedAccountData = (platform) =>
     connectedAccounts.find((a) => a.platform === platform);
@@ -698,6 +708,7 @@ export default function useProfileSetup({ onNext }) {
     handleConnectSocialAccounts,
     loadConnectedAccounts,
     socialConnectLoadingMap,
+    removedPlatformMessages,
 
     // categories/keywords
     selectedCategories,
