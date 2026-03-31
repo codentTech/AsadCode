@@ -24,6 +24,8 @@ const initialState = {
   connectSocialMedia: { ...generalState },
   getSocialAccounts: { ...generalState },
   disconnectSocialAccount: { ...generalState },
+  adminGetConnectedAccounts: { ...generalState },
+  adminRemoveConnectedAccount: { ...generalState },
 };
 
 const getSerializableErrorMessage = (error, fallback = "Request failed") => {
@@ -218,6 +220,36 @@ export const disconnectSocialAccount = createAsyncThunk(
   }
 );
 
+export const adminGetConnectedAccounts = createAsyncThunk(
+  "users/adminGetConnectedAccounts",
+  async (_, thunkAPI) => {
+    try {
+      const response = await usersService.adminGetConnectedAccounts();
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const adminRemoveConnectedAccount = createAsyncThunk(
+  "users/adminRemoveConnectedAccount",
+  async (accountId, thunkAPI) => {
+    try {
+      const response = await usersService.adminRemoveConnectedAccount(accountId);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
 export const usersSlice = createSlice({
   name: "users",
   initialState,
@@ -234,6 +266,8 @@ export const usersSlice = createSlice({
       state.getBlockedUsers = { ...generalState };
       state.isUserBlocked = { ...generalState };
       state.addUserToWaitlist = { ...generalState };
+      state.adminGetConnectedAccounts = { ...generalState };
+      state.adminRemoveConnectedAccount = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -488,6 +522,52 @@ export const usersSlice = createSlice({
           state.disconnectSocialAccount.isError = true;
           state.disconnectSocialAccount.message = action.payload;
         }
+      })
+      // adminGetConnectedAccounts
+      .addCase(adminGetConnectedAccounts.pending, (state) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = true;
+      })
+      .addCase(adminGetConnectedAccounts.fulfilled, (state, action) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = false;
+        state.adminGetConnectedAccounts.isSuccess = true;
+        state.adminGetConnectedAccounts.data = action.payload;
+      })
+      .addCase(adminGetConnectedAccounts.rejected, (state, action) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = false;
+        state.adminGetConnectedAccounts.isError = true;
+        state.adminGetConnectedAccounts.message = action.payload;
+      })
+      // adminRemoveConnectedAccount
+      .addCase(adminRemoveConnectedAccount.pending, (state) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = true;
+      })
+      .addCase(adminRemoveConnectedAccount.fulfilled, (state, action) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = false;
+        state.adminRemoveConnectedAccount.isSuccess = true;
+        state.adminRemoveConnectedAccount.data = action.payload;
+      })
+      .addCase(adminRemoveConnectedAccount.rejected, (state, action) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = false;
+        state.adminRemoveConnectedAccount.isError = true;
+        state.adminRemoveConnectedAccount.message = action.payload;
       });
   },
 });

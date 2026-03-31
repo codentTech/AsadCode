@@ -1,6 +1,6 @@
 "use client";
 
-import { CAMPAIGN_TYPE, MIN_FOLLOWERS, PLATFORM_TYPE } from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE, PLATFORM_TYPE } from "@/common/constants/campaign.constant";
 import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 import { reset as resetAuth } from "@/provider/features/auth/auth.slice";
@@ -13,74 +13,33 @@ import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
-/**
- * Validation
- */
 const validationSchema = Yup.object().shape({
   creatorType: Yup.string()
     .oneOf([CAMPAIGN_TYPE.UGC, CAMPAIGN_TYPE.INFLUENCER, CAMPAIGN_TYPE.HYBRID])
-    .required("Creator type is required"),
+    .optional(),
 
-  profilePhoto: Yup.mixed().required("Profile photo is required"),
+  profilePhoto: Yup.mixed().nullable(),
 
-  miniProfilePictures: Yup.array()
-    .required("Showcase covers are required")
-    .length(3, "3 showcase covers are required")
-    .test("all-filled", "All 3 showcase covers are required", (arr) => {
-      if (!Array.isArray(arr)) return false;
-      return arr.every((x) => typeof x === "string" && x.trim().length > 0);
-    }),
+  miniProfilePictures: Yup.array().length(3),
 
-  bio: Yup.string()
-    .required("Tagline is required")
-    .max(75, "Tagline must be less than 75 characters"),
+  bio: Yup.string().max(75, "Tagline must be less than 75 characters").optional(),
 
   longBio: Yup.string().max(500, "Full bio must be less than 500 characters"),
 
-  socialPlatforms: Yup.array()
-    .min(1, "At least one connected social account is required")
-    .of(
-      Yup.object().shape({
-        platform: Yup.string().required(),
-        username: Yup.string().required("Username is required"),
-        followerCount: Yup.number().nullable(),
-      })
-    )
-    .test(
-      "ugc-instagram-only",
-      "UGC Specialists can only connect Instagram.",
-      function (socialPlatforms) {
-        const { creatorType } = this.parent;
-        if (creatorType !== CAMPAIGN_TYPE.UGC) return true;
-        const platforms = (socialPlatforms || []).map((x) => x.platform);
-        return platforms.every((p) => p === PLATFORM_TYPE.INSTAGRAM);
-      }
-    )
-    .test(
-      "min-followers-influencer-hybrid",
-      `Influencer/Hybrid must connect at least one account with ${MIN_FOLLOWERS}+ followers/subscribers (and any connected platform must meet the minimum).`,
-      function (socialPlatforms) {
-        const { creatorType } = this.parent;
-        if (creatorType === CAMPAIGN_TYPE.UGC) return true;
-
-        const list = socialPlatforms || [];
-        if (list.length === 0) return false;
-
-        const eachMeetsMin = list.every((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
-        if (!eachMeetsMin) return false;
-
-        return list.some((x) => (x.followerCount ?? 0) >= MIN_FOLLOWERS);
-      }
-    ),
+  socialPlatforms: Yup.array().of(
+    Yup.object().shape({
+      platform: Yup.string().required(),
+      username: Yup.string().required(),
+      followerCount: Yup.number().nullable(),
+    })
+  ),
 
   categories: Yup.array().max(5, "Maximum 5 niches allowed"),
 
   keywordTags: Yup.array()
-    .required("Keyword tags are required")
-    .min(5, "Add at least 5 keyword tags")
     .max(15, "Suggested maximum is 15 keyword tags")
     .test("no-duplicates", "Duplicate keyword tags are not allowed", (arr) => {
-      if (!Array.isArray(arr)) return false;
+      if (!Array.isArray(arr) || arr.length === 0) return true;
       const normalized = arr
         .map((t) =>
           String(t || "")
@@ -95,8 +54,24 @@ const validationSchema = Yup.object().shape({
         .trim()
         .min(2, "Each tag must be at least 2 characters")
         .max(30, "Each tag must be at most 30 characters")
-        .required("Tag is required")
     ),
+
+  subNiches: Yup.array().of(
+    Yup.object().shape({
+      niche: Yup.string().required(),
+      tags: Yup.array().of(Yup.string()),
+    })
+  ),
+
+  contentCharacteristics: Yup.object().shape({
+    tone: Yup.string().optional(),
+    productionLevel: Yup.string().optional(),
+    deliveryStyle: Yup.string().optional(),
+    contentFocus: Yup.string().optional(),
+    energy: Yup.string().optional(),
+    brandIntegration: Yup.string().optional(),
+    trustPositioning: Yup.string().optional(),
+  }),
 
   contentRates: Yup.array().of(
     Yup.object().shape({
@@ -117,6 +92,44 @@ const STANDARD_CONTENT_TYPES = [
   "Instagram Story",
   "UGC Video",
   "YouTube Feature",
+];
+
+export const CONTENT_CHARACTERISTIC_GROUPS = [
+  {
+    key: "tone",
+    label: "Tone",
+    options: ["Serious", "Neutral", "Entertaining"],
+  },
+  {
+    key: "productionLevel",
+    label: "Production Level",
+    options: ["Casual", "Balanced", "Highly Edited"],
+  },
+  {
+    key: "deliveryStyle",
+    label: "Delivery Style",
+    options: ["Voiceover", "Mixed", "Talking to Camera"],
+  },
+  {
+    key: "contentFocus",
+    label: "Content Focus",
+    options: ["Informational", "Balanced", "Personality-driven"],
+  },
+  {
+    key: "energy",
+    label: "Energy",
+    options: ["Calm", "Moderate", "High Energy"],
+  },
+  {
+    key: "brandIntegration",
+    label: "Brand Integration Style",
+    options: ["Subtle/Organic", "Balanced", "Direct/Sales-focused"],
+  },
+  {
+    key: "trustPositioning",
+    label: "Trust Positioning",
+    options: ["Aspirational", "Balanced", "Authority/Expert"],
+  },
 ];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -145,7 +158,7 @@ export default function useProfileSetup({ onNext }) {
     resolver: yupResolver(validationSchema),
     mode: "onChange",
     defaultValues: {
-      creatorType: CAMPAIGN_TYPE.UGC, // exactly one tag at all times
+      creatorType: CAMPAIGN_TYPE.UGC,
       profilePhoto: null,
       miniProfilePictures: [null, null, null],
       bio: "",
@@ -153,6 +166,8 @@ export default function useProfileSetup({ onNext }) {
       socialPlatforms: [],
       categories: [],
       keywordTags: [],
+      subNiches: [],
+      contentCharacteristics: {},
       contentRates: [],
     },
   });
@@ -161,6 +176,8 @@ export default function useProfileSetup({ onNext }) {
   const bio = watch("bio");
   const longBio = watch("longBio");
   const miniProfilePictures = watch("miniProfilePictures");
+  const contentCharacteristics = watch("contentCharacteristics") || {};
+  const subNichesForm = watch("subNiches") || [];
 
   /**
    * Local UI state
@@ -205,13 +222,6 @@ export default function useProfileSetup({ onNext }) {
    */
   const handleCreatorTypeChange = (type) => {
     setValue("creatorType", type, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-
-    // enforce IG-only if switched to UGC
-    if (type === CAMPAIGN_TYPE.UGC) {
-      const current = watch("socialPlatforms") || [];
-      const instagramOnly = current.filter((x) => x.platform === PLATFORM_TYPE.INSTAGRAM);
-      setValue("socialPlatforms", instagramOnly, { shouldValidate: true, shouldDirty: true });
-    }
   };
 
   /**
@@ -237,41 +247,40 @@ export default function useProfileSetup({ onNext }) {
    * Social accounts
    */
   const loadConnectedAccounts = async () => {
-    try {
-      const result = await dispatch(getSocialAccounts()).unwrap();
-      if (!result?.success) return [];
-
-      const accountsRaw = Array.isArray(result.data) ? result.data : [];
-      const accounts = accountsRaw
-        .filter((acc) => acc?.platform)
-        .map((acc) => ({
-          ...acc,
-          // Backend uses "instagram"/"tiktok"/"youtube"; frontend constants use "INSTAGRAM"/...
-          platform: String(acc.platform).toUpperCase(),
-        }));
-      setConnectedAccounts(accounts);
-
-      const socialPlatformsRaw = accounts.map((acc) => ({
-          platform: acc.platform,
-          username:
-            acc?.profile_data?.username ||
-            acc?.profile_data?.handle ||
-            acc?.profile_data?.name ||
-            "connected",
-          followerCount: extractFollowerCount(acc),
-        }));
-
-      const socialPlatforms =
-        creatorType === CAMPAIGN_TYPE.UGC
-          ? socialPlatformsRaw.filter((x) => x.platform === PLATFORM_TYPE.INSTAGRAM)
-          : socialPlatformsRaw;
-
-      setValue("socialPlatforms", socialPlatforms, { shouldValidate: true });
-      return accounts;
-    } catch (e) {
-      // silent by design
+    const result = await dispatch(getSocialAccounts());
+    if (getSocialAccounts.rejected.match(result)) {
+      setConnectedAccounts([]);
+      setValue("socialPlatforms", [], { shouldValidate: true });
       return [];
     }
+    const payload = result.payload;
+    if (!payload?.success) {
+      setConnectedAccounts([]);
+      setValue("socialPlatforms", [], { shouldValidate: true });
+      return [];
+    }
+
+    const accountsRaw = Array.isArray(payload.data) ? payload.data : [];
+    const accounts = accountsRaw
+      .filter((acc) => acc?.platform)
+      .map((acc) => ({
+        ...acc,
+        platform: String(acc.platform).toUpperCase(),
+      }));
+    setConnectedAccounts(accounts);
+
+    const socialPlatformsRaw = accounts.map((acc) => ({
+      platform: acc.platform,
+      username:
+        acc?.profile_data?.username ||
+        acc?.profile_data?.handle ||
+        acc?.profile_data?.name ||
+        "connected",
+      followerCount: extractFollowerCount(acc),
+    }));
+
+    setValue("socialPlatforms", socialPlatformsRaw, { shouldValidate: true });
+    return accounts;
   };
 
   const pollConnectedAccounts = async (attempts = 18, intervalMs = 5000) => {
@@ -324,7 +333,6 @@ export default function useProfileSetup({ onNext }) {
     connectedAccounts.find((a) => a.platform === platform);
 
   const handleConnectSocialAccounts = async (platform) => {
-    if (creatorType === CAMPAIGN_TYPE.UGC && platform !== PLATFORM_TYPE.INSTAGRAM) return;
     if (socialConnectLoadingMap?.[platform]) return;
     setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: true }));
     try {
@@ -465,12 +473,53 @@ export default function useProfileSetup({ onNext }) {
     const limited = Array.isArray(niches) ? niches.slice(0, 5) : [];
     setSelectedCategories(limited);
     setValue("categories", limited, { shouldValidate: true, shouldDirty: true });
+    const prev = watch("subNiches") || [];
+    const next = limited.map((niche) => {
+      const found = prev.find((x) => x.niche === niche);
+      return found || { niche, tags: [] };
+    });
+    setValue("subNiches", next, { shouldValidate: true, shouldDirty: true });
   };
 
   const handleCategoryRemove = (nicheToRemove) => {
     const filtered = selectedCategories.filter((n) => n !== nicheToRemove);
     setSelectedCategories(filtered);
     setValue("categories", filtered, { shouldValidate: true, shouldDirty: true });
+    const sub = (watch("subNiches") || []).filter((x) => x.niche !== nicheToRemove);
+    setValue("subNiches", sub, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const addSubNicheTag = (niche, tag) => {
+    const cleaned = String(tag || "").trim();
+    if (!cleaned || cleaned.length < 2 || cleaned.length > 30) return;
+    const current = watch("subNiches") || [];
+    const next = current.map((row) => {
+      if (row.niche !== niche) return row;
+      if (row.tags.length >= 20) return row;
+      if (row.tags.some((t) => String(t).toLowerCase() === cleaned.toLowerCase())) return row;
+      return { ...row, tags: [...row.tags, cleaned] };
+    });
+    setValue("subNiches", next, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const removeSubNicheTag = (niche, tagIndex) => {
+    const current = watch("subNiches") || [];
+    const next = current.map((row) => {
+      if (row.niche !== niche) return row;
+      return { ...row, tags: row.tags.filter((_, i) => i !== tagIndex) };
+    });
+    setValue("subNiches", next, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const handleContentCharacteristicChange = (key, value) => {
+    const prev = watch("contentCharacteristics") || {};
+    const next = { ...prev };
+    if (prev[key] === value) {
+      delete next[key];
+    } else {
+      next[key] = value;
+    }
+    setValue("contentCharacteristics", next, { shouldValidate: true, shouldDirty: true });
   };
 
   const updateKeywordTags = (tags) => {
@@ -569,16 +618,28 @@ export default function useProfileSetup({ onNext }) {
    * Submit
    */
   const onSubmit = async (values) => {
+    const socialPlatforms = (values.socialPlatforms || []).map(({ platform, username }) => ({
+      platform,
+      username,
+    }));
+    const chars = values.contentCharacteristics || {};
+    const hasChars = Object.values(chars).some((v) => v != null && String(v).length > 0);
+    const subNichesPayload = (values.subNiches || []).filter(
+      (row) => row?.niche && Array.isArray(row.tags) && row.tags.length > 0
+    );
+
     const payload = {
-      creatorType: values.creatorType,
+      creatorType: values.creatorType ?? CAMPAIGN_TYPE.UGC,
       profilePhotoUrl,
       miniProfilePictures: (values.miniProfilePictures || []).filter(Boolean),
-      bio: values.bio.trim(),
-      longBio: values.longBio.trim(),
-      socialPlatforms: values.socialPlatforms,
-      categories: values.categories,
-      keywordTags: values.keywordTags,
+      bio: (values.bio || "").trim(),
+      longBio: (values.longBio || "").trim(),
+      socialPlatforms,
+      categories: values.categories || [],
+      keywordTags: values.keywordTags || [],
       contentRates: values.contentRates,
+      subNiches: subNichesPayload.length ? subNichesPayload : undefined,
+      contentCharacteristics: hasChars ? chars : undefined,
     };
 
     const response = await dispatch(setupCreatorProfile({ payload, email }));
@@ -645,6 +706,13 @@ export default function useProfileSetup({ onNext }) {
     keywordTags,
     addKeywordTag,
     removeKeywordTag,
+
+    subNichesForm,
+    addSubNicheTag,
+    removeSubNicheTag,
+
+    contentCharacteristics,
+    handleContentCharacteristicChange,
 
     // rates
     contentRates,

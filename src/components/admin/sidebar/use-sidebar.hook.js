@@ -1,7 +1,15 @@
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
 import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
-import { Clipboard, LayoutDashboard, User2, UserLock, Users, Wallet } from "lucide-react";
+import {
+  Clipboard,
+  LayoutDashboard,
+  Link2,
+  User2,
+  UserLock,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +27,12 @@ const adminNavItems = [
     icon: Clipboard,
     isActive: false,
     href: "/admin/creator-applications",
+  },
+  {
+    label: "Connected Accounts",
+    icon: Link2,
+    isActive: false,
+    href: "/admin/connected-accounts",
   },
   {
     label: "Users",
