@@ -60,9 +60,7 @@ export default function AccessDenied({
         <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 mb-6">{title}</h2>
 
         {/* Message */}
-        {/* <p className="text-lg text-indigo-400 mb-12 max-w-md mx-auto">
-          {message}
-        </p> */}
+        <p className="text-lg text-indigo-400 mb-12 max-w-md mx-auto">{message}</p>
 
         {/* Illustration Section */}
         <div className="flex justify-center my-12">
