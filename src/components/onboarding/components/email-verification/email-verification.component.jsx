@@ -81,45 +81,45 @@ const EmailVerification = ({ onNext, onBack }) => {
               </p>
 
               <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Verification code</label>
-            <CustomInput
-              name="verificationCode"
-              type="text"
-              placeholder="000000"
-              value={verificationCode}
-              onChange={handleCodeChange}
-              onPaste={handleCodePaste}
-              inputProps={{ maxLength: 6, inputMode: "numeric", autoComplete: "one-time-code" }}
-              className="text-center text-lg tracking-[0.4em] font-mono"
-            />
-          </div>
-
-          {/* Resend Message */}
-          <div className="text-center space-y-2">
-            <p className="text-sm text-gray-600">Didn’t get it? Check your spam folder or</p>
-            {countdown > 0 ? (
-              <p className="text-sm text-gray-400">Resend available in {countdown}s</p>
-            ) : (
-              <button
-                onClick={handleResendEmail}
-                className="text-indigo-600 hover:text-indigo-700 text-sm underline font-medium"
-              >
-                Resend Email
-              </button>
-            )}
+                <label className="block text-sm font-medium text-gray-700">Verification code</label>
+                <CustomInput
+                  name="verificationCode"
+                  type="text"
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={handleCodeChange}
+                  onPaste={handleCodePaste}
+                  inputProps={{ maxLength: 6, inputMode: "numeric", autoComplete: "one-time-code" }}
+                  className="text-center text-lg tracking-[0.4em] font-mono"
+                />
               </div>
 
-              <div className="pt-4 space-y-3">
-            <CustomButton
-              text="Continue to Profile Setup"
-              className="btn-primary w-full"
-              onClick={handleContinue}
-              disabled={isLoading || !canSubmit}
-              loading={isLoading}
-            />
-            <p className="text-sm text-center text-gray-400 hover:text-gray-600 transition">
-              Having trouble? <span className="underline cursor-pointer">Contact Support</span>
-            </p>
+              {/* Resend Message */}
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-600">Didn’t get it? Check your spam folder or</p>
+                {countdown > 0 ? (
+                  <p className="text-sm text-gray-400">Resend available in {countdown}s</p>
+                ) : (
+                  <button
+                    onClick={handleResendEmail}
+                    className="text-indigo-600 hover:text-indigo-700 text-sm underline font-medium"
+                  >
+                    Resend Code
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <CustomButton
+                  text="Continue to Profile Setup"
+                  className="btn-primary w-full"
+                  onClick={handleContinue}
+                  disabled={isLoading || !canSubmit}
+                  loading={isLoading}
+                />
+                <p className="text-sm text-center text-gray-400 hover:text-gray-600 transition">
+                  Having trouble? <span className="underline cursor-pointer">Contact Support</span>
+                </p>
               </div>
             </>
           )}

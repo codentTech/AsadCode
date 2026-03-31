@@ -62,6 +62,21 @@ const api = (headers = null) => {
         return;
       }
 
+      const path403 =
+        typeof window !== "undefined" ? window.location.pathname || "" : "";
+      const reqUrl403 = String(error.config?.url || "");
+      const onboarding403Context =
+        error.response?.status === 403 &&
+        (path403.startsWith("/onboarding") ||
+          reqUrl403.includes("/auth/onboarding") ||
+          reqUrl403.includes("/phyllo/") ||
+          reqUrl403.includes("social-account"));
+      if (error.response?.status === 403 && typeof window !== "undefined" && onboarding403Context) {
+        if (!path403.startsWith("/onboarding")) {
+          window.location.href = "/onboarding";
+        }
+      }
+
       // Check if toast should be skipped for this request
       const skipToast =
         error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
@@ -72,7 +87,7 @@ const api = (headers = null) => {
         responseURL?.includes("/payment-methods/setup-intent");
 
       // Handle message display
-      if (!skipToast && !isPaymentMethodError) {
+      if (!skipToast && !isPaymentMethodError && !onboarding403Context) {
         if (Array.isArray(message)) {
           message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
         } else {
