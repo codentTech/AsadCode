@@ -22,6 +22,7 @@ import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
   CREATOR_TYPE_QUESTION,
   CREATOR_TYPE_QUESTION_HELPER,
+  CREATOR_TAG_OPTIONS,
 } from "@/common/constants/creator-tag.constant";
 
 const ProfileSetup = ({ onNext, onBack }) => {
@@ -150,7 +151,9 @@ const ProfileSetup = ({ onNext, onBack }) => {
             <div className="space-y-4">
               {/* Creator Type */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{CREATOR_TYPE_QUESTION}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {CREATOR_TYPE_QUESTION}
+                </h3>
                 <p className="text-xs text-gray-600 mb-3">{CREATOR_TYPE_QUESTION_HELPER}</p>
 
                 <div className="space-y-2">
