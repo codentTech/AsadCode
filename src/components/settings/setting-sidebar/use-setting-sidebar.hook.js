@@ -2,6 +2,7 @@ import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
 import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
 import {
+  BarChart3,
   Briefcase,
   CreditCard,
   Database,
@@ -138,6 +139,11 @@ const creatorNavItems = [
         label: "Saved Filter Settings",
         href: "/settings/campaign-defaults/saved-default-filter",
         icon: Settings,
+      },
+      {
+        label: "Audience insights",
+        href: "/settings/audience-insights",
+        icon: BarChart3,
       },
     ],
   },

@@ -36,8 +36,8 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
           isRequired
         />
         <p className="-mt-3 text-xs text-gray-500">
-          Paste a link to a post from your connected account. We&apos;ll
-          automatically pull the caption and performance data.
+          Paste a link to a post from your connected account. We&apos;ll automatically pull the
+          caption and performance data.
         </p>
 
         {nicheOptions.length > 0 && (
@@ -51,16 +51,12 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
         )}
 
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
-          <CustomButton
-            className="btn-cancel"
-            text="Cancel"
-            onClick={handleClose}
-            type="button"
-          />
+          <CustomButton className="btn-cancel" text="Cancel" onClick={handleClose} type="button" />
           <CustomButton
             className="btn-primary"
-            text={isLoading ? "Importing..." : "Import Post"}
+            text="Import Post"
             type="submit"
+            loading={isLoading}
             disabled={isLoading || !formData.post_url}
           />
         </div>

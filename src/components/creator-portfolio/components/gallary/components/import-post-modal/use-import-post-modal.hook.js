@@ -57,7 +57,15 @@ export default function useImportPostModal({ show, onClose, niches = [] }) {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      dispatch(importPostThunk(formData));
+      const post_url =
+        typeof formData.post_url === "string" ? formData.post_url.trim() : "";
+      dispatch(
+        importPostThunk({
+          ...formData,
+          post_url,
+          niche_id: formData.niche_id || "",
+        })
+      );
     },
     [dispatch, formData]
   );
