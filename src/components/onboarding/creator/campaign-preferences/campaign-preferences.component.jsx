@@ -183,9 +183,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
               </div>
               {/* Ethnicity */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                  Ethnicity <span className="text-red-500">*</span>
-                </h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-1">Ethnicity (Optional)</h3>
                 <p className="text-xs text-gray-600 mb-3">
                   This information is used only for brand filtering and is never shown publicly.
                 </p>

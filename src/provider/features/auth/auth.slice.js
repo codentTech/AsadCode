@@ -2,13 +2,22 @@ import { getUser } from "@/common/utils/users.util";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import authService from "./auth.service";
 
-// Helper function to extract serializable error information
+const normalizeAuthMessage = (value) => {
+  if (value == null || value === "") return "";
+  if (Array.isArray(value)) {
+    const first = value.find((x) => x != null && String(x).trim() !== "");
+    if (first != null) return String(first);
+    return value.filter(Boolean).join(" ");
+  }
+  return String(value);
+};
+
 const getSerializableError = (error) => {
-  if (error?.response?.data?.message) {
-    return { message: error.response.data.message };
+  if (error?.response?.data?.message != null) {
+    return { message: normalizeAuthMessage(error.response.data.message) || "An unexpected error occurred" };
   }
   if (error?.message) {
-    return { message: error.message };
+    return { message: normalizeAuthMessage(error.message) || "An unexpected error occurred" };
   }
   if (typeof error === "string") {
     return { message: error };
@@ -24,6 +33,18 @@ const generalState = {
   data: null,
 };
 
+const ensurePasswordResetRequest = (state) => {
+  if (!state.passwordResetRequest) {
+    state.passwordResetRequest = { ...generalState };
+  }
+};
+
+const ensurePasswordResetSubmit = (state) => {
+  if (!state.passwordResetSubmit) {
+    state.passwordResetSubmit = { ...generalState };
+  }
+};
+
 // Get user from localStorage
 const user = getUser();
 const initialState = {
@@ -36,6 +57,8 @@ const initialState = {
   verifyEmail: generalState,
   sendVerificationEmail: generalState,
   resendEmail: generalState,
+  passwordResetRequest: generalState,
+  passwordResetSubmit: generalState,
   logout: generalState,
   loginAndSignUpWithOAuth: generalState,
   loginAndSignUpWithLinkedin: generalState,
@@ -97,6 +120,32 @@ export const resendEmail = createAsyncThunk("auth/resendEmail", async (payload, 
   }
 });
 
+export const requestPasswordReset = createAsyncThunk(
+  "auth/requestPasswordReset",
+  async (email, thunkAPI) => {
+    try {
+      const response = await authService.requestPasswordReset(email);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const resetPasswordWithToken = createAsyncThunk(
+  "auth/resetPasswordWithToken",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.resetPasswordWithToken(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -120,6 +169,8 @@ export const authSlice = createSlice({
       state.verifyEmail = generalState;
       state.sendVerificationEmail = generalState;
       state.resendEmail = generalState;
+      state.passwordResetRequest = generalState;
+      state.passwordResetSubmit = generalState;
       state.loginAndSignUpWithOAuth = generalState;
       state.loginAndSignUpWithLinkedin = generalState;
     },
@@ -218,6 +269,51 @@ export const authSlice = createSlice({
         state.resendEmail.isLoading = false;
         state.resendEmail.isError = true;
         state.resendEmail.data = null;
+      })
+      .addCase(requestPasswordReset.pending, (state) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.isLoading = true;
+        state.passwordResetRequest.message = "";
+        state.passwordResetRequest.isError = false;
+        state.passwordResetRequest.isSuccess = false;
+        state.passwordResetRequest.data = null;
+      })
+      .addCase(requestPasswordReset.fulfilled, (state, action) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.isLoading = false;
+        state.passwordResetRequest.isSuccess = true;
+        state.passwordResetRequest.message = action.payload?.message || "";
+        state.passwordResetRequest.data = action.payload;
+      })
+      .addCase(requestPasswordReset.rejected, (state, action) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.message =
+          action.payload?.message || "Could not send reset email";
+        state.passwordResetRequest.isLoading = false;
+        state.passwordResetRequest.isError = true;
+        state.passwordResetRequest.data = null;
+      })
+      .addCase(resetPasswordWithToken.pending, (state) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.isLoading = true;
+        state.passwordResetSubmit.message = "";
+        state.passwordResetSubmit.isError = false;
+        state.passwordResetSubmit.isSuccess = false;
+        state.passwordResetSubmit.data = null;
+      })
+      .addCase(resetPasswordWithToken.fulfilled, (state, action) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.isLoading = false;
+        state.passwordResetSubmit.isSuccess = true;
+        state.passwordResetSubmit.data = action.payload;
+      })
+      .addCase(resetPasswordWithToken.rejected, (state, action) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.message =
+          action.payload?.message || "Password reset failed";
+        state.passwordResetSubmit.isLoading = false;
+        state.passwordResetSubmit.isError = true;
+        state.passwordResetSubmit.data = null;
       });
   },
 });

@@ -1,6 +1,6 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
 import { Bookmark, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
 
@@ -20,6 +20,7 @@ const CreatorCard = ({
   hideActions = false,
   creatorType,
 }) => {
+  const tagMeta = creatorType ? getCreatorTagMeta(creatorType) : null;
   const {
     getPlatformIcon,
     getPlatformProfileUrlFor,
@@ -81,17 +82,11 @@ const CreatorCard = ({
           <div className="w-full h-full bg-primary" />
         )}
 
-        {creatorType === CAMPAIGN_TYPE.UGC ? (
-          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-indigo-200 bg-indigo-100 rounded-lg">
-            UGC
-          </div>
-        ) : creatorType === CAMPAIGN_TYPE.INFLUENCER ? (
-          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-purple-200 bg-purple-100 rounded-lg">
-            INFLUENCER
-          </div>
-        ) : creatorType === CAMPAIGN_TYPE.HYBRID ? (
-          <div className="absolute top-1 right-1 text-black px-2 py-1 text-xs border-green-200 bg-green-100 rounded-lg">
-            HYBRID
+        {tagMeta ? (
+          <div
+            className={`absolute top-1 right-1 max-w-[9rem] truncate px-2 py-1 text-[10px] font-semibold rounded-lg shadow-sm ${tagMeta.pillClass}`}
+          >
+            {tagMeta.label}
           </div>
         ) : null}
       </div>

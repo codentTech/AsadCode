@@ -10,7 +10,6 @@ export default function Login() {
     onSubmit,
     isChecked,
     setIsChecked,
-    router,
     loading,
     register,
     handleSubmit,
@@ -78,7 +77,6 @@ export default function Login() {
                 </div>
                 <Link
                   href="/forget-password"
-                  onClick={() => router.push("/forget-password?btnText=Password%20Recovery%20Link")}
                   className="forgotText rounded-xl text-xs font-bold leading-[18px] "
                 >
                   Forgot Password?

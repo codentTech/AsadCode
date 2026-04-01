@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "next/navigation";
+"use client";
+
 import {
   getAdminPayments,
   getAdminPaymentById,
   resetGetAdminPaymentById,
 } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const formatCents = (cents) => {
   if (cents == null) return "—";
@@ -15,6 +17,14 @@ const formatCents = (cents) => {
 const formatStatus = (value) => {
   if (!value) return "—";
   return String(value).replace(/_/g, " ");
+};
+
+const extractSelectValue = (optionOrPrimitive) => {
+  if (optionOrPrimitive == null) return null;
+  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
+    return optionOrPrimitive.value;
+  }
+  return optionOrPrimitive;
 };
 
 const columns = [
@@ -116,14 +126,33 @@ const columns = [
 
 function usePayments() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
-  const fundingStatusFilter = searchParams.get("funding_status") || undefined;
-  const payoutStatusFilter = searchParams.get("payout_status") || undefined;
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [fundingFilter, setFundingFilter] = useState(null);
+  const [payoutFilter, setPayoutFilter] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [detailPayment, setDetailPayment] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(typeof searchTerm === "string" ? searchTerm.trim() : "");
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setFundingFilter(searchParams.get("funding_status") || null);
+    setPayoutFilter(searchParams.get("payout_status") || null);
+  }, [searchParams]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, fundingFilter, payoutFilter]);
 
   const getAdminPaymentsState = useSelector(
     (state) => state.collaborationPayment.getAdminPayments
@@ -138,15 +167,15 @@ function usePayments() {
   const detail = getAdminPaymentByIdState?.data;
 
   const fetchPayments = useCallback(() => {
-    dispatch(
-      getAdminPayments({
-        funding_status: fundingStatusFilter,
-        payout_status: payoutStatusFilter,
-        page,
-        limit: pageSize,
-      })
-    );
-  }, [dispatch, fundingStatusFilter, payoutStatusFilter, page, pageSize]);
+    const payload = {
+      page,
+      limit: pageSize,
+    };
+    if (debouncedSearch) payload.search = debouncedSearch;
+    if (fundingFilter != null && fundingFilter !== "ALL") payload.funding_status = fundingFilter;
+    if (payoutFilter != null && payoutFilter !== "ALL") payload.payout_status = payoutFilter;
+    dispatch(getAdminPayments(payload));
+  }, [dispatch, debouncedSearch, fundingFilter, payoutFilter, page, pageSize]);
 
   useEffect(() => {
     fetchPayments();
@@ -160,6 +189,49 @@ function usePayments() {
     setPageSize(newSize);
     setPage(1);
   }, []);
+
+  const handleSearchChange = useCallback((value) => {
+    const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setSearchTerm(next);
+  }, []);
+
+  const handleFundingFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setFundingFilter(null);
+    } else {
+      setFundingFilter(v);
+    }
+  };
+
+  const handlePayoutFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setPayoutFilter(null);
+    } else {
+      setPayoutFilter(v);
+    }
+  };
+
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setFundingFilter(null);
+    setPayoutFilter(null);
+    setPage(1);
+    router.replace("/admin/payments");
+  }, [router]);
+
+  const hasActiveFilters = useMemo(() => {
+    const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+    const hasFunding = fundingFilter != null;
+    const hasPayout = payoutFilter != null;
+    return hasSearch || hasFunding || hasPayout;
+  }, [searchTerm, fundingFilter, payoutFilter]);
 
   const handleViewDetail = useCallback(
     (row) => {
@@ -206,6 +278,16 @@ function usePayments() {
     detail,
     detailLoading: getAdminPaymentByIdState?.isLoading,
     handleCloseDetail,
+    searchTerm,
+    handleSearchChange,
+    fundingFilter,
+    payoutFilter,
+    handleFundingFilterChange,
+    handlePayoutFilterChange,
+    showFilters,
+    toggleFilters,
+    handleClearFilters,
+    hasActiveFilters,
   };
 }
 
