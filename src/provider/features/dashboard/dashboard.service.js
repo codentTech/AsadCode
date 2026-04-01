@@ -1,7 +1,7 @@
 import api from "@/common/utils/api";
 
-const getDashboardStats = async () => {
-  const response = await api().get("/dashboard/get-stats");
+const getAdminDashboardSummary = async () => {
+  const response = await api().get("/admin/dashboard/summary");
   return response.data;
 };
 
@@ -11,7 +11,7 @@ const fetchAllUserWaitinglist = async () => {
 };
 
 const dashboardService = {
-  getDashboardStats,
+  getAdminDashboardSummary,
   fetchAllUserWaitinglist,
 };
 

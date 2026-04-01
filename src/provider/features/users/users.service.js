@@ -161,8 +161,13 @@ const disconnectSocialAccount = async (platform) => {
   return response.data;
 };
 
-const adminGetConnectedAccounts = async () => {
-  const response = await api().get("/user/admin/connected-accounts");
+const adminGetConnectedAccounts = async (params = {}) => {
+  const query = {};
+  if (params.search) query.search = params.search;
+  if (params.platform) query.platform = params.platform;
+  if (params.sortBy) query.sortBy = params.sortBy;
+  if (params.sortOrder) query.sortOrder = params.sortOrder;
+  const response = await api().get("/user/admin/connected-accounts", { params: query });
   return response.data;
 };
 

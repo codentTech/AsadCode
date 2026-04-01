@@ -223,9 +223,9 @@ export const disconnectSocialAccount = createAsyncThunk(
 
 export const adminGetConnectedAccounts = createAsyncThunk(
   "users/adminGetConnectedAccounts",
-  async (_, thunkAPI) => {
+  async (params = {}, thunkAPI) => {
     try {
-      const response = await usersService.adminGetConnectedAccounts();
+      const response = await usersService.adminGetConnectedAccounts(params);
       if (response.success) {
         return response;
       }

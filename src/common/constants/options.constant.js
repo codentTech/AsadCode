@@ -158,3 +158,80 @@ export const NEGOTIATION_TOGGLE_OPTIONS = [
     activeClasses: "bg-orange-100 text-orange-700",
   },
 ];
+
+export const CREATOR_APPLICATION_STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "DENIED", label: "Denied" },
+  { value: "ONBOARDING_STARTED", label: "Onboarding Started" },
+  { value: "APPROVED", label: "Approved" },
+];
+
+export const CREATOR_APPLICATION_SORT_OPTIONS = [
+  { value: "created_at", label: "Date" },
+  { value: "country", label: "Country" },
+  { value: "status", label: "Status" },
+];
+
+export const CREATOR_APPLICATION_DEFAULT_SORT_BY = "created_at";
+export const CREATOR_APPLICATION_DEFAULT_SORT_ORDER = "DESC";
+
+export const CONNECTED_ACCOUNTS_PLATFORM_FILTER_OPTIONS = [
+  { value: "ALL", label: "All platforms" },
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "twitter", label: "Twitter" },
+];
+
+export const CONNECTED_ACCOUNTS_SORT_OPTIONS = [
+  { value: "created_at", label: "Date connected" },
+  { value: "platform", label: "Platform" },
+  { value: "full_name", label: "Creator" },
+  { value: "follower_count", label: "Followers" },
+];
+
+export const CONNECTED_ACCOUNTS_DEFAULT_SORT_BY = "created_at";
+export const CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_USERS_ROLE_FILTER_OPTIONS = [
+  { value: "ALL", label: "All roles" },
+  { value: "CREATOR", label: "Creator" },
+  { value: "BRAND", label: "Brand" },
+  { value: "ADMIN", label: "Admin" },
+];
+
+export const ADMIN_USERS_SORT_OPTIONS = [
+  { value: "created_at", label: "Date joined" },
+  { value: "name", label: "Name" },
+];
+
+export const ADMIN_USERS_DEFAULT_SORT_BY = "created_at";
+export const ADMIN_USERS_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_WAITLIST_SORT_OPTIONS = [
+  { value: "created_at", label: "Date" },
+  { value: "email", label: "Email" },
+];
+
+export const ADMIN_WAITLIST_DEFAULT_SORT_BY = "created_at";
+export const ADMIN_WAITLIST_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_PAYMENTS_FUNDING_FILTER_OPTIONS = [
+  { value: "ALL", label: "All funding statuses" },
+  { value: "not_required", label: "Not required" },
+  { value: "pending", label: "Pending" },
+  { value: "succeeded", label: "Succeeded" },
+  { value: "failed_action_required", label: "Failed (action required)" },
+];
+
+export const ADMIN_PAYMENTS_PAYOUT_FILTER_OPTIONS = [
+  { value: "ALL", label: "All payout statuses" },
+  { value: "not_required", label: "Not required" },
+  { value: "blocked", label: "Blocked" },
+  { value: "ready", label: "Ready" },
+  { value: "transferring", label: "Transferring" },
+  { value: "transferred", label: "Transferred" },
+  { value: "failed", label: "Failed" },
+];

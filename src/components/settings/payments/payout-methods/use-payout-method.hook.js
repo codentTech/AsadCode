@@ -6,6 +6,23 @@ import {
   getCreatorAccountStatus,
 } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
+function messageFromThunkError(error) {
+  if (error == null) return "";
+  if (typeof error === "string") return error;
+  const p = error.payload;
+  if (p?.message != null) {
+    return Array.isArray(p.message) ? p.message.filter(Boolean).join(" ") : String(p.message);
+  }
+  if (error.message && error.message !== "Rejected") return String(error.message);
+  return "";
+}
+
+const PLATFORM_SETUP_CREATOR_MESSAGE =
+  "Payout setup is temporarily unavailable while CleerCut finishes payment provider configuration. You do not need to change anything in your own Stripe account. Please try again in a little while or contact CleerCut support if this continues.";
+
+const CONNECT_DISABLED_CREATOR_MESSAGE =
+  "We cannot start Stripe onboarding from the app right now because Connect is not fully enabled on the payment provider side. Please contact CleerCut support and try again later.";
+
 function usePayoutMethod() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -127,18 +144,23 @@ function usePayoutMethod() {
         window.location.href = result.data.onboardingUrl;
       }
     } catch (error) {
-      // Check if it's a Connect not enabled error
-      const errorMessage = error?.message || error?.payload?.message || "";
+      const errorMessage = messageFromThunkError(error);
+      const lower = errorMessage.toLowerCase();
       if (
-        errorMessage.includes("Stripe Connect is not enabled") ||
-        errorMessage.includes("signed up for Connect")
+        lower.includes("platform profile") ||
+        lower.includes("complete your platform") ||
+        lower.includes("answer the questionnaire") ||
+        lower.includes("finishes payment provider configuration") ||
+        lower.includes("payment provider configuration")
       ) {
-        setConnectError(
-          "Stripe Connect is not enabled for this account. Please enable Stripe Connect in your Stripe Dashboard at https://dashboard.stripe.com/settings/connect"
-        );
+        setConnectError(PLATFORM_SETUP_CREATOR_MESSAGE);
+      } else if (
+        errorMessage.includes("Stripe Connect is not enabled") ||
+        errorMessage.includes("signed up for Connect") ||
+        errorMessage.includes("enable Stripe Connect")
+      ) {
+        setConnectError(CONNECT_DISABLED_CREATOR_MESSAGE);
       }
-      // Error is already handled by api.js and shown via snackbar
-      // But we also track it in state to show persistent warning
     } finally {
       setIsLoading(false);
     }

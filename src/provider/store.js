@@ -28,9 +28,40 @@ import creatorApplicationsReducer from "./features/creator-applications/creator-
 import collaborationPaymentReducer from "./features/collaboration-payment/collaboration-payment.slice";
 import phylloReducer from "./features/phyllo/phyllo.slice";
 import galleryReducer from "./features/gallery/gallery.slice";
+import dashboardReducer from "./features/dashboard/dashboard.slice";
+
+const defaultAdminDashboardSummary = {
+  data: null,
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+  message: "",
+};
+
+const migratePersistedState = (state) => {
+  if (!state || typeof state !== "object") {
+    return Promise.resolve(state);
+  }
+  const dashboard = state.dashboard;
+  if (!dashboard || typeof dashboard !== "object") {
+    return Promise.resolve(state);
+  }
+  if (dashboard.adminDashboardSummary != null) {
+    return Promise.resolve(state);
+  }
+  return Promise.resolve({
+    ...state,
+    dashboard: {
+      ...dashboard,
+      adminDashboardSummary: { ...defaultAdminDashboardSummary },
+    },
+  });
+};
 
 const persistConfig = {
   key: "root",
+  version: 1,
+  migrate: migratePersistedState,
   storage,
   whitelist: [
     "auth",
@@ -46,6 +77,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  dashboard: dashboardReducer,
   onboarding: onboardingReducer,
   users: usersReducer,
   brandProfile: brandProfileReducer,

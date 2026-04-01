@@ -28,10 +28,11 @@ const validationSchema = Yup.object().shape({
   campaignTypes: Yup.array().min(1, "Select at least one campaign type").required(),
   languages: Yup.array().min(1, "Select at least one language").required(),
 
-  // Spec says "Optional" but also "Required: Yes" — we follow Required: Yes.
-  ethnicity: Yup.string()
-    .oneOf(ETHNICITY_OPTIONS, "Select a valid ethnicity option")
-    .required("Select an ethnicity option"),
+  ethnicity: Yup.mixed().test(
+    "ethnicity",
+    "Select a valid ethnicity option",
+    (val) => val == null || val === "" || ETHNICITY_OPTIONS.includes(val)
+  ),
 
   // require explicit selection
   inPersonOpportunities: Yup.boolean()
@@ -198,7 +199,9 @@ export default function useCampaignPreferences({ onNext }) {
   };
 
   const handleEthnicityChange = (ethnicity) => {
-    setValue("ethnicity", ethnicity, {
+    const current = getValues("ethnicity");
+    const next = current === ethnicity ? "" : ethnicity;
+    setValue("ethnicity", next, {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
@@ -318,24 +321,22 @@ export default function useCampaignPreferences({ onNext }) {
    * Submit
    */
   const onSubmit = async (values) => {
-    try {
-      const payload = {
-        campaignTypes: values.campaignTypes,
-        languages: values.languages,
-        ethnicity: values.ethnicity,
-        inPersonOpportunities: values.inPersonOpportunities,
-        shippingAddress: values.shippingAddress,
-      };
+    const payload = {
+      campaignTypes: values.campaignTypes,
+      languages: values.languages,
+      inPersonOpportunities: values.inPersonOpportunities,
+      shippingAddress: values.shippingAddress,
+    };
+    if (values.ethnicity != null && String(values.ethnicity).trim() !== "") {
+      payload.ethnicity = values.ethnicity;
+    }
 
-      const response = await dispatch(setupCreatorCampaignPreferences({ payload, email }));
-      if (response.payload?.success) {
-        onNext?.();
-        resetForm();
-        localStorage.removeItem("email");
-        route.push("/login");
-      }
-    } catch (error) {
-      console.error("Form submission error:", error?.message || error);
+    const response = await dispatch(setupCreatorCampaignPreferences({ payload, email }));
+    if (setupCreatorCampaignPreferences.fulfilled.match(response) && response.payload?.success) {
+      onNext?.();
+      resetForm();
+      localStorage.removeItem("email");
+      route.push("/login");
     }
   };
 
