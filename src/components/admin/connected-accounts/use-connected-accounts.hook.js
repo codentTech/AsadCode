@@ -1,18 +1,34 @@
 "use client";
 
 import {
+  CONNECTED_ACCOUNTS_DEFAULT_SORT_BY,
+  CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER,
+} from "@/common/constants/options.constant";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import {
   adminGetConnectedAccounts,
   adminRemoveConnectedAccount,
 } from "@/provider/features/users/users.slice";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+const extractSelectValue = (optionOrPrimitive) => {
+  if (optionOrPrimitive == null) return null;
+  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
+    return optionOrPrimitive.value;
+  }
+  return optionOrPrimitive;
+};
 
 function useConnectedAccounts() {
   const dispatch = useDispatch();
   const { getPlatformIcon } = useGetplatform();
   const [searchTerm, setSearchTerm] = useState("");
+  const [platformFilter, setPlatformFilter] = useState(null);
+  const [sortBy, setSortBy] = useState(CONNECTED_ACCOUNTS_DEFAULT_SORT_BY);
+  const [sortOrder, setSortOrder] = useState(CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -64,33 +80,71 @@ function useConnectedAccounts() {
     [getPlatformIcon]
   );
 
-  const filteredAccounts = useMemo(() => {
-    if (!searchTerm) {
-      return connectedAccounts;
-    }
-
-    const normalizedSearch = searchTerm.toLowerCase();
-    return connectedAccounts.filter((account) => {
-      return (
-        account?.full_name?.toLowerCase().includes(normalizedSearch) ||
-        account?.email?.toLowerCase().includes(normalizedSearch) ||
-        account?.platform?.toLowerCase().includes(normalizedSearch) ||
-        account?.username?.toLowerCase().includes(normalizedSearch)
-      );
-    });
-  }, [connectedAccounts, searchTerm]);
-
-  const fetchConnectedAccounts = useCallback(() => {
-    dispatch(adminGetConnectedAccounts());
-  }, [dispatch]);
+  const fetchConnectedAccounts = useCallback(async () => {
+    const trimmed = typeof searchTerm === "string" ? searchTerm.trim() : "";
+    const platformParam =
+      platformFilter != null && platformFilter !== "ALL" ? platformFilter : undefined;
+    await dispatch(
+      adminGetConnectedAccounts({
+        search: trimmed || undefined,
+        platform: platformParam,
+        sortBy,
+        sortOrder,
+      })
+    );
+  }, [dispatch, searchTerm, platformFilter, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchConnectedAccounts();
+    const timeoutId = setTimeout(() => {
+      fetchConnectedAccounts();
+    }, 300);
+    return () => clearTimeout(timeoutId);
   }, [fetchConnectedAccounts]);
 
   const handleSearchChange = useCallback((value) => {
-    setSearchTerm(value);
+    const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setSearchTerm(next);
   }, []);
+
+  const handleSortChange = (fieldOrOption) => {
+    const field = extractSelectValue(fieldOrOption);
+    if (field == null || field === "") return;
+    if (sortBy === field) {
+      setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
+    } else {
+      setSortBy(field);
+      setSortOrder("DESC");
+    }
+  };
+
+  const handlePlatformFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setPlatformFilter(null);
+    } else {
+      setPlatformFilter(v);
+    }
+  };
+
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setPlatformFilter(null);
+    setSortBy(CONNECTED_ACCOUNTS_DEFAULT_SORT_BY);
+    setSortOrder(CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER);
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+    const hasPlatform = platformFilter != null;
+    const sortChanged =
+      sortBy !== CONNECTED_ACCOUNTS_DEFAULT_SORT_BY ||
+      sortOrder !== CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER;
+    return hasSearch || hasPlatform || sortChanged;
+  }, [searchTerm, platformFilter, sortBy, sortOrder]);
 
   const handleSelectionChange = useCallback((ids) => {
     setSelectedIds(ids);
@@ -108,10 +162,12 @@ function useConnectedAccounts() {
       return;
     }
 
-    dispatch(adminRemoveConnectedAccount(selectedAccount.id)).then(() => {
-      setOpenDeleteModal(false);
-      setSelectedAccount(null);
-      fetchConnectedAccounts();
+    dispatch(adminRemoveConnectedAccount(selectedAccount.id)).then((action) => {
+      if (adminRemoveConnectedAccount.fulfilled.match(action)) {
+        setOpenDeleteModal(false);
+        setSelectedAccount(null);
+        fetchConnectedAccounts();
+      }
     });
   }, [dispatch, selectedAccount, fetchConnectedAccounts]);
 
@@ -130,10 +186,9 @@ function useConnectedAccounts() {
     columns,
     actions,
     searchTerm,
-    filteredAccounts,
+    filteredAccounts: connectedAccounts,
     selectedIds,
-    isLoading,
-    isRemoving,
+    isLoading: isLoading || isRemoving,
     openDeleteModal,
     selectedAccount,
     setOpenDeleteModal,
@@ -141,6 +196,15 @@ function useConnectedAccounts() {
     handleSelectionChange,
     handleActionClick,
     handleConfirmRemove,
+    platformFilter,
+    sortBy,
+    sortOrder,
+    showFilters,
+    handleSortChange,
+    handlePlatformFilterChange,
+    toggleFilters,
+    handleClearFilters,
+    hasActiveFilters,
   };
 }
 

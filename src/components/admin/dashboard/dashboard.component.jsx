@@ -1,99 +1,45 @@
 "use client";
 
 import DashboardLayout from "@/common/layouts/dashboard-layout";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import DashboardTrends from "./components/dashboard-trends/dashboard-trends.component";
 import StatsCards from "./components/stats-cards/stats-cards.component";
+import useAdminDashboard from "./use-admin-dashboard.hook";
 
 const AdminDashboard = () => {
-  // Mock data for waiting list
-  const waitingListUsers = [
-    {
-      id: 1,
-      email: "john.doe@example.com",
-      joinedDate: "2024-03-15",
-      status: "pending",
-      priority: "high",
-    },
-    {
-      id: 2,
-      email: "sarah.wilson@gmail.com",
-      joinedDate: "2024-03-14",
-      status: "pending",
-      priority: "medium",
-    },
-    {
-      id: 3,
-      email: "mike.johnson@company.com",
-      joinedDate: "2024-03-13",
-      status: "reviewed",
-      priority: "low",
-    },
-    {
-      id: 4,
-      email: "emma.davis@startup.io",
-      joinedDate: "2024-03-12",
-      status: "pending",
-      priority: "high",
-    },
-    {
-      id: 5,
-      email: "alex.brown@tech.com",
-      joinedDate: "2024-03-11",
-      status: "approved",
-      priority: "medium",
-    },
-    {
-      id: 6,
-      email: "lisa.anderson@design.co",
-      joinedDate: "2024-03-10",
-      status: "pending",
-      priority: "high",
-    },
-    {
-      id: 7,
-      email: "david.kim@agency.com",
-      joinedDate: "2024-03-09",
-      status: "approved",
-      priority: "low",
-    },
-    {
-      id: 8,
-      email: "rachel.green@studio.io",
-      joinedDate: "2024-03-08",
-      status: "pending",
-      priority: "medium",
-    },
-    {
-      id: 9,
-      email: "lisa.anderson@design.co",
-      joinedDate: "2024-03-10",
-      status: "pending",
-      priority: "high",
-    },
-    {
-      id: 10,
-      email: "david.kim@agency.com",
-      joinedDate: "2024-03-09",
-      status: "approved",
-      priority: "low",
-    },
-    {
-      id: 11,
-      email: "rachel.green@studio.io",
-      joinedDate: "2024-03-08",
-      status: "pending",
-      priority: "medium",
-    },
-  ];
+  const { kpiItems, signupsByDay, applicationsByDay, isLoading, isError, message, reload } =
+    useAdminDashboard();
 
   return (
     <DashboardLayout>
-      {/* Dashboard Content */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Overview of platform activity and items needing attention.</p>
+        </div>
+        <CustomButton
+          type="button"
+          text="Refresh"
+          variant="outlined"
+          onClick={reload}
+          disabled={isLoading}
+          loading={isLoading}
+          className="min-w-[120px] py-2 px-4 rounded-md text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 normal-case"
+        />
+      </div>
 
-      {/* Stats Cards */}
-      <StatsCards users={waitingListUsers} />
+      {isError ? (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {message || "Could not load dashboard data."}
+        </div>
+      ) : null}
 
-      {/* Waitlist Table */}
-      {/* <WaitingList users={waitingListUsers} /> */}
+      <StatsCards items={kpiItems} isLoading={isLoading} />
+      <DashboardTrends
+        signupsByDay={signupsByDay}
+        applicationsByDay={applicationsByDay}
+        isLoading={isLoading}
+      />
     </DashboardLayout>
   );
 };

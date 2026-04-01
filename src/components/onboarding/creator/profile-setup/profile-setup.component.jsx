@@ -7,9 +7,22 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
-import { ArrowLeft, Camera, CheckCircle, DollarSign, RefreshCw, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  CheckCircle,
+  DollarSign,
+  Info,
+  RefreshCw,
+  Trash2,
+  X,
+} from "lucide-react";
 import useProfileSetup, { CONTENT_CHARACTERISTIC_GROUPS } from "./use-profile-setup.hook";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import {
+  CREATOR_TYPE_QUESTION,
+  CREATOR_TYPE_QUESTION_HELPER,
+} from "@/common/constants/creator-tag.constant";
 
 const ProfileSetup = ({ onNext, onBack }) => {
   const {
@@ -137,30 +150,11 @@ const ProfileSetup = ({ onNext, onBack }) => {
             <div className="space-y-4">
               {/* Creator Type */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Creator Type</h3>
-                <p className="text-xs text-gray-600 mb-3">What type of creator are you?</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{CREATOR_TYPE_QUESTION}</h3>
+                <p className="text-xs text-gray-600 mb-3">{CREATOR_TYPE_QUESTION_HELPER}</p>
 
                 <div className="space-y-2">
-                  {[
-                    {
-                      value: CAMPAIGN_TYPE.UGC,
-                      title: "UGC Specialist",
-                      desc: "I create content for brands to use on their own channels.",
-                      color: "border-indigo-200 bg-indigo-50",
-                    },
-                    {
-                      value: CAMPAIGN_TYPE.INFLUENCER,
-                      title: "Influencer",
-                      desc: "I promote brands by posting content to my own social media accounts and for my audience.",
-                      color: "border-purple-200 bg-purple-50",
-                    },
-                    {
-                      value: CAMPAIGN_TYPE.HYBRID,
-                      title: "Hybrid",
-                      desc: "I do both UGC content creation and I can also post organically to my own audience.",
-                      color: "border-green-200 bg-green-50",
-                    },
-                  ].map((opt) => {
+                  {CREATOR_TAG_OPTIONS.map((opt) => {
                     const active = creatorType === opt.value;
 
                     return (
@@ -170,20 +164,33 @@ const ProfileSetup = ({ onNext, onBack }) => {
                         onClick={() => handleCreatorTypeChange(opt.value)}
                         className={`w-full text-left rounded-xl border p-3 transition-all ${
                           active
-                            ? `${opt.color} shadow-sm`
+                            ? `${opt.cardBorder} shadow-sm`
                             : "border-gray-200 bg-white hover:border-gray-300"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{opt.title}</p>
-                            <p className="w-full max-w-[350px] text-xs text-gray-600 mt-1">
-                              {opt.desc}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${opt.pillClass}`}
+                              >
+                                {opt.label}
+                              </span>
+                              <span
+                                className="inline-flex text-gray-400"
+                                title={opt.tooltip}
+                                aria-label={opt.tooltip}
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                              </span>
+                            </div>
+                            <p className="w-full max-w-[350px] text-xs text-gray-600 mt-2">
+                              {opt.helper}
                             </p>
                           </div>
 
                           <div
-                            className={`mt-1 h-4 w-4 rounded-full border flex items-center justify-center ${
+                            className={`mt-1 h-4 w-4 shrink-0 rounded-full border flex items-center justify-center ${
                               active ? "border-indigo-600" : "border-gray-300"
                             }`}
                           >
@@ -195,13 +202,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       </button>
                     );
                   })}
-                </div>
-
-                <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-700">
-                    Choose the option that best describes how you work with brands. You can connect
-                    social accounts in the next section (optional).
-                  </p>
                 </div>
 
                 {errors.creatorType ? (
@@ -453,8 +453,9 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 </div>
 
                 <p className="text-xs text-gray-600 mt-3 leading-relaxed">
-                  For influencer campaigns, accounts need at least 2,000 followers. Accounts below
-                  this threshold may not be eligible for campaign opportunities.
+                  {creatorType === CAMPAIGN_TYPE.UGC
+                    ? "UGC Specialist: connect Instagram only. TikTok and YouTube are not available for this creator type."
+                    : "For influencer campaigns, accounts need at least 2,000 followers. Accounts below this threshold may not be eligible for campaign opportunities."}
                 </p>
 
                 {errors.socialPlatforms && (

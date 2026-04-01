@@ -5,7 +5,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import { isCreatorMode } from "@/common/utils/users.util";
-import { Building2, Mail, MapPin, User } from "lucide-react";
+import { Building2, Calendar, Mail, MapPin, User } from "lucide-react";
 import usePersonalInformation from "./use-personal-information.hook";
 
 export default function PersonalInformationPage() {
@@ -58,13 +58,13 @@ export default function PersonalInformationPage() {
                 />
 
                 <CustomInput
-                  label="Admin Contact Name"
-                  name="admin_contact_name"
+                  label="Date of Birth"
+                  name="date_of_birth"
+                  type="date"
                   register={register}
                   errors={errors}
-                  placeholder="Enter admin contact name"
-                  isRequired={true}
-                  startIcon={<User className="h-4 w-4" />}
+                  isRequired={false}
+                  startIcon={<Calendar className="h-4 w-4" />}
                 />
 
                 {/* Hidden fields for API */}

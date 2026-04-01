@@ -52,7 +52,10 @@ const api = (headers = null) => {
         throw error;
       }
 
-      const message = error.response?.data?.message || error.message || error.toString();
+      let message = error.response?.data?.message || error.message || error.toString();
+      if (Array.isArray(message)) {
+        message = message[0] ?? message.join(" ");
+      }
       const responseURL = error.request?.responseURL || "";
 
       // Handle unauthorized
@@ -88,12 +91,8 @@ const api = (headers = null) => {
 
       // Handle message display
       if (!skipToast && !isPaymentMethodError && !onboarding403Context) {
-        if (Array.isArray(message)) {
-          message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
-        } else {
-          if (message !== "Record Not Found") {
-            enqueueSnackbar(message, { variant: "error" });
-          }
+        if (message !== "Record Not Found") {
+          enqueueSnackbar(message, { variant: "error" });
         }
       }
 

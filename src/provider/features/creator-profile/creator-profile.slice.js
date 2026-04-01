@@ -1,6 +1,29 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import creatorProfileService from "./creator-profile.service";
 
+const normalizeApiMessage = (value) => {
+  if (value == null || value === "") return "";
+  if (Array.isArray(value)) {
+    const first = value.find((x) => x != null && String(x).trim() !== "");
+    if (first != null) return String(first);
+    return value.filter(Boolean).join(" ");
+  }
+  return String(value);
+};
+
+const rejectStateMessage = (payload) => {
+  if (payload == null) return "Request failed";
+  if (typeof payload.message === "string" || Array.isArray(payload.message)) {
+    return normalizeApiMessage(payload.message) || "Request failed";
+  }
+  const err = payload.payload;
+  if (err?.response?.data?.message != null) {
+    return normalizeApiMessage(err.response.data.message) || "Request failed";
+  }
+  if (err?.message) return normalizeApiMessage(err.message) || "Request failed";
+  return "Request failed";
+};
+
 const generalState = {
   isLoading: false,
   isSuccess: false,
@@ -11,6 +34,7 @@ const generalState = {
 
 const initialState = {
   setupCreatorProfile: generalState,
+  updateCampaignPreferences: generalState,
   getCreatorById: generalState,
 };
 
@@ -75,7 +99,7 @@ export const creatorProfileSlice = createSlice({
       .addCase(setupCreatorProfile.rejected, (state, action) => {
         state.setupCreatorProfile.isLoading = false;
         state.setupCreatorProfile.isError = true;
-        state.setupCreatorProfile.message = action.payload.message;
+        state.setupCreatorProfile.message = rejectStateMessage(action.payload);
       })
       .addCase(setupCreatorCampaignPreferences.pending, (state) => {
         state.updateCampaignPreferences = { ...generalState, isLoading: true };
@@ -91,7 +115,7 @@ export const creatorProfileSlice = createSlice({
         state.updateCampaignPreferences = {
           ...generalState,
           isError: true,
-          message: action.payload.message,
+          message: rejectStateMessage(action.payload),
         };
       })
       .addCase(getCreatorById.pending, (state) => {
@@ -105,7 +129,7 @@ export const creatorProfileSlice = createSlice({
       .addCase(getCreatorById.rejected, (state, action) => {
         state.getCreatorById.isLoading = false;
         state.getCreatorById.isError = true;
-        state.getCreatorById.message = action.payload.message;
+        state.getCreatorById.message = rejectStateMessage(action.payload);
       });
   },
 });
