@@ -9,7 +9,6 @@ import {
   BarChart2,
   ThumbsUp,
   MessageCircle,
-  Clock,
 } from "lucide-react";
 
 import MetricCard from "./metric-card/metric-card.component";
@@ -25,12 +24,11 @@ const CreatorMetricsDashboard = ({ creatorId, selectedPlatform = null }) => {
       { icon: Gauge, metric: metrics?.expectedPerformanceRange, tone: "purple" },
       { icon: Activity, metric: metrics?.performanceConsistency, tone: "teal" },
       { icon: TrendingUp, metric: metrics?.engagementRate, tone: "green" },
-      { icon: BarChart2, metric: metrics?.growthRate30d, tone: "green" },
       { icon: Shield, metric: metrics?.authenticAudience, tone: "indigo" },
       { icon: Target, metric: metrics?.reachEfficiency, tone: "purple" },
       { icon: ThumbsUp, metric: metrics?.averageLikes, tone: "blue" },
       { icon: MessageCircle, metric: metrics?.averageComments, tone: "orange" },
-      { icon: Clock, metric: metrics?.onTimeDelivery, tone: "emerald" },
+      { icon: BarChart2, metric: metrics?.growthRate30d, tone: "green" },
     ],
     [metrics]
   );
@@ -63,11 +61,7 @@ const CreatorMetricsDashboard = ({ creatorId, selectedPlatform = null }) => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {cards
-          .filter(
-            (c) => !(c.metric?.type === "growth" && c.metric?.value === null),
-          )
-          .map((c, idx) => (
+        {cards.map((c, idx) => (
             <MetricCard key={idx} icon={c.icon} metric={c.metric} tone={c.tone} />
           ))}
       </div>
