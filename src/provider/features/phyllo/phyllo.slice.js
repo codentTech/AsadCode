@@ -149,15 +149,25 @@ export const phylloSlice = createSlice({
   extraReducers: (builder) => {
     // Stats
     builder
-      .addCase(fetchCreatorStats.pending, (state) => {
-        state.fetchCreatorStats = { ...generalState, isLoading: true };
+      .addCase(fetchCreatorStats.pending, (state, action) => {
+        state.fetchCreatorStats = {
+          ...generalState,
+          isLoading: true,
+          requestId: action.meta.requestId,
+        };
       })
       .addCase(fetchCreatorStats.fulfilled, (state, action) => {
+        if (state.fetchCreatorStats.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorStats.isLoading = false;
         state.fetchCreatorStats.isSuccess = true;
         state.fetchCreatorStats.data = action.payload.data; // keep only data
       })
       .addCase(fetchCreatorStats.rejected, (state, action) => {
+        if (state.fetchCreatorStats.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorStats.isLoading = false;
         state.fetchCreatorStats.isError = true;
         state.fetchCreatorStats.message = action.payload?.message || "Failed to fetch stats";
@@ -165,15 +175,25 @@ export const phylloSlice = createSlice({
 
     // Audience
     builder
-      .addCase(fetchCreatorAudience.pending, (state) => {
-        state.fetchCreatorAudience = { ...generalState, isLoading: true };
+      .addCase(fetchCreatorAudience.pending, (state, action) => {
+        state.fetchCreatorAudience = {
+          ...generalState,
+          isLoading: true,
+          requestId: action.meta.requestId,
+        };
       })
       .addCase(fetchCreatorAudience.fulfilled, (state, action) => {
+        if (state.fetchCreatorAudience.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorAudience.isLoading = false;
         state.fetchCreatorAudience.isSuccess = true;
         state.fetchCreatorAudience.data = action.payload.data;
       })
       .addCase(fetchCreatorAudience.rejected, (state, action) => {
+        if (state.fetchCreatorAudience.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorAudience.isLoading = false;
         state.fetchCreatorAudience.isError = true;
         state.fetchCreatorAudience.message = action.payload?.message || "Failed to fetch audience";
@@ -181,15 +201,25 @@ export const phylloSlice = createSlice({
 
     // Social accounts
     builder
-      .addCase(fetchCreatorSocialAccounts.pending, (state) => {
-        state.fetchCreatorSocialAccounts = { ...generalState, isLoading: true };
+      .addCase(fetchCreatorSocialAccounts.pending, (state, action) => {
+        state.fetchCreatorSocialAccounts = {
+          ...generalState,
+          isLoading: true,
+          requestId: action.meta.requestId,
+        };
       })
       .addCase(fetchCreatorSocialAccounts.fulfilled, (state, action) => {
+        if (state.fetchCreatorSocialAccounts.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorSocialAccounts.isLoading = false;
         state.fetchCreatorSocialAccounts.isSuccess = true;
         state.fetchCreatorSocialAccounts.data = action.payload.data;
       })
       .addCase(fetchCreatorSocialAccounts.rejected, (state, action) => {
+        if (state.fetchCreatorSocialAccounts.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorSocialAccounts.isLoading = false;
         state.fetchCreatorSocialAccounts.isError = true;
         state.fetchCreatorSocialAccounts.message =
@@ -289,18 +319,25 @@ export const phylloSlice = createSlice({
       })
 
       // ===== CREATOR METRICS =====
-      .addCase(fetchCreatorMetrics.pending, (state) => {
+      .addCase(fetchCreatorMetrics.pending, (state, action) => {
         state.fetchCreatorMetrics = {
           ...generalState,
           isLoading: true,
+          requestId: action.meta.requestId,
         };
       })
       .addCase(fetchCreatorMetrics.fulfilled, (state, action) => {
+        if (state.fetchCreatorMetrics.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorMetrics.isLoading = false;
         state.fetchCreatorMetrics.isSuccess = true;
         state.fetchCreatorMetrics.data = action.payload;
       })
       .addCase(fetchCreatorMetrics.rejected, (state, action) => {
+        if (state.fetchCreatorMetrics.requestId !== action.meta.requestId) {
+          return;
+        }
         state.fetchCreatorMetrics.isLoading = false;
         state.fetchCreatorMetrics.isError = true;
         state.fetchCreatorMetrics.message =
