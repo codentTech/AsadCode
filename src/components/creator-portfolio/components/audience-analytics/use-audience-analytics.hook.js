@@ -43,8 +43,13 @@ export default function useAudienceAnalytics(creatorId, externalSelectedPlatform
   }, [creatorId, dispatch]);
 
   useEffect(() => {
+    setInternalPlatform(null);
+  }, [creatorId]);
+
+  useEffect(() => {
     if (connectedPlatforms.length > 0 && !internalPlatform) {
-      const defaultPlatform = getDefaultPlatform(connectedPlatforms);
+      const defaultPlatform =
+        getDefaultCreatorPlatformFromConnectedList(connectedPlatforms);
       setInternalPlatform(defaultPlatform);
       if (onPlatformSelect && defaultPlatform) {
         onPlatformSelect(defaultPlatform);

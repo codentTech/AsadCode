@@ -4,11 +4,9 @@ import {
   reset,
   fetchCreatorAudience,
   fetchCreatorSocialAccounts,
-  fetchCreatorStats,
   fetchCreatorMetrics,
   selectCreatorAudience,
   selectCreatorSocialAccounts,
-  selectCreatorStats,
   selectCreatorMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
 import { PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
@@ -17,15 +15,12 @@ export default function useCreatorPreview(previewCreator) {
   const dispatch = useDispatch();
   const [selectedPlatform, setSelectedPlatform] = useState(null);
 
-  const stats = useSelector(selectCreatorStats);
   const audience = useSelector(selectCreatorAudience);
   const socialAccounts = useSelector(selectCreatorSocialAccounts);
   const creatorMetrics = useSelector(selectCreatorMetrics);
 
-  // Fetch stats + social accounts when creator changes
   useEffect(() => {
     if (!previewCreator?.id) return;
-    dispatch(fetchCreatorStats(previewCreator.id));
     dispatch(fetchCreatorSocialAccounts(previewCreator.id));
     setSelectedPlatform(null);
     return () => {
@@ -115,7 +110,7 @@ export default function useCreatorPreview(previewCreator) {
     const engagementRateVal = metrics.engagementRate?.value;
     const performanceConsistencyVal = metrics.performanceConsistency?.value;
     const growthRate30dVal = metrics.growthRate30d?.value;
-    const medianReach = metadata.medianReach;
+    const typicalViewsVal = metrics.averageViews?.value;
 
     const formatNum = (n) =>
       n >= 1_000_000
@@ -126,7 +121,7 @@ export default function useCreatorPreview(previewCreator) {
 
     return {
       authenticAudience: metrics.authenticAudience?.value ?? null,
-      typicalViews: medianReach != null ? formatNum(medianReach) : "N/A",
+      typicalViews: typicalViewsVal != null ? formatNum(typicalViewsVal) : "N/A",
       engagementRate:
         engagementRateVal != null ? `${Number(engagementRateVal).toFixed(1)}%` : "N/A",
       performanceConsistency:
@@ -145,7 +140,6 @@ export default function useCreatorPreview(previewCreator) {
   const isInitialLoading = !previewCreator?.id || (socialAccounts.isLoading && !hasSocialAccounts);
 
   return {
-    stats,
     audience,
     socialAccounts,
     platformData,
