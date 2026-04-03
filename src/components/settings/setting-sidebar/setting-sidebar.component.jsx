@@ -1,6 +1,6 @@
 "use client";
 
-import useSettingSidebar from "./use-setting-sidebar";
+import useSettingSidebar from "./use-setting-sidebar.hook";
 
 function SettingSidebar({ isOpen, onClose, setCurrentBar, currentBar }) {
   const { expandedSections, activeItem, navItems, handleItemClick } = useSettingSidebar();

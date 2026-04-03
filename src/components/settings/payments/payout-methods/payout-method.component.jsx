@@ -16,40 +16,19 @@ const PayoutMethodsPage = () => {
       <div className="space-y-6">
         {/* Connect Error Warning Banner */}
         {connectError && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-yellow-800 mb-1">
-                  Stripe Connect Not Enabled
-                </h3>
-                <p className="text-sm text-yellow-700 mb-2">
-                  Stripe Connect is a feature that allows CleerCut to send payments directly to creators' bank accounts. 
-                  Your Stripe account needs to have Connect enabled before creators can receive payouts.
-                </p>
-                <p className="text-sm text-yellow-700 mb-2">
-                  <strong>To enable Stripe Connect:</strong>
-                </p>
-                <ol className="text-sm text-yellow-700 mb-3 ml-4 list-decimal space-y-1">
-                  <li>Log into your Stripe Dashboard</li>
-                  <li>Go to Settings → Connect</li>
-                  <li>Complete the Connect setup process</li>
-                  <li>Return here and try again</li>
-                </ol>
-                <a
-                  href="https://dashboard.stripe.com/settings/connect"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
-                >
-                  Open Stripe Dashboard →
-                </a>
+                <h3 className="text-sm font-semibold text-amber-900 mb-1">Unable to start payout setup</h3>
+                <p className="text-sm text-amber-900 whitespace-pre-line">{connectError}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setConnectError(null)}
-                className="p-1 hover:bg-yellow-100 rounded transition-colors"
+                className="p-1 hover:bg-amber-100 rounded transition-colors"
               >
-                <X className="h-4 w-4 text-yellow-600" />
+                <X className="h-4 w-4 text-amber-600" />
               </button>
             </div>
           </div>
@@ -83,7 +62,7 @@ const PayoutMethodsPage = () => {
                   text={statusConfig.buttonText}
                   className="btn-primary"
                   onClick={statusConfig.buttonAction}
-                  icon={statusConfig.buttonText.includes("Stripe") ? ExternalLink : null}
+                  startIcon={statusConfig.buttonText.includes("Stripe") ? <ExternalLink size={18} /> : null}
                   loading={isLoading}
                   disabled={isLoading}
                 />

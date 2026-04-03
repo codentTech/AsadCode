@@ -39,6 +39,16 @@ const resendEmail = async (email) => {
   return response.data;
 };
 
+const requestPasswordReset = async (email) => {
+  const response = await api().post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+const resetPasswordWithToken = async (payload) => {
+  const response = await api().post("/auth/reset-password", payload);
+  return response.data;
+};
+
 const loginAndSignUpWithOAuth = async ({ loginType, email, accessToken }) => {
   const response = await api().post("/auth/login-and-sign-up-with-oauth", {
     loginType,
@@ -68,6 +78,8 @@ const authService = {
   verifyEmail,
   sendVerificationEmail,
   resendEmail,
+  requestPasswordReset,
+  resetPasswordWithToken,
   loginAndSignUpWithOAuth,
   loginAndSignUpWithLinkedin,
 };

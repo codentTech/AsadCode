@@ -1,31 +1,43 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import dashboardService from "./dashboard.service";
 
-const generalState = {
-  data: null,
-  isError: false,
-  isSuccess: false,
-  isLoading: false,
-  message: "",
+const getSerializableError = (error) => {
+  if (error?.response?.data?.message) {
+    return { message: error.response.data.message };
+  }
+  if (error?.message) {
+    return { message: error.message };
+  }
+  if (typeof error === "string") {
+    return { message: error };
+  }
+  return { message: "An unexpected error occurred" };
 };
+
+const generalState = {
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+  message: "",
+  data: null,
+};
+
 const initialState = {
-  getDashboardStats: { ...generalState },
+  adminDashboardSummary: { ...generalState },
   fetchAllUserWaitinglist: { ...generalState },
 };
 
-export const getDashboardStats = createAsyncThunk(
-  "dashboard/get-stats",
-  async ({ errorCallBack, successCallBack }, thunkAPI) => {
+export const fetchAdminDashboardSummary = createAsyncThunk(
+  "dashboard/adminSummary",
+  async (_, thunkAPI) => {
     try {
-      const response = await dashboardService.getDashboardStats();
+      const response = await dashboardService.getAdminDashboardSummary();
       if (response.success) {
-        successCallBack(response.data);
         return response.data;
       }
-      errorCallBack();
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue({ payload: error });
+      return thunkAPI.rejectWithValue(getSerializableError(error));
     }
   }
 );
@@ -51,7 +63,7 @@ export const dashboardSlice = createSlice({
   initialState,
   reducers: {
     reset: (state) => {
-      state.getDashboardStats = {
+      state.adminDashboardSummary = {
         data: null,
         isError: false,
         isSuccess: false,
@@ -62,23 +74,25 @@ export const dashboardSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getDashboardStats.pending, (state) => {
-        state.getDashboardStats.isLoading = true;
-        state.getDashboardStats.message = "";
-        state.getDashboardStats.isError = false;
-        state.getDashboardStats.isSuccess = false;
-        state.getDashboardStats.data = null;
+      .addCase(fetchAdminDashboardSummary.pending, (state) => {
+        state.adminDashboardSummary.isLoading = true;
+        state.adminDashboardSummary.message = "";
+        state.adminDashboardSummary.isError = false;
+        state.adminDashboardSummary.isSuccess = false;
+        state.adminDashboardSummary.data = null;
       })
-      .addCase(getDashboardStats.fulfilled, (state, action) => {
-        state.getDashboardStats.isLoading = false;
-        state.getDashboardStats.isSuccess = true;
-        state.getDashboardStats.data = action.payload;
+      .addCase(fetchAdminDashboardSummary.fulfilled, (state, action) => {
+        state.adminDashboardSummary.isLoading = false;
+        state.adminDashboardSummary.isSuccess = true;
+        state.adminDashboardSummary.isError = false;
+        state.adminDashboardSummary.data = action.payload;
       })
-      .addCase(getDashboardStats.rejected, (state, action) => {
-        state.getDashboardStats.message = action.payload.message;
-        state.getDashboardStats.isLoading = false;
-        state.getDashboardStats.isError = true;
-        state.getDashboardStats.data = null;
+      .addCase(fetchAdminDashboardSummary.rejected, (state, action) => {
+        state.adminDashboardSummary.message =
+          action.payload?.message ?? action.payload?.data?.message ?? "Request failed";
+        state.adminDashboardSummary.isLoading = false;
+        state.adminDashboardSummary.isError = true;
+        state.adminDashboardSummary.data = null;
       })
       .addCase(fetchAllUserWaitinglist.pending, (state) => {
         state.fetchAllUserWaitinglist.isLoading = true;
@@ -100,5 +114,16 @@ export const dashboardSlice = createSlice({
       });
   },
 });
+
+const emptyAdminDashboardSummary = {
+  data: null,
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+  message: "",
+};
+
+export const selectAdminDashboardSummary = (state) =>
+  state.dashboard?.adminDashboardSummary ?? emptyAdminDashboardSummary;
 
 export default dashboardSlice.reducer;

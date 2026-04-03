@@ -1,7 +1,22 @@
 /* eslint-disable react/jsx-filename-extension */
 /* eslint-disable react/function-component-definition */
 import CrossIcon from "@/common/icons/cross.icon";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+function resolveSingleOption(raw, options) {
+  if (raw === null || raw === undefined || raw === "") {
+    return null;
+  }
+  if (typeof raw === "object" && raw !== null && raw.label !== undefined && raw.value !== undefined) {
+    return raw;
+  }
+  if (typeof raw === "object" && raw !== null && raw.value !== undefined) {
+    const found = options?.find((o) => o.value === raw.value);
+    return found ?? raw;
+  }
+  const found = options?.find((o) => o.value === raw);
+  return found ?? null;
+}
 
 const CloseIcon = () => {
   return (
@@ -18,9 +33,14 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
   const searchRef = useRef();
   const inputRef = useRef();
 
-  // Use controlled value if provided, otherwise use internal state
-  // If value is null/undefined, use selectedValue; otherwise use value directly
-  const currentValue = value !== undefined && value !== null ? value : selectedValue;
+  const rawCurrent = value !== undefined && value !== null ? value : selectedValue;
+
+  const effectiveValue = useMemo(() => {
+    if (isMulti) {
+      return rawCurrent;
+    }
+    return resolveSingleOption(rawCurrent, options);
+  }, [isMulti, rawCurrent, options]);
 
   useEffect(() => {
     setSearchValue("");
@@ -141,19 +161,13 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
   }, [value, options, isMulti]);
 
   const getDisplay = () => {
-    // Use value prop directly if provided (controlled), otherwise use selectedValue
     const displayValue = value !== undefined && value !== null ? value : selectedValue;
-    
-    if (!displayValue) {
-      return placeHolder || "";
-    }
 
     if (isMulti) {
-      if (!Array.isArray(displayValue) || displayValue.length === 0) {
+      if (!displayValue || !Array.isArray(displayValue) || displayValue.length === 0) {
         return placeHolder || "";
       }
       return (
-        // eslint-disable-next-line react/jsx-filename-extension
         <div className="flex flex-wrap gap-[5px]">
           {displayValue.map((option) => (
             <div key={option.value} className="flex gap-3 items-center rounded-lg bg-gray-100 px-2">
@@ -167,9 +181,11 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
       );
     }
 
-    // Single select - displayValue should be an object with label
-    if (typeof displayValue === "object" && displayValue.label) {
-      return displayValue.label;
+    if (!effectiveValue) {
+      return placeHolder || "";
+    }
+    if (typeof effectiveValue === "object" && effectiveValue.label) {
+      return effectiveValue.label;
     }
 
     return placeHolder || "";
@@ -177,7 +193,7 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
 
   const onTagRemove = (e, option) => {
     e.stopPropagation();
-    const current = currentValue || [];
+    const current = effectiveValue || [];
     const newValue = current.filter((o) => o.value !== option.value);
     
     // Only update internal state if not controlled
@@ -190,7 +206,7 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
   const onItemClick = (option) => {
     let newValue;
     if (isMulti) {
-      const current = currentValue || [];
+      const current = effectiveValue || [];
       if (current.findIndex((o) => o.value === option.value) >= 0) {
         newValue = current.filter((o) => o.value !== option.value);
       } else {
@@ -208,8 +224,8 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
   };
 
   const isSelected = (option) => {
-    const current = currentValue;
-    
+    const current = effectiveValue;
+
     if (isMulti) {
       if (!Array.isArray(current)) return false;
       return current.filter((o) => o.value === option.value).length > 0;
@@ -219,7 +235,11 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
       return false;
     }
 
-    return current.value === option.value;
+    if (typeof current === "object" && current.value !== undefined) {
+      return current.value === option.value;
+    }
+
+    return current === option.value;
   };
 
   const onSearch = (e) => {

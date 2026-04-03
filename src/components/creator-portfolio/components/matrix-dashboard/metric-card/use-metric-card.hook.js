@@ -50,7 +50,10 @@ export const useMetricCard = () => {
   const onLeave = useCallback(() => setShowTooltip(false), []);
 
   const formatValue = useCallback((value, type) => {
-    if (value === null || value === undefined) return "—";
+    if (value === null || value === undefined) {
+      if (type === "growth") return "N/A";
+      return "—";
+    }
     switch (type) {
       case "percentage":
         return `${Number(value).toFixed(1)}%`;

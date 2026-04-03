@@ -1,12 +1,16 @@
 "use client";
 
 import { CAMPAIGN_TYPE, PLATFORM_TYPE } from "@/common/constants/campaign.constant";
+import { getAllowedPlatformsForCreatorType } from "@/common/constants/creator-tag.constant";
 import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 import { reset as resetAuth } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
-import { getSocialAccounts } from "@/provider/features/users/users.slice";
+import {
+  disconnectSocialAccount,
+  getSocialAccounts,
+} from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,7 +20,7 @@ import * as Yup from "yup";
 const validationSchema = Yup.object().shape({
   creatorType: Yup.string()
     .oneOf([CAMPAIGN_TYPE.UGC, CAMPAIGN_TYPE.INFLUENCER, CAMPAIGN_TYPE.HYBRID])
-    .optional(),
+    .required("Select a creator type"),
 
   profilePhoto: Yup.mixed().nullable(),
 
@@ -204,9 +208,23 @@ export default function useProfileSetup({ onNext }) {
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
 
   const platforms = useMemo(
-    () => [PLATFORM_TYPE.INSTAGRAM, PLATFORM_TYPE.TIKTOK, PLATFORM_TYPE.YOUTUBE],
-    []
+    () => getAllowedPlatformsForCreatorType(creatorType),
+    [creatorType]
   );
+
+  const prevCreatorTypeRef = useRef(creatorType);
+
+  useEffect(() => {
+    const prev = prevCreatorTypeRef.current;
+    if (creatorType === CAMPAIGN_TYPE.UGC && prev !== CAMPAIGN_TYPE.UGC) {
+      [PLATFORM_TYPE.TIKTOK, PLATFORM_TYPE.YOUTUBE].forEach((p) => {
+        if (connectedAccounts.some((a) => a.platform === p)) {
+          dispatch(disconnectSocialAccount(p));
+        }
+      });
+    }
+    prevCreatorTypeRef.current = creatorType;
+  }, [creatorType, connectedAccounts, dispatch]);
 
   useEffect(() => {
     loadConnectedAccounts();

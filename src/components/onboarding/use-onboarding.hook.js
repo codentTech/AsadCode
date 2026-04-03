@@ -1,38 +1,58 @@
 "use client";
 
-import { getOnboardingEmail } from "@/common/utils/users.util";
+import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import { getOnboardingStatus } from "@/provider/features/onboarding/onboarding.slice";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function useOnboarding() {
+export default function useOnboarding(options = {}) {
+  const inviteResumeEmail = options.inviteResumeEmail ?? null;
   const dispatch = useDispatch();
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
   const onboardingStatus = useSelector((state) => state.onboarding?.onboardingStatus);
   const loading = useSelector((state) => state.onboarding?.onboardingStatusLoading);
   const error = useSelector((state) => state.onboarding?.onboardingStatusError);
-  const email = getOnboardingEmail();
+
+  const resolvedEmail =
+    inviteResumeEmail || getOnboardingEmail() || getUser()?.email || null;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAccountType, setSelectedAccountType] = useState("");
 
-  useEffect(() => {
-    if (email) {
-      dispatch(getOnboardingStatus(email));
+  useLayoutEffect(() => {
+    if (resolvedEmail) {
+      dispatch(getOnboardingStatus(resolvedEmail));
     }
-  }, [dispatch, email]);
+  }, [dispatch, resolvedEmail]);
 
-  useEffect(() => {
-    if (!loading && onboardingStatus?.onboardingStep) {
-      setCurrentStep(onboardingStatus.onboardingStep || 1);
-      if (onboardingStatus.user?.role) {
-        setSelectedAccountType(onboardingStatus.user.role.toLowerCase());
-        dispatch(setIsCreatorModeMode(onboardingStatus.user.role.toLowerCase() === "creator"));
-      }
+  useLayoutEffect(() => {
+    if (!resolvedEmail) {
+      setCurrentStep(1);
+      return;
     }
-    !email && setCurrentStep(1);
-  }, [onboardingStatus, loading, dispatch, email]);
+    if (loading) {
+      return;
+    }
+    if (!onboardingStatus?.user?.email) {
+      setCurrentStep(1);
+      return;
+    }
+    if (
+      onboardingStatus.user.email.toLowerCase() !== resolvedEmail.toLowerCase()
+    ) {
+      return;
+    }
+    const step = onboardingStatus.onboardingStep;
+    if (step != null) {
+      setCurrentStep(Number(step) || 1);
+    }
+    if (onboardingStatus.user?.role) {
+      const roleLower = onboardingStatus.user.role.toLowerCase();
+      setSelectedAccountType(roleLower);
+      dispatch(setIsCreatorModeMode(roleLower === "creator"));
+    }
+  }, [onboardingStatus, loading, dispatch, resolvedEmail]);
 
   const nextStep = () => {
     setCurrentStep((prev) => prev + 1);

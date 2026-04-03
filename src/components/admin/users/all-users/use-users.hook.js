@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ADMIN_USERS_DEFAULT_SORT_BY,
+  ADMIN_USERS_DEFAULT_SORT_ORDER,
+} from "@/common/constants/options.constant";
 import { formatDate } from "@/common/utils/date.utils";
 import { getUser, isOnboardingCompleted } from "@/common/utils/users.util";
 import {
@@ -12,9 +16,23 @@ import { Shield, ShieldOff, Trash2, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+const extractSelectValue = (optionOrPrimitive) => {
+  if (optionOrPrimitive == null) return null;
+  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
+    return optionOrPrimitive.value;
+  }
+  return optionOrPrimitive;
+};
+
+const ADMIN_LIST_LIMIT = 100;
+
 function useUsers() {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState(null);
+  const [sortBy, setSortBy] = useState(ADMIN_USERS_DEFAULT_SORT_BY);
+  const [sortOrder, setSortOrder] = useState(ADMIN_USERS_DEFAULT_SORT_ORDER);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -105,23 +123,23 @@ function useUsers() {
     []
   );
 
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm) {
-      return users;
-    }
-    const q = searchTerm.toLowerCase();
-    return users.filter(
-      (user) =>
-        user?.email?.toLowerCase().includes(q) || user?.role?.toLowerCase().includes(q)
-    );
-  }, [users, searchTerm]);
-
-  const fetchUsers = useCallback(() => {
-    dispatch(getAllUsers());
-  }, [dispatch]);
+  const fetchUsers = useCallback(async () => {
+    const trimmed = typeof searchTerm === "string" ? searchTerm.trim() : "";
+    const payload = {
+      limit: ADMIN_LIST_LIMIT,
+      sortBy,
+      sortOrder,
+    };
+    if (trimmed) payload.search = trimmed;
+    if (roleFilter != null && roleFilter !== "ALL") payload.role = roleFilter;
+    await dispatch(getAllUsers(payload));
+  }, [dispatch, searchTerm, roleFilter, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchUsers();
+    const t = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+    return () => clearTimeout(t);
   }, [fetchUsers]);
 
   const handleAdminBlock = useCallback(
@@ -232,6 +250,8 @@ function useUsers() {
     setSelectedUsers(selectedIds);
   }, []);
 
+  const filteredUsers = users;
+
   const handleExport = useCallback(() => {
     const csvContent = [
       ["Email", "Role", "Joined Date", "Status", "Blocked Date"],
@@ -256,8 +276,48 @@ function useUsers() {
   }, [filteredUsers]);
 
   const handleSearchChange = useCallback((value) => {
-    setSearchTerm(value);
+    const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setSearchTerm(next);
   }, []);
+
+  const handleSortChange = (fieldOrOption) => {
+    const field = extractSelectValue(fieldOrOption);
+    if (field == null || field === "") return;
+    if (sortBy === field) {
+      setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
+    } else {
+      setSortBy(field);
+      setSortOrder("DESC");
+    }
+  };
+
+  const handleRoleFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setRoleFilter(null);
+    } else {
+      setRoleFilter(v);
+    }
+  };
+
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setRoleFilter(null);
+    setSortBy(ADMIN_USERS_DEFAULT_SORT_BY);
+    setSortOrder(ADMIN_USERS_DEFAULT_SORT_ORDER);
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+    const hasRole = roleFilter != null;
+    const sortChanged =
+      sortBy !== ADMIN_USERS_DEFAULT_SORT_BY || sortOrder !== ADMIN_USERS_DEFAULT_SORT_ORDER;
+    return hasSearch || hasRole || sortChanged;
+  }, [searchTerm, roleFilter, sortBy, sortOrder]);
 
   return {
     searchTerm,
@@ -274,6 +334,15 @@ function useUsers() {
     handleSelectionChange,
     handleActionClick,
     handleConfirmDelete,
+    roleFilter,
+    sortBy,
+    sortOrder,
+    showFilters,
+    handleSortChange,
+    handleRoleFilterChange,
+    toggleFilters,
+    handleClearFilters,
+    hasActiveFilters,
   };
 }
 
