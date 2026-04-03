@@ -14,7 +14,6 @@ import useCreatorPreview from "./use-creator-preview.hook";
 function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
   const {
-    stats,
     audience,
     platformData,
     metricsData,
