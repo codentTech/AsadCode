@@ -8,21 +8,24 @@ import {
   selectCreatorAudience,
   selectCreatorSocialAccounts,
 } from "@/provider/features/phyllo/phyllo.slice";
+import { getDefaultCreatorPlatformFromConnectedList } from "@/common/constants/genaric.constant";
 
 const PLATFORM_ORDER = ["instagram", "tiktok", "youtube"];
 
 function getDefaultPlatform(connectedPlatforms) {
   if (!Array.isArray(connectedPlatforms) || connectedPlatforms.length === 0) return null;
-  const normalized = connectedPlatforms.map((p) =>
-    typeof p === "string" ? p.toLowerCase() : p
-  );
+  const normalized = connectedPlatforms.map((p) => (typeof p === "string" ? p.toLowerCase() : p));
   for (const platform of PLATFORM_ORDER) {
     if (normalized.includes(platform)) return platform;
   }
   return normalized[0] || null;
 }
 
-export default function useAudienceAnalytics(creatorId, externalSelectedPlatform, onPlatformSelect) {
+export default function useAudienceAnalytics(
+  creatorId,
+  externalSelectedPlatform,
+  onPlatformSelect
+) {
   const dispatch = useDispatch();
   const [internalPlatform, setInternalPlatform] = useState(null);
 
@@ -48,8 +51,7 @@ export default function useAudienceAnalytics(creatorId, externalSelectedPlatform
 
   useEffect(() => {
     if (connectedPlatforms.length > 0 && !internalPlatform) {
-      const defaultPlatform =
-        getDefaultCreatorPlatformFromConnectedList(connectedPlatforms);
+      const defaultPlatform = getDefaultCreatorPlatformFromConnectedList(connectedPlatforms);
       setInternalPlatform(defaultPlatform);
       if (onPlatformSelect && defaultPlatform) {
         onPlatformSelect(defaultPlatform);
