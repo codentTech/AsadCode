@@ -6,8 +6,12 @@ import {
   refreshMetricsThunk,
   deleteGalleryItemThunk,
 } from "@/provider/features/gallery/gallery.slice";
+import {
+  categoriesToNicheOptions,
+  mergeNicheOptionLists,
+} from "@/common/constants/genaric.constant";
 
-const useGalleryTab = ({ activeTab }) => {
+const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const dispatch = useDispatch();
   const galleryConfirmationRef = useRef(null);
 
@@ -26,6 +30,28 @@ const useGalleryTab = ({ activeTab }) => {
       dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null }));
     }
   }, [activeTab, dispatch]);
+
+  const hasPendingHostedVideo = useMemo(() => {
+    if (activeTab !== "gallery" || !galleryItems?.length) return false;
+    return galleryItems.some(
+      (i) =>
+        i.media_type === "video" &&
+        i.source_type === "post_link" &&
+        !i.file_url
+    );
+  }, [activeTab, galleryItems]);
+
+  useEffect(() => {
+    if (!hasPendingHostedVideo) return;
+    const intervalId = setInterval(() => {
+      dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null }));
+    }, 10000);
+    const stopId = setTimeout(() => clearInterval(intervalId), 180000);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(stopId);
+    };
+  }, [hasPendingHostedVideo, dispatch]);
 
   const refreshGallery = useCallback(() => {
     dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null }));
@@ -61,8 +87,8 @@ const useGalleryTab = ({ activeTab }) => {
     return hoursSince >= 24;
   }, []);
 
-  const galleryNiches = useMemo(() => {
-    if (!galleryItems) return [];
+  const nichesFromItems = useMemo(() => {
+    if (!galleryItems?.length) return [];
     const seen = new Set();
     const result = [];
     galleryItems.forEach((item) => {
@@ -74,9 +100,31 @@ const useGalleryTab = ({ activeTab }) => {
     return result;
   }, [galleryItems]);
 
+  const galleryNiches = useMemo(
+    () => mergeNicheOptionLists(categoriesToNicheOptions(creatorCategories), nichesFromItems),
+    [creatorCategories, nichesFromItems]
+  );
+
+  const galleryGroupedByNiche = useMemo(() => {
+    if (!galleryItems?.length) return [];
+    const order = [];
+    const map = new Map();
+    galleryItems.forEach((item) => {
+      const key = item.niche_id || "__uncategorized__";
+      const label = item.niche_name || "Uncategorized";
+      if (!map.has(key)) {
+        map.set(key, { key, label, items: [] });
+        order.push(key);
+      }
+      map.get(key).items.push(item);
+    });
+    return order.map((k) => map.get(k));
+  }, [galleryItems]);
+
   return {
     galleryItems,
     galleryNiches,
+    galleryGroupedByNiche,
     isGalleryLoading,
     refreshGallery,
     showImportModal,

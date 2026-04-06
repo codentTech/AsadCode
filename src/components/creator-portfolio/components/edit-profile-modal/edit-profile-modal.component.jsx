@@ -116,7 +116,9 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
             {activeTab === "niches" && (
               <NichesTab profileData={profileData} setProfileData={setProfileData} />
             )}
-            {activeTab === "gallery" && <GalleryTab activeTab={activeTab} />}
+            {activeTab === "gallery" && (
+              <GalleryTab activeTab={activeTab} creatorCategories={profileData.niches || []} />
+            )}
           </div>
 
           <div className="px-6 py-[15px] border-t border-gray-200">

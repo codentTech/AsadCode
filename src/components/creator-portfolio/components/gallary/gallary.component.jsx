@@ -7,7 +7,6 @@ import {
   Bookmark,
   ExternalLink,
 } from "lucide-react";
-import Niche from "@/components/niche/niche";
 import useGallary from "./use-gallary.hook";
 import { formatNumber } from "@/common/utils/format.utils";
 import { format } from "date-fns";
@@ -21,6 +20,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
     selectedNiche,
     setSelectedNiche,
     filteredPortfolio,
+    galleryItems,
     niches,
     isLoading,
     refreshGallery,
@@ -48,42 +48,63 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
 
   return (
     <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <h3 className="text-lg font-semibold text-primary">Portfolio Gallery</h3>
-        <button
-          onClick={refreshGallery}
-          className="p-1 text-gray-500 hover:text-indigo-600 transition-colors"
-          title="Refresh gallery"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {["all", "video", "image"].map((tab) => (
-          <div
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1 cursor-pointer rounded-full text-sm capitalize ${
-              activeTab === tab
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
+          <h3 className="text-lg font-semibold text-primary shrink-0">Portfolio Gallery</h3>
+          <button
+            type="button"
+            onClick={refreshGallery}
+            className="shrink-0 p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-gray-50 transition-colors"
+            title="Refresh gallery"
           >
-            {tab === "all" ? "All" : `${tab}s`}
-          </div>
-        ))}
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {["all", "video", "image"].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-1.5 rounded-lg text-sm capitalize transition-colors ${
+                activeTab === tab
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {tab === "all" ? "All" : `${tab}s`}
+            </button>
+          ))}
+        </div>
       </div>
 
       {niches.length > 0 && (
-        <div className="mb-3">
-          <Niche
-            categories={niches}
-            onNicheChange={setSelectedNiche}
-            selectedNiche={selectedNiche}
-          />
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setSelectedNiche("all")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              selectedNiche === "all"
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                : "bg-white border border-gray-200 text-gray-700 hover:border-indigo-300"
+            }`}
+          >
+            All niches
+          </button>
+          {niches.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => setSelectedNiche(n.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                selectedNiche === n.id
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                  : "bg-white border border-gray-200 text-gray-700 hover:border-indigo-300"
+              }`}
+            >
+              {n.name}
+            </button>
+          ))}
         </div>
       )}
 
@@ -96,34 +117,52 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
               className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-white border border-gray-100"
             >
               {/* Thumbnail */}
-              <div className="relative aspect-[9/16] w-full bg-gray-900 flex items-center justify-center">
-                {item.media_type === "video" ? (
+              <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                {item.media_type === "video" && (item.file_url || item.phyllo_preview_url) ? (
                   <video
-                    src={item.file_url || item.post_url}
-                    className="w-full h-full object-contain bg-black"
+                    key={item.file_url || item.phyllo_preview_url}
+                    src={item.file_url || item.phyllo_preview_url}
+                    className="absolute inset-0 h-full w-full object-contain bg-black"
                     preload="metadata"
                     controls
                     playsInline
                     poster={item.thumbnail_url || undefined}
                   />
+                ) : item.media_type === "video" &&
+                  item.source_type === "post_link" &&
+                  !item.file_url &&
+                  !item.phyllo_preview_url ? (
+                  <>
+                    <img
+                      src={item.thumbnail_url || undefined}
+                      alt={item.caption_text || item.title || "Video preview"}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                      <span className="text-white text-xs font-medium px-3 py-1.5 rounded-full bg-black/60 text-center max-w-[90%]">
+                        Preparing hosted preview… this updates automatically (or use refresh).
+                      </span>
+                    </div>
+                  </>
                 ) : (
                   <img
                     src={item.thumbnail_url || item.file_url}
                     alt={item.caption_text || item.title}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 h-full w-full object-cover"
                     loading="lazy"
                   />
                 )}
 
                 {item.source_type === "file_upload" && (
-                  <div className="absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                  <div className="pointer-events-none absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
                     Unpublished Sample
                   </div>
                 )}
 
                 {item.source_type === "post_link" && item.platform && (
                   <div
-                    className={`absolute top-2 left-2 ${getPlatformColor(item.platform)} p-1.5 rounded-full`}
+                    className={`pointer-events-none absolute top-2 left-2 ${getPlatformColor(item.platform)} p-1.5 rounded-full`}
                   >
                     {getPlatformIcon(item.platform)}
                   </div>
@@ -136,77 +175,81 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                   {item.caption_text || item.title || "Untitled"}
                 </p>
 
-                {item.niche_name && (
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">
-                    {item.niche_name}
-                  </p>
-                )}
-
-                {/* Metrics row — post_link only */}
                 {item.source_type === "post_link" && item.metrics_snapshot && (
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-gray-100">
-                    {item.metrics_snapshot.views > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <Eye className="w-3 h-3" />
-                        <span>{formatNumber(item.metrics_snapshot.views)}</span>
-                      </div>
-                    )}
-                    {item.metrics_snapshot.likes > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <ThumbsUp className="w-3 h-3" />
-                        <span>{formatNumber(item.metrics_snapshot.likes)}</span>
-                      </div>
-                    )}
-                    {item.metrics_snapshot.comments > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{formatNumber(item.metrics_snapshot.comments)}</span>
-                      </div>
-                    )}
-                    {item.metrics_snapshot.shares > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <Share2 className="w-3 h-3" />
-                        <span>{formatNumber(item.metrics_snapshot.shares)}</span>
-                      </div>
-                    )}
-                    {item.metrics_snapshot.saves > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <Bookmark className="w-3 h-3" />
+                  <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-200">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <Eye className="w-3 h-3 shrink-0 text-primary" />
+                      <span>{formatNumber(item.metrics_snapshot.views ?? 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <ThumbsUp className="w-3 h-3 shrink-0 text-primary" />
+                      <span>{formatNumber(item.metrics_snapshot.likes ?? 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <MessageCircle className="w-3 h-3 shrink-0 text-primary" />
+                      <span>{formatNumber(item.metrics_snapshot.comments ?? 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <Share2 className="w-3 h-3 shrink-0 text-primary" />
+                      <span>{formatNumber(item.metrics_snapshot.shares ?? 0)}</span>
+                    </div>
+                    {(item.metrics_snapshot.saves ?? 0) > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-gray-600 col-span-2">
+                        <Bookmark className="w-3 h-3 shrink-0 text-primary" />
                         <span>{formatNumber(item.metrics_snapshot.saves)}</span>
                       </div>
                     )}
                   </div>
                 )}
 
-                {item.source_type === "post_link" && item.published_at && (
-                  <p className="text-xs text-gray-400">
-                    {format(new Date(item.published_at), "MMM d, yyyy")}
-                  </p>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-1">
-                  {item.source_type === "post_link" && item.post_url && (
-                    <a
-                      href={item.post_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      View Post
-                    </a>
+                <div className="flex items-center gap-2 justify-between">
+                  {item.niche_name && (
+                    <p className="bg-indigo-100 text-black w-fit px-2 py-1 rounded-lg text-xs text-center font-semibold uppercase tracking-wide">
+                      {item.niche_name}
+                    </p>
                   )}
-                  {isCreatorMode() &&
-                    item.source_type === "post_link" &&
-                    canRefreshMetrics(item) && (
-                      <button
-                        onClick={() => handleRefreshMetrics(item.id)}
-                        className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
-                        title="Refresh metrics"
+                  {item.source_type === "post_link" && item.published_at && (
+                    <p className="text-xs text-gray-400">
+                      {format(new Date(item.published_at), "MMM d, yyyy")}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <div className="flex gap-2">
+                    {item.source_type === "post_link" && item.post_url && (
+                      <a
+                        href={item.post_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Opens the original post on the social network"
+                        className="flex flex-1 min-w-0 items-center justify-center gap-1 px-3 py-1.5 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
                       >
-                        <RefreshCw className="w-3 h-3" />
-                      </button>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                        View Post
+                      </a>
+                    )}
+                    {isCreatorMode() &&
+                      item.source_type === "post_link" &&
+                      canRefreshMetrics(item) && (
+                        <button
+                          type="button"
+                          onClick={() => handleRefreshMetrics(item.id)}
+                          className="shrink-0 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
+                          title="Refresh metrics"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                        </button>
+                      )}
+                  </div>
+                  {item.source_type === "post_link" &&
+                    item.post_url &&
+                    (item.file_url || item.phyllo_preview_url) &&
+                    String(item.platform || "").toLowerCase() === "instagram" && (
+                      <p className="text-[10px] text-gray-400 leading-snug text-center">
+                        Opening on Instagram may require login; the preview player is the reliable
+                        way to watch.
+                      </p>
                     )}
                 </div>
               </div>
@@ -217,7 +260,15 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
         <div className="text-center py-12">
           <div className="text-gray-400 text-lg mb-2">No media found</div>
           <p className="text-gray-500 text-sm">
-            {activeTab === "all" ? "This gallery is empty." : `No ${activeTab}s found.`}
+            {galleryItems?.length === 0
+              ? activeTab === "all"
+                ? "This gallery is empty."
+                : `No ${activeTab}s found.`
+              : selectedNiche !== "all"
+                ? "No posts in this niche for the current filters."
+                : activeTab === "all"
+                  ? "This gallery is empty."
+                  : `No ${activeTab}s found.`}
           </p>
         </div>
       )}

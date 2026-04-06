@@ -54,20 +54,30 @@ export default function useImportPostModal({ show, onClose, niches = [] }) {
     [niches]
   );
 
+  const nicheOptions = useMemo(
+    () => niches.map((n) => ({ label: n.name, value: n.id })),
+    [niches]
+  );
+
+  const requiresNiche = nicheOptions.length > 0;
+
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
       const post_url =
         typeof formData.post_url === "string" ? formData.post_url.trim() : "";
+      if (!post_url) return;
+      if (requiresNiche && !formData.niche_id) return;
       dispatch(
         importPostThunk({
           ...formData,
           post_url,
-          niche_id: formData.niche_id || "",
+          niche_id: formData.niche_id || undefined,
+          niche_name: formData.niche_name || undefined,
         })
       );
     },
-    [dispatch, formData]
+    [dispatch, formData, requiresNiche]
   );
 
   const handleClose = useCallback(() => {
@@ -76,11 +86,6 @@ export default function useImportPostModal({ show, onClose, niches = [] }) {
     onClose();
   }, [dispatch, onClose]);
 
-  const nicheOptions = useMemo(
-    () => niches.map((n) => ({ label: n.name, value: n.id })),
-    [niches]
-  );
-
   return {
     formData,
     handleChange,
@@ -88,6 +93,7 @@ export default function useImportPostModal({ show, onClose, niches = [] }) {
     handleClose,
     platformOptions: PLATFORMS,
     nicheOptions,
+    requiresNiche,
     isLoading: importPostState.isLoading,
   };
 }

@@ -24,6 +24,7 @@ export default function BulkUploadModal({ show, onClose, niches = [] }) {
     totalFiles,
     isUploading,
     nicheOptions,
+    requiresNiche,
   } = useBulkUploadModal({ show, onClose, niches });
 
   return (
@@ -178,7 +179,11 @@ export default function BulkUploadModal({ show, onClose, niches = [] }) {
                 : `Upload${selectedFiles.length > 0 ? ` (${selectedFiles.length})` : ""}`
             }
             type="submit"
-            disabled={isUploading || !selectedFiles.length}
+            disabled={
+              isUploading ||
+              !selectedFiles.length ||
+              (requiresNiche && !formData.niche_id)
+            }
           />
         </div>
       </form>
