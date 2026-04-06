@@ -5,19 +5,76 @@ import {
   selectGalleryItems,
   refreshMetricsThunk,
 } from "@/provider/features/gallery/gallery.slice";
+import { getCreatorById } from "@/provider/features/creator-profile/creator-profile.slice";
+import {
+  categoriesToNicheOptions,
+  mergeNicheOptionLists,
+} from "@/common/constants/genaric.constant";
+import { getUser, isCreatorMode } from "@/common/utils/users.util";
 
 function useGallary(refreshKey = 0, creatorId = null) {
   const dispatch = useDispatch();
 
   const [activeTab, setActiveTab] = useState("all");
   const [selectedNiche, setSelectedNiche] = useState("all");
+  const [profileCategoryNiches, setProfileCategoryNiches] = useState([]);
 
   const galleryState = useSelector(selectGalleryItems);
   const { data: galleryItems, isLoading } = galleryState;
 
   useEffect(() => {
+    let cancelled = false;
+    async function loadProfileCategories() {
+      if (!creatorId) {
+        if (isCreatorMode()) {
+          const cats = getUser()?.creator_profile?.categories ?? [];
+          if (!cancelled) setProfileCategoryNiches(categoriesToNicheOptions(cats));
+        } else {
+          setProfileCategoryNiches([]);
+        }
+        return;
+      }
+      try {
+        const result = await dispatch(getCreatorById(creatorId)).unwrap();
+        if (cancelled) return;
+        const user = result?.data ?? result;
+        const cats = user?.creator_profile?.categories ?? [];
+        setProfileCategoryNiches(categoriesToNicheOptions(cats));
+      } catch {
+        if (!cancelled) setProfileCategoryNiches([]);
+      }
+    }
+    loadProfileCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [creatorId, dispatch, refreshKey]);
+
+  useEffect(() => {
     dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
   }, [creatorId, refreshKey, dispatch]);
+
+  const hasPendingHostedVideo = useMemo(() => {
+    if (!galleryItems?.length) return false;
+    return galleryItems.some(
+      (i) =>
+        i.media_type === "video" &&
+        i.source_type === "post_link" &&
+        !i.file_url
+    );
+  }, [galleryItems]);
+
+  useEffect(() => {
+    if (!hasPendingHostedVideo) return;
+    const intervalId = setInterval(() => {
+      dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
+    }, 10000);
+    const stopId = setTimeout(() => clearInterval(intervalId), 180000);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(stopId);
+    };
+  }, [hasPendingHostedVideo, creatorId, dispatch]);
 
   const refreshGallery = useCallback(() => {
     dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
@@ -30,24 +87,30 @@ function useGallary(refreshKey = 0, creatorId = null) {
     [dispatch]
   );
 
-  const niches = useMemo(() => {
-    if (!galleryItems) return [];
+  const nichesFromGallery = useMemo(() => {
+    if (!galleryItems?.length) return [];
     const seen = new Set();
-    const result = [];
+    const out = [];
     galleryItems.forEach((item) => {
       if (item.niche_id && item.niche_name && !seen.has(item.niche_id)) {
         seen.add(item.niche_id);
-        result.push({ id: item.niche_id, name: item.niche_name });
+        out.push({ id: item.niche_id, name: item.niche_name });
       }
     });
-    return result;
+    return out;
   }, [galleryItems]);
+
+  const niches = useMemo(
+    () => mergeNicheOptionLists(profileCategoryNiches, nichesFromGallery),
+    [profileCategoryNiches, nichesFromGallery]
+  );
 
   const filteredPortfolio = useMemo(() => {
     if (!galleryItems) return [];
     return galleryItems.filter((item) => {
       const matchesTab = activeTab === "all" || item.media_type === activeTab;
-      const matchesNiche = selectedNiche === "all" || item.niche_id === selectedNiche;
+      const matchesNiche =
+        selectedNiche === "all" || String(item.niche_id) === String(selectedNiche);
       return matchesTab && matchesNiche;
     });
   }, [galleryItems, activeTab, selectedNiche]);
@@ -67,6 +130,7 @@ function useGallary(refreshKey = 0, creatorId = null) {
     selectedNiche,
     setSelectedNiche,
     filteredPortfolio,
+    galleryItems,
     niches,
     isLoading,
     refreshGallery,
