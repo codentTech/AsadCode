@@ -87,10 +87,18 @@ export default function useUploadFileModal({ show, onClose, niches = [] }) {
     e.target.value = "";
   }, []);
 
+  const nicheOptions = useMemo(
+    () => niches.map((n) => ({ label: n.name, value: n.id })),
+    [niches]
+  );
+
+  const requiresNiche = nicheOptions.length > 0;
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       if (!selectedFile) return;
+      if (requiresNiche && !formData.niche_id) return;
 
       setIsUploading(true);
 
@@ -121,7 +129,7 @@ export default function useUploadFileModal({ show, onClose, niches = [] }) {
 
       dispatch(uploadFileThunk(payload));
     },
-    [dispatch, formData, selectedFile]
+    [dispatch, formData, selectedFile, requiresNiche]
   );
 
   const handleClose = useCallback(() => {
@@ -137,11 +145,6 @@ export default function useUploadFileModal({ show, onClose, niches = [] }) {
     fileInputRef.current?.click();
   }, []);
 
-  const nicheOptions = useMemo(
-    () => niches.map((n) => ({ label: n.name, value: n.id })),
-    [niches]
-  );
-
   return {
     formData,
     handleChange,
@@ -154,6 +157,7 @@ export default function useUploadFileModal({ show, onClose, niches = [] }) {
     filePreview,
     fileTypes: FILE_TYPES,
     nicheOptions,
+    requiresNiche,
     isLoading: isUploading || uploadFileState.isLoading,
   };
 }

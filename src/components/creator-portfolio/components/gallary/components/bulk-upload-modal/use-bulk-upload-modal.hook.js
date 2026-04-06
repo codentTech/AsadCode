@@ -70,10 +70,18 @@ export default function useBulkUploadModal({ show, onClose, niches = [] }) {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
+  const nicheOptions = useMemo(
+    () => niches.map((n) => ({ label: n.name, value: n.id })),
+    [niches]
+  );
+
+  const requiresNiche = nicheOptions.length > 0;
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       if (!selectedFiles.length) return;
+      if (requiresNiche && !formData.niche_id) return;
 
       setIsUploading(true);
       setTotalFiles(selectedFiles.length);
@@ -115,7 +123,7 @@ export default function useBulkUploadModal({ show, onClose, niches = [] }) {
       setIsUploading(false);
       setIsDone(true);
     },
-    [dispatch, formData, selectedFiles]
+    [dispatch, formData, selectedFiles, requiresNiche]
   );
 
   const handleClose = useCallback(() => {
@@ -134,11 +142,6 @@ export default function useBulkUploadModal({ show, onClose, niches = [] }) {
     fileInputRef.current?.click();
   }, []);
 
-  const nicheOptions = useMemo(
-    () => niches.map((n) => ({ label: n.name, value: n.id })),
-    [niches]
-  );
-
   return {
     formData,
     handleChange,
@@ -153,5 +156,6 @@ export default function useBulkUploadModal({ show, onClose, niches = [] }) {
     totalFiles,
     isUploading,
     nicheOptions,
+    requiresNiche,
   };
 }

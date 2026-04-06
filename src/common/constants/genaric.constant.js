@@ -16,3 +16,26 @@ export function getDefaultCreatorPlatformFromConnectedList(entries) {
   }
   return normalized[0] || null;
 }
+
+export function categoriesToNicheOptions(categories) {
+  if (!Array.isArray(categories)) return [];
+  const seen = new Set();
+  const out = [];
+  categories.forEach((c) => {
+    const name = String(c ?? "").trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    out.push({ id: name, name });
+  });
+  return out;
+}
+
+export function mergeNicheOptionLists(primary, secondary) {
+  const map = new Map();
+  [...(primary || []), ...(secondary || [])].forEach((n) => {
+    if (n?.id != null && String(n.id).trim()) {
+      map.set(String(n.id), { id: String(n.id), name: n.name || String(n.id) });
+    }
+  });
+  return Array.from(map.values());
+}

@@ -1,14 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { getDefaultCreatorPlatformFromConnectedList } from "@/common/constants/genaric.constant";
 import {
-  fetchCreatorStats,
   fetchCreatorAudience,
   fetchCreatorSocialAccounts,
-  selectCreatorStats,
+  fetchCreatorStats,
   selectCreatorAudience,
   selectCreatorSocialAccounts,
+  selectCreatorStats,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { getDefaultCreatorPlatformFromConnectedList } from "@/common/constants/genaric.constant";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const PLATFORM_ORDER = ["instagram", "tiktok", "youtube"];
 

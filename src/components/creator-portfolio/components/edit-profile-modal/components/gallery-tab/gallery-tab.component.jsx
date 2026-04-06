@@ -22,10 +22,11 @@ import ImportPostModal from "../../../gallary/components/import-post-modal/impor
 import UploadFileModal from "../../../gallary/components/upload-file-modal/upload-file-modal.component";
 import useGalleryTab from "./use-gallery-tab.hook";
 
-const GalleryTab = ({ activeTab }) => {
+const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const {
     galleryItems,
     galleryNiches,
+    galleryGroupedByNiche,
     isGalleryLoading,
     refreshGallery,
     showImportModal,
@@ -42,7 +43,7 @@ const GalleryTab = ({ activeTab }) => {
     handleGalleryDeleteItem,
     handleRefreshMetrics,
     canRefreshMetrics,
-  } = useGalleryTab({ activeTab });
+  } = useGalleryTab({ activeTab, creatorCategories });
 
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
@@ -92,126 +93,157 @@ const GalleryTab = ({ activeTab }) => {
               ))}
             </div>
           ) : galleryItems?.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {galleryItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="relative group rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white border border-gray-100"
-                >
-                  {/* Hover delete button — red circle top-right */}
-                  <button
-                    onClick={() => handleOpenGalleryDeleteModal(item.id)}
-                    className="absolute -top-2 -right-2 z-10 w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-md"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-
-                  {/* Thumbnail */}
-                  <div className="relative aspect-[4/3] w-full bg-gray-900 rounded-t-lg overflow-hidden">
-                    {item.media_type === "video" ? (
-                      <video
-                        src={item.file_url || item.post_url}
-                        className="w-full h-full object-contain bg-black"
-                        preload="metadata"
-                        playsInline
-                        poster={item.thumbnail_url || undefined}
-                      />
-                    ) : (
-                      <img
-                        src={item.thumbnail_url || item.file_url}
-                        alt={item.caption_text || item.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    )}
-
-                    {item.source_type === "file_upload" && (
-                      <div className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-lg font-medium">
-                        UGC
-                      </div>
-                    )}
-
-                    {item.source_type === "post_link" && item.platform && (
+            <div className="space-y-8">
+              {galleryGroupedByNiche.map((group) => (
+                <div key={group.key}>
+                  <h4 className="bg-primary text-white px-3 py-1.5 rounded-lg w-full max-w-fit text-xs font-semibold uppercase tracking-wide mb-3">
+                    {group.label}
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {group.items.map((item) => (
                       <div
-                        className={`absolute top-1.5 left-1.5 ${getPlatformColor(item.platform)} p-1 rounded-full`}
+                        key={item.id}
+                        className="relative group rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white border border-gray-100"
                       >
-                        {getPlatformIcon(item.platform)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info + actions */}
-                  <div className="p-2 space-y-1.5">
-                    <p className="text-xs font-medium text-gray-800 line-clamp-1">
-                      {item.caption_text || item.title || "Untitled"}
-                    </p>
-
-                    {/* Compact metrics for post_link */}
-                    {item.source_type === "post_link" && item.metrics_snapshot && (
-                      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-                        {item.metrics_snapshot.views > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-                            <Eye className="w-2.5 h-2.5" />
-                            {formatNumber(item.metrics_snapshot.views)}
-                          </span>
-                        )}
-                        {item.metrics_snapshot.likes > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-                            <ThumbsUp className="w-2.5 h-2.5" />
-                            {formatNumber(item.metrics_snapshot.likes)}
-                          </span>
-                        )}
-                        {item.metrics_snapshot.comments > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-                            <MessageCircle className="w-2.5 h-2.5" />
-                            {formatNumber(item.metrics_snapshot.comments)}
-                          </span>
-                        )}
-                        {item.metrics_snapshot.shares > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-                            <Share2 className="w-2.5 h-2.5" />
-                            {formatNumber(item.metrics_snapshot.shares)}
-                          </span>
-                        )}
-                        {item.metrics_snapshot.saves > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-                            <Bookmark className="w-2.5 h-2.5" />
-                            {formatNumber(item.metrics_snapshot.saves)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {item.source_type === "post_link" && item.published_at && (
-                      <p className="text-xs text-gray-400">
-                        {format(new Date(item.published_at), "MMM d, yyyy")}
-                      </p>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-1 pt-0.5">
-                      {item.source_type === "post_link" && item.post_url && (
-                        <a
-                          href={item.post_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
-                        >
-                          <ExternalLink className="w-2.5 h-2.5" />
-                          View
-                        </a>
-                      )}
-                      {item.source_type === "post_link" && canRefreshMetrics(item) && (
+                        {/* Hover delete button — red circle top-right */}
                         <button
-                          onClick={() => handleRefreshMetrics(item.id)}
-                          className="flex items-center justify-center px-2 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
-                          title="Refresh metrics"
+                          onClick={() => handleOpenGalleryDeleteModal(item.id)}
+                          className="absolute -top-2 -right-2 z-10 w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-md"
+                          title="Delete"
                         >
-                          <RefreshCw className="w-2.5 h-2.5" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
-                      )}
-                    </div>
+
+                        {/* Thumbnail */}
+                        <div className="relative aspect-[4/3] w-full bg-black rounded-t-lg overflow-hidden">
+                          {item.media_type === "video" &&
+                          (item.file_url || item.phyllo_preview_url) ? (
+                            <video
+                              key={item.file_url || item.phyllo_preview_url}
+                              src={item.file_url || item.phyllo_preview_url}
+                              className="absolute inset-0 h-full w-full object-contain bg-black"
+                              preload="metadata"
+                              controls
+                              playsInline
+                              poster={item.thumbnail_url || undefined}
+                            />
+                          ) : item.media_type === "video" &&
+                            item.source_type === "post_link" &&
+                            !item.file_url &&
+                            !item.phyllo_preview_url ? (
+                            <>
+                              <img
+                                src={item.thumbnail_url || undefined}
+                                alt={item.caption_text || item.title || "Video preview"}
+                                className="absolute inset-0 h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                                <span className="text-white text-[10px] font-medium px-2 py-1 rounded-full bg-black/60 text-center max-w-[95%]">
+                                  Preparing hosted preview… updates automatically.
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <img
+                              src={item.thumbnail_url || item.file_url}
+                              alt={item.caption_text || item.title}
+                              className="absolute inset-0 h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          )}
+
+                          {item.source_type === "file_upload" && (
+                            <div className="pointer-events-none absolute top-1.5 left-1.5 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-lg font-medium">
+                              UGC
+                            </div>
+                          )}
+
+                          {item.source_type === "post_link" && item.platform && (
+                            <div
+                              className={`pointer-events-none absolute top-1.5 left-1.5 ${getPlatformColor(item.platform)} p-1 rounded-full`}
+                            >
+                              {getPlatformIcon(item.platform)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info + actions */}
+                        <div className="p-2 space-y-1.5">
+                          <p className="text-xs font-medium text-gray-800 line-clamp-1">
+                            {item.caption_text || item.title || "Untitled"}
+                          </p>
+                          {item.source_type === "post_link" && item.metrics_snapshot && (
+                            <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-200">
+                              <div className="flex items-center gap-1 text-xs text-gray-600">
+                                <Eye className="w-3 h-3 shrink-0 text-primary" />
+                                <span>{formatNumber(item.metrics_snapshot.views ?? 0)}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-gray-600">
+                                <ThumbsUp className="w-3 h-3 shrink-0 text-primary" />
+                                <span>{formatNumber(item.metrics_snapshot.likes ?? 0)}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-gray-600">
+                                <MessageCircle className="w-3 h-3 shrink-0 text-primary" />
+                                <span>{formatNumber(item.metrics_snapshot.comments ?? 0)}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-gray-600">
+                                <Share2 className="w-3 h-3 shrink-0 text-primary" />
+                                <span>{formatNumber(item.metrics_snapshot.shares ?? 0)}</span>
+                              </div>
+                              {(item.metrics_snapshot.saves ?? 0) > 0 && (
+                                <div className="flex items-center gap-1 text-xs text-gray-600 col-span-2">
+                                  <Bookmark className="w-3 h-3 shrink-0 text-primary" />
+                                  <span>{formatNumber(item.metrics_snapshot.saves)}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {item.source_type === "post_link" && item.published_at && (
+                            <p className="text-xs text-gray-400">
+                              {format(new Date(item.published_at), "MMM d, yyyy")}
+                            </p>
+                          )}
+
+                          <div className="flex flex-col gap-1 pt-0.5">
+                            <div className="flex gap-1">
+                              {item.source_type === "post_link" && item.post_url && (
+                                <a
+                                  href={item.post_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Opens the original post on the social network"
+                                  className="flex flex-1 min-w-0 items-center justify-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
+                                >
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                  View
+                                </a>
+                              )}
+                              {item.source_type === "post_link" && canRefreshMetrics(item) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRefreshMetrics(item.id)}
+                                  className="shrink-0 flex items-center justify-center px-2 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
+                                  title="Refresh metrics"
+                                >
+                                  <RefreshCw className="w-2.5 h-2.5" />
+                                </button>
+                              )}
+                            </div>
+                            {item.source_type === "post_link" &&
+                              item.post_url &&
+                              (item.file_url || item.phyllo_preview_url) &&
+                              String(item.platform || "").toLowerCase() === "instagram" && (
+                                <p className="text-[9px] text-gray-400 leading-snug text-center">
+                                  Instagram may require login; the preview player is the reliable
+                                  way to watch.
+                                </p>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
