@@ -19,6 +19,7 @@ export default function UploadFileModal({ show, onClose, niches = [] }) {
     filePreview,
     fileTypes,
     nicheOptions,
+    requiresNiche,
     isLoading,
   } = useUploadFileModal({ show, onClose, niches });
 
@@ -167,7 +168,9 @@ export default function UploadFileModal({ show, onClose, niches = [] }) {
             className="btn-primary"
             text={isLoading ? "Uploading..." : "Upload"}
             type="submit"
-            disabled={isLoading || !selectedFile}
+            disabled={
+              isLoading || !selectedFile || (requiresNiche && !formData.niche_id)
+            }
           />
         </div>
       </form>

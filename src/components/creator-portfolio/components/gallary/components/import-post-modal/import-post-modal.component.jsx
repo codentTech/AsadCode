@@ -12,6 +12,7 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
     handleClose,
     platformOptions,
     nicheOptions,
+    requiresNiche,
     isLoading,
   } = useImportPostModal({ show, onClose, niches });
 
@@ -42,11 +43,12 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
 
         {nicheOptions.length > 0 && (
           <SimpleSelect
-            label="Niche (Optional)"
+            label={requiresNiche ? "Niche" : "Niche (Optional)"}
             placeHolder="Select a niche"
             options={nicheOptions}
             value={formData.niche_id}
             onChange={(option) => handleChange("niche_id", option.value)}
+            isRequired={requiresNiche}
           />
         )}
 
@@ -57,7 +59,11 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
             text="Import Post"
             type="submit"
             loading={isLoading}
-            disabled={isLoading || !formData.post_url}
+            disabled={
+              isLoading ||
+              !formData.post_url?.trim() ||
+              (requiresNiche && !formData.niche_id)
+            }
           />
         </div>
       </form>
