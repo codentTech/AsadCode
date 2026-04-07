@@ -12,6 +12,7 @@ import useGallary from "./use-gallary.hook";
 import { formatNumber } from "@/common/utils/format.utils";
 import { format } from "date-fns";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { getGalleryVideoPlaybackSrc } from "@/common/utils/gallery-media.util";
 import { isCreatorMode } from "@/common/utils/users.util";
 
 const Gallary = ({ refreshKey, creatorId = null }) => {
@@ -90,21 +91,31 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
       {/* Grid */}
       {filteredPortfolio.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPortfolio.map((item) => (
+          {filteredPortfolio.map((item) => {
+            const videoPlaybackSrc =
+              item.media_type === "video" ? getGalleryVideoPlaybackSrc(item) : null;
+            return (
             <div
               key={item.id}
               className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-white border border-gray-100"
             >
               {/* Thumbnail */}
               <div className="relative aspect-[9/16] w-full bg-gray-900 flex items-center justify-center">
-                {item.media_type === "video" ? (
+                {item.media_type === "video" && videoPlaybackSrc ? (
                   <video
-                    src={item.file_url || item.post_url}
+                    src={videoPlaybackSrc}
                     className="w-full h-full object-contain bg-black"
                     preload="metadata"
                     controls
                     playsInline
                     poster={item.thumbnail_url || undefined}
+                  />
+                ) : item.media_type === "video" ? (
+                  <img
+                    src={item.thumbnail_url || item.file_url || ""}
+                    alt={item.caption_text || item.title || ""}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 ) : (
                   <img
@@ -211,7 +222,8 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">

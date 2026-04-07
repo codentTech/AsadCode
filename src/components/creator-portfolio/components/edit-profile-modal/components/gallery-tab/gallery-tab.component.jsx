@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { formatNumber } from "@/common/utils/format.utils";
+import { getGalleryVideoPlaybackSrc } from "@/common/utils/gallery-media.util";
 import { format } from "date-fns";
 import {
   Bookmark,
@@ -93,7 +94,9 @@ const GalleryTab = ({ activeTab }) => {
             </div>
           ) : galleryItems?.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {galleryItems.map((item) => (
+              {galleryItems.map((item) => {
+                const videoPlaybackSrc = getGalleryVideoPlaybackSrc(item);
+                return (
                 <div
                   key={item.id}
                   className="relative group rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white border border-gray-100"
@@ -109,13 +112,20 @@ const GalleryTab = ({ activeTab }) => {
 
                   {/* Thumbnail */}
                   <div className="relative aspect-[4/3] w-full bg-gray-900 rounded-t-lg overflow-hidden">
-                    {item.media_type === "video" ? (
+                    {item.media_type === "video" && videoPlaybackSrc ? (
                       <video
-                        src={item.file_url || item.post_url}
+                        src={videoPlaybackSrc}
                         className="w-full h-full object-contain bg-black"
                         preload="metadata"
                         playsInline
                         poster={item.thumbnail_url || undefined}
+                      />
+                    ) : item.media_type === "video" ? (
+                      <img
+                        src={item.thumbnail_url || item.file_url || ""}
+                        alt={item.caption_text || item.title || ""}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <img
@@ -214,7 +224,8 @@ const GalleryTab = ({ activeTab }) => {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-400">

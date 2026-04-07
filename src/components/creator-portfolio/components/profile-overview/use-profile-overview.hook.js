@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { CLEERCUT_OPEN_SHOWCASE_MODAL } from "@/common/utils/creator-showcase.util";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import { getCreatorById } from "@/provider/features/creator-profile/creator-profile.slice";
 import {
@@ -16,6 +17,7 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [focusShowcaseSection, setFocusShowcaseSection] = useState(false);
   const [saveToShortlistDialogOpen, setSaveToShortlistDialogOpen] = useState(false);
 
   const connectedAccounts = useSelector(selectCreatorSocialAccounts);
@@ -72,6 +74,40 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
   }, [refreshKey, loadCreatorData]);
 
   useEffect(() => {
+    const user = getUser();
+    if (creatorId && user?.id && creatorId !== user.id) return;
+    if (!isCreatorMode()) return;
+    if (typeof window === "undefined") return;
+    const fromQuery =
+      new URLSearchParams(window.location.search).get("showcase") === "1";
+    let fromStorage = false;
+    try {
+      fromStorage = sessionStorage.getItem(CLEERCUT_OPEN_SHOWCASE_MODAL) === "1";
+    } catch {
+      fromStorage = false;
+    }
+
+    if (!fromQuery && !fromStorage) return;
+
+    setFocusShowcaseSection(true);
+    setIsEditModalOpen(true);
+
+    if (fromQuery) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [creatorId]);
+
+  const handleEditModalClose = useCallback(() => {
+    setIsEditModalOpen(false);
+    setFocusShowcaseSection(false);
+    try {
+      sessionStorage.removeItem(CLEERCUT_OPEN_SHOWCASE_MODAL);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
     if (creatorId) dispatch(getAllShortlists());
   }, [creatorId, dispatch]);
 
@@ -111,6 +147,9 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
     connectedAccounts,
     isEditModalOpen,
     setIsEditModalOpen,
+    focusShowcaseSection,
+    setFocusShowcaseSection,
+    handleEditModalClose,
     saveToShortlistDialogOpen,
     setSaveToShortlistDialogOpen,
     handleShare,

@@ -120,7 +120,10 @@ const ProfileTab = ({ profileData, setProfileData }) => {
       </div>
 
       {/* Showcase Images */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+      <div
+        id="creator-showcase-images"
+        className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 scroll-mt-4"
+      >
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
         <div className="grid grid-cols-3 gap-3">
           {profileData.miniCards.map((card, index) => (
