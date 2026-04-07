@@ -71,6 +71,47 @@ const ProfileTab = ({ profileData, setProfileData }) => {
         </div>
       </div>
 
+      {/* Showcase Images */}
+      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {profileData.miniCards.map((card, index) => (
+            <div key={index} className="relative group">
+              <div className="aspect-square bg-gray-100 rounded-lg border-2 border-solid border-gray-200 flex items-center justify-center overflow-hidden hover:border-primary transition-all duration-300">
+                {card ? (
+                  <img
+                    src={card}
+                    alt={`Showcase ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <div className="flex justify-center items-center w-6 h-6 bg-gray-300 rounded-lg mb-1 mx-auto">
+                      <ImageIcon className="w-4 h-4 text-gray-500" />
+                    </div>
+                    <p className="text-xs text-gray-500 font-medium">Add Image</p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => handleMiniCardUpload(index)}
+                className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
+              >
+                <Camera className="w-4 h-4 text-white" />
+              </button>
+              {card && (
+                <button
+                  onClick={() => handleMiniCardRemove(index)}
+                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 shadow-lg hover:scale-110 transform"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Bio */}
       <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Bio</h3>
@@ -116,47 +157,6 @@ const ProfileTab = ({ profileData, setProfileData }) => {
             onChange={(e) => handleProfileFieldChange("location", e.target.value)}
             placeholder="City, Country"
           />
-        </div>
-      </div>
-
-      {/* Showcase Images */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-        <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
-        <div className="grid grid-cols-3 gap-3">
-          {profileData.miniCards.map((card, index) => (
-            <div key={index} className="relative group">
-              <div className="aspect-square bg-gray-100 rounded-lg border-2 border-solid border-gray-200 flex items-center justify-center overflow-hidden hover:border-primary transition-all duration-300">
-                {card ? (
-                  <img
-                    src={card}
-                    alt={`Showcase ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-center">
-                    <div className="flex justify-center items-center w-6 h-6 bg-gray-300 rounded-lg mb-1 mx-auto">
-                      <ImageIcon className="w-4 h-4 text-gray-500" />
-                    </div>
-                    <p className="text-xs text-gray-500 font-medium">Add Image</p>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => handleMiniCardUpload(index)}
-                className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
-              >
-                <Camera className="w-4 h-4 text-white" />
-              </button>
-              {card && (
-                <button
-                  onClick={() => handleMiniCardRemove(index)}
-                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 shadow-lg hover:scale-110 transform"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          ))}
         </div>
       </div>
     </div>
