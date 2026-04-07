@@ -178,7 +178,7 @@ function Header() {
               <div className="flex flex-col space-y-3">
                 <CustomButton
                   text="Login"
-                  onClick={() => router.push("/auth/login")}
+                  onClick={() => router.push("/login")}
                   className="btn-outline w-full"
                 />
                 <CustomButton
