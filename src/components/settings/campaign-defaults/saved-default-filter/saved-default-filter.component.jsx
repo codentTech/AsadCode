@@ -189,8 +189,8 @@ const SavedDefaultFilters = () => {
                     </span>
                   ) : (
                     <span>
-                      <span className="font-medium">Note:</span> Connect or disconnect platforms
-                      as needed. Connected accounts power campaign matching and analytics.
+                      <span className="font-medium">Note:</span> Connect or disconnect platforms as
+                      needed. Connected accounts power campaign matching and analytics.
                     </span>
                   )}
                 </div>
@@ -379,38 +379,38 @@ const SavedDefaultFilters = () => {
             </div>
 
             <div className="mt-4 p-3 border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="flex justify-between pt-1 bg-gray-200 p-2 rounded-lg items-center mb-2">
+                <h3 className="text-xs font-semibold text-gray-900">Add custom rate</h3>
+                <button
+                  type="button"
+                  className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors"
+                  onClick={addCustomRateRow}
+                >
+                  <AddCircle className="text-primary" />
+                </button>
+              </div>
               {customRates.map((rate, idx) => (
-                <div key={idx} className="flex justify-between mb-2">
-                  <div className="flex gap-2">
-                    <CustomInput
-                      placeholder="Custom package"
-                      className="!border !border-gray-300"
-                      value={rate.contentType}
-                      onChange={(e) => handleCustomRateChange(idx, "contentType", e.target.value)}
-                    />
-                    <CustomInput
-                      type="number"
-                      placeholder="Price"
-                      className="!border !border-gray-300"
-                      value={rate.price}
-                      onChange={(e) => handleCustomRateChange(idx, "price", e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="bg-red-200 p-1 rounded-full m-2.5"
-                      onClick={() => removeCustomRate(idx)}
-                      disabled={customRates.length === 1}
-                    >
-                      <X className="text-red-600 w-3 h-3" />
-                    </button>
-                  </div>
-
+                <div key={idx} className="flex gap-2 mb-2 items-center">
+                  <CustomInput
+                    placeholder="Custom package"
+                    className="!border !border-gray-300 flex-1 min-w-0"
+                    value={rate.contentType}
+                    onChange={(e) => handleCustomRateChange(idx, "contentType", e.target.value)}
+                  />
+                  <CustomInput
+                    type="number"
+                    placeholder="Price"
+                    className="!border !border-gray-300 !w-28 shrink-0"
+                    value={rate.price}
+                    onChange={(e) => handleCustomRateChange(idx, "price", e.target.value)}
+                  />
                   <button
                     type="button"
-                    className="bg-gray-200 p-2 rounded-full"
-                    onClick={addCustomRateRow}
+                    className="bg-red-200 p-1 rounded-full shrink-0 mr-4"
+                    onClick={() => removeCustomRate(idx)}
+                    disabled={customRates.length === 1}
                   >
-                    <AddCircle className="text-primary" />
+                    <X className="text-red-600 w-3 h-3" />
                   </button>
                 </div>
               ))}
