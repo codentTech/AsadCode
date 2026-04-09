@@ -32,7 +32,8 @@ const initialState = {
 
 export const fetchCreatorGallery = createAsyncThunk(
   "gallery/getCreatorGallery",
-  async ({ creatorId = null, nicheId = null }, thunkAPI) => {
+  async (arg, thunkAPI) => {
+    const { creatorId = null, nicheId = null } = arg ?? {};
     try {
       const response = await galleryService.getCreatorGallery(
         creatorId,
@@ -115,11 +116,13 @@ const gallerySlice = createSlice({
   extraReducers: (builder) => {
     builder
       // fetchCreatorGallery
-      .addCase(fetchCreatorGallery.pending, (state) => {
-        state.getCreatorGallery.isLoading = true;
-        state.getCreatorGallery.isSuccess = false;
-        state.getCreatorGallery.isError = false;
-        state.getCreatorGallery.message = "";
+      .addCase(fetchCreatorGallery.pending, (state, action) => {
+        if (!action.meta.arg?.silent) {
+          state.getCreatorGallery.isLoading = true;
+          state.getCreatorGallery.isSuccess = false;
+          state.getCreatorGallery.isError = false;
+          state.getCreatorGallery.message = "";
+        }
       })
       .addCase(fetchCreatorGallery.fulfilled, (state, action) => {
         state.getCreatorGallery.isLoading = false;

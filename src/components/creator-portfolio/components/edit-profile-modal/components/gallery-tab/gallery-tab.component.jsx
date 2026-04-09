@@ -11,6 +11,7 @@ import {
   FolderUp,
   Images,
   Link as LinkIcon,
+  Loader2,
   MessageCircle,
   RefreshCw,
   Share2,
@@ -44,6 +45,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
     handleGalleryDeleteItem,
     handleRefreshMetrics,
     canRefreshMetrics,
+    isRefreshingMetricsFor,
   } = useGalleryTab({ activeTab, creatorCategories });
 
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
@@ -223,10 +225,18 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                                   <button
                                     type="button"
                                     onClick={() => handleRefreshMetrics(item.id)}
-                                    className="shrink-0 flex items-center justify-center px-2 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
+                                    disabled={isRefreshingMetricsFor(item.id)}
+                                    className="shrink-0 flex items-center justify-center px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors disabled:opacity-60 disabled:pointer-events-none"
                                     title="Refresh metrics"
                                   >
-                                    <RefreshCw className="w-2.5 h-2.5" />
+                                    {isRefreshingMetricsFor(item.id) ? (
+                                      <Loader2
+                                        className="w-2.5 h-2.5 animate-spin shrink-0"
+                                        aria-hidden
+                                      />
+                                    ) : (
+                                      <RefreshCw className="w-2.5 h-2.5 shrink-0" />
+                                    )}
                                   </button>
                                 )}
                               </div>
