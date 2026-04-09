@@ -14,7 +14,13 @@ const tabs = [
   { id: "niches", label: "Niches", icon: Tag },
 ];
 
-const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
+const ProfileEditModal = ({
+  isOpen,
+  onClose,
+  creator,
+  onSave,
+  focusShowcaseSection = false,
+}) => {
   const {
     activeTab,
     setActiveTab,
@@ -26,7 +32,7 @@ const ProfileEditModal = ({ isOpen, onClose, creator, onSave }) => {
     setCustomRates,
     handleSave,
     isSaving,
-  } = useEditProfileModal({ creator, onClose, onSave });
+  } = useEditProfileModal({ creator, onClose, onSave, isOpen, focusShowcaseSection });
 
   if (!isOpen) return null;
 

@@ -1,10 +1,10 @@
+import { Skeleton, SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
+import InvitationModal from "@/components/campaign/campaigns/components/invitation-modal/invitation-modal.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import FilterModal from "./components/filters/filter-modal.component";
-import InvitationModal from "@/components/campaign/campaigns/components/invitation-modal/invitation-modal.component";
-import ShortlistView from "./components/views/shortlist-view.component";
 import CategoryView from "./components/views/category-view.component";
 import DiscoverView from "./components/views/discover-view.component";
-import { Skeleton, SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
+import ShortlistView from "./components/views/shortlist-view.component";
 import useDiscoverCreators from "./use-discover-creators.hook";
 
 function DiscoverCreators({

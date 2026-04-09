@@ -15,6 +15,9 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
     isLoading,
     isEditModalOpen,
     setIsEditModalOpen,
+    focusShowcaseSection,
+    setFocusShowcaseSection,
+    handleEditModalClose,
     saveToShortlistDialogOpen,
     setSaveToShortlistDialogOpen,
     handleShare,
@@ -197,8 +200,9 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
       {/* Profile Edit Modal */}
       <ProfileEditModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={handleEditModalClose}
         creator={creator}
+        focusShowcaseSection={focusShowcaseSection}
       />
     </>
   );

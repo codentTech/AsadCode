@@ -17,7 +17,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import useProfileSetup, { CONTENT_CHARACTERISTIC_GROUPS } from "./use-profile-setup.hook";
+import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
+import useProfileSetup from "./use-profile-setup.hook";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
   CREATOR_TYPE_QUESTION,
@@ -165,7 +166,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                         key={opt.value}
                         type="button"
                         onClick={() => handleCreatorTypeChange(opt.value)}
-                        className={`w-full text-left rounded-xl border p-3 transition-all ${
+                        className={`w-full text-left rounded-lg border p-3 transition-all ${
                           active
                             ? `${opt.cardBorder} shadow-sm`
                             : "border-gray-200 bg-white hover:border-gray-300"
@@ -175,7 +176,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${opt.pillClass}`}
+                                className={`inline-flex rounded-lg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${opt.pillClass}`}
                               >
                                 {opt.label}
                               </span>

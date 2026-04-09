@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { updateCampaignDefaults, updateUser } from "@/provider/features/users/users.slice";
+import { CLEERCUT_USER_STORAGE_UPDATED } from "@/common/utils/creator-showcase.util";
 import { getUser } from "@/common/utils/users.util";
 
 const DEFAULT_CONTENT_RATES = [
@@ -40,8 +41,9 @@ const INITIAL_PROFILE_STATE = {
 
 const INITIAL_CUSTOM_RATES = [{ contentType: "", price: "" }];
 
-const useEditProfileModal = ({ creator, onClose, onSave }) => {
+const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSection }) => {
   const dispatch = useDispatch();
+  const showcaseScrollDoneRef = useRef(false);
 
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
@@ -115,6 +117,25 @@ const useEditProfileModal = ({ creator, onClose, onSave }) => {
     }
   }, [creator]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      showcaseScrollDoneRef.current = false;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !focusShowcaseSection || !creator || showcaseScrollDoneRef.current) return;
+    setActiveTab("profile");
+    const t = window.setTimeout(() => {
+      document.getElementById("creator-showcase-images")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      showcaseScrollDoneRef.current = true;
+    }, 200);
+    return () => window.clearTimeout(t);
+  }, [isOpen, focusShowcaseSection, creator]);
+
   const handleSave = useCallback(async () => {
     setIsSaving(true);
 
@@ -166,6 +187,7 @@ const useEditProfileModal = ({ creator, onClose, onSave }) => {
         currentUser.miniProfilePictures = profileData.miniCards.filter((card) => card !== null);
         currentUser.profilePic = profileData.profilePic;
         localStorage.setItem("user", JSON.stringify(currentUser));
+        window.dispatchEvent(new Event(CLEERCUT_USER_STORAGE_UPDATED));
       }
 
       if (onSave) onSave();

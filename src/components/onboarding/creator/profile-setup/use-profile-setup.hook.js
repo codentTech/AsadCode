@@ -2,6 +2,7 @@
 
 import { CAMPAIGN_TYPE, PLATFORM_TYPE } from "@/common/constants/campaign.constant";
 import { getAllowedPlatformsForCreatorType } from "@/common/constants/creator-tag.constant";
+import { STANDARD_CONTENT_TYPES } from "@/common/constants/profile-setup.constant";
 import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 import { reset as resetAuth } from "@/provider/features/auth/auth.slice";
@@ -22,23 +23,41 @@ const validationSchema = Yup.object().shape({
     .oneOf([CAMPAIGN_TYPE.UGC, CAMPAIGN_TYPE.INFLUENCER, CAMPAIGN_TYPE.HYBRID])
     .required("Select a creator type"),
 
-  profilePhoto: Yup.mixed().nullable(),
+  profilePhoto: Yup.mixed().required("Profile photo is required"),
 
-  miniProfilePictures: Yup.array().length(3),
+  miniProfilePictures: Yup.array()
+    .length(3, "Three showcase image slots are required")
+    .test(
+      "all-showcase-filled",
+      "Upload all 3 showcase images",
+      (value) =>
+        Array.isArray(value) &&
+        value.length === 3 &&
+        value.every((item) => item != null && String(item).trim() !== "")
+    ),
 
-  bio: Yup.string().max(75, "Tagline must be less than 75 characters").optional(),
+  bio: Yup.string()
+    .trim()
+    .required("Tagline is required")
+    .max(75, "Tagline must be less than 75 characters"),
 
-  longBio: Yup.string().max(500, "Full bio must be less than 500 characters"),
+  longBio: Yup.string()
+    .max(500, "Full bio must be less than 500 characters")
+    .optional(),
 
-  socialPlatforms: Yup.array().of(
-    Yup.object().shape({
-      platform: Yup.string().required(),
-      username: Yup.string().required(),
-      followerCount: Yup.number().nullable(),
-    })
-  ),
+  socialPlatforms: Yup.array()
+    .of(
+      Yup.object().shape({
+        platform: Yup.string(),
+        username: Yup.string(),
+        followerCount: Yup.number().nullable(),
+      })
+    )
+    .optional(),
 
-  categories: Yup.array().max(5, "Maximum 5 niches allowed"),
+  categories: Yup.array()
+    .min(1, "Select at least one niche")
+    .max(5, "Maximum 5 niches allowed"),
 
   keywordTags: Yup.array()
     .max(15, "Suggested maximum is 15 keyword tags")
@@ -58,14 +77,17 @@ const validationSchema = Yup.object().shape({
         .trim()
         .min(2, "Each tag must be at least 2 characters")
         .max(30, "Each tag must be at most 30 characters")
-    ),
+    )
+    .optional(),
 
-  subNiches: Yup.array().of(
-    Yup.object().shape({
-      niche: Yup.string().required(),
-      tags: Yup.array().of(Yup.string()),
-    })
-  ),
+  subNiches: Yup.array()
+    .of(
+      Yup.object().shape({
+        niche: Yup.string(),
+        tags: Yup.array().of(Yup.string()),
+      })
+    )
+    .optional(),
 
   contentCharacteristics: Yup.object().shape({
     tone: Yup.string().optional(),
@@ -77,64 +99,15 @@ const validationSchema = Yup.object().shape({
     trustPositioning: Yup.string().optional(),
   }),
 
-  contentRates: Yup.array().of(
-    Yup.object().shape({
-      contentType: Yup.string().required(),
-      price: Yup.number().min(0, "Price must be positive"),
-    })
-  ),
+  contentRates: Yup.array()
+    .of(
+      Yup.object().shape({
+        contentType: Yup.string().nullable(),
+        price: Yup.number().min(0, "Price must be zero or greater").nullable(),
+      })
+    )
+    .optional(),
 });
-
-/**
- * Standard content types (kept stable order, used for rate mapping)
- */
-const STANDARD_CONTENT_TYPES = [
-  "Instagram Post",
-  "Instagram Reel",
-  "TikTok Video",
-  "YouTube Short",
-  "Instagram Story",
-  "UGC Video",
-  "YouTube Feature",
-];
-
-export const CONTENT_CHARACTERISTIC_GROUPS = [
-  {
-    key: "tone",
-    label: "Tone",
-    options: ["Serious", "Neutral", "Entertaining"],
-  },
-  {
-    key: "productionLevel",
-    label: "Production Level",
-    options: ["Casual", "Balanced", "Highly Edited"],
-  },
-  {
-    key: "deliveryStyle",
-    label: "Delivery Style",
-    options: ["Voiceover", "Mixed", "Talking to Camera"],
-  },
-  {
-    key: "contentFocus",
-    label: "Content Focus",
-    options: ["Informational", "Balanced", "Personality-driven"],
-  },
-  {
-    key: "energy",
-    label: "Energy",
-    options: ["Calm", "Moderate", "High Energy"],
-  },
-  {
-    key: "brandIntegration",
-    label: "Brand Integration Style",
-    options: ["Subtle/Organic", "Balanced", "Direct/Sales-focused"],
-  },
-  {
-    key: "trustPositioning",
-    label: "Trust Positioning",
-    options: ["Aspirational", "Balanced", "Authority/Expert"],
-  },
-];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

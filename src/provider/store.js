@@ -22,6 +22,7 @@ import campaignTimelineReducer from "./features/campaign-timeline/campaign-timel
 import contractsReducer from "./features/contracts/contracts.slice";
 import chatReducer from "./features/chat/chat.slice";
 import invitationReducer from "./features/invitation/invitation.slice";
+import invitesReducer from "./features/invites/invites.slice";
 import notificationReducer from "./features/notification/notification.slice";
 import campaignContextReducer from "./features/campaign-context/campaign-context.slice";
 import creatorApplicationsReducer from "./features/creator-applications/creator-applications.slice";
@@ -97,6 +98,7 @@ const rootReducer = combineReducers({
   contracts: contractsReducer,
   chat: chatReducer,
   invitation: invitationReducer,
+  invites: invitesReducer,
   notification: notificationReducer,
   campaignContext: campaignContextReducer,
   creatorApplications: creatorApplicationsReducer,
