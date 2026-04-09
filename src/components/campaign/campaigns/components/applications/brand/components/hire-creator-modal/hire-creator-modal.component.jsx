@@ -3,7 +3,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import {
   CAMPAIGN_TYPE_OPTIONS,
   COMPENSATION_TYPE_OPTIONS,
@@ -41,6 +41,7 @@ export default function HireCreatorModal({
     setShowPreview,
     handlePreviewContract,
     handleFormSubmit,
+    isSubmitting,
     revisionsLimitValue,
     usageRightsValue,
     exclusivityValue,
@@ -209,6 +210,12 @@ export default function HireCreatorModal({
               />
             )}
           </div>
+          {isIndividualCollaboration && campaignTypeValue === CAMPAIGN_TYPE.UGC && (
+            <p className="text-xs text-gray-600 mt-3">
+              UGC: the creator timeline has two steps (recorded → draft delivery). They are not asked
+              to submit a published post link.
+            </p>
+          )}
         </div>
 
         {/* Legal & Compliance */}
@@ -256,8 +263,11 @@ export default function HireCreatorModal({
             text="Send Offer"
             className="btn-primary"
             type="submit"
+            loading={isSubmitting}
             disabled={
-              (isPaymentRequired() && !hasPaymentMethod) || isCheckingPaymentMethod
+              isSubmitting ||
+              (isPaymentRequired() && !hasPaymentMethod) ||
+              isCheckingPaymentMethod
             }
           />
         </div>

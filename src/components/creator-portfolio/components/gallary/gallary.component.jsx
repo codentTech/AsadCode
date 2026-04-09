@@ -11,6 +11,7 @@ import useGallary from "./use-gallary.hook";
 import { formatNumber } from "@/common/utils/format.utils";
 import { format } from "date-fns";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { getGalleryVideoPlaybackSrc } from "@/common/utils/gallery-media.util";
 import { isCreatorMode } from "@/common/utils/users.util";
 
 const Gallary = ({ refreshKey, creatorId = null }) => {
@@ -111,17 +112,20 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
       {/* Grid */}
       {filteredPortfolio.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPortfolio.map((item) => (
+          {filteredPortfolio.map((item) => {
+            const videoPlaybackSrc =
+              item.media_type === "video" ? getGalleryVideoPlaybackSrc(item) : null;
+            return (
             <div
               key={item.id}
               className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-white border border-gray-100"
             >
               {/* Thumbnail */}
               <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                {item.media_type === "video" && (item.file_url || item.phyllo_preview_url) ? (
+                {item.media_type === "video" && videoPlaybackSrc ? (
                   <video
-                    key={item.file_url || item.phyllo_preview_url}
-                    src={item.file_url || item.phyllo_preview_url}
+                    key={videoPlaybackSrc}
+                    src={videoPlaybackSrc}
                     className="absolute inset-0 h-full w-full object-contain bg-black"
                     preload="metadata"
                     controls
@@ -130,8 +134,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                   />
                 ) : item.media_type === "video" &&
                   item.source_type === "post_link" &&
-                  !item.file_url &&
-                  !item.phyllo_preview_url ? (
+                  !videoPlaybackSrc ? (
                   <>
                     <img
                       src={item.thumbnail_url || undefined}
@@ -145,6 +148,13 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                       </span>
                     </div>
                   </>
+                ) : item.media_type === "video" ? (
+                  <img
+                    src={item.thumbnail_url || item.file_url || ""}
+                    alt={item.caption_text || item.title || ""}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                  />
                 ) : (
                   <img
                     src={item.thumbnail_url || item.file_url}
@@ -244,7 +254,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                   </div>
                   {item.source_type === "post_link" &&
                     item.post_url &&
-                    (item.file_url || item.phyllo_preview_url) &&
+                    videoPlaybackSrc &&
                     String(item.platform || "").toLowerCase() === "instagram" && (
                       <p className="text-[10px] text-gray-400 leading-snug text-center">
                         Opening on Instagram may require login; the preview player is the reliable
@@ -254,7 +264,8 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">

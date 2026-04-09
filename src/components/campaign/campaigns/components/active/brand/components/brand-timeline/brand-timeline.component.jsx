@@ -16,6 +16,7 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
     showRevisionModal,
     revisionNotes,
     completionPercentage,
+    timelineProgressNumerator,
 
     // Actions
     setShowRevisionModal,
@@ -26,6 +27,7 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
     handleMarkAsComplete,
     formatDate,
     getTimeRemaining,
+    isDeliverablesOnlyWorkflow,
   } = useBrandTimeline(campaignId, creatorId);
 
   const getStepIcon = (step) => {
@@ -90,10 +92,15 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-gray-800">Progress</h3>
         <span className="text-xs text-gray-500">
-          {timelineSteps.filter((s) => s.status === TIMELINE_STATUS.COMPLETED).length}/
-          {timelineSteps.length}
+          {timelineProgressNumerator}/{timelineSteps.length}
         </span>
       </div>
+      {isDeliverablesOnlyWorkflow && (
+        <p className="text-xs text-gray-600 -mt-1 mb-1">
+          UGC-style flow: there is no “published post” step. Approving the submitted deliverables
+          completes the creator timeline.
+        </p>
+      )}
 
       {/* Progress Bar */}
       <div className="mb-3">
@@ -156,7 +163,13 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
 
                 <div className="flex gap-1">
                   <CustomButton
-                    text={approveLoading ? "Approving..." : "Approve"}
+                    text={
+                      approveLoading
+                        ? "Approving..."
+                        : isDeliverablesOnlyWorkflow
+                          ? "Approve deliverables"
+                          : "Approve"
+                    }
                     onClick={handleApproveDraft}
                     className="btn-success w-full !h-7 text-xs"
                     disabled={approveLoading}

@@ -1,15 +1,14 @@
-import { X } from "lucide-react";
+import COUNTRIES from "@/common/constants/countries.constant";
 import {
-  NICHE_OPTIONS,
-  PLATFORM_OPTIONS,
+  AUDIENCE_AGE_OPTIONS,
+  AUDIENCE_GENDER_OPTIONS,
   FOLLOWER_OPTIONS,
   GENDER_OPTIONS,
   LANGUAGE_OPTIONS,
-  AUDIENCE_GENDER_OPTIONS,
-  AUDIENCE_AGE_OPTIONS,
-  COUNTRY_OPTIONS,
+  NICHE_OPTIONS,
+  PLATFORM_OPTIONS,
 } from "@/common/constants/options.constant";
-import COUNTRIES from "@/common/constants/countries.constant";
+import { X } from "lucide-react";
 
 const FilterTag = ({ children, onRemove, color = "blue" }) => {
   const colorClasses = {
@@ -19,7 +18,7 @@ const FilterTag = ({ children, onRemove, color = "blue" }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${colorClasses[color]}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${colorClasses[color]}`}
     >
       <span
         className={`w-1.5 h-1.5 rounded-full ${color === "blue" ? "bg-blue-600" : "bg-purple-600"}`}
@@ -135,8 +134,9 @@ const ActiveFilters = ({
                     (n) => n.value.toLowerCase() === niche.toLowerCase()
                   );
                   // If not found, use the niche value itself (capitalize first letter)
-                  const nicheLabel = nicheOption?.label || 
-                    (niche.charAt(0).toUpperCase() + niche.slice(1).toLowerCase());
+                  const nicheLabel =
+                    nicheOption?.label ||
+                    niche.charAt(0).toUpperCase() + niche.slice(1).toLowerCase();
                   return (
                     <FilterTag key={niche} onRemove={() => onNicheToggle(niche)} color="blue">
                       {nicheLabel}

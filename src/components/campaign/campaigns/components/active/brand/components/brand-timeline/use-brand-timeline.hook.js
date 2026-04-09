@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getTimeline,
@@ -42,6 +42,13 @@ export default function useBrandTimeline(campaignId, creatorId) {
   const [selectedStepForRevision, setSelectedStepForRevision] = useState(null);
 
   const timelineSteps = Array.isArray(timelineData?.data) ? timelineData.data : [];
+
+  const isDeliverablesOnlyWorkflow = useMemo(
+    () =>
+      timelineSteps.length > 0 &&
+      !timelineSteps.some((s) => s.step === TIMELINE_STEPS.FINAL_PUBLISHED),
+    [timelineSteps]
+  );
 
   useEffect(() => {
     if (!campaignId || !creatorId) {
@@ -169,11 +176,12 @@ export default function useBrandTimeline(campaignId, creatorId) {
     await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
   }, [campaignId, creatorId, timelineSteps, dispatch]);
 
-  const completedSteps = timelineSteps.filter(
-    (step) => step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
+  const timelineProgressNumerator = timelineSteps.filter(
+    (step) =>
+      step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
   ).length;
   const completionPercentage =
-    timelineSteps.length > 0 ? (completedSteps / timelineSteps.length) * 100 : 0;
+    timelineSteps.length > 0 ? (timelineProgressNumerator / timelineSteps.length) * 100 : 0;
 
   return {
     timelineSteps,
@@ -184,6 +192,7 @@ export default function useBrandTimeline(campaignId, creatorId) {
     showRevisionModal,
     revisionNotes,
     completionPercentage,
+    timelineProgressNumerator,
     setShowRevisionModal,
     setRevisionNotes,
     setSelectedStepForRevision,
@@ -192,5 +201,6 @@ export default function useBrandTimeline(campaignId, creatorId) {
     handleMarkAsComplete,
     formatDate,
     getTimeRemaining,
+    isDeliverablesOnlyWorkflow,
   };
 }

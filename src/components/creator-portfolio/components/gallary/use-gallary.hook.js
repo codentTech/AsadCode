@@ -67,7 +67,7 @@ function useGallary(refreshKey = 0, creatorId = null) {
   useEffect(() => {
     if (!hasPendingHostedVideo) return;
     const intervalId = setInterval(() => {
-      dispatch(fetchCreatorGallery({ creatorId, nicheId: null }));
+      dispatch(fetchCreatorGallery({ creatorId, nicheId: null, silent: true }));
     }, 10000);
     const stopId = setTimeout(() => clearInterval(intervalId), 180000);
     return () => {

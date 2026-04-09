@@ -136,15 +136,15 @@ const creatorNavItems = [
         icon: Heart,
       },
       {
-        label: "Saved Filter Settings",
+        label: "Connected Accounts & Preferences",
         href: "/settings/campaign-defaults/saved-default-filter",
         icon: Settings,
       },
-      {
-        label: "Audience insights",
-        href: "/settings/audience-insights",
-        icon: BarChart3,
-      },
+      // {
+      //   label: "Audience insights",
+      //   href: "/settings/audience-insights",
+      //   icon: BarChart3,
+      // },
     ],
   },
   {
