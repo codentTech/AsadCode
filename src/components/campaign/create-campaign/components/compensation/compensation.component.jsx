@@ -3,8 +3,8 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import CustomRadioGroup from "@/common/components/radio-group/radio-group.component";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
-import useCompensation from "./use-compensation.hook";
 import { Lock } from "lucide-react";
+import useCompensation from "./use-compensation.hook";
 
 function Compensation({ campaignData, errors = {}, register, setValue }) {
   const {
