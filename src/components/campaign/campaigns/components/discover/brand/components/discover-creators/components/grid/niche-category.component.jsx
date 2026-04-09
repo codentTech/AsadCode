@@ -67,7 +67,7 @@ const NicheCategory = ({
           containerRef.current = el;
           if (scrollRef) scrollRef(el);
         }}
-        className="flex overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
+        className="flex items-stretch overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
       >
         {category.creators.map((creator) => (
           <CreatorCard

@@ -27,6 +27,7 @@ export default function CustomButton({
   endIcon = null,
   startIcon = null,
   loading = false,
+  loadingText = "",
   title = "",
 }) {
   return (
@@ -42,7 +43,16 @@ export default function CustomButton({
       className={`btn font-dm normal-case ${className}`}
       title={title}
     >
-      {loading ? <CircularProgress className="text-white" size={20} /> : text}
+      {loading ? (
+        <span className="inline-flex items-center justify-center gap-2 min-w-0">
+          <CircularProgress className="text-white shrink-0" size={20} />
+          {loadingText ? (
+            <span className="text-sm font-medium truncate max-w-[220px]">{loadingText}</span>
+          ) : null}
+        </span>
+      ) : (
+        text
+      )}
     </Button>
   );
 }
@@ -60,4 +70,5 @@ CustomButton.propTypes = {
   id: PropTypes.string,
   title: PropTypes.string,
   loading: PropTypes.bool,
+  loadingText: PropTypes.string,
 };
