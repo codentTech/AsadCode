@@ -59,6 +59,7 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
             text="Import Post"
             type="submit"
             loading={isLoading}
+            loadingText="Importing your post..."
             disabled={
               isLoading ||
               !formData.post_url?.trim() ||
