@@ -283,9 +283,11 @@ function CampaignFeed() {
           <div className="flex gap-3">
             <CustomButton text="Cancel" className="w-full btn-cancel" onClick={closeApplication} />
             <CustomButton
-              text={isApplying ? "Submitting..." : "Submit Application"}
+              text="Submit Application"
               className="w-full btn-primary"
               onClick={handleApply}
+              disabled={isApplying}
+              loading={isApplying}
             />
           </div>
         </div>

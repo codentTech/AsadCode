@@ -111,7 +111,6 @@ export default function useDiscoverCreators() {
   const [selectedSort, setSelectedSort] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filteredCreators, setFilteredCreators] = useState([]);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -340,27 +339,12 @@ export default function useDiscoverCreators() {
   }, [isReduxReady, safeData]);
 
   useEffect(() => {
-    if (isReduxReady && !hasInitialized && !searchKeyword && !hasActiveFilters() && !selectedSort) {
-      if (!safeData.users || safeData.users.length === 0) {
-        fetchCreators({});
-        setHasInitialized(true);
-      }
-    }
-  }, [
-    isReduxReady,
-    hasInitialized,
-    searchKeyword,
-    hasActiveFilters,
-    selectedSort,
-    fetchCreators,
-    safeData.users,
-  ]);
-
-  useEffect(() => {
-    if (isReduxReady && hasInitialized && !searchKeyword && !hasActiveFilters() && !selectedSort) {
-      fetchCreators({});
-    }
-  }, [isReduxReady, hasInitialized, searchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
+    if (!isReduxReady) return;
+    if (searchKeyword) return;
+    if (hasActiveFilters()) return;
+    if (selectedSort) return;
+    fetchCreators({});
+  }, [isReduxReady, searchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
 
   useEffect(() => {
     if (!isReduxReady || showFilterModal) return;

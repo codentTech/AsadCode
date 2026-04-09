@@ -13,11 +13,7 @@ import {
 } from "lucide-react";
 import useCreatorTimeline from "./use-creator-timeline.hook";
 
-const CreatorTimelineSteps = ({
-  campaignId,
-  deadline = "2025-01-20T23:59:59Z",
-  revisionsLimit = 2,
-}) => {
+const CreatorTimelineSteps = ({ campaignId, deadline, revisionsLimit }) => {
   const {
     // State
     timelineSteps,
@@ -40,6 +36,8 @@ const CreatorTimelineSteps = ({
     formatDate,
     getTimeRemaining,
     validateUrl,
+    maxTimelineStepNumber,
+    hasPublishedPostStep,
   } = useCreatorTimeline(campaignId, deadline, revisionsLimit);
 
   const getStepIcon = (step) => {
@@ -141,13 +139,16 @@ const CreatorTimelineSteps = ({
               {step.submitted_at && !step.completed_at && (
                 <span>Submitted: {formatDate(step.submitted_at)}</span>
               )}
-              {step.step_number === 3 && step.status !== TIMELINE_STATUS.COMPLETED && (
-                <span
-                  className={`${getTimeRemaining(deadline) === "Overdue" ? "text-red-600 font-medium" : ""}`}
-                >
-                  Deadline: {getTimeRemaining(deadline)}
-                </span>
-              )}
+              {deadline &&
+                maxTimelineStepNumber > 0 &&
+                step.step_number === maxTimelineStepNumber &&
+                step.status !== TIMELINE_STATUS.COMPLETED && (
+                  <span
+                    className={`${getTimeRemaining(deadline) === "Overdue" ? "text-red-600 font-medium" : ""}`}
+                  >
+                    Deadline: {getTimeRemaining(deadline)}
+                  </span>
+                )}
             </div>
 
             {/* Revision Info */}
@@ -211,8 +212,12 @@ const CreatorTimelineSteps = ({
                   <CustomButton
                     text={
                       step.status === TIMELINE_STATUS.REVISION_REQUESTED
-                        ? "Re-upload Draft"
-                        : "Upload Draft"
+                        ? hasPublishedPostStep
+                          ? "Re-upload Draft"
+                          : "Re-upload deliverables"
+                        : hasPublishedPostStep
+                          ? "Upload Draft"
+                          : "Upload deliverables"
                     }
                     onClick={() => setShowUploadModal(true)}
                     className="btn-primary !h-7 text-xs"
@@ -248,13 +253,17 @@ const CreatorTimelineSteps = ({
       {/* Upload Modal */}
       <Modal
         show={showUploadModal}
-        title="Upload Draft Content"
+        title={hasPublishedPostStep ? "Upload Draft Content" : "Upload deliverables"}
         onClose={() => setShowUploadModal(false)}
       >
         <div>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600 mb-2">Choose file to upload</p>
+            <p className="text-sm text-gray-600 mb-2">
+              {hasPublishedPostStep
+                ? "Choose file to upload"
+                : "Upload your final files for the brand (no published post link required)"}
+            </p>
             <input
               type="file"
               accept="video/*,image/*"
@@ -269,7 +278,7 @@ const CreatorTimelineSteps = ({
               Select File
             </label>
             {selectedFile && (
-              <p className="text-xs text-green-600 mt-2">Selected: {selectedFile.name}</p>
+              <p className="text-xs text-indigo-600 mt-2">Selected: {selectedFile.name}</p>
             )}
           </div>
           <div className="flex justify-end gap-2">
@@ -280,10 +289,11 @@ const CreatorTimelineSteps = ({
               onClick={() => setShowUploadModal(false)}
             />
             <CustomButton
-              text={updateLoading ? "Uploading..." : "Submit for Review"}
+              text="Submit for Review"
               className="btn-primary"
               onClick={handleFileUpload}
               disabled={!selectedFile || updateLoading}
+              loading={updateLoading}
             />
           </div>
         </div>
