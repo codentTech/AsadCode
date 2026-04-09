@@ -7,8 +7,12 @@ import {
 } from "@/common/constants/creator-tag.constant";
 import { getUser } from "@/common/utils/users.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
-import { getSocialAccounts, updateCampaignDefaults } from "@/provider/features/users/users.slice";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  disconnectSocialAccount,
+  getSocialAccounts,
+  updateCampaignDefaults,
+} from "@/provider/features/users/users.slice";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 
 export const standardContentTypes = [
@@ -69,6 +73,9 @@ export default function useSavedDefaultFilter() {
   const [isLoading, setIsLoading] = useState(true);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
+  const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
+  const [platformPendingDisconnect, setPlatformPendingDisconnect] = useState(null);
+  const disconnectInFlightRef = useRef(false);
 
   const { openConnect: openPhylloConnect } = usePhylloConnect();
 
@@ -87,7 +94,7 @@ export default function useSavedDefaultFilter() {
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
 
-  const loadConnectedAccounts = async () => {
+  const loadConnectedAccounts = useCallback(async () => {
     const result = await dispatch(getSocialAccounts());
     if (getSocialAccounts.rejected.match(result)) {
       setConnectedAccounts([]);
@@ -108,7 +115,7 @@ export default function useSavedDefaultFilter() {
     const activeAccounts = normalizedAccounts.filter((acc) => acc?.is_active !== false);
     setConnectedAccounts(activeAccounts);
     return activeAccounts;
-  };
+  }, [dispatch]);
 
   const pollUntilPlatformConnected = async (targetPlatform, attempts = 18, intervalMs = 5000) => {
     for (let i = 0; i < attempts; i++) {
@@ -155,6 +162,31 @@ export default function useSavedDefaultFilter() {
       setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: false }));
     }
   };
+
+  const openDisconnectSocialModal = useCallback((platform) => {
+    setPlatformPendingDisconnect(platform);
+    setDisconnectModalOpen(true);
+  }, []);
+
+  const closeDisconnectSocialModal = useCallback(() => {
+    setDisconnectModalOpen(false);
+    setPlatformPendingDisconnect(null);
+  }, []);
+
+  const confirmDisconnectSocialAccount = useCallback(
+    async (_id) => {
+      if (!platformPendingDisconnect || disconnectInFlightRef.current) return;
+      disconnectInFlightRef.current = true;
+      const platformParam = String(platformPendingDisconnect).toLowerCase();
+      const result = await dispatch(disconnectSocialAccount(platformParam));
+      if (disconnectSocialAccount.fulfilled.match(result)) {
+        await loadConnectedAccounts();
+        closeDisconnectSocialModal();
+      }
+      disconnectInFlightRef.current = false;
+    },
+    [platformPendingDisconnect, dispatch, loadConnectedAccounts, closeDisconnectSocialModal]
+  );
 
   const isPlatformConnected = (platform) =>
     connectedAccounts.some((account) => account.platform === platform);
@@ -359,6 +391,11 @@ export default function useSavedDefaultFilter() {
     };
   }, [userSnapshot, selectedCategories]);
 
+  const disconnectPlatformLabel = platformPendingDisconnect
+    ? String(platformPendingDisconnect).charAt(0).toUpperCase() +
+      String(platformPendingDisconnect).slice(1).toLowerCase()
+    : "";
+
   return {
     standardContentTypes,
     selectedCategories,
@@ -371,6 +408,11 @@ export default function useSavedDefaultFilter() {
     connectedAccounts,
     loadConnectedAccounts,
     handleConnectSocialAccounts,
+    disconnectModalOpen,
+    disconnectPlatformLabel,
+    openDisconnectSocialModal,
+    closeDisconnectSocialModal,
+    confirmDisconnectSocialAccount,
     isPlatformConnected,
     getConnectedAccountData,
     handleCategoryChange,
