@@ -1,5 +1,5 @@
 import { avatar } from "@/common/constants/auth.constant";
-import { TIMELINE_STATUS } from "@/common/constants/campaign.constant";
+import { TIMELINE_STATUS, TIMELINE_STEPS } from "@/common/constants/campaign.constant";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import {
   createCampaignNote,
@@ -471,11 +471,36 @@ const useDeliverablesProgress = (
     creatorTimelineSteps = timelineSteps;
   }
 
-  const areAllStepsComplete =
-    creatorTimelineSteps.length >= 3 &&
-    creatorTimelineSteps.every((step) => step.status === TIMELINE_STATUS.COMPLETED);
+  const hasPublishedPostStep = creatorTimelineSteps.some(
+    (s) => s.step === TIMELINE_STEPS.FINAL_PUBLISHED
+  );
+
+  const areAllStepsComplete = (() => {
+    if (!creatorTimelineSteps.length) return false;
+    if (hasPublishedPostStep) {
+      return creatorTimelineSteps.every((s) => s.status === TIMELINE_STATUS.COMPLETED);
+    }
+    return creatorTimelineSteps.every((step) => {
+      if (step.step === TIMELINE_STEPS.CONTENT_RECORDED) {
+        return step.status === TIMELINE_STATUS.COMPLETED;
+      }
+      if (step.step === TIMELINE_STEPS.DRAFT_REVIEW) {
+        return (
+          step.status === TIMELINE_STATUS.COMPLETED ||
+          step.status === TIMELINE_STATUS.APPROVED
+        );
+      }
+      return step.status === TIMELINE_STATUS.COMPLETED;
+    });
+  })();
 
   const isMarkCompleteDisabled = !areAllStepsComplete;
+
+  const markCompleteDisabledTitle = areAllStepsComplete
+    ? ""
+    : hasPublishedPostStep
+      ? "Final content must be published before completion"
+      : "Complete all campaign steps before marking complete";
 
   const handleMarkCompleteClick = () => {
     setShowMarkCompleteModal(true);
@@ -636,6 +661,7 @@ const useDeliverablesProgress = (
     showMarkCompleteModal,
     isMarkingComplete,
     isMarkCompleteDisabled,
+    markCompleteDisabledTitle,
     markCompleteRating,
     setMarkCompleteRating,
     markCompleteFeedback,

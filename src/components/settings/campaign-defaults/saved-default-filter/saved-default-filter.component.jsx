@@ -1,10 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
-import { CONTENT_CHARACTERISTIC_GROUPS } from "@/components/onboarding/creator/profile-setup/use-profile-setup.hook";
+import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
 import { AddCircle } from "@mui/icons-material";
 import {
   AlertCircle,
@@ -30,6 +31,11 @@ const SavedDefaultFilters = () => {
     isLoading,
     loadConnectedAccounts,
     handleConnectSocialAccounts,
+    disconnectModalOpen,
+    disconnectPlatformLabel,
+    openDisconnectSocialModal,
+    closeDisconnectSocialModal,
+    confirmDisconnectSocialAccount,
     isPlatformConnected,
     getConnectedAccountData,
     handleCategoryChange,
@@ -54,10 +60,10 @@ const SavedDefaultFilters = () => {
   return (
     <>
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Saved Default Filters</h1>
+        <h1 className="text-xl font-bold text-white">Connected Accounts & Preferences</h1>
         <p className="text-sm mt-1">
-          Set your default filters to automatically see the most relevant campaigns. Save time and
-          focus on opportunities that match your preferences.
+          Connect your social media accounts and set your default filters to automatically see the
+          most relevant campaigns. Save time and focus on opportunities that match your preferences.
         </p>
       </div>
 
@@ -135,16 +141,25 @@ const SavedDefaultFilters = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2 shrink-0">
+                      <div className="flex items-center flex-wrap justify-end gap-2 shrink-0">
                         {isConnected ? (
-                          <CustomButton
-                            text="Profile"
-                            onClick={() =>
-                              window.open(connectedData?.profile_data?.profile_url, "_blank")
-                            }
-                            className="btn-outline text-xs px-3 py-1 h-7"
-                            startIcon={<ExternalLink className="w-3 h-3" />}
-                          />
+                          <>
+                            <CustomButton
+                              text="Profile"
+                              onClick={() =>
+                                window.open(connectedData?.profile_data?.profile_url, "_blank")
+                              }
+                              className="btn-outline text-xs px-3 py-1 h-7"
+                              startIcon={<ExternalLink className="w-3 h-3" />}
+                            />
+                            <CustomButton
+                              text="Disconnect"
+                              type="button"
+                              onClick={() => openDisconnectSocialModal(platform)}
+                              className="btn-outline text-xs px-3 py-1 h-7 border-red-200 text-red-700 hover:bg-red-50"
+                              startIcon={<Trash2 className="w-3 h-3" />}
+                            />
+                          </>
                         ) : (
                           <CustomButton
                             text="Connect"
@@ -174,8 +189,8 @@ const SavedDefaultFilters = () => {
                     </span>
                   ) : (
                     <span>
-                      <span className="font-medium">Note:</span> Connect the platforms you use.
-                      Connected accounts power campaign matching and analytics.
+                      <span className="font-medium">Note:</span> Connect or disconnect platforms as
+                      needed. Connected accounts power campaign matching and analytics.
                     </span>
                   )}
                 </div>
@@ -364,38 +379,38 @@ const SavedDefaultFilters = () => {
             </div>
 
             <div className="mt-4 p-3 border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="flex justify-between pt-1 bg-gray-200 p-2 rounded-lg items-center mb-2">
+                <h3 className="text-xs font-semibold text-gray-900">Add custom rate</h3>
+                <button
+                  type="button"
+                  className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors"
+                  onClick={addCustomRateRow}
+                >
+                  <AddCircle className="text-primary" />
+                </button>
+              </div>
               {customRates.map((rate, idx) => (
-                <div key={idx} className="flex justify-between mb-2">
-                  <div className="flex gap-2">
-                    <CustomInput
-                      placeholder="Custom package"
-                      className="!border !border-gray-300"
-                      value={rate.contentType}
-                      onChange={(e) => handleCustomRateChange(idx, "contentType", e.target.value)}
-                    />
-                    <CustomInput
-                      type="number"
-                      placeholder="Price"
-                      className="!border !border-gray-300"
-                      value={rate.price}
-                      onChange={(e) => handleCustomRateChange(idx, "price", e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="bg-red-200 p-1 rounded-full m-2.5"
-                      onClick={() => removeCustomRate(idx)}
-                      disabled={customRates.length === 1}
-                    >
-                      <X className="text-red-600 w-3 h-3" />
-                    </button>
-                  </div>
-
+                <div key={idx} className="flex gap-2 mb-2 items-center">
+                  <CustomInput
+                    placeholder="Custom package"
+                    className="!border !border-gray-300 flex-1 min-w-0"
+                    value={rate.contentType}
+                    onChange={(e) => handleCustomRateChange(idx, "contentType", e.target.value)}
+                  />
+                  <CustomInput
+                    type="number"
+                    placeholder="Price"
+                    className="!border !border-gray-300 !w-28 shrink-0"
+                    value={rate.price}
+                    onChange={(e) => handleCustomRateChange(idx, "price", e.target.value)}
+                  />
                   <button
                     type="button"
-                    className="bg-gray-200 p-2 rounded-full"
-                    onClick={addCustomRateRow}
+                    className="bg-red-200 p-1 rounded-full shrink-0 mr-4"
+                    onClick={() => removeCustomRate(idx)}
+                    disabled={customRates.length === 1}
                   >
-                    <AddCircle className="text-primary" />
+                    <X className="text-red-600 w-3 h-3" />
                   </button>
                 </div>
               ))}
@@ -412,6 +427,20 @@ const SavedDefaultFilters = () => {
           onClick={handleSaveSettings}
         />
       </div>
+
+      <DeleteConfirmationModal
+        id={0}
+        openConfirmationPopup={disconnectModalOpen}
+        setOpenConfirmationPopup={(open) => {
+          if (!open) closeDisconnectSocialModal();
+        }}
+        mainText={`Disconnect ${disconnectPlatformLabel || "this platform"}?`}
+        subText="This unlinks the account from your Cleercut profile. You can connect it again anytime."
+        confirmText="Disconnect"
+        closeText="Cancel"
+        action={confirmDisconnectSocialAccount}
+        type="disconnect-social"
+      />
     </>
   );
 };

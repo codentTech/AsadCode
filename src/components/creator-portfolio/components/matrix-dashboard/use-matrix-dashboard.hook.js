@@ -1,10 +1,10 @@
+import { getDefaultCreatorPlatformFromConnectedList } from "@/common/constants/genaric.constant";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCreatorMetrics,
   selectCreatorMetrics,
   selectCreatorSocialAccounts,
-  resetMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
 
 export const useCreatorMetricsDashboard = (creatorId, selectedPlatform = null) => {
@@ -12,21 +12,23 @@ export const useCreatorMetricsDashboard = (creatorId, selectedPlatform = null) =
   const { data, isLoading } = useSelector(selectCreatorMetrics);
   const socialAccounts = useSelector(selectCreatorSocialAccounts);
 
-  const socialResolved =
-    socialAccounts.isSuccess && Array.isArray(socialAccounts.data);
+  const defaultPlatformWillApply = useMemo(() => {
+    if (!socialAccounts.isSuccess || !Array.isArray(socialAccounts.data)) return false;
+    return getDefaultCreatorPlatformFromConnectedList(socialAccounts.data) != null;
+  }, [socialAccounts.isSuccess, socialAccounts.data]);
 
   const waitingForDefaultPlatform =
     Boolean(creatorId) &&
     !selectedPlatform &&
     !socialAccounts.isError &&
     (socialAccounts.isLoading ||
-      (!socialAccounts.isSuccess && !socialAccounts.isError));
+      (!socialAccounts.isSuccess && !socialAccounts.isError) ||
+      defaultPlatformWillApply);
 
   useEffect(() => {
     if (creatorId && selectedPlatform) {
       dispatch(fetchCreatorMetrics({ creatorId, platform: selectedPlatform }));
     }
-    return () => dispatch(resetMetrics());
   }, [creatorId, selectedPlatform, dispatch]);
 
   const matrixDashboardData = useMemo(() => data?.data ?? null, [data]);

@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchCreatorGallery,
-  selectGalleryItems,
-  refreshMetricsThunk,
-  deleteGalleryItemThunk,
-} from "@/provider/features/gallery/gallery.slice";
 import {
   categoriesToNicheOptions,
   mergeNicheOptionLists,
 } from "@/common/constants/genaric.constant";
+import {
+  deleteGalleryItemThunk,
+  fetchCreatorGallery,
+  refreshMetricsThunk,
+  selectGalleryItems,
+  selectRefreshMetrics,
+} from "@/provider/features/gallery/gallery.slice";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const dispatch = useDispatch();
@@ -24,6 +25,9 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const galleryState = useSelector(selectGalleryItems);
   const galleryItems = galleryState?.data || [];
   const isGalleryLoading = galleryState?.isLoading || false;
+  const refreshMetricsState = useSelector(selectRefreshMetrics);
+  const [metricsRefreshGalleryId, setMetricsRefreshGalleryId] = useState(null);
+  const wasMetricsRefreshing = useRef(false);
 
   useEffect(() => {
     if (activeTab === "gallery") {
@@ -34,17 +38,14 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const hasPendingHostedVideo = useMemo(() => {
     if (activeTab !== "gallery" || !galleryItems?.length) return false;
     return galleryItems.some(
-      (i) =>
-        i.media_type === "video" &&
-        i.source_type === "post_link" &&
-        !i.file_url
+      (i) => i.media_type === "video" && i.source_type === "post_link" && !i.file_url
     );
   }, [activeTab, galleryItems]);
 
   useEffect(() => {
     if (!hasPendingHostedVideo) return;
     const intervalId = setInterval(() => {
-      dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null }));
+      dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null, silent: true }));
     }, 10000);
     const stopId = setTimeout(() => clearInterval(intervalId), 180000);
     return () => {
@@ -52,6 +53,18 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
       clearTimeout(stopId);
     };
   }, [hasPendingHostedVideo, dispatch]);
+
+  useEffect(() => {
+    const loading = refreshMetricsState.isLoading;
+    if (
+      wasMetricsRefreshing.current &&
+      !loading &&
+      metricsRefreshGalleryId !== null
+    ) {
+      setMetricsRefreshGalleryId(null);
+    }
+    wasMetricsRefreshing.current = loading;
+  }, [refreshMetricsState.isLoading, metricsRefreshGalleryId]);
 
   const refreshGallery = useCallback(() => {
     dispatch(fetchCreatorGallery({ creatorId: null, nicheId: null }));
@@ -73,9 +86,15 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
 
   const handleRefreshMetrics = useCallback(
     (galleryId) => {
+      setMetricsRefreshGalleryId(galleryId);
       dispatch(refreshMetricsThunk(galleryId));
     },
     [dispatch]
+  );
+
+  const isRefreshingMetricsFor = useCallback(
+    (galleryId) => metricsRefreshGalleryId === galleryId,
+    [metricsRefreshGalleryId]
   );
 
   const canRefreshMetrics = useCallback((item) => {
@@ -141,6 +160,7 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
     handleGalleryDeleteItem,
     handleRefreshMetrics,
     canRefreshMetrics,
+    isRefreshingMetricsFor,
   };
 };
 

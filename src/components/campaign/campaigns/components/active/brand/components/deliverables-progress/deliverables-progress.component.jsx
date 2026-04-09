@@ -55,6 +55,7 @@ const DeliverablesProgress = ({
     showMarkCompleteModal,
     isMarkingComplete,
     isMarkCompleteDisabled,
+    markCompleteDisabledTitle,
     markCompleteRating,
     setMarkCompleteRating,
     markCompleteFeedback,
@@ -163,7 +164,7 @@ const DeliverablesProgress = ({
           onClick={handleMarkCompleteClick}
           className={isMarkCompleteDisabled ? "btn-disabled w-full" : "btn-primary w-full"}
           disabled={isMarkCompleteDisabled}
-          title={isMarkCompleteDisabled ? "Final content must be published before completion" : ""}
+          title={markCompleteDisabledTitle}
         />
       </div>
     </div>

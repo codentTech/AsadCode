@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getTimeline,
@@ -37,6 +37,19 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
 
   // Get timeline steps from Redux
   const timelineSteps = timelineData?.data || [];
+
+  const maxTimelineStepNumber = useMemo(
+    () =>
+      timelineSteps.length
+        ? Math.max(...timelineSteps.map((s) => Number(s.step_number) || 0))
+        : 0,
+    [timelineSteps]
+  );
+
+  const hasPublishedPostStep = useMemo(
+    () => timelineSteps.some((s) => s.step === TIMELINE_STEPS.FINAL_PUBLISHED),
+    [timelineSteps]
+  );
 
   useEffect(() => {
     if (campaignId && creatorId) {
@@ -215,5 +228,7 @@ export default function useCreatorTimeline(campaignId, deadline, revisionsLimit 
     validateUrl,
     revisionsLimit,
     deadline,
+    maxTimelineStepNumber,
+    hasPublishedPostStep,
   };
 }
