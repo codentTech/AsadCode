@@ -70,15 +70,16 @@ const NicheCategory = ({
         className="flex items-stretch overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
       >
         {category.creators.map((creator) => (
-          <CreatorCard
-            key={creator.id}
-            creator={creator}
-            onCreatorPreview={onCreatorPreview}
-            onSaveToShortlist={onSaveToShortlist}
-            onRemoveFromShortlist={onRemoveFromShortlist}
-            onInviteClick={onInviteClick}
-            tab="discover"
-          />
+          <div key={creator.id} className="flex h-full min-h-0 shrink-0 self-stretch">
+            <CreatorCard
+              creator={creator}
+              onCreatorPreview={onCreatorPreview}
+              onSaveToShortlist={onSaveToShortlist}
+              onRemoveFromShortlist={onRemoveFromShortlist}
+              onInviteClick={onInviteClick}
+              tab="discover"
+            />
+          </div>
         ))}
       </div>
       <hr className="border-gray-200" />

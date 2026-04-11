@@ -126,7 +126,7 @@ const CreatorCard = ({
           </div>
 
           {/* Niches */}
-          <div className="flex flex-wrap justify-center gap-1">
+          <div className="flex min-h-[3.25rem] flex-wrap content-start items-start justify-center gap-1">
             {(creator.niches || []).slice(0, 3).map((niche) => (
               <span
                 key={niche}
@@ -138,7 +138,7 @@ const CreatorCard = ({
           </div>
 
           {/* Bio */}
-          <p className="line-clamp-3 text-center text-xs text-gray-500">
+          <p className="min-h-[3rem] line-clamp-3 text-center text-xs text-gray-500">
             {creator.bio || creator.tagline || ""}
           </p>
 
@@ -150,47 +150,52 @@ const CreatorCard = ({
         </div>
 
         {!hideActions && (
-          <div className="mt-auto flex flex-col gap-3">
-            {/* Social Platforms */}
-            {creator.platforms && creator.platforms.length > 0 && (
-              <div
-                className="flex justify-center bg-gray-100 py-2 rounded-lg"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {(creator.platforms || []).map((platform, index, arr) => {
-                  const profileUrl = getPlatformProfileUrlFor(platform);
-                  const platformBlock = (
-                    <div className="flex flex-col items-center px-3">
-                      <div className="w-8 h-8 flex items-center justify-center">
-                        {getPlatformIcon(platform)}
+          <div className="flex flex-col gap-3">
+            <div
+              className="flex min-h-[5.5rem] items-center justify-center rounded-lg bg-gray-100 py-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {creator.platforms && creator.platforms.length > 0 ? (
+                <div className="flex justify-center">
+                  {(creator.platforms || []).map((platform, index, arr) => {
+                    const profileUrl = getPlatformProfileUrlFor(platform);
+                    const platformBlock = (
+                      <div className="flex flex-col items-center px-3">
+                        <div className="flex h-8 w-8 items-center justify-center">
+                          {getPlatformIcon(platform)}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {formatFollowers(getPlatformFollowers(platform))}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {formatFollowers(getPlatformFollowers(platform))}
-                      </span>
-                    </div>
-                  );
-                  return (
-                    <div key={platform} className="flex items-center">
-                      {profileUrl ? (
-                        <a
-                          href={profileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center px-3 hover:opacity-80 transition-opacity"
-                        >
-                          {platformBlock}
-                        </a>
-                      ) : (
-                        platformBlock
-                      )}
-                      {arr.length > 1 && index < arr.length - 1 && (
-                        <div className="h-10 w-px bg-indigo-300" />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                    return (
+                      <div key={platform} className="flex items-center">
+                        {profileUrl ? (
+                          <a
+                            href={profileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-col items-center px-3 transition-opacity hover:opacity-80"
+                          >
+                            {platformBlock}
+                          </a>
+                        ) : (
+                          platformBlock
+                        )}
+                        {arr.length > 1 && index < arr.length - 1 && (
+                          <div className="h-10 w-px bg-indigo-300" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="px-2 text-center text-[10px] leading-snug text-gray-400">
+                  No social accounts connected
+                </p>
+              )}
+            </div>
             {tab === "discover" && (
               <>
                 <div className="flex justify-center gap-3">
