@@ -4,6 +4,7 @@ import { getCampaignReviews } from "@/provider/features/campaign-reviews/campaig
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { format } from "date-fns";
+import ROLES from "@/common/constants/role.constant";
 
 function useBrandReviews() {
   const dispatch = useDispatch();
@@ -57,7 +58,7 @@ function useBrandReviews() {
       const sortParams = getSortParams();
       const params = {
         ...sortParams,
-        reviewerRole: "CREATOR", // Filter only creator reviews
+        reviewerRole: ROLES.CREATOR,
       };
 
       const reviewPromises = campaigns.map((campaign) =>

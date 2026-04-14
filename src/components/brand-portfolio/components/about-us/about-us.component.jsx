@@ -1,8 +1,6 @@
 "use client";
 
-import PropTypes from "prop-types";
-
-function AboutUs({ overview, website }) {
+function AboutUs({ overview }) {
   return (
     <section className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-start justify-between gap-4">
@@ -24,34 +22,8 @@ function AboutUs({ overview, website }) {
           for.
         </div>
       )}
-
-      {website && (
-        <div className="mt-4 text-sm">
-          <span className="font-semibold text-gray-900">Website:</span>{" "}
-          <a
-            href={website.startsWith("http") ? website : `https://${website}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-600 hover:text-indigo-500"
-          >
-            {website}
-          </a>
-        </div>
-      )}
     </section>
   );
 }
-
-AboutUs.propTypes = {
-  overview: PropTypes.shape({
-    description: PropTypes.string,
-  }),
-  website: PropTypes.string,
-};
-
-AboutUs.defaultProps = {
-  overview: null,
-  website: "",
-};
 
 export default AboutUs;

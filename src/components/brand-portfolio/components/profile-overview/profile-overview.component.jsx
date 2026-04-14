@@ -1,30 +1,10 @@
 "use client";
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import {
-  Building2,
-  CheckCircle,
-  Edit,
-  ExternalLink,
-  Globe,
-  Mail,
-  MapPin,
-  ShieldCheck,
-} from "lucide-react";
+import { Building2, Edit, ExternalLink, Globe, MapPin } from "lucide-react";
 import PropTypes from "prop-types";
 
-function ProfileOverview({
-  basics,
-  overview,
-  connections,
-  preferences,
-  audienceSummary,
-  onEditProfile,
-  onFollowBrand,
-  canEdit,
-}) {
-  const { getPlatformIcon, getPlatformColor, formatFollowers } = useGetplatform();
+function ProfileOverview({ basics, preferences, onEditProfile, onFollowBrand, canEdit }) {
   return (
     <section className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col lg:flex-row justify-between gap-6">
@@ -51,14 +31,17 @@ function ProfileOverview({
               )}
             </div>
 
-            <h2 className="text-xl font-medium text-gray-900">{basics.name}</h2>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 text-sm text-gray-600 mt-2">
-              {basics.location && (
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />
-                  {basics.location}
-                </span>
+            <div className="flex items-center justify-start gap-3 mb-2 flex-wrap self-start">
+              <h2 className="text-xl font-medium text-gray-900">{basics.name}</h2>
+              {canEdit && (
+                <div className="justify-start self-start">
+                  <div className="p-2 rounded-md bg-primary text-white" onClick={onEditProfile}>
+                    <Edit className="w-4 h-4" />
+                  </div>
+                </div>
               )}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 text-sm text-gray-600 mt-2">
               {basics.website && (
                 <a
                   href={
@@ -73,15 +56,12 @@ function ProfileOverview({
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
-              {/* {basics.email && (
-                <a
-                  href={`mailto:${basics.email}`}
-                  className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition"
-                >
-                  <Mail className="w-4 h-4" />
-                  {basics.email}
-                </a>
-              )} */}
+              {basics.location && (
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4" />
+                  {basics.location}
+                </span>
+              )}
             </div>
 
             {preferences?.targetNiches?.length ? (
@@ -96,23 +76,6 @@ function ProfileOverview({
                 ))}
               </div>
             ) : null}
-
-            {overview?.description && (
-              <p className="mt-4 text-sm text-gray-600 leading-6 max-w-2xl">
-                {overview.description}
-              </p>
-            )}
-
-            {canEdit && (
-              <div className="mt-6">
-                <CustomButton
-                  text="Edit Brand Profile"
-                  className="btn-primary"
-                  onClick={onEditProfile}
-                  startIcon={<Edit className="w-4 h-4" />}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>

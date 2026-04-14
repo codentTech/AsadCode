@@ -1,7 +1,7 @@
 import {
   categoriesToNicheOptions,
   mergeNicheOptionLists,
-} from "@/common/constants/genaric.constant";
+} from "@/common/utils/generic.util";
 import {
   deleteGalleryItemThunk,
   fetchCreatorGallery,

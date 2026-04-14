@@ -65,15 +65,13 @@ const EmailVerification = ({ onNext, onBack }) => {
           </div>
 
           {!emailSent ? (
-            <div className="pt-2">
-              <CustomButton
-                text="Send verification email"
-                className="btn-primary w-full"
-                onClick={handleSendVerificationEmail}
-                disabled={isSendingEmail}
-                loading={isSendingEmail}
-              />
-            </div>
+            <CustomButton
+              text="Send verification email"
+              className="btn-primary w-full"
+              onClick={handleSendVerificationEmail}
+              disabled={isSendingEmail}
+              loading={isSendingEmail}
+            />
           ) : (
             <>
               <p className="text-sm text-gray-500 text-center">

@@ -4,12 +4,13 @@ import { reset, signUp } from "@/provider/features/auth/auth.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as Yup from "yup";
 import { useSearchParams } from "next/navigation";
 import api from "@/common/utils/api";
+import ROLES from "@/common/constants/role.constant";
+import { BRAND_ACCOUNT_TYPE_OPTIONS } from "@/common/constants/options.constant";
 
-// Dynamic validation schema based on creator mode
 const createValidationSchema = (isCreatorMode) => {
   const baseSchema = {
     first_name: Yup.string().required("First Name is required"),
@@ -46,9 +47,9 @@ const createValidationSchema = (isCreatorMode) => {
     longitude: Yup.number()
       .nullable()
       .transform((value, originalValue) => (originalValue === "" ? null : value)),
+    referred_by: Yup.string().optional(),
   };
 
-  // Add conditional fields based on mode
   if (!isCreatorMode) {
     baseSchema.account_type = Yup.string().required("Please select an account type");
   }
@@ -61,6 +62,7 @@ export default function useRegister({ onNext, inviteToken }) {
   const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
   const token = inviteToken || searchParams?.get("token");
+  const showBrandRegisterExtras = !isCreatorMode && !token;
 
   const validationSchema = createValidationSchema(isCreatorMode);
 
@@ -70,7 +72,6 @@ export default function useRegister({ onNext, inviteToken }) {
     formState: { errors, isSubmitting },
     watch,
     setValue,
-    reset: resetForm,
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onChange",
@@ -84,10 +85,162 @@ export default function useRegister({ onNext, inviteToken }) {
       confirm_password: "",
       latitude: "",
       longitude: "",
+      referred_by: "",
     },
   });
 
   const email = watch("email");
+
+  const [selectedAccountType, setSelectedAccountType] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [hasManualLocationOverride, setHasManualLocationOverride] = useState(false);
+  const hasAutoDetectedLocation = useRef(false);
+
+  useEffect(() => {
+    if (selectedAccountType) {
+      setValue("account_type", selectedAccountType);
+    }
+  }, [selectedAccountType, setValue]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (
+      hasManualLocationOverride ||
+      hasAutoDetectedLocation.current ||
+      selectedCountry ||
+      selectedCity
+    ) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const autoDetectLocation = async () => {
+      try {
+        const client = api({ "x-skip-toast": "true" });
+        const response = await client.get("/auth/location/auto-detect");
+        const data = response.data?.data;
+        if (!isMounted || !data) return;
+
+        hasAutoDetectedLocation.current = true;
+
+        if (data.countryName && data.countryCode && !selectedCountry) {
+          const normalizedCountry = {
+            name: data.countryName,
+            code: data.countryCode,
+            countryCode: data.countryCode,
+            dialCode: data.dialCode || "",
+          };
+          setSelectedCountry(normalizedCountry);
+          setValue("country", normalizedCountry.name, { shouldValidate: true });
+          setValue("country_code", normalizedCountry.code, { shouldValidate: true });
+          setValue("city_country_code", normalizedCountry.code, { shouldValidate: true });
+        }
+
+        if (data.city && !selectedCity) {
+          const normalizedCity = {
+            name: data.city,
+            cityName: data.city,
+            countryCode: data.cityCountryCode || data.countryCode || "",
+            latitude: typeof data.latitude === "number" ? data.latitude : null,
+            longitude: typeof data.longitude === "number" ? data.longitude : null,
+          };
+          setSelectedCity(normalizedCity);
+          setValue("city", normalizedCity.name, { shouldValidate: true });
+          setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+          if (normalizedCity.latitude !== null) {
+            setValue("latitude", normalizedCity.latitude, { shouldValidate: false });
+          }
+          if (normalizedCity.longitude !== null) {
+            setValue("longitude", normalizedCity.longitude, { shouldValidate: false });
+          }
+        } else {
+          if (typeof data.latitude === "number") {
+            setValue("latitude", data.latitude, { shouldValidate: false });
+          }
+          if (typeof data.longitude === "number") {
+            setValue("longitude", data.longitude, { shouldValidate: false });
+          }
+        }
+      } catch {}
+    };
+
+    autoDetectLocation();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasManualLocationOverride, selectedCountry, selectedCity, setValue]);
+
+  const handleCountrySelect = useCallback(
+    (country) => {
+      setHasManualLocationOverride(true);
+
+      if (!country) {
+        setSelectedCountry(null);
+        setValue("country", "", { shouldValidate: true });
+        setValue("country_code", "", { shouldValidate: true });
+        setSelectedCity(null);
+        setValue("city", "", { shouldValidate: true });
+        setValue("city_country_code", "", { shouldValidate: true });
+        setValue("latitude", "", { shouldValidate: false });
+        setValue("longitude", "", { shouldValidate: false });
+        return;
+      }
+
+      const normalizedCountry = {
+        name: country.countryName || country.label || country.name || "",
+        code: country.countryCode || country.value || country.code || "",
+        countryCode: country.countryCode || country.value || country.code || "",
+        dialCode: country.phoneCode || country.phone || "",
+      };
+
+      setSelectedCountry(normalizedCountry);
+      setValue("country", normalizedCountry.name, { shouldValidate: true });
+      setValue("country_code", normalizedCountry.code, { shouldValidate: true });
+
+      setSelectedCity(null);
+      setValue("city", "", { shouldValidate: true });
+      setValue("city_country_code", normalizedCountry.code || "", { shouldValidate: true });
+      setValue("latitude", "", { shouldValidate: false });
+      setValue("longitude", "", { shouldValidate: false });
+    },
+    [setValue],
+  );
+
+  const handleCitySelect = useCallback(
+    (city) => {
+      setHasManualLocationOverride(true);
+
+      if (!city) {
+        setSelectedCity(null);
+        setValue("city", "", { shouldValidate: true });
+        setValue("city_country_code", selectedCountry?.code || "", { shouldValidate: true });
+        setValue("latitude", "", { shouldValidate: false });
+        setValue("longitude", "", { shouldValidate: false });
+        return;
+      }
+
+      const normalizedCity = {
+        name: city.cityName || city.label || city.name || "",
+        cityName: city.cityName || city.label || city.name || "",
+        countryCode: city.countryCode || selectedCountry?.code || "",
+        region: city.region || "",
+        geonameId: city.geonameId || null,
+        latitude: city.latitude ?? null,
+        longitude: city.longitude ?? null,
+      };
+
+      setSelectedCity(normalizedCity);
+      setValue("city", normalizedCity.name, { shouldValidate: true });
+      setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
+      setValue("latitude", normalizedCity.latitude ?? "", { shouldValidate: false });
+      setValue("longitude", normalizedCity.longitude ?? "", { shouldValidate: false });
+    },
+    [selectedCountry?.code, setValue],
+  );
 
   const onSubmit = async (values) => {
     const payload = {
@@ -104,28 +257,31 @@ export default function useRegister({ onNext, inviteToken }) {
         values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
       longitude:
         values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
-      role: isCreatorMode ? "CREATOR" : "BRAND",
+      role: isCreatorMode ? ROLES.CREATOR : ROLES.BRAND,
       marketing_emails: values.marketing_emails || false,
       agree_terms: values.agree_terms,
     };
 
-    // Add invite token if present
     if (token) {
       payload.invite_token = token;
-      // Lock role to CREATOR for invites
-      payload.role = "CREATOR";
+      payload.role = ROLES.CREATOR;
     }
 
-    // Add type-specific fields
     if (isCreatorMode && !token) {
       payload.account_type = values.account_type;
+    }
+    if (!isCreatorMode && !token) {
+      const raw = (values.referred_by || "").trim();
+      if (raw) {
+        payload.referred_by = raw;
+      }
     }
     const response = await dispatch(signUp(payload));
     if (response.payload.success) {
       onNext();
       dispatch(reset());
       localStorage.setItem("email", email);
-      localStorage.setItem("name", values.first_name + " " + values.last_name);
+      localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
     }
   };
 
@@ -134,9 +290,15 @@ export default function useRegister({ onNext, inviteToken }) {
     handleSubmit,
     errors,
     onSubmit,
-    watch,
-    setValue,
     isLoading: isLoading || isSubmitting,
-    resetForm,
+    isCreatorMode,
+    showBrandRegisterExtras,
+    brandAccountTypeOptions: BRAND_ACCOUNT_TYPE_OPTIONS,
+    selectedAccountType,
+    setSelectedAccountType,
+    selectedCountry,
+    selectedCity,
+    handleCountrySelect,
+    handleCitySelect,
   };
 }
