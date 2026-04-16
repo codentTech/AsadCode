@@ -68,7 +68,7 @@ const brandNavItems = [
     ],
   },
   {
-    label: "Campaign Defaults",
+    label: "Profile & Campaign Settings",
     icon: Target,
     children: [
       {
@@ -127,7 +127,7 @@ const creatorNavItems = [
     ],
   },
   {
-    label: "Campaign Defaults",
+    label: "Profile & Campaign Settings",
     icon: Target,
     children: [
       {

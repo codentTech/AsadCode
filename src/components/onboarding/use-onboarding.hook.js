@@ -101,6 +101,7 @@ export default function useOnboarding() {
   useLayoutEffect(() => {
     if (inviteTokenPresent) {
       setCurrentStep(2);
+      dispatch(setIsCreatorModeMode(true));
     }
   }, [inviteTokenPresent]);
 

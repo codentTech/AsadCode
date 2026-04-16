@@ -1,58 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { normalizePlatformConnection } from "@/common/utils/normalize.utils";
 import { isCreatorMode, getUser } from "@/common/utils/users.util";
 import { avatar } from "@/common/constants/auth.constant";
 import usersService from "@/provider/features/users/users.service";
-
-const normalizePlatformConnection = (connection) => {
-  if (!connection) return null;
-
-  if (typeof connection === "string") {
-    return {
-      id: connection,
-      name: connection.replace(/_/g, " "),
-      followers: null,
-      verified: false,
-      platform: connection,
-      engagementRate: null,
-    };
-  }
-
-  if (typeof connection === "object") {
-    const platform =
-      connection.platform || connection.name || connection.type || connection.provider;
-    if (!platform) return null;
-
-    const rawFollowers =
-      connection.followers ?? connection.followerCount ?? connection.audienceSize ?? null;
-    const rawEngagement =
-      connection.engagementRate ??
-      connection.engagement_rate ??
-      connection.metrics?.engagementRate ??
-      connection.analytics?.engagementRate ??
-      null;
-
-    const followersNumber = Number(rawFollowers);
-    const engagementNumber = Number(rawEngagement);
-
-    return {
-      id: connection.id || platform,
-      name: connection.displayName || connection.name || platform.replace(/_/g, " "),
-      followers: Number.isFinite(followersNumber) ? followersNumber : rawFollowers || 0,
-      verified:
-        connection.verified === true ||
-        connection.isVerified === true ||
-        connection.status === "verified",
-      platform,
-      lastSynced: connection.lastSynced || connection.syncedAt || null,
-      engagementRate: Number.isFinite(engagementNumber)
-        ? Number(engagementNumber)
-        : (rawEngagement ?? null),
-    };
-  }
-
-  return null;
-};
 
 export default function useBrandPortfolio(brandId = null) {
   const router = useRouter();
@@ -68,30 +19,34 @@ export default function useBrandPortfolio(brandId = null) {
   }, [router, brandId]);
 
   useEffect(() => {
+    let cancelled = false;
     const loadBrandData = async () => {
       setIsLoading(true);
-      try {
-        if (brandId) {
-          // Fetch brand by ID
-          const result = await usersService.getUserById(brandId);
-          if (result.success && result.data) {
-            setBrandUser(result.data);
-          }
-        } else {
-          // Use current user
-          const user = getUser();
-          if (user?.brand_profile) {
-            setBrandUser(user);
-          }
+      if (brandId) {
+        const result = await usersService.getUserById(brandId);
+        if (!cancelled && result.success && result.data) {
+          setBrandUser(result.data);
         }
-      } catch (error) {
-        console.error("Failed to load brand data:", error);
-      } finally {
+      } else {
+        const user = getUser();
+        if (!cancelled && user?.brand_profile) {
+          setBrandUser(user);
+        }
+      }
+      if (!cancelled) {
         setIsLoading(false);
       }
     };
 
-    loadBrandData();
+    void loadBrandData().catch(() => {
+      if (!cancelled) {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [brandId, refreshKey]);
 
   const brandProfile = useMemo(() => brandUser?.brand_profile || null, [brandUser]);

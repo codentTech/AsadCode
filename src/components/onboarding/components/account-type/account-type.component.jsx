@@ -1,9 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBackgroundEffect from "@/common/hooks/use-background-effect.hook";
 import { CheckCircle } from "lucide-react";
+import { useEffect } from "react";
 
 const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
   const { position } = useBackgroundEffect();
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-12">

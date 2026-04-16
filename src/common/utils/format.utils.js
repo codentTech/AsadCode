@@ -9,6 +9,20 @@ export const formatCurrency = (value) => {
   }).format(numericValue);
 };
 
+export const formatFollowers = (count) => {
+  if (typeof count !== "number" || Number.isNaN(count) || count < 0) return "—";
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+  return count.toLocaleString();
+};
+
+export const formatCompactCurrency = (value) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value.toLocaleString()}`;
+};
+
 export const formatNumber = (value) => {
   if (!value && value !== 0) return "—";
   const numericValue = Number(value);

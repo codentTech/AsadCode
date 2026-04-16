@@ -1,8 +1,8 @@
 "use client";
 
 import HeaderLayout from "@/common/layouts/header.layout";
-import AboutUs from "./components/about-us/about-us";
-import ActiveCampaigns from "./components/active-campaigns/active-campaigns";
+import AboutUs from "./components/about-us/about-us.component";
+import ActiveCampaigns from "./components/active-campaigns/active-campaigns.component";
 import ProfileOverview from "./components/profile-overview/profile-overview.component";
 import Reviews from "./components/reviews/reviews.component";
 import useBrandPortfolio from "./use-brand-portfolio.hook";

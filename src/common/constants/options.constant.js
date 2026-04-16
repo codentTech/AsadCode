@@ -7,6 +7,11 @@ export const PLATFORM_OPTIONS = [
   { value: "tiktok", label: "TikTok" },
 ];
 
+export const BRAND_ACCOUNT_TYPE_OPTIONS = [
+  { value: "brand", label: "This is a brand account" },
+  { value: "agency", label: "This is an agency account" },
+];
+
 // Follower count options for filtering
 export const FOLLOWER_OPTIONS = [
   { value: "1000", label: "1K+" },
