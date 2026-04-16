@@ -9,7 +9,7 @@ import { getCreatorById } from "@/provider/features/creator-profile/creator-prof
 import {
   categoriesToNicheOptions,
   mergeNicheOptionLists,
-} from "@/common/constants/genaric.constant";
+} from "@/common/utils/generic.util";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 
 function useGallary(refreshKey = 0, creatorId = null) {

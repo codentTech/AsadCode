@@ -2,7 +2,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { formatNumber } from "@/common/utils/format.utils";
-import { getGalleryVideoPlaybackSrc } from "@/common/utils/gallery-media.util";
+import {
+  getGalleryVideoEmbedSrc,
+  getGalleryVideoPlaybackSrc,
+} from "@/common/utils/gallery-media.util";
 import { format } from "date-fns";
 import {
   Bookmark,
@@ -104,6 +107,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {group.items.map((item) => {
+                      const videoEmbedSrc = getGalleryVideoEmbedSrc(item);
                       const videoPlaybackSrc = getGalleryVideoPlaybackSrc(item);
                       return (
                         <div
@@ -120,7 +124,17 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                           </button>
 
                           <div className="relative aspect-[4/3] w-full bg-black rounded-t-lg overflow-hidden">
-                            {item.media_type === "video" && videoPlaybackSrc ? (
+                            {item.media_type === "video" && videoEmbedSrc ? (
+                              <iframe
+                                key={videoEmbedSrc}
+                                src={videoEmbedSrc}
+                                className="absolute inset-0 h-full w-full border-0 bg-black"
+                                title={item.caption_text || item.title || "Video"}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                allowFullScreen
+                                loading="lazy"
+                              />
+                            ) : item.media_type === "video" && videoPlaybackSrc ? (
                               <video
                                 key={videoPlaybackSrc}
                                 src={videoPlaybackSrc}
@@ -132,6 +146,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                               />
                             ) : item.media_type === "video" &&
                               item.source_type === "post_link" &&
+                              !videoEmbedSrc &&
                               !videoPlaybackSrc ? (
                               <>
                                 <img
@@ -242,7 +257,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                               </div>
                               {item.source_type === "post_link" &&
                                 item.post_url &&
-                                videoPlaybackSrc &&
+                                (videoEmbedSrc || videoPlaybackSrc) &&
                                 String(item.platform || "").toLowerCase() === "instagram" && (
                                   <p className="text-[9px] text-gray-400 leading-snug text-center">
                                     Instagram may require login; the preview player is the reliable

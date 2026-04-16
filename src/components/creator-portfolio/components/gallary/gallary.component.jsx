@@ -11,7 +11,10 @@ import useGallary from "./use-gallary.hook";
 import { formatNumber } from "@/common/utils/format.utils";
 import { format } from "date-fns";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { getGalleryVideoPlaybackSrc } from "@/common/utils/gallery-media.util";
+import {
+  getGalleryVideoEmbedSrc,
+  getGalleryVideoPlaybackSrc,
+} from "@/common/utils/gallery-media.util";
 import { isCreatorMode } from "@/common/utils/users.util";
 
 const Gallary = ({ refreshKey, creatorId = null }) => {
@@ -113,6 +116,8 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
       {filteredPortfolio.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPortfolio.map((item) => {
+            const videoEmbedSrc =
+              item.media_type === "video" ? getGalleryVideoEmbedSrc(item) : null;
             const videoPlaybackSrc =
               item.media_type === "video" ? getGalleryVideoPlaybackSrc(item) : null;
             return (
@@ -122,7 +127,17 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
             >
               {/* Thumbnail */}
               <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                {item.media_type === "video" && videoPlaybackSrc ? (
+                {item.media_type === "video" && videoEmbedSrc ? (
+                  <iframe
+                    key={videoEmbedSrc}
+                    src={videoEmbedSrc}
+                    className="absolute inset-0 h-full w-full border-0 bg-black"
+                    title={item.caption_text || item.title || "Video"}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                ) : item.media_type === "video" && videoPlaybackSrc ? (
                   <video
                     key={videoPlaybackSrc}
                     src={videoPlaybackSrc}
@@ -134,6 +149,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                   />
                 ) : item.media_type === "video" &&
                   item.source_type === "post_link" &&
+                  !videoEmbedSrc &&
                   !videoPlaybackSrc ? (
                   <>
                     <img
@@ -148,7 +164,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                       </span>
                     </div>
                   </>
-                ) : item.media_type === "video" ? (
+                ) : item.media_type === "video" && !videoEmbedSrc ? (
                   <img
                     src={item.thumbnail_url || item.file_url || ""}
                     alt={item.caption_text || item.title || ""}
@@ -254,7 +270,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                   </div>
                   {item.source_type === "post_link" &&
                     item.post_url &&
-                    videoPlaybackSrc &&
+                    (videoEmbedSrc || videoPlaybackSrc) &&
                     String(item.platform || "").toLowerCase() === "instagram" && (
                       <p className="text-[10px] text-gray-400 leading-snug text-center">
                         Opening on Instagram may require login; the preview player is the reliable

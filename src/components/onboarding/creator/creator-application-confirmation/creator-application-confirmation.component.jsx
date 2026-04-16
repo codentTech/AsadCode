@@ -33,9 +33,9 @@ const CreatorApplicationConfirmation = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <CustomButton
-              text="Back to Home"
+              text="Back to login"
               className="btn-primary"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/login")}
             />
           </div>
         </div>

@@ -6,59 +6,9 @@ import PropTypes from "prop-types";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { product as defaultProduct } from "@/common/constants/auth.constant";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
+import { deriveCompensation } from "@/common/utils/campaign.utils";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { Loader2 } from "lucide-react";
-
-const formatCurrency = (value) => {
-  if (typeof value !== "number" || Number.isNaN(value)) return "—";
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
-  return `$${value.toLocaleString()}`;
-};
-
-const deriveCompensation = (campaign) => {
-  if (!campaign) {
-    return {
-      label: "Paid",
-      detail: "Compensation TBD",
-    };
-  }
-
-  if (campaign.creator_fixed_price) {
-    return {
-      label: "Paid",
-      detail: `${formatCurrency(Number(campaign.creator_fixed_price))}`,
-    };
-  }
-
-  if (campaign.suggested_min && campaign.suggested_max) {
-    return {
-      label: "Paid",
-      detail: `${formatCurrency(Number(campaign.suggested_min))} - ${formatCurrency(
-        Number(campaign.suggested_max)
-      )}`,
-    };
-  }
-
-  if (campaign.product_value) {
-    return {
-      label: "Gifted",
-      detail: `Product (${formatCurrency(Number(campaign.product_value))} value)`,
-    };
-  }
-
-  if (campaign.commission_percentage) {
-    return {
-      label: "Commission",
-      detail: `${campaign.commission_percentage}% per sale`,
-    };
-  }
-
-  return {
-    label: "Paid",
-    detail: "Budget available",
-  };
-};
 
 const getCampaignTypeStyle = (type) => {
   const styles = {

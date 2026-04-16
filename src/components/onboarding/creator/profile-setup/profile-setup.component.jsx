@@ -281,9 +281,14 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 )}
               </div>
 
-              {/* Showcase Covers */}
+              {/* Cover Images */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Showcase Covers</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Cover Images</h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  Choose 3 images that show you in action creating content, whether that is a
+                  lifestyle shot, a product review or anything that gives brands a clear feel for
+                  your style and niche.
+                </p>
 
                 <div className="grid grid-cols-3 gap-3">
                   {[0, 1, 2].map((index) => {
@@ -296,7 +301,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
                           {image ? (
                             <img
                               src={image}
-                              alt={`Showcase cover ${index + 1}`}
+                              alt={`Cover image ${index + 1}`}
                               className="w-full h-full object-cover"
                             />
                           ) : (
