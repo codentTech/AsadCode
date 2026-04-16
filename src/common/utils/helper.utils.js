@@ -3,6 +3,15 @@ export const capitalizeFirstWord = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+export const platformDisplayName = (name) => {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 // Helper function to convert snake_case to camelCase
 export const toCamelCase = (str) => str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 

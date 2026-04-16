@@ -1,11 +1,56 @@
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "../constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "../constants/options.constant";
+import { formatCompactCurrency } from "./format.utils";
 import { capitalizeFirstWord } from "./helper.utils";
 
 export const CAMPAIGN_TYPE_MAP = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
   return acc;
 }, {});
+
+export const deriveCompensation = (campaign) => {
+  if (!campaign) {
+    return {
+      label: "Paid",
+      detail: "Compensation TBD",
+    };
+  }
+
+  if (campaign.creator_fixed_price) {
+    return {
+      label: "Paid",
+      detail: `${formatCompactCurrency(Number(campaign.creator_fixed_price))}`,
+    };
+  }
+
+  if (campaign.suggested_min && campaign.suggested_max) {
+    return {
+      label: "Paid",
+      detail: `${formatCompactCurrency(Number(campaign.suggested_min))} - ${formatCompactCurrency(
+        Number(campaign.suggested_max),
+      )}`,
+    };
+  }
+
+  if (campaign.product_value) {
+    return {
+      label: "Gifted",
+      detail: `Product (${formatCompactCurrency(Number(campaign.product_value))} value)`,
+    };
+  }
+
+  if (campaign.commission_percentage) {
+    return {
+      label: "Commission",
+      detail: `${campaign.commission_percentage}% per sale`,
+    };
+  }
+
+  return {
+    label: "Paid",
+    detail: "Budget available",
+  };
+};
 
 export const getCompensationTypeLabel = (type) => {
   switch (type) {

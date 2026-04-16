@@ -43,17 +43,15 @@ const CreatorCard = ({
     onViewNotesClick,
   });
 
-  const isClickable = typeof onCreatorPreview === "function";
-
   return (
     <div
       className={`relative flex h-full min-h-0 flex-shrink-0 flex-col self-stretch snap-start ${
         isShortlist ? "w-full" : "w-[18rem]"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
-        isClickable ? "cursor-pointer" : "cursor-default"
+        onCreatorPreview ? "cursor-pointer" : "cursor-default"
       } bg-white border border-gray-200 overflow-hidden`}
       onClick={() => {
-        if (isClickable) handleCardClick();
+        if (onCreatorPreview) handleCardClick();
       }}
     >
       {/* Cover */}
@@ -112,12 +110,14 @@ const CreatorCard = ({
         <div className="flex flex-col gap-3 my-4">
           {/* Name */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <h4 className="text-sm font-semibold text-gray-900">{creator.name}</h4>
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                <span className="text-xs text-gray-500">{creator.rating}</span>
-                <span className="text-xs text-gray-400">({creator.reviewCount || 0})</span>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mb-1">
+              <h4 className="text-sm font-semibold leading-snug text-gray-900 m-0">
+                {creator.name}
+              </h4>
+              <div className="inline-flex items-center gap-1 text-sm leading-none">
+                <Star className="h-4 w-4 shrink-0 text-yellow-400 fill-current" />
+                <span className="text-gray-500 mt-1 ml-0.5">{creator.rating}</span>
+                <span className="text-gray-400 mt-1">({creator.reviewCount || 0})</span>
               </div>
             </div>
             <p className="text-xs text-gray-500">

@@ -3,22 +3,8 @@
 import PropTypes from "prop-types";
 import { RefreshCw, TrendingUp } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-
-const formatFollowers = (count) => {
-  if (typeof count !== "number" || Number.isNaN(count) || count < 0) return "—";
-  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
-  return count.toLocaleString();
-};
-
-const platformDisplayName = (name) => {
-  if (!name) return "";
-  return name
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+import { formatFollowers } from "@/common/utils/format.utils";
+import { platformDisplayName } from "@/common/utils/helper.utils";
 
 function AudienceSnapshot({ connections, summary, onRefresh, isRefreshing }) {
   const totalFollowers = summary?.totalFollowers ?? 0;

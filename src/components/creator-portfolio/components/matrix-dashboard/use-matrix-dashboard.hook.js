@@ -1,4 +1,4 @@
-import { getDefaultCreatorPlatformFromConnectedList } from "@/common/constants/genaric.constant";
+import { getDefaultCreatorPlatformFromConnectedList } from "@/common/utils/generic.util";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
