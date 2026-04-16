@@ -207,7 +207,7 @@ export default function useRegister({ onNext, inviteToken }) {
       setValue("latitude", "", { shouldValidate: false });
       setValue("longitude", "", { shouldValidate: false });
     },
-    [setValue],
+    [setValue]
   );
 
   const handleCitySelect = useCallback(
@@ -239,7 +239,7 @@ export default function useRegister({ onNext, inviteToken }) {
       setValue("latitude", normalizedCity.latitude ?? "", { shouldValidate: false });
       setValue("longitude", normalizedCity.longitude ?? "", { shouldValidate: false });
     },
-    [selectedCountry?.code, setValue],
+    [selectedCountry?.code, setValue]
   );
 
   const onSubmit = async (values) => {
@@ -253,8 +253,7 @@ export default function useRegister({ onNext, inviteToken }) {
       country: values.country,
       country_code: values.country_code,
       city_country_code: values.city_country_code,
-      latitude:
-        values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
+      latitude: values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
       longitude:
         values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
       role: isCreatorMode ? ROLES.CREATOR : ROLES.BRAND,
