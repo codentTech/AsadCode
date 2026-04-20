@@ -10,11 +10,9 @@ import {
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import {
   fetchCampaignCombinedDemographics,
-  fetchCreatorAudience,
   resetCampaignDemographics,
   resetAudience,
   selectCampaignCombinedDemographics,
-  selectCreatorAudience,
 } from "@/provider/features/phyllo/phyllo.slice";
 
 const IS_COMPLETED = false;
@@ -54,7 +52,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
-  const individualDemographics = useSelector(selectCreatorAudience);
 
   // Local state (from brand hook)
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -439,7 +436,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     selectedCampaign?.contract?.creator?.id ??
     selectedCampaign?.contract?.creator_id;
 
-  // Fetch demographics when campaign or (for individual) creator changes
   useEffect(() => {
     if (!selectedCampaign?.id) {
       dispatch(resetCampaignDemographics());
@@ -447,15 +443,19 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       return;
     }
     if (isMultiCreator) {
-      dispatch(fetchCampaignCombinedDemographics(selectedCampaign.id));
+      dispatch(fetchCampaignCombinedDemographics({ campaignId: selectedCampaign.id }));
+      dispatch(resetAudience());
+    } else if (individualCreatorId) {
+      dispatch(
+        fetchCampaignCombinedDemographics({
+          campaignId: selectedCampaign.id,
+          creatorId: individualCreatorId,
+        })
+      );
       dispatch(resetAudience());
     } else {
-      if (individualCreatorId) {
-        dispatch(fetchCreatorAudience(individualCreatorId));
-        dispatch(resetCampaignDemographics());
-      } else {
-        dispatch(resetAudience());
-      }
+      dispatch(resetCampaignDemographics());
+      dispatch(resetAudience());
     }
   }, [selectedCampaign?.id, isMultiCreator, individualCreatorId, dispatch]);
 
@@ -466,17 +466,11 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     };
   }, [dispatch]);
 
-  const demographicsData = isMultiCreator
-    ? campaignDemographics?.data
-    : individualDemographics?.data;
-
-  const demographicsLoading = isMultiCreator
-    ? campaignDemographics?.isLoading || false
-    : individualDemographics?.isLoading || false;
-
-  const hasDemographicsData = isMultiCreator
-    ? campaignDemographics?.isSuccess && demographicsData?.has_data
-    : individualDemographics?.isSuccess && demographicsData?.has_data;
+  const demographicsData = campaignDemographics?.data;
+  const demographicsLoading = campaignDemographics?.isLoading || false;
+  const hasDemographicsData =
+    campaignDemographics?.isSuccess &&
+    (demographicsData?.has_data || demographicsData?.no_connection);
 
   return {
     isMultiCreator,

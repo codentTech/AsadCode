@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter, useSearchParams } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   getPaymentMethods,
@@ -9,11 +10,16 @@ import {
   removePaymentMethod,
   resetAttachPaymentMethod,
   resetRemovePaymentMethod,
+  createBrandOnboardingLink,
+  getBrandAccountStatus,
 } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 function usePaymentMethods() {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [brandConnectError, setBrandConnectError] = useState(null);
   const [stripePromise, setStripePromise] = useState(null);
   const [setupIntentClientSecret, setSetupIntentClientSecret] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,6 +56,16 @@ function usePaymentMethods() {
     isSuccess: removeSuccess,
   } = useSelector((state) => state.collaborationPayment.removePaymentMethod || {});
 
+  const { data: brandAccountStatusData, isLoading: brandStatusLoading } = useSelector(
+    (state) => state.collaborationPayment.getBrandAccountStatus || {}
+  );
+
+  const {
+    isLoading: brandOnboardingLoading,
+    isError: brandOnboardingError,
+    message: brandOnboardingMessage,
+  } = useSelector((state) => state.collaborationPayment.createBrandOnboardingLink || {});
+
   // Handle payment methods data - could be array directly or nested
   const paymentMethods = useMemo(() => {
     if (!paymentMethodsData) return [];
@@ -66,6 +82,37 @@ function usePaymentMethods() {
     // Otherwise check the flag
     return hasPaymentMethodData?.hasPaymentMethod || false;
   }, [hasPaymentMethodData, paymentMethods]);
+
+  const canFundCollaborations = useMemo(
+    () => hasPaymentMethodData?.canFundCollaborations ?? false,
+    [hasPaymentMethodData]
+  );
+
+  const brandAccountStatus = brandAccountStatusData || {
+    status: "not_started",
+    chargesEnabled: false,
+    payoutsEnabled: false,
+    detailsSubmitted: false,
+  };
+
+  useEffect(() => {
+    const onboarding = searchParams.get("onboarding");
+    if (onboarding === "complete" || onboarding === "refresh") {
+      dispatch(getBrandAccountStatus());
+      dispatch(checkHasPaymentMethod());
+      router.replace("/settings/payments/payment-methods", { scroll: false });
+    }
+  }, [searchParams, dispatch, router]);
+
+  useEffect(() => {
+    dispatch(getBrandAccountStatus());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (brandOnboardingError && brandOnboardingMessage) {
+      setBrandConnectError(brandOnboardingMessage);
+    }
+  }, [brandOnboardingError, brandOnboardingMessage]);
 
   // Initialize Stripe
   useEffect(() => {
@@ -277,12 +324,62 @@ function usePaymentMethods() {
   const handleRefreshPaymentMethods = useCallback(() => {
     dispatch(getPaymentMethods());
     dispatch(checkHasPaymentMethod());
+    dispatch(getBrandAccountStatus());
+  }, [dispatch]);
+
+  const handleConnectBrandStripe = useCallback(async () => {
+    setBrandConnectError(null);
+    let origin = "";
+    if (typeof window !== "undefined" && window.location) {
+      origin = window.location.origin;
+    }
+    if (!origin || origin === "null" || origin === "undefined" || origin === "") {
+      const envUrl = process.env.NEXT_PUBLIC_MAIN_URL;
+      if (envUrl) {
+        origin = envUrl.replace("/api", "").replace(/\/$/, "");
+      } else {
+        origin = "http://localhost:3000";
+      }
+    }
+    origin = origin.replace(/\/$/, "");
+    if (!origin.startsWith("http://") && !origin.startsWith("https://")) {
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+        origin = `http://${origin}`;
+      } else {
+        origin = `https://${origin}`;
+      }
+    }
+    const basePath = "/settings/payments/payment-methods";
+    const returnUrl = `${origin}${basePath}?onboarding=complete`;
+    const refreshUrl = `${origin}${basePath}?onboarding=refresh`;
+    const resultAction = await dispatch(
+      createBrandOnboardingLink({ returnUrl, refreshUrl })
+    );
+    if (createBrandOnboardingLink.fulfilled.match(resultAction)) {
+      const url = resultAction.payload?.data?.onboardingUrl;
+      if (url) {
+        window.location.href = url;
+      }
+    }
   }, [dispatch]);
 
   return {
     paymentMethods,
     hasPaymentMethod,
-    isLoading: isLoading || isCreatingSetupIntent || isAttaching || isRemoving,
+    canFundCollaborations,
+    brandAccountStatus,
+    brandStatusLoading,
+    brandOnboardingLoading,
+    brandConnectError,
+    setBrandConnectError,
+    handleConnectBrandStripe,
+    isLoading:
+      isLoading ||
+      isCreatingSetupIntent ||
+      isAttaching ||
+      isRemoving ||
+      brandStatusLoading ||
+      brandOnboardingLoading,
     isChecking,
     isCreatingSetupIntent,
     showAddCardModal,

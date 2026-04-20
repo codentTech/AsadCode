@@ -156,6 +156,11 @@ const PaymentMethodsPage = () => {
   const {
     paymentMethods,
     hasPaymentMethod,
+    canFundCollaborations,
+    brandAccountStatus,
+    brandConnectError,
+    setBrandConnectError,
+    handleConnectBrandStripe,
     isLoading,
     isChecking,
     isCreatingSetupIntent,
@@ -201,8 +206,61 @@ const PaymentMethodsPage = () => {
       <div className="bg-primary p-4 rounded-lg text-white mb-4">
         <h1 className="text-xl font-bold text-white">Payment Methods</h1>
         <p className="text-sm mt-1">
-          Add a payment method to fund creator collaborations. Required before sending offers.
+          Add a card and complete Stripe business onboarding to fund paid collaborations. Required
+          before sending offers.
         </p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Stripe business connection</h2>
+            <p className="text-xs text-gray-600 mt-1 max-w-xl">
+              Required for paid collaborations: CleerCut uses your card together with a Stripe
+              Express business profile so escrow charges can run when a creator accepts. Your
+              country must match what you entered at signup; it cannot be changed after Stripe
+              creates the account.
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Status:{" "}
+              <span className="font-medium text-gray-800 capitalize">
+                {brandAccountStatus?.status?.replace(/_/g, " ") || "not started"}
+              </span>
+              {brandAccountStatus?.chargesEnabled && brandAccountStatus?.payoutsEnabled
+                ? " · Ready"
+                : ""}
+            </p>
+          </div>
+          <CustomButton
+            text={
+              brandAccountStatus?.status === "complete" ? "Update in Stripe" : "Connect Stripe"
+            }
+            className="btn-primary shrink-0"
+            onClick={handleConnectBrandStripe}
+            disabled={isLoading}
+          />
+        </div>
+        {brandConnectError ? (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start justify-between gap-2">
+            <p className="text-xs text-amber-900 whitespace-pre-wrap">{brandConnectError}</p>
+            <button
+              type="button"
+              onClick={() => setBrandConnectError(null)}
+              className="text-amber-800 hover:text-amber-950 shrink-0"
+              aria-label="Dismiss"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+        ) : null}
+        {!canFundCollaborations && hasPaymentMethod ? (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-xs text-yellow-900">
+              Finish Stripe business onboarding above to send paid offers and fund escrow when a
+              creator accepts.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Payment Methods List */}
@@ -310,11 +368,10 @@ const PaymentMethodsPage = () => {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-900 mb-1">Payment method required</p>
+                  <p className="text-sm font-medium text-blue-900 mb-1">Card required</p>
                   <p className="text-xs text-blue-700">
-                    You must have a valid payment method saved before sending offers to creators. No
-                    charge occurs when sending an offer - payment is only processed when the creator
-                    accepts.
+                    Save a valid card before sending offers. You also need Stripe business onboarding
+                    (above) for escrow when a creator accepts. No charge occurs when sending an offer.
                   </p>
                 </div>
               </div>
@@ -340,9 +397,10 @@ const PaymentMethodsPage = () => {
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Add payment method</p>
+                <p className="text-sm font-medium text-gray-900">Connect Stripe and add a card</p>
                 <p className="text-xs text-gray-600">
-                  Save a card securely. Required before sending offers. Your card information is encrypted and stored by Stripe.
+                  Complete Stripe Express onboarding using your signup country, then save a card.
+                  Both are required for paid offers and escrow.
                 </p>
               </div>
             </li>

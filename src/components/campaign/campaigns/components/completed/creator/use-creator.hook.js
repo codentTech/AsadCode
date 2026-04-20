@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  CAMPAIGN_TYPE,
+  COLLABORATION_TYPE,
+} from "@/common/constants/campaign.constant";
 
 export default function useCompletedCampaign() {
   const dispatch = useDispatch();
@@ -84,12 +87,18 @@ export default function useCompletedCampaign() {
         campaign.campaign?.long_description ||
         campaign.campaign?.short_description ||
         "No description available",
-      completionRate: 100, // Completed campaigns are 100% complete
-      progress: [
-        { task: "Content recorded", completed: true },
-        { task: "1st draft sent", completed: true },
-        { task: "Final post published", completed: true },
-      ],
+      completionRate: 100,
+      progress:
+        campaign.campaign?.campaign_type === CAMPAIGN_TYPE.UGC
+          ? [
+              { task: "Content recorded", completed: true },
+              { task: "Draft review", completed: true },
+            ]
+          : [
+              { task: "Content recorded", completed: true },
+              { task: "1st draft sent", completed: true },
+              { task: "Final post published", completed: true },
+            ],
       // Additional campaign data
       campaign: campaign.campaign,
       application: campaign,

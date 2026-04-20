@@ -3,6 +3,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import {
+  CREATOR_TAG_OPTIONS,
+  CREATOR_TYPE_QUESTION,
+  CREATOR_TYPE_QUESTION_HELPER,
+} from "@/common/constants/creator-tag.constant";
+import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
 import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
@@ -16,15 +23,10 @@ import {
   RefreshCw,
   Trash2,
   X,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
-import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
 import useProfileSetup from "./use-profile-setup.hook";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
-import {
-  CREATOR_TYPE_QUESTION,
-  CREATOR_TYPE_QUESTION_HELPER,
-  CREATOR_TAG_OPTIONS,
-} from "@/common/constants/creator-tag.constant";
 
 const ProfileSetup = ({ onNext, onBack }) => {
   const {
@@ -93,6 +95,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
     // Onboarding name
     name,
+
+    // Connection link
+    connectionLink,
+    setConnectionLink,
   } = useProfileSetup({ onNext });
 
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
@@ -470,6 +476,40 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 {errors.socialPlatforms && (
                   <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
                 )}
+
+                {connectionLink ? (
+                  <div className="bg-indigo-100 p-2 rounded-lg mt-2">
+                    <div className="text-xs text-gray-600 font-semibold">
+                      If nothing happens when you click the{" "}
+                      <span className="font-bold">Connect</span> button, try opening the link
+                      manually. This may occur because your browser has blocked the pop-up. You can
+                      allow pop-ups for this site, or copy the link and paste it into a new tab.”
+                    </div>
+
+                    <div className="flex gap-2 justify-between mt-4">
+                      <CustomButton
+                        text="Close"
+                        type="button"
+                        onClick={() => setConnectionLink(null)}
+                        className="btn-secondary text-xs px-4 py-1 h-7"
+                      />
+                      <div className="flex gap-2">
+                        <CustomButton
+                          text="Copy link"
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(connectionLink)}
+                          className="btn-primary text-xs px-4 py-1 h-7"
+                        />
+                        <CustomButton
+                          text="Open in new tab"
+                          type="button"
+                          onClick={() => window.open(connectionLink, "_blank")}
+                          className="btn-primary text-xs px-4 py-1 h-7"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 

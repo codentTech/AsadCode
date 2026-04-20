@@ -17,6 +17,8 @@ const CampaignDetail = ({ campaign }) => {
 
     // Computed
     typeStyle,
+    campaignProgressSteps,
+    progressCompletionRate,
     creator,
 
     // Message thread
@@ -267,7 +269,7 @@ const CampaignDetail = ({ campaign }) => {
           />
         </div>
 
-        {/* Campaign Progress */}
+        {/* Campaign Progress (UGC: 2 steps; other types: 3 steps) */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">Campaign Progress</h3>
@@ -275,19 +277,17 @@ const CampaignDetail = ({ campaign }) => {
               <div className="w-24 bg-gray-200 rounded-full h-1.5">
                 <div
                   className="bg-primary h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${campaign?.completionRate || 0}%` }}
+                  style={{ width: `${progressCompletionRate}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-gray-600">
-                {campaign?.completionRate || 0}%
-              </span>
+              <span className="text-xs font-medium text-gray-600">{progressCompletionRate}%</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            {campaign?.progress?.map((item, index) => (
+            {campaignProgressSteps.map((item, index) => (
               <div
-                key={index}
+                key={`${item.task}-${index}`}
                 className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
               >
                 <div className="flex items-center gap-2">
@@ -344,8 +344,8 @@ const CampaignDetail = ({ campaign }) => {
       <Modal show={showProgressModal} title="Update Progress" onClose={handleCloseProgressModal}>
         <div>
           <div className="space-y-3 mb-4">
-            {campaign?.progress?.map((item, index) => (
-              <div key={index} className="flex items-center">
+            {campaignProgressSteps.map((item, index) => (
+              <div key={`${item.task}-${index}`} className="flex items-center">
                 <input
                   type="checkbox"
                   checked={item.completed}

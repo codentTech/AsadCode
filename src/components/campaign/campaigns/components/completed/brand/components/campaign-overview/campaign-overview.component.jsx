@@ -32,6 +32,7 @@ export default function CampaignOverviewCompleted({
     handleToggleChange,
     handleExportData,
     handleViewAnalytics,
+    isUgc,
   } = useCampaignOverviewCompleted(
     onCampaignSelect,
     onToggleChange,
@@ -122,7 +123,7 @@ export default function CampaignOverviewCompleted({
             </div>
           )}
 
-          {showMultiCreatorUI && !isLoading && (
+          {showMultiCreatorUI && !isLoading && !isUgc && (
             <>
               <hr />
               <div className="bg-blue-50 rounded-lg p-4">
@@ -183,7 +184,7 @@ export default function CampaignOverviewCompleted({
                         </div>
                       </div>
                     </div>
-                    {performanceData?.totalPosts && (
+                    {performanceData?.totalPosts ? (
                       <>
                         <hr className="my-2 border-blue-200" />
                         <div className="flex justify-between">
@@ -199,61 +200,87 @@ export default function CampaignOverviewCompleted({
                           </span>
                         </div>
                       </>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>
             </>
           )}
 
-          <hr />
-          <div className="mb-1">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
-              </h3>
-              {showMultiCreatorUI && hasDemographicsData && demographicsData && !isLoading && (
-                <p className="text-xs text-gray-500">
-                  Aggregated across{" "}
-                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
-                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
-                  followers
-                </p>
-              )}
-              {!showMultiCreatorUI &&
-                !isLoading &&
-                (selectedCampaign?.creator || selectedCampaign?.contract?.creator) && (
-                  <p className="text-xs text-gray-500">
-                    From{" "}
-                    {[
-                      selectedCampaign?.creator?.first_name ??
-                        selectedCampaign?.contract?.creator?.first_name,
-                      selectedCampaign?.creator?.last_name ??
-                        selectedCampaign?.contract?.creator?.last_name,
-                    ]
-                      .filter(Boolean)
-                      .join(" ") || "creator"}
-                  </p>
+          {isUgc ? null : (
+            <>
+              <hr />
+              <div className="mb-1">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                    {showMultiCreatorUI
+                      ? "Combined Audience Demographics"
+                      : "Audience Demographics"}
+                    {demographicsData?.is_estimated && demographicsData?.has_data ? (
+                      <span className="ml-1.5 text-sm font-medium text-amber-700">
+                        (Estimated)
+                      </span>
+                    ) : null}
+                  </h3>
+                  {showMultiCreatorUI &&
+                    hasDemographicsData &&
+                    demographicsData &&
+                    demographicsData.has_data &&
+                    !isLoading && (
+                      <p className="text-xs text-gray-500">
+                        Aggregated across{" "}
+                        {demographicsData.creators_with_data ??
+                          demographicsData.total_creators ??
+                          0}{" "}
+                        creators · {(demographicsData.total_followers ?? 0).toLocaleString()}{" "}
+                        total followers
+                      </p>
+                    )}
+                  {!showMultiCreatorUI &&
+                    !isLoading &&
+                    (selectedCampaign?.creator || selectedCampaign?.contract?.creator) &&
+                    !(demographicsData?.no_connection && !demographicsData?.has_data) && (
+                      <p className="text-xs text-gray-500">
+                        From{" "}
+                        {[
+                          selectedCampaign?.creator?.first_name ??
+                            selectedCampaign?.contract?.creator?.first_name,
+                          selectedCampaign?.creator?.last_name ??
+                            selectedCampaign?.contract?.creator?.last_name,
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || "creator"}
+                      </p>
+                    )}
+                </div>
+
+                {demographicsData?.is_estimated && demographicsData?.has_data && (
+                  <div className="mb-3 p-2.5 bg-amber-50 rounded-lg border border-amber-100">
+                    <p className="text-xs text-amber-900">
+                      {demographicsData.estimate_disclaimer}
+                    </p>
+                  </div>
                 )}
-            </div>
 
-            <AudienceDemographics
-              audienceData={demographicsData ?? null}
-              loading={demographicsLoading}
-              className="flex flex-col"
-            />
+                <AudienceDemographics
+                  audienceData={demographicsData ?? null}
+                  loading={demographicsLoading}
+                  className="flex flex-col"
+                />
 
-            {showMultiCreatorUI && hasDemographicsData && demographicsData && (
-              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
-                <p className="text-xs text-green-800">
-                  <strong>Campaign Completed:</strong> Your campaign reached{" "}
-                  {(demographicsData.total_followers ?? 0).toLocaleString()} total followers across{" "}
-                  {demographicsData.creators_with_data ?? 0} creators with diverse audience
-                  demographics.
-                </p>
+                {showMultiCreatorUI && hasDemographicsData && demographicsData && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
+                    <p className="text-xs text-green-800">
+                      <strong>Campaign Completed:</strong> Your campaign reached{" "}
+                      {(demographicsData.total_followers ?? 0).toLocaleString()} total followers
+                      across {demographicsData.creators_with_data ?? 0} creators with diverse
+                      audience demographics.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
           <hr />
           {showMultiCreatorUI && (
             <div className="flex flex-col gap-2 mt-1">

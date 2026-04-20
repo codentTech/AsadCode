@@ -2,8 +2,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import useBackgroundEffect from "@/common/hooks/use-background-effect.hook";
 import { CheckCircle } from "lucide-react";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
+  const router = useRouter();
   const { position } = useBackgroundEffect();
 
   useEffect(() => {
@@ -59,7 +61,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
           />
 
           <AccountCard
-            title="I'm a Brand or Agency"
+            title="I'm a Client"
             description="Post campaigns and work with top creators."
             selected={selectedType === "brand"}
             onClick={() => handleSelectMode("brand")}
@@ -67,11 +69,16 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
         </div>
 
         {/* Continue Button */}
-        <div className="pt-4 flex justify-center">
+        <div className="pt-4 flex justify-between">
+          <CustomButton
+            onClick={() => router.push("/login")}
+            text="Back to login"
+            className="btn-secondary"
+          />
           <CustomButton
             onClick={onNext}
             disabled={!selectedType}
-            text="Continue"
+            text="Next"
             className="btn-primary text-white"
           />
         </div>

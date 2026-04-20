@@ -93,8 +93,7 @@ const faqData = [
           "Brands can post campaigns in minutes by selecting their niche, requirements, and deliverables. Creators can browse active campaigns via the Discover+ section and apply with a pitch.",
       },
       {
-        question:
-          "What happens after a brand or creator accepts a collaboration?",
+        question: "What happens after a client or creator accepts a collaboration?",
         answer:
           "Once accepted, both parties sign an auto-generated contract, can message directly via the active campaigns section, and begin tracking progress inside the campaign dashboard.",
       },
@@ -169,8 +168,7 @@ const faqData = [
           "Yes. CleerCut complies with international privacy standards and offers tools to define ownership, rights, and usage within contracts.",
       },
       {
-        question:
-          "What regulations does CleerCut comply with (e.g., FTC, GDPR)?",
+        question: "What regulations does CleerCut comply with (e.g., FTC, GDPR)?",
         answer:
           "We adhere to FTC endorsement guidelines, GDPR for user privacy, and other applicable regulations depending on your region.",
       },
@@ -235,8 +233,7 @@ const faqData = [
           "Explore shows trending or highly rated creators and campaigns, tailored by your preferences and performance filters.",
       },
       {
-        question:
-          "Can I integrate CleerCut with other tools (e.g. Calendars, CRMs)?",
+        question: "Can I integrate CleerCut with other tools (e.g. Calendars, CRMs)?",
         answer:
           "Integrations are coming soon. At launch, you can export timelines and sync dates manually with your calendar.",
       },
@@ -252,8 +249,7 @@ const faqData = [
       },
       {
         question: "Can I change the credit card linked to my account?",
-        answer:
-          "Yes. You can update your payment method at any time in your Billing settings.",
+        answer: "Yes. You can update your payment method at any time in your Billing settings.",
       },
       {
         question: "What should I do if I'm having trouble logging in?",
