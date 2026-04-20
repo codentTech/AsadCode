@@ -5,6 +5,10 @@ import ContractPreviewModal from "../../../brand/components/contract-preview-mod
 import { avatar } from "@/common/constants/auth.constant";
 import { Clock, CreditCard, AlertCircle } from "lucide-react";
 import Loader from "@/common/components/loader/loader.component";
+import {
+  getBrandDisplayNameForBrandUser,
+  getBrandLogoUrlFromBrandUser,
+} from "@/common/utils/brand-display.util";
 import useOffersModal from "./use-offers-modal.hook";
 
 export default function OffersModal({ show, onClose, onContractAction }) {
@@ -39,9 +43,7 @@ export default function OffersModal({ show, onClose, onContractAction }) {
           <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-yellow-900 mb-1">
-                Payment Setup Required
-              </h3>
+              <h3 className="text-sm font-semibold text-yellow-900 mb-1">Payment Setup Required</h3>
               <p className="text-sm text-yellow-800">
                 This is a paid collaboration. You need to connect your Stripe account to receive
                 payments before accepting this offer.
@@ -55,8 +57,8 @@ export default function OffersModal({ show, onClose, onContractAction }) {
               <div>
                 <p className="text-sm font-medium text-gray-900 mb-1">Why Stripe?</p>
                 <p className="text-sm text-gray-600">
-                  Stripe securely handles your payout information and identity verification. CleerCut
-                  never stores your bank details.
+                  Stripe securely handles your payout information and identity verification.
+                  CleerCut never stores your bank details.
                 </p>
               </div>
             </div>
@@ -79,7 +81,6 @@ export default function OffersModal({ show, onClose, onContractAction }) {
     );
   }
 
-  // If showing contract preview
   if (showContractPreview && contractPreviewData) {
     const brand = contractPreviewData.brand;
     const campaign = contractPreviewData.campaign;
@@ -89,10 +90,7 @@ export default function OffersModal({ show, onClose, onContractAction }) {
         show={showContractPreview}
         onClose={handleBackToList}
         contractData={{
-          brandName:
-            brand?.first_name && brand?.last_name
-              ? `${brand.first_name} ${brand.last_name}`
-              : brand?.first_name || "Brand",
+          brandName: getBrandDisplayNameForBrandUser(brand),
           creatorName:
             user?.first_name && user?.last_name
               ? `${user.first_name} ${user.last_name}`
@@ -150,11 +148,8 @@ export default function OffersModal({ show, onClose, onContractAction }) {
             {pendingContracts.map((contract) => {
               const brand = contract.brand;
               const campaign = contract.campaign;
-              const brandName =
-                brand?.first_name && brand?.last_name
-                  ? `${brand.first_name} ${brand.last_name}`
-                  : brand?.first_name || "Brand";
-              const brandImage = brand?.brand_profile?.logo || avatar;
+              const brandName = getBrandDisplayNameForBrandUser(brand);
+              const brandImage = getBrandLogoUrlFromBrandUser(brand) || avatar;
 
               return (
                 <div

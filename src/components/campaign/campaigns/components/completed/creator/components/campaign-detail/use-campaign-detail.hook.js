@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import useMessageThread from "../../../../message-thread-modal/use-message-thread.hook";
 
 export default function useCampaignDetail(campaign) {
@@ -54,6 +55,30 @@ export default function useCampaignDetail(campaign) {
       hashtags: hashtagsString,
     };
   }, [campaignData]);
+
+  const campaignType = campaign?.type || campaign?.campaign?.campaign_type;
+
+  const isUgcCampaign = useMemo(
+    () => campaignType === CAMPAIGN_TYPE.UGC,
+    [campaignType],
+  );
+
+  const campaignProgressSteps = useMemo(() => {
+    const raw = Array.isArray(campaign?.progress) ? campaign.progress : [];
+    if (isUgcCampaign) {
+      return raw.slice(0, 2);
+    }
+    return raw;
+  }, [campaign?.progress, isUgcCampaign]);
+
+  const progressCompletionRate = useMemo(() => {
+    const steps = campaignProgressSteps;
+    if (!steps.length) {
+      return campaign?.completionRate ?? 0;
+    }
+    const completed = steps.filter((s) => s.completed).length;
+    return Math.round((completed / steps.length) * 100);
+  }, [campaignProgressSteps, campaign?.completionRate]);
 
   // Campaign type style mapping
   const getCampaignTypeStyle = useCallback((type) => {
@@ -121,7 +146,10 @@ export default function useCampaignDetail(campaign) {
     campaignInfo,
 
     // Computed
-    typeStyle: getCampaignTypeStyle(campaign?.type || campaign?.campaign?.campaign_type),
+    typeStyle: getCampaignTypeStyle(campaignType),
+    isUgcCampaign,
+    campaignProgressSteps,
+    progressCompletionRate,
     creator,
     brandId,
 

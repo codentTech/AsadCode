@@ -119,22 +119,27 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
               <h3 className="text-lg font-semibold text-gray-800 mb-1">
                 {showMultiCreatorUI ? "Combined Audience Demographics" : "Audience Demographics"}
               </h3>
-              {showMultiCreatorUI && hasDemographicsData && demographicsData && (
-                <p className="text-xs text-gray-500">
-                  Aggregated across{" "}
-                  {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
-                  creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
-                  followers
-                </p>
-              )}
-              {!showMultiCreatorUI && selectedCampaign?.creator && (
-                <p className="text-xs text-gray-500">
-                  From{" "}
-                  {[selectedCampaign.creator.first_name, selectedCampaign.creator.last_name]
-                    .filter(Boolean)
-                    .join(" ") || "creator"}
-                </p>
-              )}
+              {showMultiCreatorUI &&
+                hasDemographicsData &&
+                demographicsData &&
+                demographicsData.has_data && (
+                  <p className="text-xs text-gray-500">
+                    Aggregated across{" "}
+                    {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
+                    creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
+                    followers
+                  </p>
+                )}
+              {!showMultiCreatorUI &&
+                selectedCampaign?.creator &&
+                !(demographicsData?.no_connection && !demographicsData?.has_data) && (
+                  <p className="text-xs text-gray-500">
+                    From{" "}
+                    {[selectedCampaign.creator.first_name, selectedCampaign.creator.last_name]
+                      .filter(Boolean)
+                      .join(" ") || "creator"}
+                  </p>
+                )}
             </div>
 
             <AudienceDemographics

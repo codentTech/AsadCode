@@ -43,6 +43,8 @@ const mapUserToCreator = (user) => {
     [user?.city, user?.country].filter(Boolean).join(", ") || "Location not specified";
 
   return {
+    ...user,
+    creator_profile: creatorProfile,
     id: user?.id,
     name,
     profileImage: creatorProfile?.profile_photo_url || "/assets/images/account.png",
@@ -79,8 +81,13 @@ const groupCreatorsByNiche = (creators) => {
   }));
 };
 
+const SEARCH_DEBOUNCE_MS = 500;
+const MIN_SEARCH_LENGTH = 2;
+
 export default function useDiscoverCreators() {
   const scrollRefs = useRef({});
+  const discoverFetchCompletedOnceRef = useRef(false);
+  const discoverHadPendingRef = useRef(false);
   const dispatch = useDispatch();
   const discoverCreatorsState = useSelector((state) => state.users?.discoverCreators);
 
@@ -107,7 +114,8 @@ export default function useDiscoverCreators() {
     audienceCityCountryCode: "",
   });
 
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState("");
   const [selectedSort, setSelectedSort] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filteredCreators, setFilteredCreators] = useState([]);
@@ -121,6 +129,17 @@ export default function useDiscoverCreators() {
   const safeData = discoverCreatorsState?.data || {};
   const loading = discoverCreatorsState?.isLoading || false;
   const isReduxReady = !!discoverCreatorsState;
+  useEffect(() => {
+    if (loading) {
+      discoverHadPendingRef.current = true;
+    }
+    if (!loading && discoverHadPendingRef.current) {
+      discoverFetchCompletedOnceRef.current = true;
+    }
+  }, [loading]);
+
+  const isDiscoverInitialLoading = loading && !discoverFetchCompletedOnceRef.current;
+  const isDiscoverRefetching = loading && discoverFetchCompletedOnceRef.current;
 
   const hasActiveFilters = useCallback(() => {
     return (
@@ -143,7 +162,7 @@ export default function useDiscoverCreators() {
   const buildQueryParams = useCallback(() => {
     const params = {};
 
-    if (searchKeyword) params.search = searchKeyword;
+    if (debouncedSearchKeyword) params.search = debouncedSearchKeyword;
     if (selectedSort) params.sortBy = selectedSort;
     if (filters.niches.length > 0) params.niches = filters.niches.join(",");
     if (filters.platforms.length > 0) params.platforms = filters.platforms.join(",");
@@ -167,7 +186,7 @@ export default function useDiscoverCreators() {
     }
 
     return params;
-  }, [filters, audienceFilters, searchKeyword, selectedSort, selectedCategory]);
+  }, [filters, audienceFilters, debouncedSearchKeyword, selectedSort, selectedCategory]);
 
   const fetchCreators = useCallback(
     async (params = {}) => {
@@ -181,7 +200,8 @@ export default function useDiscoverCreators() {
   );
 
   const resetSearch = useCallback(() => {
-    setSearchKeyword("");
+    setSearchInput("");
+    setDebouncedSearchKeyword("");
     setSelectedSort("");
     setFilters({
       platforms: [],
@@ -308,7 +328,8 @@ export default function useDiscoverCreators() {
       audienceCity: "",
       audienceCityCountryCode: "",
     });
-    setSearchKeyword("");
+    setSearchInput("");
+    setDebouncedSearchKeyword("");
     setSelectedSort("");
     setSelectedCategory(null);
     setFilteredCreators([]);
@@ -321,9 +342,18 @@ export default function useDiscoverCreators() {
   }, []);
 
   const handleSearchChange = useCallback((e) => {
-    const value = e.target.value;
-    setSearchKeyword(value);
+    setSearchInput(e.target.value);
   }, []);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      setDebouncedSearchKeyword(
+        trimmed.length >= MIN_SEARCH_LENGTH ? trimmed : ""
+      );
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
 
   const handleApplyFilters = useCallback(() => {
     setShowFilterModal(false);
@@ -340,16 +370,16 @@ export default function useDiscoverCreators() {
 
   useEffect(() => {
     if (!isReduxReady) return;
-    if (searchKeyword) return;
+    if (debouncedSearchKeyword) return;
     if (hasActiveFilters()) return;
     if (selectedSort) return;
     fetchCreators({});
-  }, [isReduxReady, searchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
+  }, [isReduxReady, debouncedSearchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
 
   useEffect(() => {
     if (!isReduxReady || showFilterModal) return;
 
-    if (hasActiveFilters() && !searchKeyword) {
+    if (hasActiveFilters() && !debouncedSearchKeyword) {
       const filterParams = buildQueryParams();
       fetchCreators(filterParams);
     }
@@ -358,44 +388,47 @@ export default function useDiscoverCreators() {
     showFilterModal,
     filters,
     audienceFilters,
-    searchKeyword,
+    debouncedSearchKeyword,
     fetchCreators,
     buildQueryParams,
     hasActiveFilters,
   ]);
 
   useEffect(() => {
-    if (!isReduxReady || showFilterModal || searchKeyword) return;
+    if (!isReduxReady || showFilterModal || debouncedSearchKeyword) return;
 
     if (selectedSort) {
       fetchCreators({ sortBy: selectedSort });
     }
-  }, [isReduxReady, showFilterModal, selectedSort, searchKeyword, fetchCreators]);
+  }, [isReduxReady, showFilterModal, selectedSort, debouncedSearchKeyword, fetchCreators]);
 
   useEffect(() => {
-    if (!isReduxReady) return;
-
-    const timeoutId = setTimeout(() => {
-      if (searchKeyword && !showFilterModal) {
-        const params = { search: searchKeyword };
-        if (selectedSort) params.sortBy = selectedSort;
-        fetchCreators(params);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [isReduxReady, searchKeyword, selectedSort, showFilterModal, fetchCreators]);
+    if (!isReduxReady || showFilterModal) return;
+    const q = debouncedSearchKeyword.trim();
+    if (q.length < MIN_SEARCH_LENGTH) return;
+    const params = { search: q };
+    if (selectedSort) params.sortBy = selectedSort;
+    fetchCreators(params);
+  }, [
+    isReduxReady,
+    showFilterModal,
+    debouncedSearchKeyword,
+    selectedSort,
+    fetchCreators,
+  ]);
 
   return {
     scrollRefs,
     creators,
     nicheCategories,
     loading,
+    isDiscoverInitialLoading,
+    isDiscoverRefetching,
     filters,
     setFilters,
     audienceFilters,
     setAudienceFilters,
-    searchKeyword,
+    searchKeyword: searchInput,
     selectedSort,
     setSelectedSort,
     selectedCategory,

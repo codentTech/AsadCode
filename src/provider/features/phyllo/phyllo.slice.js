@@ -14,7 +14,7 @@ const generalState = {
 };
 
 const performanceMetricsInitialState = { ...generalState, campaignId: null };
-const combinedDemographicsInitialState = { ...generalState, campaignId: null };
+const combinedDemographicsInitialState = { ...generalState, campaignId: null, creatorId: null };
 
 const initialState = {
   fetchCreatorStats: { ...generalState },
@@ -75,9 +75,16 @@ export const fetchCreatorSocialAccounts = createAsyncThunk(
 
 export const fetchCampaignCombinedDemographics = createAsyncThunk(
   "phyllo/fetchCampaignCombinedDemographics",
-  async (campaignId, thunkAPI) => {
+  async (payload, thunkAPI) => {
     try {
-      const response = await phylloService.fetchCampaignCombinedDemographics(campaignId);
+      const campaignId =
+        typeof payload === "object" && payload != null ? payload.campaignId : payload;
+      const creatorId =
+        typeof payload === "object" && payload != null ? payload.creatorId : undefined;
+      const response = await phylloService.fetchCampaignCombinedDemographics(
+        campaignId,
+        creatorId || null
+      );
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -137,7 +144,9 @@ export const phylloSlice = createSlice({
       state.fetchCreatorAudience = { ...generalState };
     },
     resetCampaignDemographics: (state) => {
-      state.fetchCampaignCombinedDemographics = { ...combinedDemographicsInitialState };
+      state.fetchCampaignCombinedDemographics = {
+        ...combinedDemographicsInitialState,
+      };
     },
     resetPerformanceMetrics: (state) => {
       state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
@@ -229,20 +238,31 @@ export const phylloSlice = createSlice({
     // Campaign Combined Demographics
     builder
       .addCase(fetchCampaignCombinedDemographics.pending, (state, action) => {
-        const requestedCampaignId = action.meta?.arg;
-        if (requestedCampaignId !== state.fetchCampaignCombinedDemographics.campaignId) {
+        const arg = action.meta?.arg;
+        const requestedCampaignId =
+          typeof arg === "object" && arg != null ? arg.campaignId : arg;
+        const requestedCreatorId =
+          typeof arg === "object" && arg != null ? arg.creatorId ?? null : null;
+        if (
+          requestedCampaignId !== state.fetchCampaignCombinedDemographics.campaignId ||
+          (requestedCreatorId ?? null) !== (state.fetchCampaignCombinedDemographics.creatorId ?? null)
+        ) {
           state.fetchCampaignCombinedDemographics.data = null;
           state.fetchCampaignCombinedDemographics.campaignId = null;
+          state.fetchCampaignCombinedDemographics.creatorId = null;
         }
         state.fetchCampaignCombinedDemographics.isLoading = true;
       })
       .addCase(fetchCampaignCombinedDemographics.fulfilled, (state, action) => {
         state.fetchCampaignCombinedDemographics.isLoading = false;
         state.fetchCampaignCombinedDemographics.isSuccess = true;
-        const campaignId = action.meta?.arg;
+        const arg = action.meta?.arg;
+        const campaignId = typeof arg === "object" && arg != null ? arg.campaignId : arg;
+        const creatorId = typeof arg === "object" && arg != null ? arg.creatorId ?? null : null;
         const newData = action.payload?.data;
         const currentData = state.fetchCampaignCombinedDemographics.data;
         const currentCampaignId = state.fetchCampaignCombinedDemographics.campaignId;
+        const currentCreatorId = state.fetchCampaignCombinedDemographics.creatorId;
 
         const newHasAge =
           Array.isArray(newData?.audience_age_distribution) &&
@@ -257,9 +277,10 @@ export const phylloSlice = createSlice({
           Array.isArray(currentData?.audience_country_distribution) &&
           currentData.audience_country_distribution.length > 0;
 
-        const isSameCampaign = campaignId === currentCampaignId;
+        const isSameContext =
+          campaignId === currentCampaignId && (creatorId ?? null) === (currentCreatorId ?? null);
         const keepCurrent =
-          isSameCampaign && (currentHasAge || currentHasCountry) && !newHasAge && !newHasCountry;
+          isSameContext && (currentHasAge || currentHasCountry) && !newHasAge && !newHasCountry;
 
         if (keepCurrent) {
           return;
@@ -267,6 +288,7 @@ export const phylloSlice = createSlice({
 
         state.fetchCampaignCombinedDemographics.data = newData;
         state.fetchCampaignCombinedDemographics.campaignId = campaignId;
+        state.fetchCampaignCombinedDemographics.creatorId = creatorId;
       })
       .addCase(fetchCampaignCombinedDemographics.rejected, (state, action) => {
         state.fetchCampaignCombinedDemographics.isLoading = false;

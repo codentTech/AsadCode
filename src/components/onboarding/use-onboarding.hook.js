@@ -129,11 +129,11 @@ export default function useOnboarding() {
       const n = Number(step) || 1;
       setCurrentStep(inviteTokenPresent ? Math.max(n, 2) : n);
     }
-    if (onboardingStatus.user?.role) {
-      const roleLower = onboardingStatus.user.role.toLowerCase();
-      setSelectedAccountType(roleLower);
-      dispatch(setIsCreatorModeMode(roleLower === "creator"));
-    }
+    // if (onboardingStatus.user?.role) {
+    //   const roleLower = onboardingStatus.user.role.toLowerCase();
+    //   setSelectedAccountType(roleLower);
+    //   dispatch(setIsCreatorModeMode(roleLower === "creator"));
+    // }
   }, [onboardingStatus, onboardingStatusLoading, dispatch, resolvedEmail, inviteTokenPresent]);
 
   useEffect(() => {

@@ -76,7 +76,7 @@ export default function useSavedDefaultFilter() {
   const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
   const [platformPendingDisconnect, setPlatformPendingDisconnect] = useState(null);
   const disconnectInFlightRef = useRef(false);
-
+  const [connectionLink, setConnectionLink] = useState(null);
   const { openConnect: openPhylloConnect } = usePhylloConnect();
 
   const refreshUserSnapshot = useCallback(() => {
@@ -153,7 +153,8 @@ export default function useSavedDefaultFilter() {
     if (socialConnectLoadingMap?.[platform]) return;
     setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: true }));
     try {
-      await openPhylloConnect();
+      const result = await openPhylloConnect();
+      setConnectionLink(result);
       await Promise.race([
         pollUntilPlatformConnected(platform),
         waitForFocusAndCheckPlatform(platform),
@@ -432,5 +433,7 @@ export default function useSavedDefaultFilter() {
     creatorTagMeta,
     creatorCardPreviewData,
     socialConnectLoadingMap,
+    connectionLink,
+    setConnectionLink,
   };
 }
