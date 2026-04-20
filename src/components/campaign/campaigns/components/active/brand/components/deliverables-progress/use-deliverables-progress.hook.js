@@ -557,7 +557,7 @@ const useDeliverablesProgress = (
           })
         ).unwrap();
         // Refetch combined demographics so audience panel reflects remaining creators
-        dispatch(fetchCampaignCombinedDemographics(selectedCampaign.id));
+        dispatch(fetchCampaignCombinedDemographics({ campaignId: selectedCampaign.id }));
       }
       if (onClearCreator) {
         onClearCreator();

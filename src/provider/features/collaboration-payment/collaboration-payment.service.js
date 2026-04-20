@@ -88,6 +88,19 @@ const checkCreatorPayoutReady = async () => {
   return response.data;
 };
 
+const createBrandOnboardingLink = async ({ returnUrl, refreshUrl }) => {
+  const response = await api().post("/collaboration-payments/brand/connect/create", {
+    returnUrl,
+    refreshUrl,
+  });
+  return response.data;
+};
+
+const getBrandAccountStatus = async () => {
+  const response = await api().get("/collaboration-payments/brand/connect/status");
+  return response.data;
+};
+
 // Platform Connect availability check (brand dashboard / env readiness)
 const checkConnectStatus = async () => {
   const response = await api().get("/collaboration-payments/connect/status");
@@ -128,6 +141,9 @@ const collaborationPaymentService = {
   createCreatorOnboardingLink,
   getCreatorAccountStatus,
   checkCreatorPayoutReady,
+
+  createBrandOnboardingLink,
+  getBrandAccountStatus,
 
   // Connect status
   checkConnectStatus,

@@ -10,6 +10,24 @@ const DEFAULT_PLATFORMS = {
   tiktok: { followers: 0, verified: false },
 };
 
+function ratingAndReviewCountFromCreatorUser(creatorUser) {
+  const profile = creatorUser?.creator_profile;
+  const rawRating = profile?.rating;
+  const rating =
+    rawRating != null && rawRating !== "" ? Number(rawRating) : 0;
+  const rawCount = profile?.reviewCount ?? profile?.review_count;
+  const reviewCount =
+    rawCount != null && rawCount !== ""
+      ? Number(rawCount)
+      : Array.isArray(profile?.campaign_reviews)
+        ? profile.campaign_reviews.length
+        : 0;
+  return {
+    rating: Number.isFinite(rating) ? rating : 0,
+    reviewCount: Number.isFinite(reviewCount) ? reviewCount : 0,
+  };
+}
+
 function buildPlatformsFromSocialAccounts(creator) {
   const accounts = creator?.social_accounts || [];
   const out = { ...DEFAULT_PLATFORMS };
@@ -99,6 +117,8 @@ export const useCreatorSpendAnalysis = (
         const creator = contract.creator;
         const creatorProfile = creator?.creator_profile;
 
+        const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(creator);
+
         return {
           id: contract.id,
           contractId: contract.id,
@@ -115,8 +135,8 @@ export const useCreatorSpendAnalysis = (
             `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
             "Location not specified",
           totalSpent: contract.totalCompensation || 0,
-          rating: creatorProfile?.rating || 0,
-          reviewCount: 0,
+          rating,
+          reviewCount,
           platforms: buildPlatformsFromSocialAccounts(creator),
           projects: 0,
           successRate: 0,
@@ -139,7 +159,12 @@ export const useCreatorSpendAnalysis = (
   ]);
 
   const creators = Array.isArray(creatorsData?.data)
-    ? creatorsData.data.map((creator) => ({
+    ? creatorsData.data.map((creator) => {
+        const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(
+          creator.creator
+        );
+
+        return {
         ...creator,
         id: creator?.creator?.creator_profile?.id,
         age: getAge(creator?.creator?.date_of_birth),
@@ -155,8 +180,8 @@ export const useCreatorSpendAnalysis = (
             ""
           ) || "Location not specified",
         totalSpent: creator.total_spent || 0,
-        rating: creator.creator?.rating || 0,
-        reviewCount: creator.creator?.review_count || 0,
+        rating,
+        reviewCount,
         platforms: (() => {
           const fromAccounts = buildPlatformsFromSocialAccounts(creator.creator);
           const c = creator.creator;
@@ -186,12 +211,6 @@ export const useCreatorSpendAnalysis = (
         successRate: creator.creator?.success_rate || 0,
         avgDeliveryTime: creator.creator?.avg_delivery_time || "N/A",
         specialty: creator.creator?.specialty || "General",
-        deadline:
-          creator.status === "HIRED"
-            ? "On time"
-            : creator.status === "REJECTED"
-              ? "Cancelled"
-              : "Pending",
         status: creator.status,
         appliedAt: creator.applied_at,
         hiredAt: creator.hired_at,
@@ -222,8 +241,9 @@ export const useCreatorSpendAnalysis = (
               sentAt: creator.contract.sent_at || creator.contract.sentAt,
               expiresAt: creator.contract.expires_at || creator.contract.expiresAt,
             }
-          : null, // Include contract if available, with camelCase transformation
-      }))
+          : null,
+        };
+      })
     : [];
 
   const getSuccessRateColor = (rate) => {

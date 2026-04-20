@@ -182,117 +182,119 @@ const CreatorSpendAnalysis = ({
                 creators.length > 0 &&
                 (selectedCampaign || (!isMultiCreator && creators.length > 0)) &&
                 creators.map((creator) => {
-                const isSelected = selectedCreator?.id === creator.id;
+                  const isSelected = selectedCreator?.id === creator.id;
 
-                return (
-                  <div
-                    key={creator.id}
-                    onClick={() => onCreatorSelect(creator)}
-                    className={`p-4 rounded-lg bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border cursor-pointer ${
-                      isSelected
-                        ? "border-primary ring-2 ring-primary/20 bg-primary/5"
-                        : "border-gray-100 hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={creator.image || avatar}
-                          alt={creator.name}
-                          className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
-                          onError={(e) => {
-                            e.target.src = avatar;
-                          }}
-                        />
-                      </div>
+                  return (
+                    <div
+                      key={creator.id}
+                      onClick={() => onCreatorSelect(creator)}
+                      className={`p-4 rounded-lg bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border cursor-pointer ${
+                        isSelected
+                          ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                          : "border-gray-100 hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <img
+                            src={creator.image}
+                            alt={creator.name}
+                            className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
+                          />
+                        </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="w-full">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center space-x-3">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                  {creator.name}
-                                </h3>
-                              </div>
-                              {creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-                              creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
-                                <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
-                                  Creator Fee:
-                                  <span className="font-bold text-primary">
-                                    {" "}
-                                    ${creator?.contract?.totalCompensation}
-                                  </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="w-full">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className="text-lg font-semibold text-gray-900">
+                                    {creator.name}
+                                  </h3>
                                 </div>
-                              ) : null}
+                                {creator?.campaign?.campaign_type ===
+                                  CAMPAIGN_TYPE.SPONSORED_POST ||
+                                creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
+                                  <div className="text-sm text-gray-900 bg-gray-100 rounded-lg p-2">
+                                    Creator Fee:
+                                    <span className="font-bold text-primary">
+                                      {" "}
+                                      ${creator?.contract?.totalCompensation}
+                                    </span>
+                                  </div>
+                                ) : null}
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                <div className="flex items-center space-x-1 text-xs">
+                                  <MapPin className="w-4 h-4" />
+                                  <span>{creator.location}</span>
+                                </div>
+                                <span className="text-xs text-gray-600">(27 Years Old)</span>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              <div className="flex items-center space-x-1 text-xs">
-                                <MapPin className="w-4 h-4" />
-                                <span>{creator.location}</span>
-                              </div>
-                              <span className="text-xs text-gray-600">(27 Years Old)</span>
+                          </div>
+
+                          <div className="flex items-center space-x-2 mb-3">
+                            <div className="flex text-xs items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < Math.floor(creator.rating || 0)
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {(creator.rating || 0).toFixed(1)}
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              ({creator.reviewCount ?? 0} reviews)
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-4 text-xs">
+                            <div
+                              className={`px-2 py-1 rounded-full ${getSuccessRateColor(
+                                creator.successRate
+                              )}`}
+                            >
+                              {`${creator.successRate || 0}% Success Rate`}
                             </div>
                           </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className="flex text-xs items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < Math.floor(creator.rating)
-                                    ? "text-yellow-400 fill-current"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-600">{creator.rating}</span>
-                          <span className="text-xs text-gray-600">
-                            ({creator.reviewCount} reviews)
-                          </span>
-                        </div>
-
-                        <div className="flex items-center space-x-4 text-xs">
-                          <div
-                            className={`px-2 py-1 rounded-full ${getSuccessRateColor(
-                              creator.successRate
-                            )}`}
-                          >
-                            {`${creator.successRate || 0}% Success Rate`}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                          {Object.entries(creator.platforms)
-                            ?.filter(
-                              ([platform]) => platform !== "twitter" && platform !== "facebook"
-                            )
-                            .map(([platform, data]) => (
-                              <div
-                                key={platform}
-                                className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3 hover:bg-gray-100/80 transition-colors duration-200"
-                              >
-                                <div className="flex items-center space-x-2 gap-2">
-                                  <span className={`${getPlatformColor(platform)} p-1 rounded-md`}>
-                                    {getPlatformIcon(platform)}
-                                  </span>
-                                  <span className="text-xs capitalize font-semibold text-gray-700">
-                                    {platform}
-                                  </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            {Object.entries(creator.platforms)
+                              ?.filter(
+                                ([platform]) => platform !== "twitter" && platform !== "facebook"
+                              )
+                              .map(([platform, data]) => (
+                                <div
+                                  key={platform}
+                                  className="flex items-center justify-between bg-gray-100 rounded-lg px-1 pr-3 hover:bg-gray-100/80 transition-colors duration-200"
+                                >
+                                  <div className="flex items-center space-x-2 gap-2">
+                                    <span
+                                      className={`${getPlatformColor(platform)} p-1 rounded-md`}
+                                    >
+                                      {getPlatformIcon(platform)}
+                                    </span>
+                                    <span className="text-xs capitalize font-semibold text-gray-700">
+                                      {platform}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm font-bold text-gray-900">
+                                    {formatFollowers(data.followers)}
+                                  </div>
                                 </div>
-                                <div className="text-sm font-bold text-gray-900">
-                                  {formatFollowers(data.followers)}
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </>
           )}
         </div>

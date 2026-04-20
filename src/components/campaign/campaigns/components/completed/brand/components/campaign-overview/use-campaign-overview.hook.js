@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-brand.hook";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import {
   fetchCampaignCombinedDemographics,
-  fetchCreatorAudience,
   fetchCampaignPerformanceMetrics,
   resetCampaignDemographics,
   resetAudience,
   resetPerformanceMetrics,
   selectCampaignCombinedDemographics,
-  selectCreatorAudience,
   selectCampaignPerformanceMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
 
@@ -49,6 +47,8 @@ export default function useCampaignOverviewCompleted(
 
   const selectedCampaign = parentSelectedCampaign || hookSelectedCampaign;
 
+  const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+
   const { data: campaignsApiData, isSuccess: campaignsSuccess } = useSelector(
     (state) => state.campaigns.getAllBrandCampaigns || {}
   );
@@ -76,7 +76,6 @@ export default function useCampaignOverviewCompleted(
     (state) => state.campaigns.getAppliedCreatorsForBudget || {}
   );
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
-  const individualDemographics = useSelector(selectCreatorAudience);
   const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
   const {
     data: individualContractsData,
@@ -259,6 +258,8 @@ export default function useCampaignOverviewCompleted(
     selectedCampaign?.contract?.creator_id;
 
   useEffect(() => {
+    if (isUgc) return;
+
     if (!campaignId) {
       dispatch(resetCampaignDemographics());
       dispatch(resetAudience());
@@ -266,29 +267,30 @@ export default function useCampaignOverviewCompleted(
       return;
     }
     if (isMultiCreator) {
-      dispatch(fetchCampaignCombinedDemographics(campaignId));
+      dispatch(fetchCampaignCombinedDemographics({ campaignId }));
+      dispatch(fetchCampaignPerformanceMetrics(campaignId));
+      dispatch(resetAudience());
+    } else if (individualCreatorId) {
+      dispatch(
+        fetchCampaignCombinedDemographics({
+          campaignId,
+          creatorId: individualCreatorId,
+        })
+      );
       dispatch(fetchCampaignPerformanceMetrics(campaignId));
       dispatch(resetAudience());
     } else {
-      if (individualCreatorId) {
-        dispatch(fetchCreatorAudience(individualCreatorId));
-        dispatch(resetCampaignDemographics());
-        dispatch(resetPerformanceMetrics());
-      } else {
-        dispatch(resetAudience());
-      }
+      dispatch(resetCampaignDemographics());
+      dispatch(resetAudience());
+      dispatch(resetPerformanceMetrics());
     }
   }, [campaignId, isMultiCreator, individualCreatorId, dispatch]);
 
-  const demographicsData = isMultiCreator
-    ? campaignDemographics?.data
-    : individualDemographics?.data;
-  const demographicsLoading = isMultiCreator
-    ? campaignDemographics?.isLoading || false
-    : individualDemographics?.isLoading || false;
-  const hasDemographicsData = isMultiCreator
-    ? campaignDemographics?.isSuccess && demographicsData?.has_data
-    : individualDemographics?.isSuccess && demographicsData?.has_data;
+  const demographicsData = campaignDemographics?.data;
+  const demographicsLoading = campaignDemographics?.isLoading || false;
+  const hasDemographicsData =
+    campaignDemographics?.isSuccess &&
+    (demographicsData?.has_data || demographicsData?.no_connection);
 
   const performanceData =
     campaignPerformance?.isSuccess && campaignPerformance?.data
@@ -301,7 +303,13 @@ export default function useCampaignOverviewCompleted(
       isLoading ||
       (!!selectedCampaign && !!appliedCreatorsLoading) ||
       (!isMultiCreator && !!individualContractsLoading),
-    [isLoading, selectedCampaign, appliedCreatorsLoading, isMultiCreator, individualContractsLoading]
+    [
+      isLoading,
+      selectedCampaign,
+      appliedCreatorsLoading,
+      isMultiCreator,
+      individualContractsLoading,
+    ]
   );
 
   const showEmptyState = useMemo(() => {
@@ -498,5 +506,6 @@ export default function useCampaignOverviewCompleted(
     handleViewAnalytics,
     individualContractsData,
     individualContractsSuccess,
+    isUgc,
   };
 }
