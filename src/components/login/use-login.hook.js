@@ -63,8 +63,8 @@ export default function useLogin() {
 
   const onSubmit = async (values) => {
     setLoading(true);
-    const response = await dispatch(login(values));
-    if (response.payload.success) {
+    const response = await dispatch(login({ ...values, email: email.toLowerCase() }));
+    if (response.payload && response.payload.success) {
       if (response.payload?.data?.user?.role === "ADMIN") {
         router.push("/admin/dashboard");
       } else {

@@ -9,6 +9,7 @@ import {
   COLLABORATION_TYPE,
   CAMPAIGN_TYPE,
 } from "@/common/constants/campaign.constant";
+import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 const createValidationSchema = (isIndividual) => {
@@ -125,6 +126,7 @@ export default function useHireCreator({
   );
 
   const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
+  const canFundCollaborations = hasPaymentMethodData?.canFundCollaborations ?? false;
 
   // Refresh payment method status when modal opens
   useEffect(() => {
@@ -228,16 +230,12 @@ export default function useHireCreator({
         campaignTitle: isIndividual
           ? "Individual Collaboration"
           : campaignData?.campaign_title || "",
-        brandName:
-          `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
-          "[Brand Name]",
+        brandName: getBrandDisplayNameForContract(campaignData),
         creatorName:
           `${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`.trim() ||
           "[Creator Name]",
         contractId: "DRAFT", // Will be replaced with backend ID after creation
-        partiesInvolved:
-          `${campaignData?.created_by?.first_name || campaignData?.brand?.first_name || ""} ${campaignData?.created_by?.last_name || campaignData?.brand?.last_name || ""}`.trim() ||
-          "[Brand Name]",
+        partiesInvolved: getBrandDisplayNameForContract(campaignData),
         campaignDescription: isIndividual
           ? values.contentGuidelines || ""
           : campaignData?.short_description || campaignData?.description || "",
@@ -258,9 +256,10 @@ export default function useHireCreator({
     }
 
     // CRITICAL: Validate payment method exists before submission (only for paid offers)
-    if (isPaymentRequired() && !hasPaymentMethod) {
-      const errorMessage =
-        "Payment method is required to send offers. Please add a payment method in Settings > Payments > Payment Methods.";
+    if (isPaymentRequired() && !canFundCollaborations) {
+      const errorMessage = !hasPaymentMethod
+        ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
+        : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
       enqueueSnackbar(errorMessage, { variant: "error" });
       return;
     }
@@ -309,8 +308,7 @@ export default function useHireCreator({
     const compType = (watchedValues?.compensationType || "").toUpperCase();
     const campType = (
       isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
-    )
-      ?.toUpperCase?.();
+    )?.toUpperCase?.();
     if (
       compType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
       compType === COMPENSATION_TYPE.COMMISSION
@@ -344,6 +342,7 @@ export default function useHireCreator({
     isValid,
     createEnrichedContractData,
     hasPaymentMethod,
+    canFundCollaborations,
     isCheckingPaymentMethod,
     showPreview,
     setShowPreview,

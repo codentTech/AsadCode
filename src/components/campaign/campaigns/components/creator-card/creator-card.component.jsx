@@ -12,15 +12,15 @@ const CreatorCard = ({
   onRemoveFromShortlist,
   onInviteClick,
   tab = "discover", // discover | applications | rejected
-  appliedDate,
-  rejectedDate,
   onReinstateClick,
   onViewNotesClick,
   isReinstateLoading = false,
   hideActions = false,
-  creatorType,
+  creatorType = creator?.creator_profile?.creator_type,
 }) => {
-  const tagMeta = creatorType ? getCreatorTagMeta(creatorType) : null;
+  const type = creatorType || creator?.creator_profile?.creator_type;
+  const tagMeta = type ? getCreatorTagMeta(type) : null;
+
   const {
     getPlatformIcon,
     getPlatformProfileUrlFor,

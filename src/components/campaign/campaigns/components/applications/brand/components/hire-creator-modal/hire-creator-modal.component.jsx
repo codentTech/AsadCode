@@ -35,6 +35,7 @@ export default function HireCreatorModal({
     isCompensationRequired,
     createEnrichedContractData,
     hasPaymentMethod,
+    canFundCollaborations,
     isCheckingPaymentMethod,
     isPaymentRequired,
     showPreview,
@@ -59,18 +60,23 @@ export default function HireCreatorModal({
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
       {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
-      {isPaymentRequired() && !isCheckingPaymentMethod && !hasPaymentMethod && (
+      {isPaymentRequired() && !isCheckingPaymentMethod && !canFundCollaborations && (
         <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-900 mb-1">Payment method required</p>
+              <p className="text-sm font-medium text-yellow-900 mb-1">
+                {!hasPaymentMethod
+                  ? "Payment method required"
+                  : "Stripe business connection required"}
+              </p>
               <p className="text-xs text-yellow-700 mb-3">
-                You must add a payment method before sending offers. No charge occurs when sending
-                an offer - payment is only processed when the creator accepts.
+                {!hasPaymentMethod
+                  ? "Add a card before sending paid offers. No charge occurs when sending an offer — your card is charged when the creator accepts."
+                  : "Complete Stripe business onboarding under Payment Methods so escrow funding can run when a creator accepts."}
               </p>
               <CustomButton
-                text="Add Payment Method"
+                text="Open payment settings"
                 className="btn-primary text-xs"
                 onClick={() => {
                   onClose();
@@ -212,8 +218,8 @@ export default function HireCreatorModal({
           </div>
           {isIndividualCollaboration && campaignTypeValue === CAMPAIGN_TYPE.UGC && (
             <p className="text-xs text-gray-600 mt-3">
-              UGC: the creator timeline has two steps (recorded → draft delivery). They are not asked
-              to submit a published post link.
+              UGC: the creator timeline has two steps (recorded → draft delivery). They are not
+              asked to submit a published post link.
             </p>
           )}
         </div>
@@ -266,7 +272,7 @@ export default function HireCreatorModal({
             loading={isSubmitting}
             disabled={
               isSubmitting ||
-              (isPaymentRequired() && !hasPaymentMethod) ||
+              (isPaymentRequired() && !canFundCollaborations) ||
               isCheckingPaymentMethod
             }
           />

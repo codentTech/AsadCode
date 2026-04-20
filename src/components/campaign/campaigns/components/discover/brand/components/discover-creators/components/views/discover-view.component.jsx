@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import PageHeader from "../headers/page-header.component";
 import ActiveFilters from "../filters/active-filters.component";
 import CreatorGrid from "../grid/creator-grid.component";
@@ -5,6 +7,8 @@ import NicheCategory from "../grid/niche-category.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 
 const DiscoverView = ({
+  isDiscoverInitialLoading = false,
+  isDiscoverRefetching = false,
   searchKeyword,
   selectedSort,
   hasActiveFilters,
@@ -68,8 +72,22 @@ const DiscoverView = ({
       )}
 
       {hasActiveFilters() || searchKeyword || selectedSort ? (
-        <div className="space-y-4">
-          {creators.length === 0 ? (
+        <div className="space-y-4 relative min-h-[280px]">
+          {isDiscoverRefetching ? (
+            <div
+              className="absolute inset-0 z-10 flex items-start justify-center bg-white/70 pt-16 pointer-events-none"
+              aria-busy="true"
+              aria-label="Loading creators"
+            >
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            </div>
+          ) : null}
+          {isDiscoverInitialLoading && creators.length === 0 ? (
+            <SkeletonCardGrid
+              count={8}
+              gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
+            />
+          ) : creators.length === 0 ? (
             <NotFound
               title="No Creators Found"
               description="Try adjusting your search or filters."
@@ -85,8 +103,22 @@ const DiscoverView = ({
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {nicheCategories.length === 0 ? (
+        <div className="space-y-6 relative min-h-[320px]">
+          {isDiscoverRefetching ? (
+            <div
+              className="absolute inset-0 z-10 flex items-start justify-center bg-white/70 pt-24 pointer-events-none"
+              aria-busy="true"
+              aria-label="Loading creators"
+            >
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            </div>
+          ) : null}
+          {isDiscoverInitialLoading && nicheCategories.length === 0 ? (
+            <SkeletonCardGrid
+              count={8}
+              gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
+            />
+          ) : nicheCategories.length === 0 ? (
             <NotFound
               title="No Niches Found"
               description="No niches found. Try adjusting your search or filters."
@@ -114,4 +146,3 @@ const DiscoverView = ({
 };
 
 export default DiscoverView;
-

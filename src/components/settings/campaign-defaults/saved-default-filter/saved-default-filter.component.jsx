@@ -55,6 +55,8 @@ const SavedDefaultFilters = () => {
     creatorTagMeta,
     creatorCardPreviewData,
     socialConnectLoadingMap,
+    connectionLink,
+    setConnectionLink,
   } = useSavedDefaultFilter();
 
   return (
@@ -196,6 +198,40 @@ const SavedDefaultFilters = () => {
                 </div>
               </div>
             </div>
+
+            {connectionLink ? (
+              <div className="bg-indigo-100 p-2 rounded-lg mt-2">
+                <div className="text-xs text-gray-600 font-semibold">
+                  If nothing happens when you click the <span className="font-bold">Connect</span>{" "}
+                  button, try opening the link manually. This may occur because your browser has
+                  blocked the pop-up. You can allow pop-ups for this site, or copy the link and
+                  paste it into a new tab.”
+                </div>
+
+                <div className="flex gap-2 justify-between mt-4">
+                  <CustomButton
+                    text="Close"
+                    type="button"
+                    onClick={() => setConnectionLink(null)}
+                    className="btn-secondary text-xs px-4 py-1 h-7"
+                  />
+                  <div className="flex gap-2">
+                    <CustomButton
+                      text="Copy link"
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(connectionLink)}
+                      className="btn-primary text-xs px-4 py-1 h-7"
+                    />
+                    <CustomButton
+                      text="Open in new tab"
+                      type="button"
+                      onClick={() => window.open(connectionLink, "_blank")}
+                      className="btn-primary text-xs px-4 py-1 h-7"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-4">

@@ -6,10 +6,8 @@ export const CREATOR_TAG_OPTIONS = [
     label: "UGC Specialist",
     pillClass: "bg-blue-600 text-white",
     cardBorder: "border-blue-200 bg-blue-50/80",
-    helper:
-      "I create high-quality branded content for brands to use on their own channels.",
-    tooltip:
-      "Focused on content creation. Audience reach is not required.",
+    helper: "I create high-quality branded content for clients to use on their own channels.",
+    tooltip: "Focused on content creation. Audience reach is not required.",
     allowedPlatforms: [PLATFORM_TYPE.INSTAGRAM],
   },
   {
@@ -18,34 +16,25 @@ export const CREATOR_TAG_OPTIONS = [
     pillClass: "bg-purple-600 text-white",
     cardBorder: "border-purple-200 bg-purple-50/80",
     helper:
-      "I promote brands by posting content to my own social media accounts and reaching my audience.",
+      "I promote clients by posting content to my own social media accounts and reaching my audience.",
     tooltip: "Focused on audience reach and performance.",
-    allowedPlatforms: [
-      PLATFORM_TYPE.INSTAGRAM,
-      PLATFORM_TYPE.TIKTOK,
-      PLATFORM_TYPE.YOUTUBE,
-    ],
+    allowedPlatforms: [PLATFORM_TYPE.INSTAGRAM, PLATFORM_TYPE.TIKTOK, PLATFORM_TYPE.YOUTUBE],
   },
   {
     value: CAMPAIGN_TYPE.HYBRID,
     label: "Hybrid",
-    pillClass: "bg-emerald-600 text-white",
-    cardBorder: "border-emerald-200 bg-emerald-50/80",
-    helper:
-      "I do both UGC content creation and I can also post organically to my own audience.",
+    pillClass: "bg-green-600 text-white",
+    cardBorder: "border-green-200 bg-green-50/80",
+    helper: "I do both UGC content creation and I can also post organically to my own audience.",
     tooltip: "Delivers both content creation and audience distribution.",
-    allowedPlatforms: [
-      PLATFORM_TYPE.INSTAGRAM,
-      PLATFORM_TYPE.TIKTOK,
-      PLATFORM_TYPE.YOUTUBE,
-    ],
+    allowedPlatforms: [PLATFORM_TYPE.INSTAGRAM, PLATFORM_TYPE.TIKTOK, PLATFORM_TYPE.YOUTUBE],
   },
 ];
 
 export const CREATOR_TYPE_QUESTION = "What type of creator are you?";
 
 export const CREATOR_TYPE_QUESTION_HELPER =
-  "This helps us show your profile correctly to brands and unlock the right tools for you.";
+  "This helps us show your profile correctly to clients and unlock the right tools for you.";
 
 export function getAllowedPlatformsForCreatorType(creatorType) {
   const opt = CREATOR_TAG_OPTIONS.find((o) => o.value === creatorType);
@@ -58,7 +47,5 @@ export function isPlatformAllowedForCreatorType(platform, creatorType) {
 }
 
 export function getCreatorTagMeta(creatorType) {
-  return (
-    CREATOR_TAG_OPTIONS.find((o) => o.value === creatorType) ?? CREATOR_TAG_OPTIONS[0]
-  );
+  return CREATOR_TAG_OPTIONS.find((o) => o.value === creatorType) ?? CREATOR_TAG_OPTIONS[0];
 }

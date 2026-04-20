@@ -272,7 +272,7 @@ const ProfileInformation = () => {
                 <CustomInput
                   label="Brand Name"
                   name="brandName"
-                  placeholder="Enter your brand or agency name"
+                  placeholder="Enter your client name"
                   register={register}
                   errors={errors}
                 />

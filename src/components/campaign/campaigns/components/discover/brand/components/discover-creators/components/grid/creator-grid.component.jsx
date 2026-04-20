@@ -14,6 +14,7 @@ const CreatorGrid = ({
         <div key={creator.id} className="flex h-full min-h-0">
           <CreatorCard
             creator={creator}
+            creatorType={creator.creator_profile?.creator_type}
             isShortlist={isShortlist}
             onCreatorPreview={onCreatorPreview}
             onSaveToShortlist={onSaveToShortlist}

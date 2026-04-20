@@ -72,7 +72,7 @@ const Payments = () => {
                 name="search"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search brand or creator name, email..."
+                placeholder="Search client, creator or email"
                 startIcon={<SearchIcon />}
                 className="!h-[36px]"
               />

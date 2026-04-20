@@ -90,6 +90,7 @@ function AudienceDemographics({
   loading = false,
   className = "grid grid-cols-1 xl:grid-cols-2",
   platform = null,
+  emptyMessage = null,
 }) {
   const {
     colors,
@@ -121,10 +122,27 @@ function AudienceDemographics({
     );
   }
 
+  if (audienceData?.no_connection) {
+    return (
+      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
+        <EmptyState
+          message={
+            audienceData?.empty_message ||
+            "This creator has not connected their social media platforms."
+          }
+        />
+      </div>
+    );
+  }
+
   if (!audienceData?.has_data) {
     return (
       <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-        <EmptyState message="No audience demographics available yet." />
+        <EmptyState
+          message={
+            emptyMessage || "No audience demographics available yet."
+          }
+        />
       </div>
     );
   }
