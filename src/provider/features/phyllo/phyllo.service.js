@@ -33,9 +33,13 @@ export const fetchCreatorSocialAccounts = async (creatorId, platform = null) => 
   return response.data;
 };
 
-// Fetch campaign combined demographics
-export const fetchCampaignCombinedDemographics = async (campaignId) => {
-  const response = await api().get(`/phyllo/campaigns/${campaignId}/combined-demographics`);
+// Fetch campaign combined demographics (optional creatorId for individual-campaign overview)
+export const fetchCampaignCombinedDemographics = async (campaignId, creatorId = null) => {
+  const params = new URLSearchParams();
+  if (creatorId) params.set("creatorId", creatorId);
+  const qs = params.toString();
+  const url = `/phyllo/campaigns/${campaignId}/combined-demographics${qs ? `?${qs}` : ""}`;
+  const response = await api().get(url);
   return response.data;
 };
 

@@ -8,7 +8,6 @@ import { Filter } from "lucide-react";
 const SearchAndSortControls = ({
   searchKeyword,
   onSearchChange,
-  selectedSort,
   onSortChange,
   onFilterClick,
   onNewCampaignClick,
@@ -54,4 +53,3 @@ const SearchAndSortControls = ({
 };
 
 export default SearchAndSortControls;
-

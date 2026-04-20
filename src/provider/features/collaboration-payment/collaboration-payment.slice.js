@@ -41,6 +41,9 @@ const initialState = {
   getCreatorAccountStatus: makeRequestState(),
   checkCreatorPayoutReady: makeRequestState(),
 
+  createBrandOnboardingLink: makeRequestState(),
+  getBrandAccountStatus: makeRequestState(),
+
   // Platform Connect availability
   checkConnectStatus: makeRequestState(),
 
@@ -258,6 +261,40 @@ export const checkCreatorPayoutReady = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to check payout readiness")
+      );
+    }
+  }
+);
+
+export const createBrandOnboardingLink = createAsyncThunk(
+  "collaborationPayment/createBrandOnboardingLink",
+  async ({ returnUrl, refreshUrl }, thunkAPI) => {
+    try {
+      const response =
+        await collaborationPaymentService.createBrandOnboardingLink({
+          returnUrl,
+          refreshUrl,
+        });
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to create brand onboarding link")
+      );
+    }
+  }
+);
+
+export const getBrandAccountStatus = createAsyncThunk(
+  "collaborationPayment/getBrandAccountStatus",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getBrandAccountStatus();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get brand account status")
       );
     }
   }
@@ -523,6 +560,32 @@ const collaborationPaymentSlice = createSlice({
       )
       .addCase(checkCreatorPayoutReady.rejected, (state, action) =>
         setRejected(state.checkCreatorPayoutReady, action, "Failed to check payout readiness")
+      );
+
+    builder
+      .addCase(createBrandOnboardingLink.pending, (state) =>
+        setPending(state.createBrandOnboardingLink)
+      )
+      .addCase(createBrandOnboardingLink.fulfilled, (state, action) =>
+        setFulfilled(state.createBrandOnboardingLink, action)
+      )
+      .addCase(createBrandOnboardingLink.rejected, (state, action) =>
+        setRejected(
+          state.createBrandOnboardingLink,
+          action,
+          "Failed to create brand onboarding link"
+        )
+      );
+
+    builder
+      .addCase(getBrandAccountStatus.pending, (state) =>
+        setPending(state.getBrandAccountStatus)
+      )
+      .addCase(getBrandAccountStatus.fulfilled, (state, action) =>
+        setFulfilled(state.getBrandAccountStatus, action)
+      )
+      .addCase(getBrandAccountStatus.rejected, (state, action) =>
+        setRejected(state.getBrandAccountStatus, action, "Failed to get brand account status")
       );
 
     // Connect status

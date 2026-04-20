@@ -13,9 +13,7 @@ import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.sl
 function useDiscover() {
   const dispatch = useDispatch();
   const shortlistState = useSelector((state) => state.shortlist);
-  const campaignsState = useSelector(
-    (state) => state.campaigns?.getAllBrandCampaigns
-  );
+  const campaignsState = useSelector((state) => state.campaigns?.getAllBrandCampaigns);
 
   const [selectedShortlist, setSelectedShortlist] = useState(null);
   const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] = useState(false);
@@ -192,9 +190,9 @@ function useDiscover() {
       return acc;
     }, {});
 
-    const platformsFromProfile = socialPlatformsFromProfile.map((sp) =>
-      typeof sp === "string" ? sp : (sp?.platform || sp?.name)
-    ).filter(Boolean);
+    const platformsFromProfile = socialPlatformsFromProfile
+      .map((sp) => (typeof sp === "string" ? sp : sp?.platform || sp?.name))
+      .filter(Boolean);
     const platforms =
       platformsFromAccounts.length > 0 ? platformsFromAccounts : platformsFromProfile;
     const platformStats =
@@ -212,6 +210,8 @@ function useDiscover() {
     );
 
     return {
+      ...user,
+      creator_profile: creatorProfile,
       id: user.id,
       name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown Creator",
       profileImage: creatorProfile.profile_photo_url || "/default-avatar.png",

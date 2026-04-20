@@ -1,4 +1,3 @@
-import { Skeleton, SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import InvitationModal from "@/components/campaign/campaigns/components/invitation-modal/invitation-modal.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import FilterModal from "./components/filters/filter-modal.component";
@@ -21,7 +20,8 @@ function DiscoverCreators({
     scrollRefs,
     creators,
     nicheCategories,
-    loading,
+    isDiscoverInitialLoading,
+    isDiscoverRefetching,
     filters,
     setFilters,
     audienceFilters,
@@ -58,28 +58,6 @@ function DiscoverCreators({
     handleApplyFilters,
   } = useDiscoverCreators();
 
-  if (loading) {
-    return (
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-72" />
-            <div className="flex gap-2">
-              <Skeleton className="h-10 flex-1 max-w-md" />
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </div>
-          <SkeletonCardGrid
-            count={8}
-            gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
-          />
-        </div>
-      </div>
-    );
-  }
-
   const handleBackClick = () => {
     handleBackToDiscover(setSelectedShortlist);
   };
@@ -112,6 +90,8 @@ function DiscoverCreators({
 
       {!selectedShortlist && !selectedCategory && (
         <DiscoverView
+          isDiscoverInitialLoading={isDiscoverInitialLoading}
+          isDiscoverRefetching={isDiscoverRefetching}
           searchKeyword={searchKeyword}
           selectedSort={selectedSort}
           hasActiveFilters={hasActiveFilters}

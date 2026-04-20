@@ -142,11 +142,11 @@ const CreatorSpendAnalysisCompleted = ({
             {selectedCampaign && creators.length > 0 && (
               <div className="space-y-3">
                 {creators.map((creator) => {
+                  console.log("creator", creator);
                   const isSelected = selectedCreator?.id === creator.id;
                   const creatorMetrics = getCreatorMetrics(creator);
                   const comparisons = getCreatorComparisons(creatorMetrics);
                   const showMetrics = !isUgc;
-                  const metricsUnavailable = creatorMetrics?.metricsUnavailable;
 
                   return (
                     <div
@@ -161,12 +161,9 @@ const CreatorSpendAnalysisCompleted = ({
                       <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
                           <img
-                            src={creator.image || avatar}
+                            src={creator.image}
                             alt={creator.name}
                             className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
-                            onError={(e) => {
-                              e.target.src = avatar;
-                            }}
                           />
                         </div>
 
@@ -254,28 +251,7 @@ const CreatorSpendAnalysisCompleted = ({
                           </div>
 
                           {/* UGC: show usage rights + completion status instead of metrics */}
-                          {isUgc ? (
-                            <div className="grid grid-cols-2 gap-3 mt-1">
-                              <div className="bg-gray-100 rounded-lg p-3 border border-gray-200">
-                                <span className="text-xs font-semibold text-gray-700 block mb-1">
-                                  Usage Rights
-                                </span>
-                                <span className="text-xs text-gray-900">
-                                  {creator.contract?.usageRights
-                                    ? creator.contract.usageRights.split("_").join(" ")
-                                    : "—"}
-                                </span>
-                              </div>
-                              <div className="bg-gray-100 rounded-lg p-3 border border-gray-200">
-                                <span className="text-xs font-semibold text-gray-700 block mb-1">
-                                  Creator Fee
-                                </span>
-                                <span className="text-xs font-bold text-primary">
-                                  ${creator?.contract?.totalCompensation || 1}
-                                </span>
-                              </div>
-                            </div>
-                          ) : showMetrics && !creatorMetrics ? (
+                          {isUgc ? null : showMetrics && !creatorMetrics ? (
                             /* Skeleton while engagement data is being fetched */
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
                               {[1, 2, 3, 4].map((i) => (
@@ -344,7 +320,10 @@ const CreatorSpendAnalysisCompleted = ({
                                   <span className="font-bold">
                                     {creatorMetrics.costPerEngagement === null
                                       ? "N/A"
-                                      : formatMetricValue(creatorMetrics.costPerEngagement, "currency")}
+                                      : formatMetricValue(
+                                          creatorMetrics.costPerEngagement,
+                                          "currency"
+                                        )}
                                   </span>
                                 </div>
                                 <div className={`text-xs ${comparisons.cpe.textColor}`}>

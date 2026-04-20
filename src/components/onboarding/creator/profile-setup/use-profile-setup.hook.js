@@ -8,10 +8,7 @@ import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hoo
 import { reset as resetAuth } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
-import {
-  disconnectSocialAccount,
-  getSocialAccounts,
-} from "@/provider/features/users/users.slice";
+import { disconnectSocialAccount, getSocialAccounts } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -41,9 +38,7 @@ const validationSchema = Yup.object().shape({
     .required("Tagline is required")
     .max(75, "Tagline must be less than 75 characters"),
 
-  longBio: Yup.string()
-    .max(500, "Full bio must be less than 500 characters")
-    .optional(),
+  longBio: Yup.string().max(500, "Full bio must be less than 500 characters").optional(),
 
   socialPlatforms: Yup.array()
     .of(
@@ -55,9 +50,7 @@ const validationSchema = Yup.object().shape({
     )
     .optional(),
 
-  categories: Yup.array()
-    .min(1, "Select at least one niche")
-    .max(5, "Maximum 5 niches allowed"),
+  categories: Yup.array().min(1, "Select at least one niche").max(5, "Maximum 5 niches allowed"),
 
   keywordTags: Yup.array()
     .max(15, "Suggested maximum is 15 keyword tags")
@@ -164,7 +157,7 @@ export default function useProfileSetup({ onNext }) {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [profilePhotoLoading, setProfilePhotoLoading] = useState(false);
-
+  const [connectionLink, setConnectionLink] = useState(null);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [removedPlatformMessages, setRemovedPlatformMessages] = useState({});
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -180,10 +173,7 @@ export default function useProfileSetup({ onNext }) {
   ]);
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
 
-  const platforms = useMemo(
-    () => getAllowedPlatformsForCreatorType(creatorType),
-    [creatorType]
-  );
+  const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
 
   const prevCreatorTypeRef = useRef(creatorType);
 
@@ -337,7 +327,8 @@ export default function useProfileSetup({ onNext }) {
     if (socialConnectLoadingMap?.[platform]) return;
     setSocialConnectLoadingMap((prev) => ({ ...prev, [platform]: true }));
     try {
-      await openPhylloConnect();
+      const result = await openPhylloConnect();
+      setConnectionLink(result);
       await Promise.race([
         pollUntilPlatformConnected(platform),
         waitForFocusAndCheckPlatform(platform),
@@ -723,5 +714,9 @@ export default function useProfileSetup({ onNext }) {
     handleCustomRateChange,
     addCustomRateRow,
     removeCustomRate,
+
+    // connection link
+    connectionLink,
+    setConnectionLink,
   };
 }

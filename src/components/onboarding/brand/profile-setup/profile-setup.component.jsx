@@ -34,7 +34,7 @@ const BrandProfile = ({ onNext, onBack }) => {
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-5 bg-primary p-4 rounded-lg">
           <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Build Your Brand Profile
+            Build Your Client Profile
           </h1>
           <p className="text-sm lg:text-md text-white">
             Set up your public profile that creators will see
@@ -65,14 +65,14 @@ const BrandProfile = ({ onNext, onBack }) => {
               {/* Brand Information */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Brand Information <span className="text-red-500">*</span>
+                  Client Information <span className="text-red-500">*</span>
                 </h3>
 
                 <div className="space-y-4">
                   <CustomInput
-                    label="Brand Name"
+                    label="Client Name"
                     name="brandName"
-                    placeholder="Enter your brand or agency name"
+                    placeholder="Enter your client name"
                     register={register}
                     errors={errors}
                   />
@@ -81,7 +81,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                     label="Website URL"
                     name="websiteUrl"
                     type="url"
-                    placeholder="https://www.yourbrand.com"
+                    placeholder="https://www.yourclient.com"
                     register={register}
                     errors={errors}
                   />
