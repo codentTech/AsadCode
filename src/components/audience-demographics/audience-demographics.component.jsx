@@ -74,7 +74,7 @@ const ChartSkeleton = () => (
 );
 
 const EmptyState = ({ message = "No data available" }) => (
-  <div className="flex items-center justify-center min-h-[80px] py-4">
+  <div className="flex items-center justify-center min-h-[40px]">
     <p className="text-sm text-gray-500 text-center">{message}</p>
   </div>
 );
@@ -104,7 +104,8 @@ function AudienceDemographics({
     cityColorItems,
   } = useAudienceDemographics(audienceData, DEFAULT_COLORS, platform);
 
-  const showTopCities = platform?.toLowerCase() === "instagram" && Array.isArray(cityData) && cityData.length > 0;
+  const showTopCities =
+    platform?.toLowerCase() === "instagram" && Array.isArray(cityData) && cityData.length > 0;
 
   if (loading) {
     return (
@@ -137,12 +138,8 @@ function AudienceDemographics({
 
   if (!audienceData?.has_data) {
     return (
-      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-        <EmptyState
-          message={
-            emptyMessage || "No audience demographics available yet."
-          }
-        />
+      <div className="bg-gray-100 rounded-lg shadow-sm border border-gray-100">
+        <EmptyState message={emptyMessage || "No audience demographics available yet."} />
       </div>
     );
   }

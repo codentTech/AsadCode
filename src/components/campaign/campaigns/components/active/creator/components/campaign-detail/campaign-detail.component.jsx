@@ -389,11 +389,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           show={showContractModal}
           onClose={handleCloseContractModal}
           contractData={{
-            brandName:
-              campaign?.campaign?.created_by?.first_name &&
-              campaign?.campaign?.created_by?.last_name
-                ? `${campaign.campaign.created_by.first_name} ${campaign.campaign.created_by.last_name}`
-                : campaign?.campaign?.created_by?.first_name || "Brand",
+            brandName: `${selectedContract?.brand?.brand_profile?.brand_name}` || "Brand",
             creatorName:
               user?.first_name && user?.last_name
                 ? `${user.first_name} ${user.last_name}`

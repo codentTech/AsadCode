@@ -83,7 +83,6 @@ const SocialLinks = () => {
       socialLinks: socialLinks.filter((link) => link.url),
       customPlatforms,
     };
-    console.log("Social links data:", allLinks);
     alert("Social links updated successfully!");
   };
 
