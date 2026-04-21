@@ -455,11 +455,7 @@ const DeliverablesProgressCompleted = ({
               show={showContractPreview}
               onClose={() => setShowContractPreview(false)}
               contractData={{
-                brandName:
-                  selectedCampaign?.created_by?.first_name &&
-                  selectedCampaign?.created_by?.last_name
-                    ? `${selectedCampaign.created_by.first_name} ${selectedCampaign.created_by.last_name}`
-                    : selectedCampaign?.created_by?.first_name || "Brand",
+                brandName: `${selectedContract?.brand?.brand_profile?.brand_name}` || "Brand",
                 creatorName: creator?.name || "Creator",
                 campaignTitle:
                   selectedCampaign?.campaign_title || selectedCampaign?.title || "Campaign",
