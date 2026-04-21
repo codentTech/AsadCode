@@ -310,7 +310,8 @@ const CreatorSpendAnalysisCompleted = ({
                                 <div className="text-xs text-gray-900 mb-0.5">
                                   <span className="text-gray-500">View: </span>
                                   <span className="font-bold">
-                                    {creatorMetrics.costPerView === null
+                                    {creatorMetrics.costPerView == null ||
+                                    !Number.isFinite(Number(creatorMetrics.costPerView))
                                       ? "N/A"
                                       : formatMetricValue(creatorMetrics.costPerView, "currency")}
                                   </span>
@@ -318,7 +319,8 @@ const CreatorSpendAnalysisCompleted = ({
                                 <div className="text-xs text-gray-900 mb-1">
                                   <span className="text-gray-500">Engagement: </span>
                                   <span className="font-bold">
-                                    {creatorMetrics.costPerEngagement === null
+                                    {creatorMetrics.costPerEngagement == null ||
+                                    !Number.isFinite(Number(creatorMetrics.costPerEngagement))
                                       ? "N/A"
                                       : formatMetricValue(
                                           creatorMetrics.costPerEngagement,

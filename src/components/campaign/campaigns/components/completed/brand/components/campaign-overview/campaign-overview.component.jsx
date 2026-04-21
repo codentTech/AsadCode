@@ -26,6 +26,7 @@ export default function CampaignOverviewCompleted({
     showEmptyState,
     formatCurrency,
     formatNumber,
+    formatMetricValue,
     isLoading,
     hasData,
     handleCampaignSelect,
@@ -145,19 +146,19 @@ export default function CampaignOverviewCompleted({
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Views:</span>
                       <span className="font-medium text-blue-800">
-                        {formatNumber(performanceData?.totalViews || 0)}
+                        {formatMetricValue(performanceData?.totalViews ?? 0, "views")}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Engagement:</span>
                       <span className="font-medium text-blue-800">
-                        {formatNumber(performanceData?.totalEngagement || 0)}
+                        {formatMetricValue(performanceData?.totalEngagement ?? 0, "engagement")}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Avg Engagement Rate:</span>
                       <span className="font-medium text-blue-800">
-                        {(performanceData?.engagementRate || 0).toFixed(1)}%
+                        {formatMetricValue(performanceData?.engagementRate ?? 0, "rate")}
                       </span>
                     </div>
                     <div className="rounded-lg bg-indigo-200 p-3">
@@ -166,20 +167,20 @@ export default function CampaignOverviewCompleted({
                         <div className="text-right space-y-0.5">
                           <div className="font-medium text-blue-800">
                             View:{" "}
-                            {performanceData?.costPerView != null && performanceData.costPerView > 0
-                              ? formatCurrency(performanceData.costPerView)
-                              : performanceData?.totalViews > 0 && budgetData?.spent != null
-                                ? formatCurrency(
-                                    Number(budgetData.spent) / Number(performanceData.totalViews)
-                                  )
-                                : 0}
+                            {performanceData?.costPerView == null ||
+                            !Number.isFinite(Number(performanceData.costPerView))
+                              ? "N/A"
+                              : formatMetricValue(performanceData.costPerView, "currency")}
                           </div>
                           <div className="font-medium text-blue-800">
                             Engagement:{" "}
-                            {performanceData?.costPerEngagement != null &&
-                            performanceData.costPerEngagement > 0
-                              ? formatCurrency(performanceData.costPerEngagement)
-                              : 0}
+                            {performanceData?.costPerEngagement == null ||
+                            !Number.isFinite(Number(performanceData.costPerEngagement))
+                              ? "N/A"
+                              : formatMetricValue(
+                                  performanceData.costPerEngagement,
+                                  "currency"
+                                )}
                           </div>
                         </div>
                       </div>
@@ -190,13 +191,13 @@ export default function CampaignOverviewCompleted({
                         <div className="flex justify-between">
                           <span className="text-gray-600">Total Posts:</span>
                           <span className="font-medium text-blue-800">
-                            {formatNumber(performanceData.totalPosts)}
+                            {formatMetricValue(performanceData.totalPosts, "views")}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Avg Views/Post:</span>
                           <span className="font-medium text-blue-800">
-                            {formatNumber(performanceData.averageViewsPerPost || 0)}
+                            {formatMetricValue(performanceData.averageViewsPerPost || 0, "views")}
                           </span>
                         </div>
                       </>
@@ -217,9 +218,7 @@ export default function CampaignOverviewCompleted({
                       ? "Combined Audience Demographics"
                       : "Audience Demographics"}
                     {demographicsData?.is_estimated && demographicsData?.has_data ? (
-                      <span className="ml-1.5 text-sm font-medium text-amber-700">
-                        (Estimated)
-                      </span>
+                      <span className="ml-1.5 text-sm font-medium text-amber-700">(Estimated)</span>
                     ) : null}
                   </h3>
                   {showMultiCreatorUI &&
@@ -232,8 +231,8 @@ export default function CampaignOverviewCompleted({
                         {demographicsData.creators_with_data ??
                           demographicsData.total_creators ??
                           0}{" "}
-                        creators · {(demographicsData.total_followers ?? 0).toLocaleString()}{" "}
-                        total followers
+                        creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
+                        followers
                       </p>
                     )}
                   {!showMultiCreatorUI &&
@@ -256,9 +255,7 @@ export default function CampaignOverviewCompleted({
 
                 {demographicsData?.is_estimated && demographicsData?.has_data && (
                   <div className="mb-3 p-2.5 bg-amber-50 rounded-lg border border-amber-100">
-                    <p className="text-xs text-amber-900">
-                      {demographicsData.estimate_disclaimer}
-                    </p>
+                    <p className="text-xs text-amber-900">{demographicsData.estimate_disclaimer}</p>
                   </div>
                 )}
 

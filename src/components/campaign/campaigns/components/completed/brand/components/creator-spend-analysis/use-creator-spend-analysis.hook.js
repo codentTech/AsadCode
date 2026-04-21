@@ -3,54 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useCreatorSpendAnalysis } from "../../../../active/brand/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
-import { TIMELINE_STEPS, CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
-import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-
-/**
- * Extracts post-level metrics from the FINAL_PUBLISHED timeline step for a creator.
- * Returns null if no published post exists or no engagement data is available.
- */
-function extractCreatorMetrics(timelinesByKey, campaignId, creatorUserId, creatorFee) {
-  if (!campaignId || !creatorUserId) return null;
-
-  const key = `${campaignId}-${creatorUserId}`;
-  const timelineSource = timelinesByKey?.[key];
-  const steps = Array.isArray(timelineSource?.data) ? timelineSource.data : [];
-
-  const publishedStep = steps.find(
-    (s) =>
-      s.step_type === TIMELINE_STEPS.FINAL_PUBLISHED || s.step === TIMELINE_STEPS.FINAL_PUBLISHED
-  );
-
-  const publishedUrl = publishedStep?.published_url || publishedStep?.data?.published_url || null;
-
-  if (!publishedUrl) return null;
-
-  const engagement = publishedStep?.engagement || publishedStep?.data?.engagement || null;
-
-  if (!engagement) return { publishedUrl, metricsUnavailable: true };
-
-  const views = Number(engagement.view_count ?? engagement.views ?? 0);
-  const likes = Number(engagement.like_count ?? engagement.likes ?? 0);
-  const comments = Number(engagement.comment_count ?? engagement.comments ?? 0);
-  const shares = Number(engagement.share_count ?? engagement.shares ?? 0);
-  const saves = Number(engagement.save_count ?? engagement.saves ?? 0);
-
-  const totalEngagement = likes + comments + shares + saves;
-  const engagementRate = views > 0 ? totalEngagement / views : 0;
-  const fee = creatorFee || 0;
-  const costPerView = views > 0 ? fee / views : null;
-  const costPerEngagement = totalEngagement > 0 ? fee / totalEngagement : null;
-
-  return {
-    publishedUrl,
-    views,
-    totalEngagement,
-    engagementRate,
-    costPerView,
-    costPerEngagement,
-  };
-}
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { formatFollowers } from "@/common/utils/format.utils";
+import { buildCreatorPublishedMetricsMap } from "@/common/utils/published-campaign-metrics.util";
 
 /**
  * Builds comparison label relative to campaign average for a given metric value.
@@ -118,50 +73,12 @@ export const useCreatorSpendAnalysisCompleted = ({
    */
   const creatorMetricsMap = useMemo(() => {
     if (isUgc || !selectedCampaign?.id) return {};
-
-    const creators = Array.isArray(creatorsData?.data) ? creatorsData.data : [];
-    const map = {};
-
-    creators.forEach((c) => {
-      const creatorUserId = c.creator?.id || c.creatorUserId;
-      if (!creatorUserId) return;
-
-      const fee = c.total_spent || c.totalSpent || c.contract?.totalCompensation || 0;
-      const fromApi = creatorBreakdown[creatorUserId];
-      const fromTimeline = extractCreatorMetrics(
-        timelinesByKey,
-        selectedCampaign.id,
-        creatorUserId,
-        fee
-      );
-
-      if (fromApi && (fromApi.views != null || fromApi.totalEngagement != null)) {
-        const apiViews = fromApi.views ?? 0;
-        const apiEngagement = fromApi.totalEngagement ?? 0;
-        map[creatorUserId] = {
-          publishedUrl: fromApi.publishedUrl || fromTimeline?.publishedUrl,
-          views: apiViews,
-          totalEngagement: apiEngagement,
-          engagementRate: fromApi.engagementRate ?? 0,
-          costPerView:
-            fromApi.costPerView != null
-              ? fromApi.costPerView
-              : apiViews > 0 && fee
-                ? Number((fee / apiViews).toFixed(2))
-                : null,
-          costPerEngagement:
-            fromApi.costPerEngagement != null
-              ? fromApi.costPerEngagement
-              : apiEngagement > 0 && fee
-                ? Number((fee / apiEngagement).toFixed(2))
-                : null,
-        };
-      } else {
-        map[creatorUserId] = fromTimeline;
-      }
+    return buildCreatorPublishedMetricsMap({
+      creatorsList: Array.isArray(creatorsData?.data) ? creatorsData.data : [],
+      timelinesByKey,
+      campaignId: selectedCampaign.id,
+      creatorBreakdown,
     });
-
-    return map;
   }, [isUgc, selectedCampaign?.id, creatorsData, timelinesByKey, creatorBreakdown]);
 
   /**
