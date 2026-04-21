@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-brand.hook";
 import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -12,6 +12,11 @@ import {
   selectCampaignCombinedDemographics,
   selectCampaignPerformanceMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
+import { formatFollowers } from "@/common/utils/format.utils";
+import {
+  aggregateCombinedPublishedMetrics,
+  buildCreatorPublishedMetricsMap,
+} from "@/common/utils/published-campaign-metrics.util";
 
 export default function useCampaignOverviewCompleted(
   onCampaignSelect,
@@ -142,92 +147,6 @@ export default function useCampaignOverviewCompleted(
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline?.timelinesByKey || {});
 
-  const performanceMetrics = useMemo(() => {
-    if (parentSelectedCampaign && creatorsSuccess && creatorsData?.data) {
-      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-
-      const creatorMetrics = creators
-        .map((c) => {
-          const creatorUserId = c.creator?.id || c.creatorUserId;
-          if (!creatorUserId || !parentSelectedCampaign.id) return null;
-
-          const key = `${parentSelectedCampaign.id}-${creatorUserId}`;
-          const timelineSource = timelinesByKey[key];
-          const steps = Array.isArray(timelineSource?.data) ? timelineSource.data : [];
-
-          const publishedStep = steps.find(
-            (s) => s.step_type === "FINAL_PUBLISHED" || s.step === "FINAL_PUBLISHED"
-          );
-          const engagement = publishedStep?.engagement || publishedStep?.data?.engagement || null;
-          if (!publishedStep?.published_url && !publishedStep?.data?.published_url) return null;
-          if (!engagement) return null;
-
-          const views = Number(engagement.view_count ?? engagement.views ?? 0);
-          const likes = Number(engagement.like_count ?? engagement.likes ?? 0);
-          const comments = Number(engagement.comment_count ?? engagement.comments ?? 0);
-          const shares = Number(engagement.share_count ?? engagement.shares ?? 0);
-          const saves = Number(engagement.save_count ?? engagement.saves ?? 0);
-          const totalEngagement = likes + comments + shares + saves;
-          const fee = c.total_spent || c.totalSpent || 0;
-
-          return {
-            views,
-            totalEngagement,
-            engagementRate: views > 0 ? totalEngagement / views : 0,
-            costPerEngagement: totalEngagement > 0 ? fee / totalEngagement : null,
-          };
-        })
-        .filter(Boolean);
-
-      if (creatorMetrics.length > 0) {
-        const totalViews = creatorMetrics.reduce((s, m) => s + m.views, 0);
-        const totalEngagement = creatorMetrics.reduce((s, m) => s + m.totalEngagement, 0);
-
-        const engagementRate =
-          creatorMetrics.reduce((s, m) => s + m.engagementRate, 0) / creatorMetrics.length;
-        const cpeValues = creatorMetrics
-          .map((m) => m.costPerEngagement)
-          .filter((v) => v !== null && v !== undefined);
-        const costPerEngagement =
-          cpeValues.length > 0 ? cpeValues.reduce((s, v) => s + v, 0) / cpeValues.length : 0;
-
-        return {
-          totalViews,
-          totalEngagement,
-          engagementRate: engagementRate * 100,
-          costPerEngagement,
-        };
-      }
-
-      const spent = creators.reduce((sum, creator) => {
-        const raw =
-          creator.contract?.total_compensation ??
-          creator.contract?.totalCompensation ??
-          creator.total_spent ??
-          0;
-        return Number(sum) + (Number(raw) || 0);
-      }, 0);
-      const totalViews = creators.reduce(
-        (sum, creator) => Number(sum) + (Number(creator.total_views) || 0),
-        0
-      );
-      const totalEngagement = creators.reduce(
-        (sum, creator) => Number(sum) + (Number(creator.total_engagement) || 0),
-        0
-      );
-      const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
-      const costPerEngagement = totalEngagement > 0 ? spent / totalEngagement : 0;
-      return { totalViews, totalEngagement, engagementRate, costPerEngagement };
-    }
-    return hookPerformanceMetrics;
-  }, [
-    parentSelectedCampaign,
-    creatorsSuccess,
-    creatorsData,
-    hookPerformanceMetrics,
-    timelinesByKey,
-  ]);
-
   // Same filter as active tab: by collaboration type (multi vs individual)
   const filteredCampaignOptions = useMemo(() => {
     return completedCampaignOptions.filter((option) => {
@@ -292,11 +211,76 @@ export default function useCampaignOverviewCompleted(
     campaignDemographics?.isSuccess &&
     (demographicsData?.has_data || demographicsData?.no_connection);
 
-  const performanceData =
-    campaignPerformance?.isSuccess && campaignPerformance?.data
-      ? campaignPerformance.data
-      : hookPerformanceMetrics;
+  const campaignPerformancePayload = campaignPerformance?.data || null;
+  const creatorBreakdownForMetrics = campaignPerformancePayload?.creator_breakdown || {};
+
+  const publishedMetricsMap = useMemo(
+    () =>
+      buildCreatorPublishedMetricsMap({
+        creatorsList: Array.isArray(creatorsData?.data) ? creatorsData.data : [],
+        timelinesByKey,
+        campaignId: campaignId || null,
+        creatorBreakdown: creatorBreakdownForMetrics,
+      }),
+    [creatorsData?.data, timelinesByKey, campaignId, creatorBreakdownForMetrics]
+  );
+
+  const publishedCombined = useMemo(
+    () => aggregateCombinedPublishedMetrics(publishedMetricsMap),
+    [publishedMetricsMap]
+  );
+
+  const performanceData = useMemo(() => {
+    const phyllo =
+      campaignPerformance?.isSuccess && campaignPerformancePayload
+        ? campaignPerformancePayload
+        : null;
+
+    if (publishedCombined) {
+      return {
+        totalViews: publishedCombined.totalViews,
+        totalEngagement: publishedCombined.totalEngagement,
+        engagementRate: publishedCombined.avgEngagementRateDecimal,
+        costPerView: publishedCombined.avgCostPerView,
+        costPerEngagement: publishedCombined.avgCostPerEngagement,
+        totalPosts: phyllo?.totalPosts,
+        averageViewsPerPost: phyllo?.averageViewsPerPost,
+      };
+    }
+
+    if (phyllo && phyllo.has_data !== false && phyllo.totalViews != null) {
+      return {
+        ...phyllo,
+        engagementRate:
+          phyllo.engagementRate != null ? Number(phyllo.engagementRate) / 100 : 0,
+      };
+    }
+
+    const fallback = hookPerformanceMetrics || {};
+    return {
+      ...fallback,
+      engagementRate:
+        fallback.engagementRate != null ? Number(fallback.engagementRate) / 100 : 0,
+    };
+  }, [
+    publishedCombined,
+    campaignPerformance?.isSuccess,
+    campaignPerformancePayload,
+    hookPerformanceMetrics,
+  ]);
+
   const performanceLoading = campaignPerformance?.isLoading || false;
+
+  const formatMetricValue = useCallback((value, type) => {
+    if (value == null) return "N/A";
+    if (type === "views" || type === "engagement")
+      return formatFollowers(typeof value === "number" ? value : Number(value) || 0);
+    if (type === "rate") {
+      return `${(Number(value) * 100).toFixed(1)}%`;
+    }
+    if (type === "currency") return `$${Number(value).toFixed(2)}`;
+    return String(value);
+  }, []);
 
   const overviewLoading = useMemo(
     () =>
@@ -498,6 +482,7 @@ export default function useCampaignOverviewCompleted(
     showEmptyState,
     formatCurrency,
     formatNumber,
+    formatMetricValue,
     isLoading: overviewLoading,
     hasData: computedHasData,
     handleCampaignSelect,

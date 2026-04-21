@@ -46,7 +46,6 @@ const initialState = {
 export const createCampaign = createAsyncThunk(
   "campaigns/createCampaign",
   async (payload, thunkAPI) => {
-    console.log("payload", payload);
     try {
       const response = await campaignsService.createCampaign(payload);
       if (response.success) return response;
