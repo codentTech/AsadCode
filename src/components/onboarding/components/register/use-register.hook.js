@@ -277,10 +277,10 @@ export default function useRegister({ onNext, inviteToken }) {
     }
     const response = await dispatch(signUp(payload));
     if (response.payload.success) {
+      localStorage.setItem("email", values.email.toLowerCase().trim());
+      localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
       onNext();
       dispatch(reset());
-      localStorage.setItem("email", email);
-      localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
     }
   };
 
