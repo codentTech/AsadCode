@@ -120,6 +120,9 @@ export default function useCreatorPayments(selectedCampaign = null) {
           commissionPercentage: commissionPercentage,
           creatorFixedPrice: item.campaign?.creator_fixed_price || null,
           productValue: item.campaign?.product_value || null,
+          expectedPayoutAvailableAt: item.expectedPayoutAvailableAt || null,
+          payoutStatus: item.payoutStatus || null,
+          payoutBlockReason: item.payoutBlockReason || null,
         });
       }
     });
@@ -174,9 +177,23 @@ export default function useCreatorPayments(selectedCampaign = null) {
     }, 0);
   }, [isSuccess, historyData, selectedCampaign]);
 
+  const expectedPayoutAvailableAt = useMemo(() => {
+    if (!isSuccess || !historyData?.data || !Array.isArray(historyData.data)) {
+      return null;
+    }
+    const selectedCampaignId =
+      selectedCampaign?.id || selectedCampaign?.campaign?.id;
+    const list = selectedCampaignId
+      ? historyData.data.filter((item) => item.campaignId === selectedCampaignId)
+      : historyData.data;
+    const row = list.find((item) => item.expectedPayoutAvailableAt);
+    return row?.expectedPayoutAvailableAt ?? null;
+  }, [isSuccess, historyData, selectedCampaign]);
+
   return {
     paymentHistory,
     totalEarnings,
+    expectedPayoutAvailableAt,
     isLoading,
     isError,
   };
