@@ -13,6 +13,7 @@ import Loader from "@/common/components/loader/loader.component";
 import { useEffect } from "react";
 import useCreatorPayments from "./use-creator-payments.hook";
 import { getCompensationTypeLabel } from "@/common/utils/campaign.utils";
+import { format } from "date-fns";
 
 const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
   const {
     paymentHistory,
     totalEarnings,
+    expectedPayoutAvailableAt,
     isLoading: paymentsLoading,
   } = useCreatorPayments(selectedCampaign);
 
@@ -125,6 +127,12 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
             </p>
           )}
         </div>
+        {expectedPayoutAvailableAt && !paymentsLoading ? (
+          <p className="mt-3 text-xs text-amber-900 bg-amber-50 border border-amber-100 rounded-md px-2 py-2">
+            Expected CleerCut payout available by{" "}
+            {format(new Date(expectedPayoutAvailableAt), "MMMM d, yyyy")}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex-1 overflow-y-auto">
