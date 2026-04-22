@@ -108,7 +108,7 @@ export default function useOnboarding() {
   useLayoutEffect(() => {
     if (!resolvedEmail) {
       if (!inviteTokenPresent) {
-        setCurrentStep(1);
+        setCurrentStep((prev) => (prev >= 3 ? prev : 1));
       }
       return;
     }
@@ -117,7 +117,7 @@ export default function useOnboarding() {
     }
     if (!onboardingStatus?.user?.email) {
       if (!inviteTokenPresent) {
-        setCurrentStep(1);
+        setCurrentStep((prev) => (prev >= 3 ? prev : 1));
       }
       return;
     }
@@ -127,7 +127,10 @@ export default function useOnboarding() {
     const step = onboardingStatus.onboardingStep;
     if (step != null) {
       const n = Number(step) || 1;
-      setCurrentStep(inviteTokenPresent ? Math.max(n, 2) : n);
+      const serverStep = inviteTokenPresent ? Math.max(n, 2) : n;
+      setCurrentStep((prev) =>
+        prev >= 3 ? Math.max(serverStep, prev) : serverStep
+      );
     }
     // if (onboardingStatus.user?.role) {
     //   const roleLower = onboardingStatus.user.role.toLowerCase();
