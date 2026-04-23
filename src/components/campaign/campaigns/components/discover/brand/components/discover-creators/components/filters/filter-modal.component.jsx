@@ -59,7 +59,10 @@ const FilterModal = ({
   }, [selectedCountries]);
 
   const allowedCountryCodes = useMemo(
-    () => selectedCountryDetails.map((country) => String(country.code).toUpperCase()),
+    () =>
+      selectedCountryDetails.length > 0
+        ? selectedCountryDetails.map((country) => String(country.code).toUpperCase())
+        : COUNTRIES.map((country) => String(country.code).toUpperCase()),
     [selectedCountryDetails]
   );
 
@@ -262,7 +265,6 @@ const FilterModal = ({
                       city_country_code: option?.countryCode || "",
                     })
                   }
-                  disabled={selectedCountryDetails.length === 0}
                 />
               </div>
             </div>
@@ -356,7 +358,12 @@ const FilterModal = ({
                     audienceFilters.audienceCountries &&
                     audienceFilters.audienceCountries.length > 0
                       ? {
-                          countryName: audienceFilters.audienceCountries[0],
+                          countryName:
+                            COUNTRIES.find(
+                              (country) =>
+                                country.code ===
+                                String(audienceFilters.audienceCountries[0] || "").toUpperCase()
+                            )?.label || "",
                           countryCode: audienceFilters.audienceCountryCode || "",
                         }
                       : null
@@ -364,8 +371,12 @@ const FilterModal = ({
                   onChange={(option) =>
                     onAudienceFiltersChange({
                       ...audienceFilters,
-                      audienceCountries: option ? [option.countryName] : [],
-                      audienceCountryCode: option?.countryCode || "",
+                      audienceCountries: option
+                        ? [String(option.countryCode || "").toUpperCase()]
+                        : [],
+                      audienceCountryCode: option?.countryCode
+                        ? String(option.countryCode).toUpperCase()
+                        : "",
                       audienceCity: "",
                       audienceCityCountryCode: "",
                     })
@@ -374,6 +385,14 @@ const FilterModal = ({
                 <CitySelect
                   label="City"
                   countryCode={audienceFilters.audienceCountryCode || ""}
+                  countryCodes={
+                    audienceFilters.audienceCountries &&
+                    audienceFilters.audienceCountries.length > 0
+                      ? audienceFilters.audienceCountries.map((country) =>
+                          String(country).toUpperCase()
+                        )
+                      : COUNTRIES.map((country) => String(country.code).toUpperCase())
+                  }
                   value={
                     audienceFilters.audienceCity
                       ? {
@@ -391,10 +410,6 @@ const FilterModal = ({
                       audienceCity: option?.cityName || "",
                       audienceCityCountryCode: option?.countryCode || "",
                     })
-                  }
-                  disabled={
-                    !audienceFilters.audienceCountries ||
-                    audienceFilters.audienceCountries.length === 0
                   }
                 />
               </div>
