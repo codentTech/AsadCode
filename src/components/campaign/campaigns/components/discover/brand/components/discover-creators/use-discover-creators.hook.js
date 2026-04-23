@@ -148,7 +148,6 @@ export default function useDiscoverCreators() {
       filters.minFollowers ||
       filters.gender ||
       filters.ageRange ||
-      filters.country ||
       (Array.isArray(filters.countries) && filters.countries.length > 0) ||
       filters.city ||
       filters.languages?.length > 0 ||
@@ -172,7 +171,16 @@ export default function useDiscoverCreators() {
     if (filters.city) params.city = filters.city;
     if (filters.languages?.length > 0) params.languages = filters.languages.join(",");
     if (filters.minFollowers) params.minFollowers = Number(filters.minFollowers);
-    if (filters.gender) params.gender = filters.gender;
+    if (filters.gender) {
+      const normalizedGender = String(filters.gender).toLowerCase();
+      if (normalizedGender === "female") {
+        params.gender = "mostly-female";
+      } else if (normalizedGender === "male") {
+        params.gender = "mostly-male";
+      } else {
+        params.gender = normalizedGender;
+      }
+    }
     if (filters.ageRange) params.ageRange = filters.ageRange;
     if (audienceFilters.audienceGender) params.audienceGender = audienceFilters.audienceGender;
     if (audienceFilters.audienceAgeRanges.length > 0)
@@ -313,7 +321,7 @@ export default function useDiscoverCreators() {
     setFilters({
       platforms: [],
       minFollowers: "",
-      country: "",
+      countries: [],
       city: "",
       gender: "",
       ageRange: "",
