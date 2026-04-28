@@ -12,6 +12,7 @@ import { Check, Copy, Edit2, MapPin, Star, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../../../message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
@@ -412,6 +413,7 @@ const DeliverablesProgress = ({
             isCreatorTyping={messageThreadHook.isCreatorTyping}
             messagesEndRef={messageThreadHook.messagesEndRef}
             messagesContainerRef={messageThreadHook.messagesContainerRef}
+            {...pickMessageThreadModalProps(messageThreadHook)}
           />
           <Modal
             show={showMarkCompleteModal}

@@ -10,6 +10,7 @@ import {
   CAMPAIGN_TYPE,
 } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
+import { deliverablesToContentFormatString } from "@/common/utils/deliverables-to-content-format.util";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 const createValidationSchema = (isIndividual) => {
@@ -178,7 +179,10 @@ export default function useHireCreator({
         setValue("campaignType", "");
         setValue("contentGuidelines", "");
       } else {
-        setValue("contentFormat", campaignData.deliverables || "");
+        setValue(
+          "contentFormat",
+          deliverablesToContentFormatString(campaignData.deliverables)
+        );
         setValue(
           "compensationType",
           campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
@@ -221,6 +225,7 @@ export default function useHireCreator({
     (values) => {
       return {
         ...values,
+        contentFormat: deliverablesToContentFormatString(values.contentFormat),
         // Convert string numbers to actual numbers for API
         totalCompensation: values.totalCompensation
           ? parseFloat(values.totalCompensation)

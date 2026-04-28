@@ -59,20 +59,19 @@ export default function ContactMethodsPage() {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Email Address</h1>
-        <p className="text-sm mt-1">Manage your email address</p>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Email Address</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">Manage your email address</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-6">
+        <div className="p-3 sm:p-4">
+          <div className="mb-4 flex items-center justify-between sm:mb-6">
             <div className="flex items-center">
               <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg mr-3 flex-shrink-0">
                 <Mail className="h-4 w-4 text-blue-600" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Email Address</h2>
+              <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">Email Address</h2>
             </div>
 
             {!isEditing && (
@@ -81,8 +80,8 @@ export default function ContactMethodsPage() {
           </div>
 
           {!isEditing ? (
-            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-              <p className="text-sm font-medium text-gray-900">{currentEmail || "No email set"}</p>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs font-medium text-gray-900 sm:text-sm">{currentEmail || "No email set"}</p>
             </div>
           ) : (
             <form onSubmit={emailForm.handleSubmit(onSubmit)} className="space-y-4">
@@ -99,17 +98,17 @@ export default function ContactMethodsPage() {
                 />
               </div>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <CustomButton
                   text="Save Changes"
-                  className="btn-primary"
+                  className="btn-primary w-full sm:w-auto"
                   type="submit"
                   loading={isLoading}
                   disabled={isLoading}
                 />
                 <CustomButton
                   text="Cancel"
-                  className="btn-secondary"
+                  className="btn-secondary w-full sm:w-auto"
                   onClick={handleCancel}
                   disabled={isLoading}
                 />

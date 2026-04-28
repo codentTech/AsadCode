@@ -2,8 +2,8 @@ import React from "react";
 import { Check, CheckCircle } from "lucide-react";
 
 const SetupProgress = ({ steps, percent }) => (
-  <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-    <h4 className="font-semibold text-gray-900 mb-3">Setup Progress</h4>
+  <div className="mb-4 rounded-lg bg-white p-3 shadow-lg sm:mb-6 sm:p-6">
+    <h4 className="mb-3 text-sm font-semibold text-gray-900 sm:text-base">Setup Progress</h4>
     {typeof percent === "number" && (
       <div className="w-full bg-gray-200 rounded-full h-1 mb-4">
         <div
@@ -12,7 +12,7 @@ const SetupProgress = ({ steps, percent }) => (
         ></div>
       </div>
     )}
-    <div className="space-y-2 text-sm">
+    <div className="space-y-2 text-xs sm:text-sm">
       {steps.map((step, idx) => (
         <div key={idx} className="flex items-center justify-between">
           <span className="text-xs text-gray-600">{step.label}</span>
@@ -24,7 +24,7 @@ const SetupProgress = ({ steps, percent }) => (
           ) : step.status === "pending" ? (
             <span className="text-gray-400 text-xs">Pending</span>
           ) : (
-            <span className="text-primary">{step.count} selected</span>
+            <span className="text-xs text-primary sm:text-sm">{step.count} selected</span>
           )}
         </div>
       ))}

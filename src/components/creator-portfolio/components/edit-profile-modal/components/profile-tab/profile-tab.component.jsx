@@ -14,11 +14,11 @@ const ProfileTab = ({ profileData, setProfileData }) => {
   } = useProfileTab({ setProfileData });
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="max-w-3xl space-y-3 sm:space-y-4">
       {/* Profile Picture */}
-      <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-200">
+      <div className="rounded-lg border border-gray-200 bg-white p-2.5 shadow-sm sm:p-3">
         <h3 className="text-xs font-semibold text-gray-900 mb-2">Profile Picture</h3>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:space-x-3">
           <div className="relative group">
             <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm">
               {profileData.profilePic ? (
@@ -53,7 +53,7 @@ const ProfileTab = ({ profileData, setProfileData }) => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-xs font-semibold text-gray-900">Upload new picture</h4>
                 <p className="text-xs text-gray-500">
@@ -63,7 +63,7 @@ const ProfileTab = ({ profileData, setProfileData }) => {
               <CustomButton
                 text={profileData.profilePicLoading ? "Uploading..." : "Choose File"}
                 onClick={() => fileInputRef.current?.click()}
-                className="btn-primary px-3 py-1.5 text-xs ml-3"
+                className="btn-primary w-full sm:ml-3 sm:w-auto"
                 disabled={profileData.profilePicLoading}
               />
             </div>
@@ -72,12 +72,9 @@ const ProfileTab = ({ profileData, setProfileData }) => {
       </div>
 
       {/* Showcase Images */}
-      <div
-        id="creator-showcase-images"
-        className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 scroll-mt-4"
-      >
+      <div id="creator-showcase-images" className="scroll-mt-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Showcase Images</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
           {profileData.miniCards.map((card, index) => (
             <div key={index} className="relative group">
               <div className="aspect-square bg-gray-100 rounded-lg border-2 border-solid border-gray-200 flex items-center justify-center overflow-hidden hover:border-primary transition-all duration-300">
@@ -116,7 +113,7 @@ const ProfileTab = ({ profileData, setProfileData }) => {
       </div>
 
       {/* Bio */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Bio</h3>
         <TextArea
           label="Tell us about yourself"
@@ -134,7 +131,7 @@ const ProfileTab = ({ profileData, setProfileData }) => {
       </div>
 
       {/* Basic Information */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Basic Information</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

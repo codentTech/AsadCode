@@ -6,10 +6,9 @@ function Reviews({ creatorId = null }) {
   const { setReviewSort, options, sortedReviews, isLoading, isError } = useReviews(creatorId);
 
   return (
-    <section className="bg-white rounded-2xl shadow-md p-6 md:p-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h3 className="text-lg font-semibold text-primary">Reviews from Brands</h3>
+    <section className="rounded-2xl bg-white p-3 shadow-md sm:p-6 md:p-8">
+      <div className="mb-4 flex flex-col justify-between gap-3 sm:mb-6 md:flex-row md:items-center md:gap-4">
+        <h3 className="text-sm font-semibold text-primary sm:text-lg md:text-xl">Reviews from Brands</h3>
 
         {sortedReviews.length > 0 && (
           <div className="relative w-full md:w-64">
@@ -27,7 +26,7 @@ function Reviews({ creatorId = null }) {
 
       {/* Loading */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-gray-50 p-5 rounded-xl animate-pulse h-40" />
           ))}
@@ -36,41 +35,41 @@ function Reviews({ creatorId = null }) {
 
       {/* Error */}
       {!isLoading && isError && (
-        <p className="text-sm text-gray-500 text-center py-8">
+        <p className="py-8 text-center text-xs text-gray-500 sm:text-sm">
           Unable to load reviews. Please try again later.
         </p>
       )}
 
       {/* Empty */}
       {!isLoading && !isError && sortedReviews.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-8">
+        <p className="py-8 text-center text-xs text-gray-500 sm:text-sm">
           No reviews from brands yet. Complete campaigns and get feedback from brands here.
         </p>
       )}
 
       {/* Grid of Reviews */}
       {!isLoading && !isError && sortedReviews.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-hidden">
+        <div className="grid grid-cols-1 gap-3 overflow-hidden sm:gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {sortedReviews.map((review) => (
             <div
               key={review.id}
-              className="bg-gray-50 p-5 rounded-xl shadow hover:shadow-lg transition duration-200"
+              className="rounded-xl bg-gray-50 p-3 shadow transition duration-200 hover:shadow-lg sm:p-5"
             >
               {/* Brand Header */}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="mb-3 flex items-center gap-2.5 sm:mb-4 sm:gap-3">
                 <img
                   src={review.logo}
                   alt={review.brand}
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                 />
                 <div>
-                  <p className="font-semibold text-gray-800">{review.brand}</p>
-                  <p className="text-xs text-gray-500">{review.date}</p>
+                  <p className="text-xs font-semibold text-gray-800 sm:text-sm">{review.brand}</p>
+                  <p className="text-[10px] text-gray-500 sm:text-xs">{review.date}</p>
                 </div>
               </div>
 
               {/* Review Text */}
-              <p className="text-xs text-gray-700 mb-2">{review.text}</p>
+              <p className="mb-2 text-[10px] text-gray-700 sm:text-xs">{review.text}</p>
 
               {/* Rating */}
               <div className="flex gap-1 text-yellow-400">

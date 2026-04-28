@@ -8,8 +8,8 @@ const NichesTab = ({ profileData, setProfileData }) => {
     useNichesTab({ profileData, setProfileData });
 
   return (
-    <div className="space-y-4 max-w-3xl">
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+    <div className="max-w-3xl space-y-3 sm:space-y-4">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Content Niches</h3>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {profileData.niches.map((niche, index) => (
@@ -28,7 +28,7 @@ const NichesTab = ({ profileData, setProfileData }) => {
           ))}
         </div>
         {showNicheInput ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="flex-1">
               <CustomInput
                 name="newNiche"
@@ -37,14 +37,14 @@ const NichesTab = ({ profileData, setProfileData }) => {
                 placeholder="Enter niche name"
               />
             </div>
-            <CustomButton text="Add" onClick={addNiche} className="btn-primary" />
+            <CustomButton text="Add" onClick={addNiche} className="btn-primary w-full sm:w-auto" />
             <CustomButton
               text="Cancel"
               onClick={() => {
                 setShowNicheInput(false);
                 setNewNiche("");
               }}
-              className="btn-cancel"
+              className="btn-cancel w-full sm:w-auto"
             />
           </div>
         ) : (

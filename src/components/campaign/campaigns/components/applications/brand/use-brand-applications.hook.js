@@ -25,7 +25,6 @@ function useBrandApplications() {
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
     data: campaignsData,
-    isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
@@ -184,7 +183,7 @@ function useBrandApplications() {
       setSelectedCreator(creators[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }
-  }, [appliedCreatorsSuccess, appliedCreatorsData, selectedCampaign, selectedCreator]);
+  }, [appliedCreatorsSuccess, appliedCreatorsData, selectedCampaign, selectedCreator, creators.length]);
 
   useEffect(() => {
     if (
@@ -218,7 +217,7 @@ function useBrandApplications() {
   }, [
     selectedCampaign?.id,
     selectedCampaign?.collaboration_type,
-    individualCollaborations,
+    individualCollaborations.length,
     individualCollaborationsLoading,
     selectedCreator,
   ]);
@@ -320,7 +319,10 @@ function useBrandApplications() {
       setSelectedCreator(null);
       fetchIndividualCollaborations();
     } else {
-      dispatch(rejectCreator({ campaignId: selectedCampaign.id, creatorId: selectedCreator.id }));
+      const creatorUserId = selectedCreator.creator?.id || selectedCreator.id;
+      dispatch(
+        rejectCreator({ campaignId: selectedCampaign.id, creatorId: creatorUserId }),
+      );
     }
     setShowRejectConfirmation(false);
   };
@@ -371,6 +373,9 @@ function useBrandApplications() {
 
   useEffect(() => {
     if (rejectSuccess && selectedCampaign) {
+      autoSelectedForCampaignRef.current = null;
+      setSelectedCreator(null);
+      
       if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
       } else {
@@ -381,13 +386,14 @@ function useBrandApplications() {
           })
         );
       }
-      setSelectedCreator(null);
-      autoSelectedForCampaignRef.current = null;
     }
   }, [rejectSuccess, selectedCampaign, dispatch, filters, fetchIndividualCollaborations]);
 
   useEffect(() => {
     if (createContractSuccess && sendContractSuccess) {
+      autoSelectedForCampaignRef.current = null;
+      setSelectedCreator(null);
+      
       if (selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
       } else if (selectedCampaign) {
@@ -398,8 +404,6 @@ function useBrandApplications() {
           })
         );
       }
-      setSelectedCreator(null);
-      autoSelectedForCampaignRef.current = null;
     }
   }, [
     createContractSuccess,
@@ -413,23 +417,23 @@ function useBrandApplications() {
   useEffect(() => {
     if (rejectInvitationSuccess && selectedCampaign) {
       if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
-        fetchIndividualCollaborations();
-        setSelectedCreator(null);
         autoSelectedForCampaignRef.current = null;
+        setSelectedCreator(null);
+        fetchIndividualCollaborations();
       }
     }
-  }, [rejectInvitationSuccess, selectedCampaign, dispatch, fetchIndividualCollaborations]);
+  }, [rejectInvitationSuccess, selectedCampaign, fetchIndividualCollaborations]);
 
   useEffect(() => {
     if (
       reinstateInvitationSuccess &&
       selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
     ) {
-      fetchIndividualCollaborations();
-      setSelectedCreator(null);
       autoSelectedForCampaignRef.current = null;
+      setSelectedCreator(null);
+      fetchIndividualCollaborations();
     }
-  }, [reinstateInvitationSuccess, selectedCampaign, dispatch, fetchIndividualCollaborations]);
+  }, [reinstateInvitationSuccess, selectedCampaign, fetchIndividualCollaborations]);
 
   const getCampaignId = () => {
     if (selectedCampaign?.id) {

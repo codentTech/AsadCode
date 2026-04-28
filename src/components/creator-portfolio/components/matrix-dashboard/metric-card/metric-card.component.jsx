@@ -12,7 +12,7 @@ const MetricCard = ({ icon: Icon, metric, tone = "blue" }) => {
     <div
       className={[
         "group relative rounded-xl bg-gray-100",
-        "p-3 md:p-4",
+        "p-2.5 sm:p-3 md:p-4",
         "border border-gray-100 shadow-sm",
         "transition-all hover:shadow-md hover:-translate-y-[1px]",
         "ring-1 ring-transparent hover:" + t.ring,
@@ -25,10 +25,10 @@ const MetricCard = ({ icon: Icon, metric, tone = "blue" }) => {
           </span>
 
           <div className="min-w-0">
-            <div className="text-[11px] md:text-xs font-medium text-gray-600 truncate">
+            <div className="text-[10px] font-medium text-gray-600 truncate sm:text-[11px] md:text-xs">
               {metric?.label ?? "Metric"}
             </div>
-            <div className={`text-lg md:text-xl font-semibold leading-tight ${valueColor}`}>
+            <div className={`text-sm font-semibold leading-tight sm:text-lg md:text-xl ${valueColor}`}>
               {formatValue(metric?.value, metric?.type)}
             </div>
           </div>

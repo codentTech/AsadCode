@@ -89,16 +89,16 @@ const SocialLinks = () => {
   return (
     <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Social Links</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Social Links</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Connect your social media profiles to showcase your brand presence
         </p>
       </div>
 
       {/* Main Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-2 sm:p-4 lg:p-6">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="p-3 sm:p-4 lg:p-6">
           {/* Popular Platforms Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Left Column - Major Platforms */}
@@ -107,7 +107,7 @@ const SocialLinks = () => {
                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                   <Link className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                   Popular Platforms
                 </h2>
               </div>
@@ -140,7 +140,7 @@ const SocialLinks = () => {
                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                   <Globe className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                   Professional Networks
                 </h2>
               </div>
@@ -174,11 +174,13 @@ const SocialLinks = () => {
               <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                 <Plus className="h-4 w-4 text-indigo-600" />
               </div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Custom Platforms</h2>
+              <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
+                Custom Platforms
+              </h2>
             </div>
 
             {/* Add New Platform */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
               <CustomInput
                 placeholder="Platform name (e.g., TikTok)"
                 value={newPlatform.name}
@@ -193,7 +195,7 @@ const SocialLinks = () => {
                 startIcon={<Link className="h-4 w-4" />}
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-start sm:justify-end">
                 <button className="w-auto bg-gray-200 p-2 rounded-full" onClick={addCustomPlatform}>
                   <AddCircle className="text-primary" />
                 </button>

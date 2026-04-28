@@ -13,7 +13,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center px-2.5 py-6 sm:px-4 sm:py-12">
       {/* Animated background circles */}
       <div className="absolute inset-0 overflow-hidden">
         <div
@@ -42,17 +42,19 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
         />
       </div>
       {/* Container */}
-      <div className="w-full max-w-3xl rounded-3xl shadow-2xl p-10 space-y-5">
+      <div className="w-full max-w-3xl space-y-4 rounded-2xl p-3 shadow-2xl sm:space-y-5 sm:rounded-3xl sm:p-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-2">Let's Get Started</h1>
-          <p className="text-sm lg:text-lg text-gray-600 max-w-3xl mx-autoa">
+        <div className="mb-4 text-center sm:mb-8">
+          <h1 className="mb-1 text-sm font-semibold text-gray-900 sm:mb-2 sm:text-lg md:text-xl lg:text-3xl">
+            Let's Get Started
+          </h1>
+          <p className="mx-autoa max-w-3xl text-[10px] text-gray-600 sm:text-xs md:text-sm lg:text-lg">
             Choose how you'd like to use CleerCut and unlock opportunities that match your goals
           </p>
         </div>
 
         {/* Selection Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-2">
           <AccountCard
             title="I'm a Creator"
             description="Collaborate with brands and grow your influence."
@@ -69,17 +71,17 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
         </div>
 
         {/* Continue Button */}
-        <div className="pt-4 flex justify-between">
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-between sm:pt-4">
           <CustomButton
             onClick={() => router.push("/login")}
             text="Back to login"
-            className="btn-secondary"
+            className="btn-secondary w-full sm:w-auto"
           />
           <CustomButton
             onClick={onNext}
             disabled={!selectedType}
             text="Next"
-            className="btn-primary text-white"
+            className="btn-primary w-full text-white sm:w-auto"
           />
         </div>
       </div>
@@ -91,18 +93,18 @@ const AccountCard = ({ title, description, selected, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`relative p-6 rounded-xl border-2 transition-all duration-300 cursor-pointer group hover:shadow-lg
+      className={`group relative cursor-pointer rounded-xl border-2 p-3 transition-all duration-300 hover:shadow-lg sm:p-6
         ${selected ? "border-primary bg-indigo-50 shadow-xl" : "border-gray-200 bg-white"}
       `}
     >
       {selected && (
-        <div className="absolute -top-3 -right-3 bg-primary rounded-full w-9 h-9 flex items-center justify-center shadow">
+        <div className="absolute -right-2.5 -top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary shadow sm:-right-3 sm:-top-3 sm:h-9 sm:w-9">
           <CheckCircle className="w-5 h-5 text-white" />
         </div>
       )}
       <div className="space-y-3">
-        <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-        <p className="text-gray-600 text-sm">{description}</p>
+        <h3 className="text-sm font-semibold text-gray-900 sm:text-xl">{title}</h3>
+        <p className="text-[10px] text-gray-600 sm:text-sm">{description}</p>
       </div>
     </div>
   );
