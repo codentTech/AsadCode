@@ -26,22 +26,22 @@ export default function PersonalInformationPage() {
 
   return (
     <>
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Personal Information</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Personal Information</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Manage your personal details, contact information, and account preferences
         </p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-2 sm:p-4 lg:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-3 sm:p-4 lg:p-6">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:gap-5 lg:mb-8 lg:grid-cols-2 lg:gap-8">
             <div className="space-y-4">
               <div className="flex items-center">
                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                   <User className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                   Personal Details
                 </h2>
               </div>
@@ -78,7 +78,7 @@ export default function PersonalInformationPage() {
                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                   <Mail className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                   Contact Information
                 </h2>
               </div>
@@ -99,12 +99,12 @@ export default function PersonalInformationPage() {
             </div>
           </div>
 
-          <div className="mb-8 pt-6 border-t border-gray-200">
-            <div className="flex items-center mb-6">
+          <div className="mb-6 border-t border-gray-200 pt-5 sm:mb-8 sm:pt-6">
+            <div className="mb-4 flex items-center sm:mb-6">
               <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                 <MapPin className="h-4 w-4 text-indigo-600" />
               </div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+              <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                 Location Information
               </h2>
             </div>
@@ -132,21 +132,21 @@ export default function PersonalInformationPage() {
           </div>
 
           {!isCreatorMode() && (
-            <div className="mb-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center mb-6">
+            <div className="mb-6 border-t border-gray-200 pt-5 sm:mb-8 sm:pt-6">
+              <div className="mb-4 flex items-center sm:mb-6">
                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg mr-3 flex-shrink-0">
                   <Building2 className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">
                   Account Preferences
                 </h2>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="mb-2 block text-xs font-medium text-gray-900 sm:text-sm">
                   Account Type <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                   {[
                     { value: "brand", label: "This is a brand account" },
                     { value: "agency", label: "This is an agency account" },
@@ -156,7 +156,7 @@ export default function PersonalInformationPage() {
                       type="button"
                       onClick={() => setSelectedAccountType(type.value)}
                       className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200 hover:scale-105
+                      rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm
                       ${
                         selectedAccountType === type.value
                           ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -176,7 +176,7 @@ export default function PersonalInformationPage() {
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+          <div className="mt-6 flex flex-col gap-2 border-t border-gray-200 pt-5 sm:mt-8 sm:flex-row sm:gap-4 sm:pt-6 sm:justify-end">
             <CustomButton
               text="Reset"
               className="btn-secondary w-full sm:w-auto"

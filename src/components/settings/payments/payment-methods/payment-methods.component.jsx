@@ -202,19 +202,18 @@ const PaymentMethodsPage = () => {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Payment Methods</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Payment Methods</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Add a card and complete Stripe business onboarding to fund paid collaborations. Required
           before sending offers.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 p-6">
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Stripe business connection</h2>
+            <h2 className="text-sm font-semibold text-gray-900 sm:text-lg">Stripe business connection</h2>
             <p className="text-xs text-gray-600 mt-1 max-w-xl">
               Required for paid collaborations: CleerCut uses your card together with a Stripe
               Express business profile so escrow charges can run when a creator accepts. Your
@@ -264,10 +263,10 @@ const PaymentMethodsPage = () => {
       </div>
 
       {/* Payment Methods List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Saved Payment Methods</h2>
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="p-3 sm:p-6">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-sm font-semibold text-gray-900 sm:text-lg">Saved Payment Methods</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleRefreshPaymentMethods}
@@ -279,7 +278,7 @@ const PaymentMethodsPage = () => {
               </button>
               <CustomButton
                 text="Add Card"
-                className="btn-primary"
+                className="btn-primary w-full sm:w-auto"
                 onClick={() => setShowAddCardModal(true)}
                 icon={<Plus className="w-4 h-4" />}
                 disabled={isLoading || isChecking}
@@ -296,7 +295,7 @@ const PaymentMethodsPage = () => {
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:border-primary sm:p-4"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-lg">
@@ -364,11 +363,11 @@ const PaymentMethodsPage = () => {
 
           {/* Info Banner */}
           {!hasPaymentMethod && (
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:p-4">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-900 mb-1">Card required</p>
+                  <p className="mb-1 text-xs font-medium text-blue-900 sm:text-sm">Card required</p>
                   <p className="text-xs text-blue-700">
                     Save a valid card before sending offers. You also need Stripe business onboarding
                     (above) for escrow when a creator accepts. No charge occurs when sending an offer.
@@ -380,8 +379,8 @@ const PaymentMethodsPage = () => {
 
           {/* Security Info */}
           {hasPaymentMethod && (
-            <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
+            <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs text-gray-700 sm:text-sm">
                 <strong>Security:</strong> Your payment information is securely stored by Stripe. CleerCut does not store your card details.
               </p>
             </div>
@@ -390,9 +389,9 @@ const PaymentMethodsPage = () => {
       </div>
 
       {/* How it works */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">How payments work</h2>
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="p-3 sm:p-6">
+          <h2 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">How payments work</h2>
           <ul className="space-y-3 mb-6">
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />

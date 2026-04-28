@@ -24,6 +24,14 @@ module.exports = {
       roboto: ["Roboto", "sans-serif"],
     },
     extend: {
+      screens: {
+        tablet: "640px",
+        laptop: "1024px",
+      },
+      fontSize: {
+        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+        "tab-sm": ["0.6875rem", { lineHeight: "1rem" }],
+      },
       colors: {
         primary: "#4F46E5",
         "primary-blue": "#2563EB",

@@ -7,14 +7,14 @@ const PricingTab = ({ contentRates, setContentRates, customRates, setCustomRates
     usePricingTab({ setContentRates, setCustomRates });
 
   return (
-    <div className="space-y-4 max-w-3xl">
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+    <div className="max-w-3xl space-y-3 sm:space-y-4">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Content Rates</h3>
         <div className="space-y-3">
           {contentRates.map((rate, index) => (
             <div
               key={`rate-${index}-${rate.contentType}`}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-center gap-2 text-gray-700">
                 <DollarSign className="w-4 h-4 text-indigo-500" />
@@ -38,13 +38,13 @@ const PricingTab = ({ contentRates, setContentRates, customRates, setCustomRates
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Custom Rates</h3>
         <div className="space-y-3">
           {customRates.map((rate, idx) => (
             <div
               key={`custom-rate-${idx}`}
-              className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
+              className="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center"
             >
               <CustomInput
                 name={`custom-rate-label-${idx}`}

@@ -52,24 +52,24 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
 
   return (
     <>
-      <section className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col md:flex-row justify-between">
+      <section className="rounded-lg bg-white p-3 shadow-md sm:p-6">
+        <div className="flex flex-col justify-between md:flex-row">
           {/* Left Side */}
-          <div className="flex flex-col lg:flex-row items-center md:items-start gap-6">
-            <div className="relative">
+          <div className="flex flex-col items-center gap-3 sm:gap-6 lg:flex-row md:items-start">
+            <div className="relative flex flex-col items-center md:items-start">
               <img
-                src={creator.profilePic || avatar}
+                src={creator.profilePic}
                 alt={creator.name}
-                className="rounded-full w-32 h-32 object-cover border-4 border-white shadow-md ring-2 ring-primary"
+                className="h-24 w-36 rounded-lg border border-gray-200 object-cover shadow-sm sm:h-28 sm:w-40 md:h-32 md:w-32 md:rounded-full md:border-4 md:border-white md:ring-2 md:ring-primary"
               />
               {creator.miniProfilePictures?.length > 0 && (
-                <div className="mt-3 flex gap-2 justify-center">
+                <div className="mt-3 flex justify-center gap-2 md:justify-start">
                   {creator.miniProfilePictures.map((pic, idx) => (
                     <img
                       key={idx}
                       src={pic}
                       alt={`Showcase ${idx + 1}`}
-                      className="w-12 h-12 rounded-lg object-cover border-2 border-white shadow-sm"
+                      className="h-10 w-10 rounded-lg border-2 border-white object-cover shadow-sm sm:h-12 sm:w-12"
                     />
                   ))}
                 </div>
@@ -77,11 +77,13 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
             </div>
 
             <div className="text-center md:text-left">
-              <h2 className="text-xl font-semibold text-gray-900">{creator.name}</h2>
-              <p className="text-gray-500">{creator.handle}</p>
+              <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+                {creator.name}
+              </h2>
+              <p className="text-[10px] text-gray-500 sm:text-xs md:text-sm">{creator.handle}</p>
 
               {/* Rating */}
-              <div className="flex items-center justify-center md:justify-start gap-1 mb-1">
+              <div className="mb-1 flex items-center justify-center gap-1 md:justify-start">
                 {ratingStars.map((type, i) =>
                   type === "full" ? (
                     <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />
@@ -91,18 +93,18 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                     <Star key={i} className="w-4 h-4 text-gray-300" />
                   )
                 )}
-                <span className="text-sm m-1 text-gray-700">
+                <span className="m-1 text-[10px] text-gray-700 sm:text-sm">
                   {creator.rating} ({creator.reviewCount})
                 </span>
               </div>
 
               {/* Connected Social Media */}
               {connectedAccounts?.data?.length === 0 ? (
-                <div className="flex space-x-3 justify-center md:justify-start mb-3">
+                <div className="mb-3 flex justify-center space-x-3 md:justify-start">
                   <span className="text-gray-500">No connected social media accounts</span>
                 </div>
               ) : connectedAccounts?.data?.length > 0 ? (
-                <div className="flex space-x-3 justify-center md:justify-start mb-3">
+                <div className="mb-3 flex justify-center space-x-3 md:justify-start">
                   {connectedAccounts?.data?.map((account, idx) => {
                     const platform = account.platform ?? account.platform_name;
                     const profileUrl =
@@ -127,7 +129,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
               ) : null}
 
               {/* Location */}
-              <div className="flex text-xs items-center justify-center md:justify-start text-gray-600 mb-3">
+              <div className="mb-3 flex items-center justify-center text-[10px] text-gray-600 sm:text-xs md:justify-start">
                 <MapPin className="w-4 h-4 mr-1" />
                 <span>{creator.location}</span>
               </div>
@@ -138,30 +140,30 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
           </div>
 
           {/* Right Side - Actions */}
-          <div className="mt-6 md:mt-0 flex flex-col items-center md:items-end">
-            {isCreatorMode() && (
-              <div
-                className="self-end p-2 text-white bg-primary rounded-lg cursor-pointer hover:bg-indigo-700 mb-4 transition duration-200"
-                onClick={() => setIsEditModalOpen(true)}
-              >
-                <Edit className="w-5 h-5" />
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="mt-4 flex flex-col items-start md:mt-0 md:items-end">
+            <div className="w-full flex justify-between items-center gap-2">
               {isCreatorMode() && (
                 <CustomButton
                   text="Shortlist"
+                  className="btn-primary w-full"
                   startIcon={<BookmarkPlus className="w-4 h-4" />}
                   onClick={handleSaveToShortlist}
                 />
               )}
               <CustomButton
                 text={isCreatorMode() ? "Share" : "Share Your Profile"}
-                className="btn-outline"
+                className="btn-outline w-full"
                 startIcon={<Share2 className="w-4 h-4" />}
                 onClick={handleShare}
               />
+              {isCreatorMode() && (
+                <CustomButton
+                  text="Edit"
+                  className="btn-primary w-full"
+                  startIcon={<Edit className="w-4 h-4" />}
+                  onClick={() => setIsEditModalOpen(true)}
+                />
+              )}
             </div>
           </div>
         </div>

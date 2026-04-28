@@ -6,42 +6,42 @@ import PropTypes from "prop-types";
 
 function ProfileOverview({ basics, preferences, onEditProfile, onFollowBrand, canEdit }) {
   return (
-    <section className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex flex-col lg:flex-row justify-between gap-6">
-        {/* Brand summary */}
-        <div className="flex flex-col md:flex-row gap-6">
+    <section className="rounded-lg bg-white px-3 pb-3 pt-0 shadow-md sm:p-6">
+      <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:justify-between">
+        <div className="flex w-full min-w-0 flex-row items-start justify-between gap-3 sm:gap-6">
           <div className="relative flex-shrink-0">
-            <div className="w-32 h-32 rounded-full border-4 border-white shadow-md ring-2 ring-primary overflow-hidden flex items-center justify-center bg-gray-50">
+            <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 shadow-sm sm:h-24 sm:w-32 md:h-32 md:w-32 md:rounded-lg md:border-4 md:border-white md:ring-2 md:ring-primary">
               {basics.logo ? (
                 <img src={basics.logo} alt={basics.name} className="w-full h-full object-cover" />
               ) : (
-                <Building2 className="w-12 h-12 text-gray-400" />
+                <Building2 className="h-8 w-8 text-gray-400 sm:h-10 sm:w-10 md:h-12 md:w-12" />
               )}
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              {!canEdit && onFollowBrand && (
-                <CustomButton
-                  text="Follow Brand"
-                  className="btn-outline !px-3 !py-1.5 text-xs"
-                  onClick={onFollowBrand}
-                />
-              )}
-            </div>
+          <div className="ml-auto min-w-0">
+            {!canEdit && onFollowBrand ? (
+              <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                <CustomButton text="Follow Brand" className="btn-outline" onClick={onFollowBrand} />
+              </div>
+            ) : null}
 
-            <div className="flex items-center justify-start gap-3 mb-2 flex-wrap self-start">
-              <h2 className="text-xl font-medium text-gray-900">{basics.name}</h2>
+            <div className="mb-2 flex flex-wrap items-center justify-start gap-2 self-start sm:gap-3">
+              <h2 className="min-w-0 text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+                {basics.name}
+              </h2>
               {canEdit && (
                 <div className="justify-start self-start">
-                  <div className="p-2 rounded-md bg-primary text-white" onClick={onEditProfile}>
-                    <Edit className="w-4 h-4" />
+                  <div
+                    className="rounded-md bg-primary p-1 text-white sm:p-2"
+                    onClick={onEditProfile}
+                  >
+                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 text-sm text-gray-600 mt-2">
+            <div className="mt-2 flex flex-col gap-1.5 text-[10px] text-gray-600 sm:flex-row sm:flex-wrap sm:gap-2 sm:text-xs md:text-sm">
               {basics.website && (
                 <a
                   href={
@@ -65,11 +65,11 @@ function ProfileOverview({ basics, preferences, onEditProfile, onFollowBrand, ca
             </div>
 
             {preferences?.targetNiches?.length ? (
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
                 {preferences.targetNiches.slice(0, 6).map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-medium"
+                    className="rounded-lg bg-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-700 sm:px-3 sm:py-1 sm:text-xs"
                   >
                     {tag}
                   </span>

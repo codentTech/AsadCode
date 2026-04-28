@@ -31,9 +31,9 @@ function NotificationsBrand() {
     <HeaderLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50/30">
         {/* Header */}
-        <div className="  max-w-7xl mx-auto mb-4 sticky top-0 bg-primary z-10 shadow-sm rounded-xl">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between gap-4">
+        <div className="sticky top-0 z-10 mx-3 mb-3 max-w-7xl rounded-lg bg-primary shadow-sm mt-4 sm:mb-4">
+          <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
               {/* Left side - Title and stats */}
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
@@ -49,18 +49,22 @@ function NotificationsBrand() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-bold text-white">Notifications</h1>
+                  <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+                    Notifications
+                  </h1>
                   <div className="flex items-center gap-2">
                     {actionRequiredNotifications.length > 0 || unreadEventCount > 0 ? (
                       <>
-                        <span className="text-xs font-medium text-white/90">
+                        <span className="text-[10px] font-medium text-white/90 sm:text-xs">
                           {actionRequiredNotifications.length + unreadEventCount} require attention
                         </span>
                         <span className="w-1 h-1 bg-white/50 rounded-full" />
-                        <span className="text-xs text-white/70">{totalNotifications} total</span>
+                        <span className="text-[10px] text-white/70 sm:text-xs">
+                          {totalNotifications} total
+                        </span>
                       </>
                     ) : (
-                      <span className="text-xs text-white/70 flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-[10px] text-white/70 sm:text-xs">
                         <Sparkles className="w-3 h-3 text-white/90" />
                         All caught up
                       </span>
@@ -71,7 +75,7 @@ function NotificationsBrand() {
 
               {/* Center - Campaign Selector */}
               {!campaignsLoading && campaignOptions.length > 0 && (
-                <div className="w-full max-w-[300px]">
+                <div className="order-3 w-full sm:order-none sm:max-w-[300px]">
                   <SimpleSelect
                     options={campaignOptions}
                     value={
@@ -87,11 +91,11 @@ function NotificationsBrand() {
               )}
 
               {/* Right side - Actions */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-shrink-0 items-center gap-2">
                 <button
                   onClick={refreshNotifications}
                   disabled={isRefreshing || isLoading}
-                  className="text-white bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition-colors backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-white/20 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-50"
                   title="Refresh notifications"
                 >
                   <RefreshCw
@@ -102,7 +106,7 @@ function NotificationsBrand() {
                 {unreadEventCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-medium text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors backdrop-blur-sm"
+                    className="rounded-lg bg-white/20 px-2.5 py-1.5 text-[10px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/30 sm:px-3 sm:text-xs"
                   >
                     Mark all read
                   </button>
@@ -113,7 +117,7 @@ function NotificationsBrand() {
         </div>
 
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 pb-6">
+        <div className="mx-auto max-w-7xl px-2.5 pb-6 sm:px-4">
           {isLoading && totalNotifications === 0 ? (
             <div className="bg-white rounded-md p-8 text-center shadow-sm border border-gray-200">
               <div className="w-12 h-12 bg-primary rounded-md flex items-center justify-center mx-auto mb-3 animate-pulse">
@@ -135,12 +139,12 @@ function NotificationsBrand() {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Stats Dashboard */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 md:grid-cols-4">
                 {/* Action Required Stat */}
                 <div
-                  className="bg-gray-100 rounded-md border border-gray-200 p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                  className="cursor-pointer rounded-md border border-gray-200 bg-gray-100 p-2.5 shadow-sm transition-all duration-200 hover:shadow-md sm:p-3"
                   onClick={() => setActiveTab("action")}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -148,9 +152,9 @@ function NotificationsBrand() {
                       <div className="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
                         <AlertCircle className="w-4 h-4 text-red-600" strokeWidth={2} />
                       </div>
-                      <p className="text-sm font-bold text-gray-900">Action Required</p>
+                      <p className="text-xs font-bold text-gray-900 sm:text-sm">Action Required</p>
                     </div>
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-base font-bold text-gray-900 sm:text-xl">
                       {actionRequiredNotifications.length}
                     </span>
                   </div>
@@ -158,7 +162,7 @@ function NotificationsBrand() {
 
                 {/* Execution Updates Stat */}
                 <div
-                  className="bg-gray-100 rounded-md border border-gray-200 p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                  className="cursor-pointer rounded-md border border-gray-200 bg-gray-100 p-2.5 shadow-sm transition-all duration-200 hover:shadow-md sm:p-3"
                   onClick={() => setActiveTab("execution")}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -166,9 +170,11 @@ function NotificationsBrand() {
                       <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
                         <CheckCircle2 className="w-4 h-4 text-primary" strokeWidth={2} />
                       </div>
-                      <p className="text-sm font-bold text-gray-900">Execution Updates</p>
+                      <p className="text-xs font-bold text-gray-900 sm:text-sm">
+                        Execution Updates
+                      </p>
                     </div>
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-base font-bold text-gray-900 sm:text-xl">
                       {categorizedNotifications[NOTIFICATION_SECTION.EXECUTION_UPDATES].length}
                     </span>
                   </div>
@@ -176,7 +182,7 @@ function NotificationsBrand() {
 
                 {/* Applications Stat */}
                 <div
-                  className="bg-gray-100 rounded-md border border-gray-200 p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                  className="cursor-pointer rounded-md border border-gray-200 bg-gray-100 p-2.5 shadow-sm transition-all duration-200 hover:shadow-md sm:p-3"
                   onClick={() => setActiveTab("applications")}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -184,9 +190,9 @@ function NotificationsBrand() {
                       <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
                         <Users className="w-4 h-4 text-primary" strokeWidth={2} />
                       </div>
-                      <p className="text-sm font-bold text-gray-900">Applications</p>
+                      <p className="text-xs font-bold text-gray-900 sm:text-sm">Applications</p>
                     </div>
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-base font-bold text-gray-900 sm:text-xl">
                       {categorizedNotifications[NOTIFICATION_SECTION.APPLICATIONS].length}
                     </span>
                   </div>
@@ -194,7 +200,7 @@ function NotificationsBrand() {
 
                 {/* Other Updates Stat */}
                 <div
-                  className="bg-gray-100 rounded-md border border-gray-200 p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                  className="cursor-pointer rounded-md border border-gray-200 bg-gray-100 p-2.5 shadow-sm transition-all duration-200 hover:shadow-md sm:p-3"
                   onClick={() => setActiveTab("other")}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -202,9 +208,9 @@ function NotificationsBrand() {
                       <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
                         <Info className="w-4 h-4 text-primary" strokeWidth={2} />
                       </div>
-                      <p className="text-sm font-bold text-gray-900">Other Updates</p>
+                      <p className="text-xs font-bold text-gray-900 sm:text-sm">Other Updates</p>
                     </div>
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-base font-bold text-gray-900 sm:text-xl">
                       {categorizedNotifications[NOTIFICATION_SECTION.OTHER_UPDATES].length}
                     </span>
                   </div>
@@ -212,7 +218,7 @@ function NotificationsBrand() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="bg-gray-100 rounded-md border border-gray-200 shadow-sm p-1.5 flex gap-1.5 overflow-x-auto">
+              <div className="flex gap-1.5 overflow-x-auto rounded-md border border-gray-200 bg-gray-100 p-1.5 shadow-sm">
                 <button
                   onClick={() => setActiveTab("all")}
                   className={`px-3 py-1.5 rounded-md font-medium text-xs whitespace-nowrap transition-all duration-200 ${
@@ -281,8 +287,8 @@ function NotificationsBrand() {
               </div>
 
               {/* Content Area */}
-              <div className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4">
+              <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
+                <div className="p-2.5 sm:p-4">
                   {/* Action Required Tab */}
                   {activeTab === "action" && actionRequiredNotifications.length > 0 && (
                     <div className="space-y-2">
@@ -315,12 +321,14 @@ function NotificationsBrand() {
                   {activeTab === "execution" &&
                     categorizedNotifications[NOTIFICATION_SECTION.EXECUTION_UPDATES].length > 0 && (
                       <div className="space-y-3">
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                             <CheckCircle2 className="w-5 h-5 text-white" strokeWidth={2.5} />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold text-gray-900">Execution Updates</h2>
+                            <h2 className="text-sm font-semibold text-gray-900 sm:text-lg">
+                              Execution Updates
+                            </h2>
                             <p className="text-xs text-gray-500">
                               Campaign progress and milestones
                             </p>

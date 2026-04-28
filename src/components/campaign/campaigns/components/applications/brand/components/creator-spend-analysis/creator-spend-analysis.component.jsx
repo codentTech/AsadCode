@@ -5,7 +5,7 @@ import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.com
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
+import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import FilterModal from "@/components/campaign/campaigns/components/discover/brand/components/discover-creators/components/filters/filter-modal.component";
 import CampaignCreationWizard from "@/components/campaign/create-campaign/create-campaign.component";
 import { Filter, List } from "lucide-react";

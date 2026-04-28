@@ -7,6 +7,7 @@ import React from "react";
 import ContractPreviewModal from "../../../../applications/brand/components/contract-preview-modal/contract-preview-modal.component";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../../../message-thread-modal/use-message-thread.hook";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline";
 import useCampaignDetail from "./use-campaign-detail.hook";
 
@@ -381,6 +382,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
         isCreatorTyping={messageThreadHook.isCreatorTyping}
         messagesEndRef={messageThreadHook.messagesEndRef}
         messagesContainerRef={messageThreadHook.messagesContainerRef}
+        {...pickMessageThreadModalProps(messageThreadHook)}
       />
 
       {/* Contract Preview Modal */}

@@ -180,7 +180,7 @@ const CustomDataTable = ({
   return (
     <div className={`bg-white ${className}`}>
       {searchable && !externalSearch && (
-        <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+        <div className="rounded-t-lg border-b border-gray-200 bg-gray-50 p-3 sm:p-4">
           <div className="relative max-w-sm">
             <CustomInput
               type="text"
@@ -199,11 +199,11 @@ const CustomDataTable = ({
         <table className={`w-full ${tableClassName}`}>
           {/* Header */}
           {showHeader && (
-            <thead className={`z-10 bg-gray-50 border-b rounded-full ${headerClassName}`}>
+            <thead className={`z-10 rounded-full border-b bg-gray-50 ${headerClassName}`}>
               <tr>
                 {/* Selection checkbox */}
                 {selectable && (
-                  <th className="w-12 px-4 py-3">
+                  <th className="w-10 px-2 py-2.5 sm:w-12 sm:px-4 sm:py-3">
                     <input
                       type="checkbox"
                       checked={isAllSelected}
@@ -218,7 +218,10 @@ const CustomDataTable = ({
 
                 {/* Column headers */}
                 {columns.map((column, index) => (
-                  <th key={index} className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  <th
+                    key={index}
+                    className="px-2 py-2.5 text-left text-xs font-medium text-gray-900 sm:px-4 sm:py-3 sm:text-sm"
+                  >
                     <div
                       className={`flex items-center whitespace-nowrap ${
                         column.sortable ? "cursor-pointer hover:text-gray-700" : ""
@@ -233,12 +236,16 @@ const CustomDataTable = ({
 
                 {/* Status column */}
                 {statusField && (
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Status</th>
+                  <th className="px-2 py-2.5 text-left text-xs font-medium text-gray-900 sm:px-4 sm:py-3 sm:text-sm">
+                    Status
+                  </th>
                 )}
 
                 {/* Actions column */}
                 {actions.length > 0 && (
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Actions</th>
+                  <th className="px-2 py-2.5 text-left text-xs font-medium text-gray-900 sm:px-4 sm:py-3 sm:text-sm">
+                    Actions
+                  </th>
                 )}
               </tr>
             </thead>
@@ -267,7 +274,7 @@ const CustomDataTable = ({
                   <tr className={`hover:bg-gray-50 ${rowClassName}`}>
                     {/* Selection checkbox */}
                     {selectable && (
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-2.5 sm:px-4 sm:py-3">
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(row.id)}
@@ -281,7 +288,7 @@ const CustomDataTable = ({
                     {columns.map((column, colIndex) => (
                       <td
                         key={colIndex}
-                        className="whitespace-nowrap px-4 py-3 text-sm text-gray-900"
+                        className="whitespace-nowrap px-2 py-2.5 text-xs text-gray-900 sm:px-4 sm:py-3 sm:text-sm"
                       >
                         {renderCell(column, row)}
                       </td>
@@ -289,11 +296,11 @@ const CustomDataTable = ({
 
                     {/* Status cell */}
                     {statusField && (
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-2.5 sm:px-4 sm:py-3">
                         <select
                           value={row[statusField]}
                           onChange={(e) => onStatusChange?.(row.id, e.target.value)}
-                          className="rounded border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                          className="rounded border-gray-300 text-xs focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         >
                           {statusOptions.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -308,7 +315,7 @@ const CustomDataTable = ({
                     {(() => {
                       const rowActions = typeof actions === "function" ? actions(row) : actions;
                       return Array.isArray(rowActions) && rowActions.length > 0 ? (
-                        <td className="px-4 py-3 relative">
+                        <td className="relative px-2 py-2.5 sm:px-4 sm:py-3">
                           <button
                             onClick={(e) => handleActionRowToggle(row.id, e)}
                             ref={(el) => {
@@ -365,13 +372,13 @@ const CustomDataTable = ({
 
       {/* Pagination */}
       {paginated && totalRecordsCount > 0 && (
-        <div className="z-10 px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex items-center justify-between">
-          <div className="flex items-center text-sm text-gray-700">
+        <div className="z-10 flex flex-col gap-2 rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div className="flex items-center text-xs text-gray-700 sm:text-sm">
             <span>Show</span>
             <select
               value={internalPageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="mx-2 rounded border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mx-2 rounded border-gray-300 text-xs focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -381,23 +388,23 @@ const CustomDataTable = ({
             <span>of {totalRecordsCount} entries</span>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2 sm:space-x-2">
             <button
               onClick={() => handlePageChange(internalCurrentPage - 1)}
               disabled={internalCurrentPage <= 1}
-              className="px-3 py-1 rounded border border-gray-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+              className="rounded border border-gray-300 px-2.5 py-1 text-xs hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
             >
               Previous
             </button>
 
-            <span className="text-sm text-gray-700">
+            <span className="text-xs text-gray-700 sm:text-sm">
               Page {internalCurrentPage} of {totalPages}
             </span>
 
             <button
               onClick={() => handlePageChange(internalCurrentPage + 1)}
               disabled={internalCurrentPage >= totalPages}
-              className="px-3 py-1 rounded border border-gray-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+              className="rounded border border-gray-300 px-2.5 py-1 text-xs hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
             >
               Next
             </button>

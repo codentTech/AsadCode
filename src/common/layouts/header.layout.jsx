@@ -2,13 +2,11 @@
 
 import Header from "@/components/private-header/private-header.component";
 
-export default function HeaderLayout({ children }) {
-  const HEADER_HEIGHT = 64; // You can adjust based on your Header component's height
-
+export default function HeaderLayout({ children, className = "" }) {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-white overflow-hidden">
+    <div className={`flex flex-col min-h-screen bg-white overflow-hidden ${className ?? ""}`.trim()}>
       <Header />
-      <main className="flex-1" style={{ paddingTop: HEADER_HEIGHT }}>
+      <main className="flex-1 flex flex-col min-h-0 pt-12 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
         {children}
       </main>
     </div>
