@@ -24,6 +24,8 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
   // Refs
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const emojiButtonRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const sendingRef = useRef(false);
   const fileInputRef = useRef(null);
@@ -169,10 +171,11 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     if (conversationId) {
       chatSocketService.leaveConversation(conversationId);
     }
-    
+
     setIsModalOpen(false);
     setNewMessage("");
     setError(null);
+    setShowEmojiPicker(false);
     hasFetchedMessagesRef.current = false;
 
     if (typingTimeoutRef.current) {
@@ -318,6 +321,39 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
   const toggleEmojiPicker = useCallback(() => {
     setShowEmojiPicker((prev) => !prev);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !showEmojiPicker ||
+        !emojiPickerRef.current ||
+        !emojiButtonRef.current ||
+        emojiPickerRef.current.contains(event.target) ||
+        emojiButtonRef.current.contains(event.target)
+      ) {
+        return;
+      }
+      setShowEmojiPicker(false);
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessageHandler();
+      }
+    },
+    [sendMessageHandler]
+  );
 
   const handleFileSelect = useCallback(async (event) => {
     const file = event.target.files[0];
@@ -489,7 +525,32 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     formatMessageTime,
     scrollToBottom,
     conversationId,
+    user: currentUser,
+    actualShowEmojiPicker: showEmojiPicker,
+    emojiPickerRef,
+    emojiButtonRef,
+    handleKeyPress,
+    handleToggleEmojiClick: toggleEmojiPicker,
   };
 };
+
+export function pickMessageThreadModalProps(hook) {
+  return {
+    user: hook.user,
+    actualShowEmojiPicker: hook.actualShowEmojiPicker,
+    emojiPickerRef: hook.emojiPickerRef,
+    emojiButtonRef: hook.emojiButtonRef,
+    handleKeyPress: hook.handleKeyPress,
+    handleToggleEmojiClick: hook.handleToggleEmojiClick,
+    formatMessageTime: hook.formatMessageTime,
+    handleEmojiClick: hook.handleEmojiClick,
+    isUploading: hook.isUploading,
+    attachmentPreview: hook.attachmentPreview,
+    handleFileSelect: hook.handleFileSelect,
+    removeAttachment: hook.removeAttachment,
+    openFilePicker: hook.openFilePicker,
+    fileInputRef: hook.fileInputRef,
+  };
+}
 
 export default useMessageThread;

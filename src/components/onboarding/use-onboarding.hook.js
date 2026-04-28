@@ -128,9 +128,7 @@ export default function useOnboarding() {
     if (step != null) {
       const n = Number(step) || 1;
       const serverStep = inviteTokenPresent ? Math.max(n, 2) : n;
-      setCurrentStep((prev) =>
-        prev >= 3 ? Math.max(serverStep, prev) : serverStep
-      );
+      setCurrentStep((prev) => (prev >= 3 ? Math.max(serverStep, prev) : serverStep));
     }
     // if (onboardingStatus.user?.role) {
     //   const roleLower = onboardingStatus.user.role.toLowerCase();

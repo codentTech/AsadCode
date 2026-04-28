@@ -1,6 +1,7 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import NotFound from "@/common/components/not-found/not-found.component";
 import MessageThreadModal from "../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../message-thread-modal/use-message-thread.hook";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
@@ -110,6 +111,7 @@ function BrandApplications({ onSwitchToRejected }) {
         isCreatorTyping={messageThreadHook.isCreatorTyping}
         messagesEndRef={messageThreadHook.messagesEndRef}
         messagesContainerRef={messageThreadHook.messagesContainerRef}
+        {...pickMessageThreadModalProps(messageThreadHook)}
       />
 
       <ConfirmationDialog

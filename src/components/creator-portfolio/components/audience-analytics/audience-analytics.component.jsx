@@ -25,23 +25,25 @@ export default function AudienceAnalytics({
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
 
   return (
-    <section className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-primary">Audience Analytics Snapshot</h3>
+    <section className="rounded-lg bg-white p-3 shadow-md sm:p-6">
+      <div className="mb-4 flex items-center justify-between sm:mb-6">
+        <h3 className="text-sm font-semibold text-primary sm:text-lg md:text-xl">
+          Audience Analytics Snapshot
+        </h3>
       </div>
 
       {isLoading && !statsData && !socialData?.length && <Loading />}
 
       {(!isLoading || platforms.length > 0) && (
         <>
-          <div className="mb-8 text-center">
-            <p className="text-sm font-medium text-gray-700">Total Followers</p>
-            <p className="text-4xl font-bold text-indigo-600">
+          <div className="mb-5 text-center sm:mb-8">
+            <p className="text-[10px] font-medium text-gray-700 sm:text-sm">Total Followers</p>
+            <p className="text-2xl font-bold text-indigo-600 sm:text-4xl">
               {formatNumber(totalFollowersAllPlatforms)}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
+          <div className="my-3 grid grid-cols-1 gap-3 sm:my-4 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {platforms.map((platform, index) => {
               const isSelected = selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
               const isDisabled = !connectedPlatforms.includes(platform.name);
@@ -56,7 +58,7 @@ export default function AudienceAnalytics({
                   onClick={() => handlePlatformClick(platform.name)}
                   disabled={isDisabled}
                   className={`
-                    relative flex items-center justify-between rounded-lg p-3 transition-all
+                    relative flex items-center justify-between rounded-lg p-2.5 transition-all sm:p-3
                     ${profileHref ? "pr-9" : "pr-4"}
                     ${isDisabled ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
                     ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
@@ -67,7 +69,7 @@ export default function AudienceAnalytics({
                       {getPlatformIcon(platform.name)}
                     </span>
                     <div className="flex flex-col items-start">
-                      <span className="text-xs capitalize font-semibold text-primary">
+                      <span className="text-[10px] capitalize font-semibold text-primary sm:text-xs">
                         {capitalizeFirstLetter(platform.name)}
                       </span>
                       {platform.username && (
@@ -75,7 +77,7 @@ export default function AudienceAnalytics({
                       )}
                     </div>
                   </div>
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className="text-xs font-bold text-gray-900 sm:text-sm">
                     {formatNumber(platform.followers)}
                   </div>
                   {profileHref ? (

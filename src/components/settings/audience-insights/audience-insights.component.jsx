@@ -15,10 +15,10 @@ const AudienceInsightsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-primary p-4 rounded-lg text-white">
-        <h1 className="text-xl font-bold text-white">Audience insights</h1>
-        <p className="text-sm mt-1 text-white/90">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="rounded-lg bg-primary p-3 text-white sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Audience insights</h1>
+        <p className="mt-1 text-[10px] text-white/90 sm:text-xs md:text-sm">
           Performance metrics and audience demographics from your connected platforms.
         </p>
       </div>
@@ -29,8 +29,10 @@ const AudienceInsightsPage = () => {
         onPlatformSelect={handlePlatformSelect}
       />
       <CreatorMetricsDashboard creatorId={id} selectedPlatform={selectedPlatform} />
-      <section className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-primary mb-4">Audience demographics</h3>
+      <section className="rounded-lg bg-white p-3 shadow-md sm:p-6">
+        <h3 className="mb-3 text-sm font-semibold text-primary sm:mb-4 sm:text-lg md:text-xl">
+          Audience demographics
+        </h3>
         <AudienceDemographics
           audienceData={audienceState?.data}
           loading={audienceState?.isLoading}

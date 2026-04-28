@@ -240,7 +240,32 @@ const useDeliverablesProgress = (
     return selectedCampaignId || null;
   }, [isIndividualCreator, selectedCreatorContractCampaignId, selectedCampaignId]);
 
-  const messageThreadHook = useMessageThread(creatorUserId, messageCampaignId);
+  const applicationPitch = useMemo(() => {
+    const raw =
+      selectedCreator?.pitch ||
+      selectedCreator?.custom_message ||
+      selectedCreator?.application?.pitch ||
+      selectedCreator?.application?.custom_message ||
+      selectedCreator?.contract?.application?.pitch ||
+      selectedCreator?.contract?.application?.custom_message ||
+      "";
+    const trimmed = typeof raw === "string" ? raw.trim() : "";
+    return trimmed.length > 0 ? trimmed : null;
+  }, [
+    selectedCreator?.pitch,
+    selectedCreator?.custom_message,
+    selectedCreator?.application?.pitch,
+    selectedCreator?.application?.custom_message,
+    selectedCreator?.contract?.application?.pitch,
+    selectedCreator?.contract?.application?.custom_message,
+  ]);
+
+  const messageThreadHook = useMessageThread(
+    creatorUserId,
+    messageCampaignId,
+    null,
+    applicationPitch
+  );
 
   const handleMessageClick = () => {
     if (!messageCampaignId) {

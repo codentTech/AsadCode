@@ -35,11 +35,16 @@ export default function CustomRadioGroup({
   return (
     <FormControl className="w-full">
       {label && <FormLabel className="text-sm font-medium text-gray-700 mb-1">{label}</FormLabel>}
-      <div className={`flex gap-4 ${inlineRadioButtons ? "flex-row" : "flex-col"}`}>
+      <div
+        className={`flex gap-3 ${inlineRadioButtons ? "flex-row flex-wrap items-start" : "flex-col"}`}
+      >
         {radioOptions?.map((option) => {
           const { ref, onChange: registerOnChange, ...restRegisterProps } = registerProps;
           return (
-            <label key={option.value} className="flex items-center text-xs gap-2 cursor-pointer">
+            <label
+              key={option.value}
+              className="flex min-w-0 cursor-pointer items-start gap-2 text-xs sm:items-center"
+            >
               <input
                 {...(register ? restRegisterProps : {})}
                 type="radio"
@@ -47,7 +52,7 @@ export default function CustomRadioGroup({
                 checked={checkedValue === option.value}
                 name={name}
                 onChange={combinedOnChange}
-                className="w-4 h-4 accent-blue-600"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600 sm:mt-0"
                 {...(register && ref ? { ref } : {})}
               />
               {option.label}

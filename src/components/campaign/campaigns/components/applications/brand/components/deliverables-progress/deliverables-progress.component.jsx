@@ -1,7 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { Avatar } from "@mui/material";
-import RightPaneSkeleton from "../../../../right-pane-skeleton/right-pane-skeleton.component";
 import CollaborationHistory from "../campaign-history/campaign-history.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
@@ -32,10 +31,6 @@ const DeliverablesProgress = ({
   } = useDeliverablesProgress(selectedCreator, isIndividualCreator);
 
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
-
-  if (!creatorData) {
-    return <RightPaneSkeleton />;
-  }
 
   return (
     <div className="w-[27%] bg-white flex flex-col border-l h-screen">

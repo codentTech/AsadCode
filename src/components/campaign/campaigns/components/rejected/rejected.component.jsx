@@ -1,8 +1,9 @@
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
-import Loading from "@/common/components/loader/loading.component";
+import RightPaneSkeleton from "../right-pane-skeleton/right-pane-skeleton.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import Modal from "@/common/components/modal/modal.component";
+import Loading from "@/common/components/loader/loading.component";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import useRejected from "./use-rejected.hook";
@@ -37,11 +38,7 @@ function Rejected({ onSwitchToApplications }) {
 
   const renderRightPane = () => {
     if (rightPaneState.type === "loading") {
-      return (
-        <div className="w-[27%] bg-white flex flex-col border-l h-screen items-center justify-center">
-          <Loading />
-        </div>
-      );
+      return <RightPaneSkeleton />;
     }
 
     if (rightPaneState.type === "notFound") {
@@ -54,10 +51,12 @@ function Rejected({ onSwitchToApplications }) {
 
     return (
       <DeliverablesProgress
+        selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
         isIndividualCreator={rightPaneState.isIndividualCreator}
         onReinstateCreator={handleReinstateCreator}
         onSaveToShortlistClick={() => setShowShortlistModalForDetails(true)}
+        reinstateConfirmLoading={reinstateLoading}
       />
     );
   };

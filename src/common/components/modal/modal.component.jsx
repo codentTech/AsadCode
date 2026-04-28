@@ -1,29 +1,61 @@
+"use client";
+
 import { CancelOutlined } from "@mui/icons-material";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import PropTypes from "prop-types";
 
-export default function Modal({ show = false, title, children, onClose, size, height }) {
+export default function Modal({
+  show = false,
+  title,
+  children,
+  onClose,
+  size,
+  height,
+  fullScreenOnMobile = false,
+}) {
+  const theme = useTheme();
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
+  const fullScreen = Boolean(fullScreenOnMobile && isSmDown);
+
+  const capMax =
+    size === "xl" ? "1300px" : size === "lg" ? "800px" : size === "md" ? "600px" : "420px";
+
+  const paperSx = fullScreen
+    ? {
+        margin: 0,
+        maxWidth: "100%",
+        width: "100%",
+        height: height ? "100dvh" : "auto",
+        maxHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 0,
+      }
+    : {
+        maxWidth: isSmDown ? `min(${capMax}, calc(100% - 32px))` : capMax,
+        width: isSmDown ? "calc(100% - 32px)" : "100%",
+        margin: isSmDown ? "16px" : undefined,
+        height: height ? (isSmDown ? "calc(100dvh - 32px)" : "90vh") : "auto",
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: isSmDown ? "calc(100dvh - 32px)" : "90vh",
+      };
+
   return (
     <Dialog
       open={show}
       onClose={onClose}
+      fullScreen={fullScreen}
       className="custom_modal_design"
       PaperProps={{
-        className: "rounded-2xl",
-        sx: {
-          maxWidth:
-            size === "xl" ? "1300px" : size === "lg" ? "800px" : size === "md" ? "600px" : "420px",
-          width: "100%",
-          height: height ? "90vh" : "auto",
-          display: "flex",
-          flexDirection: "column",
-          maxHeight: "90vh",
-        },
+        className: fullScreen ? "" : "rounded-2xl",
+        sx: paperSx,
       }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between bg-primary px-4 py-[14px]">
-        <DialogTitle className="px-0 py-0 font-dm text-xl font-bold leading-8 text-white">
+      <div className="flex items-center justify-between bg-primary px-3 py-3 sm:px-4 sm:py-[14px]">
+        <DialogTitle className="px-0 py-0 font-dm text-base font-bold leading-snug text-white sm:text-lg sm:leading-8 md:text-xl pr-2">
           {title}
         </DialogTitle>
         {onClose && (
@@ -33,14 +65,16 @@ export default function Modal({ show = false, title, children, onClose, size, he
         )}
       </div>
 
-      {/* Content */}
       <DialogContent
         dividers
         sx={{
           position: "relative",
           overflowY: "auto",
+          overflowX: "hidden",
           flex: 1,
-          px: 2,
+          display: "flex",
+          flexDirection: "column",
+          px: fullScreen ? 1.5 : 2,
           pb: 2,
           minHeight: 0,
         }}
@@ -56,4 +90,5 @@ Modal.propTypes = {
   title: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
   onClose: PropTypes.func.isRequired,
+  fullScreenOnMobile: PropTypes.bool,
 };

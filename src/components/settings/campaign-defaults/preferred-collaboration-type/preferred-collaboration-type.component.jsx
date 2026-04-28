@@ -35,18 +35,20 @@ const PreferredCollaborationType = () => {
 
   return (
     <>
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Preferred Collaboration Type</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Preferred Collaboration Type
+        </h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Choose your default collaboration preferences. This helps brands understand how you prefer
           to work together.
         </p>
       </div>
 
       <div className="max-w-full mx-auto">
-        <div className="space-y-8">
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Campaign Types</h3>
+        <div className="space-y-4 sm:space-y-8">
+          <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+            <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-xl">Campaign Types</h3>
             <div className="grid md:grid-cols-2 gap-4">
               {campaignTypes.map((type) => {
                 const Icon = type.icon;
@@ -88,9 +90,9 @@ const PreferredCollaborationType = () => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-4 space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Languages</h3>
+          <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
+            <div className="space-y-4 rounded-lg bg-white p-3 shadow-lg sm:space-y-6 sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:text-xl">Languages</h3>
               <div>
                 <LanguageSelect
                   name="languages"
@@ -102,7 +104,7 @@ const PreferredCollaborationType = () => {
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1 border-t pt-4">
+                <h3 className="mb-1 border-t pt-4 text-sm font-semibold text-gray-900 sm:text-xl">
                   In-Person Opportunities <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-4">
@@ -135,8 +137,8 @@ const PreferredCollaborationType = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Ethnicity (Optional)</h3>
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-xl">Ethnicity (Optional)</h3>
               <p className="text-xs text-gray-600 mb-3">
                 This information is used only for brand filtering and is never shown publicly.
               </p>
@@ -165,8 +167,8 @@ const PreferredCollaborationType = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">
+          <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+            <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-xl">
               Shipping Address <span className="text-red-500">*</span>
             </h3>
 
@@ -175,7 +177,7 @@ const PreferredCollaborationType = () => {
               shared with a brand after you are hired for a campaign that requires product delivery.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <CustomInput
                 label="Address line 1"
                 name="street"
@@ -226,7 +228,7 @@ const PreferredCollaborationType = () => {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 mt-6">
+            <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 md:grid-cols-2">
               <CountrySelect
                 label="Country"
                 name="country"
@@ -250,11 +252,11 @@ const PreferredCollaborationType = () => {
           </div>
 
           <div className="text-center">
-            <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-8">
               <div className="flex justify-end">
                 <CustomButton
                   text="Save Preferences"
-                  className="btn-primary"
+                  className="btn-primary w-full sm:w-auto"
                   loading={isLoading}
                   onClick={handleSavePreferences}
                 />

@@ -20,7 +20,7 @@ export default function CreatorPortfolio({ creatorId = null }) {
 
   return (
     <HeaderLayout className="min-h-screen bg-gray-50">
-      <main className="flex flex-col gap-4 mx-auto px-4 py-8 w-full md:w-[80%] bg-gray-50">
+      <main className="mx-auto flex w-full flex-col gap-3 bg-gray-50 px-2.5 py-3 sm:gap-4 sm:px-4 sm:py-6 md:w-[80%] md:py-8">
         <ProfileOverview
           creatorId={id}
           refreshKey={refreshKey}
@@ -33,8 +33,10 @@ export default function CreatorPortfolio({ creatorId = null }) {
           onPlatformSelect={handlePlatformSelect}
         />
         <CreatorMetricsDashboard creatorId={id} selectedPlatform={selectedPlatform} />
-        <section className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
+        <section className="rounded-lg bg-white p-3 shadow-md sm:p-6">
+          <h3 className="mb-3 text-sm font-semibold text-primary sm:mb-4 sm:text-lg md:text-xl">
+            Audience Demographics
+          </h3>
           <AudienceDemographics
             audienceData={audienceState?.data}
             loading={audienceState?.isLoading}
