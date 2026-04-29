@@ -134,10 +134,11 @@ export default function BrandCompleted() {
       {isLoading ? (
         <RightPaneSkeleton layout="fluid" />
       ) : !selectedCreator ? (
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-violet-50/40 to-white px-4 py-10 md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
+        <div className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-violet-50/40 to-white px-4 text-center md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
           <NotFound
-            title="No Creator Selected"
-            description="Select a creator to view their completed deliverables."
+            title="No Data Available"
+            description="Please select a campaign and creator."
+            className="flex-1 w-full !p-0"
           />
         </div>
       ) : (

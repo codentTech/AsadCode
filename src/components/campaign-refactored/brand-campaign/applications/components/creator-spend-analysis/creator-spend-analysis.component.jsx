@@ -89,14 +89,14 @@ const CreatorSpendAnalysis = ({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="p-2.5 sm:p-4">
           <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="max-w-full rounded-lg bg-gray-100 p-2.5 sm:max-w-[min(100%,320px)] sm:p-3">
+            <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
               <CustomSwitch
                 label="Campaign Type"
                 checked={isMultiCreator}
                 onChange={handleToggleChange}
                 rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
                 parentDivClassName="justify-between"
-                rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium not-italic leading-6 text-text-dark-gray sm:justify-end sm:gap-8 md:text-sm"
+                rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium not-italic leading-6 text-text-dark-gray md:text-sm"
               />
             </div>
             {onSwitchToRejected && (
@@ -241,7 +241,17 @@ const CreatorSpendAnalysis = ({
         onClose={() => setShowFilterModal(false)}
         filterType={filterType}
         setFilterType={setFilterType}
-        filters={filters || {}}
+        filters={
+          filters
+            ? {
+                ...filters,
+                minFollowers: filters.minFollowers ?? filters.min_followers ?? "",
+                maxFollowers: filters.maxFollowers ?? filters.max_followers ?? "",
+                minRating: filters.minRating ?? filters.min_rating ?? "",
+                maxRating: filters.maxRating ?? filters.max_rating ?? "",
+              }
+            : {}
+        }
         audienceFilters={
           filters
             ? {

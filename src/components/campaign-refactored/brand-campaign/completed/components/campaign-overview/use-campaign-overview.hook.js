@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useBrandCampaignCompleted from "../../use-completed.hook";
 import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import {
   fetchCampaignCombinedDemographics,
   fetchCampaignPerformanceMetrics,
@@ -28,10 +27,6 @@ export default function useCampaignOverviewCompleted(
   const [isMultiCreator, setIsMultiCreator] = useState(
     parentIsMultiCreator !== undefined ? parentIsMultiCreator : true
   );
-
-  useEffect(() => {
-    dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
 
   useEffect(() => {
     if (parentIsMultiCreator !== undefined) {

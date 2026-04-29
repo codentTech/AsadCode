@@ -15,9 +15,9 @@ const SearchAndSortControls = ({
 }) => {
   return (
     <div
-      className={`flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch lg:max-w-[720px] ${className}`}
+      className={`flex w-full flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center lg:justify-between ${className}`}
     >
-      <div className="w-full min-w-0 sm:flex-1 sm:min-w-[180px] bg-white">
+      <div className="w-full min-w-0 bg-white lg:max-w-[340px] xl:max-w-[420px]">
         <CustomInput
           placeholder="Search creators"
           value={searchKeyword}
@@ -26,29 +26,25 @@ const SearchAndSortControls = ({
         />
       </div>
 
-      <div className="w-full min-w-0 sm:flex-1 sm:min-w-[160px]">
-        <SimpleSelect
-          placeHolder="Sort by"
-          options={SORT_BY_OPTIONS}
-          onChange={(opt) => onSortChange(opt?.value || "")}
-        />
-      </div>
+      <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:ml-3 lg:w-auto lg:flex-nowrap lg:justify-end">
+        <div className="min-w-0 flex-1 basis-full sm:basis-auto sm:min-w-[170px] lg:w-[180px] lg:flex-none">
+          <SimpleSelect
+            placeHolder="Sort by"
+            options={SORT_BY_OPTIONS}
+            onChange={(opt) => onSortChange(opt?.value || "")}
+          />
+        </div>
 
-      <div className="relative w-full sm:w-auto shrink-0">
-        <CustomButton
-          text="Filters"
-          onClick={onFilterClick}
-          startIcon={<Filter className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
-          className="btn-outline !h-9 sm:!h-10 w-full sm:w-auto !text-xs sm:!text-sm"
-        />
-      </div>
+        <div className="relative flex-1 sm:flex-none lg:flex-none">
+          <CustomButton
+            text="Filters"
+            onClick={onFilterClick}
+            startIcon={<Filter className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
+            className="btn-outline w-full sm:w-auto sm:min-w-[106px]"
+          />
+        </div>
 
-      <div className="w-full sm:flex-1 sm:min-w-[200px] sm:max-w-xs">
-        <CustomButton
-          text="Start a new campaign"
-          onClick={onNewCampaignClick}
-          className="btn-primary !h-9 sm:!h-10 w-full !text-xs sm:!text-sm"
-        />
+        <CustomButton text="Start a new campaign" onClick={onNewCampaignClick} />
       </div>
     </div>
   );

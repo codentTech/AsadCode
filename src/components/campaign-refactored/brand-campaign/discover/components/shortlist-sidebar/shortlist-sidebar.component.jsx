@@ -82,7 +82,7 @@ function ShortlistSidebar({
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+      <div className="flex-1 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
         {isCreatingNew && (
           <div className="mb-4 bg-white rounded-lg border-2 border-indigo-200 shadow-sm p-3">
             <div className="flex items-center gap-2 mb-2">

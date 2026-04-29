@@ -19,10 +19,41 @@ import { getUser } from "@/common/utils/users.util";
 
 const MD_BREAKPOINT = 768;
 
+const normalizeAppliedCreatorsFilters = (filters = {}) => {
+  const normalized = { ...filters };
+
+  // UI aliases -> backend dto keys
+  if (normalized.minFollowers !== undefined && normalized.min_followers === undefined) {
+    normalized.min_followers = normalized.minFollowers;
+  }
+  if (normalized.maxFollowers !== undefined && normalized.max_followers === undefined) {
+    normalized.max_followers = normalized.maxFollowers;
+  }
+  if (normalized.minRating !== undefined && normalized.min_rating === undefined) {
+    normalized.min_rating = normalized.minRating;
+  }
+  if (normalized.maxRating !== undefined && normalized.max_rating === undefined) {
+    normalized.max_rating = normalized.maxRating;
+  }
+
+  // Remove UI-only keys not accepted by backend dto
+  delete normalized.minFollowers;
+  delete normalized.maxFollowers;
+  delete normalized.minRating;
+  delete normalized.maxRating;
+  delete normalized.country_code;
+  delete normalized.city_country_code;
+  delete normalized.audienceCountryCode;
+  delete normalized.audienceCityCountryCode;
+
+  return normalized;
+};
+
 function useBrandApplications() {
   const dispatch = useDispatch();
   const hasRestoredFromContext = useRef(false);
   const lastRestoredCampaignIdRef = useRef(null);
+  const hasRequestedBrandCampaignsRef = useRef(false);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -90,8 +121,10 @@ function useBrandApplications() {
   }, [dispatch]);
 
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   useEffect(() => {
     if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
@@ -347,7 +380,7 @@ function useBrandApplications() {
   };
 
   const handleFilterChange = (filterName, value) => {
-    const newFilters = { ...filters, [filterName]: value };
+    const newFilters = normalizeAppliedCreatorsFilters({ ...filters, [filterName]: value });
     setFilters(newFilters);
     if (
       selectedCampaign &&
@@ -363,7 +396,7 @@ function useBrandApplications() {
   };
 
   const clearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters = normalizeAppliedCreatorsFilters({
       min_followers: "",
       max_followers: "",
       min_rating: "",
@@ -375,7 +408,7 @@ function useBrandApplications() {
       status: "",
       excludeStatus: "HIRED",
       sort: "newest",
-    };
+    });
     setFilters(clearedFilters);
     if (
       selectedCampaign &&
