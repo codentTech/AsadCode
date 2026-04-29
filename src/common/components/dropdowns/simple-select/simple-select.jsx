@@ -77,9 +77,9 @@ export default function SimpleSelect({
         <div
           ref={inputRef}
           onClick={handleClick}
-          className={`flex min-h-8 items-center justify-between rounded-md border px-2.5 py-1.5 md:min-h-9 md:px-3 md:py-2 ${
+          className={`flex min-h-9 sm:min-h-10 items-center justify-between rounded-md border px-2.5 sm:px-3 py-1.5 sm:py-2 ${
             errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
-          } ${isDisabled ? "cursor-not-allowed bg-gray-100 text-gray-400" : "cursor-pointer bg-white text-gray-700"} text-xs md:text-sm shadow-sm transition-colors`}
+          } ${isDisabled ? "cursor-not-allowed bg-gray-100 text-gray-400" : "cursor-pointer bg-white text-gray-700"} text-xs sm:text-sm shadow-sm transition-colors`}
         >
           <div className="truncate">{getDisplay()}</div>
           <Icon isOpen={showMenu && !isDisabled} />

@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
 import {
   AGE_OPTIONS,
@@ -25,7 +26,7 @@ const FilterModal = ({
   audienceFilters,
   onNicheToggle,
   onPlatformToggle,
-  onFollowerSelect,
+  onFollowerRangeChange,
   onGenderSelect,
   onAgeSelect,
   onLanguageToggle,
@@ -44,6 +45,15 @@ const FilterModal = ({
     : filters.country
       ? [filters.country]
       : [];
+  const followerFromOptions = useMemo(
+    () => [{ value: "", label: "No minimum" }, ...FOLLOWER_OPTIONS],
+    []
+  );
+  const followerToOptions = useMemo(
+    () => [{ value: "", label: "No maximum" }, ...FOLLOWER_OPTIONS],
+    []
+  );
+
   const selectedCountryDetails = useMemo(() => {
     return selectedCountries
       .map((countryName) => {
@@ -107,7 +117,7 @@ const FilterModal = ({
   const FilterButton = ({ active, onClick, children }) => (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+      className={`rounded-lg px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 sm:py-2 sm:text-xs ${
         active ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
       }`}
     >
@@ -117,13 +127,13 @@ const FilterModal = ({
 
   return (
     <Modal title="Filter Creators" show={show} onClose={onClose} size="lg">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Filter Type Toggle */}
         <div className="flex items-center justify-center">
-          <div className="bg-gray-100 rounded-lg p-1 flex">
+          <div className="flex rounded-lg bg-gray-100 p-1">
             <button
               onClick={() => setFilterType("creator")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${
                 filterType === "creator"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -133,7 +143,7 @@ const FilterModal = ({
             </button>
             <button
               onClick={() => setFilterType("audience")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${
                 filterType === "audience"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -146,11 +156,11 @@ const FilterModal = ({
 
         {/* Creator Filters */}
         {filterType === "creator" && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Platforms */}
-            <div className="grid grid-cols-1 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Platforms</h4>
+                <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Platforms</h4>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                   {PLATFORM_OPTIONS.map((platform) => (
                     <FilterButton
@@ -164,7 +174,7 @@ const FilterModal = ({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Gender</h4>
+                <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Gender</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {GENDER_OPTIONS?.filter((option) => option.value !== "").map((option) => (
                     <FilterButton
@@ -179,25 +189,45 @@ const FilterModal = ({
               </div>
             </div>
 
-            {/* Minimum Followers */}
+            {/* Follower Range */}
             <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Minimum Followers</h4>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                {FOLLOWER_OPTIONS.map((option) => (
-                  <FilterButton
-                    key={option.value}
-                    active={filters.minFollowers === option.value}
-                    onClick={() => onFollowerSelect(option.value)}
-                  >
-                    {option.label}
-                  </FilterButton>
-                ))}
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Follower Range</h4>
+              <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
+                Applies per selected platform. Creators match if any selected platform falls in range.
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <SimpleSelect
+                  label="From"
+                  placeHolder="No minimum"
+                  options={followerFromOptions}
+                  value={filters.minFollowers}
+                  onChange={(opt) =>
+                    onFollowerRangeChange(
+                      "minFollowers",
+                      opt && typeof opt === "object" ? String(opt.value ?? "") : ""
+                    )
+                  }
+                  className="normal-case"
+                />
+                <SimpleSelect
+                  label="To"
+                  placeHolder="No maximum"
+                  options={followerToOptions}
+                  value={filters.minFollowersTo}
+                  onChange={(opt) =>
+                    onFollowerRangeChange(
+                      "minFollowersTo",
+                      opt && typeof opt === "object" ? String(opt.value ?? "") : ""
+                    )
+                  }
+                  className="normal-case"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Age Range</h4>
+                <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Age Range</h4>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {AGE_OPTIONS.map((option) => (
                     <FilterButton
@@ -215,7 +245,7 @@ const FilterModal = ({
             {/* Location */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Country</h4>
+                <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Country</h4>
                 <CountrySelect
                   label="Add country"
                   value={countrySelectValue}
@@ -226,7 +256,7 @@ const FilterModal = ({
                     {selectedCountryDetails.map((country) => (
                       <span
                         key={country.code}
-                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-2 py-1 text-[10px] text-gray-700 sm:px-3 sm:text-xs"
                       >
                         {country.name}
                         <button
@@ -306,11 +336,11 @@ const FilterModal = ({
 
         {/* Audience Filters */}
         {filterType === "audience" && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Audience Gender */}
             <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Audience Gender</h4>
-              <p className="text-xs text-gray-600 mb-3">
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Audience Gender</h4>
+              <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
                 Select the primary gender of the creator's audience
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -328,8 +358,10 @@ const FilterModal = ({
 
             {/* Top Audience Age Ranges */}
             <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Age Ranges</h4>
-              <p className="text-xs text-gray-600 mb-3">
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Top Audience Age Ranges
+              </h4>
+              <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
                 Select multiple age ranges that make up the creator's primary audience
               </p>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -347,11 +379,11 @@ const FilterModal = ({
 
             {/* Top Audience Location */}
             <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-2">Top Audience Location</h4>
-              <p className="text-xs text-gray-600 mb-3">
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Top Audience Location</h4>
+              <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
                 Select the country and city where the creator's audience is primarily located
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <CountrySelect
                   label="Country"
                   value={
@@ -419,9 +451,9 @@ const FilterModal = ({
       </div>
 
       {/* Modal Actions */}
-      <div className="flex justify-between items-center mt-6">
-        <CustomButton onClick={onClearAllFilters} text="Clear All" className="btn-cancel" />
-        <div className="flex gap-3">
+      <div className="mt-4 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
+        <CustomButton onClick={onClearAllFilters} text="Clear All" className="btn-cancel w-full sm:w-auto" />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
           <CustomButton onClick={onClose} text="Cancel" className="btn-cancel" />
           <CustomButton onClick={onApplyFilters} text="Apply Filters" className="btn-primary" />
         </div>

@@ -43,14 +43,14 @@ export default function CampaignOverviewCompleted({
 
   return (
     <div className="flex min-h-0 w-full flex-col gap-3 overflow-y-auto bg-white p-3 sm:gap-4 sm:p-4 md:h-full md:max-h-none">
-      <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/80 p-2.5 shadow-inner sm:p-3">
+      <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
         <CustomSwitch
           label="Campaign Type"
           checked={isMultiCreator}
           onChange={handleToggleChange}
           rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
           parentDivClassName="justify-between"
-          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray sm:justify-end sm:gap-8"
+          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray"
         />
       </div>
 
@@ -98,14 +98,9 @@ export default function CampaignOverviewCompleted({
       )}
 
       {showEmptyState && (
-        <NotFound
-          title={isMultiCreator ? "No Campaigns" : "No Individual Collaborations"}
-          description={
-            isMultiCreator
-              ? "You don't have any campaigns"
-              : "You don't have any individual collaborations"
-          }
-        />
+        <div className="flex min-h-[50vh] w-full items-center justify-center px-4 text-center">
+          <NotFound title="No Data Available" description="Please select a campaign and creator." />
+        </div>
       )}
 
       {selectedCampaign && !isLoading && (
@@ -188,10 +183,7 @@ export default function CampaignOverviewCompleted({
                             {performanceData?.costPerEngagement == null ||
                             !Number.isFinite(Number(performanceData.costPerEngagement))
                               ? "N/A"
-                              : formatMetricValue(
-                                  performanceData.costPerEngagement,
-                                  "currency"
-                                )}
+                              : formatMetricValue(performanceData.costPerEngagement, "currency")}
                           </div>
                         </div>
                       </div>

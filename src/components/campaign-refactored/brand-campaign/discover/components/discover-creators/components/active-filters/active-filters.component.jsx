@@ -44,7 +44,7 @@ const ActiveFilters = ({
   audienceFilters,
   onNicheToggle,
   onPlatformToggle,
-  onFollowerSelect,
+  onFollowerRangeChange,
   onGenderSelect,
   onAgeSelect,
   onLanguageToggle,
@@ -60,7 +60,7 @@ const ActiveFilters = ({
     return (
       filters.niches.length +
       filters.platforms.length +
-      (filters.minFollowers ? 1 : 0) +
+      (filters.minFollowers || filters.minFollowersTo ? 1 : 0) +
       (filters.gender ? 1 : 0) +
       (filters.ageRange ? 1 : 0) +
       countriesCount +
@@ -79,6 +79,7 @@ const ActiveFilters = ({
       filters.niches.length > 0 ||
       filters.platforms.length > 0 ||
       filters.minFollowers ||
+      filters.minFollowersTo ||
       filters.gender ||
       filters.ageRange ||
       hasCountries ||
@@ -155,11 +156,23 @@ const ActiveFilters = ({
                   </FilterTag>
                 ))}
 
-                {/* Min Followers Filter */}
-                {filters.minFollowers && (
-                  <FilterTag onRemove={() => onFollowerSelect(filters.minFollowers)} color="blue">
-                    {FOLLOWER_OPTIONS.find((f) => f.value === filters.minFollowers)?.label}
-                    followers
+                {/* Follower Range Filter */}
+                {(filters.minFollowers || filters.minFollowersTo) && (
+                  <FilterTag
+                    onRemove={() => {
+                      onFollowerRangeChange("minFollowers", "");
+                      onFollowerRangeChange("minFollowersTo", "");
+                    }}
+                    color="blue"
+                  >
+                    Followers:{" "}
+                    {filters.minFollowers
+                      ? FOLLOWER_OPTIONS.find((f) => f.value === filters.minFollowers)?.label
+                      : "Any"}
+                    {" - "}
+                    {filters.minFollowersTo
+                      ? FOLLOWER_OPTIONS.find((f) => f.value === filters.minFollowersTo)?.label
+                      : "Any"}
                   </FilterTag>
                 )}
 

@@ -25,14 +25,14 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
 
   return (
     <div className="flex min-h-0 w-full flex-col gap-3 overflow-y-auto bg-white p-3 sm:gap-4 sm:p-4 md:h-full md:max-h-none">
-      <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/80 p-2.5 shadow-inner sm:p-3">
+      <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
         <CustomSwitch
           label="Campaign Type"
           checked={isMultiCreator}
           onChange={handleToggleChange}
           rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
           parentDivClassName="justify-between"
-          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray sm:justify-end sm:gap-8"
+          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray"
         />
       </div>
 
@@ -80,14 +80,9 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
       )}
 
       {!hasData && !isLoading && (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
-        <NotFound
-          title={isMultiCreator ? "No Active Campaigns" : "No Individual Collaborations"}
-          description={
-            isMultiCreator
-              ? "You don't have any active campaigns yet. Create a campaign to get started."
-              : "You don't have any active individual collaborations yet."
-          }
-        />
+        <div className="flex min-h-[50vh] w-full items-center justify-center px-4 text-center">
+          <NotFound title="No Data Available" description="Please select a campaign and creator." />
+        </div>
       )}
 
       {showMultiCreatorUI && hasData && (
@@ -154,8 +149,8 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
             {showMultiCreatorUI && hasDemographicsData && demographicsData && (
               <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/90 p-3">
                 <p className="text-xs leading-relaxed text-blue-800">
-                  <strong>Tip:</strong> Use this data to identify gaps in your campaign&apos;s reach.
-                  Consider adding creators from underrepresented demographics.
+                  <strong>Tip:</strong> Use this data to identify gaps in your campaign&apos;s
+                  reach. Consider adding creators from underrepresented demographics.
                 </p>
               </div>
             )}

@@ -62,19 +62,21 @@ const DeliverablesProgressCompleted = ({
   );
 
   const renderCampaignSelectionMessage = () => (
-    <div className="py-16">
+    <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center px-4 text-center">
       <NotFound
-        title="No Campaign Selected"
-        description="Select a campaign from the list to view creator details."
+        title="No Data Available"
+        description="Please select a campaign and creator."
+        className="flex-1 w-full !p-0"
       />
     </div>
   );
 
   const renderNoCreatorFound = () => (
-    <div className="px-2 py-12 sm:py-16">
+    <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center px-4 text-center">
       <NotFound
-        title="No Creator Selected"
-        description="Select a creator from the list to view their completed deliverables."
+        title="No Data Available"
+        description="Please select a campaign and creator."
+        className="flex-1 w-full !p-0"
       />
     </div>
   );
@@ -440,12 +442,24 @@ const DeliverablesProgressCompleted = ({
     </div>
   );
 
+  if (!selectedCampaign) {
+    return (
+      <div className="flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white">
+        {renderCampaignSelectionMessage()}
+      </div>
+    );
+  }
+
+  if (selectedCreator === null || selectedCreator === undefined) {
+    return (
+      <div className="flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white">
+        {renderNoCreatorFound()}
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white">
-      {!selectedCampaign && renderCampaignSelectionMessage()}
-      {selectedCampaign &&
-        (selectedCreator === null || selectedCreator === undefined) &&
-        renderNoCreatorFound()}
       {selectedCampaign && selectedCreator && creator && creator.id !== "unknown" && (
         <>
           {renderCreatorProfile()}

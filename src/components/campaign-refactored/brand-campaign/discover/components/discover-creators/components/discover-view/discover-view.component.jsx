@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import PageHeader from "../page-header/page-header.component";
 import ActiveFilters from "../active-filters/active-filters.component";
 import CreatorGrid from "../creator-grid/creator-grid.component";
@@ -11,6 +12,9 @@ const DiscoverView = ({
   isDiscoverRefetching = false,
   searchKeyword,
   selectedSort,
+  isLoadingMore = false,
+  hasMoreCreators = false,
+  totalCreatorsCount = 0,
   hasActiveFilters,
   filters,
   audienceFilters,
@@ -23,7 +27,7 @@ const DiscoverView = ({
   onNewCampaignClick,
   onNicheToggle,
   onPlatformToggle,
-  onFollowerSelect,
+  onFollowerRangeChange,
   onGenderSelect,
   onAgeSelect,
   onLanguageToggle,
@@ -38,7 +42,41 @@ const DiscoverView = ({
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
+  onLoadMore,
 }) => {
+  const shownCreatorsCount = creators.length;
+  const totalCount = totalCreatorsCount || shownCreatorsCount;
+  const progressValue = totalCount > 0 ? Math.min((shownCreatorsCount / totalCount) * 100, 100) : 0;
+
+  const loadMoreSection = hasMoreCreators ? (
+    <div className="sticky bottom-2 z-[5] rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">
+            Showing {shownCreatorsCount} of {totalCount} creators
+          </p>
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600 sm:text-xs">
+            {Math.round(progressValue)}%
+          </span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-300"
+            style={{ width: `${progressValue}%` }}
+            aria-hidden
+          />
+        </div>
+        <CustomButton
+          text="Load More"
+          onClick={onLoadMore}
+          loading={isLoadingMore}
+          disabled={isDiscoverRefetching}
+          className="btn-primary w-full sm:w-auto sm:min-w-[132px] sm:self-end"
+        />
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -58,7 +96,7 @@ const DiscoverView = ({
           audienceFilters={audienceFilters}
           onNicheToggle={onNicheToggle}
           onPlatformToggle={onPlatformToggle}
-          onFollowerSelect={onFollowerSelect}
+          onFollowerRangeChange={onFollowerRangeChange}
           onGenderSelect={onGenderSelect}
           onAgeSelect={onAgeSelect}
           onLanguageToggle={onLanguageToggle}
@@ -93,13 +131,16 @@ const DiscoverView = ({
               description="Try adjusting your search or filters."
             />
           ) : (
-            <CreatorGrid
-              creators={creators}
-              onCreatorPreview={onCreatorPreview}
-              onSaveToShortlist={onSaveToShortlist}
-              onRemoveFromShortlist={onRemoveFromShortlist}
-              onInviteClick={onInviteClick}
-            />
+            <div className="space-y-4">
+              <CreatorGrid
+                creators={creators}
+                onCreatorPreview={onCreatorPreview}
+                onSaveToShortlist={onSaveToShortlist}
+                onRemoveFromShortlist={onRemoveFromShortlist}
+                onInviteClick={onInviteClick}
+              />
+              {loadMoreSection}
+            </div>
           )}
         </div>
       ) : (
@@ -124,20 +165,23 @@ const DiscoverView = ({
               description="No niches found. Try adjusting your search or filters."
             />
           ) : (
-            nicheCategories.map((category) => (
-              <NicheCategory
-                key={category.id}
-                category={category}
-                scrollRef={(el) => {
-                  scrollRefs.current[category.id] = el;
-                }}
-                onSeeMoreClick={onSeeMoreClick}
-                onCreatorPreview={onCreatorPreview}
-                onSaveToShortlist={onSaveToShortlist}
-                onRemoveFromShortlist={onRemoveFromShortlist}
-                onInviteClick={onInviteClick}
-              />
-            ))
+            <div className="space-y-6">
+              {nicheCategories.map((category) => (
+                <NicheCategory
+                  key={category.id}
+                  category={category}
+                  scrollRef={(el) => {
+                    scrollRefs.current[category.id] = el;
+                  }}
+                  onSeeMoreClick={onSeeMoreClick}
+                  onCreatorPreview={onCreatorPreview}
+                  onSaveToShortlist={onSaveToShortlist}
+                  onRemoveFromShortlist={onRemoveFromShortlist}
+                  onInviteClick={onInviteClick}
+                />
+              ))}
+              {loadMoreSection}
+            </div>
           )}
         </div>
       )}

@@ -8,7 +8,7 @@ export default function RightPaneSkeleton({ layout = "narrow" }) {
     <div
       className={
         isFluid
-          ? "flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white md:max-w-md md:flex-[0_1_38%] lg:max-w-lg lg:flex-[0_1_34%]"
+          ? "flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
           : "flex h-screen w-[27%] flex-col border-l bg-white"
       }
     >
