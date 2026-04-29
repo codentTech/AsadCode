@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { discoverCreators } from "@/provider/features/users/users.slice";
 import ROLES from "@/common/constants/role.constant";
+import {
+  DISCOVER_MIN_SEARCH_LENGTH,
+  DISCOVER_PAGE_LIMIT,
+  DISCOVER_SEARCH_DEBOUNCE_MS,
+} from "@/common/constants/discover.constant";
 
 const mapUserToCreator = (user) => {
   const creatorProfile = user?.creator_profile || {};
@@ -81,8 +86,6 @@ const groupCreatorsByNiche = (creators) => {
   }));
 };
 
-const SEARCH_DEBOUNCE_MS = 500;
-const MIN_SEARCH_LENGTH = 2;
 
 export default function useDiscoverCreators() {
   const scrollRefs = useRef({});
@@ -97,6 +100,7 @@ export default function useDiscoverCreators() {
   const [filters, setFilters] = useState({
     platforms: [],
     minFollowers: "",
+    minFollowersTo: "",
     countries: [],
     city: "",
     gender: "",
@@ -125,8 +129,12 @@ export default function useDiscoverCreators() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreCreators, setHasMoreCreators] = useState(false);
+  const [totalCreatorsCount, setTotalCreatorsCount] = useState(0);
+  const queryParamsRef = useRef({});
+  const currentPageRef = useRef(1);
 
-  const safeData = discoverCreatorsState?.data || {};
   const loading = discoverCreatorsState?.isLoading || false;
   const isReduxReady = !!discoverCreatorsState;
   useEffect(() => {
@@ -146,6 +154,7 @@ export default function useDiscoverCreators() {
       filters.niches.length > 0 ||
       filters.platforms.length > 0 ||
       filters.minFollowers ||
+      filters.minFollowersTo ||
       filters.gender ||
       filters.ageRange ||
       (Array.isArray(filters.countries) && filters.countries.length > 0) ||
@@ -171,6 +180,7 @@ export default function useDiscoverCreators() {
     if (filters.city) params.city = filters.city;
     if (filters.languages?.length > 0) params.languages = filters.languages.join(",");
     if (filters.minFollowers) params.minFollowers = Number(filters.minFollowers);
+    if (filters.minFollowersTo) params.minFollowersTo = Number(filters.minFollowersTo);
     if (filters.gender) {
       const normalizedGender = String(filters.gender).toLowerCase();
       if (normalizedGender === "female") {
@@ -197,12 +207,36 @@ export default function useDiscoverCreators() {
   }, [filters, audienceFilters, debouncedSearchKeyword, selectedSort, selectedCategory]);
 
   const fetchCreators = useCallback(
-    async (params = {}) => {
+    async (params = {}, options = {}) => {
+      const { append = false } = options;
+      const requestedPage = Number(params.page) > 0 ? Number(params.page) : 1;
       const creatorParams = {
         ...params,
+        page: requestedPage,
+        limit: DISCOVER_PAGE_LIMIT,
         role: ROLES.CREATOR,
       };
-      await dispatch(discoverCreators(creatorParams));
+      const result = await dispatch(discoverCreators(creatorParams));
+      if (!discoverCreators.fulfilled.match(result)) return;
+
+      const users = Array.isArray(result.payload?.users) ? result.payload.users : [];
+      const mappedCreators = users.map(mapUserToCreator);
+      const totalCount = Number(result.payload?.total) || 0;
+      setTotalCreatorsCount(totalCount);
+
+      queryParamsRef.current = { ...params, page: undefined };
+      currentPageRef.current = requestedPage;
+
+      setCreators((prevCreators) => {
+        const nextCreators = append
+          ? [...prevCreators, ...mappedCreators].filter(
+              (creator, index, arr) => index === arr.findIndex((item) => item.id === creator.id)
+            )
+          : mappedCreators;
+        setHasMoreCreators(nextCreators.length < totalCount);
+        setNicheCategories(groupCreatorsByNiche(nextCreators));
+        return nextCreators;
+      });
     },
     [dispatch]
   );
@@ -214,6 +248,7 @@ export default function useDiscoverCreators() {
     setFilters({
       platforms: [],
       minFollowers: "",
+      minFollowersTo: "",
       countries: [],
       city: "",
       gender: "",
@@ -249,10 +284,10 @@ export default function useDiscoverCreators() {
     }));
   }, []);
 
-  const handleFollowerSelect = useCallback((follower) => {
+  const handleFollowerRangeChange = useCallback((field, value) => {
     setFilters((prev) => ({
       ...prev,
-      minFollowers: prev.minFollowers === follower ? "" : follower,
+      [field]: value,
     }));
   }, []);
 
@@ -321,6 +356,7 @@ export default function useDiscoverCreators() {
     setFilters({
       platforms: [],
       minFollowers: "",
+      minFollowersTo: "",
       countries: [],
       city: "",
       gender: "",
@@ -357,9 +393,9 @@ export default function useDiscoverCreators() {
     const timeoutId = setTimeout(() => {
       const trimmed = searchInput.trim();
       setDebouncedSearchKeyword(
-        trimmed.length >= MIN_SEARCH_LENGTH ? trimmed : ""
+        trimmed.length >= DISCOVER_MIN_SEARCH_LENGTH ? trimmed : ""
       );
-    }, SEARCH_DEBOUNCE_MS);
+    }, DISCOVER_SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timeoutId);
   }, [searchInput]);
 
@@ -367,14 +403,15 @@ export default function useDiscoverCreators() {
     setShowFilterModal(false);
   }, []);
 
-  useEffect(() => {
-    if (isReduxReady && safeData && safeData.users && Array.isArray(safeData.users)) {
-      const mappedCreators = safeData.users.map(mapUserToCreator);
-      setCreators(mappedCreators);
-      const groupedCategories = groupCreatorsByNiche(mappedCreators);
-      setNicheCategories(groupedCategories);
-    }
-  }, [isReduxReady, safeData]);
+  const handleLoadMore = useCallback(async () => {
+    if (loading || isLoadingMore || !hasMoreCreators) return;
+    setIsLoadingMore(true);
+    await fetchCreators(
+      { ...queryParamsRef.current, page: currentPageRef.current + 1 },
+      { append: true }
+    );
+    setIsLoadingMore(false);
+  }, [loading, isLoadingMore, hasMoreCreators, fetchCreators]);
 
   useEffect(() => {
     if (!isReduxReady) return;
@@ -406,14 +443,21 @@ export default function useDiscoverCreators() {
     if (!isReduxReady || showFilterModal || debouncedSearchKeyword) return;
 
     if (selectedSort) {
-      fetchCreators({ sortBy: selectedSort });
+      fetchCreators(buildQueryParams());
     }
-  }, [isReduxReady, showFilterModal, selectedSort, debouncedSearchKeyword, fetchCreators]);
+  }, [
+    isReduxReady,
+    showFilterModal,
+    selectedSort,
+    debouncedSearchKeyword,
+    fetchCreators,
+    buildQueryParams,
+  ]);
 
   useEffect(() => {
     if (!isReduxReady || showFilterModal) return;
     const q = debouncedSearchKeyword.trim();
-    if (q.length < MIN_SEARCH_LENGTH) return;
+    if (q.length < DISCOVER_MIN_SEARCH_LENGTH) return;
     const params = { search: q };
     if (selectedSort) params.sortBy = selectedSort;
     fetchCreators(params);
@@ -432,6 +476,9 @@ export default function useDiscoverCreators() {
     loading,
     isDiscoverInitialLoading,
     isDiscoverRefetching,
+    isLoadingMore,
+    hasMoreCreators,
+    totalCreatorsCount,
     filters,
     setFilters,
     audienceFilters,
@@ -453,7 +500,7 @@ export default function useDiscoverCreators() {
     hasActiveFilters,
     handleNicheToggle,
     handlePlatformToggle,
-    handleFollowerSelect,
+    handleFollowerRangeChange,
     handleGenderSelect,
     handleAgeSelect,
     handleLanguageToggle,
@@ -466,5 +513,6 @@ export default function useDiscoverCreators() {
     handleInviteClick,
     handleSearchChange,
     handleApplyFilters,
+    handleLoadMore,
   };
 }

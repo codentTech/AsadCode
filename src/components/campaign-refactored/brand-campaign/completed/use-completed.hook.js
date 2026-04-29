@@ -24,6 +24,7 @@ export default function useCompleted(disableAutoSelect = false) {
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
   const lastRestoredCampaignIdRef = useRef(null);
+  const hasRequestedBrandCampaignsRef = useRef(false);
 
   // ============================================
   // 2. REDUX SELECTORS
@@ -87,8 +88,10 @@ export default function useCompleted(disableAutoSelect = false) {
   }, []);
 
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   useEffect(() => {
     if (!selectedCreator && mobilePane === "detail") {

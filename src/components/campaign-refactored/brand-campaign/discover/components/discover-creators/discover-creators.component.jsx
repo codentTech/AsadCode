@@ -22,6 +22,8 @@ function DiscoverCreators({
     nicheCategories,
     isDiscoverInitialLoading,
     isDiscoverRefetching,
+    isLoadingMore,
+    totalCreatorsCount,
     filters,
     setFilters,
     audienceFilters,
@@ -41,9 +43,10 @@ function DiscoverCreators({
     filterType,
     setFilterType,
     hasActiveFilters,
+    hasMoreCreators,
     handleNicheToggle,
     handlePlatformToggle,
-    handleFollowerSelect,
+    handleFollowerRangeChange,
     handleGenderSelect,
     handleAgeSelect,
     handleLanguageToggle,
@@ -56,6 +59,7 @@ function DiscoverCreators({
     handleInviteClick,
     handleSearchChange,
     handleApplyFilters,
+    handleLoadMore,
   } = useDiscoverCreators();
 
   const handleBackClick = () => {
@@ -102,11 +106,14 @@ function DiscoverCreators({
           scrollRefs={scrollRefs}
           onSearchChange={handleSearchChange}
           onSortChange={setSelectedSort}
+          isLoadingMore={isLoadingMore}
+          hasMoreCreators={hasMoreCreators}
+          totalCreatorsCount={totalCreatorsCount}
           onFilterClick={() => setShowFilterModal(true)}
           onNewCampaignClick={() => setOpen(true)}
           onNicheToggle={handleNicheToggle}
           onPlatformToggle={handlePlatformToggle}
-          onFollowerSelect={handleFollowerSelect}
+          onFollowerRangeChange={handleFollowerRangeChange}
           onGenderSelect={handleGenderSelect}
           onAgeSelect={handleAgeSelect}
           onLanguageToggle={handleLanguageToggle}
@@ -121,6 +128,7 @@ function DiscoverCreators({
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
+          onLoadMore={handleLoadMore}
         />
       )}
 
@@ -133,7 +141,7 @@ function DiscoverCreators({
         audienceFilters={audienceFilters}
         onNicheToggle={handleNicheToggle}
         onPlatformToggle={handlePlatformToggle}
-        onFollowerSelect={handleFollowerSelect}
+        onFollowerRangeChange={handleFollowerRangeChange}
         onGenderSelect={handleGenderSelect}
         onAgeSelect={handleAgeSelect}
         onLanguageToggle={handleLanguageToggle}

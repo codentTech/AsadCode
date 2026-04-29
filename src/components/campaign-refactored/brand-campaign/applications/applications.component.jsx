@@ -17,7 +17,7 @@ import useBrandApplications from "./use-applications.hook";
 
 function MiddlePaneSkeleton() {
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col border-r border-gray-200 bg-white p-3 sm:p-4 md:max-w-[58%] md:flex-[1_1_52%] lg:max-w-[60%]">
+    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col border-r border-gray-200 bg-white p-3 sm:p-4">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
         <div className="h-10 w-full max-w-[10rem] animate-pulse rounded bg-gray-200 sm:w-32" />
@@ -93,8 +93,12 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
   if (isLoading && !selectedCampaign) {
     return (
       <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
-        <MiddlePaneSkeleton />
-        <RightPaneSkeleton layout="fluid" />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col md:max-w-none md:flex-[0_1_73%] lg:max-w-none">
+          <MiddlePaneSkeleton />
+        </div>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-gray-200/80 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]">
+          <RightPaneSkeleton layout="fluid" />
+        </div>
       </div>
     );
   }
@@ -104,8 +108,12 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
       {rightPaneState.type === "loading" ? (
         <RightPaneSkeleton layout="fluid" />
       ) : rightPaneState.type === "notFound" ? (
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 py-10 md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
-          <NotFound title={rightPaneState.title} description={rightPaneState.description} />
+        <div className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 text-center md:h-full md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
+          <NotFound
+            title="No Data Available"
+            description="Please select a campaign and creator."
+            className="flex-1 w-full !p-0"
+          />
         </div>
       ) : (
         <DeliverablesProgress

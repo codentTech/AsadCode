@@ -43,7 +43,13 @@ export default function CustomButton({
       startIcon={startIcon}
       className={`btn font-dm normal-case ${className}`}
       title={title}
-      sx={{ minHeight: 32, textTransform: "none" }}
+      sx={{
+        "&&": {
+          height: { xs: "32px", sm: "40px" },
+          minHeight: { xs: "32px", sm: "40px" },
+        },
+        textTransform: "none",
+      }}
     >
       {loading ? (
         <span className="inline-flex items-center justify-center gap-2 min-w-0">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
+import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
@@ -22,6 +22,10 @@ function useCreatorSpendAnalysis({
   fetchIndividualCollaborations: fetchFromHook,
   onClearCreator,
 }) {
+  const backendSortOptions = useMemo(
+    () => sortOptions.filter((option) => option.value !== "most-expensive"),
+    []
+  );
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -30,6 +34,8 @@ function useCreatorSpendAnalysis({
   const [isSwitchingMode, setIsSwitchingMode] = useState(false);
   const hasAutoSelected = useRef(false);
   const hasFetchedIndividual = useRef(false);
+  const hasRequestedBrandCampaignsRef = useRef(false);
+  const hasRequestedShortlistsRef = useRef(false);
 
   const {
     data: campaignsApiData,
@@ -51,8 +57,10 @@ function useCreatorSpendAnalysis({
   }, [campaignsData?.data]);
 
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
     useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});
@@ -62,14 +70,18 @@ function useCreatorSpendAnalysis({
   );
 
   const shortlistState = useSelector((state) => state.shortlist || {});
+  const shortlistsLoading = shortlistState?.getAllShortlists?.isLoading;
 
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
 
-  // Fetch shortlists on mount
+  // Fetch shortlists once unless already loaded
   useEffect(() => {
+    const shortlistsSuccess = shortlistState?.getAllShortlists?.isSuccess;
+    if (shortlistsLoading || shortlistsSuccess || hasRequestedShortlistsRef.current) return;
+    hasRequestedShortlistsRef.current = true;
     dispatch(getAllShortlists());
-  }, [dispatch]);
+  }, [dispatch, shortlistsLoading, shortlistState?.getAllShortlists?.isSuccess]);
 
   const individualCollaborations = (individualCollaborationsData?.data || []).filter(
     (invitation) => invitation.status === "PENDING"
@@ -309,15 +321,40 @@ function useCreatorSpendAnalysis({
     if (filters?.sort) {
       return {
         value: filters.sort,
-        label: sortOptions.find((opt) => opt.value === filters.sort)?.label,
+        label: backendSortOptions.find((opt) => opt.value === filters.sort)?.label,
       };
     }
     return null;
-  }, [filters?.sort]);
+  }, [filters?.sort, backendSortOptions]);
 
   const handleSortChange = (option) => {
-    if (onFilterChange && option?.value) {
-      onFilterChange("sort", option.value);
+    const nextSort = option?.value || "newest";
+
+    if (!selectedCampaign && filteredCampaignOptions.length > 0 && campaignsData?.data) {
+      const firstCampaign = campaignsData.data.find(
+        (campaign) => campaign.id === filteredCampaignOptions[0]?.value
+      );
+      if (firstCampaign && onCampaignSelect) {
+        onCampaignSelect(firstCampaign);
+      }
+    }
+
+    if (onFilterChange) {
+      onFilterChange("sort", nextSort);
+    }
+
+    if (
+      selectedCampaign?.id &&
+      selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+    ) {
+      dispatch(
+        getAppliedCreators({
+          campaignId: selectedCampaign.id,
+          filters: { ...filters, sort: nextSort },
+        })
+      );
+    } else if (selectedCampaign?.id && fetchFromHook) {
+      fetchFromHook();
     }
   };
 
@@ -436,7 +473,7 @@ function useCreatorSpendAnalysis({
     handleCampaignChange,
     handleSortChange,
     sortValue,
-    sortOptions,
+    sortOptions: backendSortOptions,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,

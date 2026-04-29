@@ -34,17 +34,17 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
   return (
     <div className="bg-white flex flex-col">
       {/* Creator Profile Section */}
-      <div className="px-2 pb-4 border-b border-gray-200">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
+      <div className="border-b border-gray-200 px-2 pb-3 sm:pb-4">
+        <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <img
               src={previewCreator.profileImage || avatar}
               alt={previewCreator.name}
-              className="w-32 h-32 rounded-full object-cover border-2 border-gray-200 ring-2 ring-primary"
+              className="h-20 w-20 rounded-full border border-gray-200 object-cover ring-1 ring-primary sm:h-32 sm:w-32 sm:border-2 sm:ring-2"
             />
             <div className="flex flex-col gap-1 items-start">
-              <h3 className="text-xl font-bold">{previewCreator.name}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-600">
+              <h3 className="text-sm font-semibold sm:text-xl">{previewCreator.name}</h3>
+              <div className="flex items-center gap-1 text-[10px] text-gray-600 sm:text-xs">
                 <MapPin className="w-3 h-3" />
                 <span>{previewCreator.location}</span>
               </div>
@@ -59,7 +59,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                     />
                   );
                 })}
-                <span className="text-xs text-gray-700 ml-1 mt-[0.6px]">
+                <span className="ml-1 mt-[0.6px] text-[10px] text-gray-700 sm:text-xs">
                   {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
                 </span>
               </div>
@@ -67,10 +67,10 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
           </div>
 
           {/* Authentic Audience Badge */}
-          <div className="text-right mt-2">
-            <div className="flex items-center gap-2 bg-green-900 px-3 py-1 rounded-lg">
+          <div className="mt-1 text-left sm:mt-2 sm:text-right">
+            <div className="flex items-center gap-1.5 rounded-lg bg-green-900 px-2 py-1 sm:gap-2 sm:px-3">
               <Shield className="w-4 h-4 text-white" />
-              <span className="text-sm font-medium text-white">
+              <span className="text-[10px] font-medium text-white sm:text-sm">
                 {metricsLoading
                   ? "Loading..."
                   : authenticAudience != null
@@ -82,7 +82,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
         </div>
 
         {/* Platform Tiles — clickable selector */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+        <div className="mt-3 grid grid-cols-1 gap-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
           {platformData.map((platform) => {
             const isSelected = selectedPlatform?.toLowerCase() === platform.key?.toLowerCase();
             const isConnected = connectedPlatforms.includes(platform.key);
@@ -93,7 +93,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                 type="button"
                 disabled={platform.loading || !isConnected}
                 onClick={() => setSelectedPlatform(platform.key)}
-                className={`relative flex items-center justify-between rounded-lg p-2 pr-3 transition-all text-left
+                className={`relative flex items-center justify-between rounded-lg p-2 pr-2.5 text-left transition-all sm:pr-3
                   ${!isConnected || platform.loading ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
                   ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
                 `}
@@ -121,7 +121,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                   {platform.loading ? (
                     <div className="h-4 w-12 bg-gray-200 animate-pulse rounded" />
                   ) : (
-                    <span className="text-sm font-bold text-gray-900">
+                    <span className="text-xs font-bold text-gray-900 sm:text-sm">
                       {formatNumber(platform.followers)}
                     </span>
                   )}
@@ -151,13 +151,13 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
       </div>
 
       {/* Metrics Section */}
-      <div className="px-2 py-4 border-b border-gray-200">
-        <div className="grid grid-cols-4 gap-4">
+      <div className="border-b border-gray-200 px-2 py-3 sm:py-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
           {metricsLoading ? (
             <>
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="border rounded-lg p-2">
-                  <Skeleton className="h-3 w-24 mb-2" />
+                  <Skeleton className="mb-2 h-3 w-16 sm:w-24" />
                   <Skeleton className="h-4 w-16" />
                 </div>
               ))}
@@ -165,20 +165,20 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
           ) : (
             <>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-xs font-semibold text-primary">Typical Views</p>
-                <p className="text-xs mt-1">{metricsData.typicalViews}</p>
+                <p className="text-[10px] font-semibold text-primary sm:text-xs">Typical Views</p>
+                <p className="mt-1 text-[10px] sm:text-xs">{metricsData.typicalViews}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-xs font-semibold text-primary">Engagement Rate</p>
-                <p className="text-xs mt-1">{metricsData.engagementRate}</p>
+                <p className="text-[10px] font-semibold text-primary sm:text-xs">Engagement Rate</p>
+                <p className="mt-1 text-[10px] sm:text-xs">{metricsData.engagementRate}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-xs font-semibold text-primary">Performance Consistency</p>
-                <p className="text-xs mt-1">{metricsData.performanceConsistency}</p>
+                <p className="text-[10px] font-semibold text-primary sm:text-xs">Performance Consistency</p>
+                <p className="mt-1 text-[10px] sm:text-xs">{metricsData.performanceConsistency}</p>
               </div>
               <div className="text-left border rounded-lg p-2">
-                <p className="text-xs font-semibold text-primary">30 Day Growth Rate</p>
-                <p className="text-xs mt-1">{metricsData.growthRate30d}</p>
+                <p className="text-[10px] font-semibold text-primary sm:text-xs">30 Day Growth Rate</p>
+                <p className="mt-1 text-[10px] sm:text-xs">{metricsData.growthRate30d}</p>
               </div>
             </>
           )}
@@ -186,8 +186,8 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
       </div>
 
       {/* Audience Demographics */}
-      <div className="px-2 py-4">
-        <h3 className="text-lg font-semibold text-primary mb-4">Audience Demographics</h3>
+      <div className="px-2 py-3 sm:py-4">
+        <h3 className="mb-3 text-sm font-semibold text-primary sm:mb-4 sm:text-lg">Audience Demographics</h3>
         {audienceLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-3">
             <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
@@ -214,11 +214,11 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
       </div>
 
       {/* Footer Actions */}
-      <div className="bg-gray-100 rounded-lg sticky w-full bottom-0 p-4 border-t flex justify-between">
-        <CustomButton text="Close" className="btn-cancel" onClick={() => setIsPreviewOpen(false)} />
+      <div className="sticky bottom-0 flex w-full flex-col gap-2 rounded-lg border-t bg-gray-100 p-3 sm:flex-row sm:justify-between sm:p-4">
+        <CustomButton text="Close" className="btn-cancel w-full sm:w-auto" onClick={() => setIsPreviewOpen(false)} />
         <CustomButton
           text="View Full Profile"
-          className="btn-primary"
+          className="btn-primary w-full sm:w-auto"
           onClick={() => window.open(`/creator-profile/${previewCreator.id}`, "_blank")}
         />
       </div>

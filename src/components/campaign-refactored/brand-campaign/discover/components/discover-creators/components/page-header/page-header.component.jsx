@@ -13,7 +13,7 @@ const PageHeader = ({
 }) => {
   return (
     <div className="bg-white border-b p-3 rounded-lg">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="min-w-0">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">{title}</h1>
           {description && (
@@ -36,4 +36,3 @@ const PageHeader = ({
 };
 
 export default PageHeader;
-
