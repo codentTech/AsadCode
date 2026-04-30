@@ -12,7 +12,7 @@ export default function useBrandTaskManager(show, selectedCampaignId = null, onC
     (state) => state.campaignTasks
   );
 
-  const { data: campaignsData } = useSelector(
+  const { data: campaignsData, isSuccess: campaignsListReady } = useSelector(
     (state) => state.campaigns.getAllBrandCampaigns || {}
   );
 
@@ -60,10 +60,11 @@ export default function useBrandTaskManager(show, selectedCampaignId = null, onC
   }, [show, selectedCampaignId]);
 
   useEffect(() => {
-    if (show) {
+    if (!show) return;
+    if (!campaignsListReady) {
       dispatch(getAllBrandCampaigns());
     }
-  }, [show, dispatch]);
+  }, [show, dispatch, campaignsListReady]);
 
   useEffect(() => {
     if (show) {

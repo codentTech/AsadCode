@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
 export const useCustomDataTable = ({
   actions = [],
@@ -35,68 +35,6 @@ export const useCustomDataTable = ({
   useEffect(() => {
     setInternalPageSize(pageSize);
   }, [pageSize]);
-
-  // Handle action dropdown positioning and toggle
-  const handleActionRowToggle = (rowId, event) => {
-    if (activeActionRowId === rowId) {
-      setActiveActionRowId(null);
-      return;
-    }
-
-    const button = event.currentTarget;
-    const buttonRect = button.getBoundingClientRect();
-    const tableContainer = button.closest(".overflow-x-auto");
-    const tableRect = tableContainer.getBoundingClientRect();
-
-    // Calculate position relative to the table container
-    const relativeTop = buttonRect.top - tableRect.top;
-    const relativeLeft = buttonRect.left - tableRect.left;
-
-    // Dropdown dimensions (approximate)
-    const dropdownWidth = 200;
-    const dropdownHeight = actions.length * 40; // approximate height per action
-
-    // Calculate optimal position
-    let top = relativeTop + buttonRect.height + 4; // 4px offset
-    let left = relativeLeft - dropdownWidth + buttonRect.width;
-
-    // Check if dropdown would go outside table bounds
-    const tableWidth = tableRect.width;
-    const tableHeight = tableRect.height;
-
-    // Adjust horizontal position if dropdown would overflow
-    if (left < 0) {
-      left = relativeLeft; // Align to left of button
-    }
-    if (left + dropdownWidth > tableWidth) {
-      left = tableWidth - dropdownWidth - 10; // 10px margin from edge
-    }
-
-    // Adjust vertical position if dropdown would overflow
-    if (top + dropdownHeight > tableHeight) {
-      top = relativeTop - dropdownHeight - 4; // Show above button
-    }
-
-    // Ensure dropdown doesn't go above table
-    if (top < 0) {
-      top = 4; // Small margin from top
-    }
-
-    setDropdownPosition({ top, left });
-    setActiveActionRowId(rowId);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (activeActionRowId && !event.target.closest(".action-dropdown-container")) {
-        setActiveActionRowId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [activeActionRowId]);
 
   // Handle sorting
   const handleSort = (columnKey) => {
@@ -171,6 +109,81 @@ export const useCustomDataTable = ({
     const startIndex = (internalCurrentPage - 1) * internalPageSize;
     return processedData.slice(startIndex, startIndex + internalPageSize);
   }, [processedData, internalCurrentPage, internalPageSize, externalPagination]);
+
+  const computeFixedDropdownPosition = useCallback(
+    (button, rowId) => {
+      const rect = button.getBoundingClientRect();
+      const row = paginatedData.find((r) => r.id === rowId);
+      const rowActions =
+        typeof actions === "function" && row ? actions(row) : actions;
+      const filtered = Array.isArray(rowActions)
+        ? rowActions.filter((a) => a.hidden !== true)
+        : [];
+      const actionCount = Math.max(filtered.length, 1);
+      const dropdownWidth = 200;
+      const rowHeight = 40;
+      const dropdownHeight = Math.min(actionCount * rowHeight + 8, 320);
+      const margin = 8;
+      let left = rect.right - dropdownWidth;
+      if (left < margin) left = margin;
+      if (left + dropdownWidth > window.innerWidth - margin) {
+        left = window.innerWidth - dropdownWidth - margin;
+      }
+      let top = rect.bottom + 4;
+      const viewportBottom = window.innerHeight - margin;
+      if (top + dropdownHeight > viewportBottom) {
+        top = Math.max(margin, rect.top - dropdownHeight - 4);
+      }
+      return { top, left };
+    },
+    [actions, paginatedData]
+  );
+
+  const handleActionRowToggle = (rowId, event) => {
+    if (activeActionRowId === rowId) {
+      setActiveActionRowId(null);
+      return;
+    }
+    const button = event.currentTarget;
+    setDropdownPosition(computeFixedDropdownPosition(button, rowId));
+    setActiveActionRowId(rowId);
+  };
+
+  useEffect(() => {
+    if (!activeActionRowId) return;
+    const update = () => {
+      const btn = actionButtonRefs.current[activeActionRowId];
+      if (!btn) return;
+      setDropdownPosition(computeFixedDropdownPosition(btn, activeActionRowId));
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", update);
+      vv.addEventListener("scroll", update);
+    }
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+      if (vv) {
+        vv.removeEventListener("resize", update);
+        vv.removeEventListener("scroll", update);
+      }
+    };
+  }, [activeActionRowId, computeFixedDropdownPosition]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeActionRowId && !event.target.closest(".action-dropdown-container")) {
+        setActiveActionRowId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [activeActionRowId]);
 
   // Handle page change
   const handlePageChange = (newPage) => {

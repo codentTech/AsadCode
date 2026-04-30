@@ -24,6 +24,7 @@ function ShortlistSidebar({
     setEditName,
     showOptions,
     showDeleteConfirm,
+    setShowDeleteConfirm,
     isCreatingNew,
     createInputRef,
     optionsMenuRef,
@@ -84,8 +85,8 @@ function ShortlistSidebar({
 
       <div className="flex-1 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
         {isCreatingNew && (
-          <div className="mb-4 bg-white rounded-lg border-2 border-indigo-200 shadow-sm p-3">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="mb-4 rounded-lg border-2 border-indigo-200 bg-white p-3 shadow-sm">
+            <div className="mb-2">
               <CustomInput
                 name="newShortlistName"
                 customRef={createInputRef}
@@ -94,18 +95,39 @@ function ShortlistSidebar({
                 placeholder="Enter shortlist name"
                 autoFocus={true}
                 disabled={shortlistState.createShortlist.isLoading}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === "Enter" && !shortlistState.createShortlist.isLoading) {
+                    e.preventDefault();
                     handleSaveCreate();
                   }
                   if (e.key === "Escape") {
+                    e.preventDefault();
                     handleCancelCreate();
                   }
                 }}
               />
             </div>
-            <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1.5 rounded-md">
-              Press Enter to save, Esc to cancel
+            <div className="mb-3 rounded-md bg-indigo-50 px-2 py-1.5 text-[10px] leading-snug text-indigo-700 sm:text-xs">
+              Tap Save, or use Enter / Esc on a keyboard
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+              <CustomButton
+                type="button"
+                text="Cancel"
+                className="btn-outline order-2 w-full sm:order-1 sm:w-auto sm:min-w-[106px]"
+                onClick={handleCancelCreate}
+                disabled={shortlistState.createShortlist.isLoading}
+              />
+              <CustomButton
+                type="button"
+                text="Save"
+                className="btn-primary order-1 w-full sm:order-2 sm:w-auto sm:min-w-[106px]"
+                onClick={handleSaveCreate}
+                disabled={
+                  shortlistState.createShortlist.isLoading || !String(newShortlistName || "").trim()
+                }
+                loading={shortlistState.createShortlist.isLoading}
+              />
             </div>
           </div>
         )}
@@ -140,25 +162,46 @@ function ShortlistSidebar({
             {shortlists.map((shortlist) => (
               <li key={shortlist.id} className="relative">
                 {editingShortlist?.id === shortlist.id ? (
-                  <div className="bg-white rounded-lg border-2 border-indigo-200 shadow-sm p-3">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="rounded-lg border-2 border-indigo-200 bg-white p-3 shadow-sm">
+                    <div className="mb-2">
                       <CustomInput
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="Enter shortlist name"
                         disabled={shortlistState.updateShortlist.isLoading}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
                           if (e.key === "Enter" && !shortlistState.updateShortlist.isLoading) {
+                            e.preventDefault();
                             handleSaveEdit();
                           }
                           if (e.key === "Escape") {
+                            e.preventDefault();
                             handleCancelEdit();
                           }
                         }}
                       />
                     </div>
-                    <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1.5 rounded-md">
-                      Press Enter to save, Esc to cancel
+                    <div className="mb-3 rounded-md bg-indigo-50 px-2 py-1.5 text-[10px] leading-snug text-indigo-700 sm:text-xs">
+                      Tap Save, or use Enter / Esc on a keyboard
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+                      <CustomButton
+                        type="button"
+                        text="Cancel"
+                        className="btn-outline order-2 w-full sm:order-1 sm:w-auto sm:min-w-[106px]"
+                        onClick={handleCancelEdit}
+                        disabled={shortlistState.updateShortlist.isLoading}
+                      />
+                      <CustomButton
+                        type="button"
+                        text="Save"
+                        className="btn-primary order-1 w-full sm:order-2 sm:w-auto sm:min-w-[106px]"
+                        onClick={handleSaveEdit}
+                        disabled={
+                          shortlistState.updateShortlist.isLoading || !String(editName || "").trim()
+                        }
+                        loading={shortlistState.updateShortlist.isLoading}
+                      />
                     </div>
                   </div>
                 ) : (
