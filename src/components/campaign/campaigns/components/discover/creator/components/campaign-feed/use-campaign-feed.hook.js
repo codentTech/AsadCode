@@ -102,7 +102,7 @@ export function useCampaignFeed() {
       platform_minimums: campaign.platform_minimums,
       hashtags: campaign.hashtags,
       style_guide: campaign.style_guide,
-      questions: campaign.questions,
+      questions: Array.isArray(campaign.questions) ? campaign.questions : [],
     }));
   }, [campaignsData]);
 

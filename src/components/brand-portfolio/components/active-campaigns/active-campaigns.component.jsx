@@ -65,24 +65,24 @@ function ActiveCampaigns({ refreshKey }) {
   };
 
   return (
-    <section className="bg-white rounded-lg shadow-md p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <section className="space-y-4 rounded-lg bg-white p-3 shadow-md sm:space-y-6 sm:p-6">
+      <div className="flex items-start justify-between gap-3 sm:items-center">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Active Campaigns</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">Active Campaigns</h3>
+          <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs md:text-sm">
             Preview how your campaigns appear to creators on Discover+. These are live and ready for
             applications.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <CustomButton
-            text="Refresh"
-            className="btn-outline !px-4 !py-2 text-xs"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            startIcon={<Loader2 className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Refresh active campaigns"
+        >
+          <Loader2 className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       {isError && (
@@ -96,7 +96,7 @@ function ActiveCampaigns({ refreshKey }) {
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
         </div>
       ) : campaigns.length ? (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2">
           {campaigns.map((campaign) => {
             const compensation = deriveCompensation(campaign);
             const deliverables = campaign.deliverables || [];
@@ -111,10 +111,10 @@ function ActiveCampaigns({ refreshKey }) {
                 key={campaign.id}
                 className="border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 bg-white"
               >
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-5xl border border-gray-200 flex-shrink-0">
+                <div className="p-3 sm:p-4">
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-5xl sm:h-16 sm:w-16">
                         {campaign.created_by?.brand_profile?.brand_logo_url ? (
                           <img
                             src={campaign.created_by.brand_profile.brand_logo_url}
@@ -122,31 +122,31 @@ function ActiveCampaigns({ refreshKey }) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-2xl font-semibold text-gray-400">BR</span>
+                          <span className="text-xl font-semibold text-gray-400 sm:text-2xl">BR</span>
                         )}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-sm truncate">
+                        <h3 className="truncate text-sm font-semibold text-gray-900">
                           {campaign.created_by?.brand_profile?.brand_name || "Brand"}
                         </h3>
-                        <h4 className="text-sm text-gray-700 line-clamp-1 font-medium">
+                        <h4 className="line-clamp-1 text-xs font-medium text-gray-700 sm:text-sm">
                           {campaign.campaign_title}
                         </h4>
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-gray-500 sm:text-xs">
                           <span>{formatTimeAgo(new Date(campaign.created_at))}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <div className="flex flex-col items-start gap-1.5 sm:flex-shrink-0 sm:items-end sm:gap-2">
                       <div
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${getCampaignTypeStyle(
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-medium sm:px-3 sm:py-1.5 sm:text-xs ${getCampaignTypeStyle(
                           campaign.campaign_type || "SPONSORED_POST"
                         )}`}
                       >
                         {campaign.campaign_type || "SPONSORED_POST"}
                       </div>
-                      <div className="flex gap-2 items-center text-left text-xs font-semibold text-gray-900">
+                      <div className="flex items-center gap-2 text-left text-[10px] font-semibold text-gray-900 sm:text-xs">
                         <div>{compensation.label}</div>
                         <div>-</div>
                         <div>{compensation.detail}</div>
@@ -154,10 +154,10 @@ function ActiveCampaigns({ refreshKey }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row">
                     <div className="flex-1">
                       <h5 className="text-xs font-semibold text-gray-900 mb-2">Requirements</h5>
-                      <div className="flex flex-col gap-1 text-xs">
+                      <div className="flex flex-col gap-1 text-[10px] sm:text-xs">
                         {niches.length ? (
                           <span className="flex items-center gap-2 text-gray-600">
                             <span className="font-medium">Niche:</span>{" "}
@@ -192,7 +192,7 @@ function ActiveCampaigns({ refreshKey }) {
                             {deliverables.map((item) => (
                               <span
                                 key={item}
-                                className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
+                            className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600 sm:px-2 sm:py-1 sm:text-xs"
                               >
                                 {item}
                               </span>
@@ -203,7 +203,7 @@ function ActiveCampaigns({ refreshKey }) {
 
                       {(campaign.short_description || campaign.long_description) && (
                         <div className="border-l-2 border-primary mt-3">
-                          <p className="text-xs text-gray-600 line-clamp-2 ml-2">
+                          <p className="ml-2 line-clamp-2 text-[10px] text-gray-600 sm:text-xs">
                             <span className="font-bold">Description:</span>{" "}
                             {campaign.short_description || campaign.long_description}
                           </p>
@@ -219,23 +219,17 @@ function ActiveCampaigns({ refreshKey }) {
                             : defaultProduct
                         }
                         alt={campaign.campaign_title}
-                        className="w-44 h-44 rounded-lg object-cover border border-gray-200"
+                        className="h-40 w-28 rounded-lg border border-gray-200 object-cover sm:h-44 sm:w-44"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
+                <div className="border-t border-gray-100 px-3 py-3 sm:px-4">
                   <CustomButton
                     text="View Brief"
-                    className="btn-outline flex-1 !h-8 !text-xs"
+                    className="btn-outline w-full"
                     href={`/campaign?tab=active&campaignId=${campaign.id}`}
-                  />
-                  <CustomButton
-                    text="Apply"
-                    className="btn-primary flex-1 !h-8 !text-xs disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled
-                    title="Creators see this Apply button on Discover+. Campaign owners cannot apply."
                   />
                 </div>
               </div>
@@ -243,9 +237,9 @@ function ActiveCampaigns({ refreshKey }) {
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-gray-200 rounded-lg p-10 text-center bg-gray-50">
-          <h4 className="text-lg font-semibold text-gray-800 mb-2">No active campaigns yet</h4>
-          <p className="text-sm text-gray-500 mb-4">
+        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center sm:p-10">
+          <h4 className="mb-2 text-sm font-semibold text-gray-800 sm:text-lg">No active campaigns yet</h4>
+          <p className="mb-4 text-xs text-gray-500 sm:text-sm">
             Launch a campaign to start attracting creators. Your live campaigns will appear here in
             the same layout creators see on Discover+.
           </p>

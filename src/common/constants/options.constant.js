@@ -12,14 +12,32 @@ export const BRAND_ACCOUNT_TYPE_OPTIONS = [
   { value: "agency", label: "This is an agency account" },
 ];
 
+export const IDEAL_CREATOR_GENDER_OPTIONS = [
+  { id: "male", label: "Male", icon: "👨" },
+  { id: "female", label: "Female", icon: "👩" },
+  { id: "mixed", label: "Mixed/Any", icon: "👥" },
+];
+
+export const IDEAL_CREATOR_AGE_RANGES = [
+  { id: "13-17", label: "13-17", desc: "Gen Z Early" },
+  { id: "18-25", label: "18-25", desc: "Gen Z Core" },
+  { id: "26-32", label: "26-32", desc: "Millennials" },
+  { id: "33-40", label: "33-40", desc: "Elder Millennials" },
+  { id: "41-50", label: "41-50", desc: "Gen X" },
+  { id: "50+", label: "50+", desc: "Boomers+" },
+];
+
 // Follower count options for filtering
 export const FOLLOWER_OPTIONS = [
-  { value: "1000", label: "1K+" },
-  { value: "10000", label: "10K+" },
-  { value: "50000", label: "50K+" },
-  { value: "100000", label: "100K+" },
-  { value: "500000", label: "500K+" },
-  { value: "1000000", label: "1M+" },
+  { value: "1000", label: "1K" },
+  { value: "5000", label: "5K" },
+  { value: "10000", label: "10K" },
+  { value: "25000", label: "25K" },
+  { value: "50000", label: "50K" },
+  { value: "100000", label: "100K" },
+  { value: "250000", label: "250K" },
+  { value: "500000", label: "500K" },
+  { value: "1000000", label: "1M" },
 ];
 
 // Gender options for creator filtering

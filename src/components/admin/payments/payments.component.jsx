@@ -56,11 +56,11 @@ const Payments = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Payment Monitoring</h3>
-            <p className="text-sm text-gray-500 mt-0.5">
+      <div className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-3 py-3 sm:px-4 sm:py-4 md:px-6">
+          <div className="mb-3 sm:mb-4">
+            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Payment Monitoring</h3>
+            <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
               View all collaboration payments, funding and payout status
             </p>
           </div>
@@ -126,6 +126,7 @@ const Payments = () => {
           )}
         </div>
 
+        <div className="min-w-0 overflow-x-auto">
         <CustomDataTable
           columns={columns}
           data={payments}
@@ -146,6 +147,7 @@ const Payments = () => {
           emptyMessage="No payments found"
           loading={isLoading}
         />
+        </div>
       </div>
 
       <Modal
@@ -165,7 +167,7 @@ const Payments = () => {
         )}
         {!detailLoading && detail && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <DetailRow
                 label="Brand"
                 value={
@@ -185,12 +187,12 @@ const Payments = () => {
                 }
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <DetailRow label="Gross amount" value={formatCents(detail.gross_amount_cents)} />
               <DetailRow label="Stripe fee" value={formatCents(detail.stripe_fee_cents)} />
               <DetailRow label="Net payout" value={formatCents(detail.net_payout_cents)} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <DetailRow
                 label="Funding status"
                 value={String(detail.funding_status || "").replace(/_/g, " ")}

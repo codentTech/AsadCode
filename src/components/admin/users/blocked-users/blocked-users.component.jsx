@@ -37,10 +37,10 @@ const BlockedUsers = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Blocked Users</h3>
+      <div className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-3 py-3 sm:px-4 sm:py-4 md:px-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Blocked Users</h3>
             {/* <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
@@ -125,6 +125,7 @@ const BlockedUsers = () => {
           )}
         </div>
 
+        <div className="min-w-0 overflow-x-auto">
         <CustomDataTable
           columns={columns}
           data={blockedUsers}
@@ -140,6 +141,7 @@ const BlockedUsers = () => {
           emptyMessage="No blocked users found"
           loading={isLoading}
         />
+        </div>
       </div>
     </DashboardLayout>
   );

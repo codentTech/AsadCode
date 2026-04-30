@@ -14,7 +14,7 @@ function NotificationCard({ notification, isActionRequired, onMarkAsRead, onDism
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-indigo-600 rounded-l-xl" />
       )}
 
-      <div className="p-3 pl-4">
+      <div className="p-2.5 pl-3 sm:p-3 sm:pl-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2.5">
@@ -42,7 +42,7 @@ function NotificationCard({ notification, isActionRequired, onMarkAsRead, onDism
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <h3
-                    className={`text-sm font-semibold ${
+                    className={`text-xs font-semibold sm:text-sm ${
                       isActionRequired
                         ? "text-red-900"
                         : !notification.is_read
@@ -56,8 +56,10 @@ function NotificationCard({ notification, isActionRequired, onMarkAsRead, onDism
                     <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full flex-shrink-0" />
                   )}
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed mb-1">{notification.message}</p>
-                <p className="text-xs text-gray-500">
+                <p className="mb-1 text-[10px] leading-relaxed text-gray-600 sm:text-xs">
+                  {notification.message}
+                </p>
+                <p className="text-[10px] text-gray-500 sm:text-xs">
                   {new Date(notification.created_at || Date.now()).toLocaleString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -77,7 +79,7 @@ function NotificationCard({ notification, isActionRequired, onMarkAsRead, onDism
                     e.stopPropagation();
                     onMarkAsRead(notification.id);
                   }}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
+                  className="rounded-lg px-2 py-1 text-[10px] font-medium text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700 sm:text-xs"
                 >
                   Mark read
                 </button>

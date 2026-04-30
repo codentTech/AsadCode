@@ -9,6 +9,7 @@ import { Avatar } from "@mui/material";
 import { Edit2, Star, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../../../message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import useDeliverablesProgress from "../../../../active/brand/components/deliverables-progress/use-deliverables-progress.hook";
 import { formatDate } from "@/common/utils/formate-date";
@@ -449,6 +450,7 @@ const DeliverablesProgressCompleted = ({
             isCreatorTyping={messageThreadHook?.isCreatorTyping}
             messagesEndRef={messageThreadHook?.messagesEndRef}
             messagesContainerRef={messageThreadHook?.messagesContainerRef}
+            {...pickMessageThreadModalProps(messageThreadHook ?? {})}
           />
           {showContractPreview && selectedContract && (
             <ContractPreviewModal

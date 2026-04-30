@@ -1,8 +1,9 @@
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
+import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import Loading from "@/common/components/loader/loading.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import CreatorCard from "@/components/campaign/campaigns/components/creator-card/creator-card.component";
+import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
@@ -147,7 +148,12 @@ const CreatorSpendAnalysis = ({
           }
 
           if (isLoading) {
-            return <Loading />;
+            return (
+              <SkeletonCardGrid
+                count={8}
+                gridClass="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
+              />
+            );
           }
 
           if (isIndividualMode) {
@@ -251,6 +257,7 @@ const CreatorSpendAnalysis = ({
         show={showReinstateConfirmation}
         onClose={handleCancelReinstate}
         onConfirm={handleConfirmReinstate}
+        confirmLoading={reinstateLoading}
         message="Reinstate Creator"
         content={
           <div className="text-center">

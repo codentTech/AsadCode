@@ -63,46 +63,45 @@ const CustomStepper = ({
 
   // Render horizontal stepper
   const renderHorizontalStepper = () => (
-    <div className="p-3 bg-blue-50 border border-solid border-gray-50 rounded-lg">
-      <div className="relative flex justify-between items-center">
-        {/* Connecting Line - Background */}
-        <div className="absolute top-[14px] left-0 w-full h-0.5 bg-primary z-0" />
+    <div className="rounded-lg border border-solid border-gray-50 bg-blue-50 p-2 sm:p-3">
+      <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
+        <div className="relative flex min-w-[36rem] items-start justify-between gap-1 sm:min-w-0 sm:w-full sm:items-center sm:gap-0">
+          <div className="absolute left-0 top-3 z-0 h-0.5 w-full bg-primary sm:top-[14px]" />
 
-        {steps.map((step, index) => (
-          <div
-            key={index}
-            className="relative z-10 flex flex-col items-center w-full"
-            onClick={() => allowClickOnCompleted && handleStepClick(index)}
-          >
-            {/* Step Circle */}
+          {steps.map((step, index) => (
             <div
-              className={`z-10 w-7 h-7 flex items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                index < activeStep
-                  ? "bg-blue-600 border-blue-600 text-white"
-                  : index === activeStep
-                    ? "bg-white border-blue-600 text-blue-600"
-                    : "bg-white border-gray-300 text-gray-400"
-              }`}
+              key={index}
+              className="relative z-10 flex w-full min-w-0 max-w-[5.5rem] flex-col items-center sm:max-w-none"
+              onClick={() => allowClickOnCompleted && handleStepClick(index)}
             >
-              {index < activeStep ? <CheckIcon className="h-4 w-4" /> : index + 1}
-            </div>
-
-            {/* Label */}
-            {showLabels && (
-              <span
-                className={`mt-2 text-xs text-center px-2 font-medium w-full max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap ${
+              <div
+                className={`z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[11px] transition-all duration-300 sm:h-7 sm:w-7 sm:text-sm ${
                   index < activeStep
-                    ? "text-blue-600"
+                    ? "border-blue-600 bg-blue-600 text-white"
                     : index === activeStep
-                      ? "text-blue-600 font-semibold"
-                      : "text-gray-400"
+                      ? "border-blue-600 bg-white text-blue-600"
+                      : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
-                {step}
-              </span>
-            )}
-          </div>
-        ))}
+                {index < activeStep ? <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : index + 1}
+              </div>
+
+              {showLabels && (
+                <span
+                  className={`mt-1.5 line-clamp-2 w-full max-w-[5rem] px-0.5 text-center text-[10px] font-medium leading-tight sm:mt-2 sm:max-w-[6.25rem] sm:text-xs ${
+                    index < activeStep
+                      ? "text-blue-600"
+                      : index === activeStep
+                        ? "font-semibold text-blue-600"
+                        : "text-gray-400"
+                  }`}
+                >
+                  {step}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -159,20 +158,18 @@ const CustomStepper = ({
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
 
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
 
-      {/* Sticky navigation at bottom */}
-      <div className="sticky bottom-0 bg-white p-4 border-t flex justify-between mt-auto shadow-lg">
+      <div className="sticky bottom-0 z-[1] mt-auto flex flex-col gap-2 border-t bg-white p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <CustomButton
           text="Previous"
           onClick={prevStep}
           disabled={activeStep === 0}
-          className="flex items-center py-2 px-4 rounded-md btn-outline"
-          startIcon={<ArrowBack className="h-4 w-4 mr-1" />}
+          className="btn-outline order-2 flex w-full items-center justify-center rounded-md py-2.5 sm:order-1 sm:w-auto sm:justify-start sm:px-4"
+          startIcon={<ArrowBack className="mr-1 h-4 w-4" />}
         />
 
         <CustomButton
@@ -181,7 +178,7 @@ const CustomStepper = ({
           }
           onClick={activeStep < steps.length - 1 ? handleNext : handleSave}
           disabled={!canProceed || isLoading}
-          className={`btn-primary ${!canProceed || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`btn-primary order-1 w-full py-2.5 sm:order-2 sm:w-auto ${!canProceed || isLoading ? "cursor-not-allowed opacity-50" : ""}`}
           loading={isLoading}
         />
       </div>

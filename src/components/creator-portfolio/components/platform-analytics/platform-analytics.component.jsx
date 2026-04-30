@@ -167,17 +167,17 @@ export default function PlatformAnalytics({ platform }) {
   if (!platform) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="rounded-lg bg-white p-3 shadow-md sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 capitalize">{platform} Analytics</h3>
-          <p className="text-sm text-gray-500">Detailed metrics and insights</p>
+          <h3 className="text-sm font-semibold capitalize text-gray-800 sm:text-lg md:text-xl">{platform} Analytics</h3>
+          <p className="text-[10px] text-gray-500 sm:text-sm">Detailed metrics and insights</p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={isLoading}
-          className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-xs text-indigo-600 transition-colors hover:bg-indigo-100 disabled:opacity-50 sm:text-sm"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           {isLoading ? "Refreshing..." : "Refresh"}
@@ -208,14 +208,14 @@ export default function PlatformAnalytics({ platform }) {
       {/* Analytics Content */}
       {!isLoading && analyticsData && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
             {getPlatformMetrics().map((metric, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
+              <div key={index} className="rounded-lg bg-gray-50 p-3 text-center sm:p-4">
                 <div className="flex items-center justify-center mb-2">
                   <metric.icon className={`w-5 h-5 ${metric.color}`} />
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</p>
-                <p className="text-sm text-gray-600">{metric.label}</p>
+                <p className="mb-1 text-sm font-bold text-gray-900 sm:text-2xl">{metric.value}</p>
+                <p className="text-xs text-gray-600 sm:text-sm">{metric.label}</p>
               </div>
             ))}
           </div>

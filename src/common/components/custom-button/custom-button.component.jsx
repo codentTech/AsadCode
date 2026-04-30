@@ -34,6 +34,7 @@ export default function CustomButton({
     <Button
       id={id}
       type={type}
+      size="small"
       onClick={onClick}
       variant={variant}
       href={href}
@@ -42,10 +43,17 @@ export default function CustomButton({
       startIcon={startIcon}
       className={`btn font-dm normal-case ${className}`}
       title={title}
+      sx={{
+        "&&": {
+          height: { xs: "32px", sm: "40px" },
+          minHeight: { xs: "32px", sm: "40px" },
+        },
+        textTransform: "none",
+      }}
     >
       {loading ? (
         <span className="inline-flex items-center justify-center gap-2 min-w-0">
-          <CircularProgress className="text-white shrink-0" size={20} />
+          <CircularProgress className="shrink-0 text-white" size={16} />
           {loadingText ? (
             <span className="text-sm font-medium truncate max-w-[220px]">{loadingText}</span>
           ) : null}

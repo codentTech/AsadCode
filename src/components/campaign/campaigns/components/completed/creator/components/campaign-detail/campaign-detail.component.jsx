@@ -4,6 +4,7 @@ import { product } from "@/common/constants/auth.constant";
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, Circle, X } from "lucide-react";
 import CampaignBriefModal from "../../../../applications/creator/components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../../../message-thread-modal/use-message-thread.hook";
 import useCampaignDetail from "./use-campaign-detail.hook";
 import { formatDate } from "@/common/utils/date.utils";
 
@@ -390,6 +391,7 @@ const CampaignDetail = ({ campaign }) => {
         isCreatorTyping={messageThreadHook.isCreatorTyping}
         messagesEndRef={messageThreadHook.messagesEndRef}
         messagesContainerRef={messageThreadHook.messagesContainerRef}
+        {...pickMessageThreadModalProps(messageThreadHook)}
       />
     </div>
   );

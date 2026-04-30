@@ -18,7 +18,7 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
 
   return (
     <Modal show={show} title="Add Post Link" onClose={handleClose} size="sm">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <SimpleSelect
           label="Platform"
           options={platformOptions}
@@ -52,7 +52,7 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
           />
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
+        <div className="flex flex-col-reverse justify-end gap-2 border-t border-gray-200 pt-2 sm:flex-row">
           <CustomButton className="btn-cancel" text="Cancel" onClick={handleClose} type="button" />
           <CustomButton
             className="btn-primary"

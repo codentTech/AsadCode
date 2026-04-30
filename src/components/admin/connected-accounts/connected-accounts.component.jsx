@@ -41,10 +41,10 @@ const ConnectedAccounts = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Connected Accounts</h3>
+      <div className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-3 py-3 sm:px-4 sm:py-4 md:px-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">Connected Accounts</h3>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -119,6 +119,7 @@ const ConnectedAccounts = () => {
           )}
         </div>
 
+        <div className="min-w-0 overflow-x-auto">
         <CustomDataTable
           columns={columns}
           data={filteredAccounts}
@@ -134,6 +135,7 @@ const ConnectedAccounts = () => {
           emptyMessage="No connected accounts found"
           loading={isLoading}
         />
+        </div>
       </div>
 
       <DeleteConfirmationModal

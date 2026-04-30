@@ -37,8 +37,8 @@ const ProfileEditModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-5xl h-[75vh] flex overflow-hidden shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-2 backdrop-blur-sm sm:p-4">
+      <div className="relative flex h-[92dvh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-2xl sm:h-[75vh]">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -48,7 +48,7 @@ const ProfileEditModal = ({
         </button>
 
         {/* Sidebar */}
-        <div className="w-48 white border-r border-gray-200 flex flex-col">
+        <div className="hidden w-48 flex-col border-r border-gray-200 bg-white sm:flex">
           <div className="flex items-center gap-2 p-4 border-b border-gray-200">
             <Edit className="w-4 h-4 text-gray-600" />
             <h2 className="text-xs font-bold text-gray-900">Edit Profile</h2>
@@ -100,11 +100,28 @@ const ProfileEditModal = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col">
           <div className="px-4 py-3.5 border-b border-gray-200 bg-white">
             <h1 className="text-sm font-semibold text-gray-900">
               {tabs.find((tab) => tab.id === activeTab)?.label}
             </h1>
+            <div className="mt-2 flex gap-1 overflow-x-auto sm:hidden">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-medium ${
+                      activeTab === tab.id ? "bg-primary text-white" : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 bg-white">
@@ -127,11 +144,11 @@ const ProfileEditModal = ({
             )}
           </div>
 
-          <div className="px-6 py-[15px] border-t border-gray-200">
+          <div className="border-t border-gray-200 px-4 py-3 sm:px-6 sm:py-[15px]">
             <div className="flex justify-end">
               <CustomButton
                 text="Save Changes"
-                className="btn-primary"
+                className="btn-primary w-full sm:w-auto"
                 onClick={handleSave}
                 disabled={isSaving}
                 loading={isSaving}

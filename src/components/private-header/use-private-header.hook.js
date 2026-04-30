@@ -1,15 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { HelpCircle, LogOut, Settings, Shield, User } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, HelpCircle, LayoutGrid, LogOut, Settings, Shield, User, UserRound } from "lucide-react";
 
 import ROLES from "@/common/constants/role.constant";
-import { getUser, logout } from "@/common/utils/users.util";
+import { getUser, isCreatorMode, logout } from "@/common/utils/users.util";
+
+function navHrefMatchesPath(pathname, href) {
+  return (
+    pathname === href ||
+    (href.includes("creator-portfolio") && pathname.includes("/creator-profile")) ||
+    (href.includes("brand-portfolio") && pathname.includes("/brand-portfolio")) ||
+    (href.includes("settings") && pathname.includes("/settings"))
+  );
+}
 
 const usePrivateHeader = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const isCreator = isCreatorMode();
+
+  const isNavLinkActive = useCallback(
+    (href) => navHrefMatchesPath(pathname, href),
+    [pathname]
+  );
 
   const currentUser = getUser() || {
     first_name: "CleerCut",
@@ -58,6 +74,23 @@ const usePrivateHeader = () => {
     [router]
   );
 
+  const navLinks = useMemo(() => {
+    const portfolio = isCreator
+      ? { href: "/creator-portfolio", label: "Portfolio", icon: UserRound }
+      : { href: "/brand-portfolio", label: "Profile", icon: UserRound };
+
+    return [
+      { href: "/campaign", label: "Campaigns", icon: LayoutGrid },
+      portfolio,
+      { href: "/notifications", label: "Notifications", icon: Bell },
+      {
+        href: "/settings/account-settings/personal-information",
+        label: "Settings",
+        icon: Settings,
+      },
+    ];
+  }, [isCreator]);
+
   const getUserInitials = (name = "") =>
     name
       .split(" ")
@@ -69,6 +102,8 @@ const usePrivateHeader = () => {
   return {
     currentUser,
     profileMenuItems,
+    navLinks,
+    isNavLinkActive,
     showProfileDropdown,
     setShowProfileDropdown,
     getUserInitials,

@@ -157,10 +157,9 @@ const PaymentHistoryPage = () => {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Payment History</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Payment History</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           {isCreator
             ? "View all payments you've received from brands"
             : "View all payments you've made to creators"}
@@ -174,15 +173,13 @@ const PaymentHistoryPage = () => {
       ) : (
         <>
           {/* Payment History Table using CustomDataTable */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">
                   Payments ({filteredPayments.length})
                 </h3>
-                {/* Filters */}
-                <div className="w-full max-w-[300px]">
+                <div className="w-full sm:max-w-[300px]">
                   <SimpleSelect
                     placeHolder="Select status"
                     options={statusOptions}
@@ -222,9 +219,8 @@ const PaymentHistoryPage = () => {
           title="Payment Details"
           size="md"
         >
-          <div className="p-4 space-y-4">
-            {/* Campaign & Collaborator Info */}
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 p-3 sm:p-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Campaign</p>
                 <p className="text-sm font-medium text-gray-900">
@@ -252,7 +248,7 @@ const PaymentHistoryPage = () => {
 
             {/* Amount Info */}
             <div className="border-t pt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Gross Amount</p>
                   <p className="text-lg font-semibold text-gray-900">

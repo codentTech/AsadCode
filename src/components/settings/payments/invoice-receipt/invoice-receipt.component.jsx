@@ -45,9 +45,11 @@ const InvoicesReceiptsPage = () => {
 
   return (
     <>
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Invoices & Receipts</h1>
-        <p className="text-sm mt-1">Download summaries for personal records or taxes</p>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Invoices & Receipts</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
+          Download summaries for personal records or taxes
+        </p>
       </div>
 
       {isError ? (
@@ -56,65 +58,65 @@ const InvoicesReceiptsPage = () => {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg border p-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:mb-6 sm:gap-4 md:grid-cols-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg mr-3">
               <FileText className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Invoices</p>
-              <p className="text-xl font-semibold text-gray-900">{totalInvoices}</p>
+              <p className="text-xs text-gray-600 sm:text-sm">Total Invoices</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">{totalInvoices}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg mr-3">
               <Receipt className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Receipts</p>
-              <p className="text-xl font-semibold text-gray-900">{totalReceipts}</p>
+              <p className="text-xs text-gray-600 sm:text-sm">Total Receipts</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">{totalReceipts}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg mr-3">
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Pending Amount</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs text-gray-600 sm:text-sm">Pending Amount</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">
                 ${pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-red-100 rounded-lg mr-3">
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Attention needed</p>
-              <p className="text-xl font-semibold text-gray-900">{overdueCount}</p>
+              <p className="text-xs text-gray-600 sm:text-sm">Attention needed</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">{overdueCount}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border">
+      <div className="rounded-lg border bg-white">
         <div className="border-b border-gray-200">
           <div className="flex">
             <button
               type="button"
               onClick={() => setActiveTab("invoices")}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 py-3 text-xs font-medium border-b-2 transition-colors sm:px-6 sm:py-4 sm:text-sm ${
                 activeTab === "invoices"
                   ? "border-indigo-500 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -126,7 +128,7 @@ const InvoicesReceiptsPage = () => {
             <button
               type="button"
               onClick={() => setActiveTab("receipts")}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 py-3 text-xs font-medium border-b-2 transition-colors sm:px-6 sm:py-4 sm:text-sm ${
                 activeTab === "receipts"
                   ? "border-indigo-500 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
@@ -138,7 +140,7 @@ const InvoicesReceiptsPage = () => {
           </div>
         </div>
 
-        <div className="p-4 border-b border-gray-200">
+        <div className="border-b border-gray-200 p-3 sm:p-4">
           <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
             <div className="flex flex-col sm:flex-row gap-3 flex-1">
               <div className="w-full sm:max-w-[230px]">
@@ -157,7 +159,7 @@ const InvoicesReceiptsPage = () => {
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search by campaign, counterparty, or document…"
                   startIcon={<SearchIcon />}
-                  className="!h-[40px]"
+                  className=""
                 />
               </div>
             </div>
@@ -208,14 +210,14 @@ const InvoicesReceiptsPage = () => {
         />
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+      <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:mt-6 sm:p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <Archive className="h-5 w-5 text-blue-600 mt-0.5" />
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Tax documentation</h3>
-            <p className="text-sm text-blue-700 mt-1">
+            <h3 className="text-xs font-medium text-blue-800 sm:text-sm">Tax documentation</h3>
+            <p className="mt-1 text-xs text-blue-700 sm:text-sm">
               Export CSV summaries for your records. Consult a tax professional for filing requirements.
             </p>
             <div className="mt-3">

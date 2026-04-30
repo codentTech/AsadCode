@@ -57,20 +57,22 @@ const AutoReplyTemplate = () => {
   return (
     <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Auto-Reply Templates</h1>
-        <p className="text-sm mt-1">Create automatic response messages for campaign applications</p>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Auto-Reply Templates</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
+          Create automatic response messages for campaign applications
+        </p>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:mb-6 sm:p-4">
         <div className="flex items-start space-x-3">
           <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg flex-shrink-0">
             <Info className="h-4 w-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-medium text-blue-900 mb-1">Auto-Reply Settings</h3>
-            <p className="text-blue-800 text-sm leading-relaxed">
+            <h3 className="mb-1 text-xs font-medium text-blue-900 sm:text-sm">Auto-Reply Settings</h3>
+            <p className="text-xs leading-relaxed text-blue-800 sm:text-sm">
               Set up automatic responses that will be sent to influencers when they apply to your
               campaigns.
             </p>
@@ -78,14 +80,14 @@ const AutoReplyTemplate = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Create New Template */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border">
+        <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
           <div className="flex items-center mb-4">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
               <MessageSquare className="h-4 w-4 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Create Template</h3>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Create Template</h3>
           </div>
 
           <div className="space-y-4">
@@ -130,17 +132,17 @@ const AutoReplyTemplate = () => {
         </div>
 
         {/* Saved Templates */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border">
+        <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
           <div className="flex items-center mb-4">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
               <Send className="h-4 w-4 text-purple-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Saved Templates</h3>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Saved Templates</h3>
           </div>
 
           <div className="space-y-3">
             {templates.map((template) => (
-              <div key={template.id} className="border border-gray-200 rounded-lg p-4">
+              <div key={template.id} className="rounded-lg border border-gray-200 p-3 sm:p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
