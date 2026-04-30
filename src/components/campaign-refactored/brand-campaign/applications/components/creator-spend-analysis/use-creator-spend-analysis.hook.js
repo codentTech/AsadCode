@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
+import {
+  getAllBrandCampaigns,
+  getAppliedCreators,
+} from "@/provider/features/campaigns/campaigns.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
@@ -285,7 +288,7 @@ function useCreatorSpendAnalysis({
             return acc;
           }, {});
 
-    const followers = totalFromAccounts > 0 ? totalFromAccounts : (profile?.total_followers || 0);
+    const followers = totalFromAccounts > 0 ? totalFromAccounts : profile?.total_followers || 0;
 
     return {
       id: creatorData?.id,
@@ -368,9 +371,7 @@ function useCreatorSpendAnalysis({
 
   const handleNicheToggle = (niche) => {
     const current = filters?.niches || [];
-    const next = current.includes(niche)
-      ? current.filter((n) => n !== niche)
-      : [...current, niche];
+    const next = current.includes(niche) ? current.filter((n) => n !== niche) : [...current, niche];
     onFilterChange && onFilterChange("niches", next);
   };
 

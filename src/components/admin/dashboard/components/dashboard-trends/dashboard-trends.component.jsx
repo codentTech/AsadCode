@@ -40,12 +40,12 @@ const ApplicationsTooltip = ({ active, payload, label }) => {
 function DashboardTrends({ signupsByDay, applicationsByDay, isLoading }) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="animate-pulse rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
           <div className="h-5 bg-gray-200 rounded w-1/3 mb-4" />
           <div className="h-64 bg-gray-100 rounded" />
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+        <div className="animate-pulse rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
           <div className="h-5 bg-gray-200 rounded w-1/3 mb-4" />
           <div className="h-64 bg-gray-100 rounded" />
         </div>
@@ -54,10 +54,12 @@ function DashboardTrends({ signupsByDay, applicationsByDay, isLoading }) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">User signups (14 days, UTC)</h3>
-        <div className="h-72 w-full">
+    <div className="mb-8 grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
+          User signups (14 days, UTC)
+        </h3>
+        <div className="h-56 w-full min-h-[14rem] sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={signupsByDay} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
@@ -82,9 +84,11 @@ function DashboardTrends({ signupsByDay, applicationsByDay, isLoading }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Creator applications (14 days, UTC)</h3>
-        <div className="h-72 w-full">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
+          Creator applications (14 days, UTC)
+        </h3>
+        <div className="h-56 w-full min-h-[14rem] sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={applicationsByDay} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

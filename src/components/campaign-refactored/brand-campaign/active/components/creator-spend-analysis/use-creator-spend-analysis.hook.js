@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import usersService from "@/provider/features/users/users.service";
+import phylloService from "@/provider/features/phyllo/phyllo.service";
 
 const DEFAULT_PLATFORMS = {
   instagram: { followers: 0, verified: false },
@@ -51,6 +53,29 @@ function buildPlatformsFromSocialAccounts(creator) {
   return out;
 }
 
+function buildPlatformsFromPhylloAccounts(accounts) {
+  const out = { ...DEFAULT_PLATFORMS };
+  const list = Array.isArray(accounts) ? accounts : [];
+  for (const acc of list) {
+    if (!acc?.is_active) continue;
+    const platform = String(acc.platform || "").toLowerCase();
+    if (!platform) continue;
+    const followers =
+      Number(acc.follower_count) ||
+      Number(acc.profile_data?.follower_count) ||
+      Number(acc.profile_data?.followers_count) ||
+      Number(acc.profile_data?.followers) ||
+      Number(acc.profile_data?.subscriber_count) ||
+      0;
+    if (!out[platform]) out[platform] = { followers: 0, verified: false };
+    out[platform] = {
+      followers,
+      verified: acc.is_verified ?? out[platform].verified ?? false,
+    };
+  }
+  return out;
+}
+
 export const useCreatorSpendAnalysis = (
   selectedCampaign,
   isCompleted = false,
@@ -62,6 +87,8 @@ export const useCreatorSpendAnalysis = (
 ) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
+  const [hydratedUsersById, setHydratedUsersById] = useState({});
+  const [phylloAccountsByCreatorId, setPhylloAccountsByCreatorId] = useState({});
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
   const autoSelectedRef = useRef(null);
 
@@ -82,6 +109,12 @@ export const useCreatorSpendAnalysis = (
     data: individualContractsData,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
+  const normalizedIndividualContracts = useMemo(() => {
+    if (Array.isArray(individualContractsData)) return individualContractsData;
+    if (Array.isArray(individualContractsData?.data)) return individualContractsData.data;
+    return [];
+  }, [individualContractsData]);
+
   const isIndividualMode = useMemo(() => {
     return (
       !isMultiCreator ||
@@ -89,12 +122,13 @@ export const useCreatorSpendAnalysis = (
     );
   }, [isMultiCreator, selectedCampaign]);
 
+
   const individualCreators = useMemo(() => {
-    if (!isIndividualMode || !Array.isArray(individualContractsData)) {
+    if (!isIndividualMode || normalizedIndividualContracts.length === 0) {
       return [];
     }
 
-    return individualContractsData
+    return normalizedIndividualContracts
       .filter((contract) => {
         // Only filter by campaign ID if:
         // 1. We're in multi-creator mode (isMultiCreator = true) AND
@@ -111,39 +145,42 @@ export const useCreatorSpendAnalysis = (
             return false;
           }
         }
-
-        if (isCompleted) {
-          return contract.campaign?.status === "COMPLETE";
-        }
-        const now = new Date();
-        const deadline = new Date(contract.completionDeadline);
-        return deadline >= now && contract.campaign?.status !== "COMPLETE";
+        return true;
       })
       .map((contract) => {
         const creator = contract.creator;
-        const creatorProfile = creator?.creator_profile;
+        const hydratedCreator = creator?.id ? hydratedUsersById[creator.id] : null;
+        const mergedCreator = hydratedCreator || creator;
+        const creatorProfile = mergedCreator?.creator_profile || creator?.creator_profile;
 
-        const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(creator);
+        const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(mergedCreator);
 
         return {
           id: contract.id,
           contractId: contract.id,
           campaign_id: contract.campaignId || contract.campaign?.id,
           campaign: contract.campaign,
-          age: getAge(creator?.date_of_birth),
-          creatorUserId: creator?.id,
-          creator: creator,
+          age: getAge(mergedCreator?.date_of_birth),
+          creatorUserId: mergedCreator?.id || creator?.id,
+          creator: mergedCreator || creator,
           name:
-            `${creator?.first_name || ""} ${creator?.last_name || ""}`.trim() || "Unknown Creator",
+            `${mergedCreator?.first_name || ""} ${mergedCreator?.last_name || ""}`.trim() ||
+            "Unknown Creator",
           bio: creatorProfile?.bio || "No bio available",
           image: creatorProfile?.profile_photo_url,
           location:
-            `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
+            `${mergedCreator?.city || ""}, ${mergedCreator?.country || ""}`.replace(
+              /^,\s*|,\s*$/g,
+              ""
+            ) ||
             "Location not specified",
           totalSpent: contract.totalCompensation || 0,
           rating,
           reviewCount,
-          platforms: buildPlatformsFromSocialAccounts(creator),
+          platforms:
+            mergedCreator?.id && phylloAccountsByCreatorId[mergedCreator.id]
+              ? buildPlatformsFromPhylloAccounts(phylloAccountsByCreatorId[mergedCreator.id])
+              : buildPlatformsFromSocialAccounts(mergedCreator),
           projects: 0,
           successRate: 0,
           avgDeliveryTime: "N/A",
@@ -157,12 +194,65 @@ export const useCreatorSpendAnalysis = (
       });
   }, [
     isIndividualMode,
-    individualContractsData,
+    normalizedIndividualContracts,
+    hydratedUsersById,
+    phylloAccountsByCreatorId,
     selectedCampaign?.id,
     selectedCampaign?.collaboration_type,
     isMultiCreator,
     isCompleted,
   ]);
+
+  useEffect(() => {
+    if (!isIndividualMode || individualCreators.length === 0) {
+      return;
+    }
+
+    individualCreators.forEach((entry) => {
+      const creatorId = entry?.creatorUserId;
+      if (!creatorId || hydratedUsersById[creatorId]) {
+        return;
+      }
+
+      usersService.getUserById(creatorId).then(
+        (response) => {
+          const userPayload = response?.data || null;
+          if (!userPayload?.id) {
+            return;
+          }
+          setHydratedUsersById((prev) => ({
+            ...prev,
+            [userPayload.id]: userPayload,
+          }));
+        },
+        () => {}
+      );
+    });
+  }, [isIndividualMode, individualCreators, hydratedUsersById]);
+
+  useEffect(() => {
+    if (!isIndividualMode || individualCreators.length === 0) {
+      return;
+    }
+
+    individualCreators.forEach((entry) => {
+      const creatorId = entry?.creatorUserId;
+      if (!creatorId || phylloAccountsByCreatorId[creatorId]) {
+        return;
+      }
+
+      phylloService.fetchCreatorSocialAccounts(creatorId).then(
+        (response) => {
+          const payload = Array.isArray(response?.data) ? response.data : [];
+          setPhylloAccountsByCreatorId((prev) => ({
+            ...prev,
+            [creatorId]: payload,
+          }));
+        },
+        () => {}
+      );
+    });
+  }, [isIndividualMode, individualCreators, phylloAccountsByCreatorId]);
 
   const creators = Array.isArray(creatorsData?.data)
     ? creatorsData.data.map((creator) => {

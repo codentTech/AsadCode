@@ -39,11 +39,11 @@ function StatsCards({ items, isLoading }) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 10 }).map((_, index) => (
           <div
             key={index}
-            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 animate-pulse"
+            className="animate-pulse rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6"
           >
             <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
             <div className="h-8 bg-gray-200 rounded w-1/3" />
@@ -54,23 +54,25 @@ function StatsCards({ items, isLoading }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+    <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
       {items.map((stat, index) => {
         const inner = (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-              <p className={`text-3xl font-bold ${getTextColor(stat.color)}`}>{stat.value}</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium text-gray-600 sm:text-xs md:text-sm">{stat.title}</p>
+              <p className={`text-xl font-bold tabular-nums sm:text-2xl md:text-3xl ${getTextColor(stat.color)}`}>
+                {stat.value}
+              </p>
             </div>
-            <div className={`p-3 rounded-full ${getColorClasses(stat.color)}`}>
-              <stat.icon className="h-6 w-6" />
+            <div className={`shrink-0 rounded-full p-2 sm:p-3 ${getColorClasses(stat.color)}`}>
+              <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
           </div>
         );
 
         const cardClass =
-          "bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-shadow " +
-          (stat.href ? "hover:shadow-md cursor-pointer" : "hover:shadow-md");
+          "rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow sm:p-6 " +
+          (stat.href ? "cursor-pointer hover:shadow-md" : "hover:shadow-md");
 
         if (stat.href) {
           return (

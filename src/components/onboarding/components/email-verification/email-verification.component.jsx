@@ -60,7 +60,9 @@ const EmailVerification = ({ onNext, onBack }) => {
             <h2 className="text-sm font-semibold text-gray-900 sm:text-xl">
               Verify Your Email to Continue
             </h2>
-            <p className="text-xs text-gray-600 sm:text-sm">We will send a 6-digit verification code to:</p>
+            <p className="text-xs text-gray-600 sm:text-sm">
+              We will send a 6-digit verification code to:
+            </p>
             <div className="inline-block rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-800 sm:px-4 sm:text-sm">
               {email}
             </div>
@@ -81,18 +83,15 @@ const EmailVerification = ({ onNext, onBack }) => {
               </p>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-700 sm:text-sm">
-                  Verification code
-                </label>
                 <CustomInput
                   name="verificationCode"
                   type="text"
+                  label="Verification code"
                   placeholder="000000"
                   value={verificationCode}
                   onChange={handleCodeChange}
                   onPaste={handleCodePaste}
                   inputProps={{ maxLength: 6, inputMode: "numeric", autoComplete: "one-time-code" }}
-                  className="text-center text-sm font-mono tracking-[0.3em] sm:text-lg sm:tracking-[0.4em]"
                 />
               </div>
 
@@ -102,7 +101,9 @@ const EmailVerification = ({ onNext, onBack }) => {
                   Didn’t get it? Check your spam folder or
                 </p>
                 {countdown > 0 ? (
-                  <p className="text-xs text-gray-400 sm:text-sm">Resend available in {countdown}s</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">
+                    Resend available in {countdown}s
+                  </p>
                 ) : (
                   <button
                     onClick={handleResendEmail}
@@ -113,7 +114,7 @@ const EmailVerification = ({ onNext, onBack }) => {
                 )}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <CustomButton
                   text="Continue to Profile Setup"
                   className="btn-primary w-full"
