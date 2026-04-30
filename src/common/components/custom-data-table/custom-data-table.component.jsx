@@ -3,6 +3,7 @@
 import ThreedotIcon from "@/common/icons/threedot.icon";
 import PropTypes from "prop-types";
 import React from "react";
+import { createPortal } from "react-dom";
 import { useCustomDataTable } from "./use-custom-data-table.hook";
 import SearchIcon from "@/common/icons/search-icon";
 import CustomInput from "../custom-input/custom-input.component";
@@ -74,11 +75,8 @@ const CustomDataTable = ({
     handleSelectAll,
     handleRowSelect,
     dropdownPosition,
-    setDropdownPosition,
     activeActionRowId,
     setActiveActionRowId,
-    activeActionRow,
-    actionRef,
     handleActionRowToggle,
     handleActionClick,
     actionButtonRefs,
@@ -334,17 +332,19 @@ const CustomDataTable = ({
             )}
           </tbody>
         </table>
+      </div>
 
-        {/* Action Dropdown */}
-        {activeActionRowId && (
+      {activeActionRowId &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="action-dropdown-container absolute z-50"
+            className="action-dropdown-container fixed z-[1400]"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
             }}
           >
-            <div className="bg-white rounded-md shadow-lg border border-gray-200 py-1 min-w-[180px]">
+            <div className="min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg">
               {(() => {
                 const row = paginatedData.find((r) => r.id === activeActionRowId);
                 const rowActions = typeof actions === "function" ? actions(row) : actions;
@@ -356,7 +356,7 @@ const CustomDataTable = ({
                       handleActionClick(action.key, row, onActionClick);
                       setActiveActionRowId(null);
                     }}
-                    className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 ${
+                    className={`flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-100 ${
                       index === 0 ? "rounded-t-md" : ""
                     } ${index === filteredActions.length - 1 ? "rounded-b-md" : ""}`}
                   >
@@ -366,9 +366,9 @@ const CustomDataTable = ({
                 ));
               })()}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
-      </div>
 
       {/* Pagination */}
       {paginated && totalRecordsCount > 0 && (

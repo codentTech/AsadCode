@@ -5,7 +5,7 @@ import Link from "next/link";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import usePrivateHeader from "./use-private-header.hook";
 
-function Header({ mobileRightSlot = null }) {
+function Header({ mobileLeftSlot = null, mobileRightSlot = null }) {
   const {
     currentUser,
     showProfileDropdown,
@@ -142,21 +142,24 @@ function Header({ mobileRightSlot = null }) {
         </div>
       </header>
 
-      <div className="md:hidden fixed top-0 left-0 right-0 z-[60] h-12 px-3 flex items-center justify-between bg-primary border-b border-primary/30">
-        <Link
-          href="/campaign"
-          prefetch={true}
-          className="inline-flex items-center gap-1.5 text-white font-semibold text-xs sm:text-sm tracking-tight"
-        >
-          <span className="inline-flex items-center rounded">
-            <img
-              src="/assets/images/horizontal-logo-white.png"
-              alt="Logo"
-              className="h-8 w-auto object-contain"
-            />
-          </span>
-        </Link>
-        <div className="flex items-center gap-1.5">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[60] flex h-12 items-center justify-between gap-2 border-b border-primary/30 bg-primary px-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {mobileLeftSlot}
+          <Link
+            href="/campaign"
+            prefetch={true}
+            className="inline-flex min-w-0 items-center gap-1.5 text-xs font-semibold tracking-tight text-white sm:text-sm"
+          >
+            <span className="inline-flex items-center rounded">
+              <img
+                src="/assets/images/horizontal-logo-white.png"
+                alt="Logo"
+                className="h-8 w-auto max-w-full object-contain"
+              />
+            </span>
+          </Link>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
           <div className="relative">
             {profileButton(true)}
             {profileDropdown("right-0 top-full mt-1")}
