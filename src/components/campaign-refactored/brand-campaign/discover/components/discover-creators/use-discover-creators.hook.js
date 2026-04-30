@@ -54,8 +54,6 @@ const mapUserToCreator = (user) => {
     name,
     profileImage: creatorProfile?.profile_photo_url || "/assets/images/account.png",
     portfolioImages,
-    rating: 0,
-    reviewCount: 0,
     age,
     location,
     niches: creatorProfile?.categories || [],
@@ -63,6 +61,9 @@ const mapUserToCreator = (user) => {
     followers: Object.values(platformStats).reduce((sum, stat) => sum + (stat.followers || 0), 0),
     platforms,
     platformStats,
+    rating: Number(creatorProfile?.rating) || 0,
+    reviewCount:
+      Number(creatorProfile?.reviewCount ?? creatorProfile?.review_count) || 0,
   };
 };
 

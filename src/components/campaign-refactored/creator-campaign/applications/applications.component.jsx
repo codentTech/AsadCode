@@ -1,10 +1,12 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import Loader from "@/common/components/loader/loader.component";
+import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import { Gift } from "lucide-react";
 import ApplicationCard from "./components/application-card/application-card.component";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
-import ApplicationMessageThread from "./components/application-message-thread.component";
 import OffersModal from "./components/offers-modal/offers-modal.component";
 import useApplications from "./use-applications.hook";
 
@@ -21,6 +23,10 @@ export default function CreatorApplications() {
     applicationsError,
     withdrawLoading,
     filteredData,
+    paginatedData,
+    hasMoreItems,
+    totalFilteredItems,
+    handleLoadMore,
     handleTabChange,
     handleViewCampaign,
     handleCloseCampaignBrief,
@@ -29,7 +35,10 @@ export default function CreatorApplications() {
     handleCancelWithdraw,
     handleMessageClick,
     handleCloseMessageModal,
+    handleCloseMessageThread,
     messageModalState,
+    messageThreadHook,
+    messageThreadBrand,
     fetchAllApplications,
     formatCompensationType,
     offersData,
@@ -149,8 +158,29 @@ export default function CreatorApplications() {
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="mx-auto max-w-7xl px-2.5 py-3 sm:px-6 sm:py-8">
           {applicationsLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader />
+            <div className="grid grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-2">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={`application-skeleton-${index}`} className="rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-2.5 w-20" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-11/12" />
+                    <Skeleton className="h-3 w-9/12" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Skeleton className="h-8 w-full rounded-md" />
+                    <Skeleton className="h-8 w-full rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : applicationsError ? (
             <NotFound
@@ -183,18 +213,34 @@ export default function CreatorApplications() {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-2">
-              {filteredData.map((item) => (
-                <ApplicationCard
-                  key={item.id}
-                  application={item}
-                  formatCompensationType={formatCompensationType}
-                  handleViewCampaign={handleViewCampaign}
-                  handleWithdraw={handleWithdraw}
-                  handleMessageClick={handleMessageClick}
-                  withdrawLoading={withdrawLoading}
-                />
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-2">
+                {paginatedData.map((item) => (
+                  <ApplicationCard
+                    key={item.id}
+                    application={item}
+                    formatCompensationType={formatCompensationType}
+                    handleViewCampaign={handleViewCampaign}
+                    handleWithdraw={handleWithdraw}
+                    handleMessageClick={handleMessageClick}
+                    withdrawLoading={withdrawLoading}
+                  />
+                ))}
+              </div>
+              {hasMoreItems && (
+                <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[10px] text-gray-600 sm:text-xs md:text-sm">
+                      Showing {paginatedData.length} of {totalFilteredItems} applications
+                    </p>
+                    <CustomButton
+                      text="Load More"
+                      className="btn-outline w-full sm:w-auto"
+                      onClick={handleLoadMore}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -223,13 +269,22 @@ export default function CreatorApplications() {
         }
       />
 
-      {messageModalState.isOpen && messageModalState.brandId && (
-        <ApplicationMessageThread
-          brandId={messageModalState.brandId}
-          application={messageModalState.application}
-          onClose={handleCloseMessageModal}
-        />
-      )}
+      <MessageThreadModal
+        isOpen={messageModalState.isOpen && messageThreadHook.isModalOpen}
+        onClose={handleCloseMessageThread}
+        creator={messageThreadBrand}
+        messages={messageThreadHook.messages || []}
+        newMessage={messageThreadHook.newMessage || ""}
+        setNewMessage={messageThreadHook.setNewMessage}
+        sendMessage={messageThreadHook.sendMessage}
+        isSending={messageThreadHook.isSending}
+        isLoading={messageThreadHook.isLoading}
+        isCreatorOnline={messageThreadHook.isCreatorOnline}
+        isCreatorTyping={messageThreadHook.isCreatorTyping}
+        messagesEndRef={messageThreadHook.messagesEndRef}
+        messagesContainerRef={messageThreadHook.messagesContainerRef}
+        {...pickMessageThreadModalProps(messageThreadHook)}
+      />
 
       <OffersModal
         show={showOffersModal}

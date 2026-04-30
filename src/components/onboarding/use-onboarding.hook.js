@@ -3,6 +3,13 @@
 import AccessDenied from "@/app/components/access-denied.component";
 import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import { normalizeInviteToken } from "@/common/utils/invite-token.util";
+import {
+  getInviteResumeEmail,
+  getInviteValidationState,
+  getServerStep,
+  readInviteTokenFromWindow,
+  shouldShowCreatorApplication,
+} from "@/common/utils/onboarding-flow.util";
 import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import {
@@ -25,11 +32,6 @@ import CreatorApplicationConfirmation from "./creator/creator-application-confir
 import CreatorApplication from "./creator/creator-application/creator-application.component";
 import ProfileSetup from "./creator/profile-setup/profile-setup.component";
 
-function readInviteTokenFromWindow() {
-  if (typeof window === "undefined") return null;
-  return normalizeInviteToken(new URLSearchParams(window.location.search).get("token"));
-}
-
 export default function useOnboarding() {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
@@ -46,12 +48,10 @@ export default function useOnboarding() {
 
   const inviteTokenPresent = Boolean(inviteToken);
 
-  const inviteResumeEmail = useMemo(() => {
-    if (validateTokenState?.isSuccess && validateTokenState?.data?.email) {
-      return validateTokenState.data.email;
-    }
-    return null;
-  }, [validateTokenState?.isSuccess, validateTokenState?.data?.email]);
+  const inviteResumeEmail = useMemo(
+    () => getInviteResumeEmail(validateTokenState),
+    [validateTokenState]
+  );
 
   const resolvedEmail = inviteResumeEmail || getOnboardingEmail() || getUser()?.email || null;
 
@@ -126,23 +126,20 @@ export default function useOnboarding() {
     }
     const step = onboardingStatus.onboardingStep;
     if (step != null) {
-      const n = Number(step) || 1;
-      const serverStep = inviteTokenPresent ? Math.max(n, 2) : n;
+      const serverStep = getServerStep(step, inviteTokenPresent);
       setCurrentStep((prev) => (prev >= 3 ? Math.max(serverStep, prev) : serverStep));
     }
-    // if (onboardingStatus.user?.role) {
-    //   const roleLower = onboardingStatus.user.role.toLowerCase();
-    //   setSelectedAccountType(roleLower);
-    //   dispatch(setIsCreatorModeMode(roleLower === "creator"));
-    // }
   }, [onboardingStatus, onboardingStatusLoading, dispatch, resolvedEmail, inviteTokenPresent]);
 
   useEffect(() => {
     if (
-      isCreatorMode &&
-      (!inviteToken || !validateTokenState?.isSuccess) &&
-      currentStep === 2 &&
-      !showApplicationConfirmation
+      shouldShowCreatorApplication({
+        isCreatorMode,
+        inviteToken,
+        isTokenValid: validateTokenState?.isSuccess,
+        currentStep,
+        showApplicationConfirmation,
+      })
     ) {
       setShowCreatorApplication(true);
     } else {
@@ -184,13 +181,8 @@ export default function useOnboarding() {
     prevStep();
   }, [prevStep]);
 
-  const isValidatingToken = Boolean(inviteToken && validateTokenState?.isLoading);
-  const isTokenValid = Boolean(inviteToken && validateTokenState?.isSuccess);
-  const tokenError = validateTokenState?.isError ? validateTokenState?.message : null;
-  const hasValidatedToken =
-    !inviteToken ||
-    (!validateTokenState?.isLoading &&
-      (validateTokenState?.isSuccess || validateTokenState?.isError));
+  const { isValidatingToken, isTokenValid, tokenError, hasValidatedToken } =
+    getInviteValidationState(inviteToken, validateTokenState);
 
   const stepContent = (() => {
     if (!hasReadInviteFromUrl) {

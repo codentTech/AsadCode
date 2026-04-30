@@ -109,7 +109,9 @@ const InvitationModal = ({
                   <h4 className="mb-1 text-[10px] font-medium text-gray-900 sm:text-xs">
                     Multi Creator Campaign
                   </h4>
-                  <p className="text-[10px] text-gray-500 sm:text-xs">Invite to an existing campaign</p>
+                  <p className="text-[10px] text-gray-500 sm:text-xs">
+                    Invite to an existing campaign
+                  </p>
                 </div>
                 {invitationType === COLLABORATION_TYPE.MULTI_CREATOR && (
                   <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -186,9 +188,7 @@ const InvitationModal = ({
                         </h4>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-[10px] font-medium text-primary sm:text-xs">
-                            {campaign.compensation_type === COMPENSATION_TYPE.PAID
-                              ? `Budget Remaining: ${formatCompensation(campaign)}`
-                              : formatCompensation(campaign)}
+                            Budget Remaining: ${campaign.remaining_budget || 0}
                           </span>
                           {campaign.total_collaborators && (
                             <span className="text-[10px] text-gray-500 sm:text-xs">
@@ -236,7 +236,9 @@ const InvitationModal = ({
             disabled={isSending}
             required={invitationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR}
           />
-          <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">{customMessage.length}/500 characters</p>
+          <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">
+            {customMessage.length}/500 characters
+          </p>
         </div>
 
         {/* Footer Actions */}

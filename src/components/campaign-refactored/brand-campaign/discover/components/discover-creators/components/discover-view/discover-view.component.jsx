@@ -161,8 +161,8 @@ const DiscoverView = ({
             />
           ) : nicheCategories.length === 0 ? (
             <NotFound
-              title="No Niches Found"
-              description="No niches found. Try adjusting your search or filters."
+              title="No Creators Found"
+              description="No creators found. Try adjusting your search or filters."
             />
           ) : (
             <div className="space-y-6">

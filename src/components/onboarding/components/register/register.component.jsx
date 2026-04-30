@@ -2,17 +2,16 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
-import { Calendar, Lock, Mail, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Calendar, Lock, Mail, User, UserPlus } from "lucide-react";
 import useRegister from "./use-register.hook";
 
-const Register = ({ onNext, inviteToken }) => {
+const Register = ({ onNext, onBack, inviteToken }) => {
   const {
     register,
     handleSubmit,
     errors,
     onSubmit,
     isLoading,
-    isCreatorMode,
     showBrandRegisterExtras,
     brandAccountTypeOptions,
     selectedAccountType,
@@ -36,6 +35,16 @@ const Register = ({ onNext, inviteToken }) => {
         </div>
         <div className="mb-6">
           <div className="mb-3 flex items-center justify-between text-xs text-gray-500 sm:text-sm">
+            {!inviteToken ? (
+              <button
+                onClick={onBack}
+                className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-700 sm:text-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </button>
+            ) : null}
+
             <span className="text-[10px] sm:text-sm">Step 2 of 5</span>
             <span className="text-[10px] sm:text-sm">40% Complete</span>
           </div>

@@ -34,7 +34,14 @@ function CampaignFeed() {
     handleApply,
     isApplying,
     filteredCampaignsData,
+    isLoadingMore,
+    hasMoreCampaigns,
+    totalCampaigns,
+    handleLoadMore,
   } = useCampaignFeed();
+  const shownCampaignsCount = sortedCampaigns.length;
+  const totalCount = totalCampaigns || shownCampaignsCount;
+  const progressValue = totalCount > 0 ? Math.min((shownCampaignsCount / totalCount) * 100, 100) : 0;
 
   const sortOptions = [
     { value: "latest", label: "Latest" },
@@ -83,9 +90,9 @@ function CampaignFeed() {
             <div className="flex justify-between items-center gap-2">
               <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
                 Available Campaigns
-                {filteredCampaignsData && (
+                {(filteredCampaignsData || totalCampaigns > 0) && (
                   <span className="ml-1.5 text-[10px] font-normal leading-snug text-gray-600 sm:ml-2 sm:text-xs md:text-sm">
-                    ({sortedCampaigns.length} results)
+                    ({sortedCampaigns.length} of {totalCampaigns || sortedCampaigns.length} results)
                   </span>
                 )}
               </h2>
@@ -260,6 +267,35 @@ function CampaignFeed() {
               </div>
             );
           })
+        )}
+
+        {!isLoading && sortedCampaigns.length > 0 && hasMoreCampaigns && (
+          <div className="sticky bottom-2 z-[5] rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">
+                  Showing {shownCampaignsCount} of {totalCount} campaigns
+                </p>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600 sm:text-xs">
+                  {Math.round(progressValue)}%
+                </span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${progressValue}%` }}
+                  aria-hidden
+                />
+              </div>
+              <CustomButton
+                text="Load More"
+                className="btn-primary w-full sm:w-auto sm:min-w-[132px] sm:self-end"
+                onClick={handleLoadMore}
+                loading={isLoadingMore}
+                disabled={isLoadingMore}
+              />
+            </div>
+          </div>
         )}
       </div>
 

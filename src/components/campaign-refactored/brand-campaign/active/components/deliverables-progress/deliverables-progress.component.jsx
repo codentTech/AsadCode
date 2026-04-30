@@ -108,12 +108,10 @@ const DeliverablesProgress = ({
           onClick={handleViewCreatorPortfolio}
           className="text-sm font-semibold transition-colors hover:text-primary sm:text-lg"
         >
-          {creator.name}
+          {creator.name} -
         </button>
-        <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator.rating}</span>
-        <span className="ml-1 text-sm text-gray-500 sm:text-lg">
-          ({creator.reviewCount || 0})
-        </span>
+        <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator?.rating}</span>
+        <span className="ml-1 text-sm text-gray-500 sm:text-lg">({creator?.reviewCount || 0})</span>
       </h3>
       <p className="-mt-1 flex w-full flex-wrap items-center justify-start gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
         <span>{creator.age}</span>
@@ -164,19 +162,11 @@ const DeliverablesProgress = ({
     <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
       <h4 className="mb-2 text-sm font-semibold text-gray-800">Quick Actions</h4>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <CustomButton
-          text="Message"
-          className="btn-primary w-full"
-          onClick={handleMessageClick}
-        />
+        <CustomButton text="Message" className="btn-primary w-full" onClick={handleMessageClick} />
         <CustomButton
           text="Mark Complete"
           onClick={handleMarkCompleteClick}
-          className={
-            isMarkCompleteDisabled
-              ? "btn-disabled w-full"
-              : "btn-primary w-full"
-          }
+          className={isMarkCompleteDisabled ? "btn-disabled w-full" : "btn-primary w-full"}
           disabled={isMarkCompleteDisabled}
           title={markCompleteDisabledTitle}
         />
@@ -497,13 +487,7 @@ const DeliverablesProgress = ({
                   disabled={isMarkingComplete || isUpdateCampaignLoading}
                 />
                 <CustomButton
-                  text={
-                    isMarkingComplete || isUpdateCampaignLoading ? (
-                      <Loading height={4} width={4} />
-                    ) : (
-                      "Mark Complete"
-                    )
-                  }
+                  text="Mark Complete"
                   className="btn-primary flex-1"
                   onClick={handleConfirmMarkComplete}
                   disabled={
@@ -512,6 +496,7 @@ const DeliverablesProgress = ({
                     isUpdateCampaignLoading ||
                     markCompleteRating === 0
                   }
+                  loading={isMarkingComplete || isUpdateCampaignLoading}
                 />
               </div>
             </div>
