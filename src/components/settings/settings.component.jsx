@@ -28,16 +28,16 @@ export default function SettingsLayout({ children }) {
       />
 
       <div
-        className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out ${
+        className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${
           isDesktop ? (sidebarCollapsed ? "lg:ml-20" : "lg:ml-72") : "ml-0"
         }`}
       >
         <PrivateHeader
-          mobileRightSlot={
+          mobileLeftSlot={
             !isDesktop ? (
               <button
                 type="button"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/30 bg-white/10 text-white"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/30 bg-white/10 text-white"
                 onClick={openMobileMenu}
                 aria-label="Open settings menu"
               >
