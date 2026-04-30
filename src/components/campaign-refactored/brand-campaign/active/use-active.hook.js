@@ -35,6 +35,12 @@ export default function useActive() {
     (state) => state.contracts.getIndividualCollaborationContracts || {}
   );
 
+  const normalizedIndividualContracts = useMemo(() => {
+    if (Array.isArray(individualContractsData)) return individualContractsData;
+    if (Array.isArray(individualContractsData?.data)) return individualContractsData.data;
+    return [];
+  }, [individualContractsData]);
+
   // ============================================
   // 3. LOCAL STATE
   // ============================================
@@ -46,6 +52,7 @@ export default function useActive() {
     sort: "newest",
   });
   const [mobilePane, setMobilePane] = useState("overview");
+
 
   // ============================================
   // 4. USEEFFECTS
@@ -74,18 +81,16 @@ export default function useActive() {
       selectedCampaign &&
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
       individualContractsSuccess &&
-      Array.isArray(individualContractsData) &&
+      normalizedIndividualContracts.length > 0 &&
       !selectedCreator &&
       autoSelectedForCampaignRef.current !== selectedCampaign.id
     ) {
-      const matchingContracts = individualContractsData.filter((contract) => {
+      const matchingContracts = normalizedIndividualContracts.filter((contract) => {
         const contractCampaignId = contract.campaignId || contract.campaign?.id;
         if (contractCampaignId !== selectedCampaign.id) {
           return false;
         }
-        const now = new Date();
-        const deadline = new Date(contract.completionDeadline || contract.completion_deadline);
-        return deadline >= now && contract.campaign?.status !== "COMPLETE";
+        return true;
       });
 
       const taskCreatorId = sessionStorage.getItem("taskCreatorId");
@@ -128,7 +133,9 @@ export default function useActive() {
           location:
             `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
             "Location not specified",
-          rating: creatorProfile?.rating || 0,
+          rating: Number(creatorProfile?.rating) || 0,
+          reviewCount:
+            Number(creatorProfile?.review_count ?? creatorProfile?.reviewCount) || 0,
           age: creator?.date_of_birth
             ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear()
             : null,
@@ -146,7 +153,7 @@ export default function useActive() {
   }, [
     selectedCampaign?.id,
     selectedCampaign?.collaboration_type,
-    individualContractsData,
+    normalizedIndividualContracts,
     individualContractsSuccess,
     selectedCreator,
   ]);
@@ -373,15 +380,11 @@ export default function useActive() {
   }, [hiredCreatorsData]);
 
   const individualContracts = useMemo(() => {
-    if (!isMultiCreator && Array.isArray(individualContractsData)) {
-      return individualContractsData.filter((contract) => {
-        const now = new Date();
-        const deadline = new Date(contract.completionDeadline || contract.completion_deadline);
-        return deadline >= now && contract.campaign?.status !== "COMPLETE";
-      });
+    if (!isMultiCreator && normalizedIndividualContracts.length > 0) {
+      return normalizedIndividualContracts;
     }
     return [];
-  }, [isMultiCreator, individualContractsData]);
+  }, [isMultiCreator, normalizedIndividualContracts]);
 
   const displayCreators = useMemo(() => {
     if (

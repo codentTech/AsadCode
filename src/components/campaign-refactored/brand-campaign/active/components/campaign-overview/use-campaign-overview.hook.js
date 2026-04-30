@@ -9,9 +9,11 @@ import {
 } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import {
+  fetchCreatorAudience,
   fetchCampaignCombinedDemographics,
   resetCampaignDemographics,
   resetAudience,
+  selectCreatorAudience,
   selectCampaignCombinedDemographics,
 } from "@/provider/features/phyllo/phyllo.slice";
 
@@ -51,7 +53,14 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     isLoading: individualContractsLoading,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
+  const normalizedIndividualContracts = Array.isArray(individualContractsData)
+    ? individualContractsData
+    : Array.isArray(individualContractsData?.data)
+      ? individualContractsData.data
+      : [];
+
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
+  const creatorAudience = useSelector(selectCreatorAudience);
 
   // Local state (from brand hook)
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -123,7 +132,15 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         campaign: campaign,
       }));
 
-      setCampaignOptions(options);
+      setCampaignOptions((prev) => {
+        if (
+          prev.length === options.length &&
+          prev.every((item, idx) => item.value === options[idx]?.value)
+        ) {
+          return prev;
+        }
+        return options;
+      });
 
       if (
         selectedCampaign &&
@@ -156,7 +173,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         );
       }
     } else if (campaignsSuccess) {
-      setCampaignOptions([]);
+      setCampaignOptions((prev) => (prev.length === 0 ? prev : []));
     }
   }, [campaignsSuccess, campaignsData, selectedCampaign?.id, dispatch]);
 
@@ -294,8 +311,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const isLoadingBrand = campaignsLoading || creatorsLoading;
   const hasDataBrand = selectedCampaign && Array.isArray(creatorsData?.data);
 
-  const hasIndividualData =
-    !isMultiCreator && Array.isArray(individualContractsData) && individualContractsData.length > 0;
+  const hasIndividualData = !isMultiCreator && normalizedIndividualContracts.length > 0;
   const isLoadingIndividual = !isMultiCreator && individualContractsLoading;
 
   // --- Overview: notify parent when selected campaign changes ---
@@ -328,12 +344,11 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       !isMultiCreator &&
       !hasAutoSelectedIndividual.current &&
       individualContractsSuccess &&
-      Array.isArray(individualContractsData) &&
-      individualContractsData.length > 0 &&
+      normalizedIndividualContracts.length > 0 &&
       !selectedCampaign
     ) {
       hasAutoSelectedIndividual.current = true;
-      const firstContract = individualContractsData[0];
+      const firstContract = normalizedIndividualContracts[0];
       const campaignId = firstContract.campaignId || firstContract.campaign?.id;
       if (campaignId) {
         const individualCampaign = {
@@ -355,7 +370,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, [
     isMultiCreator,
     individualContractsSuccess,
-    individualContractsData,
+    normalizedIndividualContracts,
     selectedCampaign,
     onCampaignSelect,
   ]);
@@ -433,8 +448,18 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const individualCreatorId =
     selectedCampaign?.creator?.id ??
     selectedCampaign?.creator_id ??
+    selectedCampaign?.contract?.creatorId ??
+    selectedCampaign?.contract?.creator_id ??
     selectedCampaign?.contract?.creator?.id ??
-    selectedCampaign?.contract?.creator_id;
+    normalizedIndividualContracts.find((contract) => {
+      const contractCampaignId = contract?.campaignId || contract?.campaign?.id;
+      return contractCampaignId === selectedCampaign?.id;
+    })?.creatorId ??
+    normalizedIndividualContracts.find((contract) => {
+      const contractCampaignId = contract?.campaignId || contract?.campaign?.id;
+      return contractCampaignId === selectedCampaign?.id;
+    })?.creator?.id;
+
 
   useEffect(() => {
     if (!selectedCampaign?.id) {
@@ -446,13 +471,10 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       dispatch(fetchCampaignCombinedDemographics({ campaignId: selectedCampaign.id }));
       dispatch(resetAudience());
     } else if (individualCreatorId) {
-      dispatch(
-        fetchCampaignCombinedDemographics({
-          campaignId: selectedCampaign.id,
-          creatorId: individualCreatorId,
-        })
-      );
-      dispatch(resetAudience());
+      // Individual mode should use direct creator audience endpoint.
+      // This avoids campaign-level aggregation gaps for individual collaborations.
+      dispatch(resetCampaignDemographics());
+      dispatch(fetchCreatorAudience({ creatorId: individualCreatorId }));
     } else {
       dispatch(resetCampaignDemographics());
       dispatch(resetAudience());
@@ -466,11 +488,14 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     };
   }, [dispatch]);
 
-  const demographicsData = campaignDemographics?.data;
-  const demographicsLoading = campaignDemographics?.isLoading || false;
-  const hasDemographicsData =
-    campaignDemographics?.isSuccess &&
-    (demographicsData?.has_data || demographicsData?.no_connection);
+  const demographicsData = isMultiCreator ? campaignDemographics?.data : creatorAudience?.data;
+  const demographicsLoading = isMultiCreator
+    ? campaignDemographics?.isLoading || false
+    : creatorAudience?.isLoading || false;
+  const hasDemographicsData = isMultiCreator
+    ? campaignDemographics?.isSuccess &&
+      (demographicsData?.has_data || demographicsData?.no_connection)
+    : creatorAudience?.isSuccess && (demographicsData?.has_data || demographicsData?.no_connection);
 
   return {
     isMultiCreator,

@@ -23,11 +23,7 @@ export default function Login() {
       <div className="form-container">
         <div className="form-card w-full max-w-[437px] px-0 py-6 sm:py-10">
           <Link href="/" className="flex justify-center mb-2">
-            <img
-              src="/assets/images/horizontal-logo.png"
-              alt="Logo"
-              className="h-8 sm:h-[60px]"
-            />
+            <img src="/assets/images/horizontal-logo.png" alt="Logo" className="h-8 sm:h-[60px]" />
           </Link>
           <div className="form-header">
             {/* <h1 className="form-header-h1">Login</h1> */}
@@ -81,10 +77,10 @@ export default function Login() {
                   Forgot Password?
                 </Link>
               </div>
-              <div className="form-btn-c mt-5 sm:mt-8">
+              <div className="form-btn-c mt-4">
                 <CustomButton
                   type="submit"
-                  className="btn-primary w-full rounded-xl"
+                  className="btn-primary w-full"
                   text={!loading && "Login"}
                   startIcon={<Loader loading={loading} />}
                   disabled={!email || !password || loading}

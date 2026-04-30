@@ -215,7 +215,6 @@ export const contractsSlice = createSlice({
         state.getIndividualCollaborationContracts.isError = false;
         state.getIndividualCollaborationContracts.isSuccess = false;
         state.getIndividualCollaborationContracts.message = "";
-        state.getIndividualCollaborationContracts.data = null;
       })
       .addCase(getIndividualCollaborationContracts.fulfilled, (state, action) => {
         if (!state.getIndividualCollaborationContracts) {

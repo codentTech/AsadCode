@@ -127,7 +127,9 @@ const CreatorTimelineSteps = ({ campaignId, deadline, revisionsLimit }) => {
                   <h4 className="text-xs font-bold text-gray-900 sm:text-sm">
                     Step {step.step_number}: {step.title}
                   </h4>
-                  <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">{step.description}</p>
+                  <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+                    {step.description}
+                  </p>
                 </div>
               </div>
               <div className="flex-shrink-0">{getStatusTag(step)}</div>
@@ -331,10 +333,11 @@ const CreatorTimelineSteps = ({ campaignId, deadline, revisionsLimit }) => {
               onClick={() => setShowUrlModal(false)}
             />
             <CustomButton
-              text={updateLoading ? "Submitting..." : "Mark as Published"}
+              text="Mark as Published"
               className="btn-primary w-full sm:w-auto"
               onClick={handlePublishUrl}
               disabled={!validateUrl(publishedUrl) || updateLoading}
+              loading={updateLoading}
             />
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createContract,
@@ -504,13 +504,24 @@ function useBrandApplications() {
     return selectedCreator?.creator?.id || selectedCreator?.id || null;
   };
 
-  const applicationPitch = selectedCreator?.pitch || selectedCreator?.custom_message || null;
+  const initialMessagePayload = useMemo(() => {
+    if (!selectedCreator) return null;
+    const invitationMessage = selectedCreator?.custom_message?.trim();
+    if (invitationMessage) {
+      return { content: invitationMessage, senderRole: "BRAND" };
+    }
+    const creatorPitch = selectedCreator?.pitch?.trim();
+    if (creatorPitch) {
+      return { content: creatorPitch, senderRole: "CREATOR" };
+    }
+    return null;
+  }, [selectedCreator]);
 
   const messageThreadHook = useMessageThread(
     getCreatorId(),
     getCampaignId(),
     null,
-    applicationPitch
+    initialMessagePayload
   );
 
   const handleMessageClick = () => {

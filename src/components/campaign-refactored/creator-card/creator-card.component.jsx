@@ -20,6 +20,19 @@ const CreatorCard = ({
 }) => {
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
+  const ratingValue =
+    creator?.rating ??
+    creator?.creator_profile?.rating ??
+    creator?.creator?.creator_profile?.rating ??
+    0;
+  const reviewCountValue =
+    creator?.reviewCount ??
+    creator?.review_count ??
+    creator?.creator_profile?.reviewCount ??
+    creator?.creator_profile?.review_count ??
+    creator?.creator?.creator_profile?.reviewCount ??
+    creator?.creator?.creator_profile?.review_count ??
+    0;
 
   const {
     getPlatformIcon,
@@ -116,8 +129,8 @@ const CreatorCard = ({
               </h4>
               <div className="inline-flex items-center gap-1 text-sm leading-none">
                 <Star className="h-4 w-4 shrink-0 text-yellow-400 fill-current" />
-                <span className="text-gray-500 mt-1 ml-0.5">{creator.rating}</span>
-                <span className="text-gray-400 mt-1">({creator.reviewCount || 0})</span>
+                <span className="text-gray-500 mt-1 ml-0.5">{ratingValue}</span>
+                <span className="text-gray-400 mt-1">({reviewCountValue})</span>
               </div>
             </div>
             <p className="text-xs text-gray-500">

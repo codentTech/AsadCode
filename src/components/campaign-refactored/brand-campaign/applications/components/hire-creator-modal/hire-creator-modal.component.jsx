@@ -61,38 +61,40 @@ export default function HireCreatorModal({
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
       {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
       {isPaymentRequired() && !isCheckingPaymentMethod && !canFundCollaborations && (
-        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 sm:p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5 animate-ping" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-900 mb-1">
+              <p className="mb-1 text-xs font-medium text-yellow-900 sm:text-sm">
                 {!hasPaymentMethod
                   ? "Payment method required"
                   : "Stripe business connection required"}
               </p>
-              <p className="text-xs text-yellow-700 mb-3">
+              <p className="text-[10px] text-yellow-700 sm:text-xs">
                 {!hasPaymentMethod
                   ? "Add a card before sending paid offers. No charge occurs when sending an offer — your card is charged when the creator accepts."
                   : "Complete Stripe business onboarding under Payment Methods so escrow funding can run when a creator accepts."}
               </p>
-              <CustomButton
-                text="Open payment settings"
-                className="btn-primary text-xs"
-                onClick={() => {
-                  onClose();
-                  router.push("/settings/payments/payment-methods");
-                }}
-              />
             </div>
+            <CustomButton
+              text="Open payment settings"
+              className="btn-primary w-full sm:w-auto"
+              onClick={() => {
+                onClose();
+                router.push("/settings/payments/payment-methods");
+              }}
+            />
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 sm:space-y-5">
         {/* General Information */}
         <div>
-          <h3 className="font-bold mb-2">General Information</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base">
+            General Information
+          </h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
             <CustomInput
               label="Campaign Title"
               value={
@@ -116,8 +118,8 @@ export default function HireCreatorModal({
 
         {/* Deliverables */}
         <div>
-          <h3 className="font-bold mb-2">Deliverables</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base">Deliverables</h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
             <CustomInput
               label="1st Draft Deadline (Optional)"
               type="date"
@@ -142,7 +144,7 @@ export default function HireCreatorModal({
               name="revisionsLimit"
             />
           </div>
-          <div className="w-full mt-4">
+          <div className="mt-3 w-full sm:mt-4">
             <TextArea
               label="Content Format(s)"
               register={register}
@@ -153,7 +155,7 @@ export default function HireCreatorModal({
             />
           </div>
           {isIndividualCollaboration && (
-            <div className="w-full mt-4">
+            <div className="mt-3 w-full sm:mt-4">
               <TextArea
                 label="Content Guidelines / Brief"
                 register={register}
@@ -168,8 +170,8 @@ export default function HireCreatorModal({
 
         {/* Payment Terms */}
         <div>
-          <h3 className="font-bold mb-2">Payment Terms</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base">Payment Terms</h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
             {isIndividualCollaboration && (
               <div>
                 <SimpleSelect
@@ -217,7 +219,7 @@ export default function HireCreatorModal({
             )}
           </div>
           {isIndividualCollaboration && campaignTypeValue === CAMPAIGN_TYPE.UGC && (
-            <p className="text-xs text-gray-600 mt-3">
+            <p className="mt-3 text-[10px] text-gray-600 sm:text-xs">
               UGC: the creator timeline has two steps (recorded → draft delivery). They are not
               asked to submit a published post link.
             </p>
@@ -226,8 +228,10 @@ export default function HireCreatorModal({
 
         {/* Legal & Compliance */}
         <div>
-          <h3 className="font-bold mb-2">Legal & Compliance</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base">
+            Legal & Compliance
+          </h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
@@ -252,29 +256,29 @@ export default function HireCreatorModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
+        <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:gap-3">
           <CustomButton
             text="Save Draft"
-            className="btn-outline"
+            className="btn-outline w-full sm:w-auto"
             type="button"
             onClick={() => {}}
           />
           <CustomButton
             text="Preview Contract"
-            className="btn-secondary"
+            className="btn-secondary w-full sm:w-auto"
             type="button"
             onClick={handlePreviewContract}
           />
           <CustomButton
             text="Send Offer"
-            className="btn-primary"
+            className="btn-primary w-full sm:w-auto"
             type="submit"
-            loading={isSubmitting}
-            disabled={
-              isSubmitting ||
-              (isPaymentRequired() && !canFundCollaborations) ||
-              isCheckingPaymentMethod
-            }
+            // loading={isSubmitting}
+            // disabled={
+            //   isSubmitting ||
+            //   (isPaymentRequired() && !canFundCollaborations) ||
+            //   isCheckingPaymentMethod
+            // }
           />
         </div>
       </form>

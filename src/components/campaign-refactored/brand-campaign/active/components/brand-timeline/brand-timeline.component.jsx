@@ -127,7 +127,9 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
                   <h4 className="text-xs font-bold text-gray-900 sm:text-sm">
                     Step {step.step_number}: {step.title}
                   </h4>
-                  <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">{step.description}</p>
+                  <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+                    {step.description}
+                  </p>
                 </div>
               </div>
               <div className="flex-shrink-0">{getStatusTag(step)}</div>
@@ -163,16 +165,11 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
 
                 <div className="flex gap-1">
                   <CustomButton
-                    text={
-                      approveLoading
-                        ? "Approving..."
-                        : isDeliverablesOnlyWorkflow
-                          ? "Approve deliverables"
-                          : "Approve"
-                    }
+                    text={isDeliverablesOnlyWorkflow ? "Approve deliverables" : "Approve"}
                     onClick={handleApproveDraft}
                     className="btn-success w-full text-xs"
                     disabled={approveLoading}
+                    loading={approveLoading}
                   />
 
                   <CustomButton
@@ -183,6 +180,7 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
                     }}
                     className="btn-outline w-full text-xs"
                     disabled={revisionLoading}
+                    loading={revisionLoading}
                   />
                 </div>
               </div>
@@ -202,10 +200,11 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
                   </a>
                 )}
                 <CustomButton
-                  text={completeLoading ? "Completing..." : "Complete"}
+                  text="Complete"
                   onClick={handleMarkAsComplete}
                   className="btn-success w-full text-xs"
                   disabled={completeLoading}
+                  loading={completeLoading}
                 />
               </div>
             )}
@@ -247,10 +246,11 @@ const BrandTimelineSteps = ({ campaignId, creatorId }) => {
               onClick={() => setShowRevisionModal(false)}
             />
             <CustomButton
-              text={revisionLoading ? "Sending..." : "Send Request"}
+              text="Send Request"
               className="btn-primary"
               onClick={handleRequestRevision}
               disabled={!revisionNotes.trim() || revisionLoading}
+              loading={revisionLoading}
             />
           </div>
         </div>

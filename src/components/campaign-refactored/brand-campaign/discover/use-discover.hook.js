@@ -1,3 +1,4 @@
+import { CAMPAIGN_STATUS, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import {
   addUserToShortlist,
@@ -35,7 +36,9 @@ function useDiscover() {
     if (campaignsState?.data?.data && Array.isArray(campaignsState.data.data)) {
       // Filter out completed campaigns on frontend
       const activeCampaigns = campaignsState.data.data.filter(
-        (campaign) => campaign.status !== "COMPLETE"
+        (campaign) =>
+          campaign.status !== CAMPAIGN_STATUS.COMPLETE &&
+          campaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR
       );
       setUserCampaigns(activeCampaigns);
     }

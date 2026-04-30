@@ -3,20 +3,14 @@ import { Filter, FileText, X } from "lucide-react";
 import CampaignFeed from "./components/campaign-feed/campaign-feed.component";
 import CampaignFilters from "./components/campaign-filters/campaign-filters.component";
 import PitchTemplate from "./components/pitch-template/pitch-template.component";
-import useCreatorDiscover from "./use-creator-discover.hook";
+import useDiscover from "./use-discover.hook";
 
 export default function CreatorDiscover() {
-  const {
-    filtersOpen,
-    setFiltersOpen,
-    pitchesOpen,
-    setPitchesOpen,
-    closeFilters,
-    closePitches,
-  } = useCreatorDiscover();
+  const { filtersOpen, setFiltersOpen, pitchesOpen, setPitchesOpen, closeFilters, closePitches } =
+    useDiscover();
 
   return (
-    <div className="mx-auto max-w-7xl relative flex flex-col lg:flex-row flex-1 min-h-0 w-full">
+    <div className="mx-auto max-w-7xl relative flex w-full flex-1 min-h-0 flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex shrink-0 items-stretch gap-2 border-b border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2 lg:hidden">
         <CustomButton
           text="Filters"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getCreatorApplications,
@@ -7,7 +7,9 @@ import {
 import { getPendingContractsForCreator } from "@/provider/features/contracts/contracts.slice";
 import invitationService from "@/provider/features/invitation/invitation.service";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
+import { DEFAULT_PAGE_LIMIT } from "@/common/constants/genaric.constant";
 import { useSearchParams } from "next/navigation";
+import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 
 function useApplications() {
   const searchParams = useSearchParams();
@@ -32,6 +34,13 @@ function useApplications() {
     brandId: null,
     application: null,
   });
+  const [tabPages, setTabPages] = useState({
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+  });
+  const hasOpenedMessageThreadRef = useRef(false);
 
   const { isLoading: applicationsLoading, isError: applicationsError } = useSelector(
     (state) => state.campaigns.getCreatorApplications || {}
@@ -65,6 +74,13 @@ function useApplications() {
   useEffect(() => {
     setActiveTab(tab || 2);
   }, [tab]);
+
+  useEffect(() => {
+    setTabPages((prev) => ({
+      ...prev,
+      [activeTab]: 1,
+    }));
+  }, [activeTab, allApplications]);
 
   const normalizeInvitation = (invitation) => ({
     ...invitation,
@@ -149,6 +165,10 @@ function useApplications() {
           : activeTab === 3
             ? allApplications.pending.filter((item) => !item.isInvitation)
             : allApplications.rejected.filter((item) => !item.isInvitation);
+  const currentPage = tabPages[activeTab] || 1;
+  const totalFilteredItems = filteredData.length;
+  const paginatedData = filteredData.slice(0, currentPage * DEFAULT_PAGE_LIMIT);
+  const hasMoreItems = paginatedData.length < totalFilteredItems;
 
   const formatCompensationType = (type) => {
     switch (type) {
@@ -165,6 +185,13 @@ function useApplications() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+  };
+
+  const handleLoadMore = () => {
+    setTabPages((prev) => ({
+      ...prev,
+      [activeTab]: (prev[activeTab] || 1) + 1,
+    }));
   };
 
   const handleViewCampaign = (campaign) => {
@@ -196,8 +223,17 @@ function useApplications() {
   };
 
   const handleMessageClick = (item) => {
-    const brandId = item.brand?.id || item.campaign?.created_by?.id;
-    const campaignId = item.campaign?.id || item.campaign_id || item.campaignId;
+    const brandId =
+      item.brand?.id ||
+      item.brand_id ||
+      item.brandId ||
+      item.campaign?.created_by?.id ||
+      item.campaign?.brand_id;
+    const campaignId =
+      item.campaign?.id ||
+      item.campaign_id ||
+      item.campaignId ||
+      item.campaign?.campaign_id;
 
     if (brandId && campaignId) {
       setMessageModalState({
@@ -216,6 +252,76 @@ function useApplications() {
     });
   };
 
+  const messageThreadCampaignId =
+    messageModalState.application?.campaign?.id ||
+    messageModalState.application?.campaign_id ||
+    messageModalState.application?.campaignId ||
+    messageModalState.application?.campaign?.campaign_id ||
+    null;
+
+  const initialInvitationMessage = useMemo(() => {
+    const app = messageModalState.application;
+    if (!app) return null;
+    const inviteMessage = app.custom_message?.trim();
+    return inviteMessage || null;
+  }, [messageModalState.application]);
+
+  const messageThreadHook = useMessageThread(
+    messageModalState.brandId || null,
+    messageThreadCampaignId || null,
+    null,
+    initialInvitationMessage
+      ? { content: initialInvitationMessage, senderRole: "BRAND" }
+      : null
+  );
+
+  useEffect(() => {
+    if (!messageModalState.isOpen) {
+      hasOpenedMessageThreadRef.current = false;
+      return;
+    }
+
+    if (
+      messageModalState.brandId &&
+      messageThreadCampaignId &&
+      messageThreadHook.openMessageModal &&
+      !hasOpenedMessageThreadRef.current
+    ) {
+      hasOpenedMessageThreadRef.current = true;
+      messageThreadHook.openMessageModal();
+    }
+  }, [
+    messageModalState.isOpen,
+    messageModalState.brandId,
+    messageThreadCampaignId,
+    messageThreadHook.openMessageModal,
+  ]);
+
+  const handleCloseMessageThread = useCallback(() => {
+    messageThreadHook.closeMessageModal();
+    handleCloseMessageModal();
+  }, [messageThreadHook.closeMessageModal]);
+
+  const messageThreadBrand = useMemo(() => {
+    const app = messageModalState.application;
+    const brandData = app?.brand || app?.campaign?.created_by;
+    return {
+      id: messageModalState.brandId,
+      name:
+        brandData?.first_name && brandData?.last_name
+          ? `${brandData.first_name} ${brandData.last_name}`
+          : brandData?.first_name ||
+            brandData?.brand_name ||
+            app?.brand_name ||
+            "Brand",
+      avatar:
+        brandData?.brand_profile?.logo ||
+        brandData?.brand_profile?.brand_logo_url ||
+        brandData?.profile_photo_url ||
+        null,
+    };
+  }, [messageModalState.application, messageModalState.brandId]);
+
   return {
     activeTab,
     allApplications,
@@ -228,6 +334,10 @@ function useApplications() {
     applicationsError,
     withdrawLoading,
     filteredData,
+    paginatedData,
+    hasMoreItems,
+    totalFilteredItems,
+    handleLoadMore,
     handleTabChange,
     handleViewCampaign,
     handleCloseCampaignBrief,
@@ -236,7 +346,10 @@ function useApplications() {
     handleCancelWithdraw,
     handleMessageClick,
     handleCloseMessageModal,
+    handleCloseMessageThread,
     messageModalState,
+    messageThreadHook,
+    messageThreadBrand,
     fetchAllApplications,
     formatCompensationType,
     offersData,

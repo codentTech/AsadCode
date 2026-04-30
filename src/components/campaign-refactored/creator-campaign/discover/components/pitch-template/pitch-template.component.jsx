@@ -32,7 +32,7 @@ function PitchTemplate() {
   } = usePitchTemplate();
 
   return (
-    <div className="w-full bg-white border-x p-3 sm:p-4 flex flex-col min-h-0 max-h-[min(75dvh,640px)] lg:max-h-none">
+    <div className="flex h-full min-h-0 w-full flex-col border-x bg-white p-3 sm:p-4">
       <div className="flex justify-between items-center mb-3 sm:mb-4 gap-2">
         <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">My Pitches</h2>
         <button
@@ -44,7 +44,7 @@ function PitchTemplate() {
         </button>
       </div>
 
-      <div className="space-y-3 mb-6 flex-1 min-h-0 max-h-[50dvh] lg:max-h-[calc(100dvh-14rem)] overflow-y-auto">
+      <div className="mb-6 flex-1 min-h-0 space-y-3 overflow-y-auto">
         {pitchTemplates.length > 0 ? (
           pitchTemplates.map((pitch) => (
             <div

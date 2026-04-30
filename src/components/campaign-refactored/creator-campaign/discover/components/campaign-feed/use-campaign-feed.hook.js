@@ -1,10 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  getAllCampaigns,
   filterCampaigns,
-  resetFilteredCampaigns,
-  resetGetAllCampaigns,
   applyToCampaign,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { formatDate } from "@/common/utils/date.utils";
@@ -18,11 +15,9 @@ import {
 
 export function useCampaignFeed() {
   const dispatch = useDispatch();
+  const PAGE_LIMIT = 10;
 
   // ===== STATES =====
-  const { data: allCampaignsData, isLoading: allCampaignsLoading } = useSelector(
-    (state) => state.campaigns.getAllCampaigns
-  );
   const { data: filteredCampaignsData, isLoading: filteredCampaignsLoading } = useSelector(
     (state) => state.campaigns.filterCampaigns
   );
@@ -35,29 +30,55 @@ export function useCampaignFeed() {
   const [applicationPitch, setApplicationPitch] = useState("");
   const [sortBy, setSortBy] = useState("latest");
   const [selectedNiche, setSelectedNiche] = useState("all");
+  const [campaignItems, setCampaignItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCampaigns, setTotalCampaigns] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreCampaigns, setHasMoreCampaigns] = useState(false);
 
-  const campaignsData =
-    filteredCampaignsData?.data !== undefined ? filteredCampaignsData.data : allCampaignsData?.data;
-  const isLoading = filteredCampaignsLoading || allCampaignsLoading;
+  const isLoading = filteredCampaignsLoading && campaignItems.length === 0;
 
-  // ===== LIFECYCLE METHODS =====
+  const fetchCampaigns = useCallback(
+    async ({ page = 1, append = false, niche = selectedNiche, sort = sortBy } = {}) => {
+      const payload = {
+        page,
+        limit: PAGE_LIMIT,
+        sort,
+        niches: niche !== "all" ? niche : undefined,
+      };
+
+      const result = await dispatch(filterCampaigns(payload));
+      if (!filterCampaigns.fulfilled.match(result)) return;
+
+      const campaignsPayload = result.payload?.data || {};
+      const fetchedCampaigns = Array.isArray(campaignsPayload?.campaigns)
+        ? campaignsPayload.campaigns
+        : [];
+      const total = Number(campaignsPayload?.total) || 0;
+      const hasReliableTotal = Number.isFinite(total) && total > 0;
+
+      setTotalCampaigns(total);
+      setCurrentPage(page);
+      setCampaignItems((prev) => {
+        const nextItems = append ? [...prev, ...fetchedCampaigns] : fetchedCampaigns;
+        setHasMoreCampaigns(
+          hasReliableTotal ? nextItems.length < total : fetchedCampaigns.length === PAGE_LIMIT
+        );
+        return nextItems;
+      });
+    },
+    [dispatch, selectedNiche, sortBy]
+  );
+
   useEffect(() => {
-    if (!campaignsData) {
-      dispatch(
-        filterCampaigns({
-          page: 1,
-          limit: 10,
-          sort: sortBy,
-        })
-      );
-    }
-  }, [dispatch, campaignsData, sortBy]);
+    fetchCampaigns({ page: 1, append: false });
+  }, [fetchCampaigns]);
 
   // ===== COMPUTED VALUES =====
   const transformedCampaigns = useMemo(() => {
-    if (!campaignsData?.campaigns) return [];
+    if (!campaignItems?.length) return [];
 
-    return campaignsData.campaigns.map((campaign) => ({
+    return campaignItems.map((campaign) => ({
       ...campaign,
       id: campaign.id,
       brandLogo: campaign.created_by?.brand_profile?.brand_logo_url,
@@ -104,7 +125,7 @@ export function useCampaignFeed() {
       style_guide: campaign.style_guide,
       questions: Array.isArray(campaign.questions) ? campaign.questions : [],
     }));
-  }, [campaignsData]);
+  }, [campaignItems]);
 
   const sortedCampaigns = transformedCampaigns;
 
@@ -113,48 +134,37 @@ export function useCampaignFeed() {
     (niche) => {
       const nicheValue = typeof niche === "object" ? niche.value : niche;
       setSelectedNiche(nicheValue);
-
-      if (nicheValue === "all") {
-        dispatch(resetFilteredCampaigns());
-        dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
-        return;
-      }
-
-      dispatch(
-        filterCampaigns({
-          page: 1,
-          limit: 10,
-          niches: nicheValue,
-          sort: sortBy,
-        })
-      );
+      fetchCampaigns({ page: 1, append: false, niche: nicheValue, sort: sortBy });
     },
-    [dispatch, sortBy]
+    [fetchCampaigns, sortBy]
   );
 
   const handleSortChange = useCallback(
     (newSortBy) => {
       const sortValue = typeof newSortBy === "object" ? newSortBy.value : newSortBy;
       setSortBy(sortValue);
-
-      dispatch(
-        filterCampaigns({
-          page: 1,
-          limit: 10,
-          niches: selectedNiche !== "all" ? selectedNiche : undefined,
-          sort: sortValue,
-        })
-      );
+      fetchCampaigns({ page: 1, append: false, niche: selectedNiche, sort: sortValue });
     },
-    [dispatch, selectedNiche]
+    [fetchCampaigns, selectedNiche]
   );
 
   const clearAllFilters = useCallback(() => {
     setSelectedNiche("all");
     setSortBy("latest");
-    dispatch(resetFilteredCampaigns());
-    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
-  }, [dispatch]);
+    fetchCampaigns({ page: 1, append: false, niche: "all", sort: "latest" });
+  }, [fetchCampaigns]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMoreCampaigns) return;
+    setIsLoadingMore(true);
+    await fetchCampaigns({
+      page: currentPage + 1,
+      append: true,
+      niche: selectedNiche,
+      sort: sortBy,
+    });
+    setIsLoadingMore(false);
+  }, [isLoadingMore, hasMoreCampaigns, fetchCampaigns, currentPage, selectedNiche, sortBy]);
 
   const handleOpenBrief = useCallback((campaign) => {
     setBriefCampaign(campaign);
@@ -186,33 +196,28 @@ export function useCampaignFeed() {
         pitch: applicationPitch.trim(),
       })
     )
-      .unwrap()
-      .then(() => {
+      .then((result) => {
+        if (!applyToCampaign.fulfilled.match(result)) return;
         closeApplication();
-
-        if (selectedNiche === "all") {
-          dispatch(resetGetAllCampaigns());
-          dispatch(resetFilteredCampaigns());
-          dispatch(getAllCampaigns({ page: 1, limit: 10, sort: sortBy }));
-        } else {
-          dispatch(resetFilteredCampaigns());
-          dispatch(resetGetAllCampaigns());
-          dispatch(
-            filterCampaigns({
-              page: 1,
-              limit: 10,
-              sort: sortBy,
-              niches: selectedNiche,
-            })
-          );
-        }
+        fetchCampaigns({ page: 1, append: false, niche: selectedNiche, sort: sortBy });
       });
-  }, [applicationCampaign, applicationPitch, closeApplication, dispatch, selectedNiche, sortBy]);
+  }, [
+    applicationCampaign,
+    applicationPitch,
+    closeApplication,
+    dispatch,
+    selectedNiche,
+    sortBy,
+    fetchCampaigns,
+  ]);
 
   return {
     campaigns: transformedCampaigns,
     sortedCampaigns,
     isLoading,
+    isLoadingMore,
+    hasMoreCampaigns,
+    totalCampaigns,
     sortBy,
     handleSortChange,
     selectedNiche,
@@ -231,5 +236,6 @@ export function useCampaignFeed() {
     handleApply,
     isApplying,
     filteredCampaignsData,
+    handleLoadMore,
   };
 }

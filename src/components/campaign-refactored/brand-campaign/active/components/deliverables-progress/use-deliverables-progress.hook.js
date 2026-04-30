@@ -1,33 +1,33 @@
 import { avatar } from "@/common/constants/auth.constant";
 import { TIMELINE_STATUS, TIMELINE_STEPS } from "@/common/constants/campaign.constant";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
+import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import {
   createCampaignNote,
   deleteCampaignNote,
-  getCampaignNotes,
   getCampaignNotesByCreatorProfile,
   updateCampaignNote,
 } from "@/provider/features/campaign-notes/campaign-notes.slice";
 import {
   createCampaignReview,
-  getReviewStatus,
   getCampaignReviewsByCreatorProfile,
+  getReviewStatus,
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
+import { getBrandTasks } from "@/provider/features/campaign-tasks/campaign-tasks.slice";
 import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import {
   getAllBrandCampaigns,
   getHiredCreators,
   markCreatorComplete,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { fetchCampaignCombinedDemographics } from "@/provider/features/phyllo/phyllo.slice";
-import { getBrandTasks } from "@/provider/features/campaign-tasks/campaign-tasks.slice";
 import {
   getContractsByCampaign,
   getIndividualCollaborationContracts,
 } from "@/provider/features/contracts/contracts.slice";
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { fetchCampaignCombinedDemographics } from "@/provider/features/phyllo/phyllo.slice";
+import usersService from "@/provider/features/users/users.service";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 
 const useDeliverablesProgress = (
   selectedCampaign = null,
@@ -72,6 +72,7 @@ const useDeliverablesProgress = (
   const [markCompleteRating, setMarkCompleteRating] = useState(0);
   const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
   const [isAddressCopied, setIsAddressCopied] = useState(false);
+  const [hydratedCreatorUser, setHydratedCreatorUser] = useState(null);
 
   // Track the last called keys to prevent duplicate calls
   const lastCalledKeysRef = useRef({
@@ -114,6 +115,27 @@ const useDeliverablesProgress = (
     isIndividualCreator,
   ]);
 
+  useEffect(() => {
+    if (!isIndividualCreator || !creatorUserId) {
+      setHydratedCreatorUser(null);
+      return;
+    }
+
+    usersService.getUserById(creatorUserId).then(
+      (response) => {
+        const payload = response?.data || null;
+        if (payload?.id === creatorUserId) {
+          setHydratedCreatorUser(payload);
+          return;
+        }
+        setHydratedCreatorUser(null);
+      },
+      () => {
+        setHydratedCreatorUser(null);
+      }
+    );
+  }, [isIndividualCreator, creatorUserId]);
+
   const getCreatorData = () => {
     if (!selectedCreator) {
       return {
@@ -131,8 +153,12 @@ const useDeliverablesProgress = (
 
     if (isIndividualCreator) {
       const contractCreator = selectedCreator.contract?.creator || selectedCreator.creator;
+      const effectiveCreator = hydratedCreatorUser || contractCreator;
       const contractProfile =
-        contractCreator?.creator_profile || selectedCreator.creator?.creator_profile;
+        effectiveCreator?.creator_profile ||
+        contractCreator?.creator_profile ||
+        selectedCreator.creator?.creator_profile;
+      const hydratedProfile = hydratedCreatorUser?.creator_profile;
 
       return {
         id: creatorProfileId || selectedCreator.creatorUserId || selectedCreator.id,
@@ -141,11 +167,22 @@ const useDeliverablesProgress = (
         avatar: selectedCreator.image || contractProfile?.profile_photo_url || avatar,
         isOnline: true,
         location: `${selectedCreator.location || ""}`.trim() || "Location not specified",
-        rating: parseFloat(selectedCreator.rating) || parseFloat(contractProfile?.rating) || 0,
-        reviewCount: selectedCreator.reviewCount || contractProfile?.review_count || 0,
+        rating: Number(
+          hydratedProfile?.rating ?? selectedCreator.rating ?? contractProfile?.rating ?? 0
+        ),
+        reviewCount: Number(
+          hydratedProfile?.reviewCount ??
+            hydratedProfile?.review_count ??
+            selectedCreator.reviewCount ??
+            selectedCreator.review_count ??
+            contractProfile?.reviewCount ??
+            contractProfile?.review_count ??
+            0
+        ),
         bio: selectedCreator.bio || contractProfile?.bio || "No bio available",
         shippingAddress:
           contractProfile?.shipping_address ||
+          hydratedCreatorUser?.creator_profile?.shipping_address ||
           selectedCreator?.creator?.creator_profile?.shipping_address ||
           null,
         age: selectedCreator.age,
@@ -170,7 +207,12 @@ const useDeliverablesProgress = (
           selectedCreator.location ||
           "Location not specified",
         rating: parseFloat(profile?.rating) || parseFloat(selectedCreator.rating) || 0,
-        reviewCount: profile?.review_count || selectedCreator.reviewCount || 0,
+        reviewCount:
+          profile?.reviewCount ||
+          profile?.review_count ||
+          selectedCreator.reviewCount ||
+          selectedCreator.review_count ||
+          0,
         bio: profile?.bio || selectedCreator.bio || "No bio available",
         shippingAddress: profile?.shipping_address || null,
         age:
@@ -228,6 +270,8 @@ const useDeliverablesProgress = (
       selectedCreator?.contract?.creator?.creator_profile?.bio,
       selectedCreator?.contract?.creator?.creator_profile?.shipping_address,
       selectedCreator?.creator?.creator_profile?.shipping_address,
+      hydratedCreatorUser?.id,
+      hydratedCreatorUser?.creator_profile?.shipping_address,
       creatorProfileId,
       isIndividualCreator,
     ]
@@ -511,8 +555,7 @@ const useDeliverablesProgress = (
       }
       if (step.step === TIMELINE_STEPS.DRAFT_REVIEW) {
         return (
-          step.status === TIMELINE_STATUS.COMPLETED ||
-          step.status === TIMELINE_STATUS.APPROVED
+          step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
         );
       }
       return step.status === TIMELINE_STATUS.COMPLETED;
@@ -566,9 +609,11 @@ const useDeliverablesProgress = (
     dispatch(getBrandTasks(null));
 
     if (isIndividualCreator) {
-      // Refetch both active and completed contracts
-      await dispatch(getIndividualCollaborationContracts(false)).unwrap();
-      await dispatch(getIndividualCollaborationContracts(true)).unwrap();
+      // Refetch only the currently visible dataset.
+      // Both active and completed screens share the same Redux slice key, so
+      // fetching both back-to-back can overwrite Active data with Completed data.
+      const shouldFetchCompleted = filters?.status === "COMPLETED";
+      await dispatch(getIndividualCollaborationContracts(shouldFetchCompleted)).unwrap();
       if (onClearCreator) {
         onClearCreator();
       }

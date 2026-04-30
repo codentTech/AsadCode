@@ -34,13 +34,26 @@ export default function Modal({
         borderRadius: 0,
       }
     : {
-        maxWidth: isSmDown ? `min(${capMax}, calc(100% - 32px))` : capMax,
-        width: isSmDown ? "calc(100% - 32px)" : "100%",
-        margin: isSmDown ? "16px" : undefined,
-        height: height ? (isSmDown ? "calc(100dvh - 32px)" : "90vh") : "auto",
+        maxWidth: isSmDown ? `min(${capMax}, calc(100% - 48px))` : capMax,
+        width: isSmDown ? "calc(100% - 48px)" : "100%",
+        margin: isSmDown ? "20px auto" : undefined,
         display: "flex",
         flexDirection: "column",
-        maxHeight: isSmDown ? "calc(100dvh - 32px)" : "90vh",
+        ...(height
+          ? isSmDown
+            ? {
+                height: "auto",
+                minHeight: 0,
+                maxHeight: "min(88dvh, calc(100dvh - 64px))",
+              }
+            : {
+                height: "90vh",
+                maxHeight: "90vh",
+              }
+          : {
+              height: "auto",
+              maxHeight: isSmDown ? "min(92dvh, calc(100dvh - 48px))" : "90vh",
+            }),
       };
 
   return (
@@ -48,6 +61,8 @@ export default function Modal({
       open={show}
       onClose={onClose}
       fullScreen={fullScreen}
+      fullWidth={false}
+      maxWidth={false}
       className="custom_modal_design"
       PaperProps={{
         className: fullScreen ? "" : "rounded-2xl",

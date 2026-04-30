@@ -5,7 +5,7 @@ import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { Menu } from "lucide-react";
 import useHeader from "./use-header.hook";
 
-const DashboardHeader = ({ onMenuClick, sidebarCollapsed }) => {
+const DashboardHeader = ({ onMenuClick }) => {
   const {
     router,
     currentUser,
@@ -21,18 +21,18 @@ const DashboardHeader = ({ onMenuClick, sidebarCollapsed }) => {
   } = useHeader();
 
   return (
-    <header
-      className={`fixed top-0 bg-white shadow-sm border-b border-gray-200 z-50 transition-all duration-300 ${
-        sidebarCollapsed ? "left-16" : "left-72"
-      }`}
-      style={{ width: sidebarCollapsed ? "calc(100% - 4rem)" : "calc(100% - 18rem)" }}
-    >
-      <div className="flex items-center justify-between mr-6 ml-1 py-[10px]">
-        <div className="flex items-center space-x-4">
-          <button onClick={onMenuClick} className="lg:hidden text-gray-600 hover:text-gray-900">
-            <Menu size={24} />
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="shrink-0 text-gray-600 hover:text-gray-900 lg:hidden"
+            aria-label="Open navigation menu"
+          >
+            <Menu size={22} />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="truncate text-base font-bold text-gray-900 sm:text-xl md:text-2xl">
             {currentUser?.role === ROLES.ADMIN
               ? "Admin Dashboard"
               : currentUser?.role === ROLES.CREATOR
@@ -41,7 +41,7 @@ const DashboardHeader = ({ onMenuClick, sidebarCollapsed }) => {
           </h2>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex shrink-0 items-center space-x-2 sm:space-x-3">
           {/* Profile Avatar */}
           <div className="relative">
             <button

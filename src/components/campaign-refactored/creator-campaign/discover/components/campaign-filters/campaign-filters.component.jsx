@@ -31,7 +31,7 @@ function CampaignFilters() {
   ];
 
   return (
-    <div className="w-full bg-white border-x flex flex-col min-h-0 max-h-[min(75dvh,640px)] lg:max-h-none">
+    <div className="flex h-full min-h-0 w-full flex-col border-x bg-white">
       {/* Header Section */}
       <div className="p-3 sm:p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between gap-2">
@@ -53,7 +53,7 @@ function CampaignFilters() {
       </div>
 
       {/* Filters Content */}
-      <div className="p-3 sm:p-4 flex-1 overflow-y-auto min-h-0 lg:max-h-[calc(100dvh-14rem)]">
+      <div className="p-3 sm:p-4 flex-1 overflow-y-auto min-h-0">
         {/* Campaign Type Filter */}
         <div className="mb-4">
           <button
