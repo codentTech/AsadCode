@@ -9,10 +9,9 @@ function Reviews() {
   const { setReviewSort, options, sortedReviews, isLoading } = useBrandReviews();
 
   return (
-    <section className="bg-white rounded-2xl shadow-md p-6 md:p-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h3 className="text-2xl font-bold text-gray-800">Reviews from Creators</h3>
+    <section className="rounded-2xl bg-white p-3 shadow-md sm:p-6 md:p-8">
+      <div className="mb-4 flex flex-col justify-between gap-3 sm:mb-6 md:flex-row md:items-center md:gap-4">
+        <h3 className="text-sm font-semibold text-gray-800 sm:text-lg md:text-xl">Reviews from Creators</h3>
 
         <div className="relative w-full md:w-64">
           <SimpleSelect
@@ -20,42 +19,37 @@ function Reviews() {
             options={options}
             onChange={({ value }) => setReviewSort(value)}
           />
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500">
             <ChevronDown className="w-4 h-4" />
           </div>
         </div>
       </div>
 
-      {/* Loading State */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
         </div>
       ) : sortedReviews.length > 0 ? (
-        /* Grid of Reviews */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-hidden">
+        <div className="grid grid-cols-1 gap-3 overflow-hidden sm:gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {sortedReviews.map((review) => (
             <div
               key={review.id}
-              className="bg-gray-50 p-5 rounded-xl shadow hover:shadow-lg transition duration-200"
+              className="rounded-xl bg-gray-50 p-3 shadow transition duration-200 hover:shadow-lg sm:p-5"
             >
-              {/* Creator Header */}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="mb-3 flex items-center gap-2.5 sm:mb-4 sm:gap-3">
                 <img
                   src={review.logo}
                   alt={review.creator}
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 truncate">{review.creator}</p>
-                  <p className="text-xs text-gray-500">{review.date}</p>
+                  <p className="truncate text-xs font-semibold text-gray-800 sm:text-sm">{review.creator}</p>
+                  <p className="text-[10px] text-gray-500 sm:text-xs">{review.date}</p>
                 </div>
               </div>
 
-              {/* Review Text */}
-              <p className="text-xs text-gray-700 mb-2 line-clamp-3">{review.text}</p>
+              <p className="mb-2 line-clamp-3 text-[10px] text-gray-700 sm:text-xs">{review.text}</p>
 
-              {/* Rating */}
               <div className="flex gap-1 text-yellow-400">
                 {[...Array(5)].map((_, i) => (
                   <Star
@@ -70,10 +64,9 @@ function Reviews() {
           ))}
         </div>
       ) : (
-        /* Empty State */
-        <div className="border border-dashed border-gray-200 rounded-lg p-10 text-center bg-gray-50">
-          <h4 className="text-lg font-semibold text-gray-800 mb-2">No reviews yet</h4>
-          <p className="text-sm text-gray-500">
+        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center sm:p-10">
+          <h4 className="mb-2 text-sm font-semibold text-gray-800 sm:text-lg">No reviews yet</h4>
+          <p className="text-xs text-gray-500 sm:text-sm">
             Reviews from creators will appear here once they complete campaigns and submit feedback.
           </p>
         </div>

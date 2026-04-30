@@ -36,7 +36,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
 
   if (isLoading) {
     return (
-      <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+      <section className="rounded-2xl bg-white p-3 shadow-lg sm:p-6 md:p-8">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="h-10 bg-gray-200 rounded mb-4"></div>
@@ -51,28 +51,28 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
   }
 
   return (
-    <section className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
-          <h3 className="text-lg font-semibold text-primary shrink-0">Portfolio Gallery</h3>
-          <button
-            type="button"
-            onClick={refreshGallery}
-            className="shrink-0 p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-gray-50 transition-colors"
-            title="Refresh gallery"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
+    <section className="rounded-2xl bg-white p-3 shadow-lg sm:p-6 md:p-8">
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
+        <h3 className="shrink-0 text-sm font-semibold text-primary sm:text-lg md:text-xl">Portfolio Gallery</h3>
+        <button
+          type="button"
+          onClick={refreshGallery}
+          className="shrink-0 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-50 hover:text-indigo-600"
+          title="Refresh gallery"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="mb-4 sm:mb-6">
         <div className="flex items-center gap-2 flex-wrap">
           {["all", "video", "image"].map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-sm capitalize transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-xs capitalize transition-colors sm:px-4 sm:text-sm ${
                 activeTab === tab
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-gray-900 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -87,9 +87,9 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
           <button
             type="button"
             onClick={() => setSelectedNiche("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`rounded-lg px-2 py-1 text-[10px] font-medium border transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
               selectedNiche === "all"
-                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                ? "bg-indigo-100 text-indigo-700 border-indigo-300 shadow-sm"
                 : "bg-white border border-gray-200 text-gray-700 hover:border-indigo-300"
             }`}
           >
@@ -100,9 +100,9 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
               key={n.id}
               type="button"
               onClick={() => setSelectedNiche(n.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-medium border transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
                 selectedNiche === n.id
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                  ? "bg-indigo-100 text-indigo-700 border-indigo-300 shadow-sm"
                   : "bg-white border border-gray-200 text-gray-700 hover:border-indigo-300"
               }`}
             >
@@ -114,7 +114,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
 
       {/* Grid */}
       {filteredPortfolio.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
           {filteredPortfolio.map((item) => {
             const videoEmbedSrc =
               item.media_type === "video" ? getGalleryVideoEmbedSrc(item) : null;

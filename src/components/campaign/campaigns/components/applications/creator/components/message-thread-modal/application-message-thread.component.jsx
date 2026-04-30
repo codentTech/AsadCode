@@ -1,4 +1,5 @@
 import MessageThreadModal from "../../../../message-thread-modal/message-thread-modal.component";
+import { pickMessageThreadModalProps } from "../../../../message-thread-modal/use-message-thread.hook";
 import useApplicationMessageThread from "./use-application-message-thread.hook";
 
 const ApplicationMessageThread = ({ brandId, onClose, application }) => {
@@ -23,15 +24,7 @@ const ApplicationMessageThread = ({ brandId, onClose, application }) => {
       isCreatorTyping={messageThreadProps.isCreatorTyping}
       messagesEndRef={messageThreadProps.messagesEndRef}
       messagesContainerRef={messageThreadProps.messagesContainerRef}
-      showEmojiPicker={messageThreadProps.showEmojiPicker}
-      toggleEmojiPicker={messageThreadProps.toggleEmojiPicker}
-      handleEmojiClick={messageThreadProps.handleEmojiClick}
-      isUploading={messageThreadProps.isUploading}
-      attachmentPreview={messageThreadProps.attachmentPreview}
-      handleFileSelect={messageThreadProps.handleFileSelect}
-      removeAttachment={messageThreadProps.removeAttachment}
-      openFilePicker={messageThreadProps.openFilePicker}
-      fileInputRef={messageThreadProps.fileInputRef}
+      {...pickMessageThreadModalProps(messageThreadProps)}
     />
   );
 };

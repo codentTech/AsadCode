@@ -95,23 +95,23 @@ const PreferredPaymentType = () => {
   return (
     <>
       {/* Header */}
-      <div className="bg-primary p-4 sm:p-6 rounded-lg text-white mb-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">Preferred Payment Type</h1>
-        <p className="text-sm sm:text-base mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Preferred Payment Type</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Set your default payment preferences to help brands understand how you prefer to be
           compensated.
         </p>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:mb-6 sm:p-4">
         <div className="flex items-start space-x-3">
           <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg flex-shrink-0">
             <Info className="h-4 w-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-medium text-blue-900 mb-1">Payment Preferences</h3>
-            <p className="text-blue-800 text-sm leading-relaxed">
+            <h3 className="mb-1 text-xs font-medium text-blue-900 sm:text-sm">Payment Preferences</h3>
+            <p className="text-xs leading-relaxed text-blue-800 sm:text-sm">
               You can select multiple payment types. Brands will see your preferences when creating
               campaigns with you.
             </p>
@@ -120,7 +120,7 @@ const PreferredPaymentType = () => {
       </div>
 
       {/* Payment Type Selection */}
-      <div className="grid lg:grid-cols-3 gap-4 mb-6">
+      <div className="mb-6 grid gap-3 sm:gap-4 lg:grid-cols-3">
         {paymentTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedPaymentTypes.includes(type.id);
@@ -130,7 +130,7 @@ const PreferredPaymentType = () => {
               key={type.id}
               onClick={() => togglePaymentType(type.id)}
               className={`
-                  relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg
+                  relative rounded-xl border-2 p-3 sm:p-5 cursor-pointer transition-all duration-200 hover:shadow-lg
                   ${
                     isSelected
                       ? `${type.borderColor} ${type.bgColor} shadow-md`
@@ -162,15 +162,15 @@ const PreferredPaymentType = () => {
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-gray-900 leading-tight">{type.label}</h3>
-                  <p className="text-gray-600 text-sm mt-1 leading-relaxed">{type.desc}</p>
+                  <h3 className="text-sm font-bold leading-tight text-gray-900 sm:text-lg">{type.label}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-gray-600 sm:text-sm">{type.desc}</p>
                 </div>
               </div>
 
               {/* Benefits */}
               <div className="space-y-1">
                 {type.benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start text-sm text-gray-600">
+                  <div key={index} className="flex items-start text-xs text-gray-600 sm:text-sm">
                     <CheckCircle className="h-3 w-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                     <span className="leading-tight">{benefit}</span>
                   </div>
@@ -181,15 +181,15 @@ const PreferredPaymentType = () => {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Fixed Payment Rates */}
         {selectedPaymentTypes.includes("fixed") && (
-          <div className="bg-white rounded-lg shadow-sm p-5 border">
+          <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
             <div className="flex items-center mb-4">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                 <CreditCard className="h-4 w-4 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Fixed Payment Rates</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Fixed Payment Rates</h3>
             </div>
 
             <div className="space-y-4">
@@ -213,12 +213,12 @@ const PreferredPaymentType = () => {
 
         {/* Commission Settings */}
         {selectedPaymentTypes.includes("commission") && (
-          <div className="bg-white rounded-lg shadow-sm p-5 border">
+          <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
             <div className="flex items-center mb-4">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
                 <TrendingUp className="h-4 w-4 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Commission Settings</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Commission Settings</h3>
             </div>
 
             <div className="space-y-4">
@@ -239,12 +239,12 @@ const PreferredPaymentType = () => {
 
         {/* Gifted Product Settings */}
         {selectedPaymentTypes.includes("gifted") && (
-          <div className="bg-white rounded-lg shadow-sm p-5 border">
+          <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
             <div className="flex items-center mb-4">
               <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
                 <Gift className="h-4 w-4 text-pink-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Gifted Product Settings</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Gifted Product Settings</h3>
             </div>
 
             <div className="space-y-4">
@@ -264,8 +264,8 @@ const PreferredPaymentType = () => {
         )}
 
         {/* Summary & Save */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h3>
+        <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">Payment Summary</h3>
 
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center py-2 border-b border-gray-100">

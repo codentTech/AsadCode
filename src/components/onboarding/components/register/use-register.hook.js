@@ -5,97 +5,46 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as Yup from "yup";
 import { useSearchParams } from "next/navigation";
 import api from "@/common/utils/api";
 import ROLES from "@/common/constants/role.constant";
 import { BRAND_ACCOUNT_TYPE_OPTIONS } from "@/common/constants/options.constant";
-
-const createValidationSchema = (isCreatorMode) => {
-  const baseSchema = {
-    first_name: Yup.string().required("First Name is required"),
-    last_name: Yup.string().required("Last Name is required"),
-    email: Yup.string().email("Invalid email address").required("Email is required"),
-    password: Yup.string()
-      .min(8, "Password must be at least 8 characters")
-      .required("Password is required")
-      .matches(/[0-9]/, "Password requires a number")
-      .matches(/[a-z]/, "Password requires a lowercase letter")
-      .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^A-Za-z0-9]/, "Use Special Character like @ # etc"),
-    confirm_password: Yup.string()
-      .required("Please confirm your password")
-      .oneOf([Yup.ref("password"), null], "Passwords must match"),
-    date_of_birth: Yup.date()
-      .transform((value, originalValue) => {
-        if (originalValue === "" || originalValue == null) {
-          return undefined;
-        }
-        return value;
-      })
-      .required("Date of birth is required")
-      .max(new Date(), "Date of birth cannot be in the future"),
-    city: Yup.string().required("City is required"),
-    country: Yup.string().required("Country is required"),
-    country_code: Yup.string().required("Country is required"),
-    city_country_code: Yup.string().required("City is required"),
-    agree_terms: Yup.boolean().oneOf([true], "You must accept the terms and conditions"),
-    marketing_emails: Yup.boolean().default(false),
-    latitude: Yup.number()
-      .nullable()
-      .transform((value, originalValue) => (originalValue === "" ? null : value)),
-    longitude: Yup.number()
-      .nullable()
-      .transform((value, originalValue) => (originalValue === "" ? null : value)),
-    referred_by: Yup.string().optional(),
-  };
-
-  if (!isCreatorMode) {
-    baseSchema.account_type = Yup.string().required("Please select an account type");
-  }
-
-  return Yup.object().shape(baseSchema);
-};
+import {
+  createRegisterValidationSchema,
+  DEFAULT_FORM_VALUES,
+  normalizeAutoDetectedCity,
+  normalizeAutoDetectedCountry,
+  normalizeCountry,
+  normalizeSelectedCity,
+  toNullableNumber,
+} from "@/common/utils/register-form.util";
 
 export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
+
   const token = inviteToken || searchParams?.get("token");
   const showBrandRegisterExtras = !isCreatorMode && !token;
+  const validationSchema = createRegisterValidationSchema(isCreatorMode);
 
-  const validationSchema = createValidationSchema(isCreatorMode);
+  const [selectedAccountType, setSelectedAccountType] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [hasManualLocationOverride, setHasManualLocationOverride] =
+    useState(false);
+  const hasAutoDetectedLocation = useRef(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
     setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onChange",
-    defaultValues: {
-      marketing_emails: false,
-      agree_terms: false,
-      country: "",
-      city: "",
-      country_code: "",
-      city_country_code: "",
-      confirm_password: "",
-      latitude: "",
-      longitude: "",
-      referred_by: "",
-    },
+    defaultValues: DEFAULT_FORM_VALUES,
   });
-
-  const email = watch("email");
-
-  const [selectedAccountType, setSelectedAccountType] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [hasManualLocationOverride, setHasManualLocationOverride] = useState(false);
-  const hasAutoDetectedLocation = useRef(false);
 
   useEffect(() => {
     if (selectedAccountType) {
@@ -118,56 +67,47 @@ export default function useRegister({ onNext, inviteToken }) {
     }
 
     const autoDetectLocation = async () => {
-      try {
-        const client = api({ "x-skip-toast": "true" });
-        const response = await client.get("/auth/location/auto-detect");
-        const data = response.data?.data;
-        if (!isMounted || !data) return;
+      const client = api({ "x-skip-toast": "true" });
+      const response = await client.get("/auth/location/auto-detect");
+      const data = response.data?.data;
+      if (!isMounted || !data) return;
 
-        hasAutoDetectedLocation.current = true;
+      hasAutoDetectedLocation.current = true;
 
-        if (data.countryName && data.countryCode && !selectedCountry) {
-          const normalizedCountry = {
-            name: data.countryName,
-            code: data.countryCode,
-            countryCode: data.countryCode,
-            dialCode: data.dialCode || "",
-          };
-          setSelectedCountry(normalizedCountry);
-          setValue("country", normalizedCountry.name, { shouldValidate: true });
-          setValue("country_code", normalizedCountry.code, { shouldValidate: true });
-          setValue("city_country_code", normalizedCountry.code, { shouldValidate: true });
+      if (data.countryName && data.countryCode && !selectedCountry) {
+        const normalizedCountry = normalizeAutoDetectedCountry(data);
+        setSelectedCountry(normalizedCountry);
+        setValue("country", normalizedCountry.name, { shouldValidate: true });
+        setValue("country_code", normalizedCountry.code, { shouldValidate: true });
+        setValue("city_country_code", normalizedCountry.code, {
+          shouldValidate: true,
+        });
+      }
+
+      if (data.city && !selectedCity) {
+        const normalizedCity = normalizeAutoDetectedCity(data);
+        setSelectedCity(normalizedCity);
+        setValue("city", normalizedCity.name, { shouldValidate: true });
+        setValue("city_country_code", normalizedCity.countryCode, {
+          shouldValidate: true,
+        });
+        if (normalizedCity.latitude !== null) {
+          setValue("latitude", normalizedCity.latitude, { shouldValidate: false });
         }
-
-        if (data.city && !selectedCity) {
-          const normalizedCity = {
-            name: data.city,
-            cityName: data.city,
-            countryCode: data.cityCountryCode || data.countryCode || "",
-            latitude: typeof data.latitude === "number" ? data.latitude : null,
-            longitude: typeof data.longitude === "number" ? data.longitude : null,
-          };
-          setSelectedCity(normalizedCity);
-          setValue("city", normalizedCity.name, { shouldValidate: true });
-          setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
-          if (normalizedCity.latitude !== null) {
-            setValue("latitude", normalizedCity.latitude, { shouldValidate: false });
-          }
-          if (normalizedCity.longitude !== null) {
-            setValue("longitude", normalizedCity.longitude, { shouldValidate: false });
-          }
-        } else {
-          if (typeof data.latitude === "number") {
-            setValue("latitude", data.latitude, { shouldValidate: false });
-          }
-          if (typeof data.longitude === "number") {
-            setValue("longitude", data.longitude, { shouldValidate: false });
-          }
+        if (normalizedCity.longitude !== null) {
+          setValue("longitude", normalizedCity.longitude, { shouldValidate: false });
         }
-      } catch {}
+      } else {
+        if (typeof data.latitude === "number") {
+          setValue("latitude", data.latitude, { shouldValidate: false });
+        }
+        if (typeof data.longitude === "number") {
+          setValue("longitude", data.longitude, { shouldValidate: false });
+        }
+      }
     };
 
-    autoDetectLocation();
+    autoDetectLocation().catch(() => {});
 
     return () => {
       isMounted = false;
@@ -190,12 +130,7 @@ export default function useRegister({ onNext, inviteToken }) {
         return;
       }
 
-      const normalizedCountry = {
-        name: country.countryName || country.label || country.name || "",
-        code: country.countryCode || country.value || country.code || "",
-        countryCode: country.countryCode || country.value || country.code || "",
-        dialCode: country.phoneCode || country.phone || "",
-      };
+      const normalizedCountry = normalizeCountry(country);
 
       setSelectedCountry(normalizedCountry);
       setValue("country", normalizedCountry.name, { shouldValidate: true });
@@ -223,15 +158,7 @@ export default function useRegister({ onNext, inviteToken }) {
         return;
       }
 
-      const normalizedCity = {
-        name: city.cityName || city.label || city.name || "",
-        cityName: city.cityName || city.label || city.name || "",
-        countryCode: city.countryCode || selectedCountry?.code || "",
-        region: city.region || "",
-        geonameId: city.geonameId || null,
-        latitude: city.latitude ?? null,
-        longitude: city.longitude ?? null,
-      };
+      const normalizedCity = normalizeSelectedCity(city, selectedCountry?.code);
 
       setSelectedCity(normalizedCity);
       setValue("city", normalizedCity.name, { shouldValidate: true });
@@ -253,9 +180,8 @@ export default function useRegister({ onNext, inviteToken }) {
       country: values.country,
       country_code: values.country_code,
       city_country_code: values.city_country_code,
-      latitude: values.latitude === "" || values.latitude === null ? null : Number(values.latitude),
-      longitude:
-        values.longitude === "" || values.longitude === null ? null : Number(values.longitude),
+      latitude: toNullableNumber(values.latitude),
+      longitude: toNullableNumber(values.longitude),
       role: isCreatorMode ? ROLES.CREATOR : ROLES.BRAND,
       marketing_emails: values.marketing_emails || false,
       agree_terms: values.agree_terms,

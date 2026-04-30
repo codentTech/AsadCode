@@ -15,7 +15,7 @@ function NotificationSection({
   }
 
   return (
-    <div className="mb-6">
+    <div className="mb-4 sm:mb-6">
       <div className="flex items-center gap-2 mb-3">
         <div
           className={`w-6 h-6 rounded-lg flex items-center justify-center ${
@@ -27,7 +27,7 @@ function NotificationSection({
             strokeWidth={2}
           />
         </div>
-        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-sm font-semibold text-gray-900 sm:text-base">{title}</h2>
         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
           {notifications.length}
         </span>

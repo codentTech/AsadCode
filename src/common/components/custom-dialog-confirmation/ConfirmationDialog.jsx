@@ -5,11 +5,26 @@ import DialogContent from "@mui/material/DialogContent";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { AlertTriangle, X } from "lucide-react";
 
-export default function ConfirmationDialog({ show, onClose, onConfirm, message, content }) {
+export default function ConfirmationDialog({
+  show,
+  onClose,
+  onConfirm,
+  message,
+  content,
+  confirmLoading = false,
+}) {
+  const handleClose = () => {
+    if (confirmLoading) return;
+    onClose();
+  };
+
   return (
     <Dialog
       open={show}
-      onClose={onClose}
+      onClose={(_, reason) => {
+        if (confirmLoading) return;
+        onClose(_, reason);
+      }}
       PaperProps={{
         sx: {
           width: "100%",
@@ -25,8 +40,10 @@ export default function ConfirmationDialog({ show, onClose, onConfirm, message, 
           <div className="relative bg-white rounded-xl">
             {/* Close button */}
             <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              type="button"
+              onClick={handleClose}
+              disabled={confirmLoading}
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <X size={18} className="text-gray-400" />
             </button>
@@ -54,12 +71,19 @@ export default function ConfirmationDialog({ show, onClose, onConfirm, message, 
 
               {/* Action buttons */}
               <div className="flex gap-3">
-                <CustomButton onClick={onClose} text="Cancel" className="btn-cancel w-full" />
+                <CustomButton
+                  onClick={handleClose}
+                  text="Cancel"
+                  className="btn-cancel w-full"
+                  disabled={confirmLoading}
+                />
                 <CustomButton
                   text="Confirm"
-                  type="submit"
+                  type="button"
                   onClick={onConfirm}
                   className="btn-primary w-full"
+                  loading={confirmLoading}
+                  disabled={confirmLoading}
                 />
               </div>
             </div>
@@ -76,4 +100,5 @@ ConfirmationDialog.propTypes = {
   onConfirm: PropTypes.func.isRequired,
   message: PropTypes.string.isRequired,
   content: PropTypes.node.isRequired,
+  confirmLoading: PropTypes.bool,
 };

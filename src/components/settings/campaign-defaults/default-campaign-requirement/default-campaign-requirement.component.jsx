@@ -436,18 +436,20 @@ const DefaultCampaignRequirements = () => {
   return (
     <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-8">
-        <h1 className="text-xl font-bold text-white">Default Campaign Requirements</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-4 rounded-lg bg-primary p-3 text-white sm:mb-8 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Default Campaign Requirements
+        </h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Set your campaign preferences and ideal creator requirements for consistent standards
         </p>
       </div>
 
       {/* Section Tabs */}
-      <div className="flex space-x-4 mb-8">
+      <div className="mb-4 flex flex-col gap-2 sm:mb-8 sm:flex-row sm:space-x-4 sm:gap-0">
         <button
           onClick={() => setActiveSection("preferences")}
-          className={`px-6 py-3 rounded-lg font-medium border transition-all duration-200 ${
+          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 sm:px-6 sm:py-3 sm:text-sm ${
             activeSection === "preferences"
               ? "bg-indigo-600 text-white"
               : "bg-white text-gray-600 hover:bg-gray-50"
@@ -457,7 +459,7 @@ const DefaultCampaignRequirements = () => {
         </button>
         <button
           onClick={() => setActiveSection("ideal")}
-          className={`px-6 py-3 rounded-lg font-medium border transition-all duration-200 ${
+          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 sm:px-6 sm:py-3 sm:text-sm ${
             activeSection === "ideal"
               ? "bg-indigo-600 text-white"
               : "bg-white text-gray-600 hover:bg-gray-50"
@@ -470,12 +472,12 @@ const DefaultCampaignRequirements = () => {
       {/* Campaign Preferences Section */}
       {activeSection === "preferences" && (
         <form onSubmit={campaignPreferencesForm.handleSubmit(onSubmitCampaignPreferences)}>
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
               {/* Filming Preference */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">
                   Filming Requirements <span className="text-red-500">*</span>
                 </h3>
                 <div className="space-y-3">
@@ -526,8 +528,8 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* Campaign Types */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">
                   Campaign Types <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -589,8 +591,8 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* Geographic Focus */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Focus</h3>
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">Geographic Focus</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {geographicFocus.map((geo) => {
                     const Icon = geo.icon;
@@ -651,8 +653,8 @@ const DefaultCampaignRequirements = () => {
             {/* Right Column */}
             <div className="space-y-4">
               {/* Target Niches */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Target Niches</h3>
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">Target Niches</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {niches.map((niche) => {
                     const isSelected = selectedNiches?.includes(niche.name);
@@ -696,8 +698,8 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* Creator Sizes */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferred Creator Size</h3>
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">Preferred Creator Size</h3>
                 <div className="space-y-4">
                   {creatorSizes.map((size) => {
                     const Icon = size.icon;
@@ -764,10 +766,10 @@ const DefaultCampaignRequirements = () => {
             </div>
           </div>
           {/* Save Button */}
-          <div className="flex justify-end mt-10">
+          <div className="mt-6 flex justify-end sm:mt-10">
             <CustomButton
               text={isLoading ? "Saving..." : "Save Campaign Preferences"}
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
               type="submit"
               disabled={isLoading}
             />
@@ -780,10 +782,10 @@ const DefaultCampaignRequirements = () => {
         <form onSubmit={idealCreatorForm.handleSubmit(onSubmitIdealCreator)}>
           <div className="space-y-4">
             {/* Follower Count & Gender */}
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
               {/* Minimum Followers */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 sm:text-lg">
                   <Hash className="h-5 w-5 text-indigo-600 mr-2" />
                   Minimum Followers <span className="text-red-500">*</span>
                 </h3>
@@ -818,8 +820,8 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* Gender */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 sm:text-lg">
                   <UserCheck className="h-5 w-5 text-indigo-600 mr-2" />
                   Gender
                 </h3>
@@ -857,8 +859,8 @@ const DefaultCampaignRequirements = () => {
             </div>
 
             {/* Location */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 sm:text-lg">
                 <MapPin className="h-5 w-5 text-indigo-600 mr-2" />
                 Location
               </h3>
@@ -917,10 +919,10 @@ const DefaultCampaignRequirements = () => {
             </div>
 
             {/* Age Range & Platforms */}
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
               {/* Age Range */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 sm:text-lg">
                   <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
                   Age Range
                 </h3>
@@ -957,8 +959,8 @@ const DefaultCampaignRequirements = () => {
               </div>
 
               {/* Platforms */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 sm:text-lg">
                   <Globe className="h-5 w-5 text-indigo-600 mr-2" />
                   Primary Platforms
                 </h3>
@@ -1002,10 +1004,10 @@ const DefaultCampaignRequirements = () => {
             </div>
           </div>
           {/* Save Button */}
-          <div className="flex justify-end mt-10">
+          <div className="mt-6 flex justify-end sm:mt-10">
             <CustomButton
               text={isLoading ? "Saving..." : "Save Ideal Creator"}
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
               type="submit"
               disabled={isLoading}
             />

@@ -123,25 +123,24 @@ const EmailPreferencesPage = () => {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Email Preferences</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Email Preferences</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Manage your email notifications and communication preferences
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Main Preferences */}
         <div className="lg:col-span-2 space-y-6">
           {/* Email Addresses */}
-          <div className="bg-white rounded-lg border p-6">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <div className="mb-3 flex items-center space-x-2 sm:mb-4">
               <Mail className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Email Addresses</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Email Addresses</h3>
             </div>
 
-            <div className="flex gap-6">
+            <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-2">
               <CustomInput
                 label="Primary Email"
                 type="email"
@@ -162,10 +161,10 @@ const EmailPreferencesPage = () => {
           </div>
 
           {/* Campaign & Collaboration */}
-          <div className="bg-white rounded-lg border p-6">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <div className="mb-3 flex items-center space-x-2 sm:mb-4">
               <Users className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Campaign & Collaboration</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Campaign & Collaboration</h3>
             </div>
 
             <div className="space-y-3">
@@ -201,10 +200,10 @@ const EmailPreferencesPage = () => {
           </div>
 
           {/* Payment & Financial */}
-          <div className="bg-white rounded-lg border p-6">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <div className="mb-3 flex items-center space-x-2 sm:mb-4">
               <DollarSign className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Payment & Financial</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Payment & Financial</h3>
             </div>
 
             <div className="space-y-3">
@@ -240,10 +239,10 @@ const EmailPreferencesPage = () => {
           </div>
 
           {/* Platform Updates */}
-          <div className="bg-white rounded-lg border p-6">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <div className="mb-3 flex items-center space-x-2 sm:mb-4">
               <Settings className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Platform Updates</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Platform Updates</h3>
             </div>
 
             <div className="space-y-3">
@@ -279,10 +278,10 @@ const EmailPreferencesPage = () => {
           </div>
 
           {/* Marketing & Promotional */}
-          <div className="bg-white rounded-lg border p-6">
-            <div className="flex items-center space-x-2 mb-4">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <div className="mb-3 flex items-center space-x-2 sm:mb-4">
               <Mail className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Marketing & Promotional</h3>
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Marketing & Promotional</h3>
             </div>
 
             <div className="space-y-3">
@@ -320,8 +319,8 @@ const EmailPreferencesPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Email Frequency */}
-          <div className="bg-white rounded-lg border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Frequency</h3>
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">Email Frequency</h3>
 
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -373,8 +372,8 @@ const EmailPreferencesPage = () => {
 
           {/* Digest Timing */}
           {(preferences.emailFrequency === "daily" || preferences.emailFrequency === "weekly") && (
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Delivery Time</h3>
+            <div className="rounded-lg border bg-white p-3 sm:p-6">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">Delivery Time</h3>
 
               <div className="space-y-3">
                 <label className="flex items-center space-x-3 cursor-pointer">
@@ -417,8 +416,8 @@ const EmailPreferencesPage = () => {
           )}
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
+            <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">Quick Actions</h3>
 
             <div className="space-y-3">
               <CustomButton
@@ -448,7 +447,7 @@ const EmailPreferencesPage = () => {
           </div>
 
           {/* Save Actions */}
-          <div className="bg-white rounded-lg border p-6">
+          <div className="rounded-lg border bg-white p-3 sm:p-6">
             <div className="space-y-3">
               <CustomButton
                 text="Save Changes"
@@ -468,7 +467,7 @@ const EmailPreferencesPage = () => {
 
             {hasChanges && (
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
+                <p className="text-xs text-yellow-800 sm:text-sm">
                   You have unsaved changes. Don't forget to save your preferences.
                 </p>
               </div>

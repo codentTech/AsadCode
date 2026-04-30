@@ -263,7 +263,7 @@ function CampaignFeed() {
           <div className="space-y-2">
             <h5 className="text-xs font-semibold text-gray-900 mb-2">Questions</h5>
             <div className="flex flex-col gap-1 text-xs">
-              {applicationCampaign?.questions.map((question) => (
+              {(applicationCampaign?.questions ?? []).map((question) => (
                 <span
                   key={question}
                   className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"

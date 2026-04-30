@@ -50,6 +50,8 @@ export default function useBrandProfileSetup({ onNext }) {
       companyDescription: "",
     },
   });
+  const formLoading = isLoading || isSubmitting;
+  const logoLoading = uploadState.isLoading;
 
   const brandLogo = watch("brandLogoUrl");
   const description = watch("companyDescription");
@@ -219,7 +221,8 @@ export default function useBrandProfileSetup({ onNext }) {
     errors,
     onSubmit,
     getValues,
-    isLoading: isLoading || isSubmitting || uploadState.isLoading,
+    isLoading: formLoading,
+    logoLoading,
     isError: uploadState.isError,
     errorMessage: uploadState.message,
     // File upload

@@ -11,18 +11,18 @@ function AudienceSnapshot({ connections, summary, onRefresh, isRefreshing }) {
   const averageEngagementRate = summary?.averageEngagementRate ?? null;
 
   return (
-    <section className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <section className="rounded-lg bg-white p-3 shadow-md sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Audience Analytics Snapshot</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">Audience Analytics Snapshot</h3>
+          <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs md:text-sm">
             Verified reach pulled directly from your connected social accounts.
           </p>
         </div>
         {onRefresh && (
           <CustomButton
             text={isRefreshing ? "Refreshing..." : "Refresh"}
-            className="btn-outline px-4 py-2 text-xs"
+            className="btn-outline"
             onClick={onRefresh}
             disabled={isRefreshing}
             startIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />}
@@ -30,29 +30,29 @@ function AudienceSnapshot({ connections, summary, onRefresh, isRefreshing }) {
         )}
       </div>
 
-      <div className="mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="border border-indigo-100 bg-indigo-50 rounded-lg p-4">
-            <p className="text-xs font-medium text-indigo-600 uppercase tracking-wide">
+      <div className="mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 sm:p-4">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600 sm:text-xs">
               Combined Audience
             </p>
-            <p className="text-2xl font-bold text-indigo-900 mt-1">
+            <p className="mt-1 text-sm font-bold text-indigo-900 sm:text-2xl">
               {formatFollowers(totalFollowers)}
             </p>
           </div>
           {averageEngagementRate != null && (
-            <div className="border border-indigo-100 bg-indigo-50 rounded-lg p-4">
-              <p className="text-xs font-medium text-indigo-600 uppercase tracking-wide">
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 sm:p-4">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600 sm:text-xs">
                 Average Engagement Rate
               </p>
-              <p className="text-2xl font-bold text-indigo-900 mt-1">{averageEngagementRate}%</p>
+              <p className="mt-1 text-sm font-bold text-indigo-900 sm:text-2xl">{averageEngagementRate}%</p>
             </div>
           )}
         </div>
       </div>
 
       {connections.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {connections.map((connection) => {
             const syncedLabel = (() => {
               if (!connection.lastSynced) return "recently";
@@ -64,26 +64,26 @@ function AudienceSnapshot({ connections, summary, onRefresh, isRefreshing }) {
             return (
               <div
                 key={connection.id}
-                className="border border-gray-200 rounded-lg p-4 bg-indigo-50 flex flex-col gap-2"
+                className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-indigo-50 p-3 sm:p-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-indigo-900 truncate">
+                  <span className="truncate text-xs font-semibold text-indigo-900 sm:text-sm">
                     {platformDisplayName(connection.name || connection.platform)}
                   </span>
                   <TrendingUp className="w-4 h-4 text-indigo-500" />
                 </div>
-                <div className="text-2xl font-bold text-indigo-700">
+                <div className="text-sm font-bold text-indigo-700 sm:text-2xl">
                   {formatFollowers(connection.followers)}
                 </div>
-                <p className="text-xs text-indigo-600">Last synced {syncedLabel}</p>
+                <p className="text-[10px] text-indigo-600 sm:text-xs">Last synced {syncedLabel}</p>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-gray-200 rounded-lg p-6 text-center bg-gray-50">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2">No connections yet</h4>
-          <p className="text-sm text-gray-500">
+        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4 text-center sm:p-6">
+          <h4 className="mb-2 text-xs font-semibold text-gray-800 sm:text-sm">No connections yet</h4>
+          <p className="text-xs text-gray-500 sm:text-sm">
             Connect your brand’s social accounts to unlock analytics and build trust with creators.
           </p>
         </div>

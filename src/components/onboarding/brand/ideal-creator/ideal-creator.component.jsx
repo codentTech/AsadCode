@@ -1,229 +1,42 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import COUNTRIES from "@/common/constants/countries.constant";
-import FacebookIcon from "@/common/icons/facebook";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
-import TwitterIcon from "@/common/icons/twitter";
 import YoutubeIcon from "@/common/icons/youtube";
 import { ArrowLeft, Calendar, CheckCircle, Globe, Hash, MapPin, UserCheck, X } from "lucide-react";
-import useIdealCreator from "./use-ideal-creator.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
-import { useEffect, useMemo, useState } from "react";
+import useIdealCreator from "./use-ideal-creator.hook";
 
 const IdealCreator = ({ onNext, onBack }) => {
-  const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
-    useIdealCreator({ onNext });
-
-  const minFollowers = watch("min_followers");
-  const selectedGender = watch("gender");
-  const selectedCountries = watch("countries");
-  const selectedCities = watch("cities") || [];
-  const selectedAgeRanges = watch("age_ranges");
-  const selectedPlatforms = watch("platforms");
-
-  const [countrySelectValue, setCountrySelectValue] = useState(null);
-  const [citySelectValue, setCitySelectValue] = useState(null);
-
-  const selectedCountryDetails = useMemo(() => {
-    if (!Array.isArray(selectedCountries)) return [];
-    return selectedCountries
-      .map((code) => {
-        const countryMeta = COUNTRIES.find(
-          (country) => country.code.toUpperCase() === String(code).toUpperCase()
-        );
-        return {
-          code,
-          name: countryMeta?.label || code,
-        };
-      })
-      .filter((country) => Boolean(country.code));
-  }, [selectedCountries]);
-
-  const allowedCountryCodes = useMemo(
-    () => selectedCountryDetails.map((country) => String(country.code).toUpperCase()),
-    [selectedCountryDetails]
-  );
-
-  const primaryCountryCode = selectedCountryDetails[0]?.code || null;
-
-  const handleCountrySelect = (country) => {
-    if (!country) {
-      setCountrySelectValue(null);
-      return;
-    }
-
-    const code = country.countryCode || country.value || country.code || "";
-    if (!code) return;
-
-    const normalizedCode = String(code).toUpperCase();
-    const existing = selectedCountries || [];
-
-    if (existing.includes(normalizedCode)) {
-      setCountrySelectValue(null);
-      return;
-    }
-
-    const updated = [...existing, normalizedCode];
-    setValue("countries", updated, { shouldValidate: true });
-    setCountrySelectValue(null);
-  };
-
-  const handleCountryRemove = (code) => {
-    const updated = (selectedCountries || []).filter(
-      (existingCode) => existingCode.toUpperCase() !== String(code).toUpperCase()
-    );
-    setValue("countries", updated, { shouldValidate: true });
-
-    if (
-      citySelectValue?.countryCode &&
-      citySelectValue.countryCode.toUpperCase() === String(code).toUpperCase()
-    ) {
-      setCitySelectValue(null);
-    }
-
-    if (Array.isArray(selectedCities) && selectedCities.length) {
-      const filteredCities = selectedCities.filter(
-        (city) => city.countryCode?.toUpperCase() !== String(code).toUpperCase()
-      );
-      if (filteredCities.length !== selectedCities.length) {
-        setValue("cities", filteredCities, { shouldValidate: true });
-      }
-    }
-  };
-
-  const handleCitySelect = (city) => {
-    if (!city) {
-      setCitySelectValue(null);
-      return;
-    }
-
-    const name = city.cityName || city.label || city.name || "";
-    const resolvedCountryCode =
-      city.countryCode || city.country || citySelectValue?.countryCode || primaryCountryCode || "";
-    const normalizedCountryCode = resolvedCountryCode
-      ? String(resolvedCountryCode).toUpperCase()
-      : "";
-    const normalizedCity = {
-      name,
-      cityName: name,
-      countryCode: normalizedCountryCode,
-    };
-
-    const existingCities = Array.isArray(selectedCities) ? [...selectedCities] : [];
-    const alreadyExists = existingCities.some(
-      (existingCity) =>
-        existingCity.name.toLowerCase() === normalizedCity.name.toLowerCase() &&
-        (existingCity.countryCode || "") === normalizedCountryCode
-    );
-
-    if (!alreadyExists) {
-      setValue("cities", [...existingCities, normalizedCity], { shouldValidate: true });
-    }
-
-    setCitySelectValue(null);
-  };
-
-  useEffect(() => {
-    if (!allowedCountryCodes.length) {
-      if (citySelectValue) {
-        setCitySelectValue(null);
-      }
-      if (Array.isArray(selectedCities) && selectedCities.length) {
-        setValue("cities", [], { shouldValidate: true });
-      }
-      return;
-    }
-
-    if (
-      citySelectValue?.countryCode &&
-      !allowedCountryCodes.includes(citySelectValue.countryCode.toUpperCase())
-    ) {
-      setCitySelectValue(null);
-    }
-
-    if (Array.isArray(selectedCities) && selectedCities.length) {
-      const filtered = selectedCities.filter((city) =>
-        city.countryCode ? allowedCountryCodes.includes(city.countryCode.toUpperCase()) : true
-      );
-      if (filtered.length !== selectedCities.length) {
-        setValue("cities", filtered, { shouldValidate: true });
-      }
-    }
-  }, [allowedCountryCodes, citySelectValue, selectedCities, setValue]);
-
-  const handleCityRemove = (cityToRemove) => {
-    const filtered = selectedCities.filter(
-      (city) =>
-        !(
-          city.name === cityToRemove.name &&
-          (city.countryCode || "") === (cityToRemove.countryCode || "")
-        )
-    );
-    setValue("cities", filtered, { shouldValidate: true });
-    if (
-      citySelectValue?.name === cityToRemove.name &&
-      citySelectValue?.countryCode === cityToRemove.countryCode
-    ) {
-      setCitySelectValue(null);
-    }
-  };
-
-  const genderOptions = [
-    { id: "male", label: "Male", icon: "👨" },
-    { id: "female", label: "Female", icon: "👩" },
-    { id: "mixed", label: "Mixed/Any", icon: "👥" },
-  ];
-
-  const ageRanges = [
-    { id: "13-17", label: "13-17", desc: "Gen Z Early" },
-    { id: "18-25", label: "18-25", desc: "Gen Z Core" },
-    { id: "26-32", label: "26-32", desc: "Millennials" },
-    { id: "33-40", label: "33-40", desc: "Elder Millennials" },
-    { id: "41-50", label: "41-50", desc: "Gen X" },
-    { id: "50+", label: "50+", desc: "Boomers+" },
-  ];
-
-  const platforms = [
-    { id: "instagram", label: "Instagram", icon: InstagramIcon },
-    { id: "tiktok", label: "TikTok", icon: TikTokIcon },
-    { id: "youtube", label: "YouTube", icon: YoutubeIcon },
-  ];
-
-  const followerRanges = [
-    { value: "1000", label: "1K+" },
-    { value: "5000", label: "5K+" },
-    { value: "10000", label: "10K+" },
-    { value: "25000", label: "25K+" },
-    { value: "50000", label: "50K+" },
-    { value: "100000", label: "100K+" },
-    { value: "500000", label: "500K+" },
-    { value: "1000000", label: "1M+" },
-  ];
-
-  const toggleSelection = (item, selectedArray, field) => {
-    const prev = getValues(field) || [];
-    if (prev.includes(item)) {
-      setValue(
-        field,
-        prev.filter((i) => i !== item),
-        { shouldValidate: true }
-      );
-    } else {
-      setValue(field, [...prev, item], { shouldValidate: true });
-    }
-  };
-
-  const getSelectionSummary = () => {
-    const totalSelections =
-      (selectedGender?.length || 0) +
-      (selectedCountries?.length || 0) +
-      (selectedAgeRanges?.length || 0) +
-      (selectedPlatforms?.length || 0) +
-      (minFollowers ? 1 : 0);
-    return totalSelections;
-  };
+  const {
+    register,
+    handleSubmit,
+    errors,
+    onSubmit,
+    setValue,
+    isLoading,
+    minFollowers,
+    selectedGender,
+    selectedCountries,
+    selectedCities,
+    selectedAgeRanges,
+    selectedPlatforms,
+    countrySelectValue,
+    citySelectValue,
+    selectedCountryDetails,
+    allowedCountryCodes,
+    primaryCountryCode,
+    handleCountrySelect,
+    handleCountryRemove,
+    handleCitySelect,
+    handleCityRemove,
+    toggleSelection,
+    genderOptions,
+    ageRanges,
+    platforms,
+    followerRanges,
+  } = useIdealCreator({ onNext });
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -303,7 +116,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                       <button
                         key={gender.id}
                         type="button"
-                        onClick={() => toggleSelection(gender.id, selectedGender, "gender")}
+                        onClick={() => toggleSelection(gender.id, "gender")}
                         className={`
                           flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                           ${
@@ -417,7 +230,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                       <button
                         key={age.id}
                         type="button"
-                        onClick={() => toggleSelection(age.id, selectedAgeRanges, "age_ranges")}
+                        onClick={() => toggleSelection(age.id, "age_ranges")}
                         className={`
                           p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
                           ${
@@ -451,7 +264,7 @@ const IdealCreator = ({ onNext, onBack }) => {
                       <button
                         key={platform.id}
                         type="button"
-                        onClick={() => toggleSelection(platform.id, selectedPlatforms, "platforms")}
+                        onClick={() => toggleSelection(platform.id, "platforms")}
                         className={`
                           flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
                           ${
@@ -461,7 +274,11 @@ const IdealCreator = ({ onNext, onBack }) => {
                           }
                         `}
                       >
-                        <span className="text-lg mr-3">{<platform.icon />}</span>
+                        <span className="text-lg mr-3">
+                          {platform.id === "instagram" && <InstagramIcon />}
+                          {platform.id === "tiktok" && <TikTokIcon />}
+                          {platform.id === "youtube" && <YoutubeIcon />}
+                        </span>
                         <span className="text-xs">{platform.label}</span>
                         {isSelected && <CheckCircle className="h-4 w-4 ml-auto text-indigo-500" />}
                       </button>

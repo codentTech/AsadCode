@@ -66,12 +66,12 @@ export default function ForgetPassword() {
                   />
                 </div>
 
-                <div className="form-btn-c mt-[32px]">
+                <div className="form-btn-c mt-4">
                   <CustomButton
                     type="submit"
-                    className="btn-primary h-[50px] w-full rounded-xl px-[30px] py-3 text-base leading-6"
+                    className="btn-primary w-full"
                     text={!isLoading && "Send reset link"}
-                    startIcon={<Loader loading={isLoading} />}
+                    loading={isLoading}
                     disabled={!email || isLoading}
                   />
                 </div>

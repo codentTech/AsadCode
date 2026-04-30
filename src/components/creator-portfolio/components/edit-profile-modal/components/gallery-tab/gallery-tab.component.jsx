@@ -55,10 +55,10 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
 
   return (
     <>
-      <div className="space-y-4 max-w-4xl">
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+      <div className="max-w-4xl space-y-3 sm:space-y-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
           {/* Header + CTAs */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-8">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-gray-900">Gallery</h3>
               <button
@@ -105,7 +105,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                   <h4 className="bg-primary text-white px-3 py-1.5 rounded-lg w-full max-w-fit text-xs font-semibold uppercase tracking-wide mb-3">
                     {group.label}
                   </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
                     {group.items.map((item) => {
                       const videoEmbedSrc = getGalleryVideoEmbedSrc(item);
                       const videoPlaybackSrc = getGalleryVideoPlaybackSrc(item);

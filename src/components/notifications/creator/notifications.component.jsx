@@ -19,13 +19,12 @@ function Notifications() {
   return (
     <HeaderLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50/30">
-        {/* Header */}
-        <div className="max-w-7xl mx-auto mb-4 sticky top-0 bg-primary z-10 shadow-sm rounded-xl">
-          <div className="max-w-4xl mx-auto px-6 py-3">
-            <div className="flex items-center justify-between">
+        <div className="sticky top-0 z-10 mx-3 mb-3 max-w-7xl rounded-lg bg-primary shadow-sm mt-4 sm:mb-4">
+          <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               {/* Left side */}
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                     <Bell className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
@@ -35,17 +34,23 @@ function Notifications() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white">Notifications</h1>
+                <div className="min-w-0">
+                  <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+                    Notifications
+                  </h1>
                   <div className="flex items-center gap-2">
                     {unreadCount > 0 ? (
                       <>
-                        <span className="text-xs font-medium text-white/90">{unreadCount} new</span>
+                        <span className="text-[10px] font-medium text-white/90 sm:text-xs">
+                          {unreadCount} new
+                        </span>
                         <span className="w-1 h-1 bg-white/50 rounded-full" />
-                        <span className="text-xs text-white/70">{notifications.length} total</span>
+                        <span className="text-[10px] text-white/70 sm:text-xs">
+                          {notifications.length} total
+                        </span>
                       </>
                     ) : (
-                      <span className="text-xs text-white/70 flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-[10px] text-white/70 sm:text-xs">
                         <Sparkles className="w-3 h-3 text-white/90" />
                         All caught up
                       </span>
@@ -55,8 +60,7 @@ function Notifications() {
               </div>
 
               {/* Right side - Actions */}
-              <div className="flex items-center gap-2">
-                {/* Refresh button */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   onClick={refreshNotifications}
                   disabled={isRefreshing || isLoading}
@@ -68,11 +72,10 @@ function Notifications() {
                     strokeWidth={2.5}
                   />
                 </button>
-                {/* Mark all read */}
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-medium text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors backdrop-blur-sm"
+                    className="rounded-lg bg-white/20 px-2.5 py-1.5 text-[10px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/30 sm:px-3 sm:text-xs"
                   >
                     Mark all read
                   </button>
@@ -82,15 +85,16 @@ function Notifications() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="max-w-3xl mx-auto px-4 pb-6">
+        <div className="mx-auto max-w-3xl px-2.5 pb-6 sm:px-4">
           {notifications.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
+            <div className="rounded-xl border border-gray-100 bg-white p-6 text-center shadow-sm sm:p-8">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                 <Sparkles className="w-8 h-8 text-white" strokeWidth={2} />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">No notifications yet</h3>
-              <p className="text-xs text-gray-600">
+              <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-base">
+                No notifications yet
+              </h3>
+              <p className="text-[10px] text-gray-600 sm:text-xs">
                 When you receive invitations or updates, they'll appear here
               </p>
             </div>
@@ -109,7 +113,7 @@ function Notifications() {
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-indigo-600 rounded-l-xl" />
                   )}
 
-                  <div className="p-3 pl-4">
+                  <div className="p-2.5 pl-3 sm:p-3 sm:pl-4">
                     <div className="flex items-start justify-between gap-3">
                       {/* Content */}
                       <div className="flex-1 min-w-0">
@@ -132,7 +136,7 @@ function Notifications() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
                               <h3
-                                className={`text-sm font-semibold ${
+                                className={`text-xs font-semibold sm:text-sm ${
                                   !notification.is_read ? "text-gray-900" : "text-gray-700"
                                 }`}
                               >
@@ -142,10 +146,10 @@ function Notifications() {
                                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full flex-shrink-0" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 leading-relaxed mb-1">
+                            <p className="mb-1 text-[10px] leading-relaxed text-gray-600 sm:text-xs">
                               {notification.message}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-[10px] text-gray-500 sm:text-xs">
                               {new Date(notification.created_at).toLocaleString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -162,7 +166,7 @@ function Notifications() {
                         {!notification.is_read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
+                            className="rounded-lg px-2 py-1 text-[10px] font-medium text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700 sm:text-xs"
                           >
                             Mark read
                           </button>
