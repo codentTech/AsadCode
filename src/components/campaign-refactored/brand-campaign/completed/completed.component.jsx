@@ -33,7 +33,10 @@ function MiddlePaneSkeleton() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-10 w-full max-w-[10rem]" />
       </div>
-      <SkeletonCardGrid count={6} gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" />
+      <SkeletonCardGrid
+        count={6}
+        gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      />
     </div>
   );
 }

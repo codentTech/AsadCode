@@ -111,7 +111,7 @@ function Sidebar({
       )}
 
       <div
-        className={`fixed bottom-0 left-0 top-0 z-40 flex transform flex-col border-r bg-white transition-all duration-300 ease-in-out ${
+        className={`fixed bottom-0 left-0 top-0 z-40 flex flex-col border-r bg-white transition-transform duration-300 ease-in-out will-change-transform ${
           isDesktop
             ? `${isCollapsed ? "w-20 translate-x-0" : "w-72 translate-x-0"}`
             : `${isOpen ? "w-[88vw] max-w-72 translate-x-0" : "w-[88vw] max-w-72 -translate-x-full"}`

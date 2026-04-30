@@ -619,8 +619,11 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.isLoading = true;
         state.getAllBrandCampaigns.message = "";
         state.getAllBrandCampaigns.isError = false;
-        state.getAllBrandCampaigns.isSuccess = false;
-        state.getAllBrandCampaigns.data = null;
+        const hadData = Boolean(state.getAllBrandCampaigns.data);
+        if (!hadData) {
+          state.getAllBrandCampaigns.isSuccess = false;
+          state.getAllBrandCampaigns.data = null;
+        }
       })
       .addCase(getAllBrandCampaigns.fulfilled, (state, action) => {
         state.getAllBrandCampaigns.isLoading = false;

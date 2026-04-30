@@ -100,6 +100,7 @@ function useShortlistSidebar({
     setEditName,
     showOptions,
     showDeleteConfirm,
+    setShowDeleteConfirm,
     isCreatingNew,
     createInputRef,
     optionsMenuRef,

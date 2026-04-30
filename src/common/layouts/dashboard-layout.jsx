@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }) {
       />
 
       <div
-        className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out ${
+        className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${
           isDesktop ? (sidebarCollapsed ? "lg:ml-20" : "lg:ml-72") : "ml-0"
         }`}
       >
