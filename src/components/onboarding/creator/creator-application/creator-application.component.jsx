@@ -22,8 +22,9 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
     selectedCountry,
     socialLinkInputs,
     additionalLinkInput,
+    additionalLinkInputError,
     setSocialLinkInputs,
-    setAdditionalLinkInput,
+    handleAdditionalLinkInputChange,
     handleCountrySelect,
     handleSocialLinkChange,
     handleAddAdditionalLink,
@@ -166,7 +167,9 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
               <div className="sm:col-span-2">
                 <label className="mb-2 block text-xs font-medium text-gray-900 sm:mb-3 sm:text-sm">
                   Additional Links{" "}
-                  <span className="text-[10px] font-normal text-gray-500 sm:text-xs">(Optional)</span>
+                  <span className="text-[10px] font-normal text-gray-500 sm:text-xs">
+                    (Optional)
+                  </span>
                 </label>
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex flex-wrap items-stretch gap-2 sm:flex-nowrap">
@@ -176,7 +179,12 @@ const CreatorApplication = ({ onBack, onSuccess }) => {
                         name="additional_link_input"
                         placeholder="Portfolio, website, or other social handles"
                         value={additionalLinkInput}
-                        onChange={(e) => setAdditionalLinkInput(e.target.value)}
+                        onChange={handleAdditionalLinkInputChange}
+                        errors={
+                          additionalLinkInputError
+                            ? { additional_link_input: { message: additionalLinkInputError } }
+                            : undefined
+                        }
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
