@@ -1,9 +1,10 @@
 "use client";
 
+import { parseHttpUrlInput } from "@/common/utils/url.util";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createApplication } from "@/provider/features/creator-applications/creator-applications.slice";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
@@ -40,6 +41,7 @@ export default function useCreatorApplication({ onSuccess }) {
     youtube: "",
   });
   const [additionalLinkInput, setAdditionalLinkInput] = useState("");
+  const [additionalLinkInputError, setAdditionalLinkInputError] = useState("");
   const { getPlatformIcon } = useGetplatform();
 
   const socialPlatforms = [
@@ -146,11 +148,22 @@ export default function useCreatorApplication({ onSuccess }) {
     }
   };
 
+  const handleAdditionalLinkInputChange = useCallback((e) => {
+    setAdditionalLinkInput(e.target.value);
+    setAdditionalLinkInputError("");
+  }, []);
+
   const handleAddAdditionalLink = () => {
-    if (additionalLinkInput.trim()) {
-      addAdditionalLink(additionalLinkInput.trim());
-      setAdditionalLinkInput("");
+    const trimmed = additionalLinkInput.trim();
+    if (!trimmed) return;
+    const parsed = parseHttpUrlInput(trimmed);
+    if (!parsed.ok) {
+      setAdditionalLinkInputError(parsed.error);
+      return;
     }
+    addAdditionalLink(parsed.href);
+    setAdditionalLinkInput("");
+    setAdditionalLinkInputError("");
   };
 
   const onSubmit = async (data) => {
@@ -191,9 +204,11 @@ export default function useCreatorApplication({ onSuccess }) {
     selectedCountry,
     socialLinkInputs,
     additionalLinkInput,
+    additionalLinkInputError,
     setSelectedCountry,
     setSocialLinkInputs,
     setAdditionalLinkInput,
+    handleAdditionalLinkInputChange,
     handleCountrySelect,
     handleSocialLinkChange,
     handleAddAdditionalLink,

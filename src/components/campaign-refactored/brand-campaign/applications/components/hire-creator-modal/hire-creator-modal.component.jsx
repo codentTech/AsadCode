@@ -273,12 +273,12 @@ export default function HireCreatorModal({
             text="Send Offer"
             className="btn-primary w-full sm:w-auto"
             type="submit"
-            // loading={isSubmitting}
-            // disabled={
-            //   isSubmitting ||
-            //   (isPaymentRequired() && !canFundCollaborations) ||
-            //   isCheckingPaymentMethod
-            // }
+            loading={isSubmitting}
+            disabled={
+              isSubmitting ||
+              (isPaymentRequired() && !canFundCollaborations) ||
+              isCheckingPaymentMethod
+            }
           />
         </div>
       </form>
