@@ -3,54 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { getCreatorCollaborationHistory } from "@/provider/features/campaigns/campaigns.slice";
 import { getUser } from "@/common/utils/users.util";
 import { format } from "date-fns";
-import { calculateCommissionPayment } from "@/common/utils/campaign.utils";
-import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
-
-// Calculate earning based on campaign type
-// For commission campaigns: commission_percentage is applied to total_compensation
-// total_compensation = total sales/revenue, commission earned = (commission_percentage / 100) * total_compensation
-function calculateEarningFromCampaignType(item) {
-  if (!item.campaign) {
-    // If no campaign data, use totalCompensation directly
-    return Number(item.totalCompensation || 0);
-  }
-
-  const campaign = item.campaign;
-  const totalCompensation = Number(item.totalCompensation || 0);
-
-  // AFFILIATE/COMMISSION campaigns
-  // Calculate commission from total_compensation using commission_percentage
-  if (campaign.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
-    const commissionPercentage = Number(campaign.commission_percentage || 0);
-    if (totalCompensation > 0 && commissionPercentage > 0) {
-      // Commission earned = (commission_percentage / 100) * total_compensation
-      return (commissionPercentage / 100) * totalCompensation;
-    }
-    return 0;
-  }
-
-  // SPONSORED_POST or UGC
-  if (
-    campaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-    campaign.campaign_type === CAMPAIGN_TYPE.UGC
-  ) {
-    if (campaign.compensation_type === COMPENSATION_TYPE.PAID) {
-      // Use totalCompensation if available, otherwise use creator_fixed_price
-      return totalCompensation > 0 ? totalCompensation : Number(campaign.creator_fixed_price || 0);
-    }
-    // For range, return 0 (can't calculate exact amount from range)
-    return 0;
-  }
-
-  // GIFTED
-  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED) {
-    // Use totalCompensation if available, otherwise use product_value
-    return totalCompensation > 0 ? totalCompensation : Number(campaign.product_value || 0);
-  }
-
-  // Default: use totalCompensation
-  return totalCompensation;
-}
+import {
+  calculateEarningFromCampaignType,
+  sumPaymentHistoryByMonth,
+} from "@/common/utils/creator-collaboration-finance.util";
 
 export default function useCreatorPayments(selectedCampaign = null) {
   const dispatch = useDispatch();
@@ -154,28 +110,10 @@ export default function useCreatorPayments(selectedCampaign = null) {
     return sortedPaymentHistory;
   }, [isSuccess, historyData, selectedCampaign]);
 
-  // Calculate total earnings
-  // If a campaign is selected, show earnings for that campaign only
-  // Otherwise, show total earnings from all completed collaborations
-  const totalEarnings = useMemo(() => {
-    if (!isSuccess || !historyData?.data || !Array.isArray(historyData.data)) {
-      return 0;
-    }
-
-    const selectedCampaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
-
-    // Filter by selected campaign if one is selected
-    const filteredData = selectedCampaignId
-      ? historyData.data.filter((item) => item.campaignId === selectedCampaignId)
-      : historyData.data;
-
-    // Sum all earnings calculated from campaign type
-    return filteredData.reduce((sum, item) => {
-      const paymentAmount = calculateEarningFromCampaignType(item);
-      // Only include collaborations with payment amounts
-      return sum + (paymentAmount > 0 ? Number(paymentAmount) : 0);
-    }, 0);
-  }, [isSuccess, historyData, selectedCampaign]);
+  const totalEarnings = useMemo(
+    () => sumPaymentHistoryByMonth(paymentHistory),
+    [paymentHistory]
+  );
 
   const expectedPayoutAvailableAt = useMemo(() => {
     if (!isSuccess || !historyData?.data || !Array.isArray(historyData.data)) {

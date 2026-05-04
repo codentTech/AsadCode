@@ -1,116 +1,50 @@
 import { ChevronDown, ChevronUp, Star } from "lucide-react";
 import TextArea from "@/common/components/text-area/text-area.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  createCampaignReview,
-  getCampaignReviewsByCreatorProfile,
-  getReviewStatus,
-} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
-import { getUser } from "@/common/utils/users.util";
 import Loader from "@/common/components/loader/loader.component";
-import { useEffect } from "react";
-import useCreatorPayments from "./use-creator-payments.hook";
+import Modal from "@/common/components/modal/modal.component";
 import { getCompensationTypeLabel } from "@/common/utils/campaign.utils";
-import { format } from "date-fns";
+import useFinanceDashboard from "./use-finance-dashboard.hook";
 
 const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign }) => {
-  const dispatch = useDispatch();
-  const user = getUser();
-  const creatorProfileId = user?.creator_profile?.id;
-
-  // Fetch payment history - filter by selected campaign if one is selected
   const {
+    user,
+    creatorProfileId,
+    brandName,
     paymentHistory,
     totalEarnings,
+    paymentsLoading,
+    formattedPayoutAvailableAt,
     expectedPayoutAvailableAt,
-    isLoading: paymentsLoading,
-  } = useCreatorPayments(selectedCampaign);
+    isPaymentSettlementLockActive,
+    reviewStatus,
+    campaignReviews,
+    createReviewState,
+    isReviewsLoading,
+    showMarkCompleteModal,
+    markCompleteRating,
+    setMarkCompleteRating,
+    markCompleteFeedback,
+    setMarkCompleteFeedback,
+    handleMarkCompleteClick,
+    handleCancelMarkComplete,
+    handleConfirmMarkComplete,
+    handleToggleMonth,
+  } = useFinanceDashboard(selectedCampaign, setExpandedMonths);
 
-  const {
-    createCampaignReview: createReviewState,
-    getCampaignReviewsByCreatorProfile: getReviewsState,
-    getReviewStatus: getReviewStatusState,
-  } = useSelector((state) => state.campaignReviews || {});
-
-  const [newReviewText, setNewReviewText] = useState("");
-  const [newReviewRating, setNewReviewRating] = useState(0);
-
-  const reviewStatus = getReviewStatusState.data || null;
-  const campaignReviews = getReviewsState.data || [];
-
-  useEffect(() => {
-    const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
-    if (campaignId && creatorProfileId) {
-      dispatch(
-        getReviewStatus({
-          campaignId: campaignId,
-          creatorProfileId: creatorProfileId,
-        })
-      );
-      dispatch(
-        getCampaignReviewsByCreatorProfile({
-          campaignId: campaignId,
-          creatorProfileId: creatorProfileId,
-        })
-      );
-    }
-  }, [dispatch, selectedCampaign, creatorProfileId]);
-
-  const handleSaveNewReview = async () => {
-    const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
-
-    if (!newReviewText.trim() || !newReviewRating || !campaignId || !creatorProfileId) {
-      return;
-    }
-
-    try {
-      await dispatch(
-        createCampaignReview({
-          campaignId: campaignId,
-          creatorProfileId: creatorProfileId,
-          reviewData: {
-            rating: newReviewRating,
-            review: newReviewText.trim(),
-          },
-        })
-      ).unwrap();
-
-      setNewReviewText("");
-      setNewReviewRating(0);
-
-      if (campaignId && creatorProfileId) {
-        dispatch(
-          getReviewStatus({
-            campaignId: campaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-        dispatch(
-          getCampaignReviewsByCreatorProfile({
-            campaignId: campaignId,
-            creatorProfileId: creatorProfileId,
-          })
-        );
-      }
-    } catch (error) {
-      console.error("Failed to create review:", error);
-    }
-  };
-
-  const toggleMonth = (month) => {
-    setExpandedMonths((prev) => ({
-      ...prev,
-      [month]: !prev[month],
-    }));
-  };
+  const showMarkCompleteCta =
+    reviewStatus &&
+    !reviewStatus.hasCreatorReview &&
+    (selectedCampaign?.id || selectedCampaign?.campaign?.id) &&
+    creatorProfileId;
 
   return (
     <div className="flex w-full flex-col border-l border-gray-200 bg-white">
       <div className="border-b border-gray-200 p-3 sm:p-4">
-        <h2 className="mb-2 text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">Finance Dashboard</h2>
-        <div className="bg-gray-100 p-2 rounded-lg">
+        <h2 className="mb-2 text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+          Finance Dashboard
+        </h2>
+        <div className="rounded-lg bg-gray-100 p-2">
           <p className="text-[10px] text-gray-600 sm:text-sm">Total Earnings</p>
           {paymentsLoading ? (
             <div className="flex items-center gap-2">
@@ -127,12 +61,11 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
             </p>
           )}
         </div>
-        {expectedPayoutAvailableAt && !paymentsLoading ? (
+        {/* {expectedPayoutAvailableAt && !paymentsLoading && formattedPayoutAvailableAt ? (
           <p className="mt-3 rounded-md border border-amber-100 bg-amber-50 px-2 py-2 text-[10px] text-amber-900 sm:text-xs">
-            Expected CleerCut payout available by{" "}
-            {format(new Date(expectedPayoutAvailableAt), "MMMM d, yyyy")}
+            Expected CleerCut payout available by {formattedPayoutAvailableAt}
           </p>
-        ) : null}
+        ) : null} */}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -143,32 +76,33 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
               <Loader loading={true} />
             </div>
           ) : Object.keys(paymentHistory).length === 0 ? (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <p className="text-xs text-gray-500 sm:text-sm">No payment history available</p>
             </div>
           ) : (
             <div className="space-y-2">
               {Object.entries(paymentHistory).map(([month, data]) => (
-                <div key={month} className="border border-gray-200 rounded-lg">
+                <div key={month} className="rounded-lg border border-gray-200">
                   <div
-                    onClick={() => toggleMonth(month)}
-                    className="px-3 py-1 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                    onClick={() => handleToggleMonth(month)}
+                    className="flex cursor-pointer items-center justify-between px-3 py-1 hover:bg-gray-50"
                   >
                     <div>
                       <p className="text-[10px] font-medium text-gray-900 sm:text-xs">{month}</p>
-                      <p className="text-[10px] font-bold text-green-600 sm:text-xs">${data.total}</p>
+                      <p className="text-[10px] font-bold text-green-600 sm:text-xs">
+                        ${data.total}
+                      </p>
                     </div>
                     {expandedMonths[month] ? (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                      <ChevronUp className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
                     )}
                   </div>
 
                   {expandedMonths[month] && (
-                    <div className="h-40 overflow-y-auto space-y-2 pr-2 text-xs scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <div className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 h-40 space-y-2 overflow-y-auto pr-2 text-xs">
                       {data.payments.map((payment, index) => {
-                        // Format compensation display similar to campaign feed
                         let compensationDisplay = "";
                         if (payment.commissionPercentage) {
                           compensationDisplay = `${payment.commissionPercentage}% Commission`;
@@ -187,8 +121,8 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
                             <p className="truncate text-[10px] font-medium text-gray-900 sm:text-xs">
                               {payment.campaign}
                             </p>
-                            <div className="flex justify-between items-center mt-1">
-                              <div className="flex gap-2 items-center">
+                            <div className="mt-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-gray-600 sm:text-xs">
                                   {compensationDisplay} -
                                 </span>
@@ -196,7 +130,9 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
                                   ${payment.amount}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-gray-500 sm:text-xs">{payment.date}</span>
+                              <span className="text-[10px] text-gray-500 sm:text-xs">
+                                {payment.date}
+                              </span>
                             </div>
                           </div>
                         );
@@ -209,70 +145,23 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
           )}
         </div>
 
-        {/* <div className="p-4 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Upcoming Payments</h3>
-          <div className="space-y-3">
-            {upcomingPayments.map((payment, index) => (
-              <div key={index} className="bg-gray-100 p-3 rounded-lg">
-                <p className="text-sm font-medium text-gray-900 truncate">{payment.campaign}</p>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs font-semibold text-gray-900">${payment.amount}</span>
-                  <span className="text-xs text-gray-600">
-                    {new Date(payment.date).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-
         <div className="border-b border-gray-200 p-3 sm:p-4">
           <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:text-lg">Reviews</h3>
 
-          {reviewStatus &&
-            !reviewStatus.isUnlocked &&
-            !reviewStatus.hasBrandReview &&
-            reviewStatus.hasCreatorReview && (
-              <div className="mb-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-semibold text-amber-800">Review Submitted</span>
-                </div>
-                <p className="text-[11px] text-amber-700 mt-1">
-                  Waiting for brand to submit their review to unlock both.
-                </p>
-              </div>
-            )}
+          {isReviewsLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader loading={true} size="small" />
+            </div>
+          ) : null}
 
-          {reviewStatus &&
-            !reviewStatus.isUnlocked &&
+          {!isReviewsLoading &&
+            reviewStatus &&
             reviewStatus.hasBrandReview &&
             !reviewStatus.hasCreatorReview && (
-              <div className="mb-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-semibold text-blue-800">
-                    Brand submitted a review
-                  </span>
-                </div>
-                <p className="text-[11px] text-blue-700 mt-1">
-                  Submit your review to unlock both reviews.
-                </p>
-              </div>
-            )}
-
-          {reviewStatus &&
-            !reviewStatus.isUnlocked &&
-            reviewStatus.hasCreatorReview &&
-            !reviewStatus.hasBrandReview && (
-              <div className="mb-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-semibold text-amber-800">Review Locked</span>
-                </div>
-                <p className="text-[11px] text-amber-700 mt-1">
-                  Your review has been locked. Wait for brand to give review so that your review
-                  gets unlocked.
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-2">
+                <p className="text-[11px] text-blue-800 sm:text-xs">
+                  The brand has submitted a review. Use Mark Complete below to submit yours and view
+                  both reviews.
                 </p>
               </div>
             )}
@@ -282,28 +171,27 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
               campaignReviews?.filter((review) => {
                 if (!reviewStatus?.isUnlocked) {
                   return review.created_by?.id === user?.id;
-                } else {
-                  return review.reviewer_role === "BRAND";
                 }
+                return review.reviewer_role === "BRAND";
               }) || [];
 
             return reviewStatus && reviewStatus.isUnlocked && filteredReviews.length > 0 ? (
-              <div className="space-y-2 mb-3">
+              <div className="mb-3 space-y-2">
                 {filteredReviews.map((review, index) => (
-                  <div key={review.id || index} className="border-l-2 border-indigo-500 pl-3 py-1">
-                    <span className="text-[10px] font-semibold text-gray-500 mb-1 block">
-                      Brand's Review
+                  <div key={review.id || index} className="border-l-2 border-indigo-500 py-1 pl-3">
+                    <span className="mb-1 block text-[10px] font-semibold text-gray-500">
+                      Brand&apos;s Review
                     </span>
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="mb-1 flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-3 h-3 ${i < (review.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+                          className={`h-3 w-3 ${i < (review.rating || 0) ? "fill-current text-yellow-400" : "text-gray-300"}`}
                         />
                       ))}
                     </div>
                     <p className="text-xs text-gray-700">{review.review}</p>
-                    <span className="text-[11px] text-gray-400 mt-0.5 block">
+                    <span className="mt-0.5 block text-[11px] text-gray-400">
                       {new Date(review.created_at).toLocaleString()}
                     </span>
                   </div>
@@ -312,45 +200,100 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
             ) : null;
           })()}
 
-          <div className="mt-2">
-            <h4 className="mb-2 text-xs font-semibold text-gray-700 sm:text-sm">Leave a review</h4>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] text-gray-600 sm:text-xs">Rating:</span>
-              <div className="flex">
+          {showMarkCompleteCta ? (
+            <div className="mt-2">
+              <CustomButton
+                text="Mark Complete"
+                onClick={handleMarkCompleteClick}
+                className={
+                  isPaymentSettlementLockActive || paymentsLoading
+                    ? "btn-disabled w-full"
+                    : "btn-primary w-full"
+                }
+                disabled={
+                  isPaymentSettlementLockActive || paymentsLoading || createReviewState.isLoading
+                }
+              />
+              {isPaymentSettlementLockActive && formattedPayoutAvailableAt ? (
+                <p className="mt-2 text-[10px] leading-snug text-gray-600 sm:text-xs">
+                  Payment marking is available from {formattedPayoutAvailableAt}. This allows time
+                  for the payment to settle and prevents any payout issues.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <Modal
+        show={showMarkCompleteModal}
+        onClose={handleCancelMarkComplete}
+        title={`Leave a review for ${brandName}`}
+        size="md"
+      >
+        <div className="p-4">
+          <div className="mb-6">
+            <p className="mb-4 text-sm text-gray-600">
+              Your review helps other creators choose brands to work with on CleerCut.
+            </p>
+            <div className="mb-4 flex items-center justify-between">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Rating <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-2">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 cursor-pointer ${i < newReviewRating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                    onClick={() => setNewReviewRating(i + 1)}
+                    className={`h-6 w-6 cursor-pointer transition-colors ${
+                      i < markCompleteRating ? "fill-current text-yellow-400" : "text-gray-300"
+                    }`}
+                    onClick={() => setMarkCompleteRating(i + 1)}
                   />
                 ))}
+                {markCompleteRating > 0 ? (
+                  <span className="ml-2 text-sm text-gray-600">{markCompleteRating}/5</span>
+                ) : null}
               </div>
             </div>
-            <TextArea
-              placeholder="Write your review..."
-              value={newReviewText}
-              onChange={(e) => setNewReviewText(e.target.value)}
-              className="text-xs"
-              rows={3}
-            />
-            <div className="mt-2 flex justify-end">
-              <CustomButton
-                text={createReviewState.isLoading ? <Loader loading={true} /> : "Submit Review"}
-                className="btn-primary w-full sm:w-auto"
-                onClick={handleSaveNewReview}
-                disabled={
-                  !newReviewText ||
-                  !newReviewText.trim() ||
-                  !newReviewRating ||
-                  createReviewState.isLoading ||
-                  !(selectedCampaign?.id || selectedCampaign?.campaign?.id) ||
-                  !creatorProfileId
-                }
+            <div className="mb-4">
+              <TextArea
+                label="Feedback"
+                placeholder="Share your experience working with this brand..."
+                value={markCompleteFeedback}
+                onChange={(e) => setMarkCompleteFeedback(e.target.value)}
+                rows={4}
               />
             </div>
+            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <p className="text-xs text-blue-800">
+                <span className="font-semibold">Notice:</span> Submitting releases your payout when
+                funds have settled. This collaboration closes after you complete this step.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <CustomButton
+              text="Cancel"
+              className="btn-cancel flex-1"
+              onClick={handleCancelMarkComplete}
+              disabled={createReviewState.isLoading}
+            />
+            <CustomButton
+              text="Mark Complete"
+              className="btn-primary flex-1"
+              onClick={handleConfirmMarkComplete}
+              disabled={
+                !markCompleteFeedback ||
+                !markCompleteFeedback.trim() ||
+                markCompleteRating === 0 ||
+                createReviewState.isLoading
+              }
+              loading={createReviewState.isLoading}
+            />
           </div>
         </div>
-      </div>
+      </Modal>
     </div>
   );
 };

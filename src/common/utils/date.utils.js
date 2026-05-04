@@ -1,3 +1,5 @@
+export const PAYOUT_AVAILABLE_DATETIME_FORMAT = "MMMM d, yyyy 'at' h:mm a";
+
 export const getAge = (dateOfBirth) => {
   const birthDate = new Date(dateOfBirth);
   const today = new Date();
