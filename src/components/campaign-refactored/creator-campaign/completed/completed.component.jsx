@@ -228,7 +228,7 @@ export default function CreatorCompleted() {
         <FinanceDashboard
           expandedMonths={expandedMonths}
           setExpandedMonths={setExpandedMonths}
-          selectedCampaign={selectedCampaign?.campaign}
+          selectedCampaign={selectedCampaign}
         />
       </div>
     </div>

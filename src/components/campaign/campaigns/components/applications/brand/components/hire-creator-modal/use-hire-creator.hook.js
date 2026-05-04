@@ -179,10 +179,7 @@ export default function useHireCreator({
         setValue("campaignType", "");
         setValue("contentGuidelines", "");
       } else {
-        setValue(
-          "contentFormat",
-          deliverablesToContentFormatString(campaignData.deliverables)
-        );
+        setValue("contentFormat", deliverablesToContentFormatString(campaignData.deliverables));
         setValue(
           "compensationType",
           campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
@@ -261,13 +258,13 @@ export default function useHireCreator({
     }
 
     // CRITICAL: Validate payment method exists before submission (only for paid offers)
-    if (isPaymentRequired() && !canFundCollaborations) {
-      const errorMessage = !hasPaymentMethod
-        ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
-        : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
-      enqueueSnackbar(errorMessage, { variant: "error" });
-      return;
-    }
+    // if (isPaymentRequired() && !canFundCollaborations) {
+    //   const errorMessage = !hasPaymentMethod
+    //     ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
+    //     : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
+    //   enqueueSnackbar(errorMessage, { variant: "error" });
+    //   return;
+    // }
 
     // Prepare contract data for API
     const contractData = createEnrichedContractData(values);
