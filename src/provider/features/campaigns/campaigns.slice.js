@@ -377,8 +377,18 @@ export const getCreatorCollaborationHistory = createAsyncThunk(
   async (creatorProfileId, thunkAPI) => {
     try {
       const response = await campaignsService.getCreatorCollaborationHistory(creatorProfileId);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
+      if (Array.isArray(response)) {
+        return { success: true, data: response };
+      }
+      if (response?.success === false) {
+        return thunkAPI.rejectWithValue(response);
+      }
+      if (response?.data !== undefined || response?.success === true) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        response || { message: "Failed to get creator collaboration history" }
+      );
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to get creator collaboration history")
@@ -871,8 +881,6 @@ export const campaignsSlice = createSlice({
         state.getCreatorCollaborationHistory.isLoading = true;
         state.getCreatorCollaborationHistory.message = "";
         state.getCreatorCollaborationHistory.isError = false;
-        state.getCreatorCollaborationHistory.isSuccess = false;
-        state.getCreatorCollaborationHistory.data = null;
       })
       .addCase(getCreatorCollaborationHistory.fulfilled, (state, action) => {
         state.getCreatorCollaborationHistory.isLoading = false;
@@ -883,6 +891,7 @@ export const campaignsSlice = createSlice({
         state.getCreatorCollaborationHistory.message =
           action.payload?.message || "Failed to get creator collaboration history";
         state.getCreatorCollaborationHistory.isLoading = false;
+        state.getCreatorCollaborationHistory.isSuccess = false;
         state.getCreatorCollaborationHistory.isError = true;
         state.getCreatorCollaborationHistory.data = null;
       });

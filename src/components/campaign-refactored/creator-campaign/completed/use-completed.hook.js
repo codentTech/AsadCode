@@ -5,6 +5,7 @@ import {
   CAMPAIGN_TYPE,
   COLLABORATION_TYPE,
 } from "@/common/constants/campaign.constant";
+import { resolveCollaborationIdFromRawApplication } from "@/common/utils/creator-collaboration-history.util";
 
 export default function useCompleted() {
   const dispatch = useDispatch();
@@ -35,11 +36,23 @@ export default function useCompleted() {
 
     return {
       ...campaign,
+      collaborationId: resolveCollaborationIdFromRawApplication(campaign),
       id: campaign.campaign?.id,
       title: campaign.campaign?.campaign_title,
       brand: {
-        name: campaign.campaign?.created_by?.brand_profile?.brand_name || "Unknown Brand",
-        logo: campaign.campaign?.created_by?.brand_profile?.brand_logo_url || "🌟",
+        id:
+          campaign.campaign?.created_by?.id ||
+          campaign.brand?.id ||
+          null,
+        name:
+          campaign.campaign?.created_by?.brand_profile?.brand_name ||
+          campaign.brand?.brand_profile?.brand_name ||
+          campaign.brand?.name ||
+          "Unknown Brand",
+        logo:
+          campaign.campaign?.created_by?.brand_profile?.brand_logo_url ||
+          campaign.brand?.brand_profile?.brand_logo_url ||
+          "🌟",
       },
       platforms: campaign.campaign?.required_platforms || [],
       completedDate: campaign.campaign?.completed_date || campaign.campaign?.updated_at,
