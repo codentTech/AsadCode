@@ -12,7 +12,7 @@ import {
 import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
-import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
+import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
 import {
   ArrowLeft,
