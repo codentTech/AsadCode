@@ -14,6 +14,8 @@ function DiscoverCreators({
   getSortedCreators,
   handleRemoveFromShortlist,
   handleInviteToApply,
+  onRefreshCampaigns,
+  isCampaignsLoading = false,
   userCampaigns = [],
 }) {
   const {
@@ -159,6 +161,8 @@ function DiscoverCreators({
         onClose={() => setShowInviteModal(false)}
         selectedCreator={selectedCreator}
         userCampaigns={userCampaigns}
+        onRefreshCampaigns={onRefreshCampaigns}
+        isCampaignsLoading={isCampaignsLoading}
         onInviteSent={handleInviteToApply}
       />
 

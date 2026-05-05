@@ -4,7 +4,10 @@ import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.sl
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
+import {
+  setSelectedCampaign as setSelectedCampaignContext,
+  setBrandCampaignMultiCreatorMode,
+} from "@/provider/features/campaign-context/campaign-context.slice";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -20,7 +23,6 @@ function useCreatorSpendAnalysis({
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
   const [open, setOpen] = useState(false);
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const hasAutoSelectedCampaignRef = useRef(false);
   const hasRestoredFromContext = useRef(false);
   const lastRestoredCampaignIdRef = useRef(null);
@@ -29,6 +31,9 @@ function useCreatorSpendAnalysis({
   const dispatch = useDispatch();
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
+  const isMultiCreator = useSelector(
+    (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
+  );
 
   const { isSuccess: reinstateCreatorSuccess, isError: reinstateCreatorError } = useSelector(
     (state) => state.campaigns.reinstateCreator || {}
@@ -180,9 +185,12 @@ function useCreatorSpendAnalysis({
     return null;
   }, [isSelectedCampaignValid, selectedCampaign?.id, selectedCampaign?.campaign_title]);
 
-  const handleToggleChange = (event) => {
-    const newIsMultiCreator = event.target.checked;
-    setIsMultiCreator(newIsMultiCreator);
+  const handleToggleChange = (eventOrValue) => {
+    const newIsMultiCreator =
+      typeof eventOrValue === "boolean"
+        ? eventOrValue
+        : (eventOrValue?.target?.checked ?? !isMultiCreator);
+    dispatch(setBrandCampaignMultiCreatorMode(newIsMultiCreator));
     hasAutoSelectedCampaignRef.current = false;
 
     if (onClearCreator) {

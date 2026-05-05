@@ -193,13 +193,15 @@ const ContentPlanning = ({ selectedCampaign, setSelectedCampaign, getCampaignByI
         </div>
 
         {/* Upcoming Tasks */}
-        <div className="mt-4 border-t border-gray-200 pt-4">
-          <TaskManagerCreator
-            setSelectedCampaign={setSelectedCampaign}
-            getCampaignById={getCampaignById}
-            formatCampaignData={formatCampaignData}
-          />
-        </div>
+        {selectedCampaign ? (
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <TaskManagerCreator
+              setSelectedCampaign={setSelectedCampaign}
+              getCampaignById={getCampaignById}
+              formatCampaignData={formatCampaignData}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Content Planner Modal */}

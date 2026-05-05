@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import BrandCampaignTypeToggle from "@/common/components/brand-campaign-type-toggle/brand-campaign-type-toggle.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import Modal from "@/common/components/modal/modal.component";
@@ -89,16 +89,12 @@ const CreatorSpendAnalysis = ({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="p-2.5 sm:p-4">
           <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
-              <CustomSwitch
-                label="Campaign Type"
-                checked={isMultiCreator}
-                onChange={handleToggleChange}
-                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
-                parentDivClassName="justify-between"
-                rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium not-italic leading-6 text-text-dark-gray md:text-sm"
-              />
-            </div>
+            <BrandCampaignTypeToggle
+              isMultiCreator={isMultiCreator}
+              onSelect={handleToggleChange}
+              className="w-full min-w-[282px] sm:w-[282px]"
+              rightLabelClassName="mb-1.5 text-[10px] font-medium not-italic leading-tight text-text-dark-gray sm:text-xs md:text-sm"
+            />
             {onSwitchToRejected && (
               <CustomButton
                 text="Rejected"

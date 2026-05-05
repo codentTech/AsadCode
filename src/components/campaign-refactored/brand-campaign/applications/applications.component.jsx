@@ -1,5 +1,5 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
-import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
+import MiddlePaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/middle-pane-skeleton.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
@@ -14,18 +14,6 @@ import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-sp
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
 import useBrandApplications from "./use-applications.hook";
-
-function MiddlePaneSkeleton() {
-  return (
-    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col border-r border-gray-200 bg-white p-3 sm:p-4">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
-        <div className="h-10 w-full max-w-[10rem] animate-pulse rounded bg-gray-200 sm:w-32" />
-      </div>
-      <SkeletonCardGrid count={6} gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" />
-    </div>
-  );
-}
 
 function BrandApplicationsContent({ onSwitchToRejected }) {
   const {
@@ -94,7 +82,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     return (
       <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col md:max-w-none md:flex-[0_1_73%] lg:max-w-none">
-          <MiddlePaneSkeleton />
+          <MiddlePaneSkeleton variant="applications" />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-gray-200/80 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]">
           <RightPaneSkeleton layout="fluid" />

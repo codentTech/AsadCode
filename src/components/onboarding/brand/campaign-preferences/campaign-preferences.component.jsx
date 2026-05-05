@@ -18,7 +18,7 @@ import {
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBrandCampaignPreferences from "./use-campaign-preferences.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
-import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
+import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 
 const BrandCampaignPreferences = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =

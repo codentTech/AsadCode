@@ -33,7 +33,7 @@ const CampaignBriefModal = ({ show, onClose, campaign }) => {
 
   return (
     <Modal show={show} title="Campaign Brief" onClose={onClose} size="lg">
-      <div className="mx-auto max-w-5xl space-y-3 text-gray-900 sm:space-y-4">
+      <div className="space-y-3 text-gray-900 sm:space-y-4">
         <section className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1 space-y-3">
@@ -62,7 +62,9 @@ const CampaignBriefModal = ({ show, onClose, campaign }) => {
                       className="rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2"
                     >
                       <div className="text-indigo-500">{stat.label}</div>
-                      <div className="text-xs font-semibold text-indigo-700 sm:text-sm">{stat.value}</div>
+                      <div className="text-xs font-semibold text-indigo-700 sm:text-sm">
+                        {stat.value}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -160,7 +160,7 @@ const DeliverablesProgressCompleted = ({
       if (selectedContract.compensationType === COMPENSATION_TYPE.PAID) {
         return `$${selectedContract.totalCompensation || 0}`;
       } else if (selectedContract.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
-        return `Product ($${selectedContract.productPrice || selectedContract.productValue || 0})`;
+        return `Gifted Product ($${selectedContract.productPrice || selectedContract.productValue || 0})`;
       } else if (selectedContract.compensationType === COMPENSATION_TYPE.COMMISSION) {
         return "Commission based";
       }

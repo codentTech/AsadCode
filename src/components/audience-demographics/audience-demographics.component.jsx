@@ -12,72 +12,12 @@ import {
   YAxis,
 } from "recharts";
 
+import AudienceChartSkeleton from "./components/audience-chart-skeleton.component";
+import AudienceEmptyState from "./components/audience-empty-state.component";
+import CustomLegend from "./components/custom-legend.component";
+import CustomTooltip from "./components/custom-tooltip.component";
+import { renderPieLabel } from "./components/render-pie-label";
 import { DEFAULT_COLORS, useAudienceDemographics } from "./use-audience-demographics.hook";
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    const name = payload[0].payload?.name ?? payload[0].name ?? label;
-    return (
-      <div className="flex bg-white p-3 shadow-lg rounded-md border border-gray-200">
-        <p className="font-medium text-gray-800">{name}</p>
-        <p className="text-indigo-600 font-bold">{`${payload[0].value}%`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
-const CustomLegend = ({ items }) => (
-  <div className="flex flex-wrap justify-center gap-4 mt-2">
-    {items.map((item) => (
-      <div key={item.id} className="flex items-center gap-1">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-        <span className="text-xs text-gray-600">
-          {item.percentage != null ? `${item.percentage}%` : ""}
-        </span>
-      </div>
-    ))}
-  </div>
-);
-
-/** Renders "Male" and "30%" outside the pie ring so labels don't sit on the graph */
-const renderPieLabel = ({ cx, cy, midAngle, outerRadius, name, value }) => {
-  const RADIAN = Math.PI / 180;
-  const labelRadius = outerRadius + 22;
-  const x = cx + labelRadius * Math.cos(-midAngle * RADIAN);
-  const y = cy + labelRadius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#111827"
-      textAnchor="middle"
-      dominantBaseline="central"
-      className="text-xs font-medium"
-    >
-      <tspan x={x} y={y - 5} display="block">
-        {name}
-      </tspan>
-      <tspan x={x} y={y + 7} display="block">
-        {value}%
-      </tspan>
-    </text>
-  );
-};
-
-const ChartSkeleton = () => (
-  <div className="animate-pulse space-y-3">
-    <div className="h-4 bg-gray-200 rounded w-1/2" />
-    <div className="h-32 bg-gray-200 rounded" />
-  </div>
-);
-
-const EmptyState = ({ message = "No data available" }) => (
-  <div className="flex items-center justify-center min-h-[40px]">
-    <p className="text-sm text-gray-500 text-center">{message}</p>
-  </div>
-);
 
 /**
  * AudienceDemographics – charts use only real distribution data from API (Phyllo).
@@ -110,14 +50,14 @@ function AudienceDemographics({
   if (loading) {
     return (
       <div className={`${className} gap-3`}>
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-          <ChartSkeleton />
+        <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <AudienceChartSkeleton />
         </div>
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-          <ChartSkeleton />
+        <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <AudienceChartSkeleton />
         </div>
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-          <ChartSkeleton />
+        <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <AudienceChartSkeleton />
         </div>
       </div>
     );
@@ -125,8 +65,8 @@ function AudienceDemographics({
 
   if (audienceData?.no_connection) {
     return (
-      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-        <EmptyState
+      <div className="rounded-lg border border-gray-100 bg-white p-2 shadow-sm">
+        <AudienceEmptyState
           message={
             audienceData?.empty_message ||
             "This creator has not connected their social media platforms."
@@ -138,8 +78,8 @@ function AudienceDemographics({
 
   if (!audienceData?.has_data) {
     return (
-      <div className="bg-gray-100 rounded-lg shadow-sm border border-gray-100">
-        <EmptyState message={emptyMessage || "No audience demographics available yet."} />
+      <div className="rounded-lg border border-gray-100 bg-gray-100 shadow-sm">
+        <AudienceEmptyState message={emptyMessage || "No audience demographics available yet."} />
       </div>
     );
   }
@@ -182,7 +122,7 @@ function AudienceDemographics({
             <CustomLegend items={ageColorItems} />
           </>
         ) : (
-          <EmptyState message="No age distribution from Phyllo. API may not return percentage data for this account yet." />
+          <AudienceEmptyState message="No age distribution from Phyllo. API may not return percentage data for this account yet." />
         )}
       </div>
 
@@ -263,7 +203,7 @@ function AudienceDemographics({
             <CustomLegend items={locationColorItems} />
           </>
         ) : (
-          <EmptyState message="No country distribution from Phyllo. API may not return percentage data for this account yet." />
+          <AudienceEmptyState message="No country distribution from Phyllo. API may not return percentage data for this account yet." />
         )}
       </div>
 
