@@ -12,6 +12,7 @@ import {
 } from "@/provider/features/shortlist/shortlist.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { sortOptions } from "@/common/constants/auth.constant";
+import { setBrandCampaignMultiCreatorMode } from "@/provider/features/campaign-context/campaign-context.slice";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -33,7 +34,6 @@ function useCreatorSpendAnalysis({
   const [open, setOpen] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const [isSwitchingMode, setIsSwitchingMode] = useState(false);
   const hasAutoSelected = useRef(false);
   const hasFetchedIndividual = useRef(false);
@@ -45,6 +45,10 @@ function useCreatorSpendAnalysis({
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
+
+  const isMultiCreator = useSelector(
+    (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
+  );
 
   const campaignsData = useMemo(
     () => ({ data: Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [] }),
@@ -146,9 +150,12 @@ function useCreatorSpendAnalysis({
     setIsSwitchingMode(false);
   };
 
-  const handleToggleChange = (event) => {
-    const newIsMultiCreator = event.target.checked;
-    setIsMultiCreator(newIsMultiCreator);
+  const handleToggleChange = (eventOrValue) => {
+    const newIsMultiCreator =
+      typeof eventOrValue === "boolean"
+        ? eventOrValue
+        : (eventOrValue?.target?.checked ?? !isMultiCreator);
+    dispatch(setBrandCampaignMultiCreatorMode(newIsMultiCreator));
     setIsSwitchingMode(true);
     hasAutoSelected.current = false;
 
@@ -317,6 +324,10 @@ function useCreatorSpendAnalysis({
   const handleCampaignChange = (opt) => {
     const id = opt?.value;
     const campaign = campaignsData?.data?.find((c) => c.id === id);
+    if (campaign) {
+      const isIndividual = campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+      dispatch(setBrandCampaignMultiCreatorMode(!isIndividual));
+    }
     if (onCampaignSelect && campaign) onCampaignSelect(campaign);
   };
 

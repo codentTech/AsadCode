@@ -204,7 +204,7 @@ const DeliverablesProgress = ({
       if (selectedContract.compensationType === COMPENSATION_TYPE.PAID) {
         return `$${selectedContract.totalCompensation || 0}`;
       } else if (selectedContract.compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
-        return `Product ($${selectedContract.productPrice || 0})`;
+        return `Gifted Product ($${selectedContract.productPrice || 0})`;
       } else if (selectedContract.compensationType === COMPENSATION_TYPE.COMMISSION) {
         return "Commission based";
       }
@@ -473,8 +473,8 @@ const DeliverablesProgress = ({
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800">
                     <span className="font-semibold">Notice:</span> This completes the collaboration
-                    on your side. Payout to the creator runs after they submit their review and funds
-                    have finished settling.
+                    on your side. Payout to the creator runs after they submit their review and
+                    funds have finished settling.
                   </p>
                 </div>
               </div>

@@ -17,14 +17,15 @@ const CreatorSpendAnalysisCompleted = ({
   onClearCreator,
   onSortChange,
   currentSort = "newest",
-  isMultiCreator = true,
   isCompleted = true,
 }) => {
   const {
     open,
     creators,
     creatorsLoading,
+    creatorsSuccess,
     creatorsError,
+    isMultiCreator,
     getSuccessRateColor,
     handleOpenModal,
     handleCloseModal,
@@ -44,7 +45,6 @@ const CreatorSpendAnalysisCompleted = ({
     onClearCreator,
     onSortChange,
     isCompleted,
-    isMultiCreator,
   });
 
   return (
@@ -150,14 +150,17 @@ const CreatorSpendAnalysisCompleted = ({
                   <NotFound title="Error loading creators" description="Please try again later." />
                 </div>
               )}
-              {selectedCampaign && creators.length === 0 && (
-                <div className="flex items-center justify-center py-8">
-                  <NotFound
-                    title="No Completed Creators"
-                    description="No creators have completed this campaign yet."
-                  />
-                </div>
-              )}
+              {selectedCampaign &&
+                creatorsSuccess &&
+                creators.length === 0 &&
+                !creatorsError && (
+                  <div className="flex items-center justify-center py-8">
+                    <NotFound
+                      title="No Completed Creators"
+                      description="No creators have completed this campaign yet."
+                    />
+                  </div>
+                )}
               {selectedCampaign && creators.length > 0 && (
                 <div className="space-y-3 sm:space-y-4">
                   {creators.map((creator) => {

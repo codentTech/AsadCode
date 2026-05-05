@@ -1,11 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useCreatorSpendAnalysis } from "../../../active/components/creator-spend-analysis/use-creator-spend-analysis.hook";
-import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
-import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { formatFollowers } from "@/common/utils/format.utils";
 import { buildCreatorPublishedMetricsMap } from "@/common/utils/published-campaign-metrics.util";
+import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useCreatorSpendAnalysis } from "../../../active/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 
 /**
  * Builds comparison label relative to campaign average for a given metric value.
@@ -37,14 +36,13 @@ export const useCreatorSpendAnalysisCompleted = ({
   onClearCreator,
   onSortChange,
   isCompleted = true,
-  isMultiCreator = true,
 }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const hookData = useCreatorSpendAnalysis(
     selectedCampaign,
     isCompleted,
-    isMultiCreator,
+    true,
     onClearCreator,
     selectedCreator,
     onCreatorSelect,
@@ -52,14 +50,23 @@ export const useCreatorSpendAnalysisCompleted = ({
   );
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline.timelinesByKey || {});
-  const performanceData = useSelector(
-    (state) => state.phyllo?.fetchCampaignPerformanceMetrics?.data || null
+  const performanceFetch = useSelector(
+    (state) => state.phyllo?.fetchCampaignPerformanceMetrics || {}
   );
+  const performanceData = performanceFetch?.data || null;
   const creatorBreakdown = performanceData?.creator_breakdown || {};
 
   const { data: creatorsData } = useSelector((state) => state.campaigns.getAppliedCreators || {});
 
   const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+
+  const creatorsListForPublishedMetrics = useMemo(() => {
+    if (hookData.isIndividualMode) {
+      return Array.isArray(hookData.creators) ? hookData.creators : [];
+    }
+    const list = creatorsData?.data;
+    return Array.isArray(list) ? list : [];
+  }, [hookData.isIndividualMode, hookData.creators, creatorsData?.data]);
 
   useEffect(() => {
     if (selectedCampaign?.id && !isUgc) {
@@ -83,13 +90,93 @@ export const useCreatorSpendAnalysisCompleted = ({
    */
   const creatorMetricsMap = useMemo(() => {
     if (isUgc || !selectedCampaign?.id) return {};
-    return buildCreatorPublishedMetricsMap({
-      creatorsList: Array.isArray(creatorsData?.data) ? creatorsData.data : [],
+
+    const base = buildCreatorPublishedMetricsMap({
+      creatorsList: creatorsListForPublishedMetrics,
       timelinesByKey,
       campaignId: selectedCampaign.id,
       creatorBreakdown,
     });
-  }, [isUgc, selectedCampaign?.id, creatorsData, timelinesByKey, creatorBreakdown]);
+
+    if (
+      !hookData.isIndividualMode ||
+      creatorsListForPublishedMetrics.length !== 1
+    ) {
+      return base;
+    }
+
+    const row = creatorsListForPublishedMetrics[0];
+    const raw = row?.creator?.id ?? row?.creatorUserId;
+    if (raw == null || raw === "") return base;
+
+    const uid = String(raw);
+    const existing = base[uid];
+    const hasUsableRow =
+      existing != null &&
+      !existing.metricsUnavailable &&
+      existing.views != null;
+
+    if (hasUsableRow) return base;
+
+    const pd = performanceData;
+    const tv = Number(pd?.totalViews) || 0;
+    const te = Number(pd?.totalEngagement) || 0;
+    if (!pd || pd.has_data === false || (tv <= 0 && te <= 0)) return base;
+
+    const fee =
+      Number(
+        row.totalSpent ??
+          row.contract?.totalCompensation ??
+          row.contract?.total_compensation ??
+          0
+      ) || 0;
+    const er = tv > 0 ? te / tv : 0;
+
+    return {
+      ...base,
+      [uid]: {
+        views: tv,
+        totalEngagement: te,
+        engagementRate: er,
+        costPerView: tv > 0 ? Number((fee / tv).toFixed(4)) : null,
+        costPerEngagement: te > 0 ? Number((fee / te).toFixed(4)) : null,
+      },
+    };
+  }, [
+    isUgc,
+    selectedCampaign?.id,
+    creatorsListForPublishedMetrics,
+    timelinesByKey,
+    creatorBreakdown,
+    hookData.isIndividualMode,
+    performanceData,
+  ]);
+
+  const getCreatorMetrics = useCallback(
+    (creator) => {
+      if (isUgc) return null;
+      const raw = creator?.creator?.id ?? creator?.creatorUserId;
+      if (raw == null || raw === "") return null;
+      const uid = String(raw);
+
+      if (!(uid in creatorMetricsMap)) {
+        const transitioning =
+          performanceFetch.isLoading &&
+          (!performanceFetch.campaignId ||
+            String(performanceFetch.campaignId) === String(selectedCampaign?.id ?? ""));
+        return transitioning ? null : { metricsUnavailable: true };
+      }
+
+      return creatorMetricsMap[uid] ?? { metricsUnavailable: true };
+    },
+    [
+      isUgc,
+      creatorMetricsMap,
+      performanceFetch.isLoading,
+      performanceFetch.campaignId,
+      selectedCampaign?.id,
+    ]
+  );
 
   /**
    * Campaign-level averages (for comparison labels).
@@ -115,15 +202,6 @@ export const useCreatorSpendAnalysisCompleted = ({
 
     return { avgViews, avgEngagement, avgER, avgCPE, avgCPV };
   }, [creatorMetricsMap]);
-
-  /**
-   * Returns per-creator metrics for a given creator object.
-   */
-  const getCreatorMetrics = (creator) => {
-    if (isUgc) return null;
-    const uid = creator?.creator?.id || creator?.creatorUserId;
-    return uid ? (creatorMetricsMap[uid] ?? null) : null;
-  };
 
   /**
    * Returns comparison labels for a creator's metrics vs campaign average.

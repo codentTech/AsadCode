@@ -34,6 +34,8 @@ export default function BrandDiscover() {
     handleEditShortlist,
     handleDeleteShortlist,
     handleInviteToApply,
+    handleRefreshCampaigns,
+    isCampaignsLoading,
     userCampaigns,
     shortlistState,
     shortlistMenuOpen,
@@ -101,6 +103,8 @@ export default function BrandDiscover() {
           getSortedCreators={getSortedCreators}
           handleRemoveFromShortlist={handleRemoveFromShortlist}
           handleInviteToApply={handleInviteToApply}
+          onRefreshCampaigns={handleRefreshCampaigns}
+          isCampaignsLoading={isCampaignsLoading}
           userCampaigns={userCampaigns}
         />
       </div>

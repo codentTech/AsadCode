@@ -2,14 +2,12 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
+import {
+  setSelectedCampaign as setSelectedCampaignContext,
+  setBrandCampaignMultiCreatorMode,
+} from "@/provider/features/campaign-context/campaign-context.slice";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
-
-const MD_BREAKPOINT = 768;
-
-function isMobileViewport() {
-  return typeof window !== "undefined" && window.innerWidth < MD_BREAKPOINT;
-}
+import { isMobileViewport } from "@/common/utils/viewport.utils";
 
 export default function useActive() {
   const dispatch = useDispatch();
@@ -23,7 +21,9 @@ export default function useActive() {
   // ============================================
   // 2. REDUX SELECTORS
   // ============================================
-  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
+  const campaignCtx = useSelector((state) => state.campaignContext || {});
+  const { selectedCampaignId } = campaignCtx;
+  const isMultiCreator = campaignCtx.isBrandCampaignMultiCreatorMode ?? true;
 
   const {
     data: hiredCreatorsData,
@@ -46,7 +46,6 @@ export default function useActive() {
   // ============================================
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const [filters, setFilters] = useState({
     status: "HIRED",
     sort: "newest",
@@ -213,12 +212,12 @@ export default function useActive() {
 
         if (shouldBeIndividualCreator === campaignIsIndividual) {
           const newIsMultiCreator = !shouldBeIndividualCreator;
-          setIsMultiCreator(newIsMultiCreator);
+          dispatch(setBrandCampaignMultiCreatorMode(newIsMultiCreator));
           sessionStorage.removeItem("taskIsIndividualCreator");
         }
       } else if (campaign) {
         const isIndividual = campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-        setIsMultiCreator(!isIndividual);
+        dispatch(setBrandCampaignMultiCreatorMode(!isIndividual));
       }
 
       if (campaign) {
@@ -350,13 +349,16 @@ export default function useActive() {
     [handleFilterChange]
   );
 
-  const handleToggleChange = useCallback((newIsMultiCreator) => {
-    setIsMultiCreator(newIsMultiCreator);
-    setSelectedCampaign(null);
-    setSelectedCreator(null);
-    autoSelectedForCampaignRef.current = null;
-    setMobilePane("overview");
-  }, []);
+  const handleToggleChange = useCallback(
+    (newIsMultiCreator) => {
+      dispatch(setBrandCampaignMultiCreatorMode(newIsMultiCreator));
+      setSelectedCampaign(null);
+      setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
+      setMobilePane("overview");
+    },
+    [dispatch]
+  );
 
   const goToCreatorsPane = useCallback(() => {
     setMobilePane("creators");

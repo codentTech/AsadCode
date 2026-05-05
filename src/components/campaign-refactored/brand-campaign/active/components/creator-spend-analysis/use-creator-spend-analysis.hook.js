@@ -1,85 +1,24 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { getAge } from "@/common/utils/date.utils";
+import {
+  buildPlatformsFromPhylloAccounts,
+  buildPlatformsFromSocialAccounts,
+  ratingAndReviewCountFromCreatorUser,
+} from "@/common/utils/creator-platforms.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  resolveEffectiveCollaborationType,
+  isIndividualCollaborationFlow,
+} from "@/common/utils/brand-campaign-context.utils";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import usersService from "@/provider/features/users/users.service";
 import phylloService from "@/provider/features/phyllo/phyllo.service";
 
-const DEFAULT_PLATFORMS = {
-  instagram: { followers: 0, verified: false },
-  youtube: { followers: 0, verified: false },
-  twitter: { followers: 0, verified: false },
-  tiktok: { followers: 0, verified: false },
-};
-
-function ratingAndReviewCountFromCreatorUser(creatorUser) {
-  const profile = creatorUser?.creator_profile;
-  const rawRating = profile?.rating;
-  const rating =
-    rawRating != null && rawRating !== "" ? Number(rawRating) : 0;
-  const rawCount = profile?.reviewCount ?? profile?.review_count;
-  const reviewCount =
-    rawCount != null && rawCount !== ""
-      ? Number(rawCount)
-      : Array.isArray(profile?.campaign_reviews)
-        ? profile.campaign_reviews.length
-        : 0;
-  return {
-    rating: Number.isFinite(rating) ? rating : 0,
-    reviewCount: Number.isFinite(reviewCount) ? reviewCount : 0,
-  };
-}
-
-function buildPlatformsFromSocialAccounts(creator) {
-  const accounts = creator?.social_accounts || [];
-  const out = { ...DEFAULT_PLATFORMS };
-  for (const acc of accounts) {
-    const platform = String(acc.platform || "").toLowerCase();
-    if (!platform) continue;
-    const pd = acc.profile_data || {};
-    const followers =
-      Number(pd.followers) ||
-      Number(pd.followers_count) ||
-      Number(pd.follower_count) ||
-      Number(pd.subscriber_count) ||
-      0;
-    if (!out[platform]) out[platform] = { followers: 0, verified: false };
-    out[platform] = {
-      followers,
-      verified: acc.is_verified ?? out[platform].verified ?? false,
-    };
-  }
-  return out;
-}
-
-function buildPlatformsFromPhylloAccounts(accounts) {
-  const out = { ...DEFAULT_PLATFORMS };
-  const list = Array.isArray(accounts) ? accounts : [];
-  for (const acc of list) {
-    if (!acc?.is_active) continue;
-    const platform = String(acc.platform || "").toLowerCase();
-    if (!platform) continue;
-    const followers =
-      Number(acc.follower_count) ||
-      Number(acc.profile_data?.follower_count) ||
-      Number(acc.profile_data?.followers_count) ||
-      Number(acc.profile_data?.followers) ||
-      Number(acc.profile_data?.subscriber_count) ||
-      0;
-    if (!out[platform]) out[platform] = { followers: 0, verified: false };
-    out[platform] = {
-      followers,
-      verified: acc.is_verified ?? out[platform].verified ?? false,
-    };
-  }
-  return out;
-}
-
 export const useCreatorSpendAnalysis = (
   selectedCampaign,
   isCompleted = false,
-  isMultiCreator = true,
+  _isMultiCreatorProp = true,
   onClearCreator,
   selectedCreator,
   onCreatorSelect,
@@ -92,11 +31,20 @@ export const useCreatorSpendAnalysis = (
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
   const autoSelectedRef = useRef(null);
 
+  const isMultiCreator = useSelector(
+    (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
+  );
+
+  const selectedCollaborationTypeFromContext = useSelector(
+    (state) => state.campaignContext?.selectedCollaborationType ?? null
+  );
+
   const {
     isLoading: creatorsLoading,
     isSuccess: creatorsSuccess,
     isError: creatorsError,
     data: creatorsData,
+    campaignId: creatorsListCampaignId,
   } = useSelector(
     (state) =>
       (isCompleted ? state.campaigns.getAppliedCreators : state.campaigns.getHiredCreators) || {}
@@ -115,13 +63,16 @@ export const useCreatorSpendAnalysis = (
     return [];
   }, [individualContractsData]);
 
-  const isIndividualMode = useMemo(() => {
-    return (
-      !isMultiCreator ||
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
-    );
-  }, [isMultiCreator, selectedCampaign]);
+  const effectiveCollaborationType = useMemo(
+    () =>
+      resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationTypeFromContext),
+    [selectedCampaign, selectedCollaborationTypeFromContext]
+  );
 
+  const isIndividualMode = useMemo(
+    () => isIndividualCollaborationFlow(isMultiCreator, effectiveCollaborationType),
+    [isMultiCreator, effectiveCollaborationType]
+  );
 
   const individualCreators = useMemo(() => {
     if (!isIndividualMode || normalizedIndividualContracts.length === 0) {
@@ -130,21 +81,20 @@ export const useCreatorSpendAnalysis = (
 
     return normalizedIndividualContracts
       .filter((contract) => {
-        // Only filter by campaign ID if:
-        // 1. We're in multi-creator mode (isMultiCreator = true) AND
-        // 2. A campaign is selected AND
-        // 3. The selected campaign is specifically an individual creator campaign
-        // When toggle is switched to individual creator (!isMultiCreator), show ALL individual creators
+        const contractCampaignId = contract.campaignId || contract.campaign?.id;
+
+        if (!isMultiCreator && selectedCampaign?.id) {
+          return String(contractCampaignId) === String(selectedCampaign.id);
+        }
+
         if (
           isMultiCreator &&
           selectedCampaign?.id &&
-          selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+          effectiveCollaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
         ) {
-          const contractCampaignId = contract.campaignId || contract.campaign?.id;
-          if (contractCampaignId !== selectedCampaign.id) {
-            return false;
-          }
+          return String(contractCampaignId) === String(selectedCampaign.id);
         }
+
         return true;
       })
       .map((contract) => {
@@ -198,9 +148,8 @@ export const useCreatorSpendAnalysis = (
     hydratedUsersById,
     phylloAccountsByCreatorId,
     selectedCampaign?.id,
-    selectedCampaign?.collaboration_type,
+    effectiveCollaborationType,
     isMultiCreator,
-    isCompleted,
   ]);
 
   useEffect(() => {
@@ -372,9 +321,42 @@ export const useCreatorSpendAnalysis = (
   );
 
   const displayCreators = isIndividualMode ? individualCreators : creators;
-  const displayLoading = isIndividualMode ? individualContractsLoading : creatorsLoading;
+
+  const awaitingAppliedCreators =
+    !!selectedCampaign?.id &&
+    !isIndividualMode &&
+    !creatorsSuccess &&
+    !creatorsError &&
+    !creatorsLoading;
+
+  const showStaleCreatorsList =
+    !!selectedCampaign?.id &&
+    !isIndividualMode &&
+    creatorsListCampaignId === selectedCampaign?.id &&
+    Array.isArray(creatorsData?.data) &&
+    creatorsData.data.length > 0;
+
+  const awaitingIndividualContracts =
+    !!selectedCampaign?.id &&
+    isIndividualMode &&
+    !individualContractsSuccess &&
+    !individualContractsError &&
+    !individualContractsLoading;
+
+  const displayLoading = isIndividualMode
+    ? individualContractsLoading || awaitingIndividualContracts
+    : (creatorsLoading && !showStaleCreatorsList) || awaitingAppliedCreators;
   const displaySuccess = isIndividualMode ? individualContractsSuccess : creatorsSuccess;
   const displayError = isIndividualMode ? individualContractsError : creatorsError;
+
+  const appliedCreatorsFingerprint = useMemo(() => {
+    if (isIndividualMode) {
+      return normalizedIndividualContracts.map((c) => c.id).join("|");
+    }
+    const list = creatorsData?.data;
+    if (!Array.isArray(list)) return "";
+    return list.map((row) => row?.creator?.id ?? row?.id ?? "").join("|");
+  }, [isIndividualMode, normalizedIndividualContracts, creatorsData?.data]);
 
   useEffect(() => {
     if (onClearCreator) {
@@ -405,7 +387,7 @@ export const useCreatorSpendAnalysis = (
     }
   }, [
     displaySuccess,
-    displayCreators,
+    appliedCreatorsFingerprint,
     selectedCreator,
     selectedCampaign,
     onCreatorSelect,
@@ -418,6 +400,9 @@ export const useCreatorSpendAnalysis = (
     creatorsLoading: displayLoading,
     creatorsSuccess: displaySuccess,
     creatorsError: displayError,
+    creatorsListCampaignId,
+    isMultiCreator,
+    isIndividualMode,
     getSuccessRateColor,
     formatFollowers,
     getPlatformIcon,

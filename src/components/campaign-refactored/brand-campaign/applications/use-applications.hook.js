@@ -16,8 +16,7 @@ import useMessageThread from "@/components/campaign-refactored/shared/message-th
 import { avatar } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
-
-const MD_BREAKPOINT = 768;
+import { isMobileViewport } from "@/common/utils/viewport.utils";
 
 const normalizeAppliedCreatorsFilters = (filters = {}) => {
   const normalized = { ...filters };
@@ -270,7 +269,7 @@ function useBrandApplications() {
   const handleCreatorSelectWithPane = useCallback(
     (creator) => {
       handleCreatorSelect(creator);
-      if (typeof window !== "undefined" && window.innerWidth < MD_BREAKPOINT) {
+      if (isMobileViewport()) {
         setMobilePane("detail");
       }
     },

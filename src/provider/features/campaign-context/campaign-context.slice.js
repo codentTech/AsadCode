@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   selectedCampaignId: null,
   selectedCollaborationType: null, // "MULTI_CREATOR" or "INDIVIDUAL_CREATOR"
+  isBrandCampaignMultiCreatorMode: true,
 };
 
 const campaignContextSlice = createSlice({
@@ -17,9 +18,16 @@ const campaignContextSlice = createSlice({
       state.selectedCampaignId = null;
       state.selectedCollaborationType = null;
     },
+    setBrandCampaignMultiCreatorMode: (state, action) => {
+      state.isBrandCampaignMultiCreatorMode = action.payload;
+    },
   },
 });
 
-export const { setSelectedCampaign, clearSelectedCampaign } = campaignContextSlice.actions;
+export const {
+  setSelectedCampaign,
+  clearSelectedCampaign,
+  setBrandCampaignMultiCreatorMode,
+} = campaignContextSlice.actions;
 export default campaignContextSlice.reducer;
 
