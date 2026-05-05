@@ -1,12 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
-import {
-  getAllBrandCampaigns,
-  getAppliedCreators,
-  resetGetAppliedCreators,
-} from "@/provider/features/campaigns/campaigns.slice";
+import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import {
   fetchCreatorAudience,
@@ -17,11 +13,13 @@ import {
   selectCampaignCombinedDemographics,
 } from "@/provider/features/phyllo/phyllo.slice";
 
-const IS_COMPLETED = false;
+const campaignIdKey = (id) => (id == null || id === "" ? null : String(id));
 
 export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const dispatch = useDispatch();
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
+  const isMultiCreator = useSelector(
+    (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
+  );
 
   // Refs (brand + overview)
   const hasAutoSelected = useRef(false);
@@ -64,7 +62,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // Local state (from brand hook)
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [campaignOptions, setCampaignOptions] = useState([]);
   const [budgetData, setBudgetData] = useState({
     totalBudget: 0,
     spent: 0,
@@ -79,6 +76,17 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     costPerEngagement: 0,
   });
 
+  const campaignOptions = useMemo(() => {
+    if (!campaignsSuccess || !campaignsData?.data) return [];
+    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
+    return activeCampaigns.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.campaign_title || "Untitled Campaign",
+      campaign: campaign,
+    }));
+  }, [campaignsSuccess, campaignsData?.data]);
+
   // --- Brand: fetch campaigns on mount ---
   useEffect(() => {
     dispatch(getAllBrandCampaigns());
@@ -86,7 +94,9 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // --- Brand: reset restoration flag when context id changes ---
   useEffect(() => {
-    if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
+    const nextKey = campaignIdKey(selectedCampaignId);
+    const prevKey = campaignIdKey(lastRestoredCampaignIdRef.current);
+    if (nextKey !== prevKey) {
       hasRestoredFromContext.current = false;
     }
   }, [selectedCampaignId]);
@@ -94,10 +104,15 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   // --- Brand: restore selection from context ---
   useEffect(() => {
     if (campaignsSuccess && campaignsData?.data && selectedCampaignId) {
+      if (!isMultiCreator) {
+        return;
+      }
       const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const restoredCampaign = allCampaigns.find((c) => c.id === selectedCampaignId);
+      const ctxKey = campaignIdKey(selectedCampaignId);
+      const restoredCampaign = allCampaigns.find((c) => campaignIdKey(c.id) === ctxKey);
+      const localKey = campaignIdKey(selectedCampaign?.id);
       const shouldRestore =
-        !hasRestoredFromContext.current || selectedCampaign?.id !== selectedCampaignId;
+        !hasRestoredFromContext.current || localKey !== ctxKey;
 
       if (restoredCampaign && shouldRestore) {
         setSelectedCampaign(restoredCampaign);
@@ -109,73 +124,60 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       lastRestoredCampaignIdRef.current = null;
       hasRestoredFromContext.current = false;
     }
-  }, [campaignsSuccess, campaignsData, selectedCampaignId, selectedCampaign?.id]);
+  }, [
+    campaignsSuccess,
+    campaignsData?.data,
+    selectedCampaignId,
+    selectedCampaign?.id,
+    isMultiCreator,
+  ]);
 
-  // --- Brand: reset on isCompleted change ---
+  // --- Brand: auto-select / reconcile selected campaign when list loads ---
   useEffect(() => {
-    if (!hasRestoredFromContext.current) {
-      setSelectedCampaign(null);
-      hasAutoSelected.current = false;
-    }
-    setCampaignOptions([]);
-    dispatch(resetGetAppliedCreators());
-  }, [IS_COMPLETED, dispatch]);
+    if (!isMultiCreator) return;
+    if (!campaignsSuccess || !campaignsData?.data) return;
 
-  // --- Brand: build options and auto-select first campaign ---
-  useEffect(() => {
-    if (campaignsSuccess && campaignsData?.data) {
-      const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
-      const options = activeCampaigns.map((campaign) => ({
-        value: campaign.id,
-        label: campaign.campaign_title || "Untitled Campaign",
-        campaign: campaign,
-      }));
+    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
 
-      setCampaignOptions((prev) => {
-        if (
-          prev.length === options.length &&
-          prev.every((item, idx) => item.value === options[idx]?.value)
-        ) {
-          return prev;
-        }
-        return options;
-      });
-
-      if (
-        selectedCampaign &&
-        activeCampaigns.length > 0 &&
-        !activeCampaigns.some((c) => c.id === selectedCampaign.id)
-      ) {
-        if (selectedCampaign.status === "COMPLETE") {
-          setSelectedCampaign(null);
-          hasAutoSelected.current = false;
-        } else {
-          setSelectedCampaign(activeCampaigns[0]);
-          hasAutoSelected.current = true;
-        }
-        return;
-      }
-
-      if (
-        activeCampaigns.length > 0 &&
-        !selectedCampaign &&
-        !hasAutoSelected.current &&
-        !hasRestoredFromContext.current
-      ) {
+    if (
+      selectedCampaign &&
+      activeCampaigns.length > 0 &&
+      !activeCampaigns.some((c) => campaignIdKey(c.id) === campaignIdKey(selectedCampaign.id))
+    ) {
+      if (selectedCampaign.status === "COMPLETE") {
+        setSelectedCampaign(null);
+        hasAutoSelected.current = false;
+      } else {
         setSelectedCampaign(activeCampaigns[0]);
         hasAutoSelected.current = true;
-        dispatch(
-          setSelectedCampaignContext({
-            campaignId: activeCampaigns[0].id,
-            collaborationType: activeCampaigns[0].collaboration_type || null,
-          })
-        );
       }
-    } else if (campaignsSuccess) {
-      setCampaignOptions((prev) => (prev.length === 0 ? prev : []));
+      return;
     }
-  }, [campaignsSuccess, campaignsData, selectedCampaign?.id, dispatch]);
+
+    if (
+      activeCampaigns.length > 0 &&
+      !selectedCampaign &&
+      !hasAutoSelected.current &&
+      !hasRestoredFromContext.current
+    ) {
+      setSelectedCampaign(activeCampaigns[0]);
+      hasAutoSelected.current = true;
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: activeCampaigns[0].id,
+          collaborationType: activeCampaigns[0].collaboration_type || null,
+        })
+      );
+    }
+  }, [
+    isMultiCreator,
+    campaignsSuccess,
+    campaignsData?.data,
+    selectedCampaign?.id,
+    selectedCampaign?.status,
+    dispatch,
+  ]);
 
   // --- Brand: fetch applied creators when campaign selected ---
   useEffect(() => {
@@ -201,13 +203,12 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         return Number(sum) + comp;
       }, 0);
       const remaining = Math.max(0, totalBudget - Number(spent));
-      const saved = IS_COMPLETED ? Math.max(0, remaining) : 0;
 
       setBudgetData({
         totalBudget: Number(totalBudget),
         spent: Number(spent),
-        remaining: IS_COMPLETED ? 0 : Number(remaining),
-        saved: Number(saved),
+        remaining: Number(remaining),
+        saved: 0,
       });
 
       setDeliverables(selectedCampaign.deliverables || []);
@@ -290,14 +291,16 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, []);
 
   // --- Overview: filtered options and validity ---
-  const filteredCampaignOptions = campaignOptions.filter((option) => {
-    if (!option.campaign) return false;
-    const collaborationType =
-      option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
-    return isMultiCreator
-      ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
-      : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-  });
+  const filteredCampaignOptions = useMemo(() => {
+    return campaignOptions.filter((option) => {
+      if (!option.campaign) return false;
+      const collaborationType =
+        option.campaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR;
+      return isMultiCreator
+        ? collaborationType === COLLABORATION_TYPE.MULTI_CREATOR
+        : collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    });
+  }, [campaignOptions, isMultiCreator]);
 
   const isSelectedCampaignValid =
     selectedCampaign &&
@@ -306,12 +309,56 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         COLLABORATION_TYPE.MULTI_CREATOR
       : selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
 
+  const campaignSimpleSelectValue = useMemo(() => {
+    if (!isSelectedCampaignValid || !selectedCampaign?.campaign_title) {
+      return null;
+    }
+    return {
+      value: selectedCampaign.id,
+      label: selectedCampaign.campaign_title,
+    };
+  }, [isSelectedCampaignValid, selectedCampaign?.id, selectedCampaign?.campaign_title]);
+
   const showMultiCreatorUI = isMultiCreator && isSelectedCampaignValid;
 
   const isLoadingBrand = campaignsLoading || creatorsLoading;
-  const hasDataBrand = selectedCampaign && Array.isArray(creatorsData?.data);
 
   const hasIndividualData = !isMultiCreator && normalizedIndividualContracts.length > 0;
+
+  const computedHasData = useMemo(() => {
+    if (!selectedCampaign) return false;
+    if (isMultiCreator && isSelectedCampaignValid) {
+      return Array.isArray(creatorsData?.data) && creatorsData.data.length > 0;
+    }
+    return hasIndividualData;
+  }, [selectedCampaign, isMultiCreator, isSelectedCampaignValid, creatorsData?.data, hasIndividualData]);
+
+  const overviewLoading = useMemo(() => {
+    if (!isMultiCreator) {
+      return individualContractsLoading;
+    }
+    if (isSelectedCampaignValid && selectedCampaign) {
+      return campaignsLoading;
+    }
+    return isLoadingBrand;
+  }, [
+    isMultiCreator,
+    individualContractsLoading,
+    isSelectedCampaignValid,
+    selectedCampaign,
+    campaignsLoading,
+    isLoadingBrand,
+  ]);
+
+  const budgetStatsLoading = useMemo(
+    () =>
+      showMultiCreatorUI &&
+      !!selectedCampaign &&
+      !creatorsSuccess &&
+      !creatorsError,
+    [showMultiCreatorUI, selectedCampaign, creatorsSuccess, creatorsError]
+  );
+
   const isLoadingIndividual = !isMultiCreator && individualContractsLoading;
 
   // --- Overview: notify parent when selected campaign changes ---
@@ -418,9 +465,11 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   );
 
   const handleToggleChange = useCallback(
-    (event) => {
-      const newIsMultiCreator = event?.target?.checked ?? !isMultiCreator;
-      setIsMultiCreator(newIsMultiCreator);
+    (eventOrValue) => {
+      const newIsMultiCreator =
+        typeof eventOrValue === "boolean"
+          ? eventOrValue
+          : (eventOrValue?.target?.checked ?? !isMultiCreator);
       hasAutoSelectedFiltered.current = false;
       hasAutoSelectedIndividual.current = false;
 
@@ -470,14 +519,11 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     if (isMultiCreator) {
       dispatch(fetchCampaignCombinedDemographics({ campaignId: selectedCampaign.id }));
       dispatch(resetAudience());
-    } else if (individualCreatorId) {
-      // Individual mode should use direct creator audience endpoint.
-      // This avoids campaign-level aggregation gaps for individual collaborations.
+      return;
+    }
+    if (individualCreatorId) {
       dispatch(resetCampaignDemographics());
       dispatch(fetchCreatorAudience({ creatorId: individualCreatorId }));
-    } else {
-      dispatch(resetCampaignDemographics());
-      dispatch(resetAudience());
     }
   }, [selectedCampaign?.id, isMultiCreator, individualCreatorId, dispatch]);
 
@@ -489,9 +535,17 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, [dispatch]);
 
   const demographicsData = isMultiCreator ? campaignDemographics?.data : creatorAudience?.data;
-  const demographicsLoading = isMultiCreator
-    ? campaignDemographics?.isLoading || false
-    : creatorAudience?.isLoading || false;
+  const awaitingIndividualDemographicsContext =
+    !isMultiCreator && !!selectedCampaign?.id && !individualCreatorId;
+  const demographicsFetchSettled = isMultiCreator
+    ? campaignDemographics?.isSuccess || campaignDemographics?.isError
+    : creatorAudience?.isSuccess || creatorAudience?.isError;
+  const demographicsLoading =
+    !!(isMultiCreator ? campaignDemographics?.isLoading : creatorAudience?.isLoading) ||
+    awaitingIndividualDemographicsContext ||
+    (!!selectedCampaign?.id &&
+      (isMultiCreator || !!individualCreatorId) &&
+      !demographicsFetchSettled);
   const hasDemographicsData = isMultiCreator
     ? campaignDemographics?.isSuccess &&
       (demographicsData?.has_data || demographicsData?.no_connection)
@@ -507,10 +561,12 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     performanceMetrics,
     formatCurrency,
     formatNumber,
-    isLoading: isMultiCreator ? isLoadingBrand : isLoadingIndividual,
-    hasData: isMultiCreator ? hasDataBrand : hasIndividualData,
+    isLoading: isMultiCreator ? overviewLoading : isLoadingIndividual,
+    budgetStatsLoading,
+    hasData: computedHasData,
     handleCampaignSelect,
     handleToggleChange,
+    campaignSimpleSelectValue,
     demographicsData,
     demographicsLoading,
     hasDemographicsData,

@@ -4,39 +4,11 @@ import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/ca
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
+import LeftPaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/left-pane-skeleton.component";
+import MiddlePaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/middle-pane-skeleton.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import RightPaneSkeleton from "@/components/campaign-refactored/shared/right-pane-skeleton/right-pane-skeleton.component";
-import { Skeleton, SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import useActive from "./use-active.hook";
-
-function LeftPaneSkeleton() {
-  return (
-    <div className="hidden min-h-0 w-full shrink-0 space-y-4 border-r border-gray-200 bg-white p-4 md:block md:w-[min(100%,288px)] md:max-w-[26%] lg:max-w-[300px]">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-      <div className="mt-4 space-y-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="rounded-lg border p-3">
-            <Skeleton className="mb-2 h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MiddlePaneSkeleton() {
-  return (
-    <div className="min-h-0 flex-1 border-r border-gray-200 bg-white p-3 sm:p-4">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-full max-w-[10rem]" />
-      </div>
-      <SkeletonCardGrid count={6} gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" />
-    </div>
-  );
-}
 
 const slotBtnClass =
   "inline-flex min-h-[30px] w-10 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 sm:min-h-8 md:min-h-9";
@@ -45,7 +17,6 @@ export default function BrandActive() {
   const {
     selectedCampaign,
     selectedCreator,
-    isMultiCreator,
     filters,
     rightPaneState,
     isLoading,
@@ -155,9 +126,12 @@ export default function BrandActive() {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-gradient-to-b from-slate-50/80 to-white md:flex-row md:bg-transparent">
       <div
-        className={`min-h-0 min-w-0 flex-col border-b border-indigo-100/30 bg-white shadow-[0_4px_24px_-12px_rgba(79,70,229,0.15)] transition-[opacity,transform] duration-200 ease-out md:flex md:max-w-[min(100%,300px)] md:flex-[0_1_23%] md:border-b-0 md:border-r md:border-gray-200 md:shadow-none lg:max-w-[320px] ${overviewVisible} md:flex`}
+        className={`min-h-0 min-w-0 flex-col border-b border-indigo-100/30 bg-white shadow-[0_4px_24px_-12px_rgba(79,70,229,0.15)] transition-[opacity,transform] duration-200 ease-out md:flex md:max-w-[min(100%,300px)] md:flex-[0_1_23%] md:border-b-0 md:border-r md:border-gray-200 md:shadow-none lg:max-w-[330px] ${overviewVisible} md:flex`}
       >
-        <CampaignOverview onCampaignSelect={handleCampaignSelect} onToggleChange={handleToggleChange} />
+        <CampaignOverview
+          onCampaignSelect={handleCampaignSelect}
+          onToggleChange={handleToggleChange}
+        />
       </div>
 
       <div
@@ -170,7 +144,6 @@ export default function BrandActive() {
           onClearCreator={handleClearCreator}
           onSortChange={handleSortChange}
           currentSort={filters.sort}
-          isMultiCreator={isMultiCreator}
           isCompleted={false}
         />
       </div>

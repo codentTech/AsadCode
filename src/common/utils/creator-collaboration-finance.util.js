@@ -2,14 +2,43 @@ import { findCreatorCollaborationHistoryItem } from "@/common/utils/creator-coll
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 export function calculateEarningFromCampaignType(item) {
+  const contract = item?.contract || {};
+  const giftedValue = Number(
+    contract.productValue ||
+      contract.product_value ||
+      contract.productPrice ||
+      contract.product_price ||
+      item?.productValue ||
+      item?.product_value ||
+      item?.campaign?.product_value ||
+      item?.campaign?.productPrice ||
+      item?.campaign?.product_price ||
+      0
+  );
+  const compensationType =
+    item?.campaign?.compensation_type ||
+    item?.campaign?.compensationType ||
+    contract.compensation_type ||
+    contract.compensationType;
+
   if (!item.campaign) {
-    return Number(item.totalCompensation || 0);
+    const fallbackTotal = Number(
+      item.totalCompensation ||
+        item.total_compensation ||
+        contract.totalCompensation ||
+        contract.total_compensation ||
+        0
+    );
+    if (compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      return fallbackTotal > 0 ? fallbackTotal : giftedValue;
+    }
+    return fallbackTotal;
   }
 
   const campaign = item.campaign;
-  const totalCompensation = Number(item.totalCompensation || 0);
+  const totalCompensation = Number(item.totalCompensation || item.total_compensation || 0);
 
-  if (campaign.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
+  if (compensationType === COMPENSATION_TYPE.COMMISSION || campaign.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
     const commissionPercentage = Number(campaign.commission_percentage || 0);
     if (totalCompensation > 0 && commissionPercentage > 0) {
       return (commissionPercentage / 100) * totalCompensation;
@@ -17,18 +46,15 @@ export function calculateEarningFromCampaignType(item) {
     return 0;
   }
 
-  if (
-    campaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-    campaign.campaign_type === CAMPAIGN_TYPE.UGC
-  ) {
-    if (campaign.compensation_type === COMPENSATION_TYPE.PAID) {
-      return totalCompensation > 0 ? totalCompensation : Number(campaign.creator_fixed_price || 0);
-    }
-    return 0;
+  if (compensationType === COMPENSATION_TYPE.PAID) {
+    return totalCompensation > 0 ? totalCompensation : Number(campaign.creator_fixed_price || 0);
   }
 
-  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED) {
-    return totalCompensation > 0 ? totalCompensation : Number(campaign.product_value || 0);
+  if (
+    compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+    campaign.campaign_type === CAMPAIGN_TYPE.GIFTED
+  ) {
+    return totalCompensation > 0 ? totalCompensation : giftedValue;
   }
 
   return totalCompensation;

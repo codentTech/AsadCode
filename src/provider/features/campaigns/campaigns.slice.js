@@ -15,6 +15,8 @@ const generalState = {
   data: null,
 };
 
+const campaignScopedCreatorsState = { ...generalState, campaignId: null };
+
 const initialState = {
   createCampaign: { ...generalState },
   getAllCampaigns: { ...generalState },
@@ -27,9 +29,9 @@ const initialState = {
   applyToCampaign: { ...generalState },
   withdrawApplication: { ...generalState },
   getAllBrandCampaigns: { ...generalState },
-  getAppliedCreators: { ...generalState },
+  getAppliedCreators: { ...campaignScopedCreatorsState },
   getAppliedCreatorsForBudget: { ...generalState }, // No status filter; used for budget calculation on completed tab
-  getHiredCreators: { ...generalState }, // Separate state for active-completed tab
+  getHiredCreators: { ...campaignScopedCreatorsState },
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
@@ -427,7 +429,7 @@ export const campaignsSlice = createSlice({
       state.getAllBrandCampaigns = { ...generalState };
     },
     resetGetAppliedCreators: (state) => {
-      state.getAppliedCreators = { ...generalState };
+      state.getAppliedCreators = { ...campaignScopedCreatorsState };
     },
   },
   extraReducers: (builder) => {
@@ -648,17 +650,25 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.data = null;
       })
       // getAppliedCreators
-      .addCase(getAppliedCreators.pending, (state) => {
+      .addCase(getAppliedCreators.pending, (state, action) => {
+        const requestedCampaignId = action.meta.arg?.campaignId ?? null;
+        const loadedCampaignId = state.getAppliedCreators.campaignId;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
         state.getAppliedCreators.isLoading = true;
         state.getAppliedCreators.message = "";
         state.getAppliedCreators.isError = false;
         state.getAppliedCreators.isSuccess = false;
-        state.getAppliedCreators.data = null;
+        if (shouldClearData) {
+          state.getAppliedCreators.data = null;
+        }
       })
       .addCase(getAppliedCreators.fulfilled, (state, action) => {
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isSuccess = true;
         state.getAppliedCreators.data = action.payload;
+        state.getAppliedCreators.campaignId = action.meta.arg?.campaignId ?? null;
       })
       .addCase(getAppliedCreators.rejected, (state, action) => {
         state.getAppliedCreators.message =
@@ -666,6 +676,7 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
+        state.getAppliedCreators.campaignId = null;
       })
       // getAppliedCreatorsForBudget
       .addCase(getAppliedCreatorsForBudget.pending, (state) => {
@@ -688,17 +699,25 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreatorsForBudget.data = null;
       })
       // getHiredCreators
-      .addCase(getHiredCreators.pending, (state) => {
+      .addCase(getHiredCreators.pending, (state, action) => {
+        const requestedCampaignId = action.meta.arg?.campaignId ?? null;
+        const loadedCampaignId = state.getHiredCreators.campaignId;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
         state.getHiredCreators.isLoading = true;
         state.getHiredCreators.message = "";
         state.getHiredCreators.isError = false;
         state.getHiredCreators.isSuccess = false;
-        state.getHiredCreators.data = null;
+        if (shouldClearData) {
+          state.getHiredCreators.data = null;
+        }
       })
       .addCase(getHiredCreators.fulfilled, (state, action) => {
         state.getHiredCreators.isLoading = false;
         state.getHiredCreators.isSuccess = true;
         state.getHiredCreators.data = action.payload;
+        state.getHiredCreators.campaignId = action.meta.arg?.campaignId ?? null;
       })
       .addCase(getHiredCreators.rejected, (state, action) => {
         state.getHiredCreators.message =
@@ -706,6 +725,7 @@ export const campaignsSlice = createSlice({
         state.getHiredCreators.isLoading = false;
         state.getHiredCreators.isError = true;
         state.getHiredCreators.data = null;
+        state.getHiredCreators.campaignId = null;
       })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {

@@ -6,7 +6,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import BrandCampaignTypeToggle from "@/common/components/brand-campaign-type-toggle/brand-campaign-type-toggle.component";
 import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { useSelector } from "react-redux";
@@ -217,16 +217,12 @@ const CreatorSpendAnalysis = ({
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="p-3 sm:p-4">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-full rounded-lg bg-gray-100 p-2.5 sm:max-w-[min(100%,320px)] sm:p-3">
-              <CustomSwitch
-                label="Campaign Type"
-                checked={isMultiCreator}
-                onChange={handleToggleChange}
-                rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
-                parentDivClassName="justify-between"
-                rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium not-italic leading-6 text-text-dark-gray sm:justify-end sm:gap-8"
-              />
-            </div>
+            <BrandCampaignTypeToggle
+              isMultiCreator={isMultiCreator}
+              onSelect={handleToggleChange}
+              className="w-full min-w-[282px] sm:w-[282px]"
+              rightLabelClassName="mb-1.5 text-[10px] font-medium not-italic leading-tight text-text-dark-gray sm:text-xs md:text-sm"
+            />
             {onSwitchToApplications && (
               <CustomButton
                 text="Applications"

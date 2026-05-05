@@ -73,6 +73,7 @@ const persistConfig = {
     "shortlist",
     "contracts",
     "phyllo",
+    "campaignContext",
   ],
 };
 

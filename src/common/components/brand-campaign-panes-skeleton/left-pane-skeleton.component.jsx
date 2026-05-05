@@ -1,0 +1,18 @@
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
+
+export default function LeftPaneSkeleton() {
+  return (
+    <div className="hidden min-h-0 w-full shrink-0 space-y-4 border-r border-gray-200 bg-white p-4 md:block md:w-[min(100%,288px)] md:max-w-[26%] lg:max-w-[300px]">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <div className="mt-4 space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-lg border p-3">
+            <Skeleton className="mb-2 h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

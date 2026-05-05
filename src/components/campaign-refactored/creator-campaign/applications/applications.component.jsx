@@ -4,7 +4,7 @@ import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
-import { Gift } from "lucide-react";
+import { Gift, RefreshCw } from "lucide-react";
 import ApplicationCard from "./components/application-card/application-card.component";
 import CampaignBriefModal from "./components/campaign-brief-modal/campaign-brief-modal.component";
 import OffersModal from "./components/offers-modal/offers-modal.component";
@@ -59,18 +59,30 @@ export default function CreatorApplications() {
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <button
-                onClick={() => setShowOffersModal(true)}
-                className="relative flex h-8 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg sm:h-10 sm:px-4 sm:text-sm"
-              >
-                <Gift className="w-4 h-4" />
-                <span>My Offers</span>
-                {(offersData?.length || 0) > 0 && (
-                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-white/20 text-white text-xs font-bold rounded-full">
-                    {offersData?.length || 0}
-                  </span>
-                )}
-              </button>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={fetchAllApplications}
+                  disabled={applicationsLoading}
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-10"
+                  aria-label="Refresh applications"
+                  title="Refresh applications"
+                >
+                  <RefreshCw className={`h-4 w-4 ${applicationsLoading ? "animate-spin" : ""}`} />
+                </button>
+                <button
+                  onClick={() => setShowOffersModal(true)}
+                  className="relative flex h-8 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg sm:h-10 sm:px-4 sm:text-sm"
+                >
+                  <Gift className="w-4 h-4" />
+                  <span>My Offers</span>
+                  {(offersData?.length || 0) > 0 && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-white/20 text-white text-xs font-bold rounded-full">
+                      {offersData?.length || 0}
+                    </span>
+                  )}
+                </button>
+              </div>
 
               <div className="-mx-0.5 flex items-center gap-1 overflow-x-auto pb-0.5 sm:mx-0 sm:gap-2 sm:overflow-visible sm:pb-0">
                 <button

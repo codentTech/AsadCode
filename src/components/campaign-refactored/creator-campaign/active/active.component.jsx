@@ -1,82 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CampaignList from "./components/campaign-list/campaign-list.component";
 import CampaignDetail from "./components/campaign-detail/campaign-detail.component";
 import ContentPlanning from "./components/content-planning/content-planning.component";
-import TaskManagerCreator from "@/components/campaign-refactored/creator-campaign/active/components/task-manager-creator/task-manager-creator.component";
 import NotFound from "@/common/components/not-found/not-found.component";
-import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
+import CreatorLeftPaneSkeleton from "@/common/components/creator-campaign-panes-skeleton/left-pane-skeleton.component";
+import CreatorMiddlePaneSkeleton from "@/common/components/creator-campaign-panes-skeleton/middle-pane-skeleton.component";
+import CreatorRightPaneSkeleton from "@/common/components/creator-campaign-panes-skeleton/right-pane-skeleton.component";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
 import useActive from "./use-active.hook";
-
-function LeftPaneSkeleton() {
-  return (
-    <div className="w-full bg-white border-r border-gray-200 p-4 space-y-3 md:w-[23%]">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="border rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Skeleton circle className="h-12 w-12" />
-            <div className="flex-1">
-              <Skeleton className="h-4 w-3/4 mb-2" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-          <Skeleton className="h-3 w-full mb-1" />
-          <Skeleton className="h-3 w-2/3" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function MiddlePaneSkeleton() {
-  return (
-    <div className="flex-1 bg-white border-r border-gray-200 p-6">
-      <Skeleton circle className="h-20 w-20 mx-auto mb-4" />
-      <Skeleton className="h-6 w-48 mx-auto mb-2" />
-      <Skeleton className="h-4 w-32 mx-auto mb-6" />
-      <div className="space-y-4">
-        <div className="border rounded-lg p-4">
-          <Skeleton className="h-4 w-32 mb-3" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-        <div className="border rounded-lg p-4">
-          <Skeleton className="h-4 w-32 mb-3" />
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RightPaneSkeleton() {
-  return (
-    <div className="w-[27%] bg-white p-4">
-      <Skeleton className="h-6 w-32 mb-4" />
-      <div className="space-y-3 mb-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="border rounded-lg p-3">
-            <Skeleton className="h-4 w-24 mb-2" />
-            <Skeleton className="h-3 w-full" />
-          </div>
-        ))}
-      </div>
-      <Skeleton className="h-6 w-32 mb-4" />
-      <div className="space-y-2">
-        {[1, 2].map((i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-3 flex-1" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function CreatorActive() {
   const {
@@ -149,45 +81,42 @@ export default function CreatorActive() {
   if (getApplicationsState.isLoading && formattedCampaigns.length === 0) {
     return (
       <div className="relative flex h-screen flex-col md:flex-row">
-        <LeftPaneSkeleton />
-        <MiddlePaneSkeleton />
-        <RightPaneSkeleton />
+        <CreatorLeftPaneSkeleton />
+        <CreatorMiddlePaneSkeleton />
+        <CreatorRightPaneSkeleton variant="active" />
       </div>
     );
   }
 
   if (!getApplicationsState.isLoading && formattedCampaigns.length === 0) {
     return (
-      <div className="relative flex h-screen flex-col md:flex-row">
-        <div className="w-[23%] bg-white border-r border-gray-200">
+      <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
+        <div
+          className={`${mobilePane === "list" ? "flex" : "hidden"} min-h-0 flex-1 items-center justify-center border-r border-gray-200 bg-white md:flex md:w-[23%] md:flex-none`}
+        >
           <NotFound
             title="No Active Campaigns"
             description="No campaigns available."
-            className="h-full"
+            className="w-full h-full"
           />
         </div>
-        <div className="flex-1 bg-white border-r border-gray-200">
+        <div
+          className={`${mobilePane === "detail" ? "flex" : "hidden"} min-h-0 flex-1 items-center justify-center border-r border-gray-200 bg-white md:flex`}
+        >
           <NotFound
             title="No Campaign Selected"
             description="Select a campaign to view details."
-            className="h-full"
+            className="w-full h-full"
           />
         </div>
-        <div className="w-[27%] bg-white flex flex-col">
-          <div className="flex-1">
-            <NotFound
-              title="No Content Planner"
-              description="Content tools not available."
-              className="h-full"
-            />
-          </div>
-          <div className="border-t border-gray-200 p-4 flex-shrink-0" style={{ maxHeight: "40%" }}>
-            <TaskManagerCreator
-              setSelectedCampaign={handleCampaignSelect}
-              getCampaignById={getCampaignById}
-              formatCampaignData={formatCampaignData}
-            />
-          </div>
+        <div
+          className={`${mobilePane === "planner" ? "flex" : "hidden"} min-h-0 flex-1 items-center justify-center bg-white md:flex md:w-[27%] md:flex-none`}
+        >
+          <NotFound
+            title="No Content Planner"
+            description="Content tools not available."
+            className="w-full h-full"
+          />
         </div>
       </div>
     );

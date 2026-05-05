@@ -5,31 +5,34 @@ import {
   getAppliedCreators,
   getAppliedCreatorsForBudget,
 } from "@/provider/features/campaigns/campaigns.slice";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
+import {
+  setSelectedCampaign as setSelectedCampaignContext,
+  setBrandCampaignMultiCreatorMode,
+} from "@/provider/features/campaign-context/campaign-context.slice";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-
-const MD_BREAKPOINT = 768;
-
-function isMobileViewport() {
-  return typeof window !== "undefined" && window.innerWidth < MD_BREAKPOINT;
-}
+import {
+  resolveEffectiveCollaborationType,
+  isIndividualCollaborationFlow,
+} from "@/common/utils/brand-campaign-context.utils";
+import { isMobileViewport } from "@/common/utils/viewport.utils";
+import {
+  resetCampaignDemographics,
+  resetAudience,
+  resetPerformanceMetrics,
+} from "@/provider/features/phyllo/phyllo.slice";
 
 export default function useCompleted(disableAutoSelect = false) {
   const dispatch = useDispatch();
 
-  // ============================================
-  // 1. REFS
-  // ============================================
   const hasAutoSelected = useRef(false);
   const hasRestoredFromContext = useRef(false);
   const lastRestoredCampaignIdRef = useRef(null);
   const hasRequestedBrandCampaignsRef = useRef(false);
 
-  // ============================================
-  // 2. REDUX SELECTORS
-  // ============================================
-  const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
+  const campaignCtx = useSelector((state) => state.campaignContext || {});
+  const { selectedCampaignId, selectedCollaborationType } = campaignCtx;
+  const isMultiCreator = campaignCtx.isBrandCampaignMultiCreatorMode ?? true;
 
   const {
     isLoading: campaignsLoading,
@@ -55,12 +58,8 @@ export default function useCompleted(disableAutoSelect = false) {
     isLoading: individualContractsLoading,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
-  // ============================================
-  // 3. LOCAL STATE
-  // ============================================
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
-  const [isMultiCreator, setIsMultiCreator] = useState(true);
   const [currentSort, setCurrentSort] = useState("newest");
   const [campaignOptions, setCampaignOptions] = useState([]);
   const [budgetData, setBudgetData] = useState({
@@ -78,9 +77,6 @@ export default function useCompleted(disableAutoSelect = false) {
     costPerEngagement: 0,
   });
 
-  // ============================================
-  // 4. USEEFFECTS
-  // ============================================
   useLayoutEffect(() => {
     if (isMobileViewport()) {
       setMobilePane("creators");
@@ -94,10 +90,28 @@ export default function useCompleted(disableAutoSelect = false) {
   }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   useEffect(() => {
+    if (disableAutoSelect) return;
+    if (!isMultiCreator) {
+      dispatch(getIndividualCollaborationContracts(true));
+    }
+  }, [dispatch, isMultiCreator, disableAutoSelect]);
+
+  useEffect(() => {
     if (!selectedCreator && mobilePane === "detail") {
       setMobilePane("creators");
     }
   }, [selectedCreator, mobilePane]);
+
+  useEffect(() => {
+    if (selectedCampaign) return;
+    setBudgetData({ totalBudget: 0, spent: 0, remaining: 0, saved: 0 });
+    setPerformanceMetrics({
+      totalViews: 0,
+      totalEngagement: 0,
+      engagementRate: 0,
+      costPerEngagement: 0,
+    });
+  }, [selectedCampaign]);
 
   useEffect(() => {
     if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
@@ -142,9 +156,9 @@ export default function useCompleted(disableAutoSelect = false) {
   useEffect(() => {
     if (!campaignsSuccess || allCampaigns.length === 0) return;
 
-    const selectedCampaignId = selectedCampaign?.id;
+    const localSelectedId = selectedCampaign?.id;
 
-    if (selectedCampaignId && !allCampaigns.some((c) => c.id === selectedCampaignId)) {
+    if (localSelectedId && !allCampaigns.some((c) => c.id === localSelectedId)) {
       if (!hasAutoSelected.current) {
         setSelectedCampaign(allCampaigns[0]);
         hasAutoSelected.current = true;
@@ -154,29 +168,41 @@ export default function useCompleted(disableAutoSelect = false) {
 
     if (
       !disableAutoSelect &&
-      !selectedCampaignId &&
+      isMultiCreator &&
+      !localSelectedId &&
       !hasAutoSelected.current &&
       !hasRestoredFromContext.current
     ) {
-      setSelectedCampaign(allCampaigns[0]);
+      const firstMulti = allCampaigns.find(
+        (c) =>
+          (c.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+          COLLABORATION_TYPE.MULTI_CREATOR
+      );
+      if (!firstMulti) return;
+      setSelectedCampaign(firstMulti);
       hasAutoSelected.current = true;
       dispatch(
         setSelectedCampaignContext({
-          campaignId: allCampaigns[0].id,
-          collaborationType: allCampaigns[0].collaboration_type || null,
+          campaignId: firstMulti.id,
+          collaborationType: firstMulti.collaboration_type || null,
         })
       );
     }
-  }, [campaignsSuccess, selectedCampaign?.id, disableAutoSelect, dispatch]);
+  }, [campaignsSuccess, campaignsData?.data, selectedCampaign?.id, disableAutoSelect, dispatch, isMultiCreator]);
 
   useEffect(() => {
-    if (selectedCampaign?.id) {
-      dispatch(
-        getAppliedCreators({ campaignId: selectedCampaign.id, filters: { status: "COMPLETED" } })
-      );
-      dispatch(getAppliedCreatorsForBudget(selectedCampaign.id));
-    }
-  }, [selectedCampaign?.id, dispatch]);
+    if (!selectedCampaign?.id) return;
+    const effectiveType = resolveEffectiveCollaborationType(
+      selectedCampaign,
+      selectedCollaborationType
+    );
+    if (isIndividualCollaborationFlow(isMultiCreator, effectiveType)) return;
+
+    dispatch(
+      getAppliedCreators({ campaignId: selectedCampaign.id, filters: { status: "COMPLETED" } })
+    );
+    dispatch(getAppliedCreatorsForBudget(selectedCampaign.id));
+  }, [selectedCampaign, selectedCollaborationType, isMultiCreator, dispatch]);
 
   useEffect(() => {
     if (!budgetCreatorsSuccess || !selectedCampaign) return;
@@ -243,9 +269,6 @@ export default function useCompleted(disableAutoSelect = false) {
     }
   }, [creatorsSuccess, creatorsData, selectedCampaign?.id, selectedCampaign?.deliverables]);
 
-  // ============================================
-  // 5. CALLBACKS
-  // ============================================
   const handleCampaignSelect = useCallback(
     (campaign) => {
       setSelectedCampaign(campaign);
@@ -336,10 +359,19 @@ export default function useCompleted(disableAutoSelect = false) {
 
   const handleToggleChange = useCallback(
     (newIsMultiCreator) => {
-      setIsMultiCreator(newIsMultiCreator);
+      dispatch(setBrandCampaignMultiCreatorMode(newIsMultiCreator));
       setSelectedCampaign(null);
       setSelectedCreator(null);
-      hasAutoSelected.current = null;
+      hasAutoSelected.current = true;
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: null,
+          collaborationType: null,
+        })
+      );
+      dispatch(resetCampaignDemographics());
+      dispatch(resetAudience());
+      dispatch(resetPerformanceMetrics());
       setMobilePane("creators");
       if (newIsMultiCreator === false) {
         dispatch(getIndividualCollaborationContracts(true));
@@ -367,7 +399,8 @@ export default function useCompleted(disableAutoSelect = false) {
       setCurrentSort(sortValue);
       if (
         selectedCampaign?.id &&
-        selectedCampaign?.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+        resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationType) !==
+          COLLABORATION_TYPE.INDIVIDUAL_CREATOR
       ) {
         dispatch(
           getAppliedCreators({
@@ -401,9 +434,6 @@ export default function useCompleted(disableAutoSelect = false) {
     return num.toString();
   }, []);
 
-  // ============================================
-  // 6. COMPUTED VALUES
-  // ============================================
   const allCampaigns = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
     const list = Array.isArray(campaignsData.data) ? campaignsData.data : [];
@@ -414,14 +444,14 @@ export default function useCompleted(disableAutoSelect = false) {
     );
   }, [campaignsSuccess, campaignsData?.data]);
 
-  // ============================================
-  // 6. COMPUTED VALUES
-  // ============================================
+  const effectiveCollaborationType = useMemo(
+    () => resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationType),
+    [selectedCampaign, selectedCollaborationType]
+  );
+
   const isIndividualCreator = useMemo(
-    () =>
-      !isMultiCreator ||
-      selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
-    [isMultiCreator, selectedCampaign]
+    () => isIndividualCollaborationFlow(isMultiCreator, effectiveCollaborationType),
+    [isMultiCreator, effectiveCollaborationType]
   );
 
   const isLoading = useMemo(
@@ -429,9 +459,6 @@ export default function useCompleted(disableAutoSelect = false) {
     [isIndividualCreator, individualContractsLoading, creatorsLoading]
   );
 
-  // ============================================
-  // 7. RETURN OBJECT
-  // ============================================
   return {
     campaignsLoading,
     campaignsSuccess,

@@ -5,6 +5,8 @@ import {
   COMPENSATION_TYPE,
   COLLABORATION_TYPE,
 } from "@/common/constants/campaign.constant";
+import { getUser } from "@/common/utils/users.util";
+import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
 import useCreatorTimeline from "../creator-timeline/use-creator-timeline.hook";
 import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 
@@ -21,6 +23,7 @@ export default function useCampaignDetail(selectedCampaign) {
   // Campaign data
   const campaign = selectedCampaign;
   const campaignData = campaign?.campaign || {};
+  const user = getUser();
 
   // Check if CleerCut campaign
   const isCleerCutCampaign = useMemo(
@@ -103,6 +106,24 @@ export default function useCampaignDetail(selectedCampaign) {
     };
   }, [campaignData]);
 
+  const resolvedCampaignType = useMemo(
+    () =>
+      campaign?.type ||
+      campaign?.contract?.campaignType ||
+      campaign?.contract?.campaign_type ||
+      campaignData?.campaign_type,
+    [campaign, campaignData?.campaign_type]
+  );
+
+  const resolvedCompensationType = useMemo(
+    () =>
+      campaign?.compensation ||
+      campaign?.contract?.compensationType ||
+      campaign?.contract?.compensation_type ||
+      campaignData?.compensation_type,
+    [campaign, campaignData?.compensation_type]
+  );
+
   // Format campaign type from enum to display text
   const formatCampaignType = useCallback((type) => {
     if (!type) return "Sponsored Post";
@@ -183,15 +204,50 @@ export default function useCampaignDetail(selectedCampaign) {
     setShowContractModal(false);
   }, []);
 
-  const compensationAmount = useCallback(({ campaign }) => {
-    if (campaign.compensation_type === COMPENSATION_TYPE.COMMISSION) {
-      return campaign.commission_percentage || 0 + "%";
+  const selectedContract = useMemo(() => {
+    if (!campaign?.campaign?.contracts || !Array.isArray(campaign.campaign.contracts)) {
+      return campaign?.contract || null;
     }
-    if (campaign.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT) {
-      return campaign.product_value || 0 + " value";
+
+    const signedContract = campaign.campaign.contracts.find(
+      (contract) =>
+        contract.status === "signed" &&
+        (contract.creator_id === user?.id || contract.creatorId === user?.id)
+    );
+
+    return signedContract || campaign.campaign.contracts[0] || campaign?.contract || null;
+  }, [campaign, user?.id]);
+
+  const contractPreviewBrandName = useMemo(() => {
+    const fromContract =
+      selectedContract?.brand?.brand_profile?.brand_name ||
+      selectedContract?.brand?.brand_profile?.brandName;
+    if (fromContract && String(fromContract).trim()) return String(fromContract).trim();
+    const fromCampaign = getBrandDisplayNameForContract(campaign?.campaign || null);
+    return fromCampaign === "[Brand Name]" ? "Brand" : fromCampaign;
+  }, [selectedContract, campaign]);
+
+  const compensationAmount = useCallback(({ campaign, contract, compensationType }) => {
+    const activeCompensationType =
+      compensationType ||
+      contract?.compensationType ||
+      contract?.compensation_type ||
+      campaign?.compensation_type;
+
+    if (activeCompensationType === COMPENSATION_TYPE.COMMISSION) {
+      return `${campaign?.commission_percentage || 0}%`;
     }
-    if (campaign.compensation_type === COMPENSATION_TYPE.PAID) {
-      return campaign.creator_fee || 0;
+    if (activeCompensationType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      const giftedValue = contract?.productPrice || contract?.product_price || campaign?.product_value || 0;
+      return `${giftedValue} value`;
+    }
+    if (activeCompensationType === COMPENSATION_TYPE.PAID) {
+      return (
+        contract?.totalCompensation ||
+        contract?.total_compensation ||
+        campaign?.creator_fee ||
+        0
+      );
     }
   }, []);
 
@@ -206,16 +262,15 @@ export default function useCampaignDetail(selectedCampaign) {
 
     // Computed
     isCleerCutCampaign,
-    typeStyle: getCampaignTypeStyle(
-      campaign?.type ||
-        campaign?.contract?.campaignType ||
-        campaign?.contract?.campaign_type ||
-        campaignData?.campaign_type
-    ),
-    formattedType: formatCampaignType(campaign?.type || campaignData?.campaign_type),
+    typeStyle: getCampaignTypeStyle(resolvedCampaignType),
+    formattedType: formatCampaignType(resolvedCampaignType),
+    resolvedCompensationType,
     timelineSteps,
     creator,
     brandId,
+    user,
+    selectedContract,
+    contractPreviewBrandName,
 
     // Message thread
     messageThreadHook,

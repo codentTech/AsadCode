@@ -33,7 +33,7 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
   const searchRef = useRef();
   const inputRef = useRef();
 
-  const rawCurrent = value !== undefined && value !== null ? value : selectedValue;
+  const rawCurrent = value !== undefined ? value : selectedValue;
 
   const effectiveValue = useMemo(() => {
     if (isMulti) {
@@ -97,71 +97,27 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
     }
   }, [defaultValue, options, isMulti, value]);
 
-  // Handle controlled value prop - sync internal state for display
+  // Controlled multi: mirror into state for tags/list UI. Controlled single uses `value` only (see rawCurrent) — never sync here or `options` churn causes update loops.
   useEffect(() => {
-    if (value === undefined) return; // Not controlled
+    if (value === undefined || !isMulti) return;
 
-    if (isMulti) {
-      if (Array.isArray(value) && value.length) {
-        const selectedOptions = options?.filter((option) => 
-          value.some((v) => (typeof v === 'object' ? v.value : v) === option.value)
+    if (Array.isArray(value) && value.length) {
+      const selectedOptions =
+        options?.filter((option) =>
+          value.some((v) => (typeof v === "object" ? v.value : v) === option.value)
         ) || [];
-        // Only update if different to avoid infinite loops
-        const currentStr = JSON.stringify(selectedValue);
-        const newStr = JSON.stringify(selectedOptions);
-        if (currentStr !== newStr) {
-          setSelectedValue(selectedOptions);
-        }
-      } else {
-        if (selectedValue !== null && (!Array.isArray(selectedValue) || selectedValue.length > 0)) {
-          setSelectedValue([]);
-        }
+      const currentStr = JSON.stringify(selectedValue);
+      const newStr = JSON.stringify(selectedOptions);
+      if (currentStr !== newStr) {
+        setSelectedValue(selectedOptions);
       }
-      return;
+    } else if (selectedValue !== null && (!Array.isArray(selectedValue) || selectedValue.length > 0)) {
+      setSelectedValue([]);
     }
-
-    // For single select, if value is null, clear selection
-    if (value === null) {
-      if (selectedValue !== null) {
-        setSelectedValue(null);
-      }
-      return;
-    }
-
-    // If value is an object with value and label, use it directly
-    if (typeof value === "object" && value?.value !== undefined && value?.label !== undefined) {
-      // Only update if different to avoid infinite loops
-      if (selectedValue?.value !== value.value || selectedValue?.label !== value.label) {
-        setSelectedValue(value);
-      }
-      return;
-    }
-
-    // If value is a primitive, find matching option
-    if (typeof value !== "object") {
-      const valueOption = options?.find((option) => option.value === value);
-      if (valueOption) {
-        if (selectedValue?.value !== valueOption.value) {
-          setSelectedValue(valueOption);
-        }
-      } else {
-        if (selectedValue !== null) {
-          setSelectedValue(null);
-        }
-      }
-      return;
-    }
-
-    // Fallback: use value as-is if it's an object
-    const currentStr = JSON.stringify(selectedValue);
-    const newStr = JSON.stringify(value);
-    if (currentStr !== newStr) {
-      setSelectedValue(value);
-    }
-  }, [value, options, isMulti]);
+  }, [value, options, isMulti, selectedValue]);
 
   const getDisplay = () => {
-    const displayValue = value !== undefined && value !== null ? value : selectedValue;
+    const displayValue = value !== undefined ? value : selectedValue;
 
     if (isMulti) {
       if (!displayValue || !Array.isArray(displayValue) || displayValue.length === 0) {

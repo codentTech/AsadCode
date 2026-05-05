@@ -15,6 +15,7 @@ function useDiscover() {
   const dispatch = useDispatch();
   const shortlistState = useSelector((state) => state.shortlist);
   const campaignsState = useSelector((state) => state.campaigns?.getAllBrandCampaigns);
+  const isCampaignsLoading = Boolean(campaignsState?.isLoading);
 
   const [selectedShortlist, setSelectedShortlist] = useState(null);
   const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] = useState(false);
@@ -177,6 +178,10 @@ function useDiscover() {
     }
   };
 
+  const handleRefreshCampaigns = useCallback(() => {
+    dispatch(getAllBrandCampaigns());
+  }, [dispatch]);
+
   // Handle inviting creator to apply
   const handleInviteToApply = (creator, campaign) => {
     // Invite logic would go here
@@ -299,6 +304,8 @@ function useDiscover() {
     handleEditShortlist,
     handleDeleteShortlist,
     handleInviteToApply,
+    handleRefreshCampaigns,
+    isCampaignsLoading,
     userCampaigns,
     shortlistState,
     shortlistMenuOpen,
