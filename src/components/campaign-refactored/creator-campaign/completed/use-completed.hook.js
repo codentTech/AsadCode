@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCreatorApplications } from "@/provider/features/campaigns/campaigns.slice";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   CAMPAIGN_TYPE,
   COLLABORATION_TYPE,
 } from "@/common/constants/campaign.constant";
 import { resolveCollaborationIdFromRawApplication } from "@/common/utils/creator-collaboration-history.util";
+import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
 
 export default function useCompleted() {
   const dispatch = useDispatch();
@@ -27,12 +29,43 @@ export default function useCompleted() {
   // ============================================
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [expandedMonths, setExpandedMonths] = useState({});
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [mobilePane, setMobilePane] = useState("list");
+  const tabBarMobileSlot = useCampaignTabBarMobileSlot();
+  const registerMobileSlot = tabBarMobileSlot?.registerMobileSlot;
+  const clearMobileSlot = tabBarMobileSlot?.clearMobileSlot;
 
   // ============================================
   // 4. CALLBACKS
   // ============================================
   const formatCampaignData = useCallback((campaign) => {
     if (!campaign) return null;
+
+    const isIndividualCollaboration =
+      campaign.campaign?.collaboration_type ===
+      COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+    const contract = campaign.contract || {};
+    const campaignTypeRaw = isIndividualCollaboration
+      ? contract.campaignType || campaign.campaign?.campaign_type
+      : campaign.campaign?.campaign_type;
+    const compensationTypeRaw = isIndividualCollaboration
+      ? contract.compensationType || campaign.campaign?.compensation_type
+      : campaign.campaign?.compensation_type;
+    const paidAmountRaw = isIndividualCollaboration
+      ? contract.totalCompensation
+      : campaign.campaign?.budget || campaign.campaign?.creator_fixed_price;
+    const giftedValueRaw = isIndividualCollaboration
+      ? contract.productValue || contract.product_value || contract.productPrice || contract.product_price
+      : campaign.campaign?.product_value;
+    const giftedAmount = Number(giftedValueRaw || 0);
+
+    const normalizedType =
+      campaignTypeRaw === "SPONSORED_POST"
+        ? "Sponsored Post"
+        : campaignTypeRaw === "GIFTED"
+          ? "Gifted"
+          : campaignTypeRaw || "UGC";
 
     return {
       ...campaign,
@@ -62,13 +95,13 @@ export default function useCompleted() {
       productImage: "🧴",
       hasReview: false,
       deadline: campaign.campaign?.application_date,
-      type: campaign.campaign?.campaign_type || "UGC",
-      compensation: campaign.campaign?.compensation_type || "PAID",
+      type: normalizedType,
+      compensation: compensationTypeRaw || "PAID",
       compensationAmount:
-        campaign.campaign?.compensation_type === "PAID"
-          ? `$${campaign.campaign?.budget || campaign.campaign?.creator_fixed_price || 0}`
-          : campaign.campaign?.compensation_type === "GIFTED_PRODUCT"
-            ? "Free Product"
+        compensationTypeRaw === "PAID"
+          ? `$${paidAmountRaw || 0}`
+          : compensationTypeRaw === "GIFTED_PRODUCT"
+            ? `$${giftedAmount.toFixed(2)}`
             : "Commission-based",
       description:
         campaign.campaign?.long_description ||
@@ -76,7 +109,7 @@ export default function useCompleted() {
         "No description available",
       completionRate: 100,
       progress:
-        campaign.campaign?.campaign_type === CAMPAIGN_TYPE.UGC
+        campaignTypeRaw === CAMPAIGN_TYPE.UGC
           ? [
               { task: "Content recorded", completed: true },
               { task: "Draft review", completed: true },
@@ -94,6 +127,16 @@ export default function useCompleted() {
   const handleCampaignSelect = useCallback((campaign) => {
     setSelectedCampaign(campaign);
   }, []);
+
+  const handleCampaignSelectWithPane = useCallback(
+    (campaign) => {
+      handleCampaignSelect(campaign);
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        setMobilePane("detail");
+      }
+    },
+    [handleCampaignSelect]
+  );
 
   // ============================================
   // 5. COMPUTED VALUES
@@ -158,12 +201,59 @@ export default function useCompleted() {
   }, [fetchCompletedApplications]);
 
   useEffect(() => {
+    if (applicationsLoading) {
+      return;
+    }
     if (formattedCampaigns.length > 0 && !selectedCampaign) {
       setSelectedCampaign(formattedCampaigns[0]);
     } else if (formattedCampaigns.length === 0) {
       setSelectedCampaign(null);
     }
-  }, [formattedCampaigns, selectedCampaign]);
+  }, [formattedCampaigns, selectedCampaign, applicationsLoading]);
+
+  useEffect(() => {
+    if (!selectedCampaign) setMobilePane("list");
+  }, [selectedCampaign]);
+
+  useEffect(() => {
+    if (!registerMobileSlot || !clearMobileSlot) return undefined;
+    if (mobilePane === "detail") {
+      registerMobileSlot(
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => setMobilePane("list")}
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+            aria-label="Back to campaigns"
+          >
+            <ChevronLeft className="h-3.5 w-3.5 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobilePane("finance")}
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+            aria-label="Go to finance"
+          >
+            <ChevronRight className="h-3.5 w-3.5 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+        </div>
+      );
+    } else if (mobilePane === "finance") {
+      registerMobileSlot(
+        <button
+          type="button"
+          onClick={() => setMobilePane("detail")}
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+          aria-label="Back to campaign detail"
+        >
+          <ChevronLeft className="h-3.5 w-3.5 text-primary" strokeWidth={2.25} aria-hidden />
+        </button>
+      );
+    } else {
+      clearMobileSlot();
+    }
+    return () => clearMobileSlot();
+  }, [mobilePane, registerMobileSlot, clearMobileSlot]);
 
   // ============================================
   // 7. RETURN OBJECT
@@ -179,8 +269,14 @@ export default function useCompleted() {
     paymentHistory,
     upcomingPayments,
     handleCampaignSelect,
+    handleCampaignSelectWithPane,
     setExpandedMonths,
     formatCampaignData,
     fetchCompletedApplications,
+    mobilePane,
+    reviewRating,
+    setReviewRating,
+    reviewText,
+    setReviewText,
   };
 }

@@ -41,7 +41,8 @@ function CampaignFeed() {
   } = useCampaignFeed();
   const shownCampaignsCount = sortedCampaigns.length;
   const totalCount = totalCampaigns || shownCampaignsCount;
-  const progressValue = totalCount > 0 ? Math.min((shownCampaignsCount / totalCount) * 100, 100) : 0;
+  const progressValue =
+    totalCount > 0 ? Math.min((shownCampaignsCount / totalCount) * 100, 100) : 0;
 
   const sortOptions = [
     { value: "latest", label: "Latest" },
@@ -304,26 +305,41 @@ function CampaignFeed() {
       <Modal show={showApplication} title="Apply to Campaign" onClose={closeApplication} size="lg">
         <div className="space-y-4">
           <div className="bg-gray-100 rounded-lg p-3">
-            <h4 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
-              {applicationCampaign?.brandName}
-            </h4>
-            <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
-              {applicationCampaign?.title}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h5 className="text-xs font-semibold text-gray-900 mb-2">Questions</h5>
-            <div className="flex flex-col gap-1 text-xs">
-              {(applicationCampaign?.questions ?? []).map((question) => (
-                <span
-                  key={question}
-                  className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
-                >
-                  {question}
-                </span>
-              ))}
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <div className="h-10 w-10 overflow-hidden rounded-lg border border-gray-200 bg-white sm:h-12 sm:w-12">
+                {applicationCampaign?.brandLogo ? (
+                  <img
+                    src={applicationCampaign.brandLogo}
+                    alt={applicationCampaign?.brandName || "Brand logo"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+                  {applicationCampaign?.brandName}
+                </h4>
+                <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
+                  {applicationCampaign?.title}
+                </p>
+              </div>
             </div>
           </div>
+          {applicationCampaign?.questions?.length > 0 && (
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-gray-900 mb-2">Questions</h5>
+              <div className="flex flex-col gap-1 text-xs">
+                {(applicationCampaign?.questions ?? []).map((question) => (
+                  <span
+                    key={question}
+                    className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
+                  >
+                    {question}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           <TextArea
             label="Your Pitch (Optional)"
             placeholder="Write your pitch here or use a saved template..."

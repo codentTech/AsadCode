@@ -12,8 +12,7 @@ import { addUserToShortlist } from "@/provider/features/shortlist/shortlist.slic
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
-
-const MD_BREAKPOINT = 768;
+import { isMobileViewport } from "@/common/utils/viewport.utils";
 
 function useRejected() {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -337,7 +336,7 @@ function useRejected() {
   const handleCreatorSelectWithPane = useCallback(
     (creator) => {
       handleCreatorSelect(creator);
-      if (typeof window !== "undefined" && window.innerWidth < MD_BREAKPOINT) {
+      if (isMobileViewport()) {
         setMobilePane("detail");
       }
     },

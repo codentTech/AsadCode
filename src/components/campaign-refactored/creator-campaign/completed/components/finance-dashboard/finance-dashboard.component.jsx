@@ -61,11 +61,6 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
             </p>
           )}
         </div>
-        {/* {expectedPayoutAvailableAt && !paymentsLoading && formattedPayoutAvailableAt ? (
-          <p className="mt-3 rounded-md border border-amber-100 bg-amber-50 px-2 py-2 text-[10px] text-amber-900 sm:text-xs">
-            Expected CleerCut payout available by {formattedPayoutAvailableAt}
-          </p>
-        ) : null} */}
       </div>
 
       <div className="flex-1 overflow-y-auto">

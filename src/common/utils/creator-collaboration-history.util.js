@@ -156,43 +156,41 @@ export function findCreatorCollaborationHistoryItem(historyItems, selectedCampai
     }
   }
 
-  const brandId = getBrandIdFromSelectedCampaign(selectedCampaign);
-  if (brandId) {
+  const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
+  if (!campaignId) {
+    const brandId = getBrandIdFromSelectedCampaign(selectedCampaign);
+    if (!brandId) {
+      return null;
+    }
     const brandMatches = historyItems.filter(
       (item) => String(item.brand?.id) === String(brandId)
     );
-    if (brandMatches.length > 0) {
-      const titleNorm = normalizeTitle(
-        selectedCampaign.title || selectedCampaign?.campaign?.campaign_title
-      );
-      let pool = brandMatches;
-      if (titleNorm.length > 0) {
-        const byTitle = brandMatches.filter((item) => {
-          const rowTitle = normalizeTitle(item.campaignName);
-          return (
-            rowTitle.length > 0 &&
-            (rowTitle.includes(titleNorm) ||
-              titleNorm.includes(rowTitle) ||
-              rowTitle === titleNorm)
-          );
-        });
-        if (byTitle.length > 0) {
-          pool = byTitle;
-        }
-      }
-      const withPayout = pool.filter(
-        (m) => getExpectedPayoutAvailableAtFromHistoryRow(m) != null
-      );
-      if (withPayout.length >= 1) {
-        return pickLatestByCompletionDate(withPayout);
-      }
-      return pickLatestByCompletionDate(pool);
+    if (brandMatches.length === 0) {
+      return null;
     }
-  }
-
-  const campaignId = selectedCampaign?.id || selectedCampaign?.campaign?.id;
-  if (!campaignId) {
-    return null;
+    const titleNorm = normalizeTitle(
+      selectedCampaign.title || selectedCampaign?.campaign?.campaign_title
+    );
+    let pool = brandMatches;
+    if (titleNorm.length > 0) {
+      const byTitle = brandMatches.filter((item) => {
+        const rowTitle = normalizeTitle(item.campaignName);
+        return (
+          rowTitle.length > 0 &&
+          (rowTitle.includes(titleNorm) || titleNorm.includes(rowTitle) || rowTitle === titleNorm)
+        );
+      });
+      if (byTitle.length > 0) {
+        pool = byTitle;
+      }
+    }
+    const withPayout = pool.filter(
+      (m) => getExpectedPayoutAvailableAtFromHistoryRow(m) != null
+    );
+    if (withPayout.length >= 1) {
+      return pickLatestByCompletionDate(withPayout);
+    }
+    return pickLatestByCompletionDate(pool);
   }
 
   const matches = historyItems.filter(

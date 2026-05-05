@@ -1,15 +1,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loading from "@/common/components/loader/loading.component";
 import { formatDate } from "@/common/utils/formate-date";
-import { getUser } from "@/common/utils/users.util";
-import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";
-import React from "react";
 import ContractPreviewModal from "@/components/campaign-refactored/brand-campaign/applications/components/contract-preview-modal/contract-preview-modal.component";
-import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
-import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
-
+import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";
+import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline.component";
 import useCampaignDetail from "./use-campaign-detail.hook";
 
@@ -26,7 +22,11 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     isCleerCutCampaign,
     typeStyle,
     formattedType,
+    resolvedCompensationType,
     creator,
+    user,
+    selectedContract,
+    contractPreviewBrandName,
 
     // Message thread
     messageThreadHook,
@@ -40,33 +40,6 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
     handleCloseContractModal,
     compensationAmount,
   } = useCampaignDetail(selectedCampaign);
-
-  const user = getUser();
-
-  // Find the signed contract for the current creator
-  const selectedContract = React.useMemo(() => {
-    if (!campaign?.campaign?.contracts || !Array.isArray(campaign.campaign.contracts)) {
-      return campaign?.contract || null;
-    }
-
-    // For multi-creator campaigns, find the signed contract for this creator
-    const signedContract = campaign.campaign.contracts.find(
-      (contract) =>
-        contract.status === "signed" &&
-        (contract.creator_id === user?.id || contract.creatorId === user?.id)
-    );
-
-    return signedContract || campaign.campaign.contracts[0] || campaign?.contract || null;
-  }, [campaign, user?.id]);
-
-  const contractPreviewBrandName = React.useMemo(() => {
-    const fromContract =
-      selectedContract?.brand?.brand_profile?.brand_name ||
-      selectedContract?.brand?.brand_profile?.brandName;
-    if (fromContract && String(fromContract).trim()) return String(fromContract).trim();
-    const fromCampaign = getBrandDisplayNameForContract(campaign?.campaign || null);
-    return fromCampaign === "[Brand Name]" ? "Brand" : fromCampaign;
-  }, [selectedContract, campaign]);
 
   // Loading state
   if (isLoading) {
@@ -104,8 +77,12 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 <img src={campaign.logo} alt="Brand Logo" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">{campaign.brand}</h2>
-                <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">{campaign.title}</p>
+                <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+                  {campaign.brand}
+                </h2>
+                <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
+                  {campaign.title}
+                </p>
                 <div className="mt-1 flex items-center gap-1 text-[10px] text-gray-500 sm:text-xs">
                   <Calendar className="w-3 h-3" />
                   <span>{formatDate(campaign.application_deadline)}</span>
@@ -121,8 +98,15 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 {formattedType}
               </div>
               <div className="flex items-center gap-2 text-left text-[10px] font-semibold text-gray-900 sm:text-xs">
-                <div>{campaign.compensation} -</div>
-                <div>{campaign?.compensationAmount || compensationAmount(campaign)}</div>
+                <div>{resolvedCompensationType || campaign.compensation} -</div>
+                <div>
+                  {campaign?.compensationAmount ||
+                    compensationAmount({
+                      campaign: campaign?.campaign,
+                      contract: campaign?.contract,
+                      compensationType: resolvedCompensationType,
+                    })}
+                </div>
               </div>
             </div>
           </div>
@@ -350,11 +334,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                     onClick={handleOpenContractModal}
                   />
                 )}
-                <CustomButton
-                  text="Message"
-                  className="btn-primary"
-                  onClick={handleMessageClick}
-                />
+                <CustomButton text="Message" className="btn-primary" onClick={handleMessageClick} />
               </>
             )}
             <CustomButton

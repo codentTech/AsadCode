@@ -1,5 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import BrandCampaignTypeToggle from "@/common/components/brand-campaign-type-toggle/brand-campaign-type-toggle.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
@@ -10,6 +10,7 @@ export default function CampaignOverviewCompleted({
   onCampaignSelect,
   onToggleChange,
   parentSelectedCampaign,
+  parentSelectedCreator,
 }) {
   const {
     isMultiCreator,
@@ -19,7 +20,8 @@ export default function CampaignOverviewCompleted({
     selectedCampaign,
     budgetData,
     performanceData,
-    performanceLoading,
+    performanceSectionLoading,
+    budgetStatsLoading,
     demographicsData,
     demographicsLoading,
     hasDemographicsData,
@@ -34,25 +36,22 @@ export default function CampaignOverviewCompleted({
     handleExportData,
     handleViewAnalytics,
     isUgc,
+    individualCreatorLabel,
   } = useCampaignOverviewCompleted(
     onCampaignSelect,
     onToggleChange,
     undefined,
-    parentSelectedCampaign
+    parentSelectedCampaign,
+    parentSelectedCreator
   );
 
   return (
     <div className="flex min-h-0 w-full flex-col gap-3 overflow-y-auto bg-white p-3 sm:gap-4 sm:p-4 md:h-full md:max-h-none">
-      <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
-        <CustomSwitch
-          label="Campaign Type"
-          checked={isMultiCreator}
-          onChange={handleToggleChange}
-          rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
-          parentDivClassName="justify-between"
-          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray"
-        />
-      </div>
+      <BrandCampaignTypeToggle
+        isMultiCreator={isMultiCreator}
+        onSelect={handleToggleChange}
+        className="w-full max-w-[296px] sm:w-[296px]"
+      />
 
       {isMultiCreator && (
         <div className="min-w-0">
@@ -74,8 +73,6 @@ export default function CampaignOverviewCompleted({
           />
         </div>
       )}
-
-      <hr className="border-gray-200" />
 
       {isLoading && (
         <div className="space-y-4">
@@ -103,42 +100,53 @@ export default function CampaignOverviewCompleted({
         </div>
       )}
 
-      {selectedCampaign && !isLoading && (
+      {selectedCampaign && !isLoading && !showEmptyState && (
         <>
-          {showMultiCreatorUI && hasData && (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-              <div className="grid min-w-0 grid-cols-2 divide-x divide-gray-200">
-                <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-primary sm:text-[11px]">
-                    Spent
-                  </p>
-                  <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-primary sm:text-base">
-                    {formatCurrency(budgetData?.spent ?? 0)}
-                  </p>
-                </div>
-                <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-green-600 sm:text-[11px]">
-                    Saved
-                  </p>
-                  <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-green-700 sm:text-base">
-                    {formatCurrency(budgetData?.saved ?? 0)}
-                  </p>
+          {showMultiCreatorUI && (budgetStatsLoading || hasData) && (
+            <>
+              <hr className="border-gray-200" />
+              <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                <div className="grid min-w-0 grid-cols-2 divide-x divide-gray-200">
+                  <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-primary sm:text-[11px]">
+                      Spent
+                    </p>
+                    {budgetStatsLoading ? (
+                      <Skeleton className="mt-1 h-5 w-16 sm:h-6 sm:w-20" />
+                    ) : (
+                      <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-primary sm:text-base">
+                        {formatCurrency(budgetData?.spent ?? 0)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-green-600 sm:text-[11px]">
+                      Saved
+                    </p>
+                    {budgetStatsLoading ? (
+                      <Skeleton className="mt-1 h-5 w-16 sm:h-6 sm:w-20" />
+                    ) : (
+                      <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-green-700 sm:text-base">
+                        {formatCurrency(budgetData?.saved ?? 0)}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
           {showMultiCreatorUI && !isLoading && !isUgc && (
             <>
               <hr className="border-gray-200" />
-              <div className="rounded-lg bg-blue-50 p-3 sm:p-4">
-                <h5 className="mb-1 text-base font-bold text-blue-800 sm:text-lg">
+              <div className="rounded-lg bg-blue-50 p-2 sm:p-2 sm:py-3">
+                <h5 className="mb-1 text-base font-semibold text-gray-800 sm:text-lg">
                   Combined Performance Overview
                 </h5>
                 <p className="mb-3 text-[11px] leading-relaxed text-blue-600 sm:text-xs">
                   ER &amp; CPE are averaged across creators, not recalculated from totals.
                 </p>
-                {performanceLoading ? (
+                {performanceSectionLoading ? (
                   <div className="space-y-2 text-sm animate-pulse">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
                       <div key={i} className="flex justify-between items-center">
@@ -216,14 +224,14 @@ export default function CampaignOverviewCompleted({
               <hr className="border-gray-200" />
               <div className="mb-1 min-w-0">
                 <div className="mb-3 sm:mb-4">
-                  <h3 className="mb-1 text-base font-semibold text-gray-800 sm:text-lg">
+                  <h3 className="text-base font-semibold text-gray-800 sm:text-lg">
                     {showMultiCreatorUI
                       ? "Combined Audience Demographics"
                       : "Audience Demographics"}
-                    {demographicsData?.is_estimated && demographicsData?.has_data ? (
-                      <span className="ml-1.5 text-sm font-medium text-amber-700">(Estimated)</span>
-                    ) : null}
                   </h3>
+                  {demographicsData?.is_estimated && demographicsData?.has_data ? (
+                    <span className="text-sm font-medium text-amber-700">(Estimated)</span>
+                  ) : null}
                   {showMultiCreatorUI &&
                     hasDemographicsData &&
                     demographicsData &&
@@ -236,22 +244,6 @@ export default function CampaignOverviewCompleted({
                           0}{" "}
                         creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
                         followers
-                      </p>
-                    )}
-                  {!showMultiCreatorUI &&
-                    !isLoading &&
-                    (selectedCampaign?.creator || selectedCampaign?.contract?.creator) &&
-                    !(demographicsData?.no_connection && !demographicsData?.has_data) && (
-                      <p className="text-xs text-gray-500">
-                        From{" "}
-                        {[
-                          selectedCampaign?.creator?.first_name ??
-                            selectedCampaign?.contract?.creator?.first_name,
-                          selectedCampaign?.creator?.last_name ??
-                            selectedCampaign?.contract?.creator?.last_name,
-                        ]
-                          .filter(Boolean)
-                          .join(" ") || "creator"}
                       </p>
                     )}
                 </div>

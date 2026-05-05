@@ -1,4 +1,4 @@
-import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import BrandCampaignTypeToggle from "@/common/components/brand-campaign-type-toggle/brand-campaign-type-toggle.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
@@ -15,26 +15,31 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
     budgetData,
     formatCurrency,
     isLoading,
+    budgetStatsLoading,
     hasData,
     handleCampaignSelect,
     handleToggleChange,
+    campaignSimpleSelectValue,
     demographicsData,
     demographicsLoading,
     hasDemographicsData,
   } = useCampaignOverview(onCampaignSelect, onToggleChange);
 
+  const showNoDataNotFound =
+    !hasData &&
+    !isLoading &&
+    !budgetStatsLoading &&
+    (isMultiCreator
+      ? filteredCampaignOptions.length === 0 || (isSelectedCampaignValid && !!selectedCampaign)
+      : true);
+
   return (
     <div className="flex min-h-0 w-full flex-col gap-3 overflow-y-auto bg-white p-3 sm:gap-4 sm:p-4 md:h-full md:max-h-none">
-      <div className="w-full min-w-[282px] sm:w-[282px] rounded-lg bg-gray-100 p-2.5 shadow-inner sm:p-3">
-        <CustomSwitch
-          label="Campaign Type"
-          checked={isMultiCreator}
-          onChange={handleToggleChange}
-          rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
-          parentDivClassName="justify-between"
-          rightLabelClassName="flex w-full items-center justify-between gap-2 text-xs font-medium leading-6 text-text-dark-gray"
-        />
-      </div>
+      <BrandCampaignTypeToggle
+        isMultiCreator={isMultiCreator}
+        onSelect={handleToggleChange}
+        className="w-full max-w-[296px] sm:w-[296px]"
+      />
 
       {isMultiCreator && (
         <div className="min-w-0">
@@ -45,19 +50,10 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
             isMulti={false}
             onChange={handleCampaignSelect}
             isLoading={isLoading}
-            value={
-              isSelectedCampaignValid && selectedCampaign?.campaign_title
-                ? {
-                    value: selectedCampaign.id,
-                    label: selectedCampaign.campaign_title,
-                  }
-                : null
-            }
+            value={campaignSimpleSelectValue}
           />
         </div>
       )}
-
-      <hr className="border-gray-200" />
 
       {isLoading && (
         <div className="space-y-4">
@@ -79,33 +75,45 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
         </div>
       )}
 
-      {!hasData && !isLoading && (isMultiCreator ? filteredCampaignOptions.length === 0 : true) && (
+      {showNoDataNotFound && (
         <div className="flex min-h-[50vh] w-full items-center justify-center px-4 text-center">
           <NotFound title="No Data Available" description="Please select a campaign and creator." />
         </div>
       )}
 
-      {showMultiCreatorUI && hasData && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-          <div className="grid min-w-0 grid-cols-2 divide-x divide-gray-200">
-            <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 sm:text-[11px]">
-                Spent
-              </p>
-              <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-gray-900 sm:text-base">
-                {formatCurrency(budgetData?.spent ?? 0)}
-              </p>
-            </div>
-            <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 sm:text-[11px]">
-                Remaining
-              </p>
-              <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-gray-900 sm:text-base">
-                {formatCurrency(budgetData?.remaining ?? 0)}
-              </p>
+      {showMultiCreatorUI && (budgetStatsLoading || hasData) && (
+        <>
+          <hr className="border-gray-200" />
+
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+            <div className="grid min-w-0 grid-cols-2 divide-x divide-gray-200">
+              <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 sm:text-[11px]">
+                  Spent
+                </p>
+                {budgetStatsLoading ? (
+                  <Skeleton className="mt-1 h-5 w-16 sm:h-6 sm:w-20" />
+                ) : (
+                  <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-gray-900 sm:text-base">
+                    {formatCurrency(budgetData?.spent ?? 0)}
+                  </p>
+                )}
+              </div>
+              <div className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-2.5 sm:text-left">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 sm:text-[11px]">
+                  Remaining
+                </p>
+                {budgetStatsLoading ? (
+                  <Skeleton className="mt-1 h-5 w-16 sm:h-6 sm:w-20" />
+                ) : (
+                  <p className="mt-0.5 break-words text-sm font-semibold tabular-nums leading-tight text-gray-900 sm:text-base">
+                    {formatCurrency(budgetData?.remaining ?? 0)}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {hasData && selectedCampaign && (
@@ -126,16 +134,6 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
                     {demographicsData.creators_with_data ?? demographicsData.total_creators ?? 0}{" "}
                     creators · {(demographicsData.total_followers ?? 0).toLocaleString()} total
                     followers
-                  </p>
-                )}
-              {!showMultiCreatorUI &&
-                selectedCampaign?.creator &&
-                !(demographicsData?.no_connection && !demographicsData?.has_data) && (
-                  <p className="text-xs text-gray-500">
-                    From{" "}
-                    {[selectedCampaign.creator.first_name, selectedCampaign.creator.last_name]
-                      .filter(Boolean)
-                      .join(" ") || "creator"}
                   </p>
                 )}
             </div>

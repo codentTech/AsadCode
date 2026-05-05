@@ -8,7 +8,7 @@ export function extractCreatorPublishedMetrics(
 ) {
   if (!campaignId || !creatorUserId) return null;
 
-  const key = `${campaignId}-${creatorUserId}`;
+  const key = `${String(campaignId)}-${String(creatorUserId)}`;
   const timelineSource = timelinesByKey?.[key];
   const steps = Array.isArray(timelineSource?.data) ? timelineSource.data : [];
 
@@ -60,8 +60,10 @@ export function buildCreatorPublishedMetricsMap({
   const breakdown = creatorBreakdown && typeof creatorBreakdown === "object" ? creatorBreakdown : {};
 
   creatorsList.forEach((c) => {
-    const creatorUserId = c.creator?.id || c.creatorUserId;
-    if (!creatorUserId) return;
+    const rawId = c.creator?.id ?? c.creatorUserId;
+    if (rawId == null || rawId === "") return;
+
+    const creatorUserId = String(rawId);
 
     const feeRaw =
       c.total_spent ??
@@ -71,7 +73,7 @@ export function buildCreatorPublishedMetricsMap({
       0;
     const feeNum = Number(feeRaw);
     const fee = Number.isFinite(feeNum) ? feeNum : 0;
-    const fromApi = breakdown[creatorUserId];
+    const fromApi = breakdown[creatorUserId] ?? breakdown[rawId];
     const fromTimeline = extractCreatorPublishedMetrics(
       timelinesByKey,
       campaignId,

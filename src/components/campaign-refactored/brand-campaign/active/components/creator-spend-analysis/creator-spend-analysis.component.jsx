@@ -16,7 +16,6 @@ const CreatorSpendAnalysis = ({
   onClearCreator,
   onSortChange,
   currentSort = "newest",
-  isMultiCreator = true,
   isCompleted = false,
 }) => {
   const {
@@ -24,6 +23,8 @@ const CreatorSpendAnalysis = ({
     creatorsLoading,
     creatorsSuccess,
     creatorsError,
+    creatorsListCampaignId,
+    isMultiCreator,
     getSuccessRateColor,
     showBrandCalendar,
     setShowBrandCalendar,
@@ -41,7 +42,7 @@ const CreatorSpendAnalysis = ({
   } = useCreatorSpendAnalysis(
     selectedCampaign,
     isCompleted,
-    isMultiCreator,
+    true,
     onClearCreator,
     selectedCreator,
     onCreatorSelect,
@@ -159,7 +160,11 @@ const CreatorSpendAnalysis = ({
                 </div>
               )}
 
-              {creatorsSuccess && creators.length === 0 && selectedCampaign && (
+              {creatorsSuccess &&
+                creators.length === 0 &&
+                selectedCampaign &&
+                !creatorsError &&
+                (isMultiCreator ? creatorsListCampaignId === selectedCampaign?.id : true) && (
                 <div className="py-16">
                   <NotFound
                     title="No Creators Found"
