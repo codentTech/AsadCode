@@ -133,10 +133,11 @@ export function useCampaignFeed() {
   const handleNicheChange = useCallback(
     (niche) => {
       const nicheValue = typeof niche === "object" ? niche.value : niche;
-      setSelectedNiche(nicheValue);
-      fetchCampaigns({ page: 1, append: false, niche: nicheValue, sort: sortBy });
+      const nextNiche = nicheValue === selectedNiche ? "all" : nicheValue;
+      setSelectedNiche(nextNiche);
+      fetchCampaigns({ page: 1, append: false, niche: nextNiche, sort: sortBy });
     },
-    [fetchCampaigns, sortBy]
+    [fetchCampaigns, selectedNiche, sortBy]
   );
 
   const handleSortChange = useCallback(

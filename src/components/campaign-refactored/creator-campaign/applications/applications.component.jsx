@@ -49,13 +49,25 @@ export default function CreatorApplications() {
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl p-2.5 sm:p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
-                Campaign Applications
-              </h1>
-              <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
-                Track and manage your brand applications
-              </p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h1 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
+                  Campaign Applications
+                </h1>
+                <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
+                  Track and manage your brand applications
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchAllApplications}
+                disabled={applicationsLoading}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:hidden"
+                aria-label="Refresh applications"
+                title="Refresh applications"
+              >
+                <RefreshCw className={`h-4 w-4 ${applicationsLoading ? "animate-spin" : ""}`} />
+              </button>
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -64,7 +76,7 @@ export default function CreatorApplications() {
                   type="button"
                   onClick={fetchAllApplications}
                   disabled={applicationsLoading}
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-10"
+                  className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex sm:h-8 sm:w-8"
                   aria-label="Refresh applications"
                   title="Refresh applications"
                 >
@@ -72,7 +84,7 @@ export default function CreatorApplications() {
                 </button>
                 <button
                   onClick={() => setShowOffersModal(true)}
-                  className="relative flex h-8 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg sm:h-10 sm:px-4 sm:text-sm"
+                  className="w-full relative flex h-8 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg sm:h-8 sm:px-4 sm:text-sm"
                 >
                   <Gift className="w-4 h-4" />
                   <span>My Offers</span>
@@ -172,7 +184,10 @@ export default function CreatorApplications() {
           {applicationsLoading ? (
             <div className="grid grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-2">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div key={`application-skeleton-${index}`} className="rounded-xl border border-gray-200 bg-white p-4">
+                <div
+                  key={`application-skeleton-${index}`}
+                  className="rounded-xl border border-gray-200 bg-white p-4"
+                >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-10 w-10 rounded-lg" />

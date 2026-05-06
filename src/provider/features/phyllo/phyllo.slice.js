@@ -239,13 +239,13 @@ export const phylloSlice = createSlice({
     builder
       .addCase(fetchCampaignCombinedDemographics.pending, (state, action) => {
         const arg = action.meta?.arg;
-        const requestedCampaignId =
-          typeof arg === "object" && arg != null ? arg.campaignId : arg;
+        const requestedCampaignId = typeof arg === "object" && arg != null ? arg.campaignId : arg;
         const requestedCreatorId =
-          typeof arg === "object" && arg != null ? arg.creatorId ?? null : null;
+          typeof arg === "object" && arg != null ? (arg.creatorId ?? null) : null;
         if (
           requestedCampaignId !== state.fetchCampaignCombinedDemographics.campaignId ||
-          (requestedCreatorId ?? null) !== (state.fetchCampaignCombinedDemographics.creatorId ?? null)
+          (requestedCreatorId ?? null) !==
+            (state.fetchCampaignCombinedDemographics.creatorId ?? null)
         ) {
           state.fetchCampaignCombinedDemographics.data = null;
           state.fetchCampaignCombinedDemographics.campaignId = null;
@@ -258,7 +258,7 @@ export const phylloSlice = createSlice({
         state.fetchCampaignCombinedDemographics.isSuccess = true;
         const arg = action.meta?.arg;
         const campaignId = typeof arg === "object" && arg != null ? arg.campaignId : arg;
-        const creatorId = typeof arg === "object" && arg != null ? arg.creatorId ?? null : null;
+        const creatorId = typeof arg === "object" && arg != null ? (arg.creatorId ?? null) : null;
         const newData = action.payload?.data;
         const currentData = state.fetchCampaignCombinedDemographics.data;
         const currentCampaignId = state.fetchCampaignCombinedDemographics.campaignId;
@@ -283,6 +283,12 @@ export const phylloSlice = createSlice({
           isSameContext && (currentHasAge || currentHasCountry) && !newHasAge && !newHasCountry;
 
         if (keepCurrent) {
+          state.fetchCampaignCombinedDemographics.data = {
+            ...currentData,
+            is_estimated: newData?.is_estimated ?? false,
+            demographics_source: newData?.demographics_source ?? "none",
+            estimate_disclaimer: newData?.estimate_disclaimer,
+          };
           return;
         }
 

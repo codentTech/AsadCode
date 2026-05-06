@@ -267,7 +267,7 @@ function CampaignFilters() {
       </div>
 
       {/* Action Buttons - Fixed at bottom */}
-      <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+      <div className="shrink-0 border-t border-gray-200 bg-gray-50 p-3 space-y-3 sm:p-4">
         <CustomButton
           text="Apply Filters"
           className="btn-primary w-full"

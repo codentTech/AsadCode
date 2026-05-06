@@ -45,7 +45,7 @@ export default function CreatorDiscover() {
         onClick={closeFilters}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-[88%] max-w-sm border-r border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed left-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+3rem)] z-40 flex w-[88%] max-w-sm flex-col border-r border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-out lg:hidden ${
           filtersOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -60,7 +60,7 @@ export default function CreatorDiscover() {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="h-[calc(100%-3rem)] overflow-y-auto">
+        <div className="flex-1 min-h-0">
           <CampaignFilters />
         </div>
       </aside>
@@ -74,7 +74,7 @@ export default function CreatorDiscover() {
         onClick={closePitches}
       />
       <aside
-        className={`fixed inset-y-0 right-0 z-40 w-[88%] max-w-sm border-l border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed right-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-40 w-[88%] max-w-sm border-l border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-out lg:hidden ${
           pitchesOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
