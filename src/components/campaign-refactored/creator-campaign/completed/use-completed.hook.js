@@ -66,6 +66,20 @@ export default function useCompleted() {
         : campaignTypeRaw === "GIFTED"
           ? "Gifted"
           : campaignTypeRaw || "UGC";
+    const startDate =
+      contract.startDate ||
+      contract.start_date ||
+      campaign.hired_at ||
+      campaign.hiredAt ||
+      campaign.campaign?.active_date ||
+      campaign.campaign?.start_date ||
+      null;
+    const deadline =
+      contract.completionDeadline ||
+      contract.completion_deadline ||
+      campaign.campaign?.application_deadline ||
+      campaign.campaign?.application_date ||
+      null;
 
     return {
       ...campaign,
@@ -94,7 +108,8 @@ export default function useCompleted() {
       deliverables: campaign.campaign?.deliverables || [],
       productImage: "🧴",
       hasReview: false,
-      deadline: campaign.campaign?.application_date,
+      startDate,
+      deadline,
       type: normalizedType,
       compensation: compensationTypeRaw || "PAID",
       compensationAmount:

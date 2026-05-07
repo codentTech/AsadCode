@@ -2,6 +2,7 @@
 
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
+  CREATOR_TAG_OPTIONS,
   getAllowedPlatformsForCreatorType,
   getCreatorTagMeta,
 } from "@/common/constants/creator-tag.constant";
@@ -70,6 +71,7 @@ export default function useSavedDefaultFilter() {
   const [keywordTags, setKeywordTags] = useState([]);
   const [contentRates, setContentRates] = useState({});
   const [customRates, setCustomRates] = useState([{ contentType: "", price: "" }]);
+  const [selectedCreatorType, setSelectedCreatorType] = useState(CAMPAIGN_TYPE.UGC);
   const [isLoading, setIsLoading] = useState(true);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
@@ -83,16 +85,28 @@ export default function useSavedDefaultFilter() {
     setUserSnapshot(getUser());
   }, []);
 
-  const creatorType = useMemo(() => {
+  const currentCreatorType = useMemo(() => {
     const t = userSnapshot?.creator_profile?.creator_type;
     return t === CAMPAIGN_TYPE.INFLUENCER || t === CAMPAIGN_TYPE.HYBRID || t === CAMPAIGN_TYPE.UGC
       ? t
       : CAMPAIGN_TYPE.UGC;
   }, [userSnapshot]);
 
+  useEffect(() => {
+    setSelectedCreatorType(currentCreatorType);
+  }, [currentCreatorType]);
+
+  const creatorType = selectedCreatorType;
+
   const creatorTagMeta = useMemo(() => getCreatorTagMeta(creatorType), [creatorType]);
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
+
+  const handleCreatorTypeChange = useCallback((nextType) => {
+    const exists = CREATOR_TAG_OPTIONS.some((opt) => opt.value === nextType);
+    if (!exists) return;
+    setSelectedCreatorType(nextType);
+  }, []);
 
   const loadConnectedAccounts = useCallback(async () => {
     const result = await dispatch(getSocialAccounts());
@@ -334,7 +348,9 @@ export default function useSavedDefaultFilter() {
 
     const defaults = {
       socialPlatforms: connectedAccounts
-        .filter((account) => account?.platform)
+        .filter(
+          (account) => account?.platform && platforms.includes(String(account.platform).toUpperCase())
+        )
         .map((account) => ({
           platform: account.platform,
           username:
@@ -359,6 +375,7 @@ export default function useSavedDefaultFilter() {
       ],
       subNiches: subNichesPayload.length ? subNichesPayload : undefined,
       contentCharacteristics: hasChars ? contentCharacteristics : undefined,
+      creatorType,
     };
 
     const result = await dispatch(updateCampaignDefaults(defaults));
@@ -432,6 +449,7 @@ export default function useSavedDefaultFilter() {
     creatorType,
     creatorTagMeta,
     creatorCardPreviewData,
+    handleCreatorTypeChange,
     socialConnectLoadingMap,
     connectionLink,
     setConnectionLink,
