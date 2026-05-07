@@ -80,11 +80,11 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
 
   if (isLoading && !selectedCampaign) {
     return (
-      <div className="relative flex min-h-0 flex-1 flex-col md:flex-row">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col md:max-w-none md:flex-[0_1_73%] lg:max-w-none">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row md:items-stretch">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none">
           <MiddlePaneSkeleton variant="applications" />
         </div>
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-gray-200/80 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white md:h-full md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]">
           <RightPaneSkeleton layout="fluid" />
         </div>
       </div>
@@ -116,9 +116,9 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
   );
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col bg-slate-50/40 md:flex-row md:bg-transparent">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/40 md:flex-row md:items-stretch md:bg-transparent">
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col transition-[opacity,transform] duration-200 ease-out md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[opacity,transform] duration-200 ease-out md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
           mobilePane === "detail" ? "hidden md:flex" : "flex"
         }`}
       >
@@ -139,7 +139,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
       </div>
 
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:shadow-none ${
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
           mobilePane === "list" ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]" : "flex"
         }`}
       >
