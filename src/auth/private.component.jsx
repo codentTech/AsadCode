@@ -57,7 +57,7 @@ export default function Private({ component }) {
     return <CreatorShowcaseGate key={gateCheck} />;
   }
 
-  return <div>{component}</div>;
+  return <div className="min-h-0 w-full">{component}</div>;
 }
 
 Private.propTypes = {

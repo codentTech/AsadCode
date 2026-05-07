@@ -48,8 +48,8 @@ const CreatorSpendAnalysisCompleted = ({
   });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-gray-100 to-gray-50/80">
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-sm">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-gray-100 to-gray-50/80">
+      <div className="shrink-0 z-10 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-sm">
         <div className="p-2.5 sm:p-4">
           <div className="mb-2 sm:mb-3">
             <h1 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
@@ -100,7 +100,7 @@ const CreatorSpendAnalysisCompleted = ({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4">
         <div className="mx-auto max-w-5xl space-y-3 sm:space-y-4">
           {creatorsLoading ? (
             <div className="space-y-4">

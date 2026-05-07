@@ -19,7 +19,7 @@ export default function CreatorPortfolio({ creatorId = null }) {
   } = useCreatorPortfolio(creatorId);
 
   return (
-    <HeaderLayout className="min-h-screen bg-gray-50">
+    <HeaderLayout className="bg-gray-50">
       <main className="mx-auto flex w-full flex-col gap-3 bg-gray-50 px-2.5 py-3 sm:gap-4 sm:px-4 sm:py-6 md:w-[80%] md:py-8">
         <ProfileOverview
           creatorId={id}

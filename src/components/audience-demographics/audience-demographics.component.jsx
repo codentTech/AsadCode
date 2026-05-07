@@ -87,7 +87,7 @@ function AudienceDemographics({
   return (
     <div className={`${className} gap-3`}>
       {/* Age distribution */}
-      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
         <h5 className="text-sm font-medium text-gray-700 mb-4">Age Distribution</h5>
         {ageData.length > 0 ? (
           <>
@@ -108,7 +108,7 @@ function AudienceDemographics({
                   width={30}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30} name="Percentage">
+                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={20} name="Percentage">
                   {ageData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -127,7 +127,7 @@ function AudienceDemographics({
       </div>
 
       {/* Gender distribution */}
-      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
         <h5 className="text-sm font-medium text-gray-700 mb-4">Gender Distribution</h5>
         {genderData.length > 0 ? (
           <>
@@ -164,7 +164,7 @@ function AudienceDemographics({
       </div>
 
       {/* Location distribution */}
-      <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
         <h5 className="text-sm font-medium text-gray-700 mb-4">Top Countries</h5>
         {locationData.length > 0 ? (
           <>
@@ -189,7 +189,7 @@ function AudienceDemographics({
                   width={30}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24} name="Percentage">
+                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={20} name="Percentage">
                   {locationData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -209,7 +209,7 @@ function AudienceDemographics({
 
       {/* Top Follower Cities: Instagram only (Phyllo does not provide for TikTok/YouTube) */}
       {showTopCities && (
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
           <h5 className="text-sm font-medium text-gray-700 mb-4">Top Follower Cities</h5>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={cityData} margin={{ top: 10, right: 10, left: 0, bottom: 30 }}>
@@ -232,7 +232,7 @@ function AudienceDemographics({
                 width={30}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24} name="Percentage">
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={20} name="Percentage">
                 {cityData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
