@@ -24,10 +24,12 @@ const extractSelectValue = (optionOrPrimitive) => {
   return optionOrPrimitive;
 };
 
-const ADMIN_LIST_LIMIT = 100;
+const ADMIN_DEFAULT_PAGE_SIZE = 25;
 
 function useUsers() {
   const dispatch = useDispatch();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(ADMIN_DEFAULT_PAGE_SIZE);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState(null);
   const [sortBy, setSortBy] = useState(ADMIN_USERS_DEFAULT_SORT_BY);
@@ -39,7 +41,9 @@ function useUsers() {
 
   const users =
     useSelector((state) => state.users.getAllUsers?.data?.users) ?? [];
+  const totalUsers = useSelector((state) => state.users.getAllUsers?.data?.total ?? 0);
   const isLoading = useSelector((state) => state.users.getAllUsers?.isLoading ?? false);
+  const totalPages = Math.max(1, Math.ceil((totalUsers || 0) / pageSize));
 
   const columns = useMemo(
     () => [
@@ -126,14 +130,15 @@ function useUsers() {
   const fetchUsers = useCallback(async () => {
     const trimmed = typeof searchTerm === "string" ? searchTerm.trim() : "";
     const payload = {
-      limit: ADMIN_LIST_LIMIT,
+      limit: pageSize,
+      page: currentPage,
       sortBy,
       sortOrder,
     };
     if (trimmed) payload.search = trimmed;
     if (roleFilter != null && roleFilter !== "ALL") payload.role = roleFilter;
     await dispatch(getAllUsers(payload));
-  }, [dispatch, searchTerm, roleFilter, sortBy, sortOrder]);
+  }, [dispatch, searchTerm, roleFilter, sortBy, sortOrder, currentPage, pageSize]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -277,6 +282,7 @@ function useUsers() {
 
   const handleSearchChange = useCallback((value) => {
     const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setCurrentPage(1);
     setSearchTerm(next);
   }, []);
 
@@ -289,6 +295,7 @@ function useUsers() {
       setSortBy(field);
       setSortOrder("DESC");
     }
+    setCurrentPage(1);
   };
 
   const handleRoleFilterChange = (option) => {
@@ -298,6 +305,7 @@ function useUsers() {
     } else {
       setRoleFilter(v);
     }
+    setCurrentPage(1);
   };
 
   const toggleFilters = useCallback(() => {
@@ -309,6 +317,24 @@ function useUsers() {
     setRoleFilter(null);
     setSortBy(ADMIN_USERS_DEFAULT_SORT_BY);
     setSortOrder(ADMIN_USERS_DEFAULT_SORT_ORDER);
+    setCurrentPage(1);
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  }, [totalPages]);
+
+  const handlePageChange = useCallback((nextPage) => {
+    setCurrentPage(nextPage);
+  }, []);
+
+  const handlePageSizeChange = useCallback((nextPageSize) => {
+    setPageSize(nextPageSize);
+    setCurrentPage(1);
   }, []);
 
   const hasActiveFilters = useMemo(() => {
@@ -343,6 +369,14 @@ function useUsers() {
     toggleFilters,
     handleClearFilters,
     hasActiveFilters,
+    currentPage,
+    pageSize,
+    totalPages,
+    totalUsers,
+    handlePrevPage,
+    handleNextPage,
+    handlePageChange,
+    handlePageSizeChange,
   };
 }
 
