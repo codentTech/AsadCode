@@ -68,9 +68,9 @@ export const COUNTRY_NAMES = {
 };
 
 export const DEFAULT_COLORS = {
-  age: ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"],
+  age: ["#6366f1", "#8b5cf6", "#ec4899", "#e07a5f", "#0ea5e9"],
   gender: ["#3b82f6", "#ec4899"],
-  location: ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"],
+  location: ["#0ea5e9", "#e07a5f", "#ef4444", "#8b5cf6", "#06b6d4"],
 };
 
 export const generateCustomAgeColors = ({ colors, ageData }) =>
@@ -162,7 +162,10 @@ export const useAudienceDemographics = (audienceData, colors = DEFAULT_COLORS, p
 
     // Top Follower Cities: only supported for Instagram (Phyllo does not provide for TikTok/YouTube)
     let cityData = [];
-    if (platform?.toLowerCase() === "instagram" && audienceData.audience_city_distribution?.length > 0) {
+    if (
+      platform?.toLowerCase() === "instagram" &&
+      audienceData.audience_city_distribution?.length > 0
+    ) {
       const allCities = audienceData.audience_city_distribution
         .filter((d) => Math.round(Number(d.percentage) || 0) > 0)
         .map((d) => ({

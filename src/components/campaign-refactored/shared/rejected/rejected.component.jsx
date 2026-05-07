@@ -67,7 +67,7 @@ function Rejected({ onSwitchToApplications }) {
       {rightPaneState.type === "loading" ? (
         <RightPaneSkeleton layout="fluid" />
       ) : rightPaneState.type === "notFound" ? (
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 py-10 md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
+        <div className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 py-10 md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
           <NotFound title={rightPaneState.title} description={rightPaneState.description} />
         </div>
       ) : (
@@ -85,9 +85,9 @@ function Rejected({ onSwitchToApplications }) {
 
   return (
     <>
-      <div className="relative flex min-h-0 flex-1 flex-col bg-slate-50/40 md:flex-row md:bg-transparent">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/40 md:flex-row md:items-stretch md:bg-transparent">
         <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col transition-[opacity,transform] duration-200 ease-out md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
+          className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[opacity,transform] duration-200 ease-out md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
             mobilePane === "detail" ? "hidden md:flex" : "flex"
           }`}
         >
@@ -108,7 +108,7 @@ function Rejected({ onSwitchToApplications }) {
         </div>
 
         <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:shadow-none ${
+          className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
             mobilePane === "list" ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]" : "flex"
           }`}
         >
