@@ -236,26 +236,23 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
     const scope =
       selectedRows.length > 0 ? selectedRows : fallbackHistoryItem ? [fallbackHistoryItem] : selectedRows;
     if (selectedCampaign) {
-      const fromHistory = getExpectedPayoutAvailableAtFromHistoryRow(scope[0]);
-      if (fromHistory) {
-        return fromHistory;
-      }
-      const completionDate =
-        scope?.[0]?.completionDate ||
-        scope?.[0]?.completion_date ||
-        selectedCampaign?.contract?.completionDeadline ||
-        selectedCampaign?.contract?.completion_deadline ||
-        selectedCampaign?.campaign?.completed_date ||
-        selectedCampaign?.completedDate ||
+      const contractSignedAt =
+        selectedCampaign?.hired_at ||
+        selectedCampaign?.hiredAt ||
+        selectedCampaign?.application?.hired_at ||
+        selectedCampaign?.application?.hiredAt ||
         null;
-      if (!completionDate) {
+      if (!contractSignedAt) {
         return null;
       }
-      const unlockDate = new Date(completionDate);
-      if (Number.isNaN(unlockDate.getTime())) {
+      const signedDate = new Date(contractSignedAt);
+      if (Number.isNaN(signedDate.getTime())) {
         return null;
       }
-      unlockDate.setDate(unlockDate.getDate() + 5);
+      // "After 5 days" is enforced as a calendar lock, available at the next day's start.
+      const unlockDate = new Date(signedDate);
+      unlockDate.setHours(0, 0, 0, 0);
+      unlockDate.setDate(unlockDate.getDate() + 6);
       return unlockDate.toISOString();
     }
     const row = scope.find((item) => getExpectedPayoutAvailableAtFromHistoryRow(item) != null);

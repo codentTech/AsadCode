@@ -1,4 +1,4 @@
-import BrandCampaignTypeToggle from "@/common/components/brand-campaign-type-toggle/brand-campaign-type-toggle.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
@@ -35,11 +35,15 @@ export default function CampaignOverview({ onCampaignSelect, onToggleChange }) {
 
   return (
     <div className="flex min-h-0 w-full flex-col gap-3 overflow-y-auto bg-white p-3 sm:gap-4 sm:p-4 md:h-full md:max-h-none">
-      <BrandCampaignTypeToggle
-        isMultiCreator={isMultiCreator}
-        onSelect={handleToggleChange}
-        className="w-full max-w-[296px] sm:w-[296px]"
-      />
+      <div className="bg-gray-100 rounded-lg p-3">
+        <CustomSwitch
+          label="Campaign Type"
+          checked={isMultiCreator}
+          onChange={(event) => handleToggleChange(event.target.checked)}
+          rightLabelText={isMultiCreator ? "Multi-Creator" : "Individual Creator"}
+          parentDivClassName="justify-between"
+        />
+      </div>
 
       {isMultiCreator && (
         <div className="min-w-0">

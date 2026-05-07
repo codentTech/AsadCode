@@ -15,6 +15,13 @@ export const formatDate = (date) => {
   });
 };
 
+export const formatDateOrNA = (value) => {
+  if (!value) return "N/A";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "N/A";
+  return parsed.toLocaleDateString();
+};
+
 export const getDaysUntilDeadline = (date) => {
   const today = new Date();
   const deadlineDate = new Date(date);

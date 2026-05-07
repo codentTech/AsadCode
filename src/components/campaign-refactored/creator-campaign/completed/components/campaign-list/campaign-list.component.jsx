@@ -1,3 +1,5 @@
+import { formatDateOrNA } from "@/common/utils/date.utils";
+
 const CompletedCampaignList = ({ campaigns, selectedCampaign, onSelect }) => {
   return (
     <div className="flex w-full flex-col border-r border-gray-200 bg-white">
@@ -24,14 +26,12 @@ const CompletedCampaignList = ({ campaigns, selectedCampaign, onSelect }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="truncate text-sm font-semibold text-gray-900">{campaign.title}</h3>
-                <div className="flex justify-between items-center mt-1">
+                <div className="mt-1">
                   <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">{campaign.brand.name}</p>
-                  <span className="text-[10px] text-gray-500 sm:text-xs">
-                    Completed on{" "}
-                    {campaign.completedDate
-                      ? new Date(campaign.completedDate).toLocaleDateString()
-                      : "N/A"}
-                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-[10px] text-gray-500 sm:text-xs">
+                  <span>Start: {formatDateOrNA(campaign.startDate)}</span>
+                  <span>Deadline: {formatDateOrNA(campaign.deadline)}</span>
                 </div>
               </div>
             </div>

@@ -73,9 +73,8 @@ export default function SimpleSelect({
     >
       {label && <FieldLabel label={label} isRequired={isRequired} />}
 
-      <div className="relative w-full">
+      <div ref={inputRef} className="relative w-full">
         <div
-          ref={inputRef}
           onClick={handleClick}
           className={`flex min-h-9 sm:min-h-10 items-center justify-between rounded-md border px-2.5 sm:px-3 py-1.5 sm:py-2 ${
             errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
