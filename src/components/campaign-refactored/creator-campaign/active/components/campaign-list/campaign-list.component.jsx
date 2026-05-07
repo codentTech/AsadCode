@@ -1,6 +1,6 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Loading from "@/common/components/loader/loading.component";
-import { formatDate, getDaysUntilDeadline } from "@/common/utils/date.utils";
+import { formatDateOrNA, getDaysUntilDeadline } from "@/common/utils/date.utils";
 import TrackExternalCampaignModal from "./components/track-external-campaign-modal/track-external-campaign-modal.component";
 import useTrackExternalCampaign from "./components/track-external-campaign-modal/use-track-external-campaign.hook";
 
@@ -42,6 +42,7 @@ const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading
               campaign.application_deadline ||
               campaign.contract?.completionDeadline ||
               campaign.contract?.completion_deadline;
+            const startDate = campaign.startDate || campaign.contract?.startDate || campaign.contract?.start_date;
             const daysLeft = getDaysUntilDeadline(deadline);
             const isSelected = selectedCampaign?.id === campaign.id;
 
@@ -63,8 +64,10 @@ const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="truncate text-sm font-semibold text-gray-900">{campaign.title}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-gray-600 sm:text-xs">{formatDate(deadline)}</span>
+                    <div className="mt-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">
+                        {campaign.brand}
+                      </span>
                       <span
                         className={`rounded-full px-1.5 py-0.5 text-[10px] sm:px-2 sm:text-xs ${
                           daysLeft <= 3
@@ -76,6 +79,10 @@ const CampaignList = ({ campaigns, selectedCampaign, onCampaignSelect, isLoading
                       >
                         {daysLeft}d left
                       </span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-gray-500 sm:text-xs">
+                      <span>Start: {formatDateOrNA(startDate)}</span>
+                      <span>Deadline: {formatDateOrNA(deadline)}</span>
                     </div>
                   </div>
                 </div>

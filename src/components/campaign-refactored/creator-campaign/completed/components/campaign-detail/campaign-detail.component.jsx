@@ -31,6 +31,18 @@ const CampaignDetail = ({ campaign }) => {
     handleCloseContentBrief,
     handleCloseProgressModal,
   } = useCampaignDetail(campaign);
+  const deliverables = Array.isArray(campaign?.deliverables)
+    ? campaign.deliverables.filter(Boolean)
+    : typeof campaign?.deliverables === "string" && campaign.deliverables.trim()
+      ? campaign.deliverables
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : typeof campaign?.contract?.contentFormat === "string" && campaign.contract.contentFormat.trim()
+        ? [campaign.contract.contentFormat.trim()]
+        : typeof campaign?.contract?.content_format === "string" && campaign.contract.content_format.trim()
+          ? [campaign.contract.content_format.trim()]
+          : [];
 
   if (!campaign) {
     return (
@@ -235,15 +247,19 @@ const CampaignDetail = ({ campaign }) => {
           <h3 className="text-sm font-medium text-gray-900 mb-2">Deliverables</h3>
           <div className="bg-gray-100 rounded-lg p-3">
             <div className="flex flex-wrap gap-1">
-              {campaign?.deliverables?.map((item, index) => (
-                <span
-                  key={index}
-                  className="bg-white text-xs text-gray-700 px-2 py-1 rounded border flex items-center gap-1"
-                >
-                  <div className="w-1 h-1 bg-blue-500 rounded-full" />
-                  {item}
-                </span>
-              ))}
+              {deliverables.length > 0 ? (
+                deliverables.map((item, index) => (
+                  <span
+                    key={index}
+                    className="bg-white text-xs text-gray-700 px-2 py-1 rounded border flex items-center gap-1"
+                  >
+                    <div className="w-1 h-1 bg-blue-500 rounded-full" />
+                    {item}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-gray-500">No deliverables provided</span>
+              )}
             </div>
           </div>
         </div>

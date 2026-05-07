@@ -10,7 +10,7 @@ import {
   ADMIN_USERS_ROLE_FILTER_OPTIONS,
   ADMIN_USERS_SORT_OPTIONS,
 } from "@/common/constants/options.constant";
-import { ArrowUpDown, Download, Filter } from "lucide-react";
+import { ArrowUpDown, Filter } from "lucide-react";
 import useUsers from "./use-users.hook";
 
 const Users = () => {
@@ -38,6 +38,11 @@ const Users = () => {
     toggleFilters,
     handleClearFilters,
     hasActiveFilters,
+    currentPage,
+    pageSize,
+    totalUsers,
+    handlePageChange,
+    handlePageSizeChange,
   } = useUsers();
 
   return (
@@ -129,21 +134,27 @@ const Users = () => {
         </div>
 
         <div className="min-w-0 overflow-x-auto">
-        <CustomDataTable
-          columns={columns}
-          data={filteredUsers}
-          selectable={true}
-          selectedIds={selectedUsers}
-          searchable={false}
-          externalSearch={true}
-          searchValue={searchTerm}
-          onSearchChange={handleSearchChange}
-          onSelectionChange={handleSelectionChange}
-          actions={actions}
-          onActionClick={handleActionClick}
-          emptyMessage="No users found"
-          loading={isLoading}
-        />
+          <CustomDataTable
+            columns={columns}
+            data={filteredUsers}
+            selectable={true}
+            selectedIds={selectedUsers}
+            searchable={false}
+            externalSearch={true}
+            searchValue={searchTerm}
+            onSearchChange={handleSearchChange}
+            onSelectionChange={handleSelectionChange}
+            actions={actions}
+            onActionClick={handleActionClick}
+            emptyMessage="No users found"
+            loading={isLoading}
+            externalPagination={true}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalRecords={totalUsers}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       </div>
 

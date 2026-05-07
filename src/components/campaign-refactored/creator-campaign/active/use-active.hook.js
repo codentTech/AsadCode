@@ -61,6 +61,13 @@ export default function useActive() {
           contractData.completionDeadline ||
           contractData.completion_deadline ||
           campaignData.application_deadline,
+        startDate:
+          contractData.startDate ||
+          contractData.start_date ||
+          campaign.hired_at ||
+          campaign.hiredAt ||
+          campaignData.active_date ||
+          null,
         platforms: contractData.platforms || campaignData.platforms || [],
         deliverables: contractData.contentFormat
           ? [contractData.contentFormat]
@@ -113,6 +120,7 @@ export default function useActive() {
           : brandData.first_name || "Brand"),
       logo: brandData.brand_profile?.brand_logo_url || avatar,
       application_deadline: campaignData.application_deadline,
+      startDate: campaignData.active_date || campaign.hired_at || campaign.hiredAt || null,
       platforms: campaignData.platforms || [],
       deliverables: campaignData.deliverables || [],
       payment:

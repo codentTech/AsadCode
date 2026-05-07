@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { CREATOR_TAG_OPTIONS } from "@/common/constants/creator-tag.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
@@ -12,6 +13,7 @@ import {
   CheckCircle,
   DollarSign,
   ExternalLink,
+  Info,
   RefreshCw,
   Trash2,
   X,
@@ -54,6 +56,7 @@ const SavedDefaultFilters = () => {
     creatorType,
     creatorTagMeta,
     creatorCardPreviewData,
+    handleCreatorTypeChange,
     socialConnectLoadingMap,
     connectionLink,
     setConnectionLink,
@@ -74,15 +77,53 @@ const SavedDefaultFilters = () => {
           <div className="bg-white rounded-lg shadow-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Your creator tag</h3>
             <p className="text-xs text-gray-600 mb-3">
-              This controls which platforms you can connect and how you appear in discovery. Tags
-              are assigned at signup; contact support to request a change.
+              This controls which platforms you can connect and how you appear in discovery.
             </p>
-            <span
-              className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${creatorTagMeta.pillClass}`}
-            >
-              {creatorTagMeta.label}
-            </span>
-            <p className="text-xs text-gray-600 mt-3">{creatorTagMeta.tooltip}</p>
+            <div className="space-y-2">
+              {CREATOR_TAG_OPTIONS.map((opt) => {
+                const active = creatorType === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleCreatorTypeChange(opt.value)}
+                    className={`w-full rounded-lg border p-3 text-left transition-all ${
+                      active
+                        ? `${opt.cardBorder} shadow-sm`
+                        : "border-gray-200 bg-white hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex rounded-lg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${opt.pillClass}`}
+                          >
+                            {opt.label}
+                          </span>
+                          <span
+                            className="inline-flex text-gray-400"
+                            title={opt.tooltip}
+                            aria-label={opt.tooltip}
+                          >
+                            <Info className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                        <p className="mt-2 w-full max-w-[350px] text-xs text-gray-600">{opt.helper}</p>
+                      </div>
+                      <div
+                        className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          active ? "border-indigo-600" : "border-gray-300"
+                        }`}
+                      >
+                        {active ? <span className="h-2 w-2 rounded-full bg-indigo-600" /> : null}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-gray-600">{creatorTagMeta.tooltip}</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-4">
