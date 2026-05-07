@@ -159,7 +159,7 @@ function AudienceDemographics({
             <CustomLegend items={genderColorItems} />
           </>
         ) : (
-          <EmptyState message="No gender distribution from Phyllo. API may not return percentage data for this account yet." />
+          <AudienceEmptyState message="No gender distribution from Phyllo. API may not return percentage data for this account yet." />
         )}
       </div>
 
