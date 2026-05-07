@@ -38,9 +38,11 @@ const CampaignDetail = ({ campaign }) => {
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean)
-      : typeof campaign?.contract?.contentFormat === "string" && campaign.contract.contentFormat.trim()
+      : typeof campaign?.contract?.contentFormat === "string" &&
+          campaign.contract.contentFormat.trim()
         ? [campaign.contract.contentFormat.trim()]
-        : typeof campaign?.contract?.content_format === "string" && campaign.contract.content_format.trim()
+        : typeof campaign?.contract?.content_format === "string" &&
+            campaign.contract.content_format.trim()
           ? [campaign.contract.content_format.trim()]
           : [];
 
@@ -76,7 +78,9 @@ const CampaignDetail = ({ campaign }) => {
               <h2 className="text-sm font-semibold text-gray-900 sm:text-lg md:text-xl">
                 {campaign?.brand?.name || campaign?.brand}
               </h2>
-              <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">{campaign?.title}</p>
+              <p className="text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
+                {campaign?.title}
+              </p>
               <div className="mt-1 flex items-center gap-1 text-[10px] text-gray-500 sm:text-xs">
                 <Calendar className="w-3 h-3" />
                 <span>{formatDate(campaign?.campaign?.application_deadline)}</span>
@@ -92,7 +96,12 @@ const CampaignDetail = ({ campaign }) => {
               {campaign?.type}
             </div>
             <div className="flex items-center gap-2 text-left text-[10px] font-semibold text-gray-900 sm:text-xs">
-              <div>{campaign?.compensation} -</div>
+              <div>
+                {campaign?.compensation
+                  ? campaign?.compensation?.replace("_", " ")
+                  : campaign?.contract?.compensation}{" "}
+                -
+              </div>
               <div>{campaign?.compensationAmount}</div>
             </div>
           </div>
@@ -273,11 +282,7 @@ const CampaignDetail = ({ campaign }) => {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <CustomButton
-            text="Message"
-            className="btn-primary"
-            onClick={handleMessageClick}
-          />
+          <CustomButton text="Message" className="btn-primary" onClick={handleMessageClick} />
           <CustomButton
             text="View Brief"
             className="btn-outline"
@@ -296,7 +301,9 @@ const CampaignDetail = ({ campaign }) => {
                   style={{ width: `${progressCompletionRate}%` }}
                 />
               </div>
-              <span className="text-[10px] font-medium text-gray-600 sm:text-xs">{progressCompletionRate}%</span>
+              <span className="text-[10px] font-medium text-gray-600 sm:text-xs">
+                {progressCompletionRate}%
+              </span>
             </div>
           </div>
 

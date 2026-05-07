@@ -213,8 +213,8 @@ const CreatorSpendAnalysis = ({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-gray-100">
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white shadow-sm">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gray-100">
+      <div className="shrink-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="p-3 sm:p-4">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="w-full min-w-0 sm:w-[280px] bg-gray-100 rounded-lg p-3">
@@ -279,7 +279,9 @@ const CreatorSpendAnalysis = ({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">{renderScrollBody()}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4">
+        {renderScrollBody()}
+      </div>
 
       <ConfirmationDialog
         show={showReinstateConfirmation}

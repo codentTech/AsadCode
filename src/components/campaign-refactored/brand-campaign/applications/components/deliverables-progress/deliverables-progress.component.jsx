@@ -33,8 +33,8 @@ const DeliverablesProgress = ({
   const { getPlatformColor, getPlatformIcon } = useGetplatform();
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white">
-      <div className="sticky top-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white px-2.5 pb-3 pt-3 text-left sm:items-center sm:px-4 sm:text-center">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border-l border-gray-200 bg-white">
+      <div className="shrink-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white px-2.5 pb-3 pt-3 text-left sm:items-center sm:px-4 sm:text-center">
         <div className="relative self-center sm:self-auto">
           <Avatar
             src={creatorData?.image}
@@ -67,7 +67,7 @@ const DeliverablesProgress = ({
         </p>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:gap-4 sm:p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4">
         <div className="grid w-full grid-cols-3 gap-2">
           <CustomButton text="Message" className="btn-primary" onClick={onMessageClick} />
           <CustomButton text="Hire" className="btn-outline" onClick={onHireClick} />

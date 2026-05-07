@@ -38,8 +38,12 @@ function CampaignShell() {
         </nav>
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden pt-[44px] sm:pt-[48px] md:pt-[56px]">
-        {ActiveComponent && <ActiveComponent />}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-[44px] sm:pt-[48px] md:pt-[56px]">
+        {ActiveComponent ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <ActiveComponent />
+          </div>
+        ) : null}
       </div>
     </div>
   );

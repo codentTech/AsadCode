@@ -82,7 +82,7 @@ const DeliverablesProgressCompleted = ({
   );
 
   const renderCreatorProfile = () => (
-    <div className="sticky top-0 z-10 flex flex-col items-center gap-1 border-b border-gray-100 bg-white/95 px-3 pb-3 pt-3 backdrop-blur-sm sm:pb-4">
+    <div className="shrink-0 z-10 flex flex-col items-center gap-1 border-b border-gray-100 bg-white/95 px-3 pb-3 pt-3 backdrop-blur-sm sm:pb-4">
       <div className="relative">
         <Avatar
           src={creator?.image || avatar}
@@ -459,11 +459,11 @@ const DeliverablesProgressCompleted = ({
   }
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border-l border-gray-200 bg-white">
       {selectedCampaign && selectedCreator && creator && creator.id !== "unknown" && (
         <>
           {renderCreatorProfile()}
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:gap-4 sm:p-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4">
             {renderQuickActions()}
             {renderContractDetails()}
             {renderTimeline()}
