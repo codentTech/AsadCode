@@ -59,6 +59,8 @@ const initialState = {
   resendEmail: generalState,
   passwordResetRequest: generalState,
   passwordResetSubmit: generalState,
+  impersonateUser: generalState,
+  exitImpersonation: generalState,
   logout: generalState,
   loginAndSignUpWithOAuth: generalState,
   loginAndSignUpWithLinkedin: generalState,
@@ -146,6 +148,60 @@ export const resetPasswordWithToken = createAsyncThunk(
   }
 );
 
+export const impersonateUser = createAsyncThunk(
+  "auth/impersonateUser",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await authService.impersonate(userId);
+      if (!response?.success) {
+        return thunkAPI.rejectWithValue(response);
+      }
+
+      const payload = response?.data;
+      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
+        const activeToken = localStorage.getItem("token");
+        const activeUser = localStorage.getItem("user");
+        if (!localStorage.getItem("admin_token") && activeToken) {
+          localStorage.setItem("admin_token", activeToken);
+        }
+        if (!localStorage.getItem("admin_user") && activeUser) {
+          localStorage.setItem("admin_user", activeUser);
+        }
+        localStorage.setItem("token", payload.token);
+        localStorage.setItem("user", JSON.stringify(payload.user));
+      }
+
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const exitImpersonation = createAsyncThunk(
+  "auth/exitImpersonation",
+  async (_, thunkAPI) => {
+    try {
+      const response = await authService.exitImpersonation();
+      if (!response?.success) {
+        return thunkAPI.rejectWithValue(response);
+      }
+
+      const payload = response?.data;
+      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
+        localStorage.setItem("token", payload.token);
+        localStorage.setItem("user", JSON.stringify(payload.user));
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_user");
+      }
+
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -171,6 +227,8 @@ export const authSlice = createSlice({
       state.resendEmail = generalState;
       state.passwordResetRequest = generalState;
       state.passwordResetSubmit = generalState;
+      state.impersonateUser = generalState;
+      state.exitImpersonation = generalState;
       state.loginAndSignUpWithOAuth = generalState;
       state.loginAndSignUpWithLinkedin = generalState;
     },
@@ -314,6 +372,43 @@ export const authSlice = createSlice({
         state.passwordResetSubmit.isLoading = false;
         state.passwordResetSubmit.isError = true;
         state.passwordResetSubmit.data = null;
+      })
+      .addCase(impersonateUser.pending, (state) => {
+        state.impersonateUser.isLoading = true;
+        state.impersonateUser.isError = false;
+        state.impersonateUser.isSuccess = false;
+        state.impersonateUser.message = "";
+        state.impersonateUser.data = null;
+      })
+      .addCase(impersonateUser.fulfilled, (state, action) => {
+        state.impersonateUser.isLoading = false;
+        state.impersonateUser.isSuccess = true;
+        state.impersonateUser.data = action.payload;
+      })
+      .addCase(impersonateUser.rejected, (state, action) => {
+        state.impersonateUser.isLoading = false;
+        state.impersonateUser.isError = true;
+        state.impersonateUser.message = action.payload?.message || "Failed to impersonate user";
+        state.impersonateUser.data = null;
+      })
+      .addCase(exitImpersonation.pending, (state) => {
+        state.exitImpersonation.isLoading = true;
+        state.exitImpersonation.isError = false;
+        state.exitImpersonation.isSuccess = false;
+        state.exitImpersonation.message = "";
+        state.exitImpersonation.data = null;
+      })
+      .addCase(exitImpersonation.fulfilled, (state, action) => {
+        state.exitImpersonation.isLoading = false;
+        state.exitImpersonation.isSuccess = true;
+        state.exitImpersonation.data = action.payload;
+      })
+      .addCase(exitImpersonation.rejected, (state, action) => {
+        state.exitImpersonation.isLoading = false;
+        state.exitImpersonation.isError = true;
+        state.exitImpersonation.message =
+          action.payload?.message || "Failed to exit impersonation";
+        state.exitImpersonation.data = null;
       });
   },
 });

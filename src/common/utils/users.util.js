@@ -51,6 +51,8 @@ export const removeUser = () => {
     localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("admin_user");
+    localStorage.removeItem("admin_token");
   }
 };
 
@@ -99,7 +101,14 @@ export const is2FAEnabled = (data) => {
 export const isSuperAdmin = (data) => {
   if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
-    return user.role === ROLES.SUPER_ADMIN.toString();
+    return user?.role === ROLES.ADMIN;
+  }
+  return false;
+};
+
+export const isImpersonating = () => {
+  if (typeof window === "object" && window?.localStorage) {
+    return Boolean(localStorage.getItem("admin_token"));
   }
   return false;
 };
@@ -112,4 +121,6 @@ export const getEmailForURL = (email) => {
 
 export const logout = () => {
   localStorage.clear();
+  localStorage.removeItem("admin_user");
+  localStorage.removeItem("admin_token");
 };

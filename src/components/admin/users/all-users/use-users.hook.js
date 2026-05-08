@@ -11,10 +11,12 @@ import {
   adminToggleBlockUser,
   getAllUsers,
 } from "@/provider/features/users/users.slice";
+import { impersonateUser } from "@/provider/features/auth/auth.slice";
 import { Email } from "@mui/icons-material";
-import { Shield, ShieldOff, Trash2, User } from "lucide-react";
+import { LogIn, Shield, ShieldOff, Trash2, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 const extractSelectValue = (optionOrPrimitive) => {
   if (optionOrPrimitive == null) return null;
@@ -28,16 +30,22 @@ const ADMIN_DEFAULT_PAGE_SIZE = 25;
 
 function useUsers() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(ADMIN_DEFAULT_PAGE_SIZE);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null);
+  const [onboardingFilter, setOnboardingFilter] = useState(null);
   const [sortBy, setSortBy] = useState(ADMIN_USERS_DEFAULT_SORT_BY);
   const [sortOrder, setSortOrder] = useState(ADMIN_USERS_DEFAULT_SORT_ORDER);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [openImpersonateModal, setOpenImpersonateModal] = useState(false);
+  const [userToImpersonate, setUserToImpersonate] = useState(null);
+  const [isImpersonatingUser, setIsImpersonatingUser] = useState(false);
 
   const users =
     useSelector((state) => state.users.getAllUsers?.data?.users) ?? [];
@@ -137,8 +145,23 @@ function useUsers() {
     };
     if (trimmed) payload.search = trimmed;
     if (roleFilter != null && roleFilter !== "ALL") payload.role = roleFilter;
+    if (statusFilter === "BLOCKED") payload.isBlocked = true;
+    if (statusFilter === "ACTIVE") payload.isBlocked = false;
+    if (onboardingFilter != null && onboardingFilter !== "ALL") {
+      payload.onboardingStatus = onboardingFilter;
+    }
     await dispatch(getAllUsers(payload));
-  }, [dispatch, searchTerm, roleFilter, sortBy, sortOrder, currentPage, pageSize]);
+  }, [
+    dispatch,
+    searchTerm,
+    roleFilter,
+    statusFilter,
+    onboardingFilter,
+    sortBy,
+    sortOrder,
+    currentPage,
+    pageSize,
+  ]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -212,12 +235,31 @@ function useUsers() {
           setUserToDelete(row);
           setOpenDeleteModal(true);
           break;
+        case "impersonate":
+          setUserToImpersonate(row);
+          setOpenImpersonateModal(true);
+          break;
         default:
           break;
       }
     },
     [handleAdminBlock, handleAdminUnblock]
   );
+
+  const handleConfirmImpersonate = useCallback(() => {
+    if (!userToImpersonate?.id || isImpersonatingUser) {
+      return;
+    }
+    setIsImpersonatingUser(true);
+    dispatch(impersonateUser(userToImpersonate.id)).then((result) => {
+      setIsImpersonatingUser(false);
+      if (impersonateUser.fulfilled.match(result)) {
+        setOpenImpersonateModal(false);
+        setUserToImpersonate(null);
+        router.push("/campaign");
+      }
+    });
+  }, [dispatch, isImpersonatingUser, router, userToImpersonate]);
 
   const actions = useMemo(
     () => (row) => {
@@ -240,6 +282,11 @@ function useUsers() {
         },
       ];
       if (row.id !== me?.id && row.role !== "ADMIN") {
+        items.push({
+          key: "impersonate",
+          label: "Impersonate",
+          icon: <LogIn size={16} />,
+        });
         items.push({
           key: "delete",
           label: "Delete account",
@@ -308,6 +355,26 @@ function useUsers() {
     setCurrentPage(1);
   };
 
+  const handleStatusFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setStatusFilter(null);
+    } else {
+      setStatusFilter(v);
+    }
+    setCurrentPage(1);
+  };
+
+  const handleOnboardingFilterChange = (option) => {
+    const v = extractSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setOnboardingFilter(null);
+    } else {
+      setOnboardingFilter(v);
+    }
+    setCurrentPage(1);
+  };
+
   const toggleFilters = useCallback(() => {
     setShowFilters((prev) => !prev);
   }, []);
@@ -315,6 +382,8 @@ function useUsers() {
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
     setRoleFilter(null);
+    setStatusFilter(null);
+    setOnboardingFilter(null);
     setSortBy(ADMIN_USERS_DEFAULT_SORT_BY);
     setSortOrder(ADMIN_USERS_DEFAULT_SORT_ORDER);
     setCurrentPage(1);
@@ -340,10 +409,12 @@ function useUsers() {
   const hasActiveFilters = useMemo(() => {
     const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
     const hasRole = roleFilter != null;
+    const hasStatus = statusFilter != null;
+    const hasOnboarding = onboardingFilter != null;
     const sortChanged =
       sortBy !== ADMIN_USERS_DEFAULT_SORT_BY || sortOrder !== ADMIN_USERS_DEFAULT_SORT_ORDER;
-    return hasSearch || hasRole || sortChanged;
-  }, [searchTerm, roleFilter, sortBy, sortOrder]);
+    return hasSearch || hasRole || hasStatus || hasOnboarding || sortChanged;
+  }, [searchTerm, roleFilter, statusFilter, onboardingFilter, sortBy, sortOrder]);
 
   return {
     searchTerm,
@@ -355,17 +426,26 @@ function useUsers() {
     openDeleteModal,
     setOpenDeleteModal,
     userToDelete,
+    openImpersonateModal,
+    setOpenImpersonateModal,
+    userToImpersonate,
+    isImpersonatingUser,
     handleSearchChange,
     handleExport,
     handleSelectionChange,
     handleActionClick,
     handleConfirmDelete,
+    handleConfirmImpersonate,
     roleFilter,
+    statusFilter,
+    onboardingFilter,
     sortBy,
     sortOrder,
     showFilters,
     handleSortChange,
     handleRoleFilterChange,
+    handleStatusFilterChange,
+    handleOnboardingFilterChange,
     toggleFilters,
     handleClearFilters,
     hasActiveFilters,
