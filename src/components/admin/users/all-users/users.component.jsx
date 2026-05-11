@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
@@ -200,18 +201,19 @@ const Users = () => {
         action={handleConfirmDelete}
         type="admin-delete-user"
       />
-      <DeleteConfirmationModal
-        id={1}
-        openConfirmationPopup={openImpersonateModal}
-        setOpenConfirmationPopup={setOpenImpersonateModal}
-        mainText="Impersonate this account?"
-        subText={`You will operate the platform as ${userToImpersonate?.email || "this user"}. You can exit impersonation at any time.`}
+      <ConfirmationModal
+        show={openImpersonateModal}
+        close={() => setOpenImpersonateModal(false)}
+        onConfirm={handleConfirmImpersonate}
+        onCancel={() => setOpenImpersonateModal(false)}
+        message="Impersonate this account?"
+        messageStyling="text-center text-base font-semibold text-gray-900 sm:text-lg"
+        content={`You will operate the platform as ${userToImpersonate?.email || "this user"}. You can exit impersonation at any time.`}
+        contentStyling="mt-2 max-w-sm text-center text-xs text-gray-600 sm:text-sm"
+        cancelText="Cancel"
         confirmText="Impersonate"
         confirmLoading={isImpersonatingUser}
         confirmLoadingText="Impersonating"
-        closeText="Cancel"
-        action={handleConfirmImpersonate}
-        type="admin-impersonate-user"
       />
     </DashboardLayout>
   );

@@ -1,5 +1,6 @@
 import { getUser } from "@/common/utils/users.util";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import authService from "./auth.service";
 
 const normalizeAuthMessage = (value) => {
@@ -170,6 +171,8 @@ export const impersonateUser = createAsyncThunk(
         localStorage.setItem("token", payload.token);
         localStorage.setItem("user", JSON.stringify(payload.user));
       }
+
+      thunkAPI.dispatch(resetOnboardingSession());
 
       return response;
     } catch (error) {
