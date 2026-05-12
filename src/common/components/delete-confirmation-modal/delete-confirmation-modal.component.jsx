@@ -14,6 +14,8 @@ function DeleteConfirmationModal({
   subText,
   subStyling,
   confirmText,
+  confirmLoading = false,
+  confirmLoadingText = "",
   closeText,
   action,
   type,
@@ -67,7 +69,14 @@ function DeleteConfirmationModal({
             text={closeText}
             onClick={() => setOpenConfirmationPopup(false)}
           />
-          <CustomButton className="btn-danger" text={confirmText} onClick={() => action(id)} />
+          <CustomButton
+            className="btn-danger"
+            text={confirmText}
+            onClick={() => action(id)}
+            disabled={confirmLoading}
+            loading={confirmLoading}
+            loadingText={confirmLoadingText}
+          />
         </div>
       </div>
     </Dialog>
@@ -88,6 +97,8 @@ DeleteConfirmationModal.propTypes = {
   subText: PropTypes.string,
   subStyling: PropTypes.string,
   confirmText: PropTypes.string.isRequired,
+  confirmLoading: PropTypes.bool,
+  confirmLoadingText: PropTypes.string,
   closeText: PropTypes.string.isRequired,
   action: PropTypes.func.isRequired,
   type: PropTypes.string.isRequired,

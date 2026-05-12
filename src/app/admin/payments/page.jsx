@@ -6,6 +6,6 @@ import Payments from "@/components/admin/payments/payments.component";
 
 export default function Page() {
   return (
-    <Auth component={<Payments />} type={AUTH.PRIVATE} />
+    <Auth component={<Payments />} type={AUTH.SUPER_ADMIN} />
   );
 }

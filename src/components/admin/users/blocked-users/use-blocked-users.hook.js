@@ -6,19 +6,12 @@ import {
 } from "@/common/constants/options.constant";
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { formatDate } from "@/common/utils/date.utils";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
 import { ShieldOff, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-const extractSelectValue = (optionOrPrimitive) => {
-  if (optionOrPrimitive == null) return null;
-  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
-    return optionOrPrimitive.value;
-  }
-  return optionOrPrimitive;
-};
 
 const ADMIN_LIST_LIMIT = 100;
 
@@ -207,7 +200,7 @@ function useBlockedUsers() {
   }, []);
 
   const handleSortChange = (fieldOrOption) => {
-    const field = extractSelectValue(fieldOrOption);
+    const field = extractSimpleSelectValue(fieldOrOption);
     if (field == null || field === "") return;
     if (sortBy === field) {
       setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
@@ -218,7 +211,7 @@ function useBlockedUsers() {
   };
 
   const handleRoleFilterChange = (option) => {
-    const v = extractSelectValue(option);
+    const v = extractSimpleSelectValue(option);
     if (v === "ALL" || v == null) {
       setRoleFilter(null);
     } else {

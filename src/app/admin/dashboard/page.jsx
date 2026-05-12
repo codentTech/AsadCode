@@ -5,5 +5,5 @@ import AUTH from "@/common/constants/auth.constant";
 import AdminDashboard from "@/components/admin/dashboard/dashboard.component";
 
 export default function Page() {
-  return <Auth component={<AdminDashboard />} type={AUTH.PRIVATE} />;
+  return <Auth component={<AdminDashboard />} type={AUTH.SUPER_ADMIN} />;
 }

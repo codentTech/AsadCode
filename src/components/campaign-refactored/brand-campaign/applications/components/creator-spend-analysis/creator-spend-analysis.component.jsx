@@ -176,7 +176,7 @@ const CreatorSpendAnalysis = ({
                   />
                 </div>
               ) : (
-                <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-3">
+                <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
                   {individualCollaborations.map((invitation) => {
                     const mapped = mapCreatorForCard(invitation);
                     return (
@@ -196,7 +196,7 @@ const CreatorSpendAnalysis = ({
                 </div>
               )
             ) : Array.isArray(appliedCreatorsData?.data) && appliedCreatorsData.data.length > 0 ? (
-              <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-3">
+              <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
                 {appliedCreatorsData.data.map((creator) => {
                   const mapped = mapCreatorForCard(creator);
                   return (
