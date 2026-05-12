@@ -9,7 +9,7 @@ import {
   selectCreatorSocialAccounts,
   selectCreatorMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
+import { KNOWN_PLATFORMS, PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
 
 export default function useCreatorPreview(previewCreator) {
   const dispatch = useDispatch();
@@ -30,8 +30,9 @@ export default function useCreatorPreview(previewCreator) {
 
   // Derive connected platform names from social accounts
   const connectedPlatforms = useMemo(() => {
-    if (!Array.isArray(socialAccounts.data)) return [];
-    return socialAccounts.data.map((a) => String(a.platform).toLowerCase());
+    const accounts = socialAccounts.data;
+    if (!Array.isArray(accounts)) return [];
+    return accounts.filter((a) => a.is_active).map((a) => String(a.platform).toLowerCase());
   }, [socialAccounts.data]);
 
   // Auto-select default platform once accounts are loaded
@@ -50,12 +51,25 @@ export default function useCreatorPreview(previewCreator) {
   }, [previewCreator?.id, selectedPlatform, dispatch]);
 
   const platformData = useMemo(() => {
-    if (socialAccounts.isLoading || !socialAccounts.data) {
-      return [
-        { name: "Instagram", key: "instagram", followers: 0, loading: true },
-        { name: "YouTube", key: "youtube", followers: 0, loading: true },
-        { name: "TikTok", key: "tiktok", followers: 0, loading: true },
-      ];
+    const accounts = socialAccounts.data;
+    const accountMap = {};
+    if (Array.isArray(accounts)) {
+      accounts
+        .filter((a) => a.is_active)
+        .forEach((a) => {
+          const key = String(a.platform).toLowerCase();
+          accountMap[key] = {
+            username: a.username || a.profile_data?.username || null,
+            followers: Number(
+              a.follower_count ??
+                a.profile_data?.follower_count ??
+                a.profile_data?.subscriber_count ??
+                0
+            ),
+            isVerified: a.is_verified,
+            profileUrl: a.profile_url,
+          };
+        });
     }
 
     const LABEL = {
@@ -66,19 +80,17 @@ export default function useCreatorPreview(previewCreator) {
       facebook: "Facebook",
     };
 
-    return socialAccounts.data.map((account) => {
-      const key = String(account.platform).toLowerCase();
-      return {
-        key,
-        name: LABEL[key] || account.platform,
-        followers: Number(
-          account.follower_count ?? account.followers ?? account.subscriber_count ?? 0
-        ),
-        username: account.username,
-        isVerified: account.is_verified,
-        profileUrl: account.profile_url,
-      };
-    });
+    const loading = socialAccounts.isLoading && !Array.isArray(accounts);
+
+    return KNOWN_PLATFORMS.map((key) => ({
+      key,
+      name: LABEL[key] || key,
+      followers: accountMap[key]?.followers ?? 0,
+      username: accountMap[key]?.username ?? null,
+      isVerified: accountMap[key]?.isVerified ?? false,
+      profileUrl: accountMap[key]?.profileUrl ?? null,
+      loading,
+    }));
   }, [socialAccounts.data, socialAccounts.isLoading]);
 
   const metricsData = useMemo(() => {
