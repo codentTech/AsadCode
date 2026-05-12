@@ -3,13 +3,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { formatUserLabel } from "@/common/utils/user-display.util";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import useImpersonationBanner from "./use-impersonation-banner.hook";
 
 const ImpersonationBanner = () => {
   const {
     cardRef,
     currentUser,
-    adminUser,
     isImpersonating,
     isExiting,
     isCollapsed,
@@ -21,6 +22,11 @@ const ImpersonationBanner = () => {
     handleDragStart,
   } = useImpersonationBanner();
 
+  const [portalTarget, setPortalTarget] = useState(null);
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
   if (!isImpersonating) {
     return null;
   }
@@ -30,14 +36,19 @@ const ImpersonationBanner = () => {
   const containerClass = isCustomPosition
     ? "fixed z-[80] w-[min(92vw,22rem)] rounded-xl border border-amber-600 bg-amber-500 p-2.5 shadow-2xl"
     : "fixed bottom-[6.25rem] left-1/2 z-[80] w-[min(92vw,22rem)] -translate-x-1/2 rounded-xl border border-amber-600 bg-amber-500 p-2.5 shadow-2xl md:bottom-6";
-  const containerStyle = isCustomPosition
-    ? { left: `${position.x}px`, top: `${position.y}px` }
-    : undefined;
+  const containerStyle =
+    isCustomPosition && position
+      ? {
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          transform: "none",
+        }
+      : undefined;
 
-  return (
+  const banner = (
     <div
       ref={cardRef}
-      className={`${containerClass} ${isDragging ? "cursor-grabbing" : "cursor-grab"} animate-in fade-in-0 duration-300`}
+      className={`${containerClass} ${isDragging ? "cursor-grabbing" : "cursor-grab"} touch-none overscroll-y-contain`}
       style={containerStyle}
       onPointerDown={handleDragStart}
     >
@@ -84,6 +95,12 @@ const ImpersonationBanner = () => {
       )}
     </div>
   );
+
+  if (portalTarget) {
+    return createPortal(banner, portalTarget);
+  }
+
+  return banner;
 };
 
 export default ImpersonationBanner;

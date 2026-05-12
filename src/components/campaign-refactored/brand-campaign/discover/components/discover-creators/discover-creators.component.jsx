@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import InvitationModal from "@/components/campaign-refactored/shared/invitation-modal/invitation-modal.component";
 import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
 import FilterModal from "./components/filter-modal/filter-modal.component";
@@ -64,12 +65,17 @@ function DiscoverCreators({
     handleLoadMore,
   } = useDiscoverCreators();
 
+  const discoverScrollRef = useRef(null);
+
   const handleBackClick = () => {
     handleBackToDiscover(setSelectedShortlist);
   };
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 p-2 sm:p-4">
+    <div
+      ref={discoverScrollRef}
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 p-2 sm:p-4"
+    >
       {selectedShortlist && (
         <ShortlistView
           selectedShortlist={selectedShortlist}
@@ -96,6 +102,7 @@ function DiscoverCreators({
 
       {!selectedShortlist && !selectedCategory && (
         <DiscoverView
+          scrollContainerRef={discoverScrollRef}
           isDiscoverInitialLoading={isDiscoverInitialLoading}
           isDiscoverRefetching={isDiscoverRefetching}
           searchKeyword={searchKeyword}

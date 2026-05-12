@@ -1,13 +1,15 @@
 import { Loader2 } from "lucide-react";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import PageHeader from "../page-header/page-header.component";
 import ActiveFilters from "../active-filters/active-filters.component";
 import CreatorGrid from "../creator-grid/creator-grid.component";
 import NicheCategory from "../niche-category/niche-category.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import DiscoverLoadMoreBlock from "./discover-load-more-block.component";
+import useDiscoverView from "./use-discover-view.hook";
 
 const DiscoverView = ({
+  scrollContainerRef,
   isDiscoverInitialLoading = false,
   isDiscoverRefetching = false,
   searchKeyword,
@@ -44,37 +46,29 @@ const DiscoverView = ({
   onInviteClick,
   onLoadMore,
 }) => {
-  const shownCreatorsCount = creators.length;
-  const totalCount = totalCreatorsCount || shownCreatorsCount;
-  const progressValue = totalCount > 0 ? Math.min((shownCreatorsCount / totalCount) * 100, 100) : 0;
+  const { loadMoreAnchorRef, showLoadMoreBar, shownCreatorsCount, totalCount, progressValue } =
+    useDiscoverView({
+      hasMoreCreators,
+      scrollContainerRef,
+      creators,
+      nicheCategories,
+      totalCreatorsCount,
+      isDiscoverInitialLoading,
+    });
 
-  const loadMoreSection = hasMoreCreators ? (
-    <div className="sticky bottom-2 z-[5] rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">
-            Showing {shownCreatorsCount} of {totalCount} creators
-          </p>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600 sm:text-xs">
-            {Math.round(progressValue)}%
-          </span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressValue}%` }}
-            aria-hidden
-          />
-        </div>
-        <CustomButton
-          text="Load More"
-          onClick={onLoadMore}
-          loading={isLoadingMore}
-          disabled={isDiscoverRefetching}
-          className="btn-primary w-full sm:w-auto sm:min-w-[132px] sm:self-end"
-        />
-      </div>
-    </div>
+  const loadMoreEndSentinel = (
+    <div ref={loadMoreAnchorRef} className="h-px w-full shrink-0 scroll-mt-4" aria-hidden />
+  );
+
+  const loadMoreBlock = showLoadMoreBar ? (
+    <DiscoverLoadMoreBlock
+      shownCreatorsCount={shownCreatorsCount}
+      totalCount={totalCount}
+      progressValue={progressValue}
+      isLoadingMore={isLoadingMore}
+      isDiscoverRefetching={isDiscoverRefetching}
+      onLoadMore={onLoadMore}
+    />
   ) : null;
 
   return (
@@ -139,7 +133,8 @@ const DiscoverView = ({
                 onRemoveFromShortlist={onRemoveFromShortlist}
                 onInviteClick={onInviteClick}
               />
-              {loadMoreSection}
+              {loadMoreEndSentinel}
+              {loadMoreBlock}
             </div>
           )}
         </div>
@@ -180,7 +175,8 @@ const DiscoverView = ({
                   onInviteClick={onInviteClick}
                 />
               ))}
-              {loadMoreSection}
+              {loadMoreEndSentinel}
+              {loadMoreBlock}
             </div>
           )}
         </div>
