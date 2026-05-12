@@ -1,5 +1,15 @@
 import { PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
 
+export function extractSimpleSelectValue(optionOrPrimitive, whenNull = null) {
+  if (optionOrPrimitive == null) {
+    return whenNull;
+  }
+  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
+    return optionOrPrimitive.value;
+  }
+  return optionOrPrimitive;
+}
+
 export function delay(time) {
   return new Promise((resolve) => {
     setTimeout(() => {

@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import CustomDataTable from "@/common/components/custom-data-table/custom-data-table.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
@@ -7,7 +8,9 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import SearchIcon from "@/common/icons/search-icon";
 import DashboardLayout from "@/common/layouts/dashboard-layout";
 import {
+  ADMIN_USERS_ONBOARDING_FILTER_OPTIONS,
   ADMIN_USERS_ROLE_FILTER_OPTIONS,
+  ADMIN_USERS_STATUS_FILTER_OPTIONS,
   ADMIN_USERS_SORT_OPTIONS,
 } from "@/common/constants/options.constant";
 import { ArrowUpDown, Filter } from "lucide-react";
@@ -29,12 +32,21 @@ const Users = () => {
     setOpenDeleteModal,
     userToDelete,
     handleConfirmDelete,
+    openImpersonateModal,
+    setOpenImpersonateModal,
+    userToImpersonate,
+    isImpersonatingUser,
+    handleConfirmImpersonate,
     roleFilter,
+    statusFilter,
+    onboardingFilter,
     sortBy,
     sortOrder,
     showFilters,
     handleSortChange,
     handleRoleFilterChange,
+    handleStatusFilterChange,
+    handleOnboardingFilterChange,
     toggleFilters,
     handleClearFilters,
     hasActiveFilters,
@@ -68,7 +80,7 @@ const Users = () => {
                 name="search"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search by name, email..."
+                placeholder="Search by name, email"
                 startIcon={<SearchIcon />}
                 className="!h-[36px]"
               />
@@ -98,31 +110,51 @@ const Users = () => {
 
           {showFilters && (
             <div className="pt-4 border-t border-gray-200">
-              <div className="flex flex-wrap items-center gap-6">
-                <div className="flex items-center gap-2 w-full max-w-[300px]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5 xl:items-end">
+                <div className="w-full">
                   <SimpleSelect
                     label="Role"
                     value={roleFilter || "ALL"}
                     onChange={(value) => handleRoleFilterChange(value)}
                     options={ADMIN_USERS_ROLE_FILTER_OPTIONS}
-                    className="w-44"
+                    className="w-full"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 w-full max-w-[300px]">
+                <div className="w-full">
+                  <SimpleSelect
+                    label="Status"
+                    value={statusFilter || "ALL"}
+                    onChange={(value) => handleStatusFilterChange(value)}
+                    options={ADMIN_USERS_STATUS_FILTER_OPTIONS}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <SimpleSelect
+                    label="Onboarding"
+                    value={onboardingFilter || "ALL"}
+                    onChange={(value) => handleOnboardingFilterChange(value)}
+                    options={ADMIN_USERS_ONBOARDING_FILTER_OPTIONS}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="w-full">
                   <SimpleSelect
                     label="Sort by"
                     value={sortBy}
                     onChange={(value) => handleSortChange(value)}
                     options={ADMIN_USERS_SORT_OPTIONS}
-                    className="w-44"
+                    className="w-full"
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleSortChange(sortBy)}
-                  className="mt-6 flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                  className="flex h-10 items-center justify-center space-x-1 rounded-lg px-3 text-sm text-white transition-colors bg-primary hover:bg-primary/90 sm:mt-6 xl:mt-0"
                   title={`Sort ${sortOrder === "ASC" ? "Descending" : "Ascending"}`}
                 >
                   <ArrowUpDown size={16} />
@@ -168,6 +200,20 @@ const Users = () => {
         closeText="Cancel"
         action={handleConfirmDelete}
         type="admin-delete-user"
+      />
+      <ConfirmationModal
+        show={openImpersonateModal}
+        close={() => setOpenImpersonateModal(false)}
+        onConfirm={handleConfirmImpersonate}
+        onCancel={() => setOpenImpersonateModal(false)}
+        message="Impersonate this account?"
+        messageStyling="text-center text-base font-semibold text-gray-900 sm:text-lg"
+        content={`You will operate the platform as ${userToImpersonate?.email || "this user"}. You can exit impersonation at any time.`}
+        contentStyling="mt-2 max-w-sm text-center text-xs text-gray-600 sm:text-sm"
+        cancelText="Cancel"
+        confirmText="Impersonate"
+        confirmLoading={isImpersonatingUser}
+        confirmLoadingText="Impersonating"
       />
     </DashboardLayout>
   );

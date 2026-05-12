@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import AUTH from "@/common/constants/auth.constant";
 import AuthMainRoutes from "./auth-main-routes.component";
 import Private from "./private.component";
+import SuperAdmin from "./super-admin.component";
 import NAVBAR_TITLE from "@/common/constants/navbar-title.constant";
 
 /**
@@ -17,6 +18,8 @@ export default function Auth({ component, type = AUTH.PUBLIC, title = NAVBAR_TIT
       return component;
     case AUTH.PRIVATE:
       return <Private component={component} title={title} />;
+    case AUTH.SUPER_ADMIN:
+      return <SuperAdmin component={component} title={title} />;
     case AUTH.AUTH_MAIN_ROUTES:
       return <AuthMainRoutes component={component} />;
   }

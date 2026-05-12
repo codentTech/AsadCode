@@ -119,6 +119,9 @@
   .btn-primary {
     @apply flex h-9 min-h-9 sm:h-10 sm:min-h-10 min-w-0 items-center justify-center rounded-md bg-primary px-3 text-xs hover:bg-secondary-blue focus:bg-secondary-dark-blue disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white font-dm sm:min-w-[106px];
   }
+  .btn-disabled {
+    @apply flex h-9 min-h-9 sm:h-10 sm:min-h-10 min-w-0 items-center justify-center rounded-md bg-text-ultra-light-gray px-3 text-xs text-white cursor-not-allowed font-dm sm:min-w-[106px];
+  }
   .btn-danger {
     @apply flex h-9 min-h-9 sm:h-10 sm:min-h-10 min-w-0 items-center justify-center rounded-md bg-danger px-3 text-xs hover:bg-red-700 focus:bg-red-700 disabled:cursor-not-allowed disabled:bg-text-ultra-light-gray disabled:text-white sm:min-w-[106px];
   }

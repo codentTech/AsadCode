@@ -67,3 +67,44 @@ export function buildPlatformsFromPhylloAccounts(accounts) {
   }
   return out;
 }
+
+export function normalizeActivePhylloPlatforms(accounts) {
+  const list = Array.isArray(accounts) ? accounts : [];
+  const platformStats = {};
+
+  for (const acc of list) {
+    if (!acc?.is_active) continue;
+    const platform = String(acc.platform || "").toLowerCase();
+    if (!platform) continue;
+
+    const pd = acc.profile_data || {};
+    const followers =
+      Number(acc.follower_count) ||
+      Number(pd.follower_count) ||
+      Number(pd.subscriber_count) ||
+      Number(pd.followers_count) ||
+      Number(pd.followers) ||
+      Number(pd.reputation?.follower_count) ||
+      Number(pd.reputation?.subscriber_count) ||
+      0;
+    const username = acc.username || pd.username || pd.handle || pd.platform_username || null;
+    const profileUrl = pd.profile_url || pd.url || null;
+
+    const existing = platformStats[platform];
+    if (!existing || followers >= Number(existing.followers || 0)) {
+      platformStats[platform] = {
+        followers,
+        username,
+        profile_url: profileUrl,
+      };
+    }
+  }
+
+  const platforms = Object.keys(platformStats);
+  const totalFollowers = Object.values(platformStats).reduce(
+    (sum, stat) => sum + Number(stat?.followers || 0),
+    0
+  );
+
+  return { platforms, platformStats, totalFollowers };
+}

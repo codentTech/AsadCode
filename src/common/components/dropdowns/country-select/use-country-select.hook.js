@@ -1,11 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import COUNTRIES from "@/common/constants/countries.constant";
-import { autocompletePlaces, fetchPlaceDetails } from "@/common/utils/places-api-new";
-
-const IP_LOOKUP_ENDPOINT = "https://ip-api.com/json/?fields=status,countryCode";
-const DEFAULT_RESULTS_LIMIT = 12;
+import {
+  DEFAULT_RESULTS_LIMIT,
+  IP_LOOKUP_ENDPOINT,
+} from "@/common/constants/genaric.constant";
+import {
+  autocompletePlacesThunk,
+  fetchPlaceDetailsThunk,
+} from "@/provider/features/places/places.slice";
 
 const formatCountryOption = (country) => ({
   label: country.label,
@@ -22,6 +27,7 @@ export default function useCountrySelect({
   enabled = true,
   hasInitialValue = false,
 }) {
+  const dispatch = useDispatch();
   const [options, setOptions] = useState(
     COUNTRIES.slice(0, DEFAULT_RESULTS_LIMIT).map(formatCountryOption)
   );
@@ -30,6 +36,7 @@ export default function useCountrySelect({
 
   const hasAttemptedDetection = useRef(false);
   const hasManualOverride = useRef(false);
+  const searchSeqRef = useRef(0);
   const fallbackCountries = useMemo(() => COUNTRIES.map(formatCountryOption), []);
 
   const fallbackSearch = useCallback(
@@ -66,50 +73,59 @@ export default function useCountrySelect({
         return;
       }
 
-      // Always present an immediate result set so the list never feels "stuck"
       hydrateFallback();
 
+      const seq = ++searchSeqRef.current;
       setIsSearching(true);
 
-      try {
-        const suggestions = await autocompletePlaces({
+      const action = await dispatch(
+        autocompletePlacesThunk({
           input: query,
           includedPrimaryTypes: ["country"],
           languageCode: process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en",
-        });
+        })
+      );
 
-        const normalized = suggestions
-          .map((suggestion) => {
-            const prediction = suggestion?.placePrediction;
-            if (!prediction?.placeId) return null;
-
-            const mainText =
-              prediction?.structuredFormat?.mainText?.text || prediction?.text?.text || "";
-            const secondaryText =
-              prediction?.structuredFormat?.secondaryText?.text ||
-              prediction?.text?.secondaryText ||
-              "";
-            const label = secondaryText ? `${mainText}, ${secondaryText}` : mainText;
-
-            return {
-              label: label || mainText || secondaryText || "",
-              value: prediction.placeId,
-              placeId: prediction.placeId,
-              countryName: mainText || secondaryText || "",
-            };
-          })
-          .filter(Boolean);
-
-        if (normalized.length) {
-          setOptions(normalized);
-        }
-      } catch (error) {
-        hydrateFallback();
-      } finally {
+      if (seq !== searchSeqRef.current) {
         setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(false);
+
+      if (!autocompletePlacesThunk.fulfilled.match(action)) {
+        hydrateFallback();
+        return;
+      }
+
+      const suggestions = action.payload;
+      const normalized = suggestions
+        .map((suggestion) => {
+          const prediction = suggestion?.placePrediction;
+          if (!prediction?.placeId) return null;
+
+          const mainText =
+            prediction?.structuredFormat?.mainText?.text || prediction?.text?.text || "";
+          const secondaryText =
+            prediction?.structuredFormat?.secondaryText?.text ||
+            prediction?.text?.secondaryText ||
+            "";
+          const label = secondaryText ? `${mainText}, ${secondaryText}` : mainText;
+
+          return {
+            label: label || mainText || secondaryText || "",
+            value: prediction.placeId,
+            placeId: prediction.placeId,
+            countryName: mainText || secondaryText || "",
+          };
+        })
+        .filter(Boolean);
+
+      if (normalized.length) {
+        setOptions(normalized);
       }
     },
-    [autocompletePlaces, fallbackCountries, fallbackSearch]
+    [dispatch, fallbackCountries, fallbackSearch]
   );
 
   const resolveCountryDetails = useCallback(
@@ -138,96 +154,95 @@ export default function useCountrySelect({
         };
       }
 
-      try {
-        const place = await fetchPlaceDetails(option.placeId);
+      const languageCode = process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en";
+      const action = await dispatch(
+        fetchPlaceDetailsThunk({ placeId: option.placeId, languageCode })
+      );
 
-        if (!place) {
-          return {
-            countryName: option.countryName || option.label,
-            countryCode: "",
-            phoneCode: "",
-          };
-        }
-
-        const countryComponent = place.addressComponents?.find((component) =>
-          component.types?.includes("country")
-        );
-        const countryCode = countryComponent?.shortText || "";
-        const countryMeta = COUNTRIES.find((country) => country.code === countryCode);
-
-        return {
-          countryName:
-            countryMeta?.label ||
-            countryComponent?.longText ||
-            place.displayName?.text ||
-            option.countryName ||
-            option.label,
-          countryCode,
-          phoneCode: countryMeta?.phone || "",
-          location: place.location
-            ? {
-                lat: place.location.latitude,
-                lng: place.location.longitude,
-              }
-            : null,
-          placeId: option.placeId,
-        };
-      } catch (error) {
+      if (!fetchPlaceDetailsThunk.fulfilled.match(action)) {
         return {
           countryName: option.countryName || option.label,
           countryCode: "",
           phoneCode: "",
         };
       }
+
+      const place = action.payload;
+
+      if (!place) {
+        return {
+          countryName: option.countryName || option.label,
+          countryCode: "",
+          phoneCode: "",
+        };
+      }
+
+      const countryComponent = place.addressComponents?.find((component) =>
+        component.types?.includes("country")
+      );
+      const countryCode = countryComponent?.shortText || "";
+      const countryMeta = COUNTRIES.find((country) => country.code === countryCode);
+
+      return {
+        countryName:
+          countryMeta?.label ||
+          countryComponent?.longText ||
+          place.displayName?.text ||
+          option.countryName ||
+          option.label,
+        countryCode,
+        phoneCode: countryMeta?.phone || "",
+        location: place.location
+          ? {
+              lat: place.location.latitude,
+              lng: place.location.longitude,
+            }
+          : null,
+        placeId: option.placeId,
+      };
     },
-    [fallbackCountries]
+    [dispatch, fallbackCountries]
   );
 
   const detectCountry = useCallback(async () => {
     if (!enabled || hasManualOverride.current) return;
     setIsDetecting(true);
 
-    try {
-      const fetchWithTimeout = async (url, timeoutMs = 2000) => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-          const response = await fetch(url, { cache: "no-store", signal: controller.signal });
-          if (!response.ok) return null;
-          const data = await response.json();
-          return data;
-        } catch (err) {
-          return null;
-        } finally {
-          clearTimeout(timeout);
-        }
-      };
+    const fetchWithTimeout = async (url, timeoutMs = 2000) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(url, { cache: "no-store", signal: controller.signal })
+        .finally(() => clearTimeout(timeout))
+        .catch(() => null);
+      if (!response?.ok) return null;
+      return response.json().catch(() => null);
+    };
 
-      let detectedCode = null;
+    let detectedCode = null;
 
-      const countryIsData = await fetchWithTimeout("https://api.country.is/");
-      if (countryIsData?.country) {
-        detectedCode = String(countryIsData.country).toUpperCase();
-      }
-
-      if (!detectedCode) {
-        const ipApiData = await fetchWithTimeout(IP_LOOKUP_ENDPOINT);
-        if (ipApiData?.status === "success" && ipApiData.countryCode) {
-          detectedCode = String(ipApiData.countryCode).toUpperCase();
-        }
-      }
-
-      if (!detectedCode || hasManualOverride.current) return;
-
-      const matchedOption = fallbackCountries.find((option) => option.countryCode === detectedCode);
-      if (matchedOption) {
-        onAutoDetect?.(matchedOption);
-      }
-    } catch (error) {
-      // Silent failover – IP detection is best-effort only
-    } finally {
-      setIsDetecting(false);
+    const countryIsData = await fetchWithTimeout("https://api.country.is/");
+    if (countryIsData?.country) {
+      detectedCode = String(countryIsData.country).toUpperCase();
     }
+
+    if (!detectedCode) {
+      const ipApiData = await fetchWithTimeout(IP_LOOKUP_ENDPOINT);
+      if (ipApiData?.status === "success" && ipApiData.countryCode) {
+        detectedCode = String(ipApiData.countryCode).toUpperCase();
+      }
+    }
+
+    if (!detectedCode || hasManualOverride.current) {
+      setIsDetecting(false);
+      return;
+    }
+
+    const matchedOption = fallbackCountries.find((option) => option.countryCode === detectedCode);
+    if (matchedOption) {
+      onAutoDetect?.(matchedOption);
+    }
+
+    setIsDetecting(false);
   }, [enabled, fallbackCountries, onAutoDetect]);
 
   useEffect(() => {
