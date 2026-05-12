@@ -5,18 +5,11 @@ import {
   ADMIN_WAITLIST_DEFAULT_SORT_ORDER,
 } from "@/common/constants/options.constant";
 import { formatDate } from "@/common/utils/date.utils";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import { fetchAllUserWaitinglist } from "@/provider/features/dashboard/dashboard.slice";
 import { Eye, Mail, Trash2, UserCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-const extractSelectValue = (optionOrPrimitive) => {
-  if (optionOrPrimitive == null) return null;
-  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
-    return optionOrPrimitive.value;
-  }
-  return optionOrPrimitive;
-};
 
 function useWaitingList() {
   const dispatch = useDispatch();
@@ -149,7 +142,7 @@ function useWaitingList() {
   }, []);
 
   const handleSortChange = (fieldOrOption) => {
-    const field = extractSelectValue(fieldOrOption);
+    const field = extractSimpleSelectValue(fieldOrOption);
     if (field == null || field === "") return;
     if (sortBy === field) {
       setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));

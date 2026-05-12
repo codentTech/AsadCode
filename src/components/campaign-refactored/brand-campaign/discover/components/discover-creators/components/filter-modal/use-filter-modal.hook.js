@@ -34,7 +34,7 @@ export default function useFilterModal({ filters, onFiltersChange }) {
     () =>
       selectedCountryDetails.length > 0
         ? selectedCountryDetails.map((country) => String(country.code).toUpperCase())
-        : COUNTRIES.map((country) => String(country.code).toUpperCase()),
+        : [],
     [selectedCountryDetails]
   );
 
@@ -71,9 +71,20 @@ export default function useFilterModal({ filters, onFiltersChange }) {
 
   const handleCountryRemove = (countryName) => {
     const updated = selectedCountries.filter((c) => c !== countryName);
+    const nextCountryCode =
+      updated.length === 0
+        ? ""
+        : (() => {
+            const firstName = updated[0];
+            const meta = COUNTRIES.find(
+              (c) => c.label === firstName || c.code === firstName
+            );
+            return meta?.code ? String(meta.code).toUpperCase() : "";
+          })();
     onFiltersChange({
       ...filters,
       countries: updated,
+      country_code: nextCountryCode,
       city: "",
       city_country_code: "",
     });

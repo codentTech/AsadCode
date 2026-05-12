@@ -222,7 +222,18 @@ export const ADMIN_USERS_ROLE_FILTER_OPTIONS = [
   { value: "ALL", label: "All roles" },
   { value: "CREATOR", label: "Creator" },
   { value: "BRAND", label: "Brand" },
-  { value: "ADMIN", label: "Admin" },
+];
+
+export const ADMIN_USERS_STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "All statuses" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "BLOCKED", label: "Blocked" },
+];
+
+export const ADMIN_USERS_ONBOARDING_FILTER_OPTIONS = [
+  { value: "ALL", label: "All onboarding" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "IN_PROGRESS", label: "In Progress" },
 ];
 
 export const ADMIN_USERS_SORT_OPTIONS = [

@@ -23,7 +23,9 @@ const initialState = {
 const onboardingSlice = createSlice({
   name: "onboarding",
   initialState,
-  reducers: {},
+  reducers: {
+    resetOnboardingSession: () => ({ ...initialState }),
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getOnboardingStatus.pending, (state) => {
@@ -42,5 +44,7 @@ const onboardingSlice = createSlice({
       });
   },
 });
+
+export const { resetOnboardingSession } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

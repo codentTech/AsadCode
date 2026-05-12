@@ -211,8 +211,9 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
               />
               {isPaymentSettlementLockActive && formattedPayoutAvailableAt ? (
                 <p className="mt-2 text-[10px] leading-snug text-gray-600 sm:text-xs">
-                  Payment marking is available from {formattedPayoutAvailableAt}. This allows time
-                  for the payment to settle and prevents any payout issues.
+                  Marking complete and receiving your payment will be available from{" "}
+                  {formattedPayoutAvailableAt}. This allows time for the payment to settle and
+                  prevents any payout issues.
                 </p>
               ) : null}
             </div>

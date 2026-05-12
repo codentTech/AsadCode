@@ -39,6 +39,38 @@ export const isOnboardingCompleted = (user) => {
   return user?.onboarding_step == ONBOARDING_STEPS.COMPLETED;
 };
 
+export const getOnboardingStepTitle = (step) => {
+  const s = Number(step);
+  const titles = {
+    [ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION]: "Account type",
+    [ONBOARDING_STEPS.REGISTRATION]: "Registration",
+    [ONBOARDING_STEPS.EMAIL_VERIFICATION]: "Email verification",
+    [ONBOARDING_STEPS.PROFILE_SETUP]: "Profile setup",
+    [ONBOARDING_STEPS.CAMPAIGN_PREFERENCES]: "Campaign preferences",
+    [ONBOARDING_STEPS.IDEAL_CREATOR_SETUP]: "Ideal creator",
+    [ONBOARDING_STEPS.COMPLETED]: "Completed",
+  };
+  return titles[s] ?? "—";
+};
+
+export const getAdminUserOnboardingSummaryText = (row) => {
+  if (!row) {
+    return "—";
+  }
+  if (isOnboardingCompleted(row)) {
+    return "Completed";
+  }
+  const title = getOnboardingStepTitle(row.onboarding_step);
+  return `In progress — ${title}`;
+};
+
+export const getImpersonationLandingPath = (user) => {
+  if (!user) {
+    return "/onboarding";
+  }
+  return isOnboardingCompleted(user) ? "/campaign" : "/onboarding";
+};
+
 export const onboardingSteps = Object.fromEntries(
   Object.entries(ONBOARDING_STEPS).map(([k, v]) => [v, k])
 );
@@ -51,6 +83,8 @@ export const removeUser = () => {
     localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("admin_user");
+    localStorage.removeItem("admin_token");
   }
 };
 
@@ -99,7 +133,14 @@ export const is2FAEnabled = (data) => {
 export const isSuperAdmin = (data) => {
   if ((typeof window === "object" && window?.localStorage?.getItem("user")) || data) {
     const user = data ?? getUser();
-    return user.role === ROLES.SUPER_ADMIN.toString();
+    return user?.role === ROLES.ADMIN;
+  }
+  return false;
+};
+
+export const isImpersonating = () => {
+  if (typeof window === "object" && window?.localStorage) {
+    return Boolean(localStorage.getItem("admin_token"));
   }
   return false;
 };
@@ -112,4 +153,6 @@ export const getEmailForURL = (email) => {
 
 export const logout = () => {
   localStorage.clear();
+  localStorage.removeItem("admin_user");
+  localStorage.removeItem("admin_token");
 };

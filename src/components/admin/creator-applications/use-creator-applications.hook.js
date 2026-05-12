@@ -5,6 +5,7 @@ import {
   CREATOR_APPLICATION_DEFAULT_SORT_ORDER,
 } from "@/common/constants/options.constant";
 import { formatDate } from "@/common/utils/date.utils";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import {
   getAllCreatorApplications,
   approveApplicationAndInvite,
@@ -129,14 +130,6 @@ function getCreatorApplicationRowActions(row) {
   return actions;
 }
 
-const extractSelectValue = (optionOrPrimitive) => {
-  if (optionOrPrimitive == null) return null;
-  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
-    return optionOrPrimitive.value;
-  }
-  return optionOrPrimitive;
-};
-
 function useCreatorApplications() {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
@@ -227,7 +220,7 @@ function useCreatorApplications() {
   }, []);
 
   const handleSortChange = (fieldOrOption) => {
-    const field = extractSelectValue(fieldOrOption);
+    const field = extractSimpleSelectValue(fieldOrOption);
     if (field == null || field === "") return;
     if (sortBy === field) {
       setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
@@ -238,7 +231,7 @@ function useCreatorApplications() {
   };
 
   const handleStatusFilterChange = (option) => {
-    const v = extractSelectValue(option);
+    const v = extractSimpleSelectValue(option);
     if (v === "ALL" || v == null) {
       setStatusFilter(null);
     } else {

@@ -3,42 +3,41 @@
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import Navbar from "@/common/components/dashboard/navbar/navbar.component";
-import NAVBAR_TITLE from "@/common/constants/navbar-title.constant";
-import { checkExpiryDateOfToken } from "@/common/utils/access-token.util";
-import { isSuperAdmin, removeUser } from "@/common/utils/users.util";
+import { isLoginVerified } from "@/common/utils/access-token.util";
+import { isSuperAdmin } from "@/common/utils/users.util";
 
 /**
  * Return the component if access token is verified and return to home page if its not
  * @param {component} props take a component
  * @returns component | redirect to home page
  */
-export default function SuperAdmin({ component, title = NAVBAR_TITLE.DOCUMENTS }) {
-  const [toggle, setToggle] = useState(false);
-
+export default function SuperAdmin({ component }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (checkExpiryDateOfToken() !== true) {
-      removeUser();
-      router.push("/");
-    }
-    if (!isSuperAdmin()) {
-      router.push("/dashboard");
-    }
-  }, []);
+    const checkAuth = () => {
+      if (!isLoginVerified()) {
+        router.push("/login");
+        return;
+      }
+      if (!isSuperAdmin()) {
+        router.push("/campaign");
+        return;
+      }
+      setIsAuthenticated(true);
+    };
 
-  return (
-    <div className="dashboard-main">
-      <div className="content basis-5/6 bg-secondary-gray">
-        <Navbar setToggle={setToggle} value={toggle} title={title} />
-        {component}
-      </div>
-    </div>
-  );
+    checkAuth();
+  }, [router]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return <div className="min-h-0 w-full">{component}</div>;
 }
 
 SuperAdmin.propTypes = {
   component: PropTypes.element.isRequired,
-  title: PropTypes.string,
 };

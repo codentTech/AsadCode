@@ -1,6 +1,7 @@
 "use client";
 
 import FullPageLoader from "@/common/components/loader/full-page-loader.component";
+import ImpersonationBanner from "@/common/components/impersonation-banner/impersonation-banner.component";
 import "@/common/styles/dashboard/dashboard.style.css";
 import "@/common/styles/globals.style.css";
 import "@/common/styles/home.style.scss";
@@ -60,6 +61,7 @@ function LayoutWrapper({ children }) {
   return (
     <React.Fragment>
       <SnackbarExposer />
+      <ImpersonationBanner />
       {loading ? <FullPageLoader /> : <React.Fragment>{children}</React.Fragment>}
     </React.Fragment>
   );
