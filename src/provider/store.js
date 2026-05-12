@@ -30,6 +30,7 @@ import collaborationPaymentReducer from "./features/collaboration-payment/collab
 import phylloReducer from "./features/phyllo/phyllo.slice";
 import galleryReducer from "./features/gallery/gallery.slice";
 import dashboardReducer from "./features/dashboard/dashboard.slice";
+import placesReducer from "./features/places/places.slice";
 
 const defaultAdminDashboardSummary = {
   data: null,
@@ -106,6 +107,7 @@ const rootReducer = combineReducers({
   collaborationPayment: collaborationPaymentReducer,
   phyllo: phylloReducer,
   gallery: galleryReducer,
+  places: placesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

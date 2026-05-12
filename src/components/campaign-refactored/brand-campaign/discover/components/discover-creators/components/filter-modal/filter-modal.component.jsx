@@ -72,7 +72,7 @@ const FilterModal = ({
     () =>
       selectedCountryDetails.length > 0
         ? selectedCountryDetails.map((country) => String(country.code).toUpperCase())
-        : COUNTRIES.map((country) => String(country.code).toUpperCase()),
+        : [],
     [selectedCountryDetails]
   );
 
@@ -106,9 +106,18 @@ const FilterModal = ({
 
   const handleCountryRemove = (countryName) => {
     const updated = selectedCountries.filter((c) => c !== countryName);
+    const nextCountryCode =
+      updated.length === 0
+        ? ""
+        : (() => {
+            const firstName = updated[0];
+            const meta = COUNTRIES.find((c) => c.label === firstName || c.code === firstName);
+            return meta?.code ? String(meta.code).toUpperCase() : "";
+          })();
     onFiltersChange({
       ...filters,
       countries: updated,
+      country_code: nextCountryCode,
       city: "",
       city_country_code: "",
     });
@@ -191,9 +200,12 @@ const FilterModal = ({
 
             {/* Follower Range */}
             <div>
-              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Follower Range</h4>
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Follower Range
+              </h4>
               <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
-                Applies per selected platform. Creators match if any selected platform falls in range.
+                Applies per selected platform. Creators match if any selected platform falls in
+                range.
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SimpleSelect
@@ -308,14 +320,12 @@ const FilterModal = ({
                   onNichesChange={(niches) => {
                     onFiltersChange({ ...filters, niches });
                   }}
-                  placeholder="Type to search niches..."
+                  placeholder="Type to search niches"
                   handleNicheRemove={(niche) => {
                     const updatedNiches = (filters.niches || []).filter((n) => n !== niche);
                     onFiltersChange({ ...filters, niches: updatedNiches });
                   }}
                 />
-
-          
               </div>
 
               {/* Language */}
@@ -339,7 +349,9 @@ const FilterModal = ({
           <div className="space-y-4 sm:space-y-6">
             {/* Audience Gender */}
             <div>
-              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Audience Gender</h4>
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Audience Gender
+              </h4>
               <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
                 Select the primary gender of the creator's audience
               </p>
@@ -379,7 +391,9 @@ const FilterModal = ({
 
             {/* Top Audience Location */}
             <div>
-              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">Top Audience Location</h4>
+              <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Top Audience Location
+              </h4>
               <p className="mb-3 text-[10px] text-gray-600 sm:text-xs">
                 Select the country and city where the creator's audience is primarily located
               </p>
@@ -423,7 +437,7 @@ const FilterModal = ({
                       ? audienceFilters.audienceCountries.map((country) =>
                           String(country).toUpperCase()
                         )
-                      : COUNTRIES.map((country) => String(country.code).toUpperCase())
+                      : []
                   }
                   value={
                     audienceFilters.audienceCity
@@ -452,7 +466,11 @@ const FilterModal = ({
 
       {/* Modal Actions */}
       <div className="mt-4 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
-        <CustomButton onClick={onClearAllFilters} text="Clear All" className="btn-cancel w-full sm:w-auto" />
+        <CustomButton
+          onClick={onClearAllFilters}
+          text="Clear All"
+          className="btn-cancel w-full sm:w-auto"
+        />
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
           <CustomButton onClick={onClose} text="Cancel" className="btn-cancel" />
           <CustomButton onClick={onApplyFilters} text="Apply Filters" className="btn-primary" />
