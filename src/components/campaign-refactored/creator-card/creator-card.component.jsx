@@ -55,6 +55,9 @@ const CreatorCard = ({
     onReinstateClick,
     onViewNotesClick,
   });
+  const uniquePlatforms = Array.from(
+    new Set((creator.platforms || []).map((platform) => String(platform || "").toLowerCase()))
+  ).filter(Boolean);
 
   return (
     <div
@@ -168,9 +171,9 @@ const CreatorCard = ({
               className="flex min-h-[5.5rem] items-center justify-center rounded-lg bg-gray-100 py-2"
               onClick={(e) => e.stopPropagation()}
             >
-              {creator.platforms && creator.platforms.length > 0 ? (
+              {uniquePlatforms.length > 0 ? (
                 <div className="flex justify-center">
-                  {(creator.platforms || []).map((platform, index, arr) => {
+                  {uniquePlatforms.map((platform, index, arr) => {
                     const profileUrl = getPlatformProfileUrlFor(platform);
                     const platformBlock = (
                       <div className="flex flex-col items-center px-3">

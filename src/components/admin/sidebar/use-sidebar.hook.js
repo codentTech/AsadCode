@@ -5,6 +5,7 @@ import {
   Clipboard,
   LayoutDashboard,
   Link2,
+  ScrollText,
   User2,
   UserLock,
   Users,
@@ -21,6 +22,12 @@ const adminNavItems = [
     icon: LayoutDashboard,
     isActive: true,
     href: "/admin/dashboard",
+  },
+  {
+    label: "Audit logs",
+    icon: ScrollText,
+    isActive: false,
+    href: "/admin/audit-logs",
   },
   {
     label: "Creator Applications",

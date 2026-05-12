@@ -49,6 +49,18 @@ const resetPasswordWithToken = async (payload) => {
   return response.data;
 };
 
+const impersonate = async (userId) => {
+  const { data } = await api({ "x-skip-toast": "true" }).post("/auth/impersonate", {
+    user_id: userId,
+  });
+  return data;
+};
+
+const exitImpersonation = async () => {
+  const { data } = await api({ "x-skip-toast": "true" }).post("/auth/impersonate/exit", {});
+  return data;
+};
+
 const loginAndSignUpWithOAuth = async ({ loginType, email, accessToken }) => {
   const response = await api().post("/auth/login-and-sign-up-with-oauth", {
     loginType,
@@ -80,6 +92,8 @@ const authService = {
   resendEmail,
   requestPasswordReset,
   resetPasswordWithToken,
+  impersonate,
+  exitImpersonation,
   loginAndSignUpWithOAuth,
   loginAndSignUpWithLinkedin,
 };

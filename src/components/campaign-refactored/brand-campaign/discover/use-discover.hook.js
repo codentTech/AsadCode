@@ -10,6 +10,7 @@ import {
 } from "@/provider/features/shortlist/shortlist.slice";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
 
 function useDiscover() {
   const dispatch = useDispatch();
@@ -193,24 +194,11 @@ function useDiscover() {
     const socialAccounts = user.social_accounts || [];
     const socialPlatformsFromProfile = creatorProfile.social_platforms || [];
 
-    const platformsFromAccounts = socialAccounts.map((s) => s.platform).filter(Boolean);
-    const platformStatsFromAccounts = socialAccounts.reduce((acc, s) => {
-      const pd = s.profile_data || {};
-      const followers =
-        Number(pd.follower_count) ||
-        Number(pd.subscriber_count) ||
-        Number(pd.followers) ||
-        Number(pd.followers_count) ||
-        Number(pd.reputation?.follower_count) ||
-        Number(pd.reputation?.subscriber_count) ||
-        0;
-      const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
-      const profileUrl = pd.profile_url ?? pd.url ?? null;
-      if (s.platform) {
-        acc[s.platform] = { followers, username, profile_url: profileUrl };
-      }
-      return acc;
-    }, {});
+    const {
+      platforms: platformsFromAccounts,
+      platformStats: platformStatsFromAccounts,
+      totalFollowers: activeTotalFollowers,
+    } = normalizeActivePhylloPlatforms(socialAccounts);
 
     const platformsFromProfile = socialPlatformsFromProfile
       .map((sp) => (typeof sp === "string" ? sp : sp?.platform || sp?.name))
@@ -245,7 +233,7 @@ function useDiscover() {
         "Unknown Location",
       rating: 4.5,
       reviewCount: 0,
-      followers: totalFollowers || 0,
+      followers: activeTotalFollowers || totalFollowers || 0,
       engagementRate: 3.2,
       tagline: creatorProfile.bio || "Creating authentic content that resonates with audiences",
       niches: creatorProfile.categories || [],

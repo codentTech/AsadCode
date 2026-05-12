@@ -5,6 +5,7 @@ import {
   getAdminPaymentById,
   resetGetAdminPaymentById,
 } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,14 +18,6 @@ const formatCents = (cents) => {
 const formatStatus = (value) => {
   if (!value) return "—";
   return String(value).replace(/_/g, " ");
-};
-
-const extractSelectValue = (optionOrPrimitive) => {
-  if (optionOrPrimitive == null) return null;
-  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
-    return optionOrPrimitive.value;
-  }
-  return optionOrPrimitive;
 };
 
 const columns = [
@@ -196,7 +189,7 @@ function usePayments() {
   }, []);
 
   const handleFundingFilterChange = (option) => {
-    const v = extractSelectValue(option);
+    const v = extractSimpleSelectValue(option);
     if (v === "ALL" || v == null) {
       setFundingFilter(null);
     } else {
@@ -205,7 +198,7 @@ function usePayments() {
   };
 
   const handlePayoutFilterChange = (option) => {
-    const v = extractSelectValue(option);
+    const v = extractSimpleSelectValue(option);
     if (v === "ALL" || v == null) {
       setPayoutFilter(null);
     } else {

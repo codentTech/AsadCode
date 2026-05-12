@@ -4,6 +4,7 @@ import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.sl
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
+import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
   setBrandCampaignMultiCreatorMode,
@@ -237,29 +238,19 @@ function useCreatorSpendAnalysis({
     const appliedDate = data.applied_at || data.created_at;
     const rejectedDate = data.rejected_at || data.updated_at;
 
-    const platformStatsFromAccounts = socialAccounts.reduce((acc, s) => {
-      const pd = s.profile_data || {};
-      const followers =
-        Number(pd.followers) ||
-        Number(pd.followers_count) ||
-        Number(pd.follower_count) ||
-        Number(pd.subscriber_count) ||
-        0;
-      if (s.platform) acc[s.platform] = { followers };
-      return acc;
-    }, {});
-
-    const totalFromAccounts = Object.values(platformStatsFromAccounts).reduce(
-      (sum, stat) => sum + (stat?.followers || 0),
-      0
-    );
+    const {
+      platforms: activePlatforms,
+      platformStats: platformStatsFromAccounts,
+      totalFollowers: totalFromAccounts,
+    } = normalizeActivePhylloPlatforms(socialAccounts);
 
     const platforms =
-      Object.keys(platformStatsFromAccounts).length > 0
-        ? Object.keys(platformStatsFromAccounts)
+      activePlatforms.length > 0
+        ? activePlatforms
         : (profile?.social_platforms || [])
             .map((p) => (typeof p === "object" ? p.platform : p))
-            .filter(Boolean);
+            .filter(Boolean)
+            .map((p) => String(p).toLowerCase());
 
     const platformStats =
       Object.keys(platformStatsFromAccounts).length > 0

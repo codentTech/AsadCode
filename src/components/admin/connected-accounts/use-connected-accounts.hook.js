@@ -5,6 +5,7 @@ import {
   CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER,
 } from "@/common/constants/options.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import {
   adminGetConnectedAccounts,
   adminRemoveConnectedAccount,
@@ -12,14 +13,6 @@ import {
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-const extractSelectValue = (optionOrPrimitive) => {
-  if (optionOrPrimitive == null) return null;
-  if (typeof optionOrPrimitive === "object" && optionOrPrimitive.value !== undefined) {
-    return optionOrPrimitive.value;
-  }
-  return optionOrPrimitive;
-};
 
 function useConnectedAccounts() {
   const dispatch = useDispatch();
@@ -107,7 +100,7 @@ function useConnectedAccounts() {
   }, []);
 
   const handleSortChange = (fieldOrOption) => {
-    const field = extractSelectValue(fieldOrOption);
+    const field = extractSimpleSelectValue(fieldOrOption);
     if (field == null || field === "") return;
     if (sortBy === field) {
       setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
@@ -118,7 +111,7 @@ function useConnectedAccounts() {
   };
 
   const handlePlatformFilterChange = (option) => {
-    const v = extractSelectValue(option);
+    const v = extractSimpleSelectValue(option);
     if (v === "ALL" || v == null) {
       setPlatformFilter(null);
     } else {

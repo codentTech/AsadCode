@@ -177,6 +177,9 @@ function useSimpleSelect({ placeHolder, options, isMulti, isSearchable, onChange
       setSelectedValue(newValue);
     }
     onChange(newValue);
+    if (!isMulti) {
+      setShowMenu(false);
+    }
   };
 
   const isSelected = (option) => {
