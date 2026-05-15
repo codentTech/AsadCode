@@ -6,6 +6,7 @@ import CountrySelect from "@/common/components/dropdowns/country-select/country-
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { Building2, Calendar, Mail, MapPin, User } from "lucide-react";
+import ChangeEmailModal from "./change-email-modal/change-email-modal.component";
 import usePersonalInformation from "./use-personal-information.hook";
 
 export default function PersonalInformationPage() {
@@ -14,6 +15,10 @@ export default function PersonalInformationPage() {
     handleSubmit,
     errors,
     isLoading,
+    displayEmail,
+    showEmailModal,
+    setShowEmailModal,
+    onEmailUpdated,
     selectedCountry,
     selectedCity,
     selectedAccountType,
@@ -27,7 +32,9 @@ export default function PersonalInformationPage() {
   return (
     <>
       <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
-        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Personal Information</h1>
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Personal Information
+        </h1>
         <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Manage your personal details, contact information, and account preferences
         </p>
@@ -84,17 +91,27 @@ export default function PersonalInformationPage() {
               </div>
 
               <div className="space-y-4">
-                <CustomInput
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  register={register}
-                  errors={errors}
-                  placeholder="Enter your email address"
-                  isRequired={true}
-                  startIcon={<Mail className="h-4 w-4" />}
-                  disabled={true}
-                />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
+                  <div className="min-w-0 flex-1">
+                    <CustomInput
+                      label="Email Address"
+                      name="email"
+                      type="email"
+                      register={register}
+                      errors={errors}
+                      placeholder="Enter your email address"
+                      isRequired={true}
+                      startIcon={<Mail className="h-3 w-3 sm:h-4 sm:w-4" />}
+                      disabled={true}
+                    />
+                  </div>
+                  <CustomButton
+                    text="Change email"
+                    type="button"
+                    className="btn-outline h-8 min-h-8 shrink-0 px-3 text-xs"
+                    onClick={() => setShowEmailModal(true)}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -192,6 +209,13 @@ export default function PersonalInformationPage() {
           </div>
         </form>
       </div>
+
+      <ChangeEmailModal
+        open={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        currentEmail={displayEmail}
+        onEmailUpdated={onEmailUpdated}
+      />
     </>
   );
 }
