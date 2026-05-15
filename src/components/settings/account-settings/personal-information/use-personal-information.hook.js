@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -35,6 +35,7 @@ const schema = yup.object().shape({
 export default function usePersonalInformation() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [selectedAccountType, setSelectedAccountType] = useState("");
@@ -42,6 +43,7 @@ export default function usePersonalInformation() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     setValue,
   } = useForm({
@@ -127,6 +129,15 @@ export default function usePersonalInformation() {
       setValue("account_type", selectedAccountType);
     }
   }, [selectedAccountType, setValue]);
+
+  const displayEmail = watch("email");
+
+  const onEmailUpdated = useCallback(
+    (email) => {
+      setValue("email", email);
+    },
+    [setValue],
+  );
 
   const handleCountryChange = (country) => {
     if (!country) {
@@ -244,10 +255,13 @@ export default function usePersonalInformation() {
       delete updateData.date_of_birth;
     }
 
-    const result = await dispatch(updateUser(updateData)).unwrap();
-    if (result.success) {
-      setIsLoading(false);
-      getUser(result?.data);
+    const resultAction = await dispatch(updateUser(updateData));
+    if (updateUser.fulfilled.match(resultAction)) {
+      const payload = resultAction.payload;
+      const userEntity = payload?.data;
+      if (userEntity) {
+        getUser(userEntity);
+      }
     }
     setIsLoading(false);
   };
@@ -257,6 +271,10 @@ export default function usePersonalInformation() {
     handleSubmit,
     errors,
     isLoading,
+    displayEmail,
+    showEmailModal,
+    setShowEmailModal,
+    onEmailUpdated,
     selectedCountry,
     selectedCity,
     selectedAccountType,

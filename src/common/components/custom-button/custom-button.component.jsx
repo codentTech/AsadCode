@@ -30,6 +30,19 @@ export default function CustomButton({
   loadingText = "",
   title = "",
 }) {
+  const isLightOutlineButton =
+    /\bbtn-outline\b/.test(className) ||
+    /\bbtn-danger-outline\b/.test(className) ||
+    /\bbtn-white-cancel\b/.test(className);
+  const isMutedSurfaceButton =
+    /\bbtn-secondary\b/.test(className) || /\bbtn-cancel\b/.test(className);
+
+  const loadingSpinnerClass = isLightOutlineButton
+    ? "shrink-0 text-primary"
+    : isMutedSurfaceButton
+      ? "shrink-0 text-gray-600"
+      : "shrink-0 text-white";
+
   return (
     <Button
       id={id}
@@ -53,7 +66,7 @@ export default function CustomButton({
     >
       {loading ? (
         <span className="inline-flex items-center justify-center gap-2 min-w-0">
-          <CircularProgress className="shrink-0 text-white" size={16} />
+          <CircularProgress className={loadingSpinnerClass} size={16} />
           {loadingText ? (
             <span className="text-sm font-medium truncate max-w-[220px]">{loadingText}</span>
           ) : null}
