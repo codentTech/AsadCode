@@ -42,6 +42,22 @@ const updateUser = async (userData) => {
   }
 };
 
+const requestEmailChange = async (newEmail) => {
+  const response = await api().post("/user/email-change", { new_email: newEmail });
+  return response.data;
+};
+
+const verifyEmailChange = async (code) => {
+  const response = await api().post("/user/email-change/verify", { code });
+  const body = response.data;
+  if (body.success && body.data) {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const updatedUser = { ...currentUser, ...body.data };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
+  return body;
+};
+
 const getUserById = async (userId) => {
   const response = await api().get(`/user/${userId}`);
   return response.data;
@@ -185,6 +201,8 @@ const usersService = {
   getAllUsers,
   discoverCreators,
   updateUser,
+  requestEmailChange,
+  verifyEmailChange,
   getUserById,
   updateCreatorPreferences,
   updateCampaignDefaults,

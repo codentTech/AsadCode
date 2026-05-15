@@ -254,7 +254,9 @@ const ProfileInformation = () => {
     <>
       {/* Header (from settings) */}
       <div className="mb-4 rounded-lg bg-primary p-3 text-white sm:mb-8 sm:p-4">
-        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Profile Information</h1>
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Profile Information
+        </h1>
         <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Create an impressive brand profile that attracts the right creators
         </p>

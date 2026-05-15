@@ -27,6 +27,8 @@ const initialState = {
   adminGetConnectedAccounts: { ...generalState },
   adminRemoveConnectedAccount: { ...generalState },
   adminDeleteUser: { ...generalState },
+  requestEmailChange: { ...generalState },
+  verifyEmailChange: { ...generalState },
 };
 
 const getSerializableErrorMessage = (error, fallback = "Request failed") => {
@@ -268,6 +270,40 @@ export const adminDeleteUser = createAsyncThunk(
   }
 );
 
+export const requestEmailChange = createAsyncThunk(
+  "users/requestEmailChange",
+  async (newEmail, thunkAPI) => {
+    try {
+      const response = await usersService.requestEmailChange(newEmail);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        typeof response?.message === "string" ? response.message : "Request failed"
+      );
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableErrorMessage(error, "Request failed"));
+    }
+  }
+);
+
+export const verifyEmailChange = createAsyncThunk(
+  "users/verifyEmailChange",
+  async (code, thunkAPI) => {
+    try {
+      const response = await usersService.verifyEmailChange(code);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        typeof response?.message === "string" ? response.message : "Verification failed"
+      );
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableErrorMessage(error, "Verification failed"));
+    }
+  }
+);
+
 export const usersSlice = createSlice({
   name: "users",
   initialState,
@@ -287,6 +323,8 @@ export const usersSlice = createSlice({
       state.adminGetConnectedAccounts = { ...generalState };
       state.adminRemoveConnectedAccount = { ...generalState };
       state.adminDeleteUser = { ...generalState };
+      state.requestEmailChange = { ...generalState };
+      state.verifyEmailChange = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -542,6 +580,62 @@ export const usersSlice = createSlice({
           state.disconnectSocialAccount.message = action.payload;
         }
       })
+      .addCase(requestEmailChange.pending, (state) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = true;
+        state.requestEmailChange.isError = false;
+        state.requestEmailChange.isSuccess = false;
+        state.requestEmailChange.message = "";
+      })
+      .addCase(requestEmailChange.fulfilled, (state, action) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = false;
+        state.requestEmailChange.isSuccess = true;
+        state.requestEmailChange.data = action.payload;
+      })
+      .addCase(requestEmailChange.rejected, (state, action) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = false;
+        state.requestEmailChange.isError = true;
+        state.requestEmailChange.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Request failed");
+      })
+      .addCase(verifyEmailChange.pending, (state) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = true;
+        state.verifyEmailChange.isError = false;
+        state.verifyEmailChange.isSuccess = false;
+        state.verifyEmailChange.message = "";
+      })
+      .addCase(verifyEmailChange.fulfilled, (state, action) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = false;
+        state.verifyEmailChange.isSuccess = true;
+        state.verifyEmailChange.data = action.payload;
+      })
+      .addCase(verifyEmailChange.rejected, (state, action) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = false;
+        state.verifyEmailChange.isError = true;
+        state.verifyEmailChange.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Verification failed");
+      })
       // adminGetConnectedAccounts
       .addCase(adminGetConnectedAccounts.pending, (state) => {
         if (!state.adminGetConnectedAccounts) {
@@ -617,4 +711,6 @@ export const usersSlice = createSlice({
 });
 
 export const { reset } = usersSlice.actions;
+export const selectRequestEmailChange = (state) => state.users.requestEmailChange;
+export const selectVerifyEmailChange = (state) => state.users.verifyEmailChange;
 export default usersSlice.reducer;
