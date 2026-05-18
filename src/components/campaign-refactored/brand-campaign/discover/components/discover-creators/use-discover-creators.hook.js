@@ -7,86 +7,11 @@ import {
   DISCOVER_PAGE_LIMIT,
   DISCOVER_SEARCH_DEBOUNCE_MS,
 } from "@/common/constants/discover.constant";
-
-const mapUserToCreator = (user) => {
-  const creatorProfile = user?.creator_profile || {};
-  const socialAccounts = user?.social_accounts || [];
-
-  const platforms = socialAccounts.map((s) => s.platform).filter(Boolean);
-  const platformStats = socialAccounts.reduce((acc, s) => {
-    const pd = s.profile_data || {};
-    const followers =
-      Number(pd.follower_count) ||
-      Number(pd.subscriber_count) ||
-      Number(pd.followers) ||
-      Number(pd.followers_count) ||
-      Number(pd.reputation?.follower_count) ||
-      Number(pd.reputation?.subscriber_count) ||
-      0;
-    const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
-    const profileUrl = pd.profile_url ?? pd.url ?? null;
-    if (s.platform) {
-      acc[s.platform] = { followers, username, profile_url: profileUrl };
-    }
-    return acc;
-  }, {});
-
-  const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Creator";
-  const portfolioImages = Array.isArray(creatorProfile?.mini_profile_pictures)
-    ? creatorProfile.mini_profile_pictures
-    : [];
-
-  let age = "";
-  if (user?.date_of_birth) {
-    const birthDate = new Date(user.date_of_birth);
-    const today = new Date();
-    const ageInYears = today.getFullYear() - birthDate.getFullYear();
-    age = `${ageInYears}`;
-  }
-
-  const location =
-    [user?.city, user?.country].filter(Boolean).join(", ") || "Location not specified";
-
-  return {
-    ...user,
-    creator_profile: creatorProfile,
-    id: user?.id,
-    name,
-    profileImage: creatorProfile?.profile_photo_url || "/assets/images/account.png",
-    portfolioImages,
-    age,
-    location,
-    niches: creatorProfile?.categories || [],
-    tagline: creatorProfile?.bio || "Creating authentic content that resonates with audiences",
-    followers: Object.values(platformStats).reduce((sum, stat) => sum + (stat.followers || 0), 0),
-    platforms,
-    platformStats,
-    rating: Number(creatorProfile?.rating) || 0,
-    reviewCount:
-      Number(creatorProfile?.reviewCount ?? creatorProfile?.review_count) || 0,
-  };
-};
-
-const groupCreatorsByNiche = (creators) => {
-  const nicheGroups = {};
-
-  creators.forEach((creator) => {
-    if (creator.niches && Array.isArray(creator.niches) && creator.niches.length > 0) {
-      const primaryNiche = creator.niches[0];
-      if (!nicheGroups[primaryNiche]) {
-        nicheGroups[primaryNiche] = [];
-      }
-      nicheGroups[primaryNiche].push(creator);
-    }
-  });
-
-  return Object.entries(nicheGroups).map(([niche, creatorsList]) => ({
-    id: niche.toLowerCase().replace(/\s+/g, "-"),
-    name: `Top in ${niche.charAt(0).toUpperCase() + niche.slice(1)}`,
-    creators: creatorsList.sort((a, b) => b.followers - a.followers).slice(0, 10),
-  }));
-};
-
+import { DISCOVER_CREATORS_DEFAULT_SORT_BY } from "@/common/constants/options.constant";
+import {
+  groupCreatorsByNiche,
+  mapUserToCreator,
+} from "@/common/utils/discover-creators.util";
 
 export default function useDiscoverCreators() {
   const scrollRefs = useRef({});
@@ -121,7 +46,7 @@ export default function useDiscoverCreators() {
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState("");
-  const [selectedSort, setSelectedSort] = useState("");
+  const [selectedSort, setSelectedSort] = useState(DISCOVER_CREATORS_DEFAULT_SORT_BY);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filteredCreators, setFilteredCreators] = useState([]);
 
@@ -245,7 +170,7 @@ export default function useDiscoverCreators() {
   const resetSearch = useCallback(() => {
     setSearchInput("");
     setDebouncedSearchKeyword("");
-    setSelectedSort("");
+    setSelectedSort(DISCOVER_CREATORS_DEFAULT_SORT_BY);
     setFilters({
       platforms: [],
       minFollowers: "",
@@ -375,7 +300,7 @@ export default function useDiscoverCreators() {
     });
     setSearchInput("");
     setDebouncedSearchKeyword("");
-    setSelectedSort("");
+    setSelectedSort(DISCOVER_CREATORS_DEFAULT_SORT_BY);
     setSelectedCategory(null);
     setFilteredCreators([]);
   }, []);

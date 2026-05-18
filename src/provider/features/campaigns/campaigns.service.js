@@ -36,6 +36,12 @@ const publishCampaign = async (campaignId) => {
   return response.data;
 };
 
+// Close campaign listing to new applicants and hires
+const closeCampaignListing = async (campaignId) => {
+  const response = await api().post(`/campaigns/${campaignId}/close-listing`);
+  return response.data;
+};
+
 // Mark a specific creator as complete in a campaign
 const markCreatorComplete = async (campaignId, creatorId) => {
   const response = await api().post(`/campaigns/${campaignId}/creators/${creatorId}/complete`);
@@ -139,6 +145,7 @@ const campaignsService = {
   updateCampaign,
   deleteCampaign,
   publishCampaign,
+  closeCampaignListing,
   filterCampaigns,
   getCampaignStats,
   applyToCampaign,

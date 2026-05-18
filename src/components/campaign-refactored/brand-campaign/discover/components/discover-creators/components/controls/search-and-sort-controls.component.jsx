@@ -8,6 +8,7 @@ import { Filter } from "lucide-react";
 const SearchAndSortControls = ({
   searchKeyword,
   onSearchChange,
+  selectedSort,
   onSortChange,
   onFilterClick,
   onNewCampaignClick,
@@ -31,6 +32,7 @@ const SearchAndSortControls = ({
           <SimpleSelect
             placeHolder="Sort by"
             options={SORT_BY_OPTIONS}
+            value={selectedSort}
             onChange={(opt) => onSortChange(opt?.value || "")}
           />
         </div>

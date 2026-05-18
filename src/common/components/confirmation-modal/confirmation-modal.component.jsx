@@ -52,12 +52,12 @@ export default function ConfirmationModal({
     >
       <div className="my-scroll max-h-full max-w-full overflow-y-auto ">
         <DialogContent sx={{ padding: "0px 0px 0px 0px" }}>
-          <div className="flex flex-col items-center rounded-[20px] bg-white px-6 py-10">
+          <div className="flex flex-col items-center rounded-[20px] bg-white px-4 py-6 sm:px-6 sm:py-10">
             {message && <h3 className={messageStyling}>{message}</h3>}
             {content && <div className={contentStyling}>{content}</div>}
             {subContent && <div className={subContentStyling}>{subContent}</div>}
 
-            <div className="w-full mt-8 flex justify-center gap-8">
+            <div className="mt-6 flex w-full flex-col-reverse gap-2 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4">
               <CustomButton
                 onClick={dismiss}
                 text={cancelText}

@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  closeCampaignListing,
   getAllBrandCampaigns,
   getAppliedCreators,
 } from "@/provider/features/campaigns/campaigns.slice";
+import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
@@ -82,6 +84,14 @@ function useCreatorSpendAnalysis({
 
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [showCloseListingModal, setShowCloseListingModal] = useState(false);
+  const [confirmCloseCampaignId, setConfirmCloseCampaignId] = useState(null);
+  const closeListingSubmittedRef = useRef(false);
+
+  const { isLoading: isClosingListing, isSuccess: isCloseListingSuccess } = useSelector(
+    (state) => state.campaigns.closeCampaignListing || {}
+  );
 
   // Fetch shortlists once unless already loaded
   useEffect(() => {
@@ -445,6 +455,80 @@ function useCreatorSpendAnalysis({
     setShowFilterModal(false);
   };
 
+  const showCloseListingMenu = Boolean(
+    isMultiCreator &&
+      selectedCampaign?.id &&
+      (selectedCampaign.collaboration_type || COLLABORATION_TYPE.MULTI_CREATOR) ===
+        COLLABORATION_TYPE.MULTI_CREATOR
+  );
+
+  const handleMenuOpen = useCallback((event) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setMenuAnchorEl(null);
+  }, []);
+
+  const handleRequestCloseListing = useCallback(() => {
+    if (!selectedCampaign?.id) return;
+    setConfirmCloseCampaignId(selectedCampaign.id);
+    setShowCloseListingModal(true);
+    handleMenuClose();
+  }, [selectedCampaign?.id, handleMenuClose]);
+
+  const handleCancelCloseListing = useCallback(() => {
+    closeListingSubmittedRef.current = false;
+    setShowCloseListingModal(false);
+    setConfirmCloseCampaignId(null);
+  }, []);
+
+  const handleConfirmCloseListing = useCallback(() => {
+    if (!confirmCloseCampaignId) return;
+    closeListingSubmittedRef.current = true;
+    dispatch(closeCampaignListing(confirmCloseCampaignId));
+  }, [confirmCloseCampaignId, dispatch]);
+
+  useEffect(() => {
+    if (
+      !showCloseListingModal ||
+      isClosingListing ||
+      !isCloseListingSuccess ||
+      !closeListingSubmittedRef.current
+    ) {
+      return;
+    }
+    closeListingSubmittedRef.current = false;
+    setShowCloseListingModal(false);
+    const closedCampaignId = confirmCloseCampaignId;
+    setConfirmCloseCampaignId(null);
+
+    if (closedCampaignId && onCampaignSelect && campaignsData?.data) {
+      const updatedCampaign = campaignsData.data.find((campaign) => campaign.id === closedCampaignId);
+      if (updatedCampaign) {
+        onCampaignSelect(updatedCampaign);
+      }
+    }
+  }, [
+    showCloseListingModal,
+    isClosingListing,
+    isCloseListingSuccess,
+    confirmCloseCampaignId,
+    onCampaignSelect,
+    campaignsData?.data,
+  ]);
+
+  const campaignToClose = useMemo(() => {
+    if (!confirmCloseCampaignId) return null;
+    return (
+      campaignsData?.data?.find((campaign) => campaign.id === confirmCloseCampaignId) ||
+      (selectedCampaign?.id === confirmCloseCampaignId ? selectedCampaign : null)
+    );
+  }, [confirmCloseCampaignId, campaignsData?.data, selectedCampaign]);
+
+  const isSelectedCampaignListingOpen = isCampaignListingOpen(selectedCampaign);
+
   return {
     open,
     handleOpenModal,
@@ -486,6 +570,17 @@ function useCreatorSpendAnalysis({
     handleAudienceFiltersChange,
     handleClearAllFilters,
     handleApplyFilters,
+    showCloseListingMenu,
+    isSelectedCampaignListingOpen,
+    isClosingListing,
+    menuAnchorEl,
+    showCloseListingModal,
+    campaignToClose,
+    handleMenuOpen,
+    handleMenuClose,
+    handleRequestCloseListing,
+    handleCancelCloseListing,
+    handleConfirmCloseListing,
   };
 }
 
