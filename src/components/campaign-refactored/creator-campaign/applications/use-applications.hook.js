@@ -40,7 +40,7 @@ function useApplications() {
     3: 1,
     4: 1,
   });
-  const hasOpenedMessageThreadRef = useRef(false);
+  const lastMessageThreadKeyRef = useRef(null);
 
   const { isLoading: applicationsLoading, isError: applicationsError } = useSelector(
     (state) => state.campaigns.getCreatorApplications || {}
@@ -261,34 +261,39 @@ function useApplications() {
 
   const initialInvitationMessage = useMemo(() => {
     const app = messageModalState.application;
-    if (!app) return null;
+    if (!app || !messageModalState.brandId || !messageThreadCampaignId) return null;
     const inviteMessage = app.custom_message?.trim();
-    return inviteMessage || null;
-  }, [messageModalState.application]);
+    if (!inviteMessage) return null;
+    return {
+      content: inviteMessage,
+      senderRole: "BRAND",
+      campaignId: messageThreadCampaignId,
+      brandId: messageModalState.brandId,
+    };
+  }, [messageModalState.application, messageModalState.brandId, messageThreadCampaignId]);
 
   const messageThreadHook = useMessageThread(
     messageModalState.brandId || null,
     messageThreadCampaignId || null,
     null,
     initialInvitationMessage
-      ? { content: initialInvitationMessage, senderRole: "BRAND" }
-      : null
   );
 
   useEffect(() => {
     if (!messageModalState.isOpen) {
-      hasOpenedMessageThreadRef.current = false;
+      lastMessageThreadKeyRef.current = null;
       return;
     }
 
+    const threadKey = `${messageModalState.brandId}:${messageThreadCampaignId}`;
     if (
       messageModalState.brandId &&
       messageThreadCampaignId &&
       messageThreadHook.openMessageModal &&
-      !hasOpenedMessageThreadRef.current
+      lastMessageThreadKeyRef.current !== threadKey
     ) {
-      hasOpenedMessageThreadRef.current = true;
-      messageThreadHook.openMessageModal();
+      lastMessageThreadKeyRef.current = threadKey;
+      messageThreadHook.openMessageModal(messageThreadCampaignId);
     }
   }, [
     messageModalState.isOpen,

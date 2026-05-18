@@ -32,6 +32,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
   const fileInputRef = useRef(null);
   const hasFetchedMessagesRef = useRef(false);
   const pollingIntervalRef = useRef(null);
+  const openThreadGenerationRef = useRef(0);
 
   const { messages: allMessages, onlineUsers, typingUsers } = useSelector((state) => state.chat);
   const {
@@ -40,30 +41,89 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     sendMessage: sendMessageState,
   } = useSelector((state) => state.chat);
 
-  const actualMessages = conversationId
-    ? [...(allMessages[conversationId] || [])].sort((a, b) => {
-        const dateA = new Date(a.created_at || a.createdAt || 0);
-        const dateB = new Date(b.created_at || b.createdAt || 0);
-        return dateA - dateB;
-      })
-    : [];
-
   const initialMessagePayload = useMemo(() => {
     if (!applicationPitch) return null;
     if (typeof applicationPitch === "string") {
-      return { content: applicationPitch, senderRole: ROLES.CREATOR };
+      return { content: applicationPitch, senderRole: ROLES.CREATOR, campaignId: null };
     }
     if (typeof applicationPitch === "object" && applicationPitch?.content) {
       return {
         content: String(applicationPitch.content),
         senderRole: (applicationPitch.senderRole || ROLES.CREATOR).toUpperCase(),
+        campaignId: applicationPitch.campaignId ?? null,
+        creatorId: applicationPitch.creatorId ?? null,
+        brandId: applicationPitch.brandId ?? null,
       };
     }
     return null;
   }, [applicationPitch]);
 
+  const boundConversationId = conversationState?.data?.id ?? null;
+  const boundCampaignId =
+    conversationState?.data?.campaign_id ?? conversationState?.data?.campaign?.id ?? null;
+  const boundBrandId = conversationState?.data?.brand?.id ?? null;
+  const boundCreatorUserId = conversationState?.data?.creator?.id ?? null;
+
+  const viewer = getUser();
+  const isBoundConversationForThread = useMemo(() => {
+    if (!conversationId || conversationId !== boundConversationId) {
+      return false;
+    }
+    if (campaignId && boundCampaignId && String(boundCampaignId) !== String(campaignId)) {
+      return false;
+    }
+    if (viewer?.role === ROLES.CREATOR) {
+      if (creatorId && boundBrandId && String(boundBrandId) !== String(creatorId)) {
+        return false;
+      }
+    } else if (viewer?.role === ROLES.BRAND) {
+      if (creatorId && boundCreatorUserId && String(boundCreatorUserId) !== String(creatorId)) {
+        return false;
+      }
+    }
+    return true;
+  }, [
+    conversationId,
+    boundConversationId,
+    campaignId,
+    boundCampaignId,
+    creatorId,
+    boundBrandId,
+    boundCreatorUserId,
+    viewer?.role,
+    viewer?.id,
+  ]);
+
+  const actualMessages = useMemo(() => {
+    if (!conversationId || !isBoundConversationForThread) {
+      return [];
+    }
+    return [...(allMessages[conversationId] || [])].sort((a, b) => {
+      const dateA = new Date(a.created_at || a.createdAt || 0);
+      const dateB = new Date(b.created_at || b.createdAt || 0);
+      return dateA - dateB;
+    });
+  }, [conversationId, isBoundConversationForThread, allMessages]);
+
+  const pitchMatchesThread =
+    initialMessagePayload?.content &&
+    (!initialMessagePayload.campaignId ||
+      !campaignId ||
+      String(initialMessagePayload.campaignId) === String(campaignId)) &&
+    (!initialMessagePayload.creatorId ||
+      !creatorId ||
+      String(initialMessagePayload.creatorId) === String(creatorId)) &&
+    (!initialMessagePayload.brandId ||
+      !creatorId ||
+      String(initialMessagePayload.brandId) === String(creatorId)) &&
+    conversationId === boundConversationId &&
+    isBoundConversationForThread;
+
   const messages = useMemo(() => {
-    if (!initialMessagePayload?.content || !conversationId) {
+    if (!isBoundConversationForThread) {
+      return [];
+    }
+    if (!initialMessagePayload?.content || !conversationId || !pitchMatchesThread) {
       return actualMessages;
     }
 
@@ -109,6 +169,10 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     creatorId,
     conversationState?.data?.creator?.id,
     conversationState?.data?.brand?.id,
+    pitchMatchesThread,
+    isBoundConversationForThread,
+    boundConversationId,
+    boundCampaignId,
   ]);
 
   const currentUser = getUser();
@@ -135,14 +199,17 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
         return;
       }
 
+      const effectiveCampaignId = overrideCampaignId || campaignId;
+      const openGeneration = ++openThreadGenerationRef.current;
+
+      setConversationId(null);
+      hasFetchedMessagesRef.current = false;
       setIsModalOpen(true);
       setError(null);
 
       if (currentUser.id === creatorId) {
         return;
       }
-
-      const effectiveCampaignId = overrideCampaignId || campaignId;
       if (!effectiveCampaignId) {
         setError("Campaign ID is required to start a conversation");
         return;
@@ -157,6 +224,25 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
       try {
         const result = await dispatch(createOrGetConversation(conversationData)).unwrap();
         const convId = result.data.id;
+        const resolvedCampaignId =
+          result.data.campaign_id ?? result.data.campaign?.id ?? effectiveCampaignId;
+
+        if (
+          String(resolvedCampaignId) !== String(effectiveCampaignId) ||
+          (currentUser.role === ROLES.BRAND &&
+            result.data.creator?.id &&
+            String(result.data.creator.id) !== String(creatorId)) ||
+          (currentUser.role === ROLES.CREATOR &&
+            result.data.brand?.id &&
+            String(result.data.brand.id) !== String(creatorId))
+        ) {
+          setError("Unable to load the conversation for this campaign");
+          return;
+        }
+
+        if (openGeneration !== openThreadGenerationRef.current) {
+          return;
+        }
 
         const conversationChanged = conversationId !== convId;
         if (conversationChanged) {
@@ -193,6 +279,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
   );
 
   const closeMessageModal = useCallback(() => {
+    openThreadGenerationRef.current += 1;
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
@@ -203,6 +290,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     }
 
     setIsModalOpen(false);
+    setConversationId(null);
     setNewMessage("");
     setError(null);
     setShowEmojiPicker(false);
@@ -545,7 +633,9 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     messages,
     newMessage,
     setNewMessage: handleMessageChange,
-    isLoading: messagesState.isLoading || conversationState.isLoading,
+    isLoading:
+      messagesState.isLoading ||
+      (isModalOpen && !conversationId && conversationState.isLoading),
     isSending: sendMessageState.isLoading,
     isCreatorOnline: isOtherUserOnline,
     isCreatorTyping: isOtherUserTyping,
