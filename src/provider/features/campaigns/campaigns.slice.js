@@ -24,6 +24,7 @@ const initialState = {
   updateCampaign: { ...generalState },
   deleteCampaign: { ...generalState },
   publishCampaign: { ...generalState },
+  closeCampaignListing: { ...generalState },
   filterCampaigns: { ...generalState },
   getCampaignStats: { ...generalState },
   applyToCampaign: { ...generalState },
@@ -124,6 +125,21 @@ export const publishCampaign = createAsyncThunk(
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+    }
+  }
+);
+
+export const closeCampaignListing = createAsyncThunk(
+  "campaigns/closeCampaignListing",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.closeCampaignListing(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to close campaign listing")
+      );
     }
   }
 );
@@ -547,6 +563,33 @@ export const campaignsSlice = createSlice({
         state.publishCampaign.isLoading = false;
         state.publishCampaign.isError = true;
         state.publishCampaign.data = null;
+      })
+      .addCase(closeCampaignListing.pending, (state) => {
+        state.closeCampaignListing.isLoading = true;
+        state.closeCampaignListing.message = "";
+        state.closeCampaignListing.isError = false;
+        state.closeCampaignListing.isSuccess = false;
+      })
+      .addCase(closeCampaignListing.fulfilled, (state, action) => {
+        state.closeCampaignListing.isLoading = false;
+        state.closeCampaignListing.isSuccess = true;
+        state.closeCampaignListing.data = action.payload;
+
+        const updatedCampaign = action.payload?.data;
+        const brandCampaigns = state.getAllBrandCampaigns.data?.data;
+        if (updatedCampaign?.id && Array.isArray(brandCampaigns)) {
+          state.getAllBrandCampaigns.data.data = brandCampaigns.map((campaign) =>
+            campaign.id === updatedCampaign.id
+              ? { ...campaign, accepting_applications: false }
+              : campaign
+          );
+        }
+      })
+      .addCase(closeCampaignListing.rejected, (state, action) => {
+        state.closeCampaignListing.message =
+          action.payload?.message || "Failed to close campaign listing";
+        state.closeCampaignListing.isLoading = false;
+        state.closeCampaignListing.isError = true;
       })
       // filterCampaigns
       .addCase(filterCampaigns.pending, (state) => {
