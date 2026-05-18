@@ -254,14 +254,17 @@ function useUsers() {
       return;
     }
     setIsImpersonatingUser(true);
-    dispatch(impersonateUser(userToImpersonate.id)).then((result) => {
-      setIsImpersonatingUser(false);
-      if (impersonateUser.fulfilled.match(result)) {
-        setOpenImpersonateModal(false);
-        setUserToImpersonate(null);
-        router.push("/campaign");
-      }
-    });
+    dispatch(impersonateUser(userToImpersonate.id))
+      .then((result) => {
+        if (impersonateUser.fulfilled.match(result)) {
+          setOpenImpersonateModal(false);
+          setUserToImpersonate(null);
+          router.push("/campaign");
+        }
+      })
+      .finally(() => {
+        setIsImpersonatingUser(false);
+      });
   }, [dispatch, isImpersonatingUser, router, userToImpersonate]);
 
   const actions = useMemo(
