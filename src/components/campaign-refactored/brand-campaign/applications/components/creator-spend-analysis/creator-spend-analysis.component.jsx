@@ -1,3 +1,5 @@
+import { Menu, MenuItem } from "@mui/material";
+import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
@@ -8,8 +10,7 @@ import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
-
-import { Filter, List } from "lucide-react";
+import { EllipsisVertical, Filter, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -66,6 +67,17 @@ const CreatorSpendAnalysis = ({
     handleAudienceFiltersChange,
     handleClearAllFilters,
     handleApplyFilters,
+    showCloseListingMenu,
+    isSelectedCampaignListingOpen,
+    isClosingListing,
+    menuAnchorEl,
+    showCloseListingModal,
+    campaignToClose,
+    handleMenuOpen,
+    handleMenuClose,
+    handleRequestCloseListing,
+    handleCancelCloseListing,
+    handleConfirmCloseListing,
   } = useCreatorSpendAnalysis({
     selectedCampaign,
     appliedCreatorsData,
@@ -89,7 +101,7 @@ const CreatorSpendAnalysis = ({
       <div className="shrink-0 z-10 border-b border-gray-200 bg-white shadow-sm">
         <div className="p-2.5 sm:p-4">
           <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="w-full min-w-0 sm:w-[280px] bg-gray-100 rounded-lg p-3">
+            <div className="w-full min-w-0 sm:w-[280px] rounded-lg bg-gray-100 p-3">
               <CustomSwitch
                 label="Campaign Type"
                 checked={isMultiCreator}
@@ -109,14 +121,33 @@ const CreatorSpendAnalysis = ({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3 md:flex-nowrap md:items-center">
             {isMultiCreator && (
-              <div className="min-w-0 w-full sm:max-w-[min(100%,280px)] sm:flex-1">
-                <SimpleSelect
-                  placeHolder="Select a campaign"
-                  options={filteredCampaignOptions}
-                  isLoading={campaignsLoading}
-                  value={selectedCampaignValue}
-                  onChange={handleCampaignChange}
-                />
+              <div className="flex w-full min-w-0 items-center gap-2 sm:max-w-[min(100%,320px)] sm:flex-1 sm:gap-3">
+                <div className="min-w-0 flex-1">
+                  <SimpleSelect
+                    placeHolder="Select a campaign"
+                    options={filteredCampaignOptions}
+                    isLoading={campaignsLoading}
+                    value={selectedCampaignValue}
+                    onChange={handleCampaignChange}
+                  />
+                </div>
+                {showCloseListingMenu && selectedCampaign ? (
+                  isSelectedCampaignListingOpen ? (
+                    <button
+                      type="button"
+                      onClick={handleMenuOpen}
+                      disabled={isClosingListing}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      aria-label="Campaign options"
+                    >
+                      <EllipsisVertical className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <span className="shrink-0 rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
+                      Listing closed
+                    </span>
+                  )
+                ) : null}
               </div>
             )}
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2 md:flex-nowrap">
@@ -274,6 +305,47 @@ const CreatorSpendAnalysis = ({
         onAudienceFiltersChange={handleAudienceFiltersChange}
         onClearAllFilters={handleClearAllFilters}
         onApplyFilters={handleApplyFilters}
+      />
+
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          elevation: 3,
+          sx: { minWidth: 220, borderRadius: 2, mt: 1 },
+        }}
+      >
+        <MenuItem
+          onClick={handleRequestCloseListing}
+          disabled={isClosingListing || !isSelectedCampaignListingOpen}
+          sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
+        >
+          Close listing to new applicants
+        </MenuItem>
+      </Menu>
+
+      <ConfirmationModal
+        show={showCloseListingModal}
+        onCancel={handleCancelCloseListing}
+        close={handleCancelCloseListing}
+        onConfirm={handleConfirmCloseListing}
+        message="Close listing to new applicants?"
+        messageStyling="text-center text-sm font-semibold text-gray-900 sm:text-base"
+        content={
+          campaignToClose?.campaign_title
+            ? `${campaignToClose.campaign_title} will be removed from Discover+ and will no longer accept new applications or hires.`
+            : "This campaign will be removed from Discover+ and will no longer accept new applications or hires."
+        }
+        subContent="Existing applicants and hired creators are not affected."
+        contentStyling="mt-2 max-w-sm text-center text-[10px] leading-snug text-gray-600 sm:text-xs"
+        subContentStyling="mt-2 max-w-sm text-center text-[10px] text-gray-500 sm:text-xs"
+        cancelText="Cancel"
+        confirmText="Close listing"
+        confirmLoading={isClosingListing}
+        confirmLoadingText="Closing"
       />
 
       <Modal
