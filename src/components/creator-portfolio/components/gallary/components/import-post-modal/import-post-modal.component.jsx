@@ -36,9 +36,10 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
           onChange={(e) => handleChange("post_url", e.target.value)}
           isRequired
         />
-        <p className="-mt-3 text-xs text-gray-500">
-          Paste a link to a post from your connected account. We&apos;ll automatically pull the
-          caption and performance data.
+        <p className="-mt-3 text-[10px] leading-snug text-gray-500 sm:text-xs">
+          Paste a link to a post from your connected account. We pull the caption, metrics, and
+          (when available) top comments from the network. Instagram often blocks copying the video
+          file to CleerCut; use Upload File for a hosted copy and transcription.
         </p>
 
         {nicheOptions.length > 0 && (

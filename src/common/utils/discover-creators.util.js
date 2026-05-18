@@ -1,0 +1,77 @@
+export const mapUserToCreator = (user) => {
+  const creatorProfile = user?.creator_profile || {};
+  const socialAccounts = user?.social_accounts || [];
+
+  const platforms = socialAccounts.map((s) => s.platform).filter(Boolean);
+  const platformStats = socialAccounts.reduce((acc, s) => {
+    const pd = s.profile_data || {};
+    const followers =
+      Number(pd.follower_count) ||
+      Number(pd.subscriber_count) ||
+      Number(pd.followers) ||
+      Number(pd.followers_count) ||
+      Number(pd.reputation?.follower_count) ||
+      Number(pd.reputation?.subscriber_count) ||
+      0;
+    const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
+    const profileUrl = pd.profile_url ?? pd.url ?? null;
+    if (s.platform) {
+      acc[s.platform] = { followers, username, profile_url: profileUrl };
+    }
+    return acc;
+  }, {});
+
+  const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Creator";
+  const portfolioImages = Array.isArray(creatorProfile?.mini_profile_pictures)
+    ? creatorProfile.mini_profile_pictures
+    : [];
+
+  let age = "";
+  if (user?.date_of_birth) {
+    const birthDate = new Date(user.date_of_birth);
+    const today = new Date();
+    const ageInYears = today.getFullYear() - birthDate.getFullYear();
+    age = `${ageInYears}`;
+  }
+
+  const location =
+    [user?.city, user?.country].filter(Boolean).join(", ") || "Location not specified";
+
+  return {
+    ...user,
+    creator_profile: creatorProfile,
+    id: user?.id,
+    name,
+    profileImage: creatorProfile?.profile_photo_url || "/assets/images/account.png",
+    portfolioImages,
+    age,
+    location,
+    niches: creatorProfile?.categories || [],
+    tagline: creatorProfile?.bio || "Creating authentic content that resonates with audiences",
+    followers: Object.values(platformStats).reduce((sum, stat) => sum + (stat.followers || 0), 0),
+    platforms,
+    platformStats,
+    rating: Number(creatorProfile?.rating) || 0,
+    reviewCount: Number(creatorProfile?.reviewCount ?? creatorProfile?.review_count) || 0,
+  };
+};
+
+export const groupCreatorsByNiche = (creators) => {
+  const nicheGroups = {};
+
+  creators.forEach((creator) => {
+    if (creator.niches && Array.isArray(creator.niches) && creator.niches.length > 0) {
+      const primaryNiche = creator.niches[0];
+      if (!nicheGroups[primaryNiche]) {
+        nicheGroups[primaryNiche] = [];
+      }
+      nicheGroups[primaryNiche].push(creator);
+    }
+  });
+
+  return Object.entries(nicheGroups).map(([niche, creatorsList]) => ({
+    id: niche.toLowerCase().replace(/\s+/g, "-"),
+    name: `Top in ${niche.charAt(0).toUpperCase() + niche.slice(1)}`,
+    creators: creatorsList.sort((a, b) => b.followers - a.followers).slice(0, 10),
+  }));
+};
