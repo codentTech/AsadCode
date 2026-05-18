@@ -325,6 +325,9 @@ function useCreatorSpendAnalysis({
       const isIndividual = campaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
       dispatch(setBrandCampaignMultiCreatorMode(!isIndividual));
     }
+    if (onClearCreator) {
+      onClearCreator();
+    }
     if (onCampaignSelect && campaign) onCampaignSelect(campaign);
   };
 
