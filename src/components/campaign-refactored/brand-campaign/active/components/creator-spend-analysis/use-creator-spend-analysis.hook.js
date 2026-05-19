@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
-import { getAge } from "@/common/utils/date.utils";
+import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
 import {
   buildPlatformsFromPhylloAccounts,
   buildPlatformsFromSocialAccounts,
@@ -73,6 +73,8 @@ export const useCreatorSpendAnalysis = (
     () => isIndividualCollaborationFlow(isMultiCreator, effectiveCollaborationType),
     [isMultiCreator, effectiveCollaborationType]
   );
+
+  const prevIsIndividualModeRef = useRef(isIndividualMode);
 
   const individualCreators = useMemo(() => {
     if (!isIndividualMode || normalizedIndividualContracts.length === 0) {
@@ -204,91 +206,7 @@ export const useCreatorSpendAnalysis = (
   }, [isIndividualMode, individualCreators, phylloAccountsByCreatorId]);
 
   const creators = Array.isArray(creatorsData?.data)
-    ? creatorsData.data.map((creator) => {
-        const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(
-          creator.creator
-        );
-
-        return {
-        ...creator,
-        id: creator?.creator?.creator_profile?.id,
-        age: getAge(creator?.creator?.date_of_birth),
-        creatorUserId: creator?.creator?.id,
-        name:
-          `${creator.creator?.first_name || ""} ${creator.creator?.last_name || ""}`.trim() ||
-          "Unknown Creator",
-        bio: creator.creator?.creator_profile?.bio || "No bio available",
-        image: creator.creator?.creator_profile?.profile_photo_url,
-        location:
-          `${creator.creator?.city || ""}, ${creator.creator?.country || ""}`.replace(
-            /^,\s*|,\s*$/g,
-            ""
-          ) || "Location not specified",
-        totalSpent: creator.total_spent || 0,
-        rating,
-        reviewCount,
-        platforms: (() => {
-          const fromAccounts = buildPlatformsFromSocialAccounts(creator.creator);
-          const c = creator.creator;
-          if (
-            !Array.isArray(c?.social_accounts) ||
-            (c.social_accounts && c.social_accounts.length === 0)
-          ) {
-            return {
-              instagram: {
-                followers: c?.instagram_followers ?? 0,
-                verified: c?.instagram_verified ?? false,
-              },
-              youtube: {
-                followers: c?.youtube_followers ?? 0,
-                verified: c?.youtube_verified ?? false,
-              },
-              twitter: {
-                followers: c?.twitter_followers ?? 0,
-                verified: c?.twitter_verified ?? false,
-              },
-              tiktok: { followers: 0, verified: false },
-            };
-          }
-          return fromAccounts;
-        })(),
-        projects: creator.creator?.total_projects || 0,
-        successRate: creator.creator?.success_rate || 0,
-        avgDeliveryTime: creator.creator?.avg_delivery_time || "N/A",
-        specialty: creator.creator?.specialty || "General",
-        status: creator.status,
-        appliedAt: creator.applied_at,
-        hiredAt: creator.hired_at,
-        contract: creator.contract
-          ? {
-              ...creator.contract,
-              totalCompensation:
-                creator.contract.total_compensation || creator.contract.totalCompensation || 0,
-              campaignId: creator.contract.campaign_id || creator.contract.campaignId,
-              creatorId: creator.contract.creator_id || creator.contract.creatorId,
-              brandId: creator.contract.brand_id || creator.contract.brandId,
-              completionDeadline:
-                creator.contract.completion_deadline || creator.contract.completionDeadline,
-              startDate: creator.contract.start_date || creator.contract.startDate,
-              firstDraftDeadline:
-                creator.contract.first_draft_deadline || creator.contract.firstDraftDeadline,
-              contentFormat: creator.contract.content_format || creator.contract.contentFormat,
-              revisionsLimit: creator.contract.revisions_limit || creator.contract.revisionsLimit,
-              compensationType:
-                creator.contract.compensation_type || creator.contract.compensationType,
-              productPrice: creator.contract.product_price || creator.contract.productPrice,
-              usageRights: creator.contract.usage_rights || creator.contract.usageRights,
-              exclusivityClause:
-                creator.contract.exclusivity_clause || creator.contract.exclusivityClause,
-              campaignType: creator.contract.campaign_type || creator.contract.campaignType,
-              contentGuidelines:
-                creator.contract.content_guidelines || creator.contract.contentGuidelines,
-              sentAt: creator.contract.sent_at || creator.contract.sentAt,
-              expiresAt: creator.contract.expires_at || creator.contract.expiresAt,
-            }
-          : null,
-        };
-      })
+    ? creatorsData.data.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean)
     : [];
 
   const getSuccessRateColor = (rate) => {
@@ -359,15 +277,21 @@ export const useCreatorSpendAnalysis = (
   }, [isIndividualMode, normalizedIndividualContracts, creatorsData?.data]);
 
   useEffect(() => {
-    if (onClearCreator) {
-      onClearCreator();
-    }
-  }, [isIndividualMode]);
+    if (prevIsIndividualModeRef.current === isIndividualMode) return;
+    prevIsIndividualModeRef.current = isIndividualMode;
+    onClearCreator?.();
+  }, [isIndividualMode, onClearCreator]);
 
   useEffect(() => {
     const campaignKey = selectedCampaign?.id || "none";
+    const creatorsMatchCampaign =
+      isIndividualMode ||
+      !selectedCampaign?.id ||
+      String(creatorsListCampaignId) === String(selectedCampaign.id);
+
     if (
       displaySuccess &&
+      creatorsMatchCampaign &&
       displayCreators.length > 0 &&
       !selectedCreator &&
       selectedCampaign &&
@@ -393,6 +317,8 @@ export const useCreatorSpendAnalysis = (
     onCreatorSelect,
     isMultiCreator,
     isCompleted,
+    isIndividualMode,
+    creatorsListCampaignId,
   ]);
 
   return {

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 
-export default function useBrandTimeline(campaignId, creatorId) {
+export default function useBrandTimeline(campaignId, creatorId, enabled = true) {
   const dispatch = useDispatch();
 
   const { data: timelineData, isLoading: timelineLoading } = useSelector(
@@ -22,12 +22,12 @@ export default function useBrandTimeline(campaignId, creatorId) {
   const timelineSteps = Array.isArray(timelineDataToUse?.data) ? timelineDataToUse.data : [];
 
   useEffect(() => {
-    if (!campaignId || !creatorId) {
+    if (!enabled || !campaignId || !creatorId) {
       return;
     }
 
     dispatch(getTimeline({ campaignId, creatorId }));
-  }, [campaignId, creatorId, dispatch]);
+  }, [campaignId, creatorId, dispatch, enabled]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";

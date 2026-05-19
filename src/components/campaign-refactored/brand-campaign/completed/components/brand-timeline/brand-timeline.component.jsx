@@ -4,8 +4,12 @@ import useBrandTimeline from "./use-brand-timeline.hook";
 import Loading from "@/common/components/loader/loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 
-const BrandTimelineSteps = ({ campaignId, creatorId }) => {
-  const { timelineSteps, timelineLoading, formatDate } = useBrandTimeline(campaignId, creatorId);
+const BrandTimelineSteps = ({ campaignId, creatorId, enabled = true }) => {
+  const { timelineSteps, timelineLoading, formatDate } = useBrandTimeline(
+    campaignId,
+    creatorId,
+    enabled
+  );
 
   if (timelineLoading) {
     return <Loading />;
