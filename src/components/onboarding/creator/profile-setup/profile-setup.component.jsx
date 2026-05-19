@@ -99,6 +99,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
     // Connection link
     connectionLink,
     setConnectionLink,
+    isConnectionLinkCopied,
+    handleCopyConnectionLink,
   } = useProfileSetup({ onNext });
 
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
@@ -495,9 +497,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       />
                       <div className="flex gap-2">
                         <CustomButton
-                          text="Copy link"
+                          text={isConnectionLinkCopied ? "Copied!" : "Copy link"}
                           type="button"
-                          onClick={() => navigator.clipboard.writeText(connectionLink)}
+                          onClick={handleCopyConnectionLink}
+                          disabled={isConnectionLinkCopied}
                           className="btn-primary text-xs px-4 py-1 h-7"
                         />
                         <CustomButton

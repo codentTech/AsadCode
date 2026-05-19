@@ -10,7 +10,7 @@ import { setupCreatorProfile } from "@/provider/features/creator-profile/creator
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { disconnectSocialAccount, getSocialAccounts } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -158,6 +158,8 @@ export default function useProfileSetup({ onNext }) {
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const [profilePhotoLoading, setProfilePhotoLoading] = useState(false);
   const [connectionLink, setConnectionLink] = useState(null);
+  const [isConnectionLinkCopied, setIsConnectionLinkCopied] = useState(false);
+  const copyConnectionLinkTimeoutRef = useRef(null);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [removedPlatformMessages, setRemovedPlatformMessages] = useState({});
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -174,6 +176,28 @@ export default function useProfileSetup({ onNext }) {
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
+
+  useEffect(() => {
+    setIsConnectionLinkCopied(false);
+    if (copyConnectionLinkTimeoutRef.current) {
+      clearTimeout(copyConnectionLinkTimeoutRef.current);
+      copyConnectionLinkTimeoutRef.current = null;
+    }
+  }, [connectionLink]);
+
+  const handleCopyConnectionLink = useCallback(() => {
+    if (!connectionLink) return;
+    navigator.clipboard.writeText(connectionLink).then(() => {
+      setIsConnectionLinkCopied(true);
+      if (copyConnectionLinkTimeoutRef.current) {
+        clearTimeout(copyConnectionLinkTimeoutRef.current);
+      }
+      copyConnectionLinkTimeoutRef.current = setTimeout(() => {
+        setIsConnectionLinkCopied(false);
+        copyConnectionLinkTimeoutRef.current = null;
+      }, 2000);
+    });
+  }, [connectionLink]);
 
   const prevCreatorTypeRef = useRef(creatorType);
 
@@ -718,5 +742,7 @@ export default function useProfileSetup({ onNext }) {
     // connection link
     connectionLink,
     setConnectionLink,
+    isConnectionLinkCopied,
+    handleCopyConnectionLink,
   };
 }
