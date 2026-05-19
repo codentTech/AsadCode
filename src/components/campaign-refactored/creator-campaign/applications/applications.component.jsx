@@ -297,6 +297,7 @@ export default function CreatorApplications() {
       />
 
       <MessageThreadModal
+        key={`${messageModalState.brandId ?? ""}-${messageModalState.application?.campaign?.id ?? messageModalState.application?.campaign_id ?? messageModalState.application?.id ?? ""}`}
         isOpen={messageModalState.isOpen && messageThreadHook.isModalOpen}
         onClose={handleCloseMessageThread}
         creator={messageThreadBrand}

@@ -140,7 +140,9 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
 
       <div
         className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
-          mobilePane === "list" ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]" : "flex"
+          mobilePane === "list"
+            ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
+            : "flex"
         }`}
       >
         {rightColumn}

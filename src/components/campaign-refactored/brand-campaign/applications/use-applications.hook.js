@@ -45,8 +45,15 @@ const normalizeAppliedCreatorsFilters = (filters = {}) => {
   delete normalized.audienceCountryCode;
   delete normalized.audienceCityCountryCode;
 
+  if (Array.isArray(normalized.statuses) && normalized.statuses.length > 0) {
+    normalized.status = normalized.statuses.join(",");
+    delete normalized.statuses;
+  }
+
   return normalized;
 };
+
+const APPLICATIONS_LIST_STATUSES = ["PENDING", "NEGOTIATIONS"];
 
 function useBrandApplications() {
   const dispatch = useDispatch();
@@ -110,7 +117,7 @@ function useBrandApplications() {
     city: "",
     niches: [],
     platforms: [],
-    status: "PENDING",
+    status: APPLICATIONS_LIST_STATUSES.join(","),
     excludeStatus: "HIRED",
     sort: "newest",
   });
@@ -213,7 +220,14 @@ function useBrandApplications() {
       setSelectedCreator(creators[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }
-  }, [appliedCreatorsSuccess, appliedCreatorsData, selectedCampaign, selectedCreator, appliedCreatorsData?.data?.length]);
+  }, [
+    appliedCreatorsSuccess,
+    appliedCreatorsData,
+    selectedCampaign,
+    selectedCreator,
+    appliedCreatorsData?.data?.length,
+    filters?.status,
+  ]);
 
   useEffect(() => {
     if (
@@ -371,9 +385,7 @@ function useBrandApplications() {
       fetchIndividualCollaborations();
     } else {
       const creatorUserId = selectedCreator.creator?.id || selectedCreator.id;
-      dispatch(
-        rejectCreator({ campaignId: selectedCampaign.id, creatorId: creatorUserId }),
-      );
+      dispatch(rejectCreator({ campaignId: selectedCampaign.id, creatorId: creatorUserId }));
     }
     setShowRejectConfirmation(false);
   };
@@ -404,7 +416,7 @@ function useBrandApplications() {
       city: "",
       niches: [],
       platforms: [],
-      status: "",
+      status: APPLICATIONS_LIST_STATUSES.join(","),
       excludeStatus: "HIRED",
       sort: "newest",
     });
@@ -426,7 +438,7 @@ function useBrandApplications() {
     if (rejectSuccess && selectedCampaign) {
       autoSelectedForCampaignRef.current = null;
       setSelectedCreator(null);
-      
+
       if (selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
       } else {
@@ -444,7 +456,7 @@ function useBrandApplications() {
     if (createContractSuccess && sendContractSuccess) {
       autoSelectedForCampaignRef.current = null;
       setSelectedCreator(null);
-      
+
       if (selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR) {
         fetchIndividualCollaborations();
       } else if (selectedCampaign) {
@@ -503,18 +515,63 @@ function useBrandApplications() {
     return selectedCreator?.creator?.id || selectedCreator?.id || null;
   };
 
+  const isSelectedCreatorForCurrentCampaign = useCallback(() => {
+    if (!selectedCreator || !selectedCampaign) return false;
+
+    const creatorCampaignId =
+      selectedCreator.campaign_id || selectedCreator.campaign?.id || null;
+    const isIndividual =
+      selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+
+    if (isIndividual) {
+      return (
+        Boolean(selectedCreator.creator) &&
+        (!creatorCampaignId || creatorCampaignId === selectedCampaign.id)
+      );
+    }
+
+    if (creatorCampaignId && creatorCampaignId !== selectedCampaign.id) {
+      return false;
+    }
+
+    return !selectedCreator.creator || Boolean(selectedCreator.creator);
+  }, [selectedCreator, selectedCampaign]);
+
+  useEffect(() => {
+    if (!selectedCreator || !selectedCampaign) return;
+    if (!isSelectedCreatorForCurrentCampaign()) {
+      setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
+    }
+  }, [selectedCreator, selectedCampaign, isSelectedCreatorForCurrentCampaign]);
+
   const initialMessagePayload = useMemo(() => {
-    if (!selectedCreator) return null;
+    if (!selectedCreator || !selectedCampaign || !isSelectedCreatorForCurrentCampaign()) {
+      return null;
+    }
+
+    const campaignId = selectedCampaign.id;
+    const creatorUserId = selectedCreator?.creator?.id || selectedCreator?.id || null;
     const invitationMessage = selectedCreator?.custom_message?.trim();
     if (invitationMessage) {
-      return { content: invitationMessage, senderRole: "BRAND" };
+      return {
+        content: invitationMessage,
+        senderRole: "BRAND",
+        campaignId,
+        creatorId: creatorUserId,
+      };
     }
     const creatorPitch = selectedCreator?.pitch?.trim();
     if (creatorPitch) {
-      return { content: creatorPitch, senderRole: "CREATOR" };
+      return {
+        content: creatorPitch,
+        senderRole: "CREATOR",
+        campaignId,
+        creatorId: creatorUserId,
+      };
     }
     return null;
-  }, [selectedCreator]);
+  }, [selectedCreator, selectedCampaign, isSelectedCreatorForCurrentCampaign]);
 
   const messageThreadHook = useMessageThread(
     getCreatorId(),
@@ -587,12 +644,7 @@ function useBrandApplications() {
 
   useEffect(() => {
     if (user?.role !== "BRAND") return;
-    if (
-      selectedCampaign &&
-      selectedCampaign?.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
-      selectedCampaign !== null
-    )
-      return;
+    if (!selectedCampaign) return;
 
     const now = Date.now();
     const minTimeBetweenRefreshes = 30000;
@@ -622,7 +674,18 @@ function useBrandApplications() {
         clearTimeout(refreshTimeoutRef.current);
       }
       refreshTimeoutRef.current = setTimeout(() => {
-        dispatch(getBrandIndividualCollaborations());
+        const isIndividual =
+          selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
+        if (isIndividual) {
+          dispatch(getBrandIndividualCollaborations());
+        } else {
+          dispatch(
+            getAppliedCreators({
+              campaignId: selectedCampaign.id,
+              filters,
+            })
+          );
+        }
       }, 2000);
     }
 
@@ -631,7 +694,7 @@ function useBrandApplications() {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [allMessages, selectedCampaign, dispatch, user]);
+  }, [allMessages, selectedCampaign, dispatch, user, filters]);
 
   const isIndividualCreator =
     !selectedCampaign ||
@@ -671,7 +734,7 @@ function useBrandApplications() {
         selectedCampaign &&
         displayCreators.length > 0 &&
         autoSelectedForCampaignRef.current !== selectedCampaign.id;
-      
+
       if (shouldAutoSelect) {
         return { type: "loading" };
       }

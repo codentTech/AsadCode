@@ -46,6 +46,18 @@ const ensurePasswordResetSubmit = (state) => {
   }
 };
 
+const ensureImpersonateUser = (state) => {
+  if (!state.impersonateUser) {
+    state.impersonateUser = { ...generalState };
+  }
+};
+
+const ensureExitImpersonation = (state) => {
+  if (!state.exitImpersonation) {
+    state.exitImpersonation = { ...generalState };
+  }
+};
+
 // Get user from localStorage
 const user = getUser();
 const initialState = {
@@ -377,6 +389,7 @@ export const authSlice = createSlice({
         state.passwordResetSubmit.data = null;
       })
       .addCase(impersonateUser.pending, (state) => {
+        ensureImpersonateUser(state);
         state.impersonateUser.isLoading = true;
         state.impersonateUser.isError = false;
         state.impersonateUser.isSuccess = false;
@@ -384,17 +397,20 @@ export const authSlice = createSlice({
         state.impersonateUser.data = null;
       })
       .addCase(impersonateUser.fulfilled, (state, action) => {
+        ensureImpersonateUser(state);
         state.impersonateUser.isLoading = false;
         state.impersonateUser.isSuccess = true;
         state.impersonateUser.data = action.payload;
       })
       .addCase(impersonateUser.rejected, (state, action) => {
+        ensureImpersonateUser(state);
         state.impersonateUser.isLoading = false;
         state.impersonateUser.isError = true;
         state.impersonateUser.message = action.payload?.message || "Failed to impersonate user";
         state.impersonateUser.data = null;
       })
       .addCase(exitImpersonation.pending, (state) => {
+        ensureExitImpersonation(state);
         state.exitImpersonation.isLoading = true;
         state.exitImpersonation.isError = false;
         state.exitImpersonation.isSuccess = false;
@@ -402,11 +418,13 @@ export const authSlice = createSlice({
         state.exitImpersonation.data = null;
       })
       .addCase(exitImpersonation.fulfilled, (state, action) => {
+        ensureExitImpersonation(state);
         state.exitImpersonation.isLoading = false;
         state.exitImpersonation.isSuccess = true;
         state.exitImpersonation.data = action.payload;
       })
       .addCase(exitImpersonation.rejected, (state, action) => {
+        ensureExitImpersonation(state);
         state.exitImpersonation.isLoading = false;
         state.exitImpersonation.isError = true;
         state.exitImpersonation.message =
