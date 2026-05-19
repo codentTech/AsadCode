@@ -6,6 +6,7 @@ import {
   deleteGalleryItemThunk,
   fetchCreatorGallery,
   refreshMetricsThunk,
+  selectDeleteGalleryItem,
   selectGalleryItems,
   selectRefreshMetrics,
 } from "@/provider/features/gallery/gallery.slice";
@@ -15,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const dispatch = useDispatch();
   const galleryConfirmationRef = useRef(null);
+  const galleryDeleteSubmittedRef = useRef(false);
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -26,6 +28,8 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   const galleryItems = galleryState?.data || [];
   const isGalleryLoading = galleryState?.isLoading || false;
   const refreshMetricsState = useSelector(selectRefreshMetrics);
+  const { isLoading: isGalleryDeleteLoading, isSuccess: isGalleryDeleteSuccess } =
+    useSelector(selectDeleteGalleryItem);
   const [metricsRefreshGalleryId, setMetricsRefreshGalleryId] = useState(null);
   const wasMetricsRefreshing = useRef(false);
 
@@ -71,18 +75,40 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
   }, [dispatch]);
 
   const handleOpenGalleryDeleteModal = useCallback((id) => {
+    galleryDeleteSubmittedRef.current = false;
     setGalleryDeleteItemId(id);
     setOpenGalleryDeleteModal(true);
   }, []);
 
+  const handleCloseGalleryDeleteModal = useCallback(() => {
+    if (isGalleryDeleteLoading) return;
+    galleryDeleteSubmittedRef.current = false;
+    setOpenGalleryDeleteModal(false);
+    setGalleryDeleteItemId(null);
+  }, [isGalleryDeleteLoading]);
+
   const handleGalleryDeleteItem = useCallback(
     (id) => {
+      if (!id || isGalleryDeleteLoading) return;
+      galleryDeleteSubmittedRef.current = true;
       dispatch(deleteGalleryItemThunk(id));
-      setOpenGalleryDeleteModal(false);
-      setGalleryDeleteItemId(null);
     },
-    [dispatch]
+    [dispatch, isGalleryDeleteLoading]
   );
+
+  useEffect(() => {
+    if (
+      !openGalleryDeleteModal ||
+      isGalleryDeleteLoading ||
+      !isGalleryDeleteSuccess ||
+      !galleryDeleteSubmittedRef.current
+    ) {
+      return;
+    }
+    galleryDeleteSubmittedRef.current = false;
+    setOpenGalleryDeleteModal(false);
+    setGalleryDeleteItemId(null);
+  }, [openGalleryDeleteModal, isGalleryDeleteLoading, isGalleryDeleteSuccess]);
 
   const handleRefreshMetrics = useCallback(
     (galleryId) => {
@@ -154,10 +180,11 @@ const useGalleryTab = ({ activeTab, creatorCategories = [] }) => {
     setShowBulkUploadModal,
     galleryDeleteItemId,
     openGalleryDeleteModal,
-    setOpenGalleryDeleteModal,
+    setOpenGalleryDeleteModal: handleCloseGalleryDeleteModal,
     galleryConfirmationRef,
     handleOpenGalleryDeleteModal,
     handleGalleryDeleteItem,
+    isGalleryDeleteLoading,
     handleRefreshMetrics,
     canRefreshMetrics,
     isRefreshingMetricsFor,
