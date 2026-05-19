@@ -11,7 +11,7 @@ import React, { useState } from "react";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
-import useDeliverablesProgress from "../../../active/components/deliverables-progress/use-deliverables-progress.hook";
+import useDeliverablesProgress from "./use-deliverables-progress.hook";
 import { formatDate } from "@/common/utils/formate-date";
 import ContractPreviewModal from "../../../applications/components/contract-preview-modal/contract-preview-modal.component";
 import { getUser } from "@/common/utils/users.util";
@@ -252,10 +252,6 @@ const DeliverablesProgressCompleted = ({
       return null;
     }
 
-    const creatorUserId = isIndividualCreator
-      ? selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id
-      : selectedCreator?.creator?.id || selectedCreator?.creator_id;
-
     if (!creatorUserId) {
       return null;
     }
@@ -263,7 +259,11 @@ const DeliverablesProgressCompleted = ({
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={campaignId} creatorId={creatorUserId} />
+        <BrandTimelineSteps
+          campaignId={campaignId}
+          creatorId={creatorUserId}
+          enabled={Boolean(selectedCampaign && selectedCreator && creatorUserId)}
+        />
       </div>
     );
   };

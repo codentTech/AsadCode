@@ -94,9 +94,6 @@ export default function useCampaignOverviewCompleted(
   const appliedCreatorsCampaignId = useSelector(
     (state) => state.campaigns.getAppliedCreators?.campaignId ?? null
   );
-  const { data: budgetCreatorsData, isSuccess: budgetCreatorsSuccess } = useSelector(
-    (state) => state.campaigns.getAppliedCreatorsForBudget || {}
-  );
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
   const {
@@ -117,70 +114,19 @@ export default function useCampaignOverviewCompleted(
       return { totalBudget: 0, spent: 0, remaining: 0, saved: 0 };
     }
     const totalBudget = Number(displayCampaign.budget) || 0;
-    const budgetCreators = budgetCreatorsData?.data?.data ?? budgetCreatorsData?.data ?? [];
-    const budgetList = Array.isArray(budgetCreators) ? budgetCreators : [];
-    if (
-      budgetCreatorsSuccess &&
-      budgetList.length >= 0 &&
-      campaignIdKey(appliedCreatorsCampaignId) === campaignIdKey(displayCampaign.id)
-    ) {
-      const spent = budgetList.reduce((sum, creator) => {
-        const raw =
-          creator.contract?.total_compensation ??
-          creator.contract?.totalCompensation ??
-          creator.total_spent ??
-          0;
-        const comp = Array.isArray(raw)
-          ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
-          : Number(raw) || 0;
-        return Number(sum) + comp;
-      }, 0);
-      const saved = Math.max(0, totalBudget - Number(spent));
-      return {
-        totalBudget,
-        spent: Number(spent),
-        remaining: 0,
-        saved: Number(saved),
-      };
-    }
-    if (
-      creatorsSuccess &&
-      creatorsData?.data &&
-      campaignIdKey(appliedCreatorsCampaignId) === campaignIdKey(displayCampaign.id)
-    ) {
-      const creators = Array.isArray(creatorsData.data) ? creatorsData.data : [];
-      const spent = creators.reduce((sum, creator) => {
-        const raw =
-          creator.contract?.total_compensation ??
-          creator.contract?.totalCompensation ??
-          creator.total_spent ??
-          0;
-        const comp = Array.isArray(raw)
-          ? raw.reduce((a, b) => Number(a) + (Number(b) || 0), 0)
-          : Number(raw) || 0;
-        return Number(sum) + comp;
-      }, 0);
-      const saved = Math.max(0, totalBudget - Number(spent));
-      return {
-        totalBudget,
-        spent: Number(spent),
-        remaining: 0,
-        saved: Number(saved),
-      };
-    }
+    const spent = Number(displayCampaign.used_budget) || 0;
+    const remaining = Number(displayCampaign.remaining_budget) || 0;
     return {
       totalBudget,
-      spent: 0,
-      remaining: 0,
-      saved: Number(totalBudget),
+      spent,
+      remaining,
+      saved: Math.max(0, remaining),
     };
   }, [
-    displayCampaign,
-    budgetCreatorsSuccess,
-    budgetCreatorsData,
-    creatorsSuccess,
-    creatorsData,
-    appliedCreatorsCampaignId,
+    displayCampaign?.id,
+    displayCampaign?.budget,
+    displayCampaign?.used_budget,
+    displayCampaign?.remaining_budget,
   ]);
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline?.timelinesByKey || {});
@@ -601,19 +547,8 @@ export default function useCampaignOverviewCompleted(
   const handleViewAnalytics = () => {};
 
   const budgetStatsLoading = useMemo(
-    () =>
-      showMultiCreatorUI &&
-      !!displayCampaign &&
-      !budgetCreatorsSuccess &&
-      !creatorsSuccess &&
-      !creatorsError,
-    [
-      showMultiCreatorUI,
-      displayCampaign,
-      budgetCreatorsSuccess,
-      creatorsSuccess,
-      creatorsError,
-    ]
+    () => showMultiCreatorUI && !!displayCampaign && !creatorsSuccess && !creatorsError,
+    [showMultiCreatorUI, displayCampaign, creatorsSuccess, creatorsError]
   );
 
   const computedHasData = useMemo(() => {

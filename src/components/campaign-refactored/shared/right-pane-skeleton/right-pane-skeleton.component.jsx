@@ -1,17 +1,19 @@
 import PropTypes from "prop-types";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 
-export default function RightPaneSkeleton({ layout = "narrow" }) {
+const EMBEDDED_ROOT = "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-white";
+
+export default function RightPaneSkeleton({ layout = "narrow", embedded = false }) {
   const isFluid = layout === "fluid";
 
+  const rootClassName = embedded
+    ? EMBEDDED_ROOT
+    : isFluid
+      ? "flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
+      : "flex h-screen w-[27%] flex-col border-l bg-white";
+
   return (
-    <div
-      className={
-        isFluid
-          ? "flex min-h-0 w-full flex-1 flex-col border-l border-gray-200 bg-white md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
-          : "flex h-screen w-[27%] flex-col border-l bg-white"
-      }
-    >
+    <div className={rootClassName}>
       <div
         className={
           isFluid
@@ -61,4 +63,5 @@ export default function RightPaneSkeleton({ layout = "narrow" }) {
 
 RightPaneSkeleton.propTypes = {
   layout: PropTypes.oneOf(["narrow", "fluid"]),
+  embedded: PropTypes.bool,
 };
