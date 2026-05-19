@@ -79,6 +79,8 @@ export default function useSavedDefaultFilter() {
   const [platformPendingDisconnect, setPlatformPendingDisconnect] = useState(null);
   const disconnectInFlightRef = useRef(false);
   const [connectionLink, setConnectionLink] = useState(null);
+  const [isConnectionLinkCopied, setIsConnectionLinkCopied] = useState(false);
+  const copyConnectionLinkTimeoutRef = useRef(null);
   const { openConnect: openPhylloConnect } = usePhylloConnect();
 
   const refreshUserSnapshot = useCallback(() => {
@@ -101,6 +103,28 @@ export default function useSavedDefaultFilter() {
   const creatorTagMeta = useMemo(() => getCreatorTagMeta(creatorType), [creatorType]);
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
+
+  useEffect(() => {
+    setIsConnectionLinkCopied(false);
+    if (copyConnectionLinkTimeoutRef.current) {
+      clearTimeout(copyConnectionLinkTimeoutRef.current);
+      copyConnectionLinkTimeoutRef.current = null;
+    }
+  }, [connectionLink]);
+
+  const handleCopyConnectionLink = useCallback(() => {
+    if (!connectionLink) return;
+    navigator.clipboard.writeText(connectionLink).then(() => {
+      setIsConnectionLinkCopied(true);
+      if (copyConnectionLinkTimeoutRef.current) {
+        clearTimeout(copyConnectionLinkTimeoutRef.current);
+      }
+      copyConnectionLinkTimeoutRef.current = setTimeout(() => {
+        setIsConnectionLinkCopied(false);
+        copyConnectionLinkTimeoutRef.current = null;
+      }, 2000);
+    });
+  }, [connectionLink]);
 
   const handleCreatorTypeChange = useCallback((nextType) => {
     const exists = CREATOR_TAG_OPTIONS.some((opt) => opt.value === nextType);
@@ -453,5 +477,7 @@ export default function useSavedDefaultFilter() {
     socialConnectLoadingMap,
     connectionLink,
     setConnectionLink,
+    isConnectionLinkCopied,
+    handleCopyConnectionLink,
   };
 }

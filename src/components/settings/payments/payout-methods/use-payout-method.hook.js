@@ -160,6 +160,12 @@ function usePayoutMethod() {
         errorMessage.includes("enable Stripe Connect")
       ) {
         setConnectError(CONNECT_DISABLED_CREATOR_MESSAGE);
+      } else if (errorMessage) {
+        setConnectError(errorMessage);
+      } else {
+        setConnectError(
+          "We could not start Stripe onboarding. Please try again or contact CleerCut support."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -205,7 +211,7 @@ function usePayoutMethod() {
           details: [
             "Click 'Connect Stripe' to start the setup process",
             "You'll be redirected to Stripe's secure onboarding page",
-            "Have your bank account details ready (account number, routing number)",
+            "Have your bank account details ready for your country",
             "You may need to verify your identity with a government-issued ID",
             "Setup typically takes 5-10 minutes",
             "Stripe securely handles all financial information - CleerCut never sees your bank details",
@@ -261,7 +267,7 @@ function usePayoutMethod() {
             "Check what specific information Stripe is requesting",
             "Have your bank account details ready",
             "Government-issued ID may be required",
-            "Tax information (SSN, EIN, or equivalent)",
+            "Tax information for your country",
           ],
         };
       default:

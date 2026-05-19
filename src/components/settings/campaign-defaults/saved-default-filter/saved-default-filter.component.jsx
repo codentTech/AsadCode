@@ -60,6 +60,8 @@ const SavedDefaultFilters = () => {
     socialConnectLoadingMap,
     connectionLink,
     setConnectionLink,
+    isConnectionLinkCopied,
+    handleCopyConnectionLink,
   } = useSavedDefaultFilter();
 
   return (
@@ -258,9 +260,10 @@ const SavedDefaultFilters = () => {
                   />
                   <div className="flex gap-2">
                     <CustomButton
-                      text="Copy link"
+                      text={isConnectionLinkCopied ? "Copied!" : "Copy link"}
                       type="button"
-                      onClick={() => navigator.clipboard.writeText(connectionLink)}
+                      onClick={handleCopyConnectionLink}
+                      disabled={isConnectionLinkCopied}
                       className="btn-primary text-xs px-4 py-1 h-7"
                     />
                     <CustomButton

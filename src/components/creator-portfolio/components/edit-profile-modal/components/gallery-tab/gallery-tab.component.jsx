@@ -46,6 +46,7 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
     galleryConfirmationRef,
     handleOpenGalleryDeleteModal,
     handleGalleryDeleteItem,
+    isGalleryDeleteLoading,
     handleRefreshMetrics,
     canRefreshMetrics,
     isRefreshingMetricsFor,
@@ -309,6 +310,8 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
         mainText="Delete Gallery Item"
         subText="This action cannot be undone. The item will be permanently removed from your gallery."
         confirmText="Delete"
+        confirmLoading={isGalleryDeleteLoading}
+        confirmLoadingText="Deleting"
         closeText="Cancel"
         action={handleGalleryDeleteItem}
         type="gallery"
