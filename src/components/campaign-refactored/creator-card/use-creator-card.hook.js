@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 
@@ -93,6 +94,13 @@ export const useCreatorCard = ({
 
   const getPlatformFollowers = (platform) => getStatFollowers(creator.platformStats?.[platform]);
 
+  const displayNiches = useMemo(() => {
+    const niches = Array.isArray(creator?.niches) ? creator.niches : [];
+    return [...niches]
+      .sort((a, b) => String(a).length - String(b).length)
+      .slice(0, 3);
+  }, [creator?.niches]);
+
   return {
     getPlatformIcon,
     getPlatformProfileUrlFor,
@@ -105,5 +113,6 @@ export const useCreatorCard = ({
     formatFollowers,
     combinedFollowers,
     getPlatformFollowers,
+    displayNiches,
   };
 };
