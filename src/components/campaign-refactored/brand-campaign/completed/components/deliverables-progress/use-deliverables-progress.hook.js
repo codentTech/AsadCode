@@ -1,6 +1,5 @@
 import { avatar } from "@/common/constants/auth.constant";
-import { TIMELINE_STATUS, TIMELINE_STEPS } from "@/common/constants/campaign.constant";
-import { getUser, isCreatorMode } from "@/common/utils/users.util";
+import { isCreatorMode } from "@/common/utils/users.util";
 import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import {
   createCampaignNote,
@@ -8,20 +7,13 @@ import {
   getCampaignNotesByCreatorProfile,
   updateCampaignNote,
 } from "@/provider/features/campaign-notes/campaign-notes.slice";
-import { createCampaignReview } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
-import { getBrandTasks } from "@/provider/features/campaign-tasks/campaign-tasks.slice";
-import { getTimeline } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import {
-  getAllBrandCampaigns,
-  getHiredCreators,
-  markCreatorComplete,
-} from "@/provider/features/campaigns/campaigns.slice";
-import {
-  getContractsByCampaign,
-  getIndividualCollaborationContracts,
-} from "@/provider/features/contracts/contracts.slice";
-import { fetchCampaignCombinedDemographics } from "@/provider/features/phyllo/phyllo.slice";
+  getCampaignReviewsByCreatorProfile,
+  getReviewStatus,
+} from "@/provider/features/campaign-reviews/campaign-reviews.slice";
+import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
 import usersService from "@/provider/features/users/users.service";
+import { resolveBrandMarkedCompleteAt } from "@/common/utils/campaign.utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -30,15 +22,13 @@ const useDeliverablesProgress = (
   selectedCreator = null,
   isIndividualCreator = false,
   onClearCreator = null,
-  filters = { status: "HIRED", sort: "newest" }
+  filters = { status: "COMPLETED", sort: "newest" }
 ) => {
   const creatorMode = isCreatorMode();
-  const user = getUser();
   const dispatch = useDispatch();
 
   const {
     createCampaignNote: createNoteState,
-    getCampaignNotes: getNotesState,
     getCampaignNotesByCreatorProfile: getNotesByCreatorProfileState,
     updateCampaignNote: updateNoteState,
     deleteCampaignNote: deleteNoteState,
@@ -49,25 +39,22 @@ const useDeliverablesProgress = (
     getIndividualCollaborationContracts: getIndividualContractsState,
   } = useSelector((state) => state.contracts);
 
-  const { updateCampaign: updateCampaignState } = useSelector((state) => state.campaigns);
-
-  const { getTimeline: getTimelineState } = useSelector((state) => state.campaignTimeline);
+  const {
+    getCampaignReviewsByCreatorProfile: getReviewsByCreatorProfileState,
+    getReviewStatus: getReviewStatusState,
+  } = useSelector((state) => state.campaignReviews || {});
 
   const [editingNote, setEditingNote] = useState(null);
   const [newNoteText, setNewNoteText] = useState("");
   const [textareaKey, setTextareaKey] = useState(0);
 
-  const [showMarkCompleteModal, setShowMarkCompleteModal] = useState(false);
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
-  const [markCompleteRating, setMarkCompleteRating] = useState(0);
-  const [markCompleteFeedback, setMarkCompleteFeedback] = useState("");
-  const [isAddressCopied, setIsAddressCopied] = useState(false);
   const [hydratedCreatorUser, setHydratedCreatorUser] = useState(null);
 
   // Track the last called keys to prevent duplicate calls
   const lastCalledKeysRef = useRef({
     notes: null,
     timeline: null,
+    reviews: null,
   });
 
   // Extract stable IDs to prevent unnecessary recalculations - extract once at the top
@@ -404,23 +391,6 @@ const useDeliverablesProgress = (
     selectedCreator?.id,
   ]);
 
-  useEffect(() => {
-    if (!effectiveCampaignId || !creatorUserId) return;
-
-    // Create a unique key - only depends on actual IDs
-    const currentKey = `${effectiveCampaignId}-${creatorUserId}`;
-
-    // Prevent duplicate API calls
-    if (lastCalledKeysRef.current.timeline === currentKey) {
-      return;
-    }
-
-    // Update the ref BEFORE making the call
-    lastCalledKeysRef.current.timeline = currentKey;
-
-    dispatch(getTimeline({ campaignId: effectiveCampaignId, creatorId: creatorUserId }));
-  }, [dispatch, effectiveCampaignId, creatorUserId]);
-
   const handleEditNote = (noteId) => {
     const note = privateNotes.find((n) => n.id === noteId);
     if (note) {
@@ -494,169 +464,28 @@ const useDeliverablesProgress = (
     setTextareaKey((prev) => prev + 1);
   };
 
-  const timelineSteps = getTimelineState?.data?.data || [];
+  useEffect(() => {
+    if (!effectiveCampaignId || !creatorProfileId || creatorMode) return;
 
-  let creatorTimelineSteps = timelineSteps.filter((step) => {
-    const stepCreatorId =
-      step.creator?.id || step.creator_id || step.creator?.user_id || step.creator_user_id;
-    return stepCreatorId === creatorUserId;
-  });
+    // Create a unique key - only depends on actual IDs
+    const currentKey = `${effectiveCampaignId}-${creatorProfileId}`;
 
-  if (creatorTimelineSteps.length === 0 && timelineSteps.length > 0) {
-    creatorTimelineSteps = timelineSteps;
-  }
-
-  const hasPublishedPostStep = creatorTimelineSteps.some(
-    (s) => s.step === TIMELINE_STEPS.FINAL_PUBLISHED
-  );
-
-  const areAllStepsComplete = (() => {
-    if (!creatorTimelineSteps.length) return false;
-    if (hasPublishedPostStep) {
-      return creatorTimelineSteps.every((s) => s.status === TIMELINE_STATUS.COMPLETED);
-    }
-    return creatorTimelineSteps.every((step) => {
-      if (step.step === TIMELINE_STEPS.CONTENT_RECORDED) {
-        return step.status === TIMELINE_STATUS.COMPLETED;
-      }
-      if (step.step === TIMELINE_STEPS.DRAFT_REVIEW) {
-        return (
-          step.status === TIMELINE_STATUS.COMPLETED || step.status === TIMELINE_STATUS.APPROVED
-        );
-      }
-      return step.status === TIMELINE_STATUS.COMPLETED;
-    });
-  })();
-
-  const isMarkCompleteDisabled = !areAllStepsComplete;
-
-  const markCompleteDisabledTitle = areAllStepsComplete
-    ? ""
-    : hasPublishedPostStep
-      ? "Final content must be published before completion"
-      : "Complete all campaign steps before marking complete";
-
-  const handleMarkCompleteClick = () => {
-    setShowMarkCompleteModal(true);
-  };
-
-  const handleCancelMarkComplete = () => {
-    setShowMarkCompleteModal(false);
-    setMarkCompleteRating(0);
-    setMarkCompleteFeedback("");
-  };
-
-  const handleConfirmMarkComplete = async () => {
-    if (
-      !selectedContract ||
-      !effectiveCampaignId ||
-      !creatorProfileId ||
-      !creatorUserId ||
-      markCompleteRating === 0
-    )
+    // Prevent duplicate API calls
+    if (lastCalledKeysRef.current.reviews === currentKey) {
       return;
-
-    setIsMarkingComplete(true);
-    await dispatch(
-      createCampaignReview({
-        campaignId: effectiveCampaignId,
-        creatorProfileId,
-        reviewData: {
-          rating: markCompleteRating,
-          review: markCompleteFeedback || null,
-        },
-      })
-    ).unwrap();
-
-    await dispatch(
-      markCreatorComplete({ campaignId: effectiveCampaignId, creatorId: creatorUserId })
-    ).unwrap();
-
-    dispatch(getBrandTasks(null));
-
-    if (isIndividualCreator) {
-      // Refetch only the currently visible dataset.
-      // Both active and completed screens share the same Redux slice key, so
-      // fetching both back-to-back can overwrite Active data with Completed data.
-      const shouldFetchCompleted = filters?.status === "COMPLETED";
-      await dispatch(getIndividualCollaborationContracts(shouldFetchCompleted)).unwrap();
-      if (onClearCreator) {
-        onClearCreator();
-      }
-    } else {
-      await dispatch(getAllBrandCampaigns()).unwrap();
-      if (selectedCampaign?.id) {
-        await dispatch(
-          getHiredCreators({
-            campaignId: selectedCampaign.id,
-            filters: filters,
-          })
-        ).unwrap();
-        // Refetch combined demographics so audience panel reflects remaining creators
-        dispatch(fetchCampaignCombinedDemographics({ campaignId: selectedCampaign.id }));
-      }
-      if (onClearCreator) {
-        onClearCreator();
-      }
     }
 
-    setShowMarkCompleteModal(false);
-    setMarkCompleteRating(0);
-    setMarkCompleteFeedback("");
-    setIsMarkingComplete(false);
-  };
+    // Update the ref BEFORE making the call
+    lastCalledKeysRef.current.reviews = currentKey;
 
-  // Format shipping address for display
-  const formatShippingAddress = useCallback((address) => {
-    if (!address) return null;
-
-    const lines = [];
-    if (address.street) lines.push(address.street);
-    if (address.line2) lines.push(address.line2);
-    if (address.line3) lines.push(address.line3);
-
-    const cityStateZip = [address.city, address.state, address.zipCode].filter(Boolean).join(", ");
-
-    if (cityStateZip) lines.push(cityStateZip);
-    if (address.country) lines.push(address.country);
-
-    return lines;
-  }, []);
-
-  // Copy shipping address to clipboard
-  const handleCopyShippingAddress = useCallback(
-    async (address) => {
-      if (!address) return false;
-
-      const addressLines = formatShippingAddress(address);
-      if (!addressLines || addressLines.length === 0) return false;
-
-      const formattedAddress = addressLines.join("\n");
-
-      try {
-        await navigator.clipboard.writeText(formattedAddress);
-        return true;
-      } catch (error) {
-        console.error("Failed to copy address:", error);
-        return false;
-      }
-    },
-    [formatShippingAddress]
-  );
-
-  // Handle copy shipping address with state management
-  const onCopyShippingAddress = useCallback(
-    async (address) => {
-      const success = await handleCopyShippingAddress(address);
-      if (success) {
-        setIsAddressCopied(true);
-        setTimeout(() => {
-          setIsAddressCopied(false);
-        }, 2000);
-      }
-    },
-    [handleCopyShippingAddress]
-  );
+    dispatch(getReviewStatus({ campaignId: effectiveCampaignId, creatorProfileId }));
+    dispatch(
+      getCampaignReviewsByCreatorProfile({
+        campaignId: effectiveCampaignId,
+        creatorProfileId: creatorProfileId,
+      })
+    );
+  }, [dispatch, effectiveCampaignId, creatorProfileId, creatorMode]);
 
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
@@ -664,15 +493,22 @@ const useDeliverablesProgress = (
     }
   }, [creatorUserId]);
 
+  const brandMarkedCompleteAt = useMemo(
+    () =>
+      resolveBrandMarkedCompleteAt({
+        selectedCreator,
+        selectedCampaign,
+        selectedContract,
+        isIndividualCreator,
+      }),
+    [selectedCreator, selectedCampaign, selectedContract, isIndividualCreator]
+  );
+
   return {
     messageThreadHook,
     handleMessageClick,
     creator,
     creatorUserId,
-    formatShippingAddress,
-    handleCopyShippingAddress,
-    onCopyShippingAddress,
-    isAddressCopied,
     privateNotes,
     editingNote,
     newNoteText,
@@ -691,21 +527,13 @@ const useDeliverablesProgress = (
     isContractsLoading: isIndividualCreator
       ? getIndividualContractsState.isLoading
       : getContractsState.isLoading,
-    isUpdateCampaignLoading: updateCampaignState.isLoading,
     selectedContract,
     contracts,
-    showMarkCompleteModal,
-    isMarkingComplete,
-    isMarkCompleteDisabled,
-    markCompleteDisabledTitle,
-    markCompleteRating,
-    setMarkCompleteRating,
-    markCompleteFeedback,
-    setMarkCompleteFeedback,
-    handleMarkCompleteClick,
-    handleCancelMarkComplete,
-    handleConfirmMarkComplete,
+    campaignReviews: getReviewsByCreatorProfileState.data || [],
+    reviewStatus: getReviewStatusState.data || null,
+    isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
     handleViewCreatorPortfolio,
+    brandMarkedCompleteAt,
   };
 };
 
