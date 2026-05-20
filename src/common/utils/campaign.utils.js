@@ -450,3 +450,29 @@ export function computeCombinedMetrics(creatorMetricsArray) {
 export function isUgcCampaign(campaign) {
   return campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 }
+
+export const resolveBrandMarkedCompleteAt = ({
+  selectedCreator,
+  selectedCampaign,
+  selectedContract,
+  isIndividualCreator,
+}) => {
+  const fromCreatorRow = selectedCreator?.completed_at ?? selectedCreator?.completedAt;
+  if (fromCreatorRow) return fromCreatorRow;
+
+  if (!isIndividualCreator) return null;
+
+  const fromCampaign =
+    selectedCreator?.campaign?.completed_date ??
+    selectedCreator?.campaign?.completedDate ??
+    selectedCampaign?.completed_date ??
+    selectedCampaign?.completedDate;
+  if (fromCampaign) return fromCampaign;
+
+  const workStatus = selectedContract?.work_status ?? selectedContract?.workStatus;
+  if (workStatus === "COMPLETED") {
+    return selectedContract?.updated_at ?? selectedContract?.updatedAt ?? null;
+  }
+
+  return null;
+};
