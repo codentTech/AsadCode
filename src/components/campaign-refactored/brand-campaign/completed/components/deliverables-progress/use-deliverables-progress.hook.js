@@ -13,6 +13,7 @@ import {
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
 import usersService from "@/provider/features/users/users.service";
+import { resolveBrandMarkedCompleteAt } from "@/common/utils/campaign.utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -492,6 +493,17 @@ const useDeliverablesProgress = (
     }
   }, [creatorUserId]);
 
+  const brandMarkedCompleteAt = useMemo(
+    () =>
+      resolveBrandMarkedCompleteAt({
+        selectedCreator,
+        selectedCampaign,
+        selectedContract,
+        isIndividualCreator,
+      }),
+    [selectedCreator, selectedCampaign, selectedContract, isIndividualCreator]
+  );
+
   return {
     messageThreadHook,
     handleMessageClick,
@@ -521,6 +533,7 @@ const useDeliverablesProgress = (
     reviewStatus: getReviewStatusState.data || null,
     isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
     handleViewCreatorPortfolio,
+    brandMarkedCompleteAt,
   };
 };
 

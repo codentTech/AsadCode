@@ -53,6 +53,7 @@ const DeliverablesProgressCompleted = ({
     reviewStatus,
     isReviewsLoading,
     handleViewCreatorPortfolio,
+    brandMarkedCompleteAt,
   } = useDeliverablesProgress(
     selectedCampaign,
     selectedCreator,
@@ -187,14 +188,14 @@ const DeliverablesProgressCompleted = ({
               <span>{deliverable.trim()}</span>
             </li>
           ))}
-          <li className="flex items-center justify-between">
-            <span>
-              Completed:
-              <span className="font-medium ml-1">
-                {formatDate(selectedContract.completionDeadline)}
+          {brandMarkedCompleteAt && (
+            <li className="flex items-center justify-between">
+              <span>
+                Marked completed:
+                <span className="font-medium ml-1">{formatDate(brandMarkedCompleteAt)}</span>
               </span>
-            </span>
-          </li>
+            </li>
+          )}
           <li className="flex items-center justify-between">
             <span>
               Payment: <span className="font-medium">{formatCompensation()}</span>
