@@ -45,6 +45,7 @@ const CreatorCard = ({
     handleViewProfileClick,
     formatFollowers,
     getPlatformFollowers,
+    displayNiches,
   } = useCreatorCard({
     creator,
     isShortlist,
@@ -143,7 +144,7 @@ const CreatorCard = ({
 
           {/* Niches */}
           <div className="flex min-h-[3.25rem] flex-wrap content-start items-start justify-center gap-1">
-            {(creator.niches || []).slice(0, 3).map((niche) => (
+            {displayNiches.map((niche) => (
               <span
                 key={niche}
                 className="px-2 py-1 bg-gray-100 text-xs rounded-lg text-gray-600 capitalize whitespace-nowrap"
