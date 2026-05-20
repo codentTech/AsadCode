@@ -88,3 +88,13 @@ export const CREATOR_STATUS = Object.freeze({
   COMPLETED: "COMPLETED",
   DRAFT: "DRAFT",
 });
+
+export const CONTRACT_USAGE_RIGHTS_VALUES = Object.freeze([
+  "no_usage",
+  "3",
+  "6",
+  "12",
+  "permanent",
+]);
+
+export const CONTRACT_EXCLUSIVITY_VALUES = Object.freeze(["none", "3", "6", "12"]);

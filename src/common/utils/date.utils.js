@@ -22,6 +22,18 @@ export const formatDateOrNA = (value) => {
   return parsed.toLocaleDateString();
 };
 
+export const toHtmlDateInputValue = (value) => {
+  if (value === undefined || value === null || value === "") return "";
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const y = parsed.getFullYear();
+  const m = String(parsed.getMonth() + 1).padStart(2, "0");
+  const d = String(parsed.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+export const getTodayHtmlDateInputValue = () => toHtmlDateInputValue(new Date());
+
 export const getDaysUntilDeadline = (date) => {
   const today = new Date();
   const deadlineDate = new Date(date);

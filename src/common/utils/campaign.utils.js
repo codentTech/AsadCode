@@ -450,3 +450,9 @@ export function computeCombinedMetrics(creatorMetricsArray) {
 export function isUgcCampaign(campaign) {
   return campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 }
+
+export const resolveCampaignFeeForOffer = (campaign) => {
+  const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
+  if (fee === undefined || fee === null || fee === "") return "";
+  return String(fee);
+};
