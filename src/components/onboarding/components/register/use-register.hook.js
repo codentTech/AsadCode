@@ -30,6 +30,7 @@ export default function useRegister({ onNext, inviteToken }) {
 
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [hasManualLocationOverride, setHasManualLocationOverride] =
     useState(false);
@@ -40,6 +41,7 @@ export default function useRegister({ onNext, inviteToken }) {
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    getValues,
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onChange",
@@ -122,6 +124,9 @@ export default function useRegister({ onNext, inviteToken }) {
         setSelectedCountry(null);
         setValue("country", "", { shouldValidate: true });
         setValue("country_code", "", { shouldValidate: true });
+        setSelectedState(null);
+        setValue("state", "", { shouldValidate: true });
+        setValue("state_short", "", { shouldValidate: true });
         setSelectedCity(null);
         setValue("city", "", { shouldValidate: true });
         setValue("city_country_code", "", { shouldValidate: true });
@@ -136,11 +141,42 @@ export default function useRegister({ onNext, inviteToken }) {
       setValue("country", normalizedCountry.name, { shouldValidate: true });
       setValue("country_code", normalizedCountry.code, { shouldValidate: true });
 
+      setSelectedState(null);
+      setValue("state", "", { shouldValidate: true });
+      setValue("state_short", "", { shouldValidate: true });
       setSelectedCity(null);
       setValue("city", "", { shouldValidate: true });
       setValue("city_country_code", normalizedCountry.code || "", { shouldValidate: true });
       setValue("latitude", "", { shouldValidate: false });
       setValue("longitude", "", { shouldValidate: false });
+    },
+    [setValue]
+  );
+
+  const handleStateSelect = useCallback(
+    (state) => {
+      setHasManualLocationOverride(true);
+
+      if (!state) {
+        setSelectedState(null);
+        setValue("state", "", { shouldValidate: true });
+        setValue("state_short", "", { shouldValidate: true });
+        setSelectedCity(null);
+        setValue("city", "", { shouldValidate: true });
+        return;
+      }
+
+      const normalized = {
+        stateName: state.stateName || state.label || "",
+        stateShort: state.stateShort || "",
+      };
+
+      setSelectedState(normalized);
+      setValue("state", normalized.stateName, { shouldValidate: true });
+      setValue("state_short", normalized.stateShort, { shouldValidate: true });
+
+      setSelectedCity(null);
+      setValue("city", "", { shouldValidate: true });
     },
     [setValue]
   );
@@ -165,8 +201,18 @@ export default function useRegister({ onNext, inviteToken }) {
       setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
       setValue("latitude", normalizedCity.latitude ?? "", { shouldValidate: false });
       setValue("longitude", normalizedCity.longitude ?? "", { shouldValidate: false });
+
+      const currentState = getValues("state");
+      if (!currentState?.trim() && normalizedCity.region) {
+        const regionState = {
+          stateName: normalizedCity.region,
+          stateShort: "",
+        };
+        setSelectedState(regionState);
+        setValue("state", regionState.stateName, { shouldValidate: true });
+      }
     },
-    [selectedCountry?.code, setValue]
+    [getValues, selectedCountry?.code, setValue]
   );
 
   const onSubmit = async (values) => {
@@ -182,6 +228,8 @@ export default function useRegister({ onNext, inviteToken }) {
       city_country_code: values.city_country_code,
       latitude: toNullableNumber(values.latitude),
       longitude: toNullableNumber(values.longitude),
+      state: (values.state || "").trim() || undefined,
+      state_short: (values.state_short || "").trim() || undefined,
       role: isCreatorMode ? ROLES.CREATOR : ROLES.BRAND,
       marketing_emails: values.marketing_emails || false,
       agree_terms: values.agree_terms,
@@ -222,8 +270,10 @@ export default function useRegister({ onNext, inviteToken }) {
     selectedAccountType,
     setSelectedAccountType,
     selectedCountry,
+    selectedState,
     selectedCity,
     handleCountrySelect,
+    handleStateSelect,
     handleCitySelect,
   };
 }

@@ -29,6 +29,8 @@ export default function useDiscoverCreators() {
     minFollowersTo: "",
     countries: [],
     city: "",
+    state: "",
+    state_short: "",
     gender: "",
     ageRange: "",
     niches: [],
@@ -85,6 +87,7 @@ export default function useDiscoverCreators() {
       filters.ageRange ||
       (Array.isArray(filters.countries) && filters.countries.length > 0) ||
       filters.city ||
+      filters.state ||
       filters.languages?.length > 0 ||
       audienceFilters.audienceGender ||
       audienceFilters.audienceAgeRanges.length > 0 ||
@@ -104,6 +107,8 @@ export default function useDiscoverCreators() {
       params.countries = filters.countries.join(",");
     }
     if (filters.city) params.city = filters.city;
+    if (filters.state) params.state = filters.state;
+    if (filters.state_short) params.stateShort = filters.state_short;
     if (filters.languages?.length > 0) params.languages = filters.languages.join(",");
     if (filters.minFollowers) params.minFollowers = Number(filters.minFollowers);
     if (filters.minFollowersTo) params.minFollowersTo = Number(filters.minFollowersTo);
@@ -177,6 +182,8 @@ export default function useDiscoverCreators() {
       minFollowersTo: "",
       countries: [],
       city: "",
+      state: "",
+      state_short: "",
       gender: "",
       ageRange: "",
       niches: [],
@@ -285,6 +292,8 @@ export default function useDiscoverCreators() {
       minFollowersTo: "",
       countries: [],
       city: "",
+      state: "",
+      state_short: "",
       gender: "",
       ageRange: "",
       niches: [],

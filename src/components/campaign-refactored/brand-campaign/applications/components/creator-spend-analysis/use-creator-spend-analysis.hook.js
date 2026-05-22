@@ -13,6 +13,7 @@ import {
   addUserToShortlist,
 } from "@/provider/features/shortlist/shortlist.slice";
 import { avatar } from "@/common/constants/auth.constant";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { sortOptions } from "@/common/constants/auth.constant";
 import { setBrandCampaignMultiCreatorMode } from "@/provider/features/campaign-context/campaign-context.slice";
 import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
@@ -25,6 +26,7 @@ function useCreatorSpendAnalysis({
   filters,
   onCampaignSelect,
   onFilterChange,
+  onFiltersReplace,
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
   onClearCreator,
@@ -273,8 +275,11 @@ function useCreatorSpendAnalysis({
     const profile = creatorData?.creator_profile;
     const socialAccounts = creatorData?.social_accounts || [];
     const appliedDate = data.applied_at || data.created_at;
-    const { platforms: activePlatforms, platformStats: platformStatsFromAccounts, totalFollowers: totalFromAccounts } =
-      normalizeActivePhylloPlatforms(socialAccounts);
+    const {
+      platforms: activePlatforms,
+      platformStats: platformStatsFromAccounts,
+      totalFollowers: totalFromAccounts,
+    } = normalizeActivePhylloPlatforms(socialAccounts);
 
     const platforms =
       activePlatforms.length > 0
@@ -304,8 +309,12 @@ function useCreatorSpendAnalysis({
           )
         : "N/A",
       location:
-        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
-        "Location not specified",
+        formatCreatorLocation({
+          city: creatorData?.city,
+          country: creatorData?.country,
+          state: creatorData?.state,
+          stateShort: creatorData?.state_short,
+        }) || "Location not specified",
       rating: parseFloat(profile?.rating) || 0,
       reviewCount: profile?.review_count || 0,
       followers,
@@ -398,6 +407,16 @@ function useCreatorSpendAnalysis({
     onFilterChange && onFilterChange("min_followers", minFollowers);
   };
 
+  const handleFollowerRangeChange = (field, value) => {
+    if (field === "minFollowers") {
+      onFilterChange && onFilterChange("min_followers", value);
+      return;
+    }
+    if (field === "minFollowersTo") {
+      onFilterChange && onFilterChange("max_followers", value);
+    }
+  };
+
   const handleGenderSelect = (gender) => {
     onFilterChange && onFilterChange("gender", gender);
   };
@@ -435,6 +454,10 @@ function useCreatorSpendAnalysis({
   };
 
   const handleFiltersChange = (updatedFilters) => {
+    if (onFiltersReplace) {
+      onFiltersReplace(updatedFilters);
+      return;
+    }
     if (onFilterChange) {
       Object.keys(updatedFilters).forEach((key) => {
         onFilterChange(key, updatedFilters[key]);
@@ -443,6 +466,10 @@ function useCreatorSpendAnalysis({
   };
 
   const handleAudienceFiltersChange = (updatedAudienceFilters) => {
+    if (onFiltersReplace) {
+      onFiltersReplace({ ...filters, ...updatedAudienceFilters });
+      return;
+    }
     if (onFilterChange) {
       Object.keys(updatedAudienceFilters).forEach((key) => {
         onFilterChange(key, updatedAudienceFilters[key]);
@@ -508,7 +535,9 @@ function useCreatorSpendAnalysis({
     setConfirmCloseCampaignId(null);
 
     if (closedCampaignId && onCampaignSelect && campaignsData?.data) {
-      const updatedCampaign = campaignsData.data.find((campaign) => campaign.id === closedCampaignId);
+      const updatedCampaign = campaignsData.data.find(
+        (campaign) => campaign.id === closedCampaignId
+      );
       if (updatedCampaign) {
         onCampaignSelect(updatedCampaign);
       }
@@ -563,6 +592,7 @@ function useCreatorSpendAnalysis({
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,
+    handleFollowerRangeChange,
     handleGenderSelect,
     handleAgeSelect,
     handleLanguageToggle,

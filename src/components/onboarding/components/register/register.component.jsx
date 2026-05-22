@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
 import { ArrowLeft, Calendar, Lock, Mail, User, UserPlus } from "lucide-react";
 import useRegister from "./use-register.hook";
 
@@ -17,8 +18,10 @@ const Register = ({ onNext, onBack, inviteToken }) => {
     selectedAccountType,
     setSelectedAccountType,
     selectedCountry,
+    selectedState,
     selectedCity,
     handleCountrySelect,
+    handleStateSelect,
     handleCitySelect,
   } = useRegister({ onNext, inviteToken });
 
@@ -76,17 +79,17 @@ const Register = ({ onNext, onBack, inviteToken }) => {
               />
             </div>
 
+            <CustomInput
+              label="Email Address"
+              name="email"
+              type="email"
+              register={register}
+              errors={errors}
+              placeholder="Enter your email address"
+              isRequired={true}
+              icon={Mail}
+            />
             <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
-              <CustomInput
-                label="Email Address"
-                name="email"
-                type="email"
-                register={register}
-                errors={errors}
-                placeholder="Enter your email address"
-                isRequired={true}
-                icon={Mail}
-              />
               <CustomInput
                 label="Date of Birth"
                 name="date_of_birth"
@@ -96,9 +99,6 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 isRequired={true}
                 icon={Calendar}
               />
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CustomInput
                 label="Password"
                 name="password"
@@ -109,7 +109,9 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 isRequired={true}
                 icon={Lock}
               />
+            </div>
 
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CustomInput
                 label="Confirm Password"
                 name="confirm_password"
@@ -119,9 +121,6 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 placeholder="Re-enter your password"
                 isRequired={true}
               />
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CountrySelect
                 label="Select country"
                 value={selectedCountry}
@@ -131,11 +130,25 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 name="country"
                 autoDetect
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
+              <StateSelect
+                label="State or Province (Optional)"
+                name="state"
+                countryCode={selectedCountry?.code || ""}
+                countryCodes={selectedCountry?.code ? [selectedCountry.code] : []}
+                value={selectedState}
+                onChange={handleStateSelect}
+                errors={errors}
+              />
 
               <CitySelect
                 label="City"
-                countryName={selectedCountry?.name}
-                countryCode={selectedCountry?.code}
+                countryCode={selectedCountry?.code || ""}
+                countryCodes={selectedCountry?.code ? [selectedCountry.code] : []}
+                stateName={selectedState?.stateName || ""}
+                stateShort={selectedState?.stateShort || ""}
                 value={selectedCity}
                 onChange={handleCitySelect}
                 errors={errors}
@@ -146,6 +159,8 @@ const Register = ({ onNext, onBack, inviteToken }) => {
 
             <input type="hidden" {...register("country")} />
             <input type="hidden" {...register("country_code")} />
+            <input type="hidden" {...register("state")} />
+            <input type="hidden" {...register("state_short")} />
             <input type="hidden" {...register("city")} />
             <input type="hidden" {...register("city_country_code")} />
             <input type="hidden" {...register("latitude")} />
