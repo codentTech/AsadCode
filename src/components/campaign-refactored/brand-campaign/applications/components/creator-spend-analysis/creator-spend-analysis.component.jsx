@@ -284,11 +284,14 @@ const CreatorSpendAnalysis = ({
                 minRating: filters.minRating ?? filters.min_rating ?? "",
                 maxRating: filters.maxRating ?? filters.max_rating ?? "",
                 state: filters.state || "",
-                state_short: filters.state_short || "",
+                state_short: filters.stateShort || filters.state_short || "",
                 city: filters.city || "",
                 city_country_code: filters.city_country_code || "",
                 countries: Array.isArray(filters.countries) ? filters.countries : [],
                 country_code: filters.country_code || "",
+                niches: Array.isArray(filters.niches) ? filters.niches : [],
+                platforms: Array.isArray(filters.platforms) ? filters.platforms : [],
+                languages: Array.isArray(filters.languages) ? filters.languages : [],
               }
             : {}
         }
