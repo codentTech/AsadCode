@@ -18,6 +18,7 @@ const CreatorCard = ({
   hideActions = false,
   creatorType = creator?.creator_profile?.creator_type,
 }) => {
+  console.log("creator", creator);
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
   const ratingValue =
@@ -138,7 +139,11 @@ const CreatorCard = ({
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {creator.age} • {creator.location}
+              {creator.age} •{" "}
+              {creator.city && creator.country
+                ? `${creator?.state || creator?.creator_profile?.shipping_address?.state},
+ ${creator.city}, ${creator.country}`
+                : creator.location}
             </p>
           </div>
 

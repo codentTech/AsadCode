@@ -11,6 +11,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 
 function useDiscover() {
   const dispatch = useDispatch();
@@ -229,8 +230,12 @@ function useDiscover() {
         ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear()
         : "N/A",
       location:
-        `${user.city || ""}, ${user.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
-        "Unknown Location",
+        formatCreatorLocation({
+          city: user.city,
+          country: user.country,
+          state: user.state,
+          stateShort: user.state_short,
+        }) || "Unknown Location",
       rating: 4.5,
       reviewCount: 0,
       followers: activeTotalFollowers || totalFollowers || 0,

@@ -3,15 +3,13 @@
 import PropTypes from "prop-types";
 import { useCallback, useMemo, useState } from "react";
 import TypeaheadSelect from "@/common/components/dropdowns/typeahead-select/typeahead-select.component";
-import useCitySelect from "./use-city-select.hook";
+import useStateSelect from "./use-state-select.hook";
 
-export default function CitySelect({
-  label = "City",
-  name = "city",
+export default function StateSelect({
+  label = "State or Province",
+  name = "state",
   countryCode,
   countryCodes = [],
-  stateName = "",
-  stateShort = "",
   value = null,
   onChange,
   isRequired = false,
@@ -23,19 +21,17 @@ export default function CitySelect({
   const normalizedCodes = Array.isArray(countryCodes) ? countryCodes.filter(Boolean) : [];
   const hasAnyCountry = Boolean(countryCode) || normalizedCodes.length > 0;
 
-  const { options, isLoading, searchCities, resolveCityDetails } = useCitySelect({
+  const { options, isLoading, searchStates, resolveStateDetails } = useStateSelect({
     countryCode,
     countryCodes: normalizedCodes,
-    stateName,
-    stateShort,
   });
 
   const handleSearch = useCallback(
     (term) => {
       if (!hasAnyCountry) return;
-      searchCities(term);
+      searchStates(term);
     },
-    [hasAnyCountry, searchCities]
+    [hasAnyCountry, searchStates]
   );
 
   const handleSelection = useCallback(
@@ -47,7 +43,7 @@ export default function CitySelect({
 
       setIsResolving(true);
       try {
-        const result = await resolveCityDetails(option);
+        const result = await resolveStateDetails(option);
         if (result) {
           onChange?.(result);
         }
@@ -55,28 +51,24 @@ export default function CitySelect({
         setIsResolving(false);
       }
     },
-    [onChange, resolveCityDetails]
+    [onChange, resolveStateDetails]
   );
 
   const handleClear = useCallback(() => {
     onChange?.(null);
   }, [onChange]);
 
-  const helper = useMemo(() => {
-    if (helperText) return helperText;
-    if (!hasAnyCountry) return "";
-
-    return "";
-  }, [helperText, hasAnyCountry]);
-
   const selectedValue = useMemo(() => {
     if (!value) return null;
-    const parts = [value.cityName, value.region, value.countryCode].filter(Boolean);
+    const stateName = value.stateName || value.name || "";
+    const stateShort = value.stateShort || "";
+    const labelText = stateShort ? `${stateName} (${stateShort})` : stateName;
     return {
-      label: parts.join(", "),
-      value: value.cityName || parts.join(", "),
-      cityName: value.cityName,
-      countryCode: value.countryCode,
+      label: labelText,
+      value: value.placeId || stateName,
+      stateName,
+      stateShort,
+      placeId: value.placeId,
     };
   }, [value]);
 
@@ -84,7 +76,7 @@ export default function CitySelect({
     <TypeaheadSelect
       label={label}
       name={name}
-      placeholder={hasAnyCountry ? "Search cities" : "Select a country first"}
+      placeholder={hasAnyCountry ? "Search states or provinces" : "Select a country first"}
       value={selectedValue}
       onChange={handleSelection}
       onClear={handleClear}
@@ -93,32 +85,24 @@ export default function CitySelect({
       isLoading={isLoading || isResolving}
       isRequired={isRequired}
       errors={errors}
-      helperText={helper}
+      helperText={helperText}
       disabled={disabled || !hasAnyCountry}
-      getOptionLabel={(option) =>
-        option?.label ||
-        [option?.cityName, option?.region, option?.countryCode].filter(Boolean).join(", ")
-      }
-      getOptionValue={(option) => option?.value || option?.cityName || option?.label || ""}
+      getOptionLabel={(option) => option?.label || option?.stateName || ""}
+      getOptionValue={(option) => option?.value || option?.stateName || option?.label || ""}
       allowCustomSearch={false}
     />
   );
 }
 
-CitySelect.propTypes = {
+StateSelect.propTypes = {
   label: PropTypes.string,
   name: PropTypes.string,
   countryCode: PropTypes.string,
   countryCodes: PropTypes.arrayOf(PropTypes.string),
-  stateName: PropTypes.string,
-  stateShort: PropTypes.string,
   value: PropTypes.shape({
-    cityName: PropTypes.string,
-    countryCode: PropTypes.string,
-    region: PropTypes.string,
-    latitude: PropTypes.number,
-    longitude: PropTypes.number,
-    geonameId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    stateName: PropTypes.string,
+    stateShort: PropTypes.string,
+    placeId: PropTypes.string,
   }),
   onChange: PropTypes.func,
   isRequired: PropTypes.bool,
