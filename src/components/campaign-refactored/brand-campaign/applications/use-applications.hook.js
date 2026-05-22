@@ -17,46 +17,7 @@ import { avatar } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
-
-const normalizeAppliedCreatorsFilters = (filters = {}) => {
-  const normalized = { ...filters };
-
-  // UI aliases -> backend dto keys
-  if (normalized.minFollowers !== undefined && normalized.min_followers === undefined) {
-    normalized.min_followers = normalized.minFollowers;
-  }
-  if (normalized.maxFollowers !== undefined && normalized.max_followers === undefined) {
-    normalized.max_followers = normalized.maxFollowers;
-  }
-  if (normalized.minRating !== undefined && normalized.min_rating === undefined) {
-    normalized.min_rating = normalized.minRating;
-  }
-  if (normalized.maxRating !== undefined && normalized.max_rating === undefined) {
-    normalized.max_rating = normalized.maxRating;
-  }
-
-  // Remove UI-only keys not accepted by backend dto
-  delete normalized.minFollowers;
-  delete normalized.maxFollowers;
-  delete normalized.minRating;
-  delete normalized.maxRating;
-  if (normalized.state_short != null && normalized.stateShort === undefined) {
-    normalized.stateShort = normalized.state_short;
-  }
-  delete normalized.state_short;
-
-  delete normalized.country_code;
-  delete normalized.city_country_code;
-  delete normalized.audienceCountryCode;
-  delete normalized.audienceCityCountryCode;
-
-  if (Array.isArray(normalized.statuses) && normalized.statuses.length > 0) {
-    normalized.status = normalized.statuses.join(",");
-    delete normalized.statuses;
-  }
-
-  return normalized;
-};
+import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
 
 const APPLICATIONS_LIST_STATUSES = ["PENDING", "NEGOTIATIONS"];
 
@@ -121,7 +82,7 @@ function useBrandApplications() {
     countries: [],
     city: "",
     state: "",
-    state_short: "",
+    stateShort: "",
     niches: [],
     platforms: [],
     status: APPLICATIONS_LIST_STATUSES.join(","),
@@ -415,22 +376,22 @@ function useBrandApplications() {
   );
 
   const handleFilterChange = (filterName, value) => {
-    const newFilters = normalizeAppliedCreatorsFilters({ ...filters, [filterName]: value });
+    const newFilters = ensureAppliedCreatorsUiFilters({ ...filters, [filterName]: value });
     setFilters(newFilters);
     refetchAppliedCreatorsWithFilters(newFilters);
   };
 
   const handleFiltersReplace = useCallback(
     (nextFilters) => {
-      const newFilters = normalizeAppliedCreatorsFilters(nextFilters);
+      const newFilters = ensureAppliedCreatorsUiFilters({ ...filters, ...nextFilters });
       setFilters(newFilters);
       refetchAppliedCreatorsWithFilters(newFilters);
     },
-    [refetchAppliedCreatorsWithFilters]
+    [filters, refetchAppliedCreatorsWithFilters]
   );
 
   const clearFilters = () => {
-    const clearedFilters = normalizeAppliedCreatorsFilters({
+    const clearedFilters = ensureAppliedCreatorsUiFilters({
       min_followers: "",
       max_followers: "",
       min_rating: "",
@@ -438,7 +399,7 @@ function useBrandApplications() {
       countries: [],
       city: "",
       state: "",
-      state_short: "",
+      stateShort: "",
       niches: [],
       platforms: [],
       status: APPLICATIONS_LIST_STATUSES.join(","),

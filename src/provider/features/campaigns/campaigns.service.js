@@ -1,4 +1,5 @@
 import api from "@/common/utils/api";
+import { normalizeAppliedCreatorsFilters } from "@/common/utils/normalize-applied-creators-filters.util";
 
 // Create campaign
 const createCampaign = async (campaignData) => {
@@ -89,7 +90,7 @@ const withdrawApplication = async (campaignId) => {
 // Get applied creators for a campaign
 const getAppliedCreators = async (campaignId, filters = {}) => {
   const response = await api().get(`/campaigns/${campaignId}/applied-creators`, {
-    params: filters,
+    params: normalizeAppliedCreatorsFilters(filters),
   });
   return response.data;
 };
