@@ -1,6 +1,7 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
@@ -100,6 +101,8 @@ const FilterModal = ({
       country_code: country.countryCode || "",
       city: "",
       city_country_code: "",
+      state: "",
+      state_short: "",
     });
     setCountrySelectValue(null);
   };
@@ -120,6 +123,8 @@ const FilterModal = ({
       country_code: nextCountryCode,
       city: "",
       city_country_code: "",
+      state: "",
+      state_short: "",
     });
   };
 
@@ -283,11 +288,47 @@ const FilterModal = ({
                   </div>
                 )}
               </div>
+              {selectedCountryDetails.length > 0 && (
+                <div>
+                  <StateSelect
+                    label="State or Province (Optional)"
+                    countryCode={primaryCountryCode || filters.country_code || ""}
+                    countryCodes={allowedCountryCodes}
+                    value={
+                      filters.state
+                        ? {
+                            stateName: filters.state,
+                            stateShort: filters.state_short || "",
+                          }
+                        : null
+                    }
+                    onChange={(option) => {
+                      if (!option) {
+                        onFiltersChange({
+                          ...filters,
+                          state: "",
+                          state_short: "",
+                        });
+                        return;
+                      }
+                      onFiltersChange({
+                        ...filters,
+                        state: option.stateName || "",
+                        state_short: option.stateShort || "",
+                        city: "",
+                        city_country_code: "",
+                      });
+                    }}
+                  />
+                </div>
+              )}
               <div>
                 <CitySelect
                   label="City"
                   countryCode={primaryCountryCode || filters.country_code || ""}
                   countryCodes={allowedCountryCodes}
+                  stateName={filters.state || ""}
+                  stateShort={filters.state_short || ""}
                   value={
                     filters.city
                       ? {

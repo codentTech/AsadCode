@@ -8,6 +8,7 @@ import {
 } from "@/provider/features/campaign-context/campaign-context.slice";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 
 export default function useActive() {
   const dispatch = useDispatch();
@@ -51,7 +52,6 @@ export default function useActive() {
     sort: "newest",
   });
   const [mobilePane, setMobilePane] = useState("overview");
-
 
   // ============================================
   // 4. USEEFFECTS
@@ -130,11 +130,14 @@ export default function useActive() {
           bio: creatorProfile?.bio || "No bio available",
           image: creatorProfile?.profile_photo_url,
           location:
-            `${creator?.city || ""}, ${creator?.country || ""}`.replace(/^,\s*|,\s*$/g, "") ||
-            "Location not specified",
+            formatCreatorLocation({
+              city: creator?.city,
+              country: creator?.country,
+              state: creator?.state,
+              stateShort: creator?.state_short,
+            }) || "Location not specified",
           rating: Number(creatorProfile?.rating) || 0,
-          reviewCount:
-            Number(creatorProfile?.review_count ?? creatorProfile?.reviewCount) || 0,
+          reviewCount: Number(creatorProfile?.review_count ?? creatorProfile?.reviewCount) || 0,
           age: creator?.date_of_birth
             ? new Date().getFullYear() - new Date(creator.date_of_birth).getFullYear()
             : null,

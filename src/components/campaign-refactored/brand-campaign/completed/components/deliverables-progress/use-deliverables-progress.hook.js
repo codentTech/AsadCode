@@ -1,4 +1,5 @@
 import { avatar } from "@/common/constants/auth.constant";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { isCreatorMode } from "@/common/utils/users.util";
 import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import {
@@ -179,7 +180,12 @@ const useDeliverablesProgress = (
         avatar: profile?.profile_photo_url || selectedCreator.image || avatar,
         isOnline: true,
         location:
-          `${creator.city || ""} ${creator.country || ""}`.trim() ||
+          formatCreatorLocation({
+            city: creator.city,
+            country: creator.country,
+            state: creator.state,
+            stateShort: creator.state_short,
+          }) ||
           selectedCreator.location ||
           "Location not specified",
         rating: parseFloat(profile?.rating) || parseFloat(selectedCreator.rating) || 0,

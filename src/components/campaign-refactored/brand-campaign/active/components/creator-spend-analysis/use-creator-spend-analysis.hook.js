@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import {
   buildPlatformsFromPhylloAccounts,
   buildPlatformsFromSocialAccounts,
@@ -64,8 +65,7 @@ export const useCreatorSpendAnalysis = (
   }, [individualContractsData]);
 
   const effectiveCollaborationType = useMemo(
-    () =>
-      resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationTypeFromContext),
+    () => resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationTypeFromContext),
     [selectedCampaign, selectedCollaborationTypeFromContext]
   );
 
@@ -121,11 +121,12 @@ export const useCreatorSpendAnalysis = (
           bio: creatorProfile?.bio || "No bio available",
           image: creatorProfile?.profile_photo_url,
           location:
-            `${mergedCreator?.city || ""}, ${mergedCreator?.country || ""}`.replace(
-              /^,\s*|,\s*$/g,
-              ""
-            ) ||
-            "Location not specified",
+            formatCreatorLocation({
+              city: mergedCreator?.city,
+              country: mergedCreator?.country,
+              state: mergedCreator?.state,
+              stateShort: mergedCreator?.state_short,
+            }) || "Location not specified",
           totalSpent: contract.totalCompensation || 0,
           rating,
           reviewCount,

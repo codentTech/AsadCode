@@ -1,4 +1,5 @@
 import { getAge } from "@/common/utils/date.utils";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import {
   buildPlatformsFromSocialAccounts,
   ratingAndReviewCountFromCreatorUser,
@@ -21,10 +22,12 @@ export function mapBrandAppliedCreatorRow(creator) {
     bio: creator.creator?.creator_profile?.bio || "No bio available",
     image: creator.creator?.creator_profile?.profile_photo_url,
     location:
-      `${creator.creator?.city || ""}, ${creator.creator?.country || ""}`.replace(
-        /^,\s*|,\s*$/g,
-        ""
-      ) || "Location not specified",
+      formatCreatorLocation({
+        city: creator.creator?.city,
+        country: creator.creator?.country,
+        state: creator.creator?.state,
+        stateShort: creator.creator?.state_short,
+      }) || "Location not specified",
     totalSpent: creator.total_spent || 0,
     rating,
     reviewCount,
@@ -63,8 +66,7 @@ export function mapBrandAppliedCreatorRow(creator) {
     contract: contract
       ? {
           ...contract,
-          totalCompensation:
-            contract.total_compensation || contract.totalCompensation || 0,
+          totalCompensation: contract.total_compensation || contract.totalCompensation || 0,
           campaignId: contract.campaign_id || contract.campaignId,
           creatorId: contract.creator_id || contract.creatorId,
           brandId: contract.brand_id || contract.brandId,

@@ -40,6 +40,11 @@ const normalizeAppliedCreatorsFilters = (filters = {}) => {
   delete normalized.maxFollowers;
   delete normalized.minRating;
   delete normalized.maxRating;
+  if (normalized.state_short != null && normalized.stateShort === undefined) {
+    normalized.stateShort = normalized.state_short;
+  }
+  delete normalized.state_short;
+
   delete normalized.country_code;
   delete normalized.city_country_code;
   delete normalized.audienceCountryCode;
@@ -115,6 +120,8 @@ function useBrandApplications() {
     max_rating: "",
     countries: [],
     city: "",
+    state: "",
+    state_short: "",
     niches: [],
     platforms: [],
     status: APPLICATIONS_LIST_STATUSES.join(","),
@@ -390,21 +397,37 @@ function useBrandApplications() {
     setShowRejectConfirmation(false);
   };
 
+  const refetchAppliedCreatorsWithFilters = useCallback(
+    (nextFilters) => {
+      if (
+        selectedCampaign &&
+        selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR
+      ) {
+        dispatch(
+          getAppliedCreators({
+            campaignId: selectedCampaign.id,
+            filters: nextFilters,
+          })
+        );
+      }
+    },
+    [dispatch, selectedCampaign]
+  );
+
   const handleFilterChange = (filterName, value) => {
     const newFilters = normalizeAppliedCreatorsFilters({ ...filters, [filterName]: value });
     setFilters(newFilters);
-    if (
-      selectedCampaign &&
-      selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR
-    ) {
-      dispatch(
-        getAppliedCreators({
-          campaignId: selectedCampaign.id,
-          filters: newFilters,
-        })
-      );
-    }
+    refetchAppliedCreatorsWithFilters(newFilters);
   };
+
+  const handleFiltersReplace = useCallback(
+    (nextFilters) => {
+      const newFilters = normalizeAppliedCreatorsFilters(nextFilters);
+      setFilters(newFilters);
+      refetchAppliedCreatorsWithFilters(newFilters);
+    },
+    [refetchAppliedCreatorsWithFilters]
+  );
 
   const clearFilters = () => {
     const clearedFilters = normalizeAppliedCreatorsFilters({
@@ -414,6 +437,8 @@ function useBrandApplications() {
       max_rating: "",
       countries: [],
       city: "",
+      state: "",
+      state_short: "",
       niches: [],
       platforms: [],
       status: APPLICATIONS_LIST_STATUSES.join(","),
@@ -784,6 +809,7 @@ function useBrandApplications() {
     handleRejectClick,
     handleConfirmReject,
     handleFilterChange,
+    handleFiltersReplace,
     clearFilters,
     handleMessageClick,
     fetchIndividualCollaborations,

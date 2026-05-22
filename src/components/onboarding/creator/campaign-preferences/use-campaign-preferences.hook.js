@@ -48,7 +48,8 @@ const validationSchema = Yup.object().shape({
       line3: Yup.string().trim(),
       city: Yup.string().trim().required("City is required"),
       city_country_code: Yup.string().trim(),
-      state: Yup.string().trim().required("State or Province is required"),
+      state: Yup.string().trim(),
+      state_short: Yup.string().trim(),
       zipCode: Yup.string().trim().required("Postal code is required"),
       country: Yup.string().trim().required("Country is required"),
       country_code: Yup.string().trim().required("Country is required"),
@@ -121,6 +122,7 @@ export default function useCampaignPreferences({ onNext }) {
         city: "",
         city_country_code: "",
         state: "",
+        state_short: "",
         zipCode: "",
         country: "",
         country_code: "",
@@ -141,6 +143,7 @@ export default function useCampaignPreferences({ onNext }) {
    * Country/City select UI state (logic)
    */
   const [countrySelection, setCountrySelection] = useState(null);
+  const [stateSelection, setStateSelection] = useState(null);
   const [citySelection, setCitySelection] = useState(null);
 
   const countryCode = countrySelection?.countryCode || shippingAddress?.country_code || "";
@@ -163,6 +166,21 @@ export default function useCampaignPreferences({ onNext }) {
       setCountrySelection(null);
     }
   }, [shippingAddress?.country, shippingAddress?.country_code]);
+
+  useEffect(() => {
+    if (shippingAddress?.state) {
+      setStateSelection((prev) =>
+        prev?.stateName === shippingAddress.state
+          ? prev
+          : {
+              stateName: shippingAddress.state,
+              stateShort: shippingAddress.state_short || "",
+            }
+      );
+    } else {
+      setStateSelection(null);
+    }
+  }, [shippingAddress?.state, shippingAddress?.state_short]);
 
   useEffect(() => {
     if (shippingAddress?.city) {
@@ -231,12 +249,15 @@ export default function useCampaignPreferences({ onNext }) {
       setValue("shippingAddress.country", "", { shouldValidate: true, shouldDirty: true });
       setValue("shippingAddress.country_code", "", { shouldValidate: true, shouldDirty: true });
 
+      setStateSelection(null);
       setCitySelection(null);
       setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
       setValue("shippingAddress.city_country_code", "", {
         shouldValidate: true,
         shouldDirty: true,
       });
+      setValue("shippingAddress.state", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.state_short", "", { shouldValidate: true, shouldDirty: true });
       return;
     }
 
@@ -258,13 +279,46 @@ export default function useCampaignPreferences({ onNext }) {
       shouldTouch: true,
     });
 
-    // reset city when country changes
+    setStateSelection(null);
+    setValue("shippingAddress.state", "", { shouldValidate: true, shouldDirty: true });
+    setValue("shippingAddress.state_short", "", { shouldValidate: true, shouldDirty: true });
     setCitySelection(null);
     setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
     setValue("shippingAddress.city_country_code", normalized.countryCode, {
       shouldValidate: true,
       shouldDirty: true,
     });
+  };
+
+  const handleStateSelect = (state) => {
+    if (!state) {
+      setStateSelection(null);
+      setValue("shippingAddress.state", "", { shouldValidate: true, shouldDirty: true });
+      setValue("shippingAddress.state_short", "", { shouldValidate: true, shouldDirty: true });
+      setCitySelection(null);
+      setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
+      return;
+    }
+
+    const normalized = {
+      stateName: state.stateName || state.label || "",
+      stateShort: state.stateShort || "",
+    };
+
+    setStateSelection(normalized);
+    setValue("shippingAddress.state", normalized.stateName, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue("shippingAddress.state_short", normalized.stateShort, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+
+    setCitySelection(null);
+    setValue("shippingAddress.city", "", { shouldValidate: true, shouldDirty: true });
   };
 
   const handleCitySelect = (city) => {
@@ -296,6 +350,19 @@ export default function useCampaignPreferences({ onNext }) {
       shouldDirty: true,
       shouldTouch: true,
     });
+
+    const currentState = getValues("shippingAddress.state");
+    if (!currentState && city.region) {
+      setStateSelection({
+        stateName: city.region,
+        stateShort: "",
+      });
+      setValue("shippingAddress.state", city.region, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }
   };
 
   // Optional utility if you ever need to force re-sync from UI
@@ -360,6 +427,7 @@ export default function useCampaignPreferences({ onNext }) {
 
     // select state
     countrySelection,
+    stateSelection,
     citySelection,
     countryCode,
 
@@ -368,6 +436,7 @@ export default function useCampaignPreferences({ onNext }) {
     handleLanguagesChange,
     handleEthnicityChange,
     handleCountrySelect,
+    handleStateSelect,
     handleCitySelect,
     handleInPersonChange,
     handleShippingChange,

@@ -14,11 +14,30 @@ const countryNameLookup = COUNTRIES.reduce((acc, country) => {
   return acc;
 }, {});
 
-const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
+const matchesStateRegion = (cityRegion, stateName, stateShort) => {
+  const region = String(cityRegion || "").trim().toLowerCase();
+  if (!region) return false;
+  const name = String(stateName || "").trim().toLowerCase();
+  const short = String(stateShort || "").trim().toLowerCase();
+  if (name && region === name) return true;
+  if (short && region === short) return true;
+  if (name && region.includes(name)) return true;
+  if (short && region.includes(short)) return true;
+  return false;
+};
+
+const normalizeFallbackCities = (
+  cities,
+  searchTerm,
+  allowedCountryCodes,
+  stateName,
+  stateShort
+) => {
   const normalizedTerm = searchTerm.trim().toLowerCase();
   const allowedSet = Array.isArray(allowedCountryCodes)
     ? new Set(allowedCountryCodes.filter(Boolean).map((code) => String(code).toUpperCase()))
     : null;
+  const hasStateFilter = Boolean(stateName || stateShort);
 
   return cities
     .filter((city) => {
@@ -28,6 +47,9 @@ const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
         allowedSet.size &&
         !allowedSet.has(String(city.countryCode).toUpperCase())
       ) {
+        return false;
+      }
+      if (hasStateFilter && !matchesStateRegion(city.region, stateName, stateShort)) {
         return false;
       }
       return city.name.toLowerCase().includes(normalizedTerm);
@@ -51,7 +73,12 @@ const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
 
 const FALLBACK_LIMIT = 15;
 
-export default function useCitySelect({ countryCode, countryCodes = [] }) {
+export default function useCitySelect({
+  countryCode,
+  countryCodes = [],
+  stateName = "",
+  stateShort = "",
+}) {
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -75,11 +102,14 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
 
   const fallbackSearch = useCallback(
     (term) =>
-      normalizeFallbackCities(MAJOR_WORLD_CITIES, term, normalizedAllowedCodes).slice(
-        0,
-        FALLBACK_LIMIT
-      ),
-    [normalizedAllowedCodes]
+      normalizeFallbackCities(
+        MAJOR_WORLD_CITIES,
+        term,
+        normalizedAllowedCodes,
+        stateName,
+        stateShort
+      ).slice(0, FALLBACK_LIMIT),
+    [normalizedAllowedCodes, stateName, stateShort]
   );
 
   const searchCities = useCallback(
@@ -97,9 +127,12 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
       const seq = ++searchSeqRef.current;
       setIsSearching(true);
 
+      const placesInput =
+        stateName || stateShort ? `${term}, ${stateName || stateShort}`.trim() : term;
+
       const action = await dispatch(
         autocompletePlacesThunk({
-          input: term,
+          input: placesInput,
           includedPrimaryTypes: ["locality"],
           includedRegionCodes: normalizedAllowedCodes,
           languageCode: process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en",
@@ -150,7 +183,7 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
         setOptions(deduped.slice(0, FALLBACK_LIMIT));
       }
     },
-    [dispatch, fallbackSearch, normalizedAllowedCodes]
+    [dispatch, fallbackSearch, normalizedAllowedCodes, stateName, stateShort]
   );
 
   const resolveCityDetails = useCallback(

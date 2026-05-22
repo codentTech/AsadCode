@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { avatar } from "@/common/constants/auth.constant";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { getAge } from "@/common/utils/date.utils";
 import {
   fetchCreatorMetrics,
@@ -36,7 +37,12 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
         name: `${creator.first_name || ""} ${creator.last_name || ""}`.trim(),
         image: profile?.profile_photo_url || avatar,
         location:
-          `${creator.city || ""} ${creator.country || ""}`.trim() || "Location not specified",
+          formatCreatorLocation({
+            city: creator.city,
+            country: creator.country,
+            state: creator.state,
+            stateShort: creator.state_short,
+          }) || "Location not specified",
         rating: parseFloat(profile?.rating) || 0,
         appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
         pitch: selectedCreator.custom_message || selectedCreator.pitch || "",

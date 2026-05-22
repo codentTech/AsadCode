@@ -7,6 +7,8 @@ export const DEFAULT_FORM_VALUES = {
   city: "",
   country_code: "",
   city_country_code: "",
+  state: "",
+  state_short: "",
   confirm_password: "",
   latitude: "",
   longitude: "",
@@ -76,6 +78,8 @@ export const createRegisterValidationSchema = (isCreatorMode) => {
     country: Yup.string().required("Country is required"),
     country_code: Yup.string().required("Country is required"),
     city_country_code: Yup.string().required("City is required"),
+    state: Yup.string().optional(),
+    state_short: Yup.string().optional(),
     agree_terms: Yup.boolean().oneOf([true], "You must accept the terms and conditions"),
     marketing_emails: Yup.boolean().default(false),
     latitude: Yup.number()

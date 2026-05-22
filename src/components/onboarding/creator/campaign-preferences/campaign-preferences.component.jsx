@@ -5,6 +5,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import { ArrowLeft, CheckCircle, MapPin } from "lucide-react";
 import useCampaignPreferences from "./use-campaign-preferences.hook";
@@ -30,6 +31,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
 
     // derived state for selects
     countrySelection,
+    stateSelection,
     citySelection,
     countryCode,
 
@@ -38,6 +40,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
     handleLanguagesChange,
     handleEthnicityChange,
     handleCountrySelect,
+    handleStateSelect,
     handleCitySelect,
     handleInPersonChange,
     handleShippingChange,
@@ -260,16 +263,6 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                 />
 
                 <CustomInput
-                  label="State or Province"
-                  name="state"
-                  placeholder="Enter state/province"
-                  value={shippingAddress?.state || ""}
-                  onChange={(e) => handleShippingChange("state", e.target.value)}
-                  errors={errors?.shippingAddress || {}}
-                  required
-                />
-
-                <CustomInput
                   label="Postal code"
                   name="zipCode"
                   placeholder="Enter postal code"
@@ -290,11 +283,23 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                   errors={errors?.shippingAddress || {}}
                 />
 
+                <StateSelect
+                  label="State or Province (Optional)"
+                  name="state"
+                  countryCode={countryCode}
+                  countryCodes={countryCode ? [countryCode] : []}
+                  value={stateSelection}
+                  onChange={handleStateSelect}
+                  errors={errors?.shippingAddress || {}}
+                />
+
                 <CitySelect
                   label="City"
                   name="city"
                   countryCode={countryCode}
                   countryCodes={countryCode ? [countryCode] : []}
+                  stateName={stateSelection?.stateName || shippingAddress?.state || ""}
+                  stateShort={stateSelection?.stateShort || shippingAddress?.state_short || ""}
                   value={citySelection}
                   onChange={handleCitySelect}
                   isRequired={true}

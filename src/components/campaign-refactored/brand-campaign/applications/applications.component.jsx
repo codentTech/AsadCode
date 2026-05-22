@@ -48,6 +48,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     handleRejectClick,
     handleConfirmReject,
     handleFilterChange,
+    handleFiltersReplace,
     clearFilters,
     handleMessageClick,
     fetchIndividualCollaborations,
@@ -132,6 +133,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
           selectedCreator={selectedCreator}
           filters={filters}
           onFilterChange={handleFilterChange}
+          onFiltersReplace={handleFiltersReplace}
           onClearFilters={clearFilters}
           fetchIndividualCollaborations={fetchIndividualCollaborations}
           onSwitchToRejected={onSwitchToRejected}
