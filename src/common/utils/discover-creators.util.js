@@ -1,3 +1,5 @@
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+
 export const mapUserToCreator = (user) => {
   const creatorProfile = user?.creator_profile || {};
   const socialAccounts = user?.social_accounts || [];
@@ -35,7 +37,12 @@ export const mapUserToCreator = (user) => {
   }
 
   const location =
-    [user?.city, user?.country].filter(Boolean).join(", ") || "Location not specified";
+    formatCreatorLocation({
+      city: user?.city,
+      country: user?.country,
+      state: user?.state,
+      stateShort: user?.state_short,
+    }) || "Location not specified";
 
   return {
     ...user,

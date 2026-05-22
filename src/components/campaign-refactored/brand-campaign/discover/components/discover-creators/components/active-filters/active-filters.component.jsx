@@ -64,6 +64,7 @@ const ActiveFilters = ({
       (filters.gender ? 1 : 0) +
       (filters.ageRange ? 1 : 0) +
       countriesCount +
+      (filters.state ? 1 : 0) +
       (filters.city ? 1 : 0) +
       (filters.languages?.length || 0) +
       (audienceFilters.audienceGender ? 1 : 0) +
@@ -83,6 +84,7 @@ const ActiveFilters = ({
       filters.gender ||
       filters.ageRange ||
       hasCountries ||
+      filters.state ||
       filters.city ||
       (filters.languages && filters.languages.length > 0)
     );
@@ -217,9 +219,24 @@ const ActiveFilters = ({
                           const updatedCountries = filters.countries.filter(
                             (c) => c !== countryName
                           );
+                          const nextCountryCode =
+                            updatedCountries.length === 0
+                              ? ""
+                              : (() => {
+                                  const firstName = updatedCountries[0];
+                                  const meta = COUNTRIES.find(
+                                    (c) => c.label === firstName || c.code === firstName
+                                  );
+                                  return meta?.code ? String(meta.code).toUpperCase() : "";
+                                })();
                           onFiltersChange({
                             ...filters,
                             countries: updatedCountries,
+                            country_code: nextCountryCode,
+                            city: "",
+                            city_country_code: "",
+                            state: "",
+                            state_short: "",
                           });
                         }}
                         color="blue"
@@ -229,10 +246,32 @@ const ActiveFilters = ({
                     );
                   })}
 
+                {/* State Filter */}
+                {filters.state && (
+                  <FilterTag
+                    onRemove={() =>
+                      onFiltersChange({
+                        ...filters,
+                        state: "",
+                        state_short: "",
+                      })
+                    }
+                    color="blue"
+                  >
+                    State: {filters.state || filters.state_short}
+                  </FilterTag>
+                )}
+
                 {/* City Filter */}
                 {filters.city && (
                   <FilterTag
-                    onRemove={() => onFiltersChange({ ...filters, city: "" })}
+                    onRemove={() =>
+                      onFiltersChange({
+                        ...filters,
+                        city: "",
+                        city_country_code: "",
+                      })
+                    }
                     color="blue"
                   >
                     City: {filters.city}

@@ -65,6 +65,8 @@ export default function useFilterModal({ filters, onFiltersChange }) {
       country_code: country.countryCode || "",
       city: "",
       city_country_code: "",
+      state: "",
+      state_short: "",
     });
     setCountrySelectValue(null);
   };
@@ -87,6 +89,8 @@ export default function useFilterModal({ filters, onFiltersChange }) {
       country_code: nextCountryCode,
       city: "",
       city_country_code: "",
+      state: "",
+      state_short: "",
     });
   };
 

@@ -4,6 +4,7 @@ import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.sl
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
@@ -260,7 +261,7 @@ function useCreatorSpendAnalysis({
             return acc;
           }, {});
 
-    const followers = totalFromAccounts > 0 ? totalFromAccounts : (profile?.total_followers || 0);
+    const followers = totalFromAccounts > 0 ? totalFromAccounts : profile?.total_followers || 0;
 
     return {
       id: creatorData?.id,
@@ -272,8 +273,12 @@ function useCreatorSpendAnalysis({
           )
         : "N/A",
       location:
-        `${creatorData?.city || ""} ${creatorData?.country || ""}`.trim() ||
-        "Location not specified",
+        formatCreatorLocation({
+          city: creatorData?.city,
+          country: creatorData?.country,
+          state: creatorData?.state,
+          stateShort: creatorData?.state_short,
+        }) || "Location not specified",
       rating: parseFloat(profile?.rating) || 0,
       reviewCount: profile?.review_count || 0,
       followers,

@@ -22,6 +22,7 @@ const CreatorSpendAnalysis = ({
   filters,
   onCampaignSelect,
   onFilterChange,
+  onFiltersReplace,
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
   onSwitchToRejected,
@@ -57,6 +58,7 @@ const CreatorSpendAnalysis = ({
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,
+    handleFollowerRangeChange,
     handleGenderSelect,
     handleAgeSelect,
     handleLanguageToggle,
@@ -87,6 +89,7 @@ const CreatorSpendAnalysis = ({
     filters,
     onCampaignSelect,
     onFilterChange,
+    onFiltersReplace,
     onClearFilters,
     fetchIndividualCollaborations: fetchFromHook,
   });
@@ -276,9 +279,16 @@ const CreatorSpendAnalysis = ({
             ? {
                 ...filters,
                 minFollowers: filters.minFollowers ?? filters.min_followers ?? "",
+                minFollowersTo: filters.minFollowersTo ?? filters.max_followers ?? "",
                 maxFollowers: filters.maxFollowers ?? filters.max_followers ?? "",
                 minRating: filters.minRating ?? filters.min_rating ?? "",
                 maxRating: filters.maxRating ?? filters.max_rating ?? "",
+                state: filters.state || "",
+                state_short: filters.state_short || "",
+                city: filters.city || "",
+                city_country_code: filters.city_country_code || "",
+                countries: Array.isArray(filters.countries) ? filters.countries : [],
+                country_code: filters.country_code || "",
               }
             : {}
         }
@@ -294,7 +304,7 @@ const CreatorSpendAnalysis = ({
         }
         onNicheToggle={handleNicheToggle}
         onPlatformToggle={handlePlatformToggle}
-        onFollowerSelect={handleFollowerSelect}
+        onFollowerRangeChange={handleFollowerRangeChange}
         onGenderSelect={handleGenderSelect}
         onAgeSelect={handleAgeSelect}
         onLanguageToggle={handleLanguageToggle}
