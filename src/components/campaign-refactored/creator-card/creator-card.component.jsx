@@ -141,8 +141,8 @@ const CreatorCard = ({
             <p className="text-xs text-gray-500">
               {creator.age} •{" "}
               {creator.city && creator.country
-                ? `${creator?.state || creator?.creator_profile?.shipping_address?.state},
- ${creator.city}, ${creator.country}`
+                ? `${creator.city}, ${creator?.state || creator?.creator_profile?.shipping_address?.state},
+                   ${creator.country}`
                 : creator.location}
             </p>
           </div>
