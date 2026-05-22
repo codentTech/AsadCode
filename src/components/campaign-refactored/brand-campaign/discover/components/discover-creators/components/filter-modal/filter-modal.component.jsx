@@ -179,7 +179,7 @@ const FilterModal = ({
                   {PLATFORM_OPTIONS.map((platform) => (
                     <FilterButton
                       key={platform.value}
-                      active={filters.platforms.includes(platform.value)}
+                      active={(filters.platforms ?? []).includes(platform.value)}
                       onClick={() => onPlatformToggle(platform.value)}
                     >
                       {platform.label}
