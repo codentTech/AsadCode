@@ -86,10 +86,11 @@ export default function useLogin() {
 
       if (role === ROLES.CREATOR) {
         const prefsResponse = await dispatch(getEmailPreferences());
-        const shouldShow =
-          prefsResponse.payload?.should_show_reengagement_popup === true;
 
-        if (shouldShow) {
+        if (
+          getEmailPreferences.fulfilled.match(prefsResponse) &&
+          prefsResponse.payload?.should_show_reengagement_popup
+        ) {
           setShowReengagementModal(true);
         } else {
           navigateAfterLogin(role);

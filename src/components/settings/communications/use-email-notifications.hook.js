@@ -2,11 +2,13 @@
 
 import {
   getEmailPreferences,
+  selectGetEmailPreferencesState,
+  selectUpdateEmailPreferencesState,
   updateEmailPreferences,
 } from "@/provider/features/email-preferences/email-preferences.slice";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const ALWAYS_ON_ITEMS = [
@@ -52,14 +54,12 @@ export default function useEmailNotifications() {
   const dispatch = useDispatch();
   const router = useRouter();
   const saveTimerRef = useRef(null);
+  const pendingSaveRef = useRef(false);
+  const [savingKey, setSavingKey] = useState(null);
   const isCreator = isCreatorMode();
 
-  const { data, isLoading } = useSelector(
-    (state) => state.emailPreferences.getEmailPreferences
-  );
-  const { isLoading: isSaving } = useSelector(
-    (state) => state.emailPreferences.updateEmailPreferences
-  );
+  const { data, isLoading } = useSelector(selectGetEmailPreferencesState);
+  const { isLoading: isSaving } = useSelector(selectUpdateEmailPreferencesState);
 
   useEffect(() => {
     if (!isCreator) return;
@@ -71,13 +71,22 @@ export default function useEmailNotifications() {
   const handleToggle = useCallback(
     (key, value) => {
       if (!isCreator) return;
+      setSavingKey(key);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
+        pendingSaveRef.current = true;
         dispatch(updateEmailPreferences({ [key]: value }));
       }, 400);
     },
     [dispatch, isCreator]
   );
+
+  useEffect(() => {
+    if (pendingSaveRef.current && !isSaving) {
+      pendingSaveRef.current = false;
+      setSavingKey(null);
+    }
+  }, [isSaving]);
 
   useEffect(
     () => () => {
@@ -88,7 +97,7 @@ export default function useEmailNotifications() {
 
   return {
     isLoading: isCreator && isLoading,
-    isSaving,
+    savingKey,
     preferences,
     alwaysOnItems: ALWAYS_ON_ITEMS,
     toggleFields: TOGGLE_FIELDS,

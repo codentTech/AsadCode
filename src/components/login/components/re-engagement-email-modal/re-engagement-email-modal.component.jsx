@@ -4,24 +4,21 @@ import Modal from "@/common/components/modal/modal.component";
 import useReEngagementEmailModal from "./use-re-engagement-email-modal.hook";
 
 const ReEngagementEmailModal = ({ show, onComplete }) => {
-  const {
-    popupToggleKeys,
-    prefs,
-    isSubmitting,
-    handleToggle,
-    handleSave,
-    handleNoThanks,
-  } = useReEngagementEmailModal({ show, onComplete });
+  const { popupToggleKeys, prefs, isSubmitting, handleToggle, handleSave, handleNoThanks } =
+    useReEngagementEmailModal({ show, onComplete });
 
   return (
     <Modal show={show} onClose={handleNoThanks} title="Stay in the loop" size="md">
-      <p className="mb-4 text-xs text-gray-600 sm:text-sm">
-        Select which email notifications you would like to receive. You can update these at
-        any time in Settings.
+      <p className="bg-gray-200 p-4 rounded-lg mb-4 text-xs text-gray-600 sm:text-sm">
+        Select which email notifications you would like to receive. You can update these at any time
+        in Settings.
       </p>
       <ul className="mb-6 space-y-3">
         {popupToggleKeys.map((item) => (
-          <li key={item.key} className="flex items-center justify-between gap-3">
+          <li
+            key={item.key}
+            className="bg-gray-200 p-2 rounded-lg flex items-center justify-between gap-3"
+          >
             <span className="text-xs text-gray-800 sm:text-sm">{item.label}</span>
             <CustomSwitch
               checked={Boolean(prefs[item.key])}

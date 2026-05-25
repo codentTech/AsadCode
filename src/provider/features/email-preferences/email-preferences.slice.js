@@ -9,11 +9,21 @@ const generalState = {
   message: "",
 };
 
-const initialState = {
+export const emailPreferencesInitialState = {
   getEmailPreferences: { ...generalState },
   updateEmailPreferences: { ...generalState },
   dismissEmailPreferencesPopup: { ...generalState },
 };
+
+const initialState = emailPreferencesInitialState;
+
+export const selectGetEmailPreferencesState = (state) =>
+  state?.emailPreferences?.getEmailPreferences ??
+  emailPreferencesInitialState.getEmailPreferences;
+
+export const selectUpdateEmailPreferencesState = (state) =>
+  state?.emailPreferences?.updateEmailPreferences ??
+  emailPreferencesInitialState.updateEmailPreferences;
 
 export const getEmailPreferences = createAsyncThunk(
   "emailPreferences/getEmailPreferences",
