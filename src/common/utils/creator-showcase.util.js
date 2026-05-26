@@ -14,5 +14,10 @@ export function creatorNeedsShowcaseImages(user) {
 
 export function isShowcaseUploadAllowedPath(pathname) {
   if (!pathname || typeof pathname !== "string") return false;
-  return pathname === "/creator-portfolio" || pathname.startsWith("/creator-portfolio/");
+  return (
+    pathname === "/creator-portfolio" ||
+    pathname.startsWith("/creator-portfolio/") ||
+    pathname === "/settings" ||
+    pathname.startsWith("/settings/")
+  );
 }
