@@ -2,10 +2,10 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Loader from "@/common/components/loader/loader.component";
 import Link from "next/link";
+import ReEngagementEmailModal from "./components/re-engagement-email-modal/re-engagement-email-modal.component";
 import useLogin from "./use-login.hook";
 
 export default function Login() {
-  // hooks
   const {
     onSubmit,
     isChecked,
@@ -16,10 +16,17 @@ export default function Login() {
     errors,
     email,
     password,
+    showReengagementModal,
+    handleReengagementComplete,
   } = useLogin();
 
   return (
-    <div className="form-wrapper px-2.5 sm:px-4">
+    <>
+      <ReEngagementEmailModal
+        show={showReengagementModal}
+        onComplete={handleReengagementComplete}
+      />
+      <div className="form-wrapper px-2.5 sm:px-4">
       <div className="form-container">
         <div className="form-card w-full max-w-[437px] px-0 py-6 sm:py-10">
           <Link href="/" className="flex justify-center mb-2">
@@ -140,5 +147,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   );
 }
