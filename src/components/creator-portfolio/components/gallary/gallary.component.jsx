@@ -286,8 +286,7 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
           })}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-lg mb-2">No media found</div>
+        <div className="rounded-lg border border-gray-100 bg-gray-100 shadow-sm text-center py-2">
           <p className="text-gray-500 text-sm">
             {galleryItems?.length === 0
               ? activeTab === "all"

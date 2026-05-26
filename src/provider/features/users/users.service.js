@@ -88,10 +88,18 @@ const updateCampaignDefaults = async (defaults) => {
     // Check if response and response.data exist
     if (response && response.data) {
       if (response.data.success && response.data.data) {
-        // Update user in localStorage with new data
         const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        const updatedUser = { ...currentUser, ...response.data.data };
+        const apiUser = response.data.data;
+        const updatedUser = {
+          ...currentUser,
+          ...apiUser,
+          creator_profile: {
+            ...(currentUser.creator_profile || {}),
+            ...(apiUser.creator_profile || {}),
+          },
+        };
         localStorage.setItem("user", JSON.stringify(updatedUser));
+        getUser(updatedUser);
       }
       return response.data;
     } else {

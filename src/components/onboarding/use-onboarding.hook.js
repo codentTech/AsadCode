@@ -220,13 +220,7 @@ export default function useOnboarding() {
 
     switch (currentStep) {
       case 1:
-        return (
-          <AccountType
-            selectedType={selectedAccountType}
-            handleSelectMode={handleSelectMode}
-            onNext={nextStep}
-          />
-        );
+        return <ProfileSetup onNext={nextStep} onBack={prevStep} />;
       case 2:
         return (
           <Register
