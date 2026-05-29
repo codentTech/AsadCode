@@ -23,7 +23,6 @@ const initialState = {
   getCampaignById: { ...generalState },
   updateCampaign: { ...generalState },
   deleteCampaign: { ...generalState },
-  publishCampaign: { ...generalState },
   closeCampaignListing: { ...generalState },
   filterCampaigns: { ...generalState },
   getCampaignStats: { ...generalState },
@@ -107,20 +106,6 @@ export const deleteCampaign = createAsyncThunk(
   async (campaignId, thunkAPI) => {
     try {
       const response = await campaignsService.deleteCampaign(campaignId);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
-    }
-  }
-);
-
-// Publish campaign
-export const publishCampaign = createAsyncThunk(
-  "campaigns/publishCampaign",
-  async (campaignId, thunkAPI) => {
-    try {
-      const response = await campaignsService.publishCampaign(campaignId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -425,7 +410,6 @@ export const campaignsSlice = createSlice({
       state.getCampaignById = { ...generalState };
       state.updateCampaign = { ...generalState };
       state.deleteCampaign = { ...generalState };
-      state.publishCampaign = { ...generalState };
       state.filterCampaigns = { ...generalState };
       state.getCampaignStats = { ...generalState };
     },
@@ -544,25 +528,6 @@ export const campaignsSlice = createSlice({
         state.deleteCampaign.isLoading = false;
         state.deleteCampaign.isError = true;
         state.deleteCampaign.data = null;
-      })
-      // publishCampaign
-      .addCase(publishCampaign.pending, (state) => {
-        state.publishCampaign.isLoading = true;
-        state.publishCampaign.message = "";
-        state.publishCampaign.isError = false;
-        state.publishCampaign.isSuccess = false;
-        state.publishCampaign.data = null;
-      })
-      .addCase(publishCampaign.fulfilled, (state, action) => {
-        state.publishCampaign.isLoading = false;
-        state.publishCampaign.isSuccess = true;
-        state.publishCampaign.data = action.payload;
-      })
-      .addCase(publishCampaign.rejected, (state, action) => {
-        state.publishCampaign.message = action.payload?.message || "Failed to publish campaign";
-        state.publishCampaign.isLoading = false;
-        state.publishCampaign.isError = true;
-        state.publishCampaign.data = null;
       })
       .addCase(closeCampaignListing.pending, (state) => {
         state.closeCampaignListing.isLoading = true;

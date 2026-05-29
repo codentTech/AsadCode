@@ -31,12 +31,6 @@ const deleteCampaign = async (campaignId) => {
   return response.data;
 };
 
-// Publish campaign
-const publishCampaign = async (campaignId) => {
-  const response = await api().post(`/campaigns/${campaignId}/publish`);
-  return response.data;
-};
-
 // Close campaign listing to new applicants and hires
 const closeCampaignListing = async (campaignId) => {
   const response = await api().post(`/campaigns/${campaignId}/close-listing`);
@@ -145,7 +139,6 @@ const campaignsService = {
   getCampaignById,
   updateCampaign,
   deleteCampaign,
-  publishCampaign,
   closeCampaignListing,
   filterCampaigns,
   getCampaignStats,
