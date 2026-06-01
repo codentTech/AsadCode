@@ -94,17 +94,6 @@ const brandNavItems = [
       },
     ],
   },
-  {
-    label: "Communications",
-    icon: Mail,
-    children: [
-      {
-        label: "Email Preferences",
-        href: "/settings/communications/email-preferrence",
-        icon: MailOpen,
-      },
-    ],
-  },
 ];
 
 // Define nav items for Creator users
@@ -184,7 +173,7 @@ const creatorNavItems = [
     icon: Mail,
     children: [
       {
-        label: "Email Preferences",
+        label: "Email Notifications",
         href: "/settings/communications/email-preferrence",
         icon: MailOpen,
       },
@@ -228,13 +217,40 @@ function useSettingSidebar() {
     }
   }, []);
 
-  // Only update active item when pathname changes
+  const getSectionPathsForPath = useCallback((items, currentPath) => {
+    const sectionPaths = [];
+    if (!items?.length) return sectionPaths;
+
+    for (const item of items) {
+      if (!item.children?.length) continue;
+      const sectionPath = item.label;
+      const activeChild = findActiveItemFromPath(item.children, currentPath);
+      if (activeChild) sectionPaths.push(sectionPath);
+    }
+    return sectionPaths;
+  }, [findActiveItemFromPath]);
+
   useEffect(() => {
     const foundActiveItem = findActiveItemFromPath(navItems, pathname);
     if (foundActiveItem && foundActiveItem !== activeItem) {
       dispatch(setSidebarActiveItem(foundActiveItem));
     }
-  }, [pathname, navItems, findActiveItemFromPath, dispatch, activeItem]);
+
+    const sectionPaths = getSectionPathsForPath(navItems, pathname);
+    if (!sectionPaths.length) return;
+
+    const nextExpanded = { ...expandedSections };
+    let changed = false;
+    for (const sectionPath of sectionPaths) {
+      if (!nextExpanded[sectionPath]) {
+        nextExpanded[sectionPath] = true;
+        changed = true;
+      }
+    }
+    if (changed) {
+      dispatch(expandedSidebarSections(nextExpanded));
+    }
+  }, [pathname, navItems, findActiveItemFromPath, getSectionPathsForPath, dispatch, activeItem]);
 
   const toggleSection = useCallback(
     (sectionPath) => {
