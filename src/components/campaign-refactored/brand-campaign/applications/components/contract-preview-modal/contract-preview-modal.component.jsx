@@ -11,8 +11,6 @@ export default function ContractPreviewModal({
   contractData,
   creatorData,
   campaignData,
-  onSendOffer,
-  isLoading = false,
   contractId = null,
   customActions = null,
 }) {
@@ -204,7 +202,10 @@ This Agreement may be cancelled by either party prior to the start of deliverabl
 
 Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Client if no deliverables are completed.
 
-8. Agreement and Signatures
+${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `8. ${contractData.additionalClauseTitle}\n` : ""}
+  ${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `${contractData.additionalClauseBody}\n\n` : ""}
+
+${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `9. Agreement and Signatures\n` : `8. Agreement and Signatures\n`}
 
 By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.
 
@@ -218,15 +219,9 @@ Timestamp Recorded: ${signatureTimestamp}`;
   const contractText = generateContractText();
 
   return (
-    <Modal
-      title="Contract Preview"
-      show={show}
-      onClose={onClose}
-      size="xl"
-      height={true}
-    >
+    <Modal title="Contract Preview" show={show} onClose={onClose} size="xl" height={true}>
       <div className="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-100 p-2.5 sm:max-h-[33rem] sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-100 p-2.5 sm:p-6">
           <div className="rounded-md bg-white p-3 shadow-sm sm:p-6">
             <div className="contract-content">
               <h2 className="mb-4 text-center text-sm font-bold text-gray-900 sm:mb-6 sm:text-xl">

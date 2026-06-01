@@ -255,6 +255,34 @@ export default function HireCreatorModal({
           </div>
         </div>
 
+        {/* Additional Clause (Optional) */}
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base">
+            Additional Clause (Optional)
+          </h3>
+          <div>
+            <CustomInput
+              label="Clause Title"
+              register={register}
+              name="additionalClauseTitle"
+              errors={errors}
+              placeholder="Enter clause title"
+            />
+          </div>
+          <div className="mt-3 w-full sm:mt-4">
+            <TextArea
+              label="Clause Body"
+              register={register}
+              name="additionalClauseBody"
+              errors={errors}
+              placeholder="Enter clause body"
+            />
+          </div>
+          <p className="flex justify-end text-[10px] text-gray-600 sm:text-xs">
+            {watch?.additionalClauseBody?.length || 0}/{2000} characters remaining
+          </p>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:gap-3">
           <CustomButton
