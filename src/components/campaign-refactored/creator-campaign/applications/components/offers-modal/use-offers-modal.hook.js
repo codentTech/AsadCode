@@ -91,37 +91,40 @@ const useOffersModal = ({ show, onClose, onContractAction }) => {
   );
 
   // Gifted/affiliate offers bypass Stripe check per creator-stripe-workflow.md
-  const checkIfPaidContract = useCallback((contract) => {
-    const compensationType = (
-      contractPreviewData?.compensationType ||
-      contractPreviewData?.compensation_type ||
-      contract?.compensationType ||
-      contract?.compensation_type ||
-      ""
-    ).toUpperCase();
-    const campaignType = (
-      contractPreviewData?.campaign_type ||
-      contractPreviewData?.campaignType ||
-      contractPreviewData?.campaign?.campaign_type ||
-      contract?.campaign_type ||
-      contract?.campaignType ||
-      contract?.campaign?.campaign_type ||
-      ""
-    ).toUpperCase();
+  const checkIfPaidContract = useCallback(
+    (contract) => {
+      const compensationType = (
+        contractPreviewData?.compensationType ||
+        contractPreviewData?.compensation_type ||
+        contract?.compensationType ||
+        contract?.compensation_type ||
+        ""
+      ).toUpperCase();
+      const campaignType = (
+        contractPreviewData?.campaign_type ||
+        contractPreviewData?.campaignType ||
+        contractPreviewData?.campaign?.campaign_type ||
+        contract?.campaign_type ||
+        contract?.campaignType ||
+        contract?.campaign?.campaign_type ||
+        ""
+      ).toUpperCase();
 
-    // Bypass: gifted product or commission (no cash payout through platform)
-    if (
-      compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
-      compensationType === COMPENSATION_TYPE.COMMISSION
-    ) {
-      return false;
-    }
-    // Bypass: gifted or affiliate campaign type
-    if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
-      return false;
-    }
-    return compensationType === COMPENSATION_TYPE.PAID;
-  }, [contractPreviewData]);
+      // Bypass: gifted product or commission (no cash payout through platform)
+      if (
+        compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+        compensationType === COMPENSATION_TYPE.COMMISSION
+      ) {
+        return false;
+      }
+      // Bypass: gifted or affiliate campaign type
+      if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+        return false;
+      }
+      return compensationType === COMPENSATION_TYPE.PAID;
+    },
+    [contractPreviewData]
+  );
 
   const handleAccept = useCallback(async () => {
     if (!selectedContract || !user?.id) return;
@@ -173,18 +176,18 @@ const useOffersModal = ({ show, onClose, onContractAction }) => {
 
   const handleSetupStripe = useCallback(async () => {
     setShowStripePrompt(false);
-    
+
     // Ensure we have a valid origin - check multiple sources
     let origin = window.location?.origin;
-    
+
     // If origin is not available or invalid, try environment variable
     if (!origin || origin === "null" || origin === "undefined") {
       origin = process.env.NEXT_PUBLIC_MAIN_URL?.replace("/api", "") || "http://localhost:3000";
     }
-    
+
     // Remove trailing slash if present
     origin = origin.replace(/\/$/, "");
-    
+
     // Construct URLs
     const returnUrl = `${origin}/campaign?tab=2`;
     const refreshUrl = `${origin}/campaign?tab=2`;
@@ -255,4 +258,3 @@ const useOffersModal = ({ show, onClose, onContractAction }) => {
 };
 
 export default useOffersModal;
-

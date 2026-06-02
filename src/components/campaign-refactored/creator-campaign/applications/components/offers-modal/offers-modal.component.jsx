@@ -108,6 +108,8 @@ export default function OffersModal({ show, onClose, onContractAction }) {
           exclusivityClause: contractPreviewData.exclusivityClause,
           hashtags: contractPreviewData.hashtags,
           mentions: contractPreviewData.mentions,
+          additionalClauseTitle: contractPreviewData.additionalClauseTitle,
+          additionalClauseBody: contractPreviewData.additionalClauseBody,
         }}
         creatorData={user}
         campaignData={campaign}

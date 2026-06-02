@@ -530,6 +530,8 @@ const DeliverablesProgress = ({
                 usageRights: selectedContract.usageRights || selectedContract.usage_rights,
                 exclusivityClause:
                   selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
+                additionalClauseTitle: selectedContract.additionalClauseTitle,
+                additionalClauseBody: selectedContract.additionalClauseBody,
               }}
               creatorData={creator}
               campaignData={selectedCampaign}
