@@ -264,11 +264,7 @@ Timestamp Recorded: ${signatureTimestamp}`;
           </div>
         </div>
 
-        {customActions ? (
-          <div className="sticky bottom-0 z-10 border-t border-gray-200 bg-white pt-2 sm:pt-3">
-            {customActions}
-          </div>
-        ) : null}
+        {customActions ? <div className="sticky bottom-0 z-10">{customActions}</div> : null}
       </div>
     </Modal>
   );

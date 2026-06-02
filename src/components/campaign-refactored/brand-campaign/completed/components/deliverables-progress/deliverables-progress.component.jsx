@@ -519,6 +519,8 @@ const DeliverablesProgressCompleted = ({
                   selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
                 hashtags: selectedContract.hashtags,
                 mentions: selectedContract.mentions,
+                additionalClauseTitle: selectedContract.additionalClauseTitle,
+                additionalClauseBody: selectedContract.additionalClauseBody,
               }}
               creatorData={user}
               campaignData={selectedCampaign}
