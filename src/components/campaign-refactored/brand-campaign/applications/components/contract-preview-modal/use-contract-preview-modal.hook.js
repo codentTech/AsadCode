@@ -3,7 +3,12 @@ import { formatDate } from "@/common/utils/date.utils";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForBrandUser } from "@/common/utils/brand-display.util";
 
-export default function useContractPreviewModal({ contractData, creatorData, campaignData, contractId }) {
+export default function useContractPreviewModal({
+  contractData,
+  creatorData,
+  campaignData,
+  contractId,
+}) {
   // ============================================
   // 3. LOCAL STATE
   // ============================================
@@ -188,7 +193,11 @@ This Agreement may be cancelled by either party prior to the start of deliverabl
 
 Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Client if no deliverables are completed.
 
-8. Agreement and Signatures
+${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `8. ${contractData.additionalClauseTitle}\n` : ""}
+  ${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `${contractData.additionalClauseBody}\n\n` : ""}
+
+${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `9. Agreement and Signatures\n` : `8. Agreement and Signatures\n`}
+
 
 By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.
 

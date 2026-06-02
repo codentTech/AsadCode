@@ -89,6 +89,12 @@ const createValidationSchema = (isIndividual) => {
     exclusivityClause: Yup.string()
       .required("Exclusivity clause is required")
       .oneOf(["none", "3", "6", "12"], "Invalid exclusivity clause"),
+    additionalClauseTitle: Yup.string()
+      .optional()
+      .max(100, "Clause title must be less than 100 characters"),
+    additionalClauseBody: Yup.string()
+      .optional()
+      .max(2000, "Clause body must be less than 2000 characters"),
   };
 
   if (isIndividual) {
@@ -108,7 +114,21 @@ const createValidationSchema = (isIndividual) => {
       .min(10, "Content guidelines must be at least 10 characters");
   }
 
-  return Yup.object().shape(baseSchema);
+  return Yup.object()
+    .shape(baseSchema)
+    .test("additional-clause-pair", "Clause title and body are both required", function (values) {
+      const title = values?.additionalClauseTitle?.trim();
+      const body = values?.additionalClauseBody?.trim();
+
+      if ((title && !body) || (!title && body)) {
+        return this.createError({
+          path: !title ? "additionalClauseTitle" : "additionalClauseBody",
+          message: !title ? "Clause title is required" : "Clause body is required",
+        });
+      }
+
+      return true;
+    });
 };
 
 export default function useHireCreator({
@@ -161,6 +181,8 @@ export default function useHireCreator({
       contentFormat: "",
       totalCompensation: "",
       productPrice: "",
+      additionalClauseTitle: "",
+      additionalClauseBody: "",
       ...(isIndividual ? { campaignType: "", contentGuidelines: "" } : {}),
     },
   });
@@ -198,6 +220,8 @@ export default function useHireCreator({
         );
         setValue("gender", campaignData.creator_gender || "");
         setValue("language", campaignData.creator_language || "");
+        setValue("additionalClauseTitle", campaignData.additional_clause_title || "");
+        setValue("additionalClauseBody", campaignData.additional_clause_body || "");
       }
     }
   }, [campaignData, creatorData, setValue, isIndividual]);
