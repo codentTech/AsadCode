@@ -47,9 +47,11 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean)
-      : typeof campaign?.contract?.contentFormat === "string" && campaign.contract.contentFormat.trim()
+      : typeof campaign?.contract?.contentFormat === "string" &&
+          campaign.contract.contentFormat.trim()
         ? [campaign.contract.contentFormat.trim()]
-        : typeof campaign?.contract?.content_format === "string" && campaign.contract.content_format.trim()
+        : typeof campaign?.contract?.content_format === "string" &&
+            campaign.contract.content_format.trim()
           ? [campaign.contract.content_format.trim()]
           : [];
 
@@ -433,6 +435,8 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
             hashtags: selectedContract.hashtags,
             mentions: selectedContract.mentions,
+            additionalClauseTitle: selectedContract.additionalClauseTitle,
+            additionalClauseBody: selectedContract.additionalClauseBody,
           }}
           creatorData={user}
           campaignData={campaign?.campaign || campaign}

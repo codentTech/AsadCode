@@ -320,6 +320,12 @@ function useBrandApplications() {
       ...(isIndividual && contractData.contentGuidelines
         ? { contentGuidelines: contractData.contentGuidelines }
         : {}),
+      ...(contractData.additionalClauseTitle && contractData.additionalClauseBody
+        ? {
+            additionalClauseTitle: contractData.additionalClauseTitle,
+            additionalClauseBody: contractData.additionalClauseBody,
+          }
+        : {}),
     };
 
     const createResult = await dispatch(createContract(contractPayload)).unwrap();
@@ -504,8 +510,7 @@ function useBrandApplications() {
   const isSelectedCreatorForCurrentCampaign = useCallback(() => {
     if (!selectedCreator || !selectedCampaign) return false;
 
-    const creatorCampaignId =
-      selectedCreator.campaign_id || selectedCreator.campaign?.id || null;
+    const creatorCampaignId = selectedCreator.campaign_id || selectedCreator.campaign?.id || null;
     const isIndividual =
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
 
