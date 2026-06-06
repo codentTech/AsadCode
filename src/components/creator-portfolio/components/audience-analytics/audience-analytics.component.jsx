@@ -3,7 +3,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
-import { ExternalLink, TrendingUp } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import useAudienceAnalytics from "./use-audience-analytics.hook";
 
 export default function AudienceAnalytics({
@@ -100,9 +100,8 @@ export default function AudienceAnalytics({
       )}
 
       {!isLoading && !statsData && !platforms.length && (
-        <div className="text-center py-12 text-gray-600">
-          <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-4" />
-          <p>No Analytics Data Available</p>
+        <div className="rounded-lg border border-gray-100 bg-gray-100 shadow-sm text-center py-2">
+          <p className="text-center text-sm text-gray-500">No Analytics Data Available</p>
         </div>
       )}
     </section>

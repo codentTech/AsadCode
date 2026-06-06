@@ -4,6 +4,7 @@ import AudienceAnalytics from "./components/audience-analytics/audience-analytic
 import BioPricing from "./components/bio-pricing/bio-pricing.component";
 import Gallary from "./components/gallary/gallary.component";
 import CreatorMetricsDashboard from "./components/matrix-dashboard/matrix-dashboard.component";
+import MediaKitPrompt from "./components/media-kit-prompt/media-kit-prompt.component";
 import ProfileOverview from "./components/profile-overview/profile-overview.component";
 import Reviews from "./components/reviews/reviews.component";
 import useCreatorPortfolio from "./use-creator-portfolio.hook";
@@ -21,6 +22,7 @@ export default function CreatorPortfolio({ creatorId = null }) {
   return (
     <HeaderLayout className="bg-gray-50">
       <main className="mx-auto flex w-full flex-col gap-3 bg-gray-50 px-2.5 py-3 sm:gap-4 sm:px-4 sm:py-6 md:w-[80%] md:py-8">
+        {!creatorId && <MediaKitPrompt onSaved={handleProfileUpdate} />}
         <ProfileOverview
           creatorId={id}
           refreshKey={refreshKey}

@@ -112,6 +112,21 @@ const ProfileTab = ({ profileData, setProfileData }) => {
         </div>
       </div>
 
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
+        <h3 className="text-xs font-semibold text-gray-900 mb-3">Media Kit Link</h3>
+        <CustomInput
+          label="Media Kit Link"
+          name="mediaKitUrl"
+          type="url"
+          value={profileData.mediaKitUrl}
+          onChange={(e) => handleProfileFieldChange("mediaKitUrl", e.target.value)}
+          placeholder="https://"
+        />
+        <p className="mt-2 text-xs text-gray-500">
+          Paste a link to your media kit. This will be visible to brands on your profile.
+        </p>
+      </div>
+
       {/* Bio */}
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
         <h3 className="text-xs font-semibold text-gray-900 mb-3">Bio</h3>
