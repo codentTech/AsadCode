@@ -1,4 +1,5 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.component";
 import Modal from "@/common/components/modal/modal.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
@@ -165,6 +166,17 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
                 />
               )}
             </div>
+            {creator.mediaKitUrl ? (
+              <a
+                href={creator.mediaKitUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:w-auto"
+              >
+                <MediaKitIcon size="profile" />
+                <span>Media Kit</span>
+              </a>
+            ) : null}
           </div>
         </div>
       </section>
