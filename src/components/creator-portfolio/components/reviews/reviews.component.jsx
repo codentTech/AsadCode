@@ -8,7 +8,9 @@ function Reviews({ creatorId = null }) {
   return (
     <section className="rounded-2xl bg-white p-3 shadow-md sm:p-6 md:p-8">
       <div className="mb-4 flex flex-col justify-between gap-3 sm:mb-6 md:flex-row md:items-center md:gap-4">
-        <h3 className="text-sm font-semibold text-primary sm:text-lg md:text-xl">Reviews from Brands</h3>
+        <h3 className="text-sm font-semibold text-primary sm:text-lg md:text-xl">
+          Reviews from Brands
+        </h3>
 
         {sortedReviews.length > 0 && (
           <div className="relative w-full md:w-64">
@@ -42,9 +44,11 @@ function Reviews({ creatorId = null }) {
 
       {/* Empty */}
       {!isLoading && !isError && sortedReviews.length === 0 && (
-        <p className="py-8 text-center text-xs text-gray-500 sm:text-sm">
-          No reviews from brands yet. Complete campaigns and get feedback from brands here.
-        </p>
+        <div className="rounded-lg border border-gray-100 bg-gray-100 shadow-sm text-center py-2">
+          <p className="text-center text-sm text-gray-500">
+            No reviews from brands yet. Complete campaigns and get feedback from brands here.
+          </p>
+        </div>
       )}
 
       {/* Grid of Reviews */}
