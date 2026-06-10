@@ -39,6 +39,7 @@ function CampaignFeed() {
     totalCampaigns,
     handleLoadMore,
   } = useCampaignFeed();
+
   const shownCampaignsCount = sortedCampaigns.length;
   const totalCount = totalCampaigns || shownCampaignsCount;
   const progressValue =
@@ -193,7 +194,11 @@ function CampaignFeed() {
                       <div className="flex gap-2 items-center text-left text-[11px] sm:text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
                         <div>
-                          {+campaign.creator_fee !== 0 ? campaign.creator_fee : "Negotiable"}
+                          {+campaign.creator_fee !== 0
+                            ? campaign.creator_fee
+                            : campaign.product_value
+                              ? campaign?.product_value
+                              : "Negotiable"}
                         </div>
                       </div>
                     </div>
