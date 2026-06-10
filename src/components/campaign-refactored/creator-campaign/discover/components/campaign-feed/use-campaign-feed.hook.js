@@ -7,13 +7,13 @@ import {
 import { formatDate } from "@/common/utils/date.utils";
 import {
   getCompensationType,
-  getCompensationTypeKey,
   getCompensationAmount,
   getCompensationValue,
-  formatCreatorFeeForDisplay,
+  formatCampaignGeographySummary,
+  campaignHasGeographyRequirement,
 } from "@/common/utils/campaign.utils";
 
-export function useCampaignFeed() {
+export function useCampaignFeed({ getAdvancedFilters } = {}) {
   const dispatch = useDispatch();
   const PAGE_LIMIT = 10;
 
@@ -39,13 +39,31 @@ export function useCampaignFeed() {
   const isLoading = filteredCampaignsLoading && campaignItems.length === 0;
 
   const fetchCampaigns = useCallback(
-    async ({ page = 1, append = false, niche = selectedNiche, sort = sortBy } = {}) => {
+    async ({
+      page = 1,
+      append = false,
+      niche = selectedNiche,
+      sort = sortBy,
+      advancedFilters,
+      includeAdvancedFilters = true,
+    } = {}) => {
+      const resolvedAdvancedFilters = includeAdvancedFilters
+        ? advancedFilters ?? getAdvancedFilters?.() ?? {}
+        : {};
+
       const payload = {
         page,
         limit: PAGE_LIMIT,
         sort,
         niches: niche !== "all" ? niche : undefined,
+        ...resolvedAdvancedFilters,
       };
+
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
 
       const result = await dispatch(filterCampaigns(payload));
       if (!filterCampaigns.fulfilled.match(result)) return;
@@ -67,8 +85,19 @@ export function useCampaignFeed() {
         return nextItems;
       });
     },
-    [dispatch, selectedNiche, sortBy]
+    [dispatch, selectedNiche, sortBy, getAdvancedFilters]
   );
+
+  const refetchWithFilters = useCallback(
+    (advancedFiltersOverride) => {
+      fetchCampaigns({ page: 1, append: false, advancedFilters: advancedFiltersOverride });
+    },
+    [fetchCampaigns]
+  );
+
+  const clearCampaignFilters = useCallback(() => {
+    fetchCampaigns({ page: 1, append: false, includeAdvancedFilters: false });
+  }, [fetchCampaigns]);
 
   useEffect(() => {
     fetchCampaigns({ page: 1, append: false });
@@ -91,10 +120,9 @@ export function useCampaignFeed() {
       compensationValue: getCompensationValue(campaign),
       deliverables: campaign.deliverables || [],
       niche: campaign.niches,
-      location: campaign.remote ? "Remote" : "In-Person",
-      locationMandatory: campaign.in_person_required,
-      locationPreferred:
-        !campaign.in_person_required && (campaign.creator_country || campaign.creator_city),
+      location: formatCampaignGeographySummary(campaign),
+      locationMandatory: campaignHasGeographyRequirement(campaign),
+      locationPreferred: campaignHasGeographyRequirement(campaign),
       productImage: campaign.campaign_image,
       language: campaign.creator_language,
       followerMin: `${campaign.min_combined_followers || 0} Combined`,
@@ -103,18 +131,23 @@ export function useCampaignFeed() {
       brief: campaign.long_description || campaign.short_description || "No brief available",
       postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
       campaign_type: campaign.campaign_type,
-      compensation_type: getCompensationTypeKey(campaign),
       required_platforms: campaign.required_platforms || [],
       min_combined_followers: campaign.min_combined_followers,
       remote: campaign.remote,
+      creator_countries: campaign.creator_countries || [],
       creator_country: campaign.creator_country,
       creator_city: campaign.creator_city,
+      country_requirement: campaign.country_requirement,
+      city_requirement: campaign.city_requirement,
+      gender_requirement: campaign.gender_requirement,
+      language_requirement: campaign.language_requirement,
+      location_options: campaign.location_options || [],
+      compensation_type: campaign.compensation_type,
       niches: campaign.niches || [],
       creator_gender: campaign.creator_gender,
       min_age: campaign.min_age,
       max_age: campaign.max_age,
       application_deadline: formatDate(campaign.application_deadline),
-      creator_fee: formatCreatorFeeForDisplay(campaign),
       suggested_min: campaign.suggested_min,
       suggested_max: campaign.suggested_max,
       creator_fixed_price: campaign.creator_fixed_price,
@@ -152,7 +185,13 @@ export function useCampaignFeed() {
   const clearAllFilters = useCallback(() => {
     setSelectedNiche("all");
     setSortBy("latest");
-    fetchCampaigns({ page: 1, append: false, niche: "all", sort: "latest" });
+    fetchCampaigns({
+      page: 1,
+      append: false,
+      niche: "all",
+      sort: "latest",
+      includeAdvancedFilters: false,
+    });
   }, [fetchCampaigns]);
 
   const handleLoadMore = useCallback(async () => {
@@ -238,5 +277,7 @@ export function useCampaignFeed() {
     isApplying,
     filteredCampaignsData,
     handleLoadMore,
+    refetchWithFilters,
+    clearCampaignFilters,
   };
 }

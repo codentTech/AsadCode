@@ -1,25 +1,13 @@
 import { getDefaultCreatorPlatformFromConnectedList } from "@/common/utils/generic.util";
 import {
   fetchCreatorAudience,
-  fetchCreatorSocialAccounts,
   fetchCreatorStats,
   selectCreatorAudience,
   selectCreatorSocialAccounts,
   selectCreatorStats,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-const PLATFORM_ORDER = ["instagram", "tiktok", "youtube"];
-
-function getDefaultPlatform(connectedPlatforms) {
-  if (!Array.isArray(connectedPlatforms) || connectedPlatforms.length === 0) return null;
-  const normalized = connectedPlatforms.map((p) => (typeof p === "string" ? p.toLowerCase() : p));
-  for (const platform of PLATFORM_ORDER) {
-    if (normalized.includes(platform)) return platform;
-  }
-  return normalized[0] || null;
-}
 
 export default function useAudienceAnalytics(
   creatorId,
@@ -27,7 +15,6 @@ export default function useAudienceAnalytics(
   onPlatformSelect
 ) {
   const dispatch = useDispatch();
-  const [internalPlatform, setInternalPlatform] = useState(null);
 
   const stats = useSelector(selectCreatorStats);
   const audience = useSelector(selectCreatorAudience);
@@ -39,37 +26,23 @@ export default function useAudienceAnalytics(
       : [];
   }, [socialAccounts?.data]);
 
-  useEffect(() => {
-    if (creatorId) {
-      dispatch(fetchCreatorSocialAccounts(creatorId));
-    }
-  }, [creatorId, dispatch]);
+  const resolvedPlatform = useMemo(() => {
+    if (externalSelectedPlatform) return externalSelectedPlatform;
+    if (!socialAccounts.isSuccess || !Array.isArray(socialAccounts.data)) return null;
+    return getDefaultCreatorPlatformFromConnectedList(socialAccounts.data);
+  }, [externalSelectedPlatform, socialAccounts.isSuccess, socialAccounts.data]);
 
   useEffect(() => {
-    setInternalPlatform(null);
-  }, [creatorId]);
-
-  useEffect(() => {
-    if (connectedPlatforms.length > 0 && !internalPlatform) {
-      const defaultPlatform = getDefaultCreatorPlatformFromConnectedList(connectedPlatforms);
-      setInternalPlatform(defaultPlatform);
-      if (onPlatformSelect && defaultPlatform) {
-        onPlatformSelect(defaultPlatform);
-      }
-    }
-  }, [connectedPlatforms.length, internalPlatform, onPlatformSelect]);
-
-  const selectedPlatform = externalSelectedPlatform || internalPlatform;
-
-  useEffect(() => {
-    if (creatorId && selectedPlatform) {
-      const payload = { creatorId, platform: selectedPlatform };
+    if (creatorId && resolvedPlatform) {
+      const payload = { creatorId, platform: resolvedPlatform };
       dispatch(fetchCreatorStats(payload));
       dispatch(fetchCreatorAudience(payload));
     }
-  }, [creatorId, selectedPlatform, dispatch]);
+  }, [creatorId, resolvedPlatform, dispatch]);
 
-  const isLoading = stats.isLoading || audience.isLoading || socialAccounts.isLoading;
+  const isLoading =
+    socialAccounts.isLoading ||
+    (Boolean(resolvedPlatform) && (stats.isLoading || audience.isLoading));
   const isError = stats.isError || audience.isError || socialAccounts.isError;
 
   const platforms = useMemo(() => {
@@ -99,7 +72,7 @@ export default function useAudienceAnalytics(
     audienceData: audience.data,
     socialData: socialAccounts.data,
     connectedPlatforms,
-    selectedPlatform,
+    selectedPlatform: resolvedPlatform,
     platforms,
     totalFollowersAllPlatforms,
     handlePlatformClick,

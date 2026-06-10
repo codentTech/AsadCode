@@ -81,11 +81,7 @@ export const QUICK_FIELD_DEFINITIONS = [
     id: "countries",
     label: (ctx) =>
       (ctx.campaignData?.creator_countries?.length ?? 0) > 1 ? "Countries" : "Country",
-    getValue: (ctx) =>
-      withRequirement(
-        ctx.countriesDisplay ?? null,
-        ctx.campaignData?.countryRequirement
-      ),
+    getValue: (ctx) => ctx.countriesDisplay ?? null,
   },
   {
     id: "city",

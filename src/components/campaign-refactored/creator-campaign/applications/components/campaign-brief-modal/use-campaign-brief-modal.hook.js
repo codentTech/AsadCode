@@ -10,7 +10,11 @@ import {
 } from "@/common/constants/options.constant";
 import { useMemo } from "react";
 import { formatDate } from "@/common/utils/formate-date";
-import { formatGenderForDisplay, formatLanguageForDisplay } from "@/common/utils/campaign.utils";
+import {
+  formatCountriesWithRequirement,
+  formatGenderForDisplay,
+  formatLanguageForDisplay,
+} from "@/common/utils/campaign.utils";
 
 const friendlyCampaignTypeMap = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
@@ -132,13 +136,19 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
       style_guide_file: campaign.style_guide_file,
       non_negotiables_do: campaign.non_negotiables_do || [],
       non_negotiables_dont: campaign.non_negotiables_dont || [],
-      location_options: campaign.remote
-        ? ["Remote"]
-        : campaign.in_person_required
-          ? ["On Location"]
-          : [],
+      location_options:
+        campaign.location_options?.length > 0
+          ? campaign.location_options
+          : campaign.remote
+            ? ["Remote"]
+            : campaign.in_person_required
+              ? ["On Location"]
+              : [],
+      creator_countries: campaign.creator_countries || [],
       creator_country: campaign.creator_country,
       creator_city: campaign.creator_city,
+      country_requirement: campaign.country_requirement,
+      city_requirement: campaign.city_requirement,
       language_requirement: campaign.language_requirement,
       creator_language: campaign.creator_language || campaign.language,
       gender_requirement: campaign.gender_requirement,
@@ -273,20 +283,32 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
 
   // Determine if creator fee should show "Negotiable"
   const getCreatorFeeDisplay = () => {
-    // If there's an explicit creator_fee value (and it's not 0), show it
+    if (normalizedCampaign.campaign_type === CAMPAIGN_TYPE.GIFTED) {
+      if (normalizedCampaign.product_value) {
+        return formatCurrency(normalizedCampaign.product_value);
+      }
+      return "Gifted Product";
+    }
+
+    if (
+      normalizedCampaign.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT &&
+      normalizedCampaign.product_value
+    ) {
+      return formatCurrency(normalizedCampaign.product_value);
+    }
+
     if (normalizedCampaign.creator_fee && normalizedCampaign.creator_fee > 0) {
       return formatCurrency(normalizedCampaign.creator_fee);
     }
 
-    // If there's a fixed price or suggested range, show that
     if (normalizedCampaign.creator_fixed_price) {
       return formatCurrency(normalizedCampaign.creator_fixed_price);
     }
+
     if (normalizedCampaign.suggested_min || normalizedCampaign.suggested_max) {
       return `${formatCurrency(normalizedCampaign.suggested_min || 0)} — ${formatCurrency(normalizedCampaign.suggested_max || 0)}`;
     }
 
-    // For PAID campaigns (SPONSORED_POST or UGC) with no fixed price or range, show "Negotiable"
     if (
       (normalizedCampaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
         normalizedCampaign.campaign_type === CAMPAIGN_TYPE.UGC) &&
@@ -298,9 +320,18 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
       return "Negotiable";
     }
 
-    // Fallback to compensation items or "—"
-    return compensationItems[1]?.value || "Negotiable";
+    if (normalizedCampaign.product_value) {
+      return formatCurrency(normalizedCampaign.product_value);
+    }
+
+    return "—";
   };
+
+  const countriesDisplay = formatCountriesWithRequirement(
+    normalizedCampaign.creator_countries,
+    normalizedCampaign.creator_country,
+    normalizedCampaign.country_requirement
+  );
 
   const quickFields = [
     { label: "Campaign Type", value: campaignTypeLabel },
@@ -320,16 +351,28 @@ export default function useCampaignBriefModal(campaign = {}, isIndividualCreator
     },
     { label: "Work Mode", value: workMode.join(" • ") || null },
     {
-      label: "Country",
-      value: normalizedCampaign.creator_country
-        ? `${normalizedCampaign.creator_country}${normalizedCampaign.creator_country_code ? ` (${normalizedCampaign.creator_country_code})` : ""}`
-        : null,
+      label:
+        (normalizedCampaign.creator_countries?.length ?? 0) > 1
+          ? "Countries"
+          : "Country",
+      value: countriesDisplay,
     },
     {
       label: "City",
-      value: normalizedCampaign.creator_city
-        ? `${normalizedCampaign.creator_city}${normalizedCampaign.creator_city_region ? `, ${normalizedCampaign.creator_city_region}` : ""}`
-        : null,
+      value: (() => {
+        const city = normalizedCampaign.creator_city;
+        if (!city) return null;
+        const region = normalizedCampaign.creator_city_region;
+        const cityLabel = region ? `${city}, ${region}` : city;
+        const requirement = normalizedCampaign.city_requirement;
+        if (requirement && requirement !== "none") {
+          const requirementLabel = (
+            requirement.charAt(0).toUpperCase() + requirement.slice(1)
+          )?.replace("_", " ");
+          return `${cityLabel} (${requirementLabel})`;
+        }
+        return cityLabel;
+      })(),
     },
     {
       label: "Language",

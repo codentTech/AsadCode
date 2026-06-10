@@ -6,7 +6,7 @@ import {
   CAMPAIGN_TYPE_MAP,
   getCompensationTypeLabel,
   sanitizeGuidelines,
-  formatCountriesDisplay,
+  formatCountriesWithRequirement,
   createTagArray,
   createPlatformMinimums,
   formatGenderForDisplay,
@@ -80,8 +80,13 @@ export default function usePreview(campaignData = {}) {
   );
 
   const countriesDisplay = useMemo(
-    () => formatCountriesDisplay(campaignData?.creator_countries),
-    [campaignData?.creator_countries]
+    () =>
+      formatCountriesWithRequirement(
+        campaignData?.creator_countries,
+        null,
+        campaignData?.countryRequirement
+      ),
+    [campaignData?.creator_countries, campaignData?.countryRequirement]
   );
 
   const heroStats = useMemo(
