@@ -1,121 +1,98 @@
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  filterCampaigns,
-  getAllCampaigns,
-  resetFilteredCampaigns,
-} from "@/provider/features/campaigns/campaigns.slice";
+import { useCallback, useState } from "react";
+
+export const INITIAL_CAMPAIGN_FILTERS = {
+  campaignType: "",
+  platforms: [],
+  compensationType: "",
+  location: "Remote",
+  minPayment: 0,
+  eligibleOnly: false,
+  brandCountry: null,
+  brandCity: null,
+};
+
+const INITIAL_EXPANDED = {
+  type: false,
+  platform: false,
+  compensation: false,
+  location: false,
+  payment: false,
+  eligibility: false,
+  brandLocation: false,
+};
+
+export function buildCampaignFilterApiParams(sourceFilters) {
+  const apiFilters = {
+    compensation_type:
+      sourceFilters.compensationType?.value || sourceFilters.compensationType || undefined,
+    min_followers: "",
+    platforms: sourceFilters.platforms?.length > 0 ? sourceFilters.platforms : undefined,
+    country:
+      sourceFilters.location &&
+      sourceFilters.location !== "Remote" &&
+      sourceFilters.location !== "In-Person"
+        ? sourceFilters.location.value || sourceFilters.location
+        : undefined,
+    brand_country: sourceFilters.brandCountry?.countryName || undefined,
+    brand_city: sourceFilters.brandCity?.cityName || undefined,
+  };
+
+  const campaignType =
+    sourceFilters.campaignType?.value || sourceFilters.campaignType || undefined;
+  if (campaignType) {
+    apiFilters.campaign_type = campaignType;
+  }
+
+  if (sourceFilters.minPayment > 0) {
+    apiFilters.min_payment = sourceFilters.minPayment;
+  }
+
+  Object.keys(apiFilters).forEach((key) => {
+    if (apiFilters[key] === undefined) {
+      delete apiFilters[key];
+    }
+  });
+
+  return apiFilters;
+}
 
 function useCampaignFilter() {
-  const dispatch = useDispatch();
-  const { isLoading, isError, message } = useSelector((state) => state.campaigns.filterCampaigns);
+  const [filters, setFilters] = useState(INITIAL_CAMPAIGN_FILTERS);
+  const [expandedFilters, setExpandedFilters] = useState(INITIAL_EXPANDED);
 
-  const [filters, setFilters] = useState({
-    campaignType: "",
-    platforms: [],
-    compensationType: "",
-    location: "Remote",
-    minPayment: 0,
-    eligibleOnly: false,
-    brandCountry: null,
-    brandCity: null,
-  });
-
-  const [expandedFilters, setExpandedFilters] = useState({
-    type: false,
-    platform: false,
-    compensation: false,
-    location: false,
-    payment: false,
-    eligibility: false,
-    brandLocation: false,
-  });
-
-  const toggleFilter = (section) => {
+  const toggleFilter = useCallback((section) => {
     setExpandedFilters((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
-  const resetFilters = () => {
-    setFilters({
-      campaignType: "",
-      platforms: [],
-      compensationType: "",
-      location: "Remote",
-      minPayment: 0,
-      eligibleOnly: false,
-      brandCountry: null,
-      brandCity: null,
-    });
-    // Reset to show all campaigns without filters
-    // First clear the filtered campaigns state
-    dispatch(resetFilteredCampaigns());
-    // Then load all campaigns
-    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
-  };
+  const resetFilters = useCallback(() => {
+    setFilters(INITIAL_CAMPAIGN_FILTERS);
+  }, []);
 
-  const applyFilters = () => {
-    // Transform frontend filters to backend API format
-    const apiFilters = {
-      page: 1,
-      limit: 10,
-      search: "",
-      niches: [],
-      compensation_type: filters.compensationType?.value || filters.compensationType || undefined,
-      min_followers: "",
-      platforms: filters.platforms.length > 0 ? filters.platforms : undefined,
+  const getApiFilters = useCallback(
+    (sourceFilters = filters) => buildCampaignFilterApiParams(sourceFilters),
+    [filters]
+  );
 
-      country:
-        filters.location && filters.location !== "Remote" && filters.location !== "In-Person"
-          ? filters.location.value || filters.location
-          : undefined,
-      city: undefined,
-      age_range: undefined,
-      gender: undefined,
-      language: undefined,
-      brand_country: filters.brandCountry?.countryName || undefined,
-      brand_city: filters.brandCity?.cityName || undefined,
-    };
-
-    // Add campaign type filter if selected
-    if (filters.campaignType && filters.campaignType.value) {
-      apiFilters.campaign_type = filters.campaignType.value;
-    }
-
-    // Add minimum payment filter if set
-    if (filters.minPayment > 0) {
-      apiFilters.min_payment = filters.minPayment;
-    }
-
-    // Remove undefined values
-    Object.keys(apiFilters).forEach((key) => {
-      if (apiFilters[key] === undefined) {
-        delete apiFilters[key];
+  const hasActiveFilters = useCallback((sourceFilters = filters) => {
+    return Object.entries(sourceFilters).some(([key, value]) => {
+      if (key === "location") {
+        return value && value !== "Remote";
       }
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      if (typeof value === "string") {
+        return value.trim() !== "";
+      }
+      if (typeof value === "number") {
+        return value > 0;
+      }
+      return Boolean(value);
     });
-
-    // Dispatch filter action
-    dispatch(filterCampaigns(apiFilters));
-  };
-
-  const hasActiveFilters = () => {
-    return Object.values(filters).some((value) =>
-      Array.isArray(value)
-        ? value.length > 0
-        : typeof value === "string"
-          ? value.trim() !== ""
-          : typeof value === "number"
-            ? value > 0
-            : Boolean(value)
-    );
-  };
-
-  // Load initial campaigns when component mounts
-  useEffect(() => {
-    dispatch(getAllCampaigns({ page: 1, limit: 10 }));
-  }, [dispatch]);
+  }, [filters]);
 
   return {
     filters,
@@ -123,11 +100,8 @@ function useCampaignFilter() {
     expandedFilters,
     toggleFilter,
     resetFilters,
-    applyFilters,
+    getApiFilters,
     hasActiveFilters,
-    isLoading,
-    isError,
-    message,
   };
 }
 

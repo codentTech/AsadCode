@@ -7,10 +7,7 @@ import {
   addUserToShortlist,
   getAllShortlists,
 } from "@/provider/features/shortlist/shortlist.slice";
-import {
-  fetchCreatorSocialAccounts,
-  selectCreatorSocialAccounts,
-} from "@/provider/features/phyllo/phyllo.slice";
+import { selectCreatorSocialAccounts } from "@/provider/features/phyllo/phyllo.slice";
 
 export default function useProfileOverview(creatorId = null, refreshKey = 0) {
   const dispatch = useDispatch();
@@ -35,8 +32,6 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
     if (creatorId) {
       const result = await dispatch(getCreatorById(creatorId)).unwrap();
       data = result.success ? result.data : null;
-
-      if (data) dispatch(fetchCreatorSocialAccounts(creatorId));
     } else {
       const user = getUser();
       data = user && user.creator_profile ? user : null;
