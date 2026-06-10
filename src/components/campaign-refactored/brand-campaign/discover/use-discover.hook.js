@@ -252,6 +252,8 @@ function useDiscover() {
       portfolioImages: Array.isArray(creatorProfile.mini_profile_pictures)
         ? creatorProfile.mini_profile_pictures
         : [],
+      mediaKitUrl: creatorProfile?.media_kit_url || null,
+      hasConnectedSocialAccounts: socialAccounts.length > 0,
     };
   };
 

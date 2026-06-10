@@ -37,6 +37,7 @@ const INITIAL_PROFILE_STATE = {
   miniCardsLoading: [false, false, false],
   niches: [],
   startingRates: {},
+  mediaKitUrl: "",
 };
 
 const INITIAL_CUSTOM_RATES = [{ contentType: "", price: "" }];
@@ -75,6 +76,10 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
       })(),
       miniCardsLoading: [false, false, false],
       niches: creator.categories || [],
+      mediaKitUrl:
+        creator.mediaKitUrl ||
+        creator?.user?.creator_profile?.media_kit_url ||
+        "",
       startingRates:
         creator?.creator_profile?.content_rates?.map((rate) => ({
           type: rate.contentType,
@@ -159,6 +164,7 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
       categories: profileData.niches,
       keywordTags: creator?.user?.creator_profile?.keyword_tags || [],
       contentRates: allContentRates,
+      mediaKitUrl: profileData.mediaKitUrl?.trim() || "",
     };
 
     const user = getUser();
@@ -184,6 +190,7 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
         currentUser.creator_profile.profile_photo_url = profileData.profilePic;
         currentUser.creator_profile.bio = profileData.bio;
         currentUser.creator_profile.categories = profileData.niches;
+        currentUser.creator_profile.media_kit_url = profileData.mediaKitUrl?.trim() || null;
         currentUser.miniProfilePictures = profileData.miniCards.filter((card) => card !== null);
         currentUser.profilePic = profileData.profilePic;
         localStorage.setItem("user", JSON.stringify(currentUser));

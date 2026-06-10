@@ -1,5 +1,6 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.component";
 import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
 import { Bookmark, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
@@ -18,7 +19,6 @@ const CreatorCard = ({
   hideActions = false,
   creatorType = creator?.creator_profile?.creator_type,
 }) => {
-  console.log("creator", creator);
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
   const ratingValue =
@@ -47,6 +47,10 @@ const CreatorCard = ({
     formatFollowers,
     getPlatformFollowers,
     displayNiches,
+    uniquePlatforms,
+    hasConnectedSocialAccounts,
+    showMediaKitOnCard,
+    mediaKitHref,
   } = useCreatorCard({
     creator,
     isShortlist,
@@ -57,9 +61,6 @@ const CreatorCard = ({
     onReinstateClick,
     onViewNotesClick,
   });
-  const uniquePlatforms = Array.from(
-    new Set((creator.platforms || []).map((platform) => String(platform || "").toLowerCase()))
-  ).filter(Boolean);
 
   return (
     <div
@@ -177,7 +178,7 @@ const CreatorCard = ({
               className="flex min-h-[5.5rem] items-center justify-center rounded-lg bg-gray-100 py-2"
               onClick={(e) => e.stopPropagation()}
             >
-              {uniquePlatforms.length > 0 ? (
+              {hasConnectedSocialAccounts && uniquePlatforms.length > 0 ? (
                 <div className="flex justify-center">
                   {uniquePlatforms.map((platform, index, arr) => {
                     const profileUrl = getPlatformProfileUrlFor(platform);
@@ -212,6 +213,16 @@ const CreatorCard = ({
                     );
                   })}
                 </div>
+              ) : showMediaKitOnCard ? (
+                <a
+                  href={mediaKitHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center px-3 transition-opacity hover:opacity-80"
+                >
+                  <MediaKitIcon size="discovery" />
+                  <span className="mt-1 text-xs text-gray-500">Media Kit</span>
+                </a>
               ) : (
                 <p className="px-2 text-center text-[10px] leading-snug text-gray-400">
                   No social accounts connected

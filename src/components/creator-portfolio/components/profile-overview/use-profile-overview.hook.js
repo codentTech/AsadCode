@@ -59,6 +59,7 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
         gallery: data.creator_profile?.gallery || [],
         user: data,
         miniProfilePictures: data.creator_profile?.mini_profile_pictures || [],
+        mediaKitUrl: data.creator_profile?.media_kit_url || null,
       });
     }
 

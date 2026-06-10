@@ -60,6 +60,8 @@ export const mapUserToCreator = (user) => {
     platformStats,
     rating: Number(creatorProfile?.rating) || 0,
     reviewCount: Number(creatorProfile?.reviewCount ?? creatorProfile?.review_count) || 0,
+    mediaKitUrl: creatorProfile?.media_kit_url || null,
+    hasConnectedSocialAccounts: socialAccounts.length > 0,
   };
 };
 

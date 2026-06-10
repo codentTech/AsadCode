@@ -101,6 +101,22 @@ export const useCreatorCard = ({
       .slice(0, 3);
   }, [creator?.niches]);
 
+  const uniquePlatforms = useMemo(
+    () =>
+      Array.from(
+        new Set((creator.platforms || []).map((platform) => String(platform || "").toLowerCase()))
+      ).filter(Boolean),
+    [creator.platforms]
+  );
+
+  const hasConnectedSocialAccounts =
+    creator.hasConnectedSocialAccounts ?? uniquePlatforms.length > 0;
+
+  const showMediaKitOnCard =
+    !hasConnectedSocialAccounts && Boolean(creator.mediaKitUrl);
+
+  const mediaKitHref = creator.mediaKitUrl || null;
+
   return {
     getPlatformIcon,
     getPlatformProfileUrlFor,
@@ -114,5 +130,9 @@ export const useCreatorCard = ({
     combinedFollowers,
     getPlatformFollowers,
     displayNiches,
+    uniquePlatforms,
+    hasConnectedSocialAccounts,
+    showMediaKitOnCard,
+    mediaKitHref,
   };
 };
