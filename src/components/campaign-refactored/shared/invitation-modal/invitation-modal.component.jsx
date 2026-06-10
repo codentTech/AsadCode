@@ -1,14 +1,12 @@
+// invitation-modal.component.jsx
+
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
-import {
-  CAMPAIGN_TYPE,
-  COLLABORATION_TYPE,
-  COMPENSATION_TYPE,
-} from "@/common/constants/campaign.constant";
+import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { Calendar, RefreshCw, User, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import useInvitationModal from "./use-invitation-modal.hook";
+import TextArea from "@/common/components/text-area/text-area.component";
 
 const InvitationModal = ({
   isOpen,
@@ -24,31 +22,32 @@ const InvitationModal = ({
   const {
     customMessage,
     setCustomMessage,
+    register,
+    errors,
     isSending,
     selectedCampaign,
     handleCampaignSelect,
-    handleClose,
     handleSubmit,
-    formatCompensation,
     resetForm,
   } = useInvitationModal();
 
   const handleTypeChange = (type) => {
     setInvitationType(type);
-    // Reset form when switching types
     setCustomMessage("");
+
     if (selectedCampaign) {
       handleCampaignSelect(null);
     }
   };
 
   const canSubmit = () => {
+    if (customMessage.length > 2000) return false;
+
     if (invitationType === COLLABORATION_TYPE.MULTI_CREATOR) {
       return selectedCampaign !== null;
-    } else {
-      // INDIVIDUAL_CREATOR - message is mandatory
-      return customMessage.trim().length > 0;
     }
+
+    return customMessage.trim().length > 0;
   };
 
   const handleModalClose = () => {
@@ -60,9 +59,8 @@ const InvitationModal = ({
   };
 
   return (
-    <Modal show={isOpen} title="Invite to Apply" onClose={handleModalClose} size="md">
+    <Modal show={isOpen} title="Invite to Apply" onClose={handleModalClose} size="lg">
       <div className="space-y-3 sm:space-y-4">
-        {/* Creator Info */}
         <div className="flex items-center space-x-2.5 rounded-lg bg-gray-50 p-2 sm:space-x-3">
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
             {selectedCreator?.profileImage ? (
@@ -75,6 +73,7 @@ const InvitationModal = ({
               <User className="w-5 h-5 text-white" />
             )}
           </div>
+
           <div className="flex-1 min-w-0">
             <h3 className="text-xs font-medium text-gray-900 sm:text-sm">
               {selectedCreator?.first_name && selectedCreator?.last_name
@@ -87,13 +86,12 @@ const InvitationModal = ({
           </div>
         </div>
 
-        {/* Invitation Type Selection */}
         <div>
           <label className="mb-2 block text-xs font-medium text-gray-700">
             Select Invitation Type
           </label>
+
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-            {/* Option A: Multi Creator Campaign */}
             <button
               type="button"
               onClick={() => handleTypeChange(COLLABORATION_TYPE.MULTI_CREATOR)}
@@ -119,15 +117,15 @@ const InvitationModal = ({
                     Invite to an existing campaign
                   </p>
                 </div>
+
                 {invitationType === COLLABORATION_TYPE.MULTI_CREATOR && (
                   <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
                   </div>
                 )}
               </div>
             </button>
 
-            {/* Option B: Individual Collaboration */}
             <button
               type="button"
               onClick={() => handleTypeChange(COLLABORATION_TYPE.INDIVIDUAL_CREATOR)}
@@ -151,9 +149,10 @@ const InvitationModal = ({
                   </h4>
                   <p className="text-[10px] text-gray-500 sm:text-xs">One-off collaboration</p>
                 </div>
+
                 {invitationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR && (
                   <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
                   </div>
                 )}
               </div>
@@ -161,13 +160,13 @@ const InvitationModal = ({
           </div>
         </div>
 
-        {/* Campaign Selection - Only for Multi Creator */}
         {invitationType === COLLABORATION_TYPE.MULTI_CREATOR && (
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
               <label className="block text-xs font-medium text-gray-700">
                 Select Campaign ({userCampaigns.length} available)
               </label>
+
               <button
                 type="button"
                 onClick={onRefreshCampaigns}
@@ -179,6 +178,7 @@ const InvitationModal = ({
                 <RefreshCw className={`h-3.5 w-3.5 ${isCampaignsLoading ? "animate-spin" : ""}`} />
               </button>
             </div>
+
             <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
               {isCampaignsLoading ? (
                 Array.from({ length: 4 }).map((_, index) => (
@@ -217,24 +217,26 @@ const InvitationModal = ({
                         <h4 className="truncate text-[10px] font-medium leading-tight text-gray-900 sm:text-xs">
                           {campaign.campaign_title}
                         </h4>
-                        {campaign.compensation_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-                          (campaign.compensation_type === CAMPAIGN_TYPE.UGC && (
-                            <div className="flex items-center gap-3 mt-1">
-                              <span className="text-[10px] font-medium text-primary sm:text-xs">
-                                Budget Remaining: ${campaign.remaining_budget || 0}
+
+                        {(campaign.compensation_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+                          campaign.compensation_type === CAMPAIGN_TYPE.UGC) && (
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="text-[10px] font-medium text-primary sm:text-xs">
+                              Budget Remaining: ${campaign.remaining_budget || 0}
+                            </span>
+
+                            {campaign.total_collaborators && (
+                              <span className="text-[10px] text-gray-500 sm:text-xs">
+                                {campaign.total_collaborators} spots
                               </span>
-                              {campaign.total_collaborators && (
-                                <span className="text-[10px] text-gray-500 sm:text-xs">
-                                  {campaign.total_collaborators} spots
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {selectedCampaign?.id === campaign.id && (
                         <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
                         </div>
                       )}
                     </div>
@@ -245,7 +247,6 @@ const InvitationModal = ({
           </div>
         )}
 
-        {/* Custom Message */}
         <div>
           <label className="mb-2 block text-xs font-medium text-gray-700">
             {invitationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ? (
@@ -256,27 +257,36 @@ const InvitationModal = ({
               "Custom Message (Optional)"
             )}
           </label>
-          <CustomInput
-            type="textarea"
+
+          <TextArea
+            {...register("customMessage")}
             name="customMessage"
             placeholder={
               invitationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
-                ? "Start the conversation... (Required)"
-                : "Add a personal message to your invitation..."
+                ? "Start the conversation"
+                : "Add a personal message to your invitation"
             }
             value={customMessage}
             onChange={(e) => setCustomMessage(e.target.value)}
-            maxLength={500}
-            rows={3}
             disabled={isSending}
             required={invitationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR}
+            maxLength={2000}
           />
-          <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">
-            {customMessage.length}/500 characters
-          </p>
+
+          <div className="flex justify-between items-center mt-1">
+            {errors.customMessage && (
+              <p className="text-[10px] text-red-500 sm:text-xs">{errors.customMessage.message}</p>
+            )}
+            <p
+              className={`text-[10px] sm:text-xs ${
+                customMessage.length >= 1800 ? "text-red-500" : "text-gray-500"
+              }`}
+            >
+              {customMessage.length} / 2000 characters
+            </p>
+          </div>
         </div>
 
-        {/* Footer Actions */}
         <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end sm:space-x-2">
           <CustomButton
             text="Cancel"
@@ -284,6 +294,7 @@ const InvitationModal = ({
             onClick={handleModalClose}
             disabled={isSending}
           />
+
           <CustomButton
             text="Send Invitation"
             className="btn-primary w-full sm:w-auto"

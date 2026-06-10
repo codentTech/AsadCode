@@ -3,42 +3,47 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { campaignTitle } from "@/common/utils/campaign.utils";
+import { campaignTitle, formatCreatorFeeForDisplay } from "@/common/utils/campaign.utils";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
-import { DollarSign, Gift, Globe, Loader2, RotateCcw, Users, Zap } from "lucide-react";
+import { DollarSign, Filter, Gift, Globe, RotateCcw, Users, Zap } from "lucide-react";
 import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
-import { useCampaignFeed } from "./use-campaign-feed.hook";
+import CampaignCardSkeleton from "./campaign-card-skeleton.component";
 import { useRouter } from "next/navigation";
 
-function CampaignFeed() {
+function CampaignFeed({
+  sortBy,
+  handleSortChange,
+  sortedCampaigns,
+  isLoading,
+  selectedNiche,
+  handleNicheChange,
+  clearAllFilters,
+  onClearAllFilters,
+  showFullBrief,
+  briefCampaign,
+  showApplication,
+  applicationCampaign,
+  applicationPitch,
+  setApplicationPitch,
+  handleOpenBrief,
+  handleOpenApplication,
+  closeBrief,
+  closeApplication,
+  handleApply,
+  isApplying,
+  filteredCampaignsData,
+  isLoadingMore,
+  hasMoreCampaigns,
+  totalCampaigns,
+  handleLoadMore,
+  onOpenFilters,
+  hasCampaignFilters,
+}) {
   const router = useRouter();
-  const {
-    sortBy,
-    handleSortChange,
-    sortedCampaigns,
-    isLoading,
-    selectedNiche,
-    handleNicheChange,
-    clearAllFilters,
-    showFullBrief,
-    briefCampaign,
-    showApplication,
-    applicationCampaign,
-    applicationPitch,
-    setApplicationPitch,
-    handleOpenBrief,
-    handleOpenApplication,
-    closeBrief,
-    closeApplication,
-    handleApply,
-    isApplying,
-    filteredCampaignsData,
-    isLoadingMore,
-    hasMoreCampaigns,
-    totalCampaigns,
-    handleLoadMore,
-  } = useCampaignFeed();
+  const handleClearFilters = onClearAllFilters || clearAllFilters;
+  const showClearFilters = selectedNiche !== "all" || filteredCampaignsData || hasCampaignFilters;
+
   const shownCampaignsCount = sortedCampaigns.length;
   const totalCount = totalCampaigns || shownCampaignsCount;
   const progressValue =
@@ -84,7 +89,15 @@ function CampaignFeed() {
     <div className="flex-1 flex flex-col min-h-0 min-w-0 w-full bg-gray-100">
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="p-3 sm:p-4">
-          <Niche selectedNiche={selectedNiche} onNicheChange={handleNicheChange} />
+          <div className="flex flex-wrap items-center gap-2">
+            <CustomButton
+              text="Filters"
+              className="btn-secondary hidden shrink-0 lg:inline-flex"
+              startIcon={<Filter size={14} />}
+              onClick={onOpenFilters}
+            />
+            <Niche selectedNiche={selectedNiche} onNicheChange={handleNicheChange} />
+          </div>
         </div>
         <div className="px-3 sm:px-4 pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -97,11 +110,11 @@ function CampaignFeed() {
                   </span>
                 )}
               </h2>
-              {(selectedNiche !== "all" || filteredCampaignsData) && (
+              {showClearFilters && (
                 <button
                   type="button"
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 transition-colors hover:bg-gray-50 md:hidden"
-                  onClick={clearAllFilters}
+                  onClick={handleClearFilters}
                   title="Clear filters"
                   aria-label="Clear filters"
                 >
@@ -118,11 +131,11 @@ function CampaignFeed() {
                   placeHolder="Sort by"
                 />
               </div>
-              {(selectedNiche !== "all" || filteredCampaignsData) && (
+              {showClearFilters && (
                 <CustomButton
                   text="Clear Filters"
                   className="btn-secondary hidden shrink-0 md:inline-flex"
-                  onClick={clearAllFilters}
+                  onClick={handleClearFilters}
                 />
               )}
             </div>
@@ -130,14 +143,11 @@ function CampaignFeed() {
         </div>
       </div>
 
-      <div className="space-y-3 p-3 sm:p-4 overflow-y-auto flex-1">
+      <div className="grid flex-1 auto-rows-min grid-cols-1 content-start items-start gap-3 overflow-y-auto p-3 sm:p-4 lg:grid-cols-2 lg:gap-4">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 animate-spin text-primary" />
-            <span className="ml-2 text-xs sm:text-sm text-gray-600">Loading campaigns...</span>
-          </div>
+          Array.from({ length: 4 }).map((_, index) => <CampaignCardSkeleton key={index} />)
         ) : sortedCampaigns.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="col-span-1 text-center py-8 lg:col-span-2">
             <p className="text-gray-500">
               <NotFound title="No campaigns found"></NotFound>
             </p>
@@ -154,7 +164,7 @@ function CampaignFeed() {
             return (
               <div
                 key={campaign.id}
-                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                className="h-fit w-full self-start rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <div className="p-3 sm:p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
@@ -192,9 +202,7 @@ function CampaignFeed() {
                       </div>
                       <div className="flex gap-2 items-center text-left text-[11px] sm:text-xs font-semibold text-gray-900">
                         <div>{campaign.compensation} -</div>
-                        <div>
-                          {+campaign.creator_fee !== 0 ? campaign.creator_fee : "Negotiable"}
-                        </div>
+                        <div>{formatCreatorFeeForDisplay(campaign)}</div>
                       </div>
                     </div>
                   </div>
@@ -271,7 +279,7 @@ function CampaignFeed() {
         )}
 
         {!isLoading && sortedCampaigns.length > 0 && hasMoreCampaigns && (
-          <div className="sticky bottom-2 z-[5] rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4">
+          <div className="sticky bottom-2 z-[5] col-span-1 rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4 lg:col-span-2">
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">

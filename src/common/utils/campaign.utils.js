@@ -1,4 +1,8 @@
-import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "../constants/campaign.constant";
+import {
+  CAMPAIGN_TYPE,
+  COMPENSATION_TYPE,
+  REQUIREMENT_LEVEL,
+} from "../constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "../constants/options.constant";
 import { formatCompactCurrency } from "./format.utils";
 import { capitalizeFirstWord } from "./helper.utils";
@@ -27,7 +31,7 @@ export const deriveCompensation = (campaign) => {
     return {
       label: "Paid",
       detail: `${formatCompactCurrency(Number(campaign.suggested_min))} - ${formatCompactCurrency(
-        Number(campaign.suggested_max),
+        Number(campaign.suggested_max)
       )}`,
     };
   }
@@ -72,7 +76,84 @@ export const sanitizeGuidelines = (list = []) =>
 
 export const formatCountriesDisplay = (countries = []) => {
   if (!Array.isArray(countries) || countries.length === 0) return null;
-  return countries.map((c) => c.country).join(", ");
+  return countries.map((c) => c.country).filter(Boolean).join(", ");
+};
+
+const formatRequirementSuffix = (requirement) => {
+  if (!requirement || requirement === REQUIREMENT_LEVEL.NONE) return "";
+  const label = String(requirement).charAt(0).toUpperCase() + String(requirement).slice(1);
+  return ` (${label})`;
+};
+
+export const formatCountriesWithRequirement = (
+  countries = [],
+  legacyCountry = null,
+  legacyRequirement = null
+) => {
+  if (Array.isArray(countries) && countries.length > 0) {
+    const mandatory = countries.filter((c) => c.requirement === REQUIREMENT_LEVEL.MANDATORY);
+    const preferred = countries.filter((c) => c.requirement === REQUIREMENT_LEVEL.PREFERRED);
+
+    if (mandatory.length > 0) {
+      return `${formatCountriesDisplay(mandatory)}${formatRequirementSuffix(REQUIREMENT_LEVEL.MANDATORY)}`;
+    }
+
+    if (preferred.length > 0) {
+      return `${formatCountriesDisplay(preferred)}${formatRequirementSuffix(REQUIREMENT_LEVEL.PREFERRED)}`;
+    }
+
+    return formatCountriesDisplay(countries);
+  }
+
+  if (legacyCountry) {
+    return `${legacyCountry}${formatRequirementSuffix(legacyRequirement)}`;
+  }
+
+  return null;
+};
+
+export const formatCampaignGeographySummary = (campaign = {}) => {
+  const fromCountries = formatCountriesWithRequirement(
+    campaign.creator_countries,
+    campaign.creator_country,
+    campaign.country_requirement
+  );
+
+  if (fromCountries) {
+    const citySuffix =
+      campaign.creator_city && campaign.city_requirement !== REQUIREMENT_LEVEL.NONE
+        ? ` • ${campaign.creator_city}${formatRequirementSuffix(campaign.city_requirement)}`
+        : campaign.creator_city
+          ? ` • ${campaign.creator_city}`
+          : "";
+    return `${fromCountries}${citySuffix}`;
+  }
+
+  if (campaign.creator_city) {
+    return `${campaign.creator_city}${formatRequirementSuffix(campaign.city_requirement)}`;
+  }
+
+  const locationOptions = Array.isArray(campaign.location_options)
+    ? campaign.location_options
+    : [];
+
+  if (locationOptions.includes("on-location") || locationOptions.includes("on_location")) {
+    return "On Location";
+  }
+
+  if (locationOptions.includes("remote")) {
+    return "Remote";
+  }
+
+  return null;
+};
+
+export const campaignHasGeographyRequirement = (campaign = {}) => {
+  const hasCountries =
+    Array.isArray(campaign.creator_countries) && campaign.creator_countries.length > 0;
+  const hasLegacyCountry = Boolean(campaign.creator_country);
+  const hasCity = Boolean(campaign.creator_city);
+  return hasCountries || hasLegacyCountry || hasCity;
 };
 
 export const createTagArray = (items = [], prefix = "item") =>
@@ -109,7 +190,10 @@ export const campaignTitle = (campaignType) => {
 export const getCompensationType = (campaign) => {
   if (campaign.creator_fixed_price) return "Paid";
   if (campaign.commission_percentage) return "Commission";
-  if (campaign.product_value) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type === CAMPAIGN_TYPE.UGC) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type !== CAMPAIGN_TYPE.UGC)
+    return "Product value";
+
   return "Paid";
 };
 
@@ -241,17 +325,28 @@ export const formatLanguageForDisplay = (language) => {
  * Formats creator fee for display, showing "Negotiable" instead of $0 when appropriate
  */
 export const formatCreatorFeeForDisplay = (campaign) => {
-  // If there's a fixed price, show it
+  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED) {
+    if (campaign.product_value) {
+      return `$${campaign.product_value}`;
+    }
+    return "Gifted Product";
+  }
+
+  if (
+    campaign.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT &&
+    campaign.product_value
+  ) {
+    return `$${campaign.product_value}`;
+  }
+
   if (campaign.creator_fixed_price && campaign.creator_fixed_price > 0) {
     return `$${campaign.creator_fixed_price}`;
   }
 
-  // If there's a suggested range, show it
   if (campaign.suggested_min || campaign.suggested_max) {
     return `$${campaign.suggested_min || 0} - $${campaign.suggested_max || 0}`;
   }
 
-  // For PAID campaigns (SPONSORED_POST or UGC) with no fixed price or range, show "Negotiable"
   if (
     (campaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
       campaign.campaign_type === CAMPAIGN_TYPE.UGC) &&
@@ -262,11 +357,6 @@ export const formatCreatorFeeForDisplay = (campaign) => {
     (!campaign.creator_fee || campaign.creator_fee === 0)
   ) {
     return "Negotiable";
-  }
-
-  // For gifted campaigns, show product value
-  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED && campaign.product_value) {
-    return `$${campaign.product_value}`;
   }
 
   // For affiliate campaigns, show commission
@@ -285,8 +375,13 @@ export const formatCreatorFeeForDisplay = (campaign) => {
     return `$${campaign.creator_fee}`;
   }
 
-  // Default fallback
-  return campaign.creator_fee || "Negotiable";
+  if (campaign.product_value) {
+    return `$${campaign.product_value}`;
+  }
+
+  return campaign.creator_fee && Number(campaign.creator_fee) > 0
+    ? `$${campaign.creator_fee}`
+    : "—";
 };
 
 export const transformDataForAPI = (data) => {

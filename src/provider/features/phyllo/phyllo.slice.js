@@ -140,8 +140,14 @@ export const phylloSlice = createSlice({
       state.fetchCampaignPerformanceMetrics = { ...performanceMetricsInitialState };
       state.fetchCreatorMetrics = { ...generalState };
     },
+    resetStats: (state) => {
+      state.fetchCreatorStats = { ...generalState };
+    },
     resetAudience: (state) => {
       state.fetchCreatorAudience = { ...generalState };
+    },
+    resetSocialAccounts: (state) => {
+      state.fetchCreatorSocialAccounts = { ...generalState };
     },
     resetCampaignDemographics: (state) => {
       state.fetchCampaignCombinedDemographics = {
@@ -159,11 +165,9 @@ export const phylloSlice = createSlice({
     // Stats
     builder
       .addCase(fetchCreatorStats.pending, (state, action) => {
-        state.fetchCreatorStats = {
-          ...generalState,
-          isLoading: true,
-          requestId: action.meta.requestId,
-        };
+        state.fetchCreatorStats.isLoading = true;
+        state.fetchCreatorStats.isError = false;
+        state.fetchCreatorStats.requestId = action.meta.requestId;
       })
       .addCase(fetchCreatorStats.fulfilled, (state, action) => {
         if (state.fetchCreatorStats.requestId !== action.meta.requestId) {
@@ -185,11 +189,9 @@ export const phylloSlice = createSlice({
     // Audience
     builder
       .addCase(fetchCreatorAudience.pending, (state, action) => {
-        state.fetchCreatorAudience = {
-          ...generalState,
-          isLoading: true,
-          requestId: action.meta.requestId,
-        };
+        state.fetchCreatorAudience.isLoading = true;
+        state.fetchCreatorAudience.isError = false;
+        state.fetchCreatorAudience.requestId = action.meta.requestId;
       })
       .addCase(fetchCreatorAudience.fulfilled, (state, action) => {
         if (state.fetchCreatorAudience.requestId !== action.meta.requestId) {
@@ -211,11 +213,9 @@ export const phylloSlice = createSlice({
     // Social accounts
     builder
       .addCase(fetchCreatorSocialAccounts.pending, (state, action) => {
-        state.fetchCreatorSocialAccounts = {
-          ...generalState,
-          isLoading: true,
-          requestId: action.meta.requestId,
-        };
+        state.fetchCreatorSocialAccounts.isLoading = true;
+        state.fetchCreatorSocialAccounts.isError = false;
+        state.fetchCreatorSocialAccounts.requestId = action.meta.requestId;
       })
       .addCase(fetchCreatorSocialAccounts.fulfilled, (state, action) => {
         if (state.fetchCreatorSocialAccounts.requestId !== action.meta.requestId) {
@@ -348,11 +348,9 @@ export const phylloSlice = createSlice({
 
       // ===== CREATOR METRICS =====
       .addCase(fetchCreatorMetrics.pending, (state, action) => {
-        state.fetchCreatorMetrics = {
-          ...generalState,
-          isLoading: true,
-          requestId: action.meta.requestId,
-        };
+        state.fetchCreatorMetrics.isLoading = true;
+        state.fetchCreatorMetrics.isError = false;
+        state.fetchCreatorMetrics.requestId = action.meta.requestId;
       })
       .addCase(fetchCreatorMetrics.fulfilled, (state, action) => {
         if (state.fetchCreatorMetrics.requestId !== action.meta.requestId) {
@@ -392,7 +390,9 @@ export const selectCreatorMetrics = (state) =>
 // === Exports ===
 export const {
   reset,
+  resetStats,
   resetAudience,
+  resetSocialAccounts,
   resetCampaignDemographics,
   resetPerformanceMetrics,
   resetMetrics,

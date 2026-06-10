@@ -200,6 +200,8 @@ export const shortlistSlice = createSlice({
       // Get all shortlists
       .addCase(getAllShortlists.pending, (state) => {
         state.getAllShortlists.isLoading = true;
+        state.getAllShortlists.isSuccess = false;
+        state.getAllShortlists.data = null;
       })
       .addCase(getAllShortlists.fulfilled, (state, action) => {
         state.getAllShortlists.isLoading = false;

@@ -9,34 +9,34 @@ import {
 
 export const useCreatorMetricsDashboard = (creatorId, selectedPlatform = null) => {
   const dispatch = useDispatch();
-  const { data, isLoading } = useSelector(selectCreatorMetrics);
+  const { data, isLoading, isError } = useSelector(selectCreatorMetrics);
   const socialAccounts = useSelector(selectCreatorSocialAccounts);
 
-  const defaultPlatformWillApply = useMemo(() => {
-    if (!socialAccounts.isSuccess || !Array.isArray(socialAccounts.data)) return false;
-    return getDefaultCreatorPlatformFromConnectedList(socialAccounts.data) != null;
-  }, [socialAccounts.isSuccess, socialAccounts.data]);
-
-  const waitingForDefaultPlatform =
-    Boolean(creatorId) &&
-    !selectedPlatform &&
-    !socialAccounts.isError &&
-    (socialAccounts.isLoading ||
-      (!socialAccounts.isSuccess && !socialAccounts.isError) ||
-      defaultPlatformWillApply);
+  const resolvedPlatform = useMemo(() => {
+    if (selectedPlatform) return selectedPlatform;
+    if (!socialAccounts.isSuccess || !Array.isArray(socialAccounts.data)) return null;
+    return getDefaultCreatorPlatformFromConnectedList(socialAccounts.data);
+  }, [selectedPlatform, socialAccounts.isSuccess, socialAccounts.data]);
 
   useEffect(() => {
-    if (creatorId && selectedPlatform) {
-      dispatch(fetchCreatorMetrics({ creatorId, platform: selectedPlatform }));
+    if (creatorId && resolvedPlatform) {
+      dispatch(fetchCreatorMetrics({ creatorId, platform: resolvedPlatform }));
     }
-  }, [creatorId, selectedPlatform, dispatch]);
+  }, [creatorId, resolvedPlatform, dispatch]);
 
   const matrixDashboardData = useMemo(() => data?.data ?? null, [data]);
 
   const metrics = matrixDashboardData?.metrics ?? null;
   const metadata = matrixDashboardData?.metadata ?? null;
 
-  const effectiveLoading = isLoading || waitingForDefaultPlatform;
+  const isPlatformPending =
+    Boolean(creatorId) &&
+    !resolvedPlatform &&
+    !socialAccounts.isError &&
+    (socialAccounts.isLoading || (!socialAccounts.isSuccess && !socialAccounts.isError));
+
+  const effectiveLoading =
+    isPlatformPending || (Boolean(resolvedPlatform) && isLoading && !matrixDashboardData && !isError);
 
   return {
     isLoading: effectiveLoading,
