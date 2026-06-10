@@ -1,13 +1,19 @@
 import { getDefaultCreatorPlatformFromConnectedList } from "@/common/utils/generic.util";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import {
+  fetchCreatorSocialAccounts,
+  resetAudience,
+  resetMetrics,
+  resetSocialAccounts,
+  resetStats,
   selectCreatorAudience,
   selectCreatorSocialAccounts,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function useCreatorPortfolio(creatorId = null) {
+  const dispatch = useDispatch();
   const user = getUser();
   const id = isCreatorMode() ? user?.id : creatorId;
   const [refreshKey, setRefreshKey] = useState(0);
@@ -16,9 +22,19 @@ export default function useCreatorPortfolio(creatorId = null) {
   const audienceState = useSelector(selectCreatorAudience);
   const socialAccounts = useSelector(selectCreatorSocialAccounts);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setSelectedPlatform(null);
-  }, [id]);
+    dispatch(resetSocialAccounts());
+    dispatch(resetStats());
+    dispatch(resetAudience());
+    dispatch(resetMetrics());
+  }, [id, dispatch]);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchCreatorSocialAccounts(id));
+    }
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (selectedPlatform != null) return;

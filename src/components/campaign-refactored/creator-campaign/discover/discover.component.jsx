@@ -1,16 +1,31 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { Filter, FileText, X } from "lucide-react";
 import CampaignFeed from "./components/campaign-feed/campaign-feed.component";
-import CampaignFilters from "./components/campaign-filters/campaign-filters.component";
+import CampaignFiltersModal from "./components/campaign-filters/campaign-filters-modal/campaign-filters-modal.component";
+import CampaignFiltersPanel from "./components/campaign-filters/campaign-filters-panel/campaign-filters-panel.component";
 import PitchTemplate from "./components/pitch-template/pitch-template.component";
 import useDiscover from "./use-discover.hook";
 
 export default function CreatorDiscover() {
-  const { filtersOpen, setFiltersOpen, pitchesOpen, setPitchesOpen, closeFilters, closePitches } =
-    useDiscover();
+  const {
+    filtersOpen,
+    setFiltersOpen,
+    pitchesOpen,
+    setPitchesOpen,
+    closeFilters,
+    closePitches,
+    handleFiltersDone,
+    handleClearAllFilters,
+    isDesktop,
+    campaignFilter,
+    campaignFeed,
+  } = useDiscover();
+
+  const { filters, setFilters, expandedFilters, toggleFilter, resetFilters, hasActiveFilters } =
+    campaignFilter;
 
   return (
-    <div className="mx-auto max-w-7xl relative flex w-full flex-1 min-h-0 flex-col overflow-hidden bg-white lg:flex-row">
+    <div className=" relative flex w-full flex-1 min-h-0 flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex shrink-0 items-stretch gap-2 border-b border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2 lg:hidden">
         <CustomButton
           text="Filters"
@@ -26,15 +41,31 @@ export default function CreatorDiscover() {
         />
       </div>
 
-      <div className="hidden lg:flex lg:w-1/4 min-w-0 shrink-0">
-        <CampaignFilters />
-      </div>
-
-      <CampaignFeed />
+      <CampaignFeed
+        {...campaignFeed}
+        onOpenFilters={() => setFiltersOpen(true)}
+        hasCampaignFilters={hasActiveFilters()}
+        onClearAllFilters={handleClearAllFilters}
+      />
 
       <div className="hidden lg:block lg:w-1/4 min-w-0 shrink-0">
         <PitchTemplate />
       </div>
+
+      <CampaignFiltersModal
+        show={filtersOpen && isDesktop}
+        onClose={() => setFiltersOpen(false)}
+        filters={filters}
+        setFilters={setFilters}
+        expandedFilters={expandedFilters}
+        toggleFilter={toggleFilter}
+        resetFilters={() => {
+          resetFilters();
+          campaignFeed.clearCampaignFilters();
+        }}
+        onDone={handleFiltersDone}
+        isLoading={campaignFeed.isLoading}
+      />
 
       <button
         type="button"
@@ -61,7 +92,17 @@ export default function CreatorDiscover() {
           </button>
         </div>
         <div className="flex-1 min-h-0">
-          <CampaignFilters />
+          <CampaignFiltersPanel
+            filters={filters}
+            setFilters={setFilters}
+            expandedFilters={expandedFilters}
+            toggleFilter={toggleFilter}
+            resetFilters={() => {
+              resetFilters();
+              campaignFeed.clearCampaignFilters();
+            }}
+            hasActiveFilters={hasActiveFilters}
+          />
         </div>
       </aside>
 
