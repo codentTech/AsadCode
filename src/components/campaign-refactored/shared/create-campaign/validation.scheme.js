@@ -179,7 +179,11 @@ export const validationSchema = Yup.object().shape({
     .min(new Date(new Date().setHours(0, 0, 0, 0)), "Deadline cannot be a previous date.")
     .transform(emptyToUndefined),
 
-  short_description: Yup.string().required("Short description is required"),
+  short_description: Yup.string()
+    .max(250, "Short description cannot exceed 250")
+    .required("Short description is required"),
+
+  long_description: Yup.string().optional().max(2000, "Long description cannot exceed 2000"),
   campaignImage: Yup.string()
     .nullable()
     .transform(emptyToNull)

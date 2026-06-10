@@ -27,7 +27,7 @@ export const deriveCompensation = (campaign) => {
     return {
       label: "Paid",
       detail: `${formatCompactCurrency(Number(campaign.suggested_min))} - ${formatCompactCurrency(
-        Number(campaign.suggested_max),
+        Number(campaign.suggested_max)
       )}`,
     };
   }
@@ -109,7 +109,10 @@ export const campaignTitle = (campaignType) => {
 export const getCompensationType = (campaign) => {
   if (campaign.creator_fixed_price) return "Paid";
   if (campaign.commission_percentage) return "Commission";
-  if (campaign.product_value) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type === CAMPAIGN_TYPE.UGC) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type !== CAMPAIGN_TYPE.UGC)
+    return "Product value";
+
   return "Paid";
 };
 

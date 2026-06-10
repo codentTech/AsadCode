@@ -47,17 +47,22 @@ function useDiscover() {
     }
   }, [campaignsState]);
 
-  // Update the selected shortlist when shortlists change
   useEffect(() => {
-    if (selectedShortlist?.id && shortlistState.getAllShortlists.data) {
-      const updatedShortlist = shortlistState.getAllShortlists.data.find(
-        (s) => s.id === selectedShortlist.id
-      );
-      if (updatedShortlist) {
-        setSelectedShortlist(updatedShortlist);
-      }
+    if (!shortlistState.getAllShortlists.data) return;
+
+    if (!selectedShortlist?.id) return;
+
+    const updatedShortlist = shortlistState.getAllShortlists.data.find(
+      (s) => s.id === selectedShortlist.id
+    );
+
+    if (updatedShortlist) {
+      setSelectedShortlist(updatedShortlist);
+      return;
     }
-  }, [shortlistState.getAllShortlists.data]);
+
+    setSelectedShortlist(null);
+  }, [shortlistState.getAllShortlists.data, selectedShortlist?.id]);
 
   useEffect(() => {
     if (!shortlistMenuOpen) return;

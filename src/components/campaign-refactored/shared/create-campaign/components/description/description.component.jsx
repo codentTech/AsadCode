@@ -35,26 +35,24 @@ function Description({ campaignData, errors = {}, register, setValue }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TextArea
-          label="Short Description"
-          name="short_description"
-          isRequired={true}
-          className="w-full"
-          placeholder="Brief overview of your campaign (max 100 characters)"
-          errors={errors}
-          register={register}
-        />
+      <TextArea
+        label="Short Description"
+        name="short_description"
+        isRequired={true}
+        className="w-full"
+        placeholder="Brief overview of your campaign"
+        errors={errors}
+        register={register}
+      />
 
-        <TextArea
-          label="Long Description"
-          name="long_description"
-          className="w-full"
-          placeholder="Detailed campaign information (max 1000 characters)"
-          errors={errors}
-          register={register}
-        />
-      </div>
+      <TextArea
+        label="Long Description"
+        name="long_description"
+        className="w-full"
+        placeholder="Detailed campaign information"
+        errors={errors}
+        register={register}
+      />
 
       <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
