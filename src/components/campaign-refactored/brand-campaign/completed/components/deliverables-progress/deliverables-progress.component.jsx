@@ -21,6 +21,7 @@ const DeliverablesProgressCompleted = ({
   selectedCreator,
   isIndividualCreator = false,
   onClearCreator = null,
+  onPipelineUpdated = null,
   filters = { status: "COMPLETED", sort: "newest" },
 }) => {
   const [showContractPreview, setShowContractPreview] = useState(false);
@@ -59,7 +60,8 @@ const DeliverablesProgressCompleted = ({
     selectedCreator,
     isIndividualCreator,
     onClearCreator,
-    filters
+    filters,
+    onPipelineUpdated
   );
 
   const renderCampaignSelectionMessage = () => (

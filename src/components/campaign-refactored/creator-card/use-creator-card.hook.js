@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
+import { HIDDEN_PLATFORM_KEYS } from "@/common/utils/creator-platforms.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 
 export const useCreatorCard = ({
@@ -101,13 +102,17 @@ export const useCreatorCard = ({
       .slice(0, 3);
   }, [creator?.niches]);
 
-  const uniquePlatforms = useMemo(
-    () =>
-      Array.from(
-        new Set((creator.platforms || []).map((platform) => String(platform || "").toLowerCase()))
-      ).filter(Boolean),
-    [creator.platforms]
-  );
+  const uniquePlatforms = useMemo(() => {
+    const fromStats = Object.keys(creator.platformStats || {})
+      .map((platform) => String(platform).toLowerCase())
+      .filter((platform) => platform && !HIDDEN_PLATFORM_KEYS.has(platform));
+    if (fromStats.length > 0) {
+      return Array.from(new Set(fromStats));
+    }
+    return Array.from(
+      new Set((creator.platforms || []).map((platform) => String(platform || "").toLowerCase())),
+    ).filter((platform) => platform && !HIDDEN_PLATFORM_KEYS.has(platform));
+  }, [creator.platformStats, creator.platforms]);
 
   const hasConnectedSocialAccounts =
     creator.hasConnectedSocialAccounts ?? uniquePlatforms.length > 0;

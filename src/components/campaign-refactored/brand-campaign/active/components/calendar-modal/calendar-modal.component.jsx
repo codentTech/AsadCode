@@ -54,8 +54,8 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
   ];
 
   return (
-    <Modal show={show} title="Calendar" onClose={onClose} size="xl" height="fixed">
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-5 lg:items-start lg:gap-4">
+    <Modal show={show} title="Calendar" onClose={onClose} size="xl">
+      <div className="flex w-full min-w-0 flex-col gap-4 lg:grid lg:grid-cols-5 lg:items-start lg:gap-4">
         <div className="flex min-w-0 flex-col gap-3 lg:col-span-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="min-w-0 truncate text-base font-bold text-gray-900 sm:text-lg">
@@ -275,7 +275,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
         </div>
 
         <div className="flex min-w-0 flex-col lg:col-span-2">
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white lg:max-h-[min(70vh,36rem)] lg:min-h-[20rem]">
+          <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white lg:max-h-[min(70vh,36rem)]">
             <div className="shrink-0 border-b border-gray-200 p-3">
               <h3 className="text-sm font-bold text-gray-900 sm:text-base">
                 {monthNames[currentMonth.month - 1]} {selectedDate}
@@ -285,9 +285,9 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
               </p>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-3 lg:min-h-[12rem]">
+            <div className="max-h-[min(50vh,24rem)] overflow-y-auto p-3">
               {(calendarTasks[selectedDate] || []).length === 0 ? (
-                <div className="flex min-h-[12rem] flex-col items-center justify-center px-2 py-8 text-center">
+                <div className="flex flex-col items-center justify-center px-2 py-6 text-center">
                   <p className="text-sm text-gray-500">No tasks for this day</p>
                 </div>
               ) : (

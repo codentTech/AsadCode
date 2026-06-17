@@ -25,8 +25,8 @@ const TaskManagerBrandModal = ({
   } = useBrandTaskManager(show, selectedCampaignId, onClose);
 
   return (
-    <Modal show={show} title="Task Manager" onClose={onClose} size="lg" height="fixed">
-      <div className="flex min-h-0 flex-1 flex-col p-2 sm:p-3">
+    <Modal show={show} title="Task Manager" onClose={onClose} size="lg">
+      <div className="flex flex-col p-2 sm:p-3">
         <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex min-w-0 items-center gap-2">
             <h3 className="truncate text-base font-bold text-gray-900 sm:text-lg">Pending Tasks</h3>
@@ -46,7 +46,7 @@ const TaskManagerBrandModal = ({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-0.5 lg:max-h-96">
+        <div className="max-h-[min(60vh,24rem)] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
           {getBrandTasksState.isLoading ? (
             <div className="text-center py-8">
               <p className="text-gray-500 text-sm">Loading tasks...</p>

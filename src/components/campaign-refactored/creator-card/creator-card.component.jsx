@@ -1,6 +1,7 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.component";
+import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
 import { Bookmark, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
@@ -18,6 +19,8 @@ const CreatorCard = ({
   isReinstateLoading = false,
   hideActions = false,
   creatorType = creator?.creator_profile?.creator_type,
+  urgencyLabel,
+  urgencyTier,
 }) => {
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
@@ -147,6 +150,12 @@ const CreatorCard = ({
                 : creator.location}
             </p>
           </div>
+
+          {tab === "applications" && urgencyLabel ? (
+            <div className="flex justify-center">
+              <UrgencyPill label={urgencyLabel} tier={urgencyTier} />
+            </div>
+          ) : null}
 
           {/* Niches */}
           <div className="flex min-h-[3.25rem] flex-wrap content-start items-start justify-center gap-1">

@@ -3,6 +3,7 @@ import { ChevronLeft, Users } from "lucide-react";
 import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
 import CampaignOverview from "./components/campaign-overview/campaign-overview.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
+import CampaignBoard from "./components/campaign-board/campaign-board.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component";
 import LeftPaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/left-pane-skeleton.component";
 import MiddlePaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/middle-pane-skeleton.component";
@@ -26,6 +27,11 @@ export default function BrandActive() {
     handleClearCreator,
     handleSortChange,
     handleToggleChange,
+    handleOpenBoard,
+    handleCloseBoard,
+    viewMode,
+    pipelineRefreshToken,
+    refreshPipelineData,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,
@@ -37,6 +43,33 @@ export default function BrandActive() {
 
   useEffect(() => {
     if (!registerMobileSlot || !clearMobileSlot) return undefined;
+
+    if (viewMode === "board") {
+      if (selectedCreator) {
+        registerMobileSlot(
+          <button
+            type="button"
+            onClick={handleClearCreator}
+            className={slotBtnClass}
+            aria-label="Back to campaign board"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+        );
+      } else {
+        registerMobileSlot(
+          <button
+            type="button"
+            onClick={handleCloseBoard}
+            className={slotBtnClass}
+            aria-label="Close campaign board"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+        );
+      }
+      return () => clearMobileSlot();
+    }
 
     if (mobilePane === "overview") {
       registerMobileSlot(
@@ -77,9 +110,13 @@ export default function BrandActive() {
 
     return () => clearMobileSlot();
   }, [
+    viewMode,
+    selectedCreator,
     mobilePane,
     registerMobileSlot,
     clearMobileSlot,
+    handleClearCreator,
+    handleCloseBoard,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,
@@ -118,10 +155,39 @@ export default function BrandActive() {
           isIndividualCreator={rightPaneState.isIndividualCreator}
           onClearCreator={handleClearCreator}
           filters={filters}
+          onPipelineUpdated={refreshPipelineData}
         />
       )}
     </>
   );
+
+  const detailPanel =
+    rightPaneState.type === "content" ? (
+      <DeliverablesProgress
+        selectedCampaign={selectedCampaign}
+        selectedCreator={selectedCreator}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
+        onClearCreator={handleClearCreator}
+        filters={filters}
+        onPipelineUpdated={refreshPipelineData}
+      />
+    ) : null;
+
+  if (viewMode === "board") {
+    return (
+      <div className="relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden">
+        <CampaignBoard
+          selectedCampaign={selectedCampaign}
+          onCloseBoard={handleCloseBoard}
+          onCreatorSelect={handleCreatorSelect}
+          onClearCreator={handleClearCreator}
+          selectedCreator={selectedCreator}
+          detailPanel={detailPanel}
+          pipelineRefreshToken={pipelineRefreshToken}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-slate-50/80 to-white md:flex-row md:items-stretch md:bg-transparent">
@@ -143,6 +209,7 @@ export default function BrandActive() {
           onCreatorSelect={handleCreatorSelect}
           onClearCreator={handleClearCreator}
           onSortChange={handleSortChange}
+          onOpenBoard={handleOpenBoard}
           currentSort={filters.sort}
           isCompleted={false}
         />

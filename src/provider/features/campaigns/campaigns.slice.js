@@ -17,6 +17,13 @@ const generalState = {
 
 const campaignScopedCreatorsState = { ...generalState, campaignId: null };
 
+function resolvePipelineBoardArg(arg) {
+  if (typeof arg === "object" && arg !== null) {
+    return { campaignId: arg.campaignId, silent: Boolean(arg.silent) };
+  }
+  return { campaignId: arg, silent: false };
+}
+
 const initialState = {
   createCampaign: { ...generalState },
   getAllCampaigns: { ...generalState },
@@ -32,6 +39,7 @@ const initialState = {
   getAppliedCreators: { ...campaignScopedCreatorsState },
   getAppliedCreatorsForBudget: { ...generalState }, // No status filter; used for budget calculation on completed tab
   getHiredCreators: { ...campaignScopedCreatorsState },
+  getPipelineBoard: { ...campaignScopedCreatorsState },
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
@@ -229,6 +237,22 @@ export const getHiredCreators = createAsyncThunk(
       return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to get hired creators"));
     }
   }
+);
+
+export const getPipelineBoard = createAsyncThunk(
+  "campaigns/getPipelineBoard",
+  async (arg, thunkAPI) => {
+    const { campaignId } = resolvePipelineBoardArg(arg);
+    try {
+      const response = await campaignsService.getPipelineBoard(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to fetch pipeline board"),
+      );
+    }
+  },
 );
 
 // Get all brand campaigns (unified endpoint for Applications, Active, and Completed tabs)
@@ -659,6 +683,7 @@ export const campaignsSlice = createSlice({
       })
       // getAppliedCreators
       .addCase(getAppliedCreators.pending, (state, action) => {
+        if (action.meta.arg?.silent) return;
         const requestedCampaignId = action.meta.arg?.campaignId ?? null;
         const loadedCampaignId = state.getAppliedCreators.campaignId;
         const shouldClearData =
@@ -679,6 +704,7 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.campaignId = action.meta.arg?.campaignId ?? null;
       })
       .addCase(getAppliedCreators.rejected, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getAppliedCreators.message =
           action.payload?.message || "Failed to fetch applied creators";
         state.getAppliedCreators.isLoading = false;
@@ -708,6 +734,7 @@ export const campaignsSlice = createSlice({
       })
       // getHiredCreators
       .addCase(getHiredCreators.pending, (state, action) => {
+        if (action.meta.arg?.silent) return;
         const requestedCampaignId = action.meta.arg?.campaignId ?? null;
         const loadedCampaignId = state.getHiredCreators.campaignId;
         const shouldClearData =
@@ -728,12 +755,47 @@ export const campaignsSlice = createSlice({
         state.getHiredCreators.campaignId = action.meta.arg?.campaignId ?? null;
       })
       .addCase(getHiredCreators.rejected, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getHiredCreators.message =
           action.payload?.message || "Failed to fetch hired creators";
         state.getHiredCreators.isLoading = false;
         state.getHiredCreators.isError = true;
         state.getHiredCreators.data = null;
         state.getHiredCreators.campaignId = null;
+      })
+      // getPipelineBoard
+      .addCase(getPipelineBoard.pending, (state, action) => {
+        const { campaignId: requestedCampaignId, silent } = resolvePipelineBoardArg(
+          action.meta.arg,
+        );
+        if (silent) return;
+        const loadedCampaignId = state.getPipelineBoard.campaignId;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
+        state.getPipelineBoard.isLoading = true;
+        state.getPipelineBoard.message = "";
+        state.getPipelineBoard.isError = false;
+        state.getPipelineBoard.isSuccess = false;
+        if (shouldClearData) {
+          state.getPipelineBoard.data = null;
+        }
+      })
+      .addCase(getPipelineBoard.fulfilled, (state, action) => {
+        const { campaignId } = resolvePipelineBoardArg(action.meta.arg);
+        state.getPipelineBoard.isLoading = false;
+        state.getPipelineBoard.isSuccess = true;
+        state.getPipelineBoard.data = action.payload;
+        state.getPipelineBoard.campaignId = campaignId ?? null;
+      })
+      .addCase(getPipelineBoard.rejected, (state, action) => {
+        if (resolvePipelineBoardArg(action.meta.arg).silent) return;
+        state.getPipelineBoard.message =
+          action.payload?.message || "Failed to fetch pipeline board";
+        state.getPipelineBoard.isLoading = false;
+        state.getPipelineBoard.isError = true;
+        state.getPipelineBoard.data = null;
+        state.getPipelineBoard.campaignId = null;
       })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {
