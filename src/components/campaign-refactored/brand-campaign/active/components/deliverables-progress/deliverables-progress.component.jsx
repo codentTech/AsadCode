@@ -21,6 +21,7 @@ const DeliverablesProgress = ({
   isIndividualCreator = false,
   onClearCreator = null,
   filters = { status: "HIRED", sort: "newest" },
+  onPipelineUpdated = null,
 }) => {
   const [showContractPreview, setShowContractPreview] = useState(false);
 
@@ -68,7 +69,8 @@ const DeliverablesProgress = ({
     selectedCreator,
     isIndividualCreator,
     onClearCreator,
-    filters
+    filters,
+    onPipelineUpdated
   );
 
   const renderCampaignSelectionMessage = () => (
@@ -102,7 +104,7 @@ const DeliverablesProgress = ({
           {creator.name?.charAt(0) || "C"}
         </Avatar>
       </div>
-      <h3 className="w-full text-left sm:text-center">
+      <h3 className="w-full text-center">
         <button
           type="button"
           onClick={handleViewCreatorPortfolio}
@@ -113,7 +115,7 @@ const DeliverablesProgress = ({
         <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator?.rating}</span>
         <span className="ml-1 text-sm text-gray-500 sm:text-lg">({creator?.reviewCount || 0})</span>
       </h3>
-      <p className="-mt-1 flex w-full flex-wrap items-center justify-start gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
+      <p className="-mt-1 flex w-full items-center justify-center gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
         <span>{creator.age}</span>
         <span aria-hidden>•</span>
         <span>{creator.location}</span>
@@ -298,7 +300,11 @@ const DeliverablesProgress = ({
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={campaignId} creatorId={creatorUserId} />
+        <BrandTimelineSteps
+          campaignId={campaignId}
+          creatorId={creatorUserId}
+          onPipelineUpdated={onPipelineUpdated}
+        />
       </div>
     );
   };

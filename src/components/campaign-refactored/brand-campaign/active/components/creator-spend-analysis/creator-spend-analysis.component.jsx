@@ -1,12 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { sortOptions } from "@/common/constants/auth.constant";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/task-manager.component";
-import { MapPin, Star } from "lucide-react";
+import { LayoutGrid, ExternalLink, MapPin, Star } from "lucide-react";
+import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
+import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -15,8 +17,9 @@ const CreatorSpendAnalysis = ({
   onCreatorSelect,
   onClearCreator,
   onSortChange,
-  currentSort = "newest",
+  currentSort = "urgency",
   isCompleted = false,
+  onOpenBoard,
 }) => {
   const {
     creators,
@@ -25,7 +28,7 @@ const CreatorSpendAnalysis = ({
     creatorsError,
     creatorsListCampaignId,
     isMultiCreator,
-    getSuccessRateColor,
+    isIndividualMode,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,
@@ -46,7 +49,8 @@ const CreatorSpendAnalysis = ({
     onClearCreator,
     selectedCreator,
     onCreatorSelect,
-    onSortChange
+    onSortChange,
+    currentSort
   );
 
   return (
@@ -64,7 +68,7 @@ const CreatorSpendAnalysis = ({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div className="min-w-0 flex-1 sm:max-w-xs md:max-w-sm">
-              {isMultiCreator && (
+              {(isMultiCreator || isIndividualMode) && (
                 <SimpleSelect
                   placeHolder="Select an option"
                   options={sortOptions}
@@ -81,15 +85,41 @@ const CreatorSpendAnalysis = ({
                 />
               )}
             </div>
-            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+            <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
+              {!isCompleted && onOpenBoard ? (
+                <>
+                  <CustomButton
+                    text="Board"
+                    title="Campaign Board"
+                    className="btn btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                    startIcon={<LayoutGrid className="h-3.5 w-3.5 shrink-0" />}
+                    onClick={onOpenBoard}
+                  />
+                  <CustomButton
+                    text="Campaign Board"
+                    title="Campaign Board"
+                    className="btn btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
+                    startIcon={<LayoutGrid className="h-4 w-4 shrink-0" />}
+                    onClick={onOpenBoard}
+                  />
+                </>
+              ) : null}
               <CustomButton
                 text="Calendar"
-                className="btn-primary flex-1 sm:flex-none sm:w-auto"
+                title="Calendar"
+                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
                 onClick={openBrandCalendar}
               />
               <CustomButton
+                text="Tasks"
+                title="Task Manager"
+                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                onClick={openTaskManagerModal}
+              />
+              <CustomButton
                 text="Task Manager"
-                className="btn-outline flex-1 sm:flex-none sm:w-auto"
+                title="Task Manager"
+                className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
                 onClick={openTaskManagerModal}
               />
             </div>
@@ -165,13 +195,13 @@ const CreatorSpendAnalysis = ({
                 selectedCampaign &&
                 !creatorsError &&
                 (isMultiCreator ? creatorsListCampaignId === selectedCampaign?.id : true) && (
-                <div className="py-16">
-                  <NotFound
-                    title="No Creators Found"
-                    description="Try adjusting filters or selecting a different campaign."
-                  />
-                </div>
-              )}
+                  <div className="py-16">
+                    <NotFound
+                      title="No Creators Found"
+                      description="Try adjusting filters or selecting a different campaign."
+                    />
+                  </div>
+                )}
 
               {creatorsSuccess &&
                 creators.length > 0 &&
@@ -197,20 +227,19 @@ const CreatorSpendAnalysis = ({
                               className="h-24 w-16 shrink-0 rounded-lg border-2 border-gray-200 object-cover shadow-sm ring-2 ring-primary/30 sm:h-28 sm:w-20"
                             />
                             <div className="min-w-0 flex-1">
-                              <div className="mb-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                              <div className="mb-1 flex justify-between items-center gap-1.5 sm:gap-2">
                                 <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">
                                   {creator.name}
                                 </h3>
+                                {creator.urgencyLabel ? (
+                                  <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] sm:py-1 sm:text-xs">
+                                    <UrgencyPill
+                                      label={creator.urgencyLabel}
+                                      tier={creator.urgencyTier}
+                                    />
+                                  </div>
+                                ) : null}
                               </div>
-                              {creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-                              creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
-                                <div className="mb-2 w-fit max-w-full rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] text-gray-900 sm:py-1 sm:text-xs md:text-sm">
-                                  Creator Fee:{" "}
-                                  <span className="font-bold text-primary">
-                                    ${creator?.contract?.totalCompensation ?? 0}
-                                  </span>
-                                </div>
-                              ) : null}
                               <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-gray-600 sm:gap-3 sm:text-xs md:text-sm">
                                 <span className="inline-flex min-w-0 items-center gap-0.5 sm:gap-1">
                                   <MapPin className="h-3 w-3 shrink-0 sm:h-4 sm:w-4" />
@@ -237,42 +266,58 @@ const CreatorSpendAnalysis = ({
                                 <span className="text-gray-500">
                                   ({creator.reviewCount ?? 0} reviews)
                                 </span>
-                                <span
-                                  className={`rounded-full px-1.5 py-0.5 text-[10px] sm:px-2 sm:text-xs ${getSuccessRateColor(
-                                    creator.successRate
-                                  )}`}
-                                >
-                                  {`${creator.successRate || 0}% Success Rate`}
-                                </span>
                               </div>
                             </div>
                           </div>
                           <div className="w-full border-t border-gray-100 pt-3 sm:pt-3">
                             <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
-                              {Object.entries(creator.platforms)
-                                ?.filter(
-                                  ([platform]) => platform !== "twitter" && platform !== "facebook"
-                                )
-                                .map(([platform, data]) => (
-                                  <div
-                                    key={platform}
-                                    className="flex items-center justify-between rounded-lg bg-gray-100 px-2 py-1.5 pr-3 transition-colors duration-200 hover:bg-gray-100/80 sm:px-1"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className={`${getPlatformColor(platform)} rounded-md p-1`}
-                                      >
-                                        {getPlatformIcon(platform)}
-                                      </span>
-                                      <span className="text-[10px] font-semibold capitalize text-gray-700 sm:text-xs">
-                                        {platform}
-                                      </span>
+                              {getConnectedPlatformEntries(creator.platforms).map(
+                                ([platform, data]) => {
+                                  const profileUrl = getPlatformProfileUrl(
+                                    platform,
+                                    data?.username ?? creator.platformStats?.[platform]?.username,
+                                    data?.profile_url ??
+                                      creator.platformStats?.[platform]?.profile_url ??
+                                      creator.platformStats?.[platform]?.profileUrl,
+                                  );
+                                  const row = (
+                                    <div className="flex w-full items-center justify-between rounded-lg bg-gray-100 px-2 py-1.5 pr-3 transition-colors duration-200 hover:bg-gray-100/80 sm:px-1">
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={`${getPlatformColor(platform)} rounded-md p-1`}
+                                        >
+                                          {getPlatformIcon(platform)}
+                                        </span>
+                                        <span className="text-[10px] font-semibold capitalize text-gray-700 sm:text-xs">
+                                          {platform}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="text-xs font-bold tabular-nums text-gray-900 sm:text-sm">
+                                          {formatFollowers(data.followers)}
+                                        </div>
+                                        {profileUrl ? (
+                                          <ExternalLink className="h-3 w-3 shrink-0 text-gray-400" />
+                                        ) : null}
+                                      </div>
                                     </div>
-                                    <div className="text-xs font-bold tabular-nums text-gray-900 sm:text-sm">
-                                      {formatFollowers(data.followers)}
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                  return profileUrl ? (
+                                    <a
+                                      key={platform}
+                                      href={profileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="block transition-opacity hover:opacity-80"
+                                    >
+                                      {row}
+                                    </a>
+                                  ) : (
+                                    <div key={platform}>{row}</div>
+                                  );
+                                },
+                              )}
                             </div>
                           </div>
                         </div>
@@ -298,21 +343,16 @@ const CreatorSpendAnalysis = ({
                           <div className="min-w-0 flex-1">
                             <div className="mb-2 flex items-start justify-between">
                               <div className="w-full">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-3">
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                      {creator.name}
-                                    </h3>
-                                  </div>
-                                  {creator?.campaign?.campaign_type ===
-                                    CAMPAIGN_TYPE.SPONSORED_POST ||
-                                  creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
-                                    <div className="rounded-lg bg-gray-100 p-2 text-sm text-gray-900">
-                                      Creator Fee:
-                                      <span className="font-bold text-primary">
-                                        {" "}
-                                        ${creator?.contract?.totalCompensation ?? 0}
-                                      </span>
+                                <div className="flex justify-between items-center gap-2">
+                                  <h3 className="text-lg font-semibold text-gray-900">
+                                    {creator.name}
+                                  </h3>
+                                  {creator.urgencyLabel ? (
+                                    <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
+                                      <UrgencyPill
+                                        label={creator.urgencyLabel}
+                                        tier={creator.urgencyTier}
+                                      />
                                     </div>
                                   ) : null}
                                 </div>
@@ -351,38 +391,55 @@ const CreatorSpendAnalysis = ({
                               </span>
                             </div>
 
-                            <div className="flex items-center space-x-4 text-xs">
-                              <div
-                                className={`rounded-full px-2 py-1 ${getSuccessRateColor(
-                                  creator.successRate
-                                )}`}
-                              >
-                                {`${creator.successRate || 0}% Success Rate`}
-                              </div>
-                            </div>
+                            <div className="flex items-center space-x-4 text-xs"></div>
                             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                              {Object.entries(creator.platforms)
-                                ?.filter(
-                                  ([platform]) => platform !== "twitter" && platform !== "facebook"
-                                )
-                                .map(([platform, data]) => (
-                                  <div
-                                    key={platform}
-                                    className="flex items-center justify-between rounded-lg bg-gray-100 px-1 pr-3 transition-colors duration-200 hover:bg-gray-100/80"
-                                  >
-                                    <div className="flex items-center space-x-2 gap-2">
-                                      <span className={`${getPlatformColor(platform)} rounded-md p-1`}>
-                                        {getPlatformIcon(platform)}
-                                      </span>
-                                      <span className="text-xs font-semibold capitalize text-gray-700">
-                                        {platform}
-                                      </span>
+                              {getConnectedPlatformEntries(creator.platforms).map(
+                                ([platform, data]) => {
+                                  const profileUrl = getPlatformProfileUrl(
+                                    platform,
+                                    data?.username ?? creator.platformStats?.[platform]?.username,
+                                    data?.profile_url ??
+                                      creator.platformStats?.[platform]?.profile_url ??
+                                      creator.platformStats?.[platform]?.profileUrl,
+                                  );
+                                  const row = (
+                                    <div className="flex items-center justify-between rounded-lg bg-gray-100 px-1 pr-3 transition-colors duration-200 hover:bg-gray-100/80">
+                                      <div className="flex items-center space-x-2 gap-2">
+                                        <span
+                                          className={`${getPlatformColor(platform)} rounded-md p-1`}
+                                        >
+                                          {getPlatformIcon(platform)}
+                                        </span>
+                                        <span className="text-xs font-semibold capitalize text-gray-700">
+                                          {platform}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="text-sm font-bold text-gray-900">
+                                          {formatFollowers(data.followers)}
+                                        </div>
+                                        {profileUrl ? (
+                                          <ExternalLink className="h-3 w-3 shrink-0 text-gray-400" />
+                                        ) : null}
+                                      </div>
                                     </div>
-                                    <div className="text-sm font-bold text-gray-900">
-                                      {formatFollowers(data.followers)}
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                  return profileUrl ? (
+                                    <a
+                                      key={platform}
+                                      href={profileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="block transition-opacity hover:opacity-80"
+                                    >
+                                      {row}
+                                    </a>
+                                  ) : (
+                                    <div key={platform}>{row}</div>
+                                  );
+                                },
+                              )}
                             </div>
                           </div>
                         </div>

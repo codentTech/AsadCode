@@ -5,7 +5,7 @@ import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice"
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
-import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
+import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-platforms.utils";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
   setBrandCampaignMultiCreatorMode,
@@ -235,33 +235,9 @@ function useCreatorSpendAnalysis({
   const mapCreatorForCard = (data) => {
     const creatorData = data.creator;
     const profile = creatorData?.creator_profile;
-    const socialAccounts = creatorData?.social_accounts || [];
     const appliedDate = data.applied_at || data.created_at;
     const rejectedDate = data.rejected_at || data.updated_at;
-
-    const {
-      platforms: activePlatforms,
-      platformStats: platformStatsFromAccounts,
-      totalFollowers: totalFromAccounts,
-    } = normalizeActivePhylloPlatforms(socialAccounts);
-
-    const platforms =
-      activePlatforms.length > 0
-        ? activePlatforms
-        : (profile?.social_platforms || [])
-            .map((p) => (typeof p === "object" ? p.platform : p))
-            .filter(Boolean)
-            .map((p) => String(p).toLowerCase());
-
-    const platformStats =
-      Object.keys(platformStatsFromAccounts).length > 0
-        ? platformStatsFromAccounts
-        : platforms.reduce((acc, platformName) => {
-            if (platformName) acc[platformName] = { followers: 0 };
-            return acc;
-          }, {});
-
-    const followers = totalFromAccounts > 0 ? totalFromAccounts : profile?.total_followers || 0;
+    const connectedPlatforms = buildConnectedPlatformsFromCreatorUser(creatorData);
 
     return {
       id: creatorData?.id,
@@ -281,12 +257,16 @@ function useCreatorSpendAnalysis({
         }) || "Location not specified",
       rating: parseFloat(profile?.rating) || 0,
       reviewCount: profile?.review_count || 0,
-      followers,
+      followers: Object.values(connectedPlatforms.platformStats).reduce(
+        (sum, stat) => sum + (stat.followers || 0),
+        0,
+      ),
       niches: profile?.categories || [],
       tagline: data.custom_message || data.pitch || profile?.bio || "",
       portfolioImages: profile?.mini_profile_pictures || [],
-      platforms,
-      platformStats,
+      platforms: connectedPlatforms.platformList,
+      platformStats: connectedPlatforms.platformStats,
+      hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
       appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
       rejectedDate: rejectedDate ? new Date(rejectedDate).toLocaleDateString() : "N/A",
       originalData: data,

@@ -18,6 +18,9 @@ import {
   resetPerformanceMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
 import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
+import { sortCreatorsByUrgency } from "@/common/utils/creator-urgency.util";
+import { refreshBrandPipelineData } from "@/common/utils/pipeline-refresh.util";
+import usePipelineBackgroundRefresh from "@/common/hooks/use-pipeline-background-refresh.hook";
 
 export default function useCompleted(disableAutoSelect = false) {
   const dispatch = useDispatch();
@@ -57,7 +60,7 @@ export default function useCompleted(disableAutoSelect = false) {
 
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCreator, setSelectedCreator] = useState(null);
-  const [currentSort, setCurrentSort] = useState("newest");
+  const [currentSort, setCurrentSort] = useState("urgency");
   const [campaignOptions, setCampaignOptions] = useState([]);
   const [budgetData, setBudgetData] = useState({
     totalBudget: 0,
@@ -227,7 +230,10 @@ export default function useCompleted(disableAutoSelect = false) {
     if (isIndividualCollaborationFlow(isMultiCreator, effectiveType)) return;
 
     dispatch(
-      getAppliedCreators({ campaignId: selectedCampaign.id, filters: { status: "COMPLETED" } })
+      getAppliedCreators({
+        campaignId: selectedCampaign.id,
+        filters: { status: "COMPLETED", sort: currentSort },
+      })
     );
   }, [
     selectedCampaign,
@@ -389,7 +395,7 @@ export default function useCompleted(disableAutoSelect = false) {
         dispatch(
           getAppliedCreators({
             campaignId: campaign.id,
-            filters: { status: "COMPLETED" },
+            filters: { status: "COMPLETED", sort: currentSort },
           })
         );
       }
@@ -398,7 +404,7 @@ export default function useCompleted(disableAutoSelect = false) {
         setMobilePane("creators");
       }
     },
-    [dispatch, disableAutoSelect]
+    [dispatch, disableAutoSelect, currentSort]
   );
 
   const handleCreatorSelect = useCallback(
@@ -492,8 +498,38 @@ export default function useCompleted(disableAutoSelect = false) {
         );
       }
     },
-    [selectedCampaign, dispatch]
+    [selectedCampaign, selectedCollaborationType, dispatch]
   );
+
+  const refreshPipelineData = useCallback(() => {
+    refreshBrandPipelineData(dispatch, {
+      campaignId: selectedCampaign?.id,
+      collaborationType: selectedCampaign?.collaboration_type,
+      isMultiCreator,
+      completedFilters: { status: "COMPLETED", sort: currentSort },
+      includeCompleted: true,
+      includeActive: false,
+      includeBoard: false,
+      silent: true,
+    });
+  }, [
+    dispatch,
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    currentSort,
+  ]);
+
+  usePipelineBackgroundRefresh({
+    enabled: Boolean(selectedCampaign?.id),
+    campaignId: selectedCampaign?.id,
+    collaborationType: selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    completedFilters: { status: "COMPLETED", sort: currentSort },
+    includeCompleted: true,
+    includeActive: false,
+    includeBoard: false,
+  });
 
   const formatCurrency = useCallback((amount) => {
     const value = Number(amount);
@@ -618,7 +654,11 @@ export default function useCompleted(disableAutoSelect = false) {
     if (selectedCreator) return;
     if (skipMultiCreatorAutoSelectRef.current) return;
 
-    const mapped = mapBrandAppliedCreatorRow(completedCreatorsForCampaign[0]);
+    const ordered =
+      currentSort === "urgency"
+        ? sortCreatorsByUrgency(completedCreatorsForCampaign)
+        : completedCreatorsForCampaign;
+    const mapped = mapBrandAppliedCreatorRow(ordered[0]);
     if (!mapped) return;
 
     handleCreatorSelect(mapped, { suppressMobileDetail: true });
@@ -631,6 +671,7 @@ export default function useCompleted(disableAutoSelect = false) {
     completedCreatorsForCampaign,
     handleCreatorSelect,
     selectedCampaign?.id,
+    currentSort,
   ]);
 
   return {
@@ -660,6 +701,7 @@ export default function useCompleted(disableAutoSelect = false) {
     handleClearCreator,
     handleToggleChange,
     handleSortChange,
+    refreshPipelineData,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,

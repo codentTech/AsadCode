@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
-import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { refreshBrandPipelineData } from "@/common/utils/pipeline-refresh.util";
+import usePipelineBackgroundRefresh from "@/common/hooks/use-pipeline-background-refresh.hook";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
   setBrandCampaignMultiCreatorMode,
@@ -49,8 +51,11 @@ export default function useActive() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [filters, setFilters] = useState({
     status: "HIRED",
-    sort: "newest",
+    sort: "urgency",
   });
+  const [viewMode, setViewMode] = useState("standard");
+  const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
+  const [hasManualSortOverride, setHasManualSortOverride] = useState(false);
   const [mobilePane, setMobilePane] = useState("overview");
 
   // ============================================
@@ -252,23 +257,15 @@ export default function useActive() {
         return;
       }
 
-      const isPaidCampaign =
-        campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-        campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
-      const isGiftedOrAffiliate =
-        campaign?.campaign_type === CAMPAIGN_TYPE.GIFTED ||
-        campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE;
-
-      let defaultSort = "newest";
-      if (isPaidCampaign) {
-        defaultSort = "most-expensive";
-      } else if (isGiftedOrAffiliate) {
-        defaultSort = "newest";
+      let defaultSort = "urgency";
+      if (hasManualSortOverride) {
+        defaultSort = filters.sort || "newest";
       }
 
       const updatedFilters = {
         ...filters,
-        sort: filters.sort || defaultSort,
+        status: "HIRED",
+        sort: hasManualSortOverride ? filters.sort || defaultSort : "urgency",
       };
       setFilters(updatedFilters);
 
@@ -285,7 +282,7 @@ export default function useActive() {
         setMobilePane("creators");
       }
     },
-    [dispatch, filters]
+    [dispatch, filters, hasManualSortOverride]
   );
 
   const handleCreatorSelect = useCallback(
@@ -347,10 +344,49 @@ export default function useActive() {
 
   const handleSortChange = useCallback(
     (sortValue) => {
+      setHasManualSortOverride(true);
       handleFilterChange("sort", sortValue);
     },
     [handleFilterChange]
   );
+
+  const handleOpenBoard = useCallback(() => {
+    setViewMode("board");
+    setSelectedCreator(null);
+  }, []);
+
+  const handleCloseBoard = useCallback(() => {
+    setViewMode("standard");
+  }, []);
+
+  const refreshPipelineData = useCallback(() => {
+    refreshBrandPipelineData(dispatch, {
+      campaignId: selectedCampaign?.id,
+      collaborationType: selectedCampaign?.collaboration_type,
+      isMultiCreator,
+      activeFilters: filters,
+      includeBoard: Boolean(selectedCampaign?.id),
+      includeActive: true,
+      silent: true,
+    });
+    setPipelineRefreshToken((token) => token + 1);
+  }, [
+    dispatch,
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    filters,
+  ]);
+
+  usePipelineBackgroundRefresh({
+    enabled: Boolean(selectedCampaign?.id),
+    campaignId: selectedCampaign?.id,
+    collaborationType: selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    activeFilters: filters,
+    includeBoard: viewMode === "board",
+    includeActive: true,
+  });
 
   const handleToggleChange = useCallback(
     (newIsMultiCreator) => {
@@ -482,6 +518,11 @@ export default function useActive() {
     handleFilterChange,
     handleSortChange,
     handleToggleChange,
+    handleOpenBoard,
+    handleCloseBoard,
+    viewMode,
+    pipelineRefreshToken,
+    refreshPipelineData,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,

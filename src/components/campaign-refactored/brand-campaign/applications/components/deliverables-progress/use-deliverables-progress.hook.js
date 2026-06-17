@@ -14,7 +14,8 @@ import {
   resetAudience,
 } from "@/provider/features/phyllo/phyllo.slice";
 
-import { PLATFORM_PRIORITY, KNOWN_PLATFORMS } from "@/common/constants/genaric.constant";
+import { PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
+import { mapConnectedPlatformsForDisplay } from "@/common/utils/creator-platforms.utils";
 
 const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   const dispatch = useDispatch();
@@ -98,30 +99,15 @@ const useDeliverablesProgress = (selectedCreator, isIndividualCreator) => {
   // Enriched platform list: all known platforms with username + followers
   const platforms = useMemo(() => {
     const accounts = socialAccountsState?.data;
-    const accountMap = {};
-    if (Array.isArray(accounts)) {
-      accounts
-        .filter((a) => a.is_active)
-        .forEach((a) => {
-          const name = String(a.platform).toLowerCase();
-          accountMap[name] = {
-            username: a.username || a.profile_data?.username || null,
-            followers: Number(
-              a.follower_count ??
-                a.profile_data?.follower_count ??
-                a.profile_data?.subscriber_count ??
-                0
-            ),
-          };
-        });
-    }
-    return KNOWN_PLATFORMS.map((name) => ({
-      name,
-      username: accountMap[name]?.username ?? null,
-      followers: accountMap[name]?.followers ?? 0,
-      isConnected: Boolean(accountMap[name]),
+    const loading = socialAccountsState?.isLoading && !Array.isArray(accounts);
+    return mapConnectedPlatformsForDisplay(accounts, { loading }).map((platform) => ({
+      name: platform.key,
+      username: platform.username,
+      followers: platform.followers,
+      profileUrl: platform.profileUrl,
+      isConnected: true,
     }));
-  }, [socialAccountsState?.data]);
+  }, [socialAccountsState?.data, socialAccountsState?.isLoading]);
 
   // Auto-select default platform: Instagram first, then first available
   useEffect(() => {

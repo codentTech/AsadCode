@@ -18,6 +18,8 @@ import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
+import { refreshBrandPipelineData } from "@/common/utils/pipeline-refresh.util";
+import usePipelineBackgroundRefresh from "@/common/hooks/use-pipeline-background-refresh.hook";
 
 const APPLICATIONS_LIST_STATUSES = ["PENDING", "NEGOTIATIONS"];
 
@@ -28,6 +30,9 @@ function useBrandApplications() {
   const hasRequestedBrandCampaignsRef = useRef(false);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
+  const isMultiCreator = useSelector(
+    (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
+  );
   const {
     data: campaignsData,
     isLoading: campaignsLoading,
@@ -87,7 +92,7 @@ function useBrandApplications() {
     platforms: [],
     status: APPLICATIONS_LIST_STATUSES.join(","),
     excludeStatus: "HIRED",
-    sort: "newest",
+    sort: "urgency",
   });
 
   const fetchIndividualCollaborations = useCallback(async () => {
@@ -638,22 +643,20 @@ function useBrandApplications() {
     if (!selectedCampaign) return;
 
     const now = Date.now();
-    const minTimeBetweenRefreshes = 30000;
+    const minTimeBetweenRefreshes = 5000;
 
     let shouldRefresh = false;
     Object.keys(allMessages || {}).forEach((conversationId) => {
       const messages = allMessages[conversationId] || [];
       const previousCount = previousMessagesCountRef.current[conversationId] || 0;
 
-      if (
-        messages.length > previousCount &&
-        previousCount > 0 &&
-        now - lastRefreshTimeRef.current > minTimeBetweenRefreshes
-      ) {
+      if (messages.length > previousCount && previousCount > 0) {
         const latestMessage = messages[messages.length - 1];
         const senderId = latestMessage?.sender?.id || latestMessage?.sender_id;
         if (latestMessage && latestMessage.sender?.role === "CREATOR" && senderId !== user?.id) {
-          shouldRefresh = true;
+          if (now - lastRefreshTimeRef.current > minTimeBetweenRefreshes) {
+            shouldRefresh = true;
+          }
         }
       }
 
@@ -665,19 +668,17 @@ function useBrandApplications() {
         clearTimeout(refreshTimeoutRef.current);
       }
       refreshTimeoutRef.current = setTimeout(() => {
-        const isIndividual =
-          selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
-        if (isIndividual) {
-          dispatch(getBrandIndividualCollaborations());
-        } else {
-          dispatch(
-            getAppliedCreators({
-              campaignId: selectedCampaign.id,
-              filters,
-            })
-          );
-        }
-      }, 2000);
+        refreshBrandPipelineData(dispatch, {
+          campaignId: selectedCampaign?.id,
+          collaborationType: selectedCampaign?.collaboration_type,
+          isMultiCreator,
+          applicationsFilters: filters,
+          includeApplications: true,
+          includeActive: false,
+          includeBoard: false,
+          silent: true,
+        });
+      }, 1000);
     }
 
     return () => {
@@ -685,7 +686,18 @@ function useBrandApplications() {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [allMessages, selectedCampaign, dispatch, user, filters]);
+  }, [allMessages, selectedCampaign, dispatch, user, filters, isMultiCreator]);
+
+  usePipelineBackgroundRefresh({
+    enabled: Boolean(selectedCampaign?.id),
+    campaignId: selectedCampaign?.id,
+    collaborationType: selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    applicationsFilters: filters,
+    includeApplications: true,
+    includeActive: false,
+    includeBoard: false,
+  });
 
   const isIndividualCreator =
     !selectedCampaign ||
