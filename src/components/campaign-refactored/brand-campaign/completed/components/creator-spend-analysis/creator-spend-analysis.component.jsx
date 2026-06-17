@@ -2,8 +2,8 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { sortOptions } from "@/common/constants/auth.constant";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/task-manager.component";
 import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
@@ -16,7 +16,7 @@ const CreatorSpendAnalysisCompleted = ({
   onCreatorSelect,
   onClearCreator,
   onSortChange,
-  currentSort = "newest",
+  currentSort = "urgency",
   isCompleted = true,
 }) => {
   const {
@@ -26,7 +26,7 @@ const CreatorSpendAnalysisCompleted = ({
     creatorsSuccess,
     creatorsError,
     isMultiCreator,
-    getSuccessRateColor,
+    isIndividualMode,
     handleOpenModal,
     handleCloseModal,
     showBrandCalendar,
@@ -44,6 +44,7 @@ const CreatorSpendAnalysisCompleted = ({
     onCreatorSelect,
     onClearCreator,
     onSortChange,
+    currentSort,
     isCompleted,
   });
 
@@ -62,7 +63,7 @@ const CreatorSpendAnalysisCompleted = ({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div className="min-w-0 flex-1 sm:max-w-xs md:max-w-sm">
-              {isMultiCreator && (
+              {(isMultiCreator || isIndividualMode) && (
                 <SimpleSelect
                   placeHolder="Select an option"
                   options={sortOptions}
@@ -79,20 +80,35 @@ const CreatorSpendAnalysisCompleted = ({
                 />
               )}
             </div>
-            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+            <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
               <CustomButton
                 text="Calendar"
-                className="btn-primary flex-1 sm:flex-none sm:w-auto"
+                title="Calendar"
+                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
                 onClick={() => setShowBrandCalendar(true)}
               />
               <CustomButton
-                text="Task Manager"
-                className="btn-outline flex-1 sm:flex-none sm:w-auto"
+                text="Tasks"
+                title="Task Manager"
+                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
                 onClick={() => setShowTaskManager(true)}
               />
               <CustomButton
+                text="Task Manager"
+                title="Task Manager"
+                className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
+                onClick={() => setShowTaskManager(true)}
+              />
+              <CustomButton
+                text="New campaign"
+                title="Start a new campaign"
+                className="btn-primary min-w-0 flex-1 px-2 sm:hidden"
+                onClick={handleOpenModal}
+              />
+              <CustomButton
                 text="Start a new campaign"
-                className="btn-primary w-full sm:w-auto"
+                title="Start a new campaign"
+                className="btn-primary hidden min-w-0 sm:inline-flex sm:w-auto"
                 onClick={handleOpenModal}
               />
             </div>
@@ -150,17 +166,14 @@ const CreatorSpendAnalysisCompleted = ({
                   <NotFound title="Error loading creators" description="Please try again later." />
                 </div>
               )}
-              {selectedCampaign &&
-                creatorsSuccess &&
-                creators.length === 0 &&
-                !creatorsError && (
-                  <div className="flex items-center justify-center py-8">
-                    <NotFound
-                      title="No Completed Creators"
-                      description="No creators have completed this campaign yet."
-                    />
-                  </div>
-                )}
+              {selectedCampaign && creatorsSuccess && creators.length === 0 && !creatorsError && (
+                <div className="flex items-center justify-center py-8">
+                  <NotFound
+                    title="No Completed Creators"
+                    description="No creators have completed this campaign yet."
+                  />
+                </div>
+              )}
               {selectedCampaign && creators.length > 0 && (
                 <div className="space-y-3 sm:space-y-4">
                   {creators.map((creator) => {
@@ -168,9 +181,6 @@ const CreatorSpendAnalysisCompleted = ({
                     const creatorMetrics = getCreatorMetrics(creator);
                     const comparisons = getCreatorComparisons(creatorMetrics);
                     const showMetrics = !isUgc;
-                    const showFee =
-                      creator?.campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-                      creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 
                     return (
                       <div key={creator.id}>
@@ -190,7 +200,7 @@ const CreatorSpendAnalysisCompleted = ({
                                 className="h-24 w-16 shrink-0 rounded-lg border-2 border-gray-200 object-cover shadow-sm ring-2 ring-primary/30 sm:h-28 sm:w-20"
                               />
                               <div className="min-w-0 flex-1">
-                                <div className="mb-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                <div className="mb-1 flex justify-between items-center gap-1.5 sm:gap-2">
                                   <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">
                                     {creator.name}
                                   </h3>
@@ -207,15 +217,15 @@ const CreatorSpendAnalysisCompleted = ({
                                       {creator.deadline}
                                     </span>
                                   ) : null}
+                                  {creator.urgencyLabel ? (
+                                    <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] sm:py-1 sm:text-xs md:text-sm">
+                                      <UrgencyPill
+                                        label={creator.urgencyLabel}
+                                        tier={creator.urgencyTier}
+                                      />
+                                    </div>
+                                  ) : null}
                                 </div>
-                                {showFee ? (
-                                  <div className="mb-2 w-fit max-w-full rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] text-gray-900 sm:py-1 sm:text-xs md:text-sm">
-                                    Creator Fee:{" "}
-                                    <span className="font-bold text-primary">
-                                      ${creator?.contract?.totalCompensation || 0}
-                                    </span>
-                                  </div>
-                                ) : null}
                                 <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-gray-600 sm:gap-3 sm:text-xs md:text-sm">
                                   <span className="inline-flex min-w-0 items-center gap-0.5 sm:gap-1">
                                     <MapPin className="h-3 w-3 shrink-0 sm:h-4 sm:w-4" />
@@ -238,13 +248,6 @@ const CreatorSpendAnalysisCompleted = ({
                                   </span>
                                   <span>{creator.rating}</span>
                                   <span>({creator.reviewCount} reviews)</span>
-                                  <span
-                                    className={`rounded-full px-1.5 py-0.5 text-[10px] sm:px-2 sm:text-xs ${getSuccessRateColor(
-                                      creator.successRate || creator.success_rate
-                                    )}`}
-                                  >
-                                    {creator.successRate || creator.success_rate || 0}% Success Rate
-                                  </span>
                                   {showMetrics && creatorMetrics?.publishedUrl ? (
                                     <a
                                       href={creatorMetrics.publishedUrl}
@@ -391,8 +394,8 @@ const CreatorSpendAnalysisCompleted = ({
                             <div className="min-w-0 flex-1">
                               <div className="mb-2 flex items-start justify-between">
                                 <div className="w-full">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex flex-wrap items-center gap-2">
                                       <h3 className="text-lg font-semibold text-gray-900">
                                         {creator.name}
                                       </h3>
@@ -403,18 +406,15 @@ const CreatorSpendAnalysisCompleted = ({
                                           {creator.deadline}
                                         </span>
                                       )}
+                                      {creator.urgencyLabel ? (
+                                        <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
+                                          <UrgencyPill
+                                            label={creator.urgencyLabel}
+                                            tier={creator.urgencyTier}
+                                          />
+                                        </div>
+                                      ) : null}
                                     </div>
-                                    {creator?.campaign?.campaign_type ===
-                                      CAMPAIGN_TYPE.SPONSORED_POST ||
-                                    creator?.campaign?.campaign_type === CAMPAIGN_TYPE.UGC ? (
-                                      <div className="rounded-lg bg-gray-100 p-2 text-sm text-gray-900">
-                                        Creator Fee:
-                                        <span className="font-bold text-primary">
-                                          {" "}
-                                          ${creator?.contract?.totalCompensation || 0}
-                                        </span>
-                                      </div>
-                                    ) : null}
                                   </div>
                                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                                     <div className="flex items-center space-x-1 text-xs">
@@ -449,14 +449,7 @@ const CreatorSpendAnalysisCompleted = ({
                                 </span>
                               </div>
 
-                              <div className="mb-3 flex items-center space-x-4 text-xs">
-                                <div
-                                  className={`rounded-full px-2 py-1 ${getSuccessRateColor(
-                                    creator.successRate || creator.success_rate
-                                  )}`}
-                                >
-                                  {`${creator.successRate || creator.success_rate || 0}% Success Rate`}
-                                </div>
+                              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
                                 {showMetrics && creatorMetrics?.publishedUrl && (
                                   <a
                                     href={creatorMetrics.publishedUrl}

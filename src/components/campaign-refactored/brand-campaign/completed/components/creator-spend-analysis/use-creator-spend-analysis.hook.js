@@ -1,4 +1,5 @@
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
 import { formatFollowers } from "@/common/utils/format.utils";
 import { buildCreatorPublishedMetricsMap } from "@/common/utils/published-campaign-metrics.util";
 import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
@@ -35,6 +36,7 @@ export const useCreatorSpendAnalysisCompleted = ({
   onCreatorSelect,
   onClearCreator,
   onSortChange,
+  currentSort = "urgency",
   isCompleted = true,
 }) => {
   const [open, setOpen] = useState(false);
@@ -46,7 +48,8 @@ export const useCreatorSpendAnalysisCompleted = ({
     onClearCreator,
     selectedCreator,
     onCreatorSelect,
-    onSortChange
+    onSortChange,
+    currentSort
   );
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline.timelinesByKey || {});
@@ -77,12 +80,7 @@ export const useCreatorSpendAnalysisCompleted = ({
   const handleOpenModal = () => setOpen(true);
   const handleCloseModal = () => setOpen(false);
 
-  const getPlatformEntries = (platforms) => {
-    if (Array.isArray(platforms)) {
-      return platforms.map((p) => [p.name, { followers: p.followers }]);
-    }
-    return Object.entries(platforms || {});
-  };
+  const getPlatformEntries = (platforms) => getConnectedPlatformEntries(platforms);
 
   /**
    * Per-creator metrics map: creatorUserId → metrics object.

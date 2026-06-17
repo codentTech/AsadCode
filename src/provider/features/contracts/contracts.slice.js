@@ -23,6 +23,16 @@ const generalState = {
   data: null,
 };
 
+function resolveIndividualContractsArg(arg) {
+  if (typeof arg === "object" && arg !== null && !Array.isArray(arg)) {
+    return {
+      isCompleted: Boolean(arg.isCompleted),
+      silent: Boolean(arg.silent),
+    };
+  }
+  return { isCompleted: Boolean(arg), silent: false };
+}
+
 const initialState = {
   getContractById: generalState,
   getContractsByCampaign: generalState,
@@ -75,7 +85,8 @@ export const getPendingContractsForCreator = createAsyncThunk(
 
 export const getIndividualCollaborationContracts = createAsyncThunk(
   "contracts/getIndividualCollaborations",
-  async (isCompleted = false, thunkAPI) => {
+  async (arg, thunkAPI) => {
+    const { isCompleted } = resolveIndividualContractsArg(arg);
     try {
       const response = await contractsService.getIndividualCollaborationContracts(isCompleted);
       if (response.success) return response;
@@ -207,7 +218,8 @@ export const contractsSlice = createSlice({
         state.getPendingContractsForCreator.data = null;
       })
       // Get Individual Collaboration Contracts
-      .addCase(getIndividualCollaborationContracts.pending, (state) => {
+      .addCase(getIndividualCollaborationContracts.pending, (state, action) => {
+        if (resolveIndividualContractsArg(action.meta.arg).silent) return;
         if (!state.getIndividualCollaborationContracts) {
           state.getIndividualCollaborationContracts = { ...generalState };
         }
@@ -225,6 +237,7 @@ export const contractsSlice = createSlice({
         state.getIndividualCollaborationContracts.data = action.payload.data;
       })
       .addCase(getIndividualCollaborationContracts.rejected, (state, action) => {
+        if (resolveIndividualContractsArg(action.meta.arg).silent) return;
         if (!state.getIndividualCollaborationContracts) {
           state.getIndividualCollaborationContracts = { ...generalState };
         }

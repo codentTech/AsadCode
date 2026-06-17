@@ -51,7 +51,7 @@ export const sendInvitation = createAsyncThunk(
 
 export const getBrandIndividualCollaborations = createAsyncThunk(
   "invitation/getBrandIndividualCollaborations",
-  async (_, thunkAPI) => {
+  async (arg = {}, thunkAPI) => {
     try {
       const response = await invitationService.getBrandIndividualCollaborations();
       if (response.success) return response;
@@ -130,7 +130,8 @@ const invitationSlice = createSlice({
         state.sendInvitation.isError = true;
         state.sendInvitation.data = action.payload;
       })
-      .addCase(getBrandIndividualCollaborations.pending, (state) => {
+      .addCase(getBrandIndividualCollaborations.pending, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getBrandIndividualCollaborations.isLoading = true;
         state.getBrandIndividualCollaborations.isSuccess = false;
         state.getBrandIndividualCollaborations.isError = false;
@@ -141,6 +142,7 @@ const invitationSlice = createSlice({
         state.getBrandIndividualCollaborations.data = action.payload;
       })
       .addCase(getBrandIndividualCollaborations.rejected, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getBrandIndividualCollaborations.isLoading = false;
         state.getBrandIndividualCollaborations.isError = true;
         state.getBrandIndividualCollaborations.data = action.payload;

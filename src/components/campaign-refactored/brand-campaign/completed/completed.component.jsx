@@ -47,6 +47,7 @@ export default function BrandCompleted() {
     handleClearCreator,
     handleSortChange,
     handleToggleChange,
+    refreshPipelineData,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,
@@ -164,7 +165,7 @@ export default function BrandCompleted() {
             onCreatorSelect={handleCreatorSelect}
             onClearCreator={handleClearCreator}
             onSortChange={handleSortChange}
-            currentSort={currentSort || "newest"}
+            currentSort={currentSort}
             isCompleted={true}
           />
         </CompletedPaneContent>
@@ -187,7 +188,8 @@ export default function BrandCompleted() {
               selectedCreator={selectedCreator}
               isIndividualCreator={isIndividualCreator}
               onClearCreator={handleClearCreator}
-              filters={{ status: "COMPLETED", sort: currentSort || "newest" }}
+              onPipelineUpdated={refreshPipelineData}
+              filters={{ status: "COMPLETED", sort: currentSort }}
             />
           )}
         </CompletedPaneContent>

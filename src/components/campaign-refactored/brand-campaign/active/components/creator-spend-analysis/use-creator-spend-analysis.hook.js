@@ -1,10 +1,17 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
+import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
 import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
-import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import {
-  buildPlatformsFromPhylloAccounts,
-  buildPlatformsFromSocialAccounts,
+  applyLivePipelineUrgency,
+  resolveCreatorUrgency,
+  sortCreatorsByUrgency,
+} from "@/common/utils/creator-urgency.util";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+import { getAge } from "@/common/utils/date.utils";
+import {
+  buildConnectedPlatformsFromCreatorUser,
+  buildConnectedPlatformsFromPhylloAccounts,
   ratingAndReviewCountFromCreatorUser,
 } from "@/common/utils/creator-platforms.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -23,10 +30,12 @@ export const useCreatorSpendAnalysis = (
   onClearCreator,
   selectedCreator,
   onCreatorSelect,
-  onSortChange
+  onSortChange,
+  currentSort = "urgency"
 ) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
+  const urgencyTick = useUrgencyTick();
   const [hydratedUsersById, setHydratedUsersById] = useState({});
   const [phylloAccountsByCreatorId, setPhylloAccountsByCreatorId] = useState({});
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
@@ -107,6 +116,18 @@ export const useCreatorSpendAnalysis = (
 
         const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(mergedCreator);
 
+        const pipeline = contract.pipeline;
+        const urgency = resolveCreatorUrgency({ pipeline });
+
+        const connectedPlatforms = buildConnectedPlatformsFromCreatorUser(mergedCreator);
+        const phylloConnected =
+          mergedCreator?.id && phylloAccountsByCreatorId[mergedCreator.id]
+            ? buildConnectedPlatformsFromPhylloAccounts(phylloAccountsByCreatorId[mergedCreator.id])
+            : null;
+        const platformData = phylloConnected?.hasConnectedSocialAccounts
+          ? phylloConnected
+          : connectedPlatforms;
+
         return {
           id: contract.id,
           contractId: contract.id,
@@ -115,6 +136,9 @@ export const useCreatorSpendAnalysis = (
           age: getAge(mergedCreator?.date_of_birth),
           creatorUserId: mergedCreator?.id || creator?.id,
           creator: mergedCreator || creator,
+          pipeline,
+          urgencyLabel: urgency.label,
+          urgencyTier: urgency.tier,
           name:
             `${mergedCreator?.first_name || ""} ${mergedCreator?.last_name || ""}`.trim() ||
             "Unknown Creator",
@@ -130,10 +154,9 @@ export const useCreatorSpendAnalysis = (
           totalSpent: contract.totalCompensation || 0,
           rating,
           reviewCount,
-          platforms:
-            mergedCreator?.id && phylloAccountsByCreatorId[mergedCreator.id]
-              ? buildPlatformsFromPhylloAccounts(phylloAccountsByCreatorId[mergedCreator.id])
-              : buildPlatformsFromSocialAccounts(mergedCreator),
+          platforms: platformData.platforms,
+          platformStats: platformData.platformStats,
+          hasConnectedSocialAccounts: platformData.hasConnectedSocialAccounts,
           projects: 0,
           successRate: 0,
           avgDeliveryTime: "N/A",
@@ -206,15 +229,20 @@ export const useCreatorSpendAnalysis = (
     });
   }, [isIndividualMode, individualCreators, phylloAccountsByCreatorId]);
 
-  const creators = Array.isArray(creatorsData?.data)
-    ? creatorsData.data.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean)
-    : [];
+  const mappedCreators = useMemo(() => {
+    return Array.isArray(creatorsData?.data)
+      ? creatorsData.data.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean)
+      : [];
+  }, [creatorsData?.data]);
 
-  const getSuccessRateColor = (rate) => {
-    if (rate >= 95) return "text-green-600 bg-green-50";
-    if (rate >= 90) return "text-blue-600 bg-blue-50";
-    return "text-orange-600 bg-orange-50";
-  };
+  const creators = useMemo(() => {
+    urgencyTick;
+    const withLiveUrgency = mappedCreators.map(applyLivePipelineUrgency);
+    if (currentSort === "urgency") {
+      return sortCreatorsByUrgency(withLiveUrgency);
+    }
+    return withLiveUrgency;
+  }, [mappedCreators, urgencyTick, currentSort]);
 
   const handleSortChange = useCallback(
     (option) => {
@@ -239,7 +267,16 @@ export const useCreatorSpendAnalysis = (
     [onCreatorSelect]
   );
 
-  const displayCreators = isIndividualMode ? individualCreators : creators;
+  const sortedIndividualCreators = useMemo(() => {
+    urgencyTick;
+    const withLiveUrgency = individualCreators.map(applyLivePipelineUrgency);
+    if (currentSort === "urgency") {
+      return sortCreatorsByUrgency(withLiveUrgency);
+    }
+    return withLiveUrgency;
+  }, [individualCreators, urgencyTick, currentSort]);
+
+  const displayCreators = isIndividualMode ? sortedIndividualCreators : creators;
 
   const awaitingAppliedCreators =
     !!selectedCampaign?.id &&
@@ -330,7 +367,6 @@ export const useCreatorSpendAnalysis = (
     creatorsListCampaignId,
     isMultiCreator,
     isIndividualMode,
-    getSuccessRateColor,
     formatFollowers,
     getPlatformIcon,
     getPlatformColor,

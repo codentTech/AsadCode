@@ -29,6 +29,16 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const hasAutoSelectedFiltered = useRef(false);
   const lastSelectedCampaignId = useRef(null);
   const hasAutoSelectedIndividual = useRef(false);
+  const onCampaignSelectRef = useRef(onCampaignSelect);
+  const onToggleChangeRef = useRef(onToggleChange);
+
+  useEffect(() => {
+    onCampaignSelectRef.current = onCampaignSelect;
+  }, [onCampaignSelect]);
+
+  useEffect(() => {
+    onToggleChangeRef.current = onToggleChange;
+  }, [onToggleChange]);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -101,36 +111,30 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     }
   }, [selectedCampaignId]);
 
-  // --- Brand: restore selection from context ---
+  // --- Brand: restore selection from context (once per context id) ---
   useEffect(() => {
-    if (campaignsSuccess && campaignsData?.data && selectedCampaignId) {
-      if (!isMultiCreator) {
-        return;
+    if (!isMultiCreator) return;
+    if (!campaignsSuccess || !campaignsData?.data || !selectedCampaignId) {
+      if (!selectedCampaignId) {
+        lastRestoredCampaignIdRef.current = null;
+        hasRestoredFromContext.current = false;
       }
-      const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const ctxKey = campaignIdKey(selectedCampaignId);
-      const restoredCampaign = allCampaigns.find((c) => campaignIdKey(c.id) === ctxKey);
-      const localKey = campaignIdKey(selectedCampaign?.id);
-      const shouldRestore =
-        !hasRestoredFromContext.current || localKey !== ctxKey;
-
-      if (restoredCampaign && shouldRestore) {
-        setSelectedCampaign(restoredCampaign);
-        hasAutoSelected.current = true;
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-      }
-    } else if (!selectedCampaignId) {
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
+      return;
     }
-  }, [
-    campaignsSuccess,
-    campaignsData?.data,
-    selectedCampaignId,
-    selectedCampaign?.id,
-    isMultiCreator,
-  ]);
+    if (hasRestoredFromContext.current) return;
+
+    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
+    const ctxKey = campaignIdKey(selectedCampaignId);
+    const restoredCampaign = activeCampaigns.find((c) => campaignIdKey(c.id) === ctxKey);
+
+    if (restoredCampaign) {
+      setSelectedCampaign(restoredCampaign);
+      hasAutoSelected.current = true;
+      hasRestoredFromContext.current = true;
+      lastRestoredCampaignIdRef.current = selectedCampaignId;
+    }
+  }, [campaignsSuccess, campaignsData?.data, selectedCampaignId, isMultiCreator]);
 
   // --- Brand: auto-select / reconcile selected campaign when list loads ---
   useEffect(() => {
@@ -148,9 +152,25 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       if (selectedCampaign.status === "COMPLETE") {
         setSelectedCampaign(null);
         hasAutoSelected.current = false;
+        hasRestoredFromContext.current = false;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: null,
+            collaborationType: null,
+          })
+        );
       } else {
-        setSelectedCampaign(activeCampaigns[0]);
+        const fallback = activeCampaigns[0];
+        setSelectedCampaign(fallback);
         hasAutoSelected.current = true;
+        hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = fallback.id;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: fallback.id,
+            collaborationType: fallback.collaboration_type || null,
+          })
+        );
       }
       return;
     }
@@ -368,11 +388,11 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       hasNotifiedParent.current = false;
       lastSelectedCampaignId.current = currentCampaignId;
     }
-    if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      onCampaignSelect(selectedCampaign);
+    if (selectedCampaign && onCampaignSelectRef.current && !hasNotifiedParent.current) {
+      onCampaignSelectRef.current(selectedCampaign);
       hasNotifiedParent.current = true;
     }
-  }, [selectedCampaign, onCampaignSelect]);
+  }, [selectedCampaign]);
 
   // --- Overview: fetch individual contracts when in individual mode ---
   useEffect(() => {
@@ -409,8 +429,8 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
           brand: firstContract.brand,
         };
         setSelectedCampaign(individualCampaign);
-        if (onCampaignSelect) {
-          onCampaignSelect(individualCampaign);
+        if (onCampaignSelectRef.current) {
+          onCampaignSelectRef.current(individualCampaign);
         }
       }
     }
@@ -419,7 +439,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     individualContractsSuccess,
     normalizedIndividualContracts,
     selectedCampaign,
-    onCampaignSelect,
   ]);
 
   // --- Overview: auto-select first filtered multi-creator option ---
@@ -429,8 +448,8 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
           internalHandleCampaignSelect(firstFilteredOption);
-          if (onCampaignSelect) {
-            onCampaignSelect(firstFilteredOption.campaign);
+          if (onCampaignSelectRef.current) {
+            onCampaignSelectRef.current(firstFilteredOption.campaign);
           }
           hasAutoSelectedFiltered.current = true;
         }
@@ -444,7 +463,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     isSelectedCampaignValid,
     isLoadingBrand,
     internalHandleCampaignSelect,
-    onCampaignSelect,
   ]);
 
   const handleCampaignSelect = useCallback(

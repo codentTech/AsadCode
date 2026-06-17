@@ -1,4 +1,3 @@
-import { Menu, MenuItem } from "@mui/material";
 import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
@@ -7,9 +6,10 @@ import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.com
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
+import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
+import { Menu, MenuItem } from "@mui/material";
 import { EllipsisVertical, Filter, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
@@ -38,6 +38,7 @@ const CreatorSpendAnalysis = ({
     isMultiCreator,
     isSwitchingMode,
     individualCollaborations,
+    sortedAppliedCreators,
     individualCollaborationsLoading,
     campaignsData,
     campaignsLoading,
@@ -197,7 +198,7 @@ const CreatorSpendAnalysis = ({
               <h2 className="text-[10px] font-semibold leading-snug text-gray-900 sm:text-sm">
                 {selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR
                   ? `${Array.isArray(individualCollaborations) ? individualCollaborations.length : 0} individual collaboration${Array.isArray(individualCollaborations) && individualCollaborations.length === 1 ? "" : "s"}`
-                  : `${appliedCreatorsData?.data?.length || 0} creator${Array.isArray(appliedCreatorsData?.data) && appliedCreatorsData?.data?.length === 1 ? "" : "s"} ${Array.isArray(appliedCreatorsData?.data) && appliedCreatorsData?.data?.length === 1 ? "has" : "have"} applied to this campaign`}
+                  : `${sortedAppliedCreators.length || 0} creator${sortedAppliedCreators.length === 1 ? "" : "s"} ${sortedAppliedCreators.length === 1 ? "has" : "have"} applied to this campaign`}
               </h2>
             </div>
 
@@ -219,6 +220,8 @@ const CreatorSpendAnalysis = ({
                           creator={mapped}
                           tab="applications"
                           appliedDate={mapped.appliedDate}
+                          urgencyLabel={mapped.urgencyLabel}
+                          urgencyTier={mapped.urgencyTier}
                           onCreatorPreview={handleCreatorPreview}
                           onSaveToShortlist={handleSaveToShortlist}
                           onRemoveFromShortlist={() => {}}
@@ -229,9 +232,9 @@ const CreatorSpendAnalysis = ({
                   })}
                 </div>
               )
-            ) : Array.isArray(appliedCreatorsData?.data) && appliedCreatorsData.data.length > 0 ? (
+            ) : sortedAppliedCreators.length > 0 ? (
               <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
-                {appliedCreatorsData.data.map((creator) => {
+                {sortedAppliedCreators.map((creator) => {
                   const mapped = mapCreatorForCard(creator);
                   return (
                     <div key={creator.id} onClick={() => handleCreatorPreview(creator)}>
@@ -239,6 +242,8 @@ const CreatorSpendAnalysis = ({
                         creator={mapped}
                         tab="applications"
                         appliedDate={mapped.appliedDate}
+                        urgencyLabel={mapped.urgencyLabel}
+                        urgencyTier={mapped.urgencyTier}
                         onCreatorPreview={handleCreatorPreview}
                         onSaveToShortlist={handleSaveToShortlist}
                         onRemoveFromShortlist={() => {}}

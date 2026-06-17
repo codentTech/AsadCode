@@ -10,8 +10,7 @@ import {
 } from "@/provider/features/shortlist/shortlist.slice";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
-import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+import { mapUserToCreator } from "@/common/utils/discover-creators.util";
 
 function useDiscover() {
   const dispatch = useDispatch();
@@ -194,68 +193,7 @@ function useDiscover() {
     // Invite logic would go here
   };
 
-  // Transform backend user data to frontend creator format (matches discover mapUserToCreator shape)
-  const transformUserToCreator = (user) => {
-    const creatorProfile = user.creator_profile || {};
-    const socialAccounts = user.social_accounts || [];
-    const socialPlatformsFromProfile = creatorProfile.social_platforms || [];
-
-    const {
-      platforms: platformsFromAccounts,
-      platformStats: platformStatsFromAccounts,
-      totalFollowers: activeTotalFollowers,
-    } = normalizeActivePhylloPlatforms(socialAccounts);
-
-    const platformsFromProfile = socialPlatformsFromProfile
-      .map((sp) => (typeof sp === "string" ? sp : sp?.platform || sp?.name))
-      .filter(Boolean);
-    const platforms =
-      platformsFromAccounts.length > 0 ? platformsFromAccounts : platformsFromProfile;
-    const platformStats =
-      Object.keys(platformStatsFromAccounts).length > 0
-        ? platformStatsFromAccounts
-        : socialPlatformsFromProfile.reduce((acc, sp) => {
-            const key = typeof sp === "string" ? sp : sp?.platform;
-            if (key) acc[key] = { followers: 0, username: sp?.username, profile_url: null };
-            return acc;
-          }, {});
-
-    const totalFollowers = Object.values(platformStats).reduce(
-      (sum, stat) => sum + (stat?.followers || 0),
-      0
-    );
-
-    return {
-      ...user,
-      creator_profile: creatorProfile,
-      id: user.id,
-      name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown Creator",
-      profileImage: creatorProfile.profile_photo_url || "/default-avatar.png",
-      age: user.date_of_birth
-        ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear()
-        : "N/A",
-      location:
-        formatCreatorLocation({
-          city: user.city,
-          country: user.country,
-          state: user.state,
-          stateShort: user.state_short,
-        }) || "Unknown Location",
-      rating: 4.5,
-      reviewCount: 0,
-      followers: activeTotalFollowers || totalFollowers || 0,
-      engagementRate: 3.2,
-      tagline: creatorProfile.bio || "Creating authentic content that resonates with audiences",
-      niches: creatorProfile.categories || [],
-      platforms,
-      platformStats,
-      portfolioImages: Array.isArray(creatorProfile.mini_profile_pictures)
-        ? creatorProfile.mini_profile_pictures
-        : [],
-      mediaKitUrl: creatorProfile?.media_kit_url || null,
-      hasConnectedSocialAccounts: socialAccounts.length > 0,
-    };
-  };
+  const transformUserToCreator = (user) => mapUserToCreator(user);
 
   // Sort creators in the selected shortlist
   const getSortedCreators = () => {

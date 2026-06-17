@@ -31,7 +31,8 @@ const useDeliverablesProgress = (
   selectedCreator = null,
   isIndividualCreator = false,
   onClearCreator = null,
-  filters = { status: "HIRED", sort: "newest" }
+  filters = { status: "HIRED", sort: "newest" },
+  onPipelineUpdated = null
 ) => {
   const creatorMode = isCreatorMode();
   const user = getUser();
@@ -610,6 +611,7 @@ const useDeliverablesProgress = (
     setMarkCompleteRating(0);
     setMarkCompleteFeedback("");
     setIsMarkingComplete(false);
+    onPipelineUpdated?.();
   };
 
   // Format shipping address for display

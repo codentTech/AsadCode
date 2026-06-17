@@ -23,7 +23,8 @@ const useDeliverablesProgress = (
   selectedCreator = null,
   isIndividualCreator = false,
   onClearCreator = null,
-  filters = { status: "COMPLETED", sort: "newest" }
+  filters = { status: "COMPLETED", sort: "newest" },
+  onPipelineUpdated = null
 ) => {
   const creatorMode = isCreatorMode();
   const dispatch = useDispatch();
@@ -57,6 +58,7 @@ const useDeliverablesProgress = (
     timeline: null,
     reviews: null,
   });
+  const reviewStatusFingerprintRef = useRef("");
 
   // Extract stable IDs to prevent unnecessary recalculations - extract once at the top
   const selectedCreatorContractCampaignId = selectedCreator?.contract?.campaignId;
@@ -493,6 +495,25 @@ const useDeliverablesProgress = (
     );
   }, [dispatch, effectiveCampaignId, creatorProfileId, creatorMode]);
 
+  const reviewStatus = getReviewStatusState.data || null;
+
+  useEffect(() => {
+    reviewStatusFingerprintRef.current = "";
+  }, [effectiveCampaignId, creatorProfileId]);
+
+  useEffect(() => {
+    if (!reviewStatus) return;
+
+    const fingerprint = JSON.stringify(reviewStatus);
+    if (
+      reviewStatusFingerprintRef.current &&
+      reviewStatusFingerprintRef.current !== fingerprint
+    ) {
+      onPipelineUpdated?.();
+    }
+    reviewStatusFingerprintRef.current = fingerprint;
+  }, [reviewStatus, onPipelineUpdated]);
+
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
       window.open(`/creator-profile/${creatorUserId}`, "_blank", "noopener,noreferrer");
@@ -536,7 +557,7 @@ const useDeliverablesProgress = (
     selectedContract,
     contracts,
     campaignReviews: getReviewsByCreatorProfileState.data || [],
-    reviewStatus: getReviewStatusState.data || null,
+    reviewStatus,
     isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
     handleViewCreatorPortfolio,
     brandMarkedCompleteAt,
