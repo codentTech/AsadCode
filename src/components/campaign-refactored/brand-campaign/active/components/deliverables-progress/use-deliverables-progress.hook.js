@@ -81,9 +81,7 @@ const useDeliverablesProgress = (
     if (isIndividualCreator) {
       return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
     }
-    return (
-      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id || null
-    );
+    return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
   }, [
     selectedCreator?.id,
     selectedCreator?.creatorUserId,

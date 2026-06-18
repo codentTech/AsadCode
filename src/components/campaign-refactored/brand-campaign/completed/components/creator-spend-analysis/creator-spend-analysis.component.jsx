@@ -395,26 +395,24 @@ const CreatorSpendAnalysisCompleted = ({
                               <div className="mb-2 flex items-start justify-between">
                                 <div className="w-full">
                                   <div className="flex justify-between items-center">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <h3 className="text-lg font-semibold text-gray-900">
-                                        {creator.name}
-                                      </h3>
-                                      {creator.deadline && (
-                                        <span
-                                          className={`rounded-lg px-2 py-1 text-sm ${creator.deadline === "On time" ? "bg-green-50 text-green-600" : creator.deadline === "Cancelled" ? "bg-orange-50 text-orange-600" : "bg-red-50 text-red-600"}`}
-                                        >
-                                          {creator.deadline}
-                                        </span>
-                                      )}
-                                      {creator.urgencyLabel ? (
-                                        <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
-                                          <UrgencyPill
-                                            label={creator.urgencyLabel}
-                                            tier={creator.urgencyTier}
-                                          />
-                                        </div>
-                                      ) : null}
-                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      {creator.name}
+                                    </h3>
+                                    {/* {creator.deadline && (
+                                      <span
+                                        className={`rounded-lg px-2 py-1 text-sm ${creator.deadline === "On time" ? "bg-green-50 text-green-600" : creator.deadline === "Cancelled" ? "bg-orange-50 text-orange-600" : "bg-red-50 text-red-600"}`}
+                                      >
+                                        {creator.deadline}
+                                      </span>
+                                    )} */}
+                                    {creator.urgencyLabel ? (
+                                      <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
+                                        <UrgencyPill
+                                          label={creator.urgencyLabel}
+                                          tier={creator.urgencyTier}
+                                        />
+                                      </div>
+                                    ) : null}
                                   </div>
                                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                                     <div className="flex items-center space-x-1 text-xs">

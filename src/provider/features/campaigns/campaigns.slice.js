@@ -15,7 +15,11 @@ const generalState = {
   data: null,
 };
 
-const campaignScopedCreatorsState = { ...generalState, campaignId: null };
+const campaignScopedCreatorsState = { ...generalState, campaignId: null, filtersKey: null };
+
+function appliedCreatorsFiltersKey(filters = {}) {
+  return JSON.stringify(filters ?? {});
+}
 
 function resolvePipelineBoardArg(arg) {
   if (typeof arg === "object" && arg !== null) {
@@ -685,10 +689,14 @@ export const campaignsSlice = createSlice({
       .addCase(getAppliedCreators.pending, (state, action) => {
         if (action.meta.arg?.silent) return;
         const requestedCampaignId = action.meta.arg?.campaignId ?? null;
+        const requestedFiltersKey = appliedCreatorsFiltersKey(action.meta.arg?.filters);
         const loadedCampaignId = state.getAppliedCreators.campaignId;
+        const loadedFiltersKey = state.getAppliedCreators.filtersKey;
         const shouldClearData =
           requestedCampaignId != null &&
-          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
+          (loadedCampaignId == null ||
+            requestedCampaignId !== loadedCampaignId ||
+            requestedFiltersKey !== loadedFiltersKey);
         state.getAppliedCreators.isLoading = true;
         state.getAppliedCreators.message = "";
         state.getAppliedCreators.isError = false;
@@ -702,6 +710,7 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isSuccess = true;
         state.getAppliedCreators.data = action.payload;
         state.getAppliedCreators.campaignId = action.meta.arg?.campaignId ?? null;
+        state.getAppliedCreators.filtersKey = appliedCreatorsFiltersKey(action.meta.arg?.filters);
       })
       .addCase(getAppliedCreators.rejected, (state, action) => {
         if (action.meta.arg?.silent) return;
@@ -711,6 +720,7 @@ export const campaignsSlice = createSlice({
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
         state.getAppliedCreators.campaignId = null;
+        state.getAppliedCreators.filtersKey = null;
       })
       // getAppliedCreatorsForBudget
       .addCase(getAppliedCreatorsForBudget.pending, (state) => {

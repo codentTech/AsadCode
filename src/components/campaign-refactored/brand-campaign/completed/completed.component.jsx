@@ -53,6 +53,7 @@ export default function BrandCompleted() {
     backFromDetailToCreators,
     showEmptyState,
     awaitingCreatorsList,
+    isAwaitingInitialData,
   } = useCompleted();
 
   const tabBarMobileSlot = useCampaignTabBarMobileSlot();
@@ -123,9 +124,9 @@ export default function BrandCompleted() {
   const creatorsVisible = mobilePane === "creators" ? "flex" : "hidden";
   const detailVisible = mobilePane === "detail" ? "flex" : "hidden";
 
-  const noCampaign = !selectedCampaign;
-  const paneEmpty = noCampaign || showEmptyState;
-  const paneAwaiting = !noCampaign && awaitingCreatorsList;
+  const paneEmpty = showEmptyState;
+  const paneAwaiting = awaitingCreatorsList;
+  const overviewAwaiting = isAwaitingInitialData || (campaignsLoading && !selectedCampaign);
 
   const emptyCampaignCopy = "Please select a campaign with completed creators.";
   const emptyCreatorCopy = "Please select a campaign and creator.";
@@ -136,8 +137,8 @@ export default function BrandCompleted() {
         className={`${PANE_COLUMN_CLASS} border-b border-indigo-100/30 bg-white shadow-[0_4px_24px_-12px_rgba(79,70,229,0.15)] transition-[opacity,transform] duration-200 ease-out md:h-full md:w-[300px] md:max-w-[320px] md:shrink-0 md:grow-0 md:basis-[340px] md:border-b-0 md:border-r md:border-gray-200 md:shadow-none lg:w-[380px] lg:max-w-[380px] lg:basis-[380px] ${overviewVisible} md:flex`}
       >
         <CompletedPaneContent
-          awaiting={paneAwaiting}
-          showEmpty={paneEmpty}
+          awaiting={overviewAwaiting}
+          showEmpty={false}
           emptyDescription={emptyCampaignCopy}
           loadingSkeleton={<LeftPaneSkeleton embedded />}
         >
@@ -146,6 +147,7 @@ export default function BrandCompleted() {
             onToggleChange={handleToggleChange}
             parentSelectedCampaign={selectedCampaign}
             parentSelectedCreator={selectedCreator}
+            isAwaitingInitialData={isAwaitingInitialData}
           />
         </CompletedPaneContent>
       </div>
@@ -181,7 +183,9 @@ export default function BrandCompleted() {
           loadingSkeleton={<RightPaneSkeleton layout="fluid" embedded />}
         >
           {!selectedCreator ? (
-            <CompletedEmptyPanel description={emptyCreatorCopy} />
+            paneAwaiting ? null : (
+              <CompletedEmptyPanel description={emptyCreatorCopy} />
+            )
           ) : (
             <DeliverablesProgress
               selectedCampaign={selectedCampaign}
