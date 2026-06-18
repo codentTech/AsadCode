@@ -5,6 +5,10 @@ import { getIndividualCollaborationContracts } from "@/provider/features/contrac
 import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import {
+  individualContractsScopeMatches,
+  individualContractsForPhase,
+} from "@/common/utils/brand-campaign-context.utils";
+import {
   fetchCreatorAudience,
   fetchCampaignCombinedDemographics,
   resetCampaignDemographics,
@@ -59,6 +63,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     data: individualContractsData,
     isSuccess: individualContractsSuccess,
     isLoading: individualContractsLoading,
+    isCompleted: individualContractsIsCompleted,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const normalizedIndividualContracts = Array.isArray(individualContractsData)
@@ -66,6 +71,15 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     : Array.isArray(individualContractsData?.data)
       ? individualContractsData.data
       : [];
+
+  const activeIndividualContracts =
+    individualContractsScopeMatches(false, individualContractsIsCompleted)
+      ? individualContractsForPhase(normalizedIndividualContracts, false)
+      : [];
+
+  const activeIndividualContractsReady =
+    individualContractsSuccess &&
+    individualContractsScopeMatches(false, individualContractsIsCompleted);
 
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const creatorAudience = useSelector(selectCreatorAudience);
@@ -343,7 +357,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const isLoadingBrand = campaignsLoading || creatorsLoading;
 
-  const hasIndividualData = !isMultiCreator && normalizedIndividualContracts.length > 0;
+  const hasIndividualData = !isMultiCreator && activeIndividualContracts.length > 0;
 
   const computedHasData = useMemo(() => {
     if (!selectedCampaign) return false;
@@ -355,7 +369,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const overviewLoading = useMemo(() => {
     if (!isMultiCreator) {
-      return individualContractsLoading;
+      return individualContractsLoading || !activeIndividualContractsReady;
     }
     if (isSelectedCampaignValid && selectedCampaign) {
       return campaignsLoading;
@@ -364,6 +378,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, [
     isMultiCreator,
     individualContractsLoading,
+    activeIndividualContractsReady,
     isSelectedCampaignValid,
     selectedCampaign,
     campaignsLoading,
@@ -379,7 +394,20 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     [showMultiCreatorUI, selectedCampaign, creatorsSuccess, creatorsError]
   );
 
-  const isLoadingIndividual = !isMultiCreator && individualContractsLoading;
+  const isLoadingIndividual = !isMultiCreator && (individualContractsLoading || !activeIndividualContractsReady);
+
+  useEffect(() => {
+    if (isMultiCreator) return;
+    if (selectedCampaign?.status !== "COMPLETE") return;
+    setSelectedCampaign(null);
+    hasNotifiedParent.current = false;
+    dispatch(
+      setSelectedCampaignContext({
+        campaignId: null,
+        collaborationType: null,
+      })
+    );
+  }, [isMultiCreator, selectedCampaign?.status, dispatch]);
 
   // --- Overview: notify parent when selected campaign changes ---
   useEffect(() => {
@@ -410,12 +438,12 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     if (
       !isMultiCreator &&
       !hasAutoSelectedIndividual.current &&
-      individualContractsSuccess &&
-      normalizedIndividualContracts.length > 0 &&
+      activeIndividualContractsReady &&
+      activeIndividualContracts.length > 0 &&
       !selectedCampaign
     ) {
       hasAutoSelectedIndividual.current = true;
-      const firstContract = normalizedIndividualContracts[0];
+      const firstContract = activeIndividualContracts[0];
       const campaignId = firstContract.campaignId || firstContract.campaign?.id;
       if (campaignId) {
         const individualCampaign = {
@@ -436,8 +464,8 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     }
   }, [
     isMultiCreator,
-    individualContractsSuccess,
-    normalizedIndividualContracts,
+    activeIndividualContractsReady,
+    activeIndividualContracts,
     selectedCampaign,
   ]);
 
