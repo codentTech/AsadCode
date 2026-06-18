@@ -70,7 +70,7 @@ const useDeliverablesProgress = (
       return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
     }
     return (
-      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id || null
+      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null
     );
   }, [
     selectedCreator?.id,

@@ -11,6 +11,7 @@ export default function CampaignOverviewCompleted({
   onToggleChange,
   parentSelectedCampaign,
   parentSelectedCreator,
+  isAwaitingInitialData = false,
 }) {
   const {
     isMultiCreator,
@@ -42,7 +43,8 @@ export default function CampaignOverviewCompleted({
     onToggleChange,
     undefined,
     parentSelectedCampaign,
-    parentSelectedCreator
+    parentSelectedCreator,
+    isAwaitingInitialData
   );
 
   return (
@@ -79,7 +81,7 @@ export default function CampaignOverviewCompleted({
           </div>
         )}
 
-        {isLoading && (
+        {(isLoading || isAwaitingInitialData) && (
           <div className="space-y-4">
             <div className="flex justify-between gap-4 rounded-lg bg-gray-100 p-2">
               <div className="space-y-2">
@@ -109,7 +111,7 @@ export default function CampaignOverviewCompleted({
         )}
       </div>
 
-      {selectedCampaign && !isLoading && !showEmptyState && (
+      {selectedCampaign && !isLoading && !isAwaitingInitialData && !showEmptyState && (
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-0.5">
             {showMultiCreatorUI && (budgetStatsLoading || hasData) && (

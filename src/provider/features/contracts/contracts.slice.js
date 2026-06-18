@@ -23,6 +23,11 @@ const generalState = {
   data: null,
 };
 
+const individualCollaborationContractsState = {
+  ...generalState,
+  isCompleted: null,
+};
+
 function resolveIndividualContractsArg(arg) {
   if (typeof arg === "object" && arg !== null && !Array.isArray(arg)) {
     return {
@@ -37,7 +42,7 @@ const initialState = {
   getContractById: generalState,
   getContractsByCampaign: generalState,
   getPendingContractsForCreator: generalState,
-  getIndividualCollaborationContracts: generalState,
+  getIndividualCollaborationContracts: { ...individualCollaborationContractsState },
   createContract: generalState,
   sendContract: generalState,
   signContract: generalState,
@@ -220,32 +225,43 @@ export const contractsSlice = createSlice({
       // Get Individual Collaboration Contracts
       .addCase(getIndividualCollaborationContracts.pending, (state, action) => {
         if (resolveIndividualContractsArg(action.meta.arg).silent) return;
+        const { isCompleted } = resolveIndividualContractsArg(action.meta.arg);
         if (!state.getIndividualCollaborationContracts) {
-          state.getIndividualCollaborationContracts = { ...generalState };
+          state.getIndividualCollaborationContracts = { ...individualCollaborationContractsState };
         }
+        const scopeChanged =
+          state.getIndividualCollaborationContracts.isCompleted !== null &&
+          state.getIndividualCollaborationContracts.isCompleted !== isCompleted;
         state.getIndividualCollaborationContracts.isLoading = true;
         state.getIndividualCollaborationContracts.isError = false;
         state.getIndividualCollaborationContracts.isSuccess = false;
         state.getIndividualCollaborationContracts.message = "";
+        state.getIndividualCollaborationContracts.isCompleted = null;
+        if (scopeChanged) {
+          state.getIndividualCollaborationContracts.data = null;
+        }
       })
       .addCase(getIndividualCollaborationContracts.fulfilled, (state, action) => {
+        const { isCompleted } = resolveIndividualContractsArg(action.meta.arg);
         if (!state.getIndividualCollaborationContracts) {
-          state.getIndividualCollaborationContracts = { ...generalState };
+          state.getIndividualCollaborationContracts = { ...individualCollaborationContractsState };
         }
         state.getIndividualCollaborationContracts.isLoading = false;
         state.getIndividualCollaborationContracts.isSuccess = true;
         state.getIndividualCollaborationContracts.data = action.payload.data;
+        state.getIndividualCollaborationContracts.isCompleted = isCompleted;
       })
       .addCase(getIndividualCollaborationContracts.rejected, (state, action) => {
         if (resolveIndividualContractsArg(action.meta.arg).silent) return;
         if (!state.getIndividualCollaborationContracts) {
-          state.getIndividualCollaborationContracts = { ...generalState };
+          state.getIndividualCollaborationContracts = { ...individualCollaborationContractsState };
         }
         state.getIndividualCollaborationContracts.isLoading = false;
         state.getIndividualCollaborationContracts.isError = true;
         state.getIndividualCollaborationContracts.message =
           action.payload?.message || "Failed to fetch individual collaboration contracts";
         state.getIndividualCollaborationContracts.data = null;
+        state.getIndividualCollaborationContracts.isCompleted = null;
       })
       // Create Contract
       .addCase(createContract.pending, (state) => {
