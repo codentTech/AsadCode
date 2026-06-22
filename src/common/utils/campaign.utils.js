@@ -571,3 +571,9 @@ export const resolveBrandMarkedCompleteAt = ({
 
   return null;
 };
+
+export const resolveCampaignFeeForOffer = (campaign) => {
+  const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
+  if (fee === undefined || fee === null || fee === "") return "";
+  return String(fee);
+};

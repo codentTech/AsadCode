@@ -11,8 +11,7 @@ import {
   REVISION_LIMIT_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
 } from "@/common/constants/options.constant";
-import { AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
 
@@ -24,7 +23,6 @@ export default function HireCreatorModal({
   onSendOffer,
   isLoading = false,
 }) {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -48,6 +46,7 @@ export default function HireCreatorModal({
     exclusivityValue,
     campaignTypeValue,
     isIndividualCollaboration,
+    refreshPaymentStatus,
   } = useHireCreator({
     creatorData,
     campaignData,
@@ -60,7 +59,7 @@ export default function HireCreatorModal({
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
       {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
-      {isPaymentRequired() && !isCheckingPaymentMethod && !canFundCollaborations && (
+      {isPaymentRequired() && !canFundCollaborations && (
         <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 sm:p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5 animate-ping" />
@@ -76,14 +75,33 @@ export default function HireCreatorModal({
                   : "Complete Stripe business onboarding under Payment Methods so escrow funding can run when a creator accepts."}
               </p>
             </div>
-            <CustomButton
-              text="Open payment settings"
-              className="btn-primary w-full sm:w-auto"
-              onClick={() => {
-                onClose();
-                router.push("/settings/payments/payment-methods");
-              }}
-            />
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={refreshPaymentStatus}
+                disabled={isCheckingPaymentMethod}
+                className="inline-flex h-8 min-h-8 w-full items-center justify-center gap-1.5 rounded-md border border-yellow-300 bg-white px-2.5 text-xs font-medium text-yellow-800 transition-colors hover:bg-yellow-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-8 sm:px-0"
+                aria-label="Refresh payment status"
+                title="Refresh payment status"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 shrink-0 ${isCheckingPaymentMethod ? "animate-spin" : ""}`}
+                  aria-hidden
+                />
+                <span className="sm:hidden">Refresh status</span>
+              </button>
+              <CustomButton
+                text="Open payment settings"
+                className="btn-primary w-full sm:w-auto"
+                onClick={() => {
+                  window.open(
+                    "/settings/payments/payment-methods",
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
