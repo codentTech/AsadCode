@@ -14,10 +14,15 @@ import {
 } from "@/provider/features/shortlist/shortlist.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
-import { applyLivePipelineUrgency, resolveCreatorUrgency, sortCreatorsByUrgency } from "@/common/utils/creator-urgency.util";
+import { applyLivePipelineUrgency, resolveCreatorUrgency } from "@/common/utils/creator-urgency.util";
 import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-platforms.utils";
 import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
-import { sortOptions } from "@/common/constants/auth.constant";
+import { VISIBLE_APPLICATIONS_SORT_OPTIONS } from "@/common/constants/applications-sort.constant";
+import {
+  isInvitedCreatorRow,
+  partitionPinnedInvitedCreators,
+  sortApplicationsCreators,
+} from "@/common/utils/campaign.utils";
 import { setBrandCampaignMultiCreatorMode } from "@/provider/features/campaign-context/campaign-context.slice";
 
 function useCreatorSpendAnalysis({
@@ -32,11 +37,10 @@ function useCreatorSpendAnalysis({
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
   onClearCreator,
+  applicationsSubTab = "applications",
+  displayCreators = [],
 }) {
-  const backendSortOptions = useMemo(
-    () => sortOptions.filter((option) => option.value !== "most-expensive"),
-    []
-  );
+  const backendSortOptions = useMemo(() => VISIBLE_APPLICATIONS_SORT_OPTIONS, []);
   const dispatch = useDispatch();
   const urgencyTick = useUrgencyTick();
   const [open, setOpen] = useState(false);
@@ -114,22 +118,31 @@ function useCreatorSpendAnalysis({
     if (!individualCollaborations.length) return [];
     urgencyTick;
     const withLiveUrgency = individualCollaborations.map(applyLivePipelineUrgency);
-    if (filters?.sort === "urgency") {
-      return sortCreatorsByUrgency(withLiveUrgency);
-    }
-    return withLiveUrgency;
+    return sortApplicationsCreators(withLiveUrgency, filters?.sort || "urgency");
   }, [individualCollaborations, filters?.sort, urgencyTick]);
 
   const sortedAppliedCreators = useMemo(() => {
-    const rows = Array.isArray(appliedCreatorsData?.data) ? appliedCreatorsData.data : [];
+    const rows = Array.isArray(displayCreators) ? displayCreators : [];
     if (!rows.length) return [];
     urgencyTick;
-    const withLiveUrgency = rows.map(applyLivePipelineUrgency);
-    if (filters?.sort === "urgency") {
-      return sortCreatorsByUrgency(withLiveUrgency);
-    }
-    return withLiveUrgency;
-  }, [appliedCreatorsData?.data, filters?.sort, urgencyTick]);
+    return sortApplicationsCreators(rows, filters?.sort || "newest");
+  }, [displayCreators, filters?.sort, urgencyTick]);
+
+  const { pinnedAppliedCreators, unpinnedAppliedCreators } = useMemo(() => {
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedAppliedCreators);
+    return {
+      pinnedAppliedCreators: pinned,
+      unpinnedAppliedCreators: unpinned,
+    };
+  }, [sortedAppliedCreators]);
+
+  const { pinnedIndividualCreators, unpinnedIndividualCreators } = useMemo(() => {
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedIndividualCollaborations);
+    return {
+      pinnedIndividualCreators: pinned,
+      unpinnedIndividualCreators: unpinned,
+    };
+  }, [sortedIndividualCollaborations]);
 
   const filteredCampaignOptions = useMemo(() => {
     return campaignOptions.filter((option) => {
@@ -331,8 +344,10 @@ function useCreatorSpendAnalysis({
       hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
       portfolioImages: profile?.mini_profile_pictures || [],
       niches: profile?.categories || [],
-      tagline: data.custom_message || data.pitch || profile?.bio || "",
+      applicationMessage: (data.pitch || data.custom_message)?.trim() || "",
+      isInvited: isInvitedCreatorRow(data),
       appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
+      sourceRow: data,
     };
   };
 
@@ -353,7 +368,9 @@ function useCreatorSpendAnalysis({
     if (filters?.sort) {
       return {
         value: filters.sort,
-        label: backendSortOptions.find((opt) => opt.value === filters.sort)?.label,
+        label:
+          backendSortOptions.find((opt) => opt.value === filters.sort)?.label ||
+          VISIBLE_APPLICATIONS_SORT_OPTIONS.find((opt) => opt.value === filters.sort)?.label,
       };
     }
     return null;
@@ -582,6 +599,11 @@ function useCreatorSpendAnalysis({
     isSwitchingMode,
     individualCollaborations: sortedIndividualCollaborations,
     sortedAppliedCreators,
+    pinnedAppliedCreators,
+    unpinnedAppliedCreators,
+    pinnedIndividualCreators,
+    unpinnedIndividualCreators,
+    applicationsSubTab,
     individualCollaborationsLoading,
     campaignsData,
     campaignsLoading,

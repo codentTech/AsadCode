@@ -5,6 +5,7 @@ import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 import { isCreatorMode } from "@/common/utils/users.util";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import Niche from "@/components/niche/niche";
 import { BookmarkPlus, Edit, MapPin, Share2, Star, StarHalf } from "lucide-react";
 import ProfileEditModal from "../edit-profile-modal/edit-profile-modal.component";
@@ -83,21 +84,22 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
               </h2>
               <p className="text-[10px] text-gray-500 sm:text-xs md:text-sm">{creator.handle}</p>
 
-              {/* Rating */}
-              <div className="mb-1 flex items-center justify-center gap-1 md:justify-start">
-                {ratingStars.map((type, i) =>
-                  type === "full" ? (
-                    <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />
-                  ) : type === "half" ? (
-                    <StarHalf key={i} className="w-4 h-4 text-yellow-500 fill-current" />
-                  ) : (
-                    <Star key={i} className="w-4 h-4 text-gray-300" />
-                  )
-                )}
-                <span className="m-1 text-[10px] text-gray-700 sm:text-sm">
-                  {creator.rating} ({creator.reviewCount})
-                </span>
-              </div>
+              {!HIDE_CREATOR_RATING_UI ? (
+                <div className="mb-1 flex items-center justify-center gap-1 md:justify-start">
+                  {ratingStars.map((type, i) =>
+                    type === "full" ? (
+                      <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />
+                    ) : type === "half" ? (
+                      <StarHalf key={i} className="w-4 h-4 text-yellow-500 fill-current" />
+                    ) : (
+                      <Star key={i} className="w-4 h-4 text-gray-300" />
+                    )
+                  )}
+                  <span className="m-1 text-[10px] text-gray-700 sm:text-sm">
+                    {creator.rating} ({creator.reviewCount})
+                  </span>
+                </div>
+              ) : null}
 
               {/* Connected Social Media */}
               {connectedAccounts?.data?.length === 0 ? (
