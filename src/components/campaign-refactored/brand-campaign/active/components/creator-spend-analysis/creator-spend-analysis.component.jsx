@@ -86,24 +86,6 @@ const CreatorSpendAnalysis = ({
               )}
             </div>
             <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
-              <CustomButton
-                text="Calendar"
-                title="Calendar"
-                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
-                onClick={openBrandCalendar}
-              />
-              <CustomButton
-                text="Tasks"
-                title="Task Manager"
-                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
-                onClick={openTaskManagerModal}
-              />
-              <CustomButton
-                text="Task Manager"
-                title="Task Manager"
-                className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
-                onClick={openTaskManagerModal}
-              />
               {!isCompleted && onOpenBoard ? (
                 <>
                   <CustomButton
@@ -122,6 +104,24 @@ const CreatorSpendAnalysis = ({
                   />
                 </>
               ) : null}
+              <CustomButton
+                text="Calendar"
+                title="Calendar"
+                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
+                onClick={openBrandCalendar}
+              />
+              <CustomButton
+                text="Tasks"
+                title="Task Manager"
+                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                onClick={openTaskManagerModal}
+              />
+              <CustomButton
+                text="Task Manager"
+                title="Task Manager"
+                className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
+                onClick={openTaskManagerModal}
+              />
             </div>
           </div>
         </div>

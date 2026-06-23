@@ -14,7 +14,7 @@ function PinnedInvitedSection({ pinnedCreators, renderCreatorCard }) {
           Invited creators
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {pinnedCreators.map((creator) => renderCreatorCard(creator))}
       </div>
     </div>

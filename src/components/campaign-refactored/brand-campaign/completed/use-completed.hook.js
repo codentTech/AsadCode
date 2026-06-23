@@ -74,8 +74,6 @@ export default function useCompleted(disableAutoSelect = false) {
   });
   const [deliverables, setDeliverables] = useState([]);
   const [mobilePane, setMobilePane] = useState("creators");
-  const [viewMode, setViewMode] = useState("standard");
-  const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
   const [isIndividualBootstrapping, setIsIndividualBootstrapping] = useState(false);
   const [performanceMetrics, setPerformanceMetrics] = useState({
     totalViews: 0,
@@ -354,7 +352,6 @@ export default function useCompleted(disableAutoSelect = false) {
 
   useEffect(() => {
     if (disableAutoSelect) return;
-    if (viewMode === "board") return;
     if (!selectedCampaign?.id) return;
     const effectiveType = resolveEffectiveCollaborationType(
       selectedCampaign,
@@ -418,7 +415,6 @@ export default function useCompleted(disableAutoSelect = false) {
     individualContractsError,
     individualContractsData,
     selectedCreator,
-    viewMode,
   ]);
 
   const handleCampaignSelect = useCallback(
@@ -580,31 +576,16 @@ export default function useCompleted(disableAutoSelect = false) {
       completedFilters: { status: "COMPLETED", sort: currentSort },
       includeCompleted: true,
       includeActive: false,
-      includeBoard: viewMode === "board",
+      includeBoard: false,
       silent: true,
     });
-    setPipelineRefreshToken((token) => token + 1);
   }, [
     dispatch,
     selectedCampaign?.id,
     selectedCampaign?.collaboration_type,
     isMultiCreator,
     currentSort,
-    viewMode,
   ]);
-
-  const handleOpenBoard = useCallback(() => {
-    setViewMode("board");
-    setSelectedCreator(null);
-    skipMultiCreatorAutoSelectRef.current = true;
-    setMobilePane("creators");
-  }, []);
-
-  const handleCloseBoard = useCallback(() => {
-    setViewMode("standard");
-    skipMultiCreatorAutoSelectRef.current = false;
-    hasAutoSelected.current = false;
-  }, []);
 
   usePipelineBackgroundRefresh({
     enabled: Boolean(selectedCampaign?.id),
@@ -614,7 +595,7 @@ export default function useCompleted(disableAutoSelect = false) {
     completedFilters: { status: "COMPLETED", sort: currentSort },
     includeCompleted: true,
     includeActive: false,
-    includeBoard: viewMode === "board",
+    includeBoard: false,
   });
 
   const formatCurrency = useCallback((amount) => {
@@ -912,7 +893,6 @@ export default function useCompleted(disableAutoSelect = false) {
 
   useEffect(() => {
     if (disableAutoSelect) return;
-    if (viewMode === "board") return;
     if (isIndividualCreator) return;
     if (!creatorsListReady || !hasCompletedCreators || creatorsLoading) return;
     if (selectedCreator) {
@@ -951,7 +931,6 @@ export default function useCompleted(disableAutoSelect = false) {
     handleCreatorSelect,
     selectedCampaign?.id,
     currentSort,
-    viewMode,
   ]);
 
   return {
@@ -983,10 +962,6 @@ export default function useCompleted(disableAutoSelect = false) {
     handleToggleChange,
     handleSortChange,
     refreshPipelineData,
-    handleOpenBoard,
-    handleCloseBoard,
-    viewMode,
-    pipelineRefreshToken,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,

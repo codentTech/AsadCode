@@ -43,6 +43,7 @@ function useCreatorSpendAnalysis({
   const backendSortOptions = useMemo(() => VISIBLE_APPLICATIONS_SORT_OPTIONS, []);
   const dispatch = useDispatch();
   const urgencyTick = useUrgencyTick();
+  const [open, setOpen] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
   const [isSwitchingMode, setIsSwitchingMode] = useState(false);
@@ -406,6 +407,14 @@ function useCreatorSpendAnalysis({
     }
   };
 
+  const handleOpenModal = () => {
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+  };
+
   const handleNicheToggle = (niche) => {
     const current = filters?.niches || [];
     const next = current.includes(niche) ? current.filter((n) => n !== niche) : [...current, niche];
@@ -579,6 +588,9 @@ function useCreatorSpendAnalysis({
   const isSelectedCampaignListingOpen = isCampaignListingOpen(selectedCampaign);
 
   return {
+    open,
+    handleOpenModal,
+    handleCloseModal,
     showFilterModal,
     setShowFilterModal,
     filterType,
