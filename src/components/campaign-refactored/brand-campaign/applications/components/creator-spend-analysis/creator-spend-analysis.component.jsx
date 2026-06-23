@@ -8,11 +8,10 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
-import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
 import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications-subtab-toggle.component";
 import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-section.component";
 import { Menu, MenuItem } from "@mui/material";
-import { EllipsisVertical, Filter, List } from "lucide-react";
+import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
 const GRID_CLASS =
@@ -35,11 +34,9 @@ const CreatorSpendAnalysis = ({
   onApplicationsSubTabChange,
   subTabCounts,
   displayCreators,
+  onOpenBoard,
 }) => {
   const {
-    open,
-    handleOpenModal,
-    handleCloseModal,
     showFilterModal,
     setShowFilterModal,
     filterType,
@@ -162,7 +159,7 @@ const CreatorSpendAnalysis = ({
             )}
           </div>
 
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
             {isMultiCreator ? (
               <div className="flex w-full min-w-0 items-center gap-2 sm:max-w-[min(100%,320px)] lg:flex-1 lg:gap-3">
                 <div className="min-w-0 flex-1">
@@ -192,9 +189,7 @@ const CreatorSpendAnalysis = ({
                   )
                 ) : null}
               </div>
-            ) : (
-              <div className="hidden lg:block lg:flex-1" />
-            )}
+            ) : null}
 
             {isMultiCreator && onApplicationsSubTabChange ? (
               <div className="flex w-full justify-center lg:w-auto lg:shrink-0">
@@ -206,7 +201,7 @@ const CreatorSpendAnalysis = ({
               </div>
             ) : null}
 
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 lg:flex-1 lg:justify-end">
+            <div className="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2 lg:ml-0 lg:flex-1 lg:justify-end">
               <div className="min-w-0 w-full sm:w-44 md:w-[180px] md:max-w-[230px]">
                 <SimpleSelect
                   placeHolder="Sort by"
@@ -222,11 +217,24 @@ const CreatorSpendAnalysis = ({
                   startIcon={<Filter className="h-4 w-4 sm:h-[18px] sm:w-[18px]" aria-hidden />}
                   className="btn-outline min-w-0 flex-1 sm:flex-none md:min-w-[106px]"
                 />
-                <CustomButton
-                  text="Start a new campaign"
-                  onClick={handleOpenModal}
-                  className="btn-primary min-w-0 flex-1 sm:flex-none sm:min-w-[10rem] md:w-auto md:max-w-none"
-                />
+                {onOpenBoard ? (
+                  <>
+                    <CustomButton
+                      text="Board"
+                      title="Campaign Board"
+                      className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                      startIcon={<LayoutGrid className="h-3.5 w-3.5 shrink-0" />}
+                      onClick={onOpenBoard}
+                    />
+                    <CustomButton
+                      text="Campaign Board"
+                      title="Campaign Board"
+                      className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto md:min-w-[106px]"
+                      startIcon={<LayoutGrid className="h-4 w-4 shrink-0" />}
+                      onClick={onOpenBoard}
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -306,8 +314,6 @@ const CreatorSpendAnalysis = ({
           </div>
         )}
       </div>
-
-      <CampaignCreationWizard open={open} close={handleCloseModal} />
 
       <FilterModal
         show={showFilterModal}

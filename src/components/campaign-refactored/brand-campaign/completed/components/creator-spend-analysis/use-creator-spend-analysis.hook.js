@@ -3,7 +3,7 @@ import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.ut
 import { formatFollowers } from "@/common/utils/format.utils";
 import { buildCreatorPublishedMetricsMap } from "@/common/utils/published-campaign-metrics.util";
 import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreatorSpendAnalysis } from "../../../active/components/creator-spend-analysis/use-creator-spend-analysis.hook";
 
@@ -39,7 +39,6 @@ export const useCreatorSpendAnalysisCompleted = ({
   currentSort = "urgency",
   isCompleted = true,
 }) => {
-  const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const hookData = useCreatorSpendAnalysis(
     selectedCampaign,
@@ -76,9 +75,6 @@ export const useCreatorSpendAnalysisCompleted = ({
       dispatch(fetchCampaignPerformanceMetrics(selectedCampaign.id));
     }
   }, [dispatch, selectedCampaign?.id, isUgc]);
-
-  const handleOpenModal = () => setOpen(true);
-  const handleCloseModal = () => setOpen(false);
 
   const getPlatformEntries = (platforms) => getConnectedPlatformEntries(platforms);
 
@@ -247,9 +243,6 @@ export const useCreatorSpendAnalysisCompleted = ({
 
   return {
     ...hookData,
-    open,
-    handleOpenModal,
-    handleCloseModal,
     getPlatformEntries,
     isUgc,
     getCreatorMetrics,
