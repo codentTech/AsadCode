@@ -6,6 +6,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { VerifiedRounded } from "@mui/icons-material";
 import { ExternalLink, MapPin, Shield, Star } from "lucide-react";
@@ -48,21 +49,23 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                 <MapPin className="w-3 h-3" />
                 <span>{previewCreator.location}</span>
               </div>
-              <div className="flex items-center justify-start text-xs text-yellow-500">
-                {[...Array(5)].map((_, i) => {
-                  const rating = previewCreator.rating || 0;
-                  const isFilled = i < Math.floor(rating);
-                  return (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 ${isFilled ? "fill-current" : "fill-none"}`}
-                    />
-                  );
-                })}
-                <span className="ml-1 mt-[0.6px] text-[10px] text-gray-700 sm:text-xs">
-                  {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
-                </span>
-              </div>
+              {!HIDE_CREATOR_RATING_UI ? (
+                <div className="flex items-center justify-start text-xs text-yellow-500">
+                  {[...Array(5)].map((_, i) => {
+                    const rating = previewCreator.rating || 0;
+                    const isFilled = i < Math.floor(rating);
+                    return (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${isFilled ? "fill-current" : "fill-none"}`}
+                      />
+                    );
+                  })}
+                  <span className="ml-1 mt-[0.6px] text-[10px] text-gray-700 sm:text-xs">
+                    {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 

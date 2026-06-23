@@ -8,9 +8,13 @@ import {
   COMPENSATION_TYPE,
   COLLABORATION_TYPE,
   CAMPAIGN_TYPE,
+  CONTRACT_USAGE_RIGHTS_VALUES,
+  CONTRACT_EXCLUSIVITY_VALUES,
 } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
 import { deliverablesToContentFormatString } from "@/common/utils/deliverables-to-content-format.util";
+import { getTodayHtmlDateInputValue, toHtmlDateInputValue } from "@/common/utils/date.utils";
+import { resolveCampaignFeeForOffer } from "@/common/utils/campaign.utils";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 const createValidationSchema = (isIndividual) => {
@@ -85,10 +89,10 @@ const createValidationSchema = (isIndividual) => {
     }),
     usageRights: Yup.string()
       .required("Usage rights is required")
-      .oneOf(["no_usage", "3", "6", "12", "permanent"], "Invalid usage rights"),
+      .oneOf([...CONTRACT_USAGE_RIGHTS_VALUES], "Invalid usage rights"),
     exclusivityClause: Yup.string()
       .required("Exclusivity clause is required")
-      .oneOf(["none", "3", "6", "12"], "Invalid exclusivity clause"),
+      .oneOf([...CONTRACT_EXCLUSIVITY_VALUES], "Invalid exclusivity clause"),
     additionalClauseTitle: Yup.string()
       .optional()
       .max(100, "Clause title must be less than 100 characters"),
@@ -149,12 +153,15 @@ export default function useHireCreator({
   const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
   const canFundCollaborations = hasPaymentMethodData?.canFundCollaborations ?? false;
 
-  // Refresh payment method status when modal opens
+  const refreshPaymentStatus = useCallback(() => {
+    dispatch(checkHasPaymentMethod());
+  }, [dispatch]);
+
   useEffect(() => {
     if (show) {
-      dispatch(checkHasPaymentMethod());
+      refreshPaymentStatus();
     }
-  }, [show, dispatch]);
+  }, [show, refreshPaymentStatus]);
 
   const isIndividual = campaignData?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR;
   const validationSchema = createValidationSchema(isIndividual);
@@ -189,42 +196,62 @@ export default function useHireCreator({
 
   const watchedValues = watch();
 
-  // Auto-populate fields when modal opens
-  const initializeForm = useCallback(() => {
-    if (campaignData && creatorData) {
-      const creator = creatorData.creator;
-      const profile = creator?.creator_profile;
+  const applySharedOfferDefaults = useCallback(() => {
+    const validateOpts = { shouldValidate: true };
+    setValue("startDate", getTodayHtmlDateInputValue(), validateOpts);
+    setValue("firstDraftDeadline", "", validateOpts);
+    setValue(
+      "completionDeadline",
+      toHtmlDateInputValue(campaignData?.application_deadline),
+      validateOpts
+    );
+    setValue("totalCompensation", resolveCampaignFeeForOffer(campaignData), validateOpts);
 
-      if (isIndividual) {
-        setValue("contentFormat", "");
-        setValue("compensationType", COMPENSATION_TYPE.PAID);
-        setValue("campaignType", "");
-        setValue("contentGuidelines", "");
-      } else {
-        setValue("contentFormat", deliverablesToContentFormatString(campaignData.deliverables));
-        setValue(
-          "compensationType",
-          campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
-        );
-        setValue("productPrice", campaignData.product_value || "");
-        setValue("hashtags", campaignData.hashtags || "");
-        setValue("mentions", campaignData.do_donts || ""); // Using do_donts as mentions
-        setValue("inPersonRequired", campaignData.in_person_required || false);
-        setValue("eligibleCountry", campaignData.creator_country || "");
-        setValue("eligibleCity", campaignData.creator_city || "");
-        setValue(
-          "ageRange",
-          campaignData.min_age && campaignData.max_age
-            ? `${campaignData.min_age} - ${campaignData.max_age}`
-            : ""
-        );
-        setValue("gender", campaignData.creator_gender || "");
-        setValue("language", campaignData.creator_language || "");
-        setValue("additionalClauseTitle", campaignData.additional_clause_title || "");
-        setValue("additionalClauseBody", campaignData.additional_clause_body || "");
-      }
+    const usageRights = campaignData?.usage_rights;
+    if (usageRights && CONTRACT_USAGE_RIGHTS_VALUES.includes(usageRights)) {
+      setValue("usageRights", usageRights, validateOpts);
     }
-  }, [campaignData, creatorData, setValue, isIndividual]);
+
+    const exclusivity = campaignData?.exclusivity_clause;
+    if (exclusivity && CONTRACT_EXCLUSIVITY_VALUES.includes(exclusivity)) {
+      setValue("exclusivityClause", exclusivity, validateOpts);
+    }
+  }, [campaignData, setValue]);
+
+  const initializeForm = useCallback(() => {
+    if (!campaignData || !creatorData) return;
+
+    applySharedOfferDefaults();
+
+    if (isIndividual) {
+      setValue("contentFormat", "");
+      setValue("compensationType", COMPENSATION_TYPE.PAID);
+      setValue("campaignType", "");
+      setValue("contentGuidelines", "");
+    } else {
+      setValue("contentFormat", deliverablesToContentFormatString(campaignData.deliverables));
+      setValue(
+        "compensationType",
+        campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
+      );
+      setValue("productPrice", campaignData.product_value || campaignData.product_price || "");
+      setValue("hashtags", campaignData.hashtags || "");
+      setValue("mentions", campaignData.do_donts || "");
+      setValue("inPersonRequired", campaignData.in_person_required || false);
+      setValue("eligibleCountry", campaignData.creator_country || "");
+      setValue("eligibleCity", campaignData.creator_city || "");
+      setValue(
+        "ageRange",
+        campaignData.min_age && campaignData.max_age
+          ? `${campaignData.min_age} - ${campaignData.max_age}`
+          : ""
+      );
+      setValue("gender", campaignData.creator_gender || "");
+      setValue("language", campaignData.creator_language || "");
+      setValue("additionalClauseTitle", campaignData.additional_clause_title || "");
+      setValue("additionalClauseBody", campaignData.additional_clause_body || "");
+    }
+  }, [campaignData, creatorData, setValue, isIndividual, applySharedOfferDefaults]);
 
   // Initialize form when modal opens
   useEffect(() => {
@@ -380,5 +407,6 @@ export default function useHireCreator({
     campaignTypeValue,
     isIndividualCollaboration: isIndividual,
     isPaymentRequired,
+    refreshPaymentStatus,
   };
 }
