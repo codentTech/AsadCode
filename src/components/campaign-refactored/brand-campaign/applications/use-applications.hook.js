@@ -87,6 +87,8 @@ function useBrandApplications() {
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
   const [applicationsSubTab, setApplicationsSubTab] = useState("applications");
+  const [viewMode, setViewMode] = useState("standard");
+  const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
 
   const individualCollaborations = (individualCollaborationsData?.data || []).filter(
     (invitation) => invitation.status === "PENDING"
@@ -605,10 +607,27 @@ function useBrandApplications() {
       applicationsFilters: filters,
       includeApplications: true,
       includeActive: false,
-      includeBoard: false,
+      includeBoard: viewMode === "board",
       silent: true,
     });
-  }, [dispatch, selectedCampaign, isMultiCreator, filters]);
+    setPipelineRefreshToken((token) => token + 1);
+  }, [dispatch, selectedCampaign, isMultiCreator, filters, viewMode]);
+
+  const handleOpenBoard = useCallback(() => {
+    setViewMode("board");
+    setSelectedCreator(null);
+    setMobilePane("list");
+    if (selectedCampaign?.id) {
+      autoSelectedForCampaignRef.current = selectedCampaign.id;
+    } else {
+      autoSelectedForCampaignRef.current = "individual";
+    }
+  }, [selectedCampaign?.id]);
+
+  const handleCloseBoard = useCallback(() => {
+    setViewMode("standard");
+    autoSelectedForCampaignRef.current = null;
+  }, []);
 
   const messageThreadHook = useMessageThread(
     getCreatorId(),
@@ -690,6 +709,7 @@ function useBrandApplications() {
   }, [isIndividualCreator, selectedCreator, applicationsSubTab]);
 
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
@@ -712,9 +732,11 @@ function useBrandApplications() {
     selectedCampaign,
     selectedCreator,
     applicationsSubTab,
+    viewMode,
   ]);
 
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       !selectedCampaign &&
       !individualCollaborationsLoading &&
@@ -732,6 +754,7 @@ function useBrandApplications() {
     individualCreators.length,
     individualCollaborationsLoading,
     selectedCreator,
+    viewMode,
   ]);
 
   const user = getUser();
@@ -775,7 +798,7 @@ function useBrandApplications() {
           applicationsFilters: filters,
           includeApplications: true,
           includeActive: false,
-          includeBoard: false,
+          includeBoard: viewMode === "board",
           silent: true,
         });
       }, 1000);
@@ -796,7 +819,7 @@ function useBrandApplications() {
     applicationsFilters: filters,
     includeApplications: true,
     includeActive: false,
-    includeBoard: false,
+    includeBoard: viewMode === "board",
   });
 
   const isIndividualCreatorMode =
@@ -911,6 +934,10 @@ function useBrandApplications() {
     clearFilters,
     handleMessageClick,
     fetchIndividualCollaborations,
+    handleOpenBoard,
+    handleCloseBoard,
+    viewMode,
+    pipelineRefreshToken,
   };
 }
 
