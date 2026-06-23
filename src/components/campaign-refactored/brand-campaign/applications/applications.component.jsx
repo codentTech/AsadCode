@@ -10,6 +10,7 @@ import RightPaneSkeleton from "@/components/campaign-refactored/shared/right-pan
 import { ChevronLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import CampaignBoard from "@/components/campaign-refactored/brand-campaign/active/components/campaign-board/campaign-board.component";
 import CreatorSpendAnalysis from "./components/creator-spend-analysis/creator-spend-analysis.component";
 import DeliverablesProgress from "./components/deliverables-progress/deliverables-progress.component.jsx";
 import HireCreatorModal from "./components/hire-creator-modal/hire-creator-modal.component";
@@ -56,6 +57,10 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     subTabCounts,
     handleApplicationsSubTabChange,
     creators: displayCreators,
+    handleOpenBoard,
+    handleCloseBoard,
+    viewMode,
+    pipelineRefreshToken,
   } = useBrandApplications();
 
   const tabBarMobileSlot = useCampaignTabBarMobileSlot();
@@ -64,6 +69,34 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
 
   useEffect(() => {
     if (!registerMobileSlot || !clearMobileSlot) return;
+
+    if (viewMode === "board") {
+      if (selectedCreator) {
+        registerMobileSlot(
+          <button
+            type="button"
+            onClick={handleClearCreator}
+            className="inline-flex min-h-[30px] w-10 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 sm:min-h-8 md:min-h-9"
+            aria-label="Back to campaign board"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+        );
+      } else {
+        registerMobileSlot(
+          <button
+            type="button"
+            onClick={handleCloseBoard}
+            className="inline-flex min-h-[30px] w-10 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 sm:min-h-8 md:min-h-9"
+            aria-label="Close campaign board"
+          >
+            <ChevronLeft className="h-4 w-4 text-primary" strokeWidth={2.25} aria-hidden />
+          </button>
+        );
+      }
+      return () => clearMobileSlot();
+    }
+
     if (mobilePane !== "detail") {
       clearMobileSlot();
       return;
@@ -81,7 +114,16 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     return () => {
       clearMobileSlot();
     };
-  }, [mobilePane, registerMobileSlot, clearMobileSlot, backToApplicationList]);
+  }, [
+    viewMode,
+    selectedCreator,
+    mobilePane,
+    registerMobileSlot,
+    clearMobileSlot,
+    backToApplicationList,
+    handleClearCreator,
+    handleCloseBoard,
+  ]);
 
   if (isLoading && !selectedCampaign) {
     return (
@@ -120,44 +162,19 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     </>
   );
 
-  return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/40 md:flex-row md:items-stretch md:bg-transparent">
-      <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[opacity,transform] duration-200 ease-out md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
-          mobilePane === "detail" ? "hidden md:flex" : "flex"
-        }`}
-      >
-        <CreatorSpendAnalysis
-          onCampaignSelect={handleCampaignSelect}
-          selectedCampaign={selectedCampaign}
-          appliedCreatorsData={appliedCreatorsData}
-          appliedCreatorsLoading={appliedCreatorsLoading}
-          onCreatorSelect={handleCreatorSelectWithPane}
-          onClearCreator={handleClearCreator}
-          selectedCreator={selectedCreator}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onFiltersReplace={handleFiltersReplace}
-          onClearFilters={clearFilters}
-          fetchIndividualCollaborations={fetchIndividualCollaborations}
-          onSwitchToRejected={onSwitchToRejected}
-          applicationsSubTab={applicationsSubTab}
-          onApplicationsSubTabChange={handleApplicationsSubTabChange}
-          subTabCounts={subTabCounts}
-          displayCreators={displayCreators}
-        />
-      </div>
+  const detailPanel =
+    rightPaneState.type === "content" ? (
+      <DeliverablesProgress
+        selectedCreator={selectedCreator}
+        onHireClick={handleHireClick}
+        onRejectClick={handleRejectClick}
+        onMessageClick={handleMessageClick}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
+      />
+    ) : null;
 
-      <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
-          mobilePane === "list"
-            ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
-            : "flex"
-        }`}
-      >
-        {rightColumn}
-      </div>
-
+  const sharedModals = (
+    <>
       <HireCreatorModal
         show={hireModalOpen}
         onClose={() => setHireModalOpen(false)}
@@ -202,6 +219,68 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
           </div>
         }
       />
+    </>
+  );
+
+  if (viewMode === "board") {
+    return (
+      <>
+        <div className="relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden">
+          <CampaignBoard
+            selectedCampaign={selectedCampaign}
+            onCloseBoard={handleCloseBoard}
+            onCreatorSelect={handleCreatorSelectWithPane}
+            onClearCreator={handleClearCreator}
+            selectedCreator={selectedCreator}
+            detailPanel={detailPanel}
+            pipelineRefreshToken={pipelineRefreshToken}
+          />
+        </div>
+        {sharedModals}
+      </>
+    );
+  }
+
+  return (
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/40 md:flex-row md:items-stretch md:bg-transparent">
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-[opacity,transform] duration-200 ease-out md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none ${
+          mobilePane === "detail" ? "hidden md:flex" : "flex"
+        }`}
+      >
+        <CreatorSpendAnalysis
+          onCampaignSelect={handleCampaignSelect}
+          selectedCampaign={selectedCampaign}
+          appliedCreatorsData={appliedCreatorsData}
+          appliedCreatorsLoading={appliedCreatorsLoading}
+          onCreatorSelect={handleCreatorSelectWithPane}
+          onClearCreator={handleClearCreator}
+          selectedCreator={selectedCreator}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onFiltersReplace={handleFiltersReplace}
+          onClearFilters={clearFilters}
+          fetchIndividualCollaborations={fetchIndividualCollaborations}
+          onSwitchToRejected={onSwitchToRejected}
+          applicationsSubTab={applicationsSubTab}
+          onApplicationsSubTabChange={handleApplicationsSubTabChange}
+          subTabCounts={subTabCounts}
+          displayCreators={displayCreators}
+          onOpenBoard={handleOpenBoard}
+        />
+      </div>
+
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
+          mobilePane === "list"
+            ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
+            : "flex"
+        }`}
+      >
+        {rightColumn}
+      </div>
+
+      {sharedModals}
     </div>
   );
 }
