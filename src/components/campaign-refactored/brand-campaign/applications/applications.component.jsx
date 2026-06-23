@@ -52,6 +52,10 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     clearFilters,
     handleMessageClick,
     fetchIndividualCollaborations,
+    applicationsSubTab,
+    subTabCounts,
+    handleApplicationsSubTabChange,
+    creators: displayCreators,
   } = useBrandApplications();
 
   const tabBarMobileSlot = useCampaignTabBarMobileSlot();
@@ -137,6 +141,10 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
           onClearFilters={clearFilters}
           fetchIndividualCollaborations={fetchIndividualCollaborations}
           onSwitchToRejected={onSwitchToRejected}
+          applicationsSubTab={applicationsSubTab}
+          onApplicationsSubTabChange={handleApplicationsSubTabChange}
+          subTabCounts={subTabCounts}
+          displayCreators={displayCreators}
         />
       </div>
 

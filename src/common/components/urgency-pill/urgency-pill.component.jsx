@@ -8,7 +8,7 @@ const UrgencyPill = ({ label, tier }) => {
 
   return (
     <span
-      className={`inline-flex w-fit max-w-full shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:px-2 sm:text-xs ${pillClass}`}
+      className={`inline-flex w-fit max-w-full shrink-0 items-center rounded-lg px-1.5 py-1 text-[10px] font-medium sm:px-2 sm:text-xs ${pillClass}`}
     >
       {label}
     </span>

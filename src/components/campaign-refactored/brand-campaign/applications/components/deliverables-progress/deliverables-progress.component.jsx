@@ -7,6 +7,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import { ExternalLink } from "lucide-react";
 
 const DeliverablesProgress = ({
@@ -52,10 +53,14 @@ const DeliverablesProgress = ({
           >
             {creatorData.name}
           </button>
-          <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creatorData.rating}</span>
-          <span className="ml-1 text-sm text-gray-500 sm:text-lg">
-            ({creatorData.reviewCount || 0})
-          </span>
+          {!HIDE_CREATOR_RATING_UI ? (
+            <>
+              <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creatorData.rating}</span>
+              <span className="ml-1 text-sm text-gray-500 sm:text-lg">
+                ({creatorData.reviewCount || 0})
+              </span>
+            </>
+          ) : null}
         </h3>
         <p className="-mt-1 flex w-full flex-wrap items-center justify-start gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
           <span>{creatorData.age}</span>
