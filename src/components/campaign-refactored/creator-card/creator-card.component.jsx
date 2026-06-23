@@ -168,7 +168,7 @@ const CreatorCard = ({
           </div>
 
           {displayNiches.length > 0 ? (
-            <div className="flex flex-wrap content-start items-start justify-center gap-1">
+            <div className="min-h-[3rem] flex flex-wrap content-start items-start justify-center gap-1">
               {displayNiches.map((niche) => (
                 <span
                   key={niche}
