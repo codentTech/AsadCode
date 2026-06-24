@@ -149,6 +149,7 @@ export default function useActive() {
 
   // Auto-select first creator for individual collaborations
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
@@ -228,10 +229,12 @@ export default function useActive() {
     activeIndividualContracts,
     activeIndividualContractsReady,
     selectedCreator,
+    viewMode,
   ]);
 
   // Auto-select first creator for multi-creator campaigns
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
@@ -266,7 +269,7 @@ export default function useActive() {
       setSelectedCreator(hiredCreatorsData.data[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }
-  }, [hiredCreatorsSuccess, hiredCreatorsData, selectedCampaign, selectedCreator]);
+  }, [hiredCreatorsSuccess, hiredCreatorsData, selectedCampaign, selectedCreator, viewMode]);
 
   // ============================================
   // 5. CALLBACKS
@@ -418,10 +421,14 @@ export default function useActive() {
   const handleOpenBoard = useCallback(() => {
     setViewMode("board");
     setSelectedCreator(null);
-  }, []);
+    if (selectedCampaign?.id) {
+      autoSelectedForCampaignRef.current = selectedCampaign.id;
+    }
+  }, [selectedCampaign?.id]);
 
   const handleCloseBoard = useCallback(() => {
     setViewMode("standard");
+    autoSelectedForCampaignRef.current = null;
   }, []);
 
   const refreshPipelineData = useCallback(() => {
