@@ -6,8 +6,7 @@ import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component
 import { sortOptions } from "@/common/constants/auth.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
 import TaskManagerModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/task-manager.component";
-import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
-import { ExternalLink, MapPin, Star } from "lucide-react";
+import { ExternalLink, LayoutGrid, MapPin, Star } from "lucide-react";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysisCompleted = ({
@@ -18,17 +17,15 @@ const CreatorSpendAnalysisCompleted = ({
   onSortChange,
   currentSort = "urgency",
   isCompleted = true,
+  onOpenBoard,
 }) => {
   const {
-    open,
     creators,
     creatorsLoading,
     creatorsSuccess,
     creatorsError,
     isMultiCreator,
     isIndividualMode,
-    handleOpenModal,
-    handleCloseModal,
     showBrandCalendar,
     setShowBrandCalendar,
     showTaskManager,
@@ -98,18 +95,24 @@ const CreatorSpendAnalysisCompleted = ({
                 className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
                 onClick={() => setShowTaskManager(true)}
               />
-              <CustomButton
-                text="New campaign"
-                title="Start a new campaign"
-                className="btn-primary min-w-0 flex-1 px-2 sm:hidden"
-                onClick={handleOpenModal}
-              />
-              <CustomButton
-                text="Start a new campaign"
-                title="Start a new campaign"
-                className="btn-primary hidden min-w-0 sm:inline-flex sm:w-auto"
-                onClick={handleOpenModal}
-              />
+              {onOpenBoard ? (
+                <>
+                  <CustomButton
+                    text="Board"
+                    title="Campaign Board"
+                    className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                    startIcon={<LayoutGrid className="h-3.5 w-3.5 shrink-0" />}
+                    onClick={onOpenBoard}
+                  />
+                  <CustomButton
+                    text="Campaign Board"
+                    title="Campaign Board"
+                    className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
+                    startIcon={<LayoutGrid className="h-4 w-4 shrink-0" />}
+                    onClick={onOpenBoard}
+                  />
+                </>
+              ) : null}
             </div>
           </div>
         </div>
@@ -508,7 +511,6 @@ const CreatorSpendAnalysisCompleted = ({
         </div>
       </div>
 
-      <CampaignCreationWizard open={open} close={handleCloseModal} />
       <CalendarModal
         show={showBrandCalendar}
         onClose={() => setShowBrandCalendar(false)}
