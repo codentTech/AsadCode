@@ -353,29 +353,27 @@ const CreatorSpendAnalysisCompleted = ({
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <div className="mb-2 flex items-start justify-between">
+                              <div className="mb-1 flex items-start justify-between">
                                 <div className="w-full">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h3 className="min-w-0 flex-1 text-lg font-semibold text-gray-900">
+                                  <div className="flex justify-between items-center gap-2">
+                                    <h3 className="text-lg font-semibold text-gray-900">
                                       {creator.name}
                                     </h3>
-                                    <div className="flex shrink-0 flex-col items-end gap-1">
-                                      {creator.urgencyLabel ? (
-                                        <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
-                                          <UrgencyPill
-                                            label={creator.urgencyLabel}
-                                            tier={creator.urgencyTier}
-                                          />
-                                        </div>
-                                      ) : null}
-                                    </div>
+                                    {creator.urgencyLabel ? (
+                                      <div className="w-fit max-w-full rounded-lg bg-gray-100 px-2 py-1 text-sm text-gray-900">
+                                        <UrgencyPill
+                                          label={creator.urgencyLabel}
+                                          tier={creator.urgencyTier}
+                                        />
+                                      </div>
+                                    ) : null}
                                   </div>
                                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                                     <div className="flex items-center space-x-1 text-xs">
                                       <MapPin className="h-4 w-4" />
                                       <span>{creator.location}</span>
                                     </div>
-                                    {creator.age ? (
+                                    {creator.age != null && creator.age !== "" ? (
                                       <span className="text-xs text-gray-600">
                                         ({creator.age} Years Old)
                                       </span>
@@ -384,42 +382,40 @@ const CreatorSpendAnalysisCompleted = ({
                                 </div>
                               </div>
 
-                              <div className="mb-3 flex items-center space-x-2">
-                                <div className="flex items-center text-xs">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-4 w-4 ${
-                                        i < Math.floor(creator.rating || 0)
-                                          ? "text-yellow-400 fill-current"
-                                          : "text-gray-300"
-                                      }`}
-                                    />
-                                  ))}
+                              <div className="mb-3 flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex items-center text-xs">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < Math.floor(creator.rating || 0)
+                                            ? "fill-current text-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-600">
+                                    {(creator.rating || 0).toFixed(1)}
+                                  </span>
+                                  <span className="text-xs text-gray-600">
+                                    ({creator.reviewCount ?? 0} reviews)
+                                  </span>
                                 </div>
-                                <div className="w-full flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-xs text-gray-600">
-                                      {(creator.rating || 0).toFixed(1)}
-                                    </span>
-                                    <span className="text-xs text-gray-600">
-                                      ({creator.reviewCount ?? 0} reviews)
-                                    </span>
-                                  </div>
-                                  <div>
-                                    {showMetrics && creatorMetrics?.publishedUrl ? (
-                                      <a
-                                        href={creatorMetrics.publishedUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                                      >
-                                        <ExternalLink className="h-4 w-4" />
-                                        Published Post
-                                      </a>
-                                    ) : null}
-                                  </div>
+                                <div className="pr-4">
+                                  {showMetrics && creatorMetrics?.publishedUrl ? (
+                                    <a
+                                      href={creatorMetrics.publishedUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-xs inline-flex items-center gap-1 text-primary hover:underline"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                      Published Post
+                                    </a>
+                                  ) : null}
                                 </div>
                               </div>
 
@@ -436,64 +432,57 @@ const CreatorSpendAnalysisCompleted = ({
                                   ))}
                                 </div>
                               ) : showMetrics && creatorMetrics ? (
-                                <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 lg:gap-3">
-                                  <div className="flex justify-between rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-2.5">
+                                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 lg:gap-3">
+                                  <div className="flex flex-col rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 transition-all duration-200 hover:shadow-sm sm:gap-1 sm:px-3">
                                     <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">
                                       Total Views
                                     </p>
-                                    <p className="text-[10px] font-bold tabular-nums text-gray-900 sm:text-xs">
+                                    <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
                                       {formatMetricValue(creatorMetrics.views, "views")}
                                     </p>
                                   </div>
-                                  <div className="flex justify-between rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-2.5">
+                                  <div className="flex flex-col rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 transition-all duration-200 hover:shadow-sm sm:gap-1 sm:px-3">
                                     <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">
                                       Total Engagement
                                     </p>
-                                    <p className="text-[10px] font-bold tabular-nums text-gray-900 sm:text-xs">
+                                    <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
                                       {formatMetricValue(
                                         creatorMetrics.totalEngagement,
                                         "engagement"
                                       )}
                                     </p>
                                   </div>
-                                  <div className="flex justify-between rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-2.5">
+                                  <div className="flex flex-col rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 transition-all duration-200 hover:shadow-sm sm:gap-1 sm:px-3">
                                     <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">
                                       Engagement Rate
                                     </p>
-                                    <p className="text-[10px] font-bold tabular-nums text-gray-900 sm:text-xs">
+                                    <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
                                       {formatMetricValue(creatorMetrics.engagementRate, "rate")}
                                     </p>
                                   </div>
-                                  <div className="flex justify-between rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-2.5">
+                                  <div className="flex flex-col rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 transition-all duration-200 hover:shadow-sm sm:gap-1 sm:px-3">
                                     <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">
                                       Cost/View
                                     </p>
-                                    <p className="text-[10px] leading-tight text-gray-900 sm:text-xs">
-                                      <span className="font-bold tabular-nums">
-                                        {creatorMetrics.costPerView == null ||
-                                        !Number.isFinite(Number(creatorMetrics.costPerView))
-                                          ? "N/A"
-                                          : formatMetricValue(
-                                              creatorMetrics.costPerView,
-                                              "currency"
-                                            )}
-                                      </span>
+                                    <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
+                                      {creatorMetrics.costPerView == null ||
+                                      !Number.isFinite(Number(creatorMetrics.costPerView))
+                                        ? "N/A"
+                                        : formatMetricValue(creatorMetrics.costPerView, "currency")}
                                     </p>
                                   </div>
-                                  <div className="flex justify-between rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-2.5">
+                                  <div className="flex flex-col rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 transition-all duration-200 hover:shadow-sm sm:gap-1 sm:px-3">
                                     <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">
                                       Cost/Engagement
                                     </p>
-                                    <p className="text-[10px] leading-tight text-gray-900 sm:text-xs">
-                                      <span className="font-bold tabular-nums">
-                                        {creatorMetrics.costPerEngagement == null ||
-                                        !Number.isFinite(Number(creatorMetrics.costPerEngagement))
-                                          ? "N/A"
-                                          : formatMetricValue(
-                                              creatorMetrics.costPerEngagement,
-                                              "currency"
-                                            )}
-                                      </span>
+                                    <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
+                                      {creatorMetrics.costPerEngagement == null ||
+                                      !Number.isFinite(Number(creatorMetrics.costPerEngagement))
+                                        ? "N/A"
+                                        : formatMetricValue(
+                                            creatorMetrics.costPerEngagement,
+                                            "currency"
+                                          )}
                                     </p>
                                   </div>
                                 </div>

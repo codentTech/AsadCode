@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Loader from "@/common/components/loader/loader.component";
@@ -5,7 +6,8 @@ import { CheckCircle } from "lucide-react";
 import useJoinCleercut from "./use-join-cleercut";
 
 export default function JoinCleerCut({ closeModal }) {
-  const { loading, register, handleSubmit, onSubmit, errors, isSubmitted } = useJoinCleercut();
+  const { loading, register, handleSubmit, onSubmit, errors, isSubmitted, termsHref, privacyHref } =
+    useJoinCleercut();
 
   return (
     <div className="relative w-full transform p-2 transition-all">
@@ -45,13 +47,13 @@ export default function JoinCleerCut({ closeModal }) {
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-600">
               By joining, you agree to our{" "}
-              <a href="#" className="text-primary hover:text-indigo-800">
+              <Link href={termsHref} className="text-primary hover:text-indigo-800">
                 Terms of Service
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a href="#" className="text-primary hover:text-indigo-800">
+              <Link href={privacyHref} className="text-primary hover:text-indigo-800">
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </div>
         </form>

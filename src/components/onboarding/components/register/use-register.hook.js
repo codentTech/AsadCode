@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import api from "@/common/utils/api";
 import ROLES from "@/common/constants/role.constant";
 import { BRAND_ACCOUNT_TYPE_OPTIONS } from "@/common/constants/options.constant";
+import useLegalLinks from "@/common/hooks/use-legal-links.hook";
 import {
   createRegisterValidationSchema,
   DEFAULT_FORM_VALUES,
@@ -23,6 +24,7 @@ export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
+  const { termsHref, privacyHref } = useLegalLinks();
 
   const token = inviteToken || searchParams?.get("token");
   const showBrandRegisterExtras = !isCreatorMode && !token;
@@ -275,5 +277,7 @@ export default function useRegister({ onNext, inviteToken }) {
     handleCountrySelect,
     handleStateSelect,
     handleCitySelect,
+    termsHref,
+    privacyHref,
   };
 }

@@ -1,4 +1,5 @@
 import { ClipboardList, FileText, Layers3, Target } from "lucide-react";
+import Link from "next/link";
 import usePreview from "./use-preview.hook";
 
 function Preview({ campaignData, handleChange }) {
@@ -15,6 +16,8 @@ function Preview({ campaignData, handleChange }) {
     styleGuideFileUrl,
     styleGuideFileName,
     termsAgreed,
+    termsHref,
+    privacyHref,
     quickFields,
     guidelineGroups,
   } = usePreview(campaignData);
@@ -294,10 +297,15 @@ function Preview({ campaignData, handleChange }) {
               className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:mt-0"
             />
             <span className="text-sm leading-snug sm:text-base">
-              I confirm that the information above is accurate and I agree to the
-              <span className="ml-1 text-indigo-600 underline">Terms of Service</span>
-              <span className="mx-1">&</span>
-              <span className="text-indigo-600 underline">Privacy Policy</span>.
+              I confirm that the information above is accurate and I agree to the{" "}
+              <Link href={termsHref} className="text-indigo-600 underline">
+                Terms of Service
+              </Link>{" "}
+              &{" "}
+              <Link href={privacyHref} className="text-indigo-600 underline">
+                Privacy Policy
+              </Link>
+              .
             </span>
           </label>
           {!termsAgreed && (

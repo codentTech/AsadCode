@@ -13,6 +13,10 @@ import {
   formatLanguageForDisplay,
 } from "@/common/utils/campaign.utils";
 import {
+  getLegalLinksForAudience,
+  LEGAL_AUDIENCE,
+} from "@/common/utils/legal.utils";
+import {
   buildHeroStats,
   buildCompensationItems,
   buildWorkMode,
@@ -186,6 +190,11 @@ export default function usePreview(campaignData = {}) {
     ]
   );
 
+  const clientLegalLinks = useMemo(
+    () => getLegalLinksForAudience(LEGAL_AUDIENCE.CLIENT),
+    []
+  );
+
   return {
     title,
     imageSrc,
@@ -201,5 +210,7 @@ export default function usePreview(campaignData = {}) {
     guidelineGroups,
     quickFields,
     termsAgreed: Boolean(campaignData.termsAgreed),
+    termsHref: clientLegalLinks.terms,
+    privacyHref: clientLegalLinks.privacy,
   };
 }
