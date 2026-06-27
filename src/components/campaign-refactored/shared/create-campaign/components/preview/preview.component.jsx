@@ -296,7 +296,7 @@ function Preview({ campaignData, handleChange }) {
               onChange={handleChange}
               className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:mt-0"
             />
-            <span className="text-sm leading-snug sm:text-base">
+            <span className="text-xs leading-snug sm:text-sm">
               I confirm that the information above is accurate and I agree to the{" "}
               <Link href={termsHref} className="text-indigo-600 underline">
                 Terms of Service
