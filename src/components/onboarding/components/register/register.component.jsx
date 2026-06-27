@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
@@ -23,6 +24,8 @@ const Register = ({ onNext, onBack, inviteToken }) => {
     handleCountrySelect,
     handleStateSelect,
     handleCitySelect,
+    termsHref,
+    privacyHref,
   } = useRegister({ onNext, inviteToken });
 
   return (
@@ -235,13 +238,13 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 />
                 <span className="text-xs text-gray-700 sm:text-sm">
                   I agree to CleerCut&apos;s{" "}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-700 underline">
+                  <Link href={termsHref} className="text-indigo-600 hover:text-indigo-700 underline">
                     Terms of Service
-                  </a>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-700 underline">
+                  <Link href={privacyHref} className="text-indigo-600 hover:text-indigo-700 underline">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </span>
               </label>
               {errors.agree_terms && (
