@@ -1,12 +1,12 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
-import useHero from "@/components/landing-page/components/hero/use-hero";
 import JoinCleerCut from "@/components/landing-page/components/join-cleercut/join-cleercut";
-import { Facebook, Instagram, LinkedIn, Twitter } from "@mui/icons-material";
+import { Instagram, LinkedIn } from "@mui/icons-material";
 import Link from "next/link";
+import useFooter from "./use-footer.hook";
 
 const Footer = () => {
-  const { isOpen, setIsOpen, closeModal } = useHero();
+  const { isOpen, setIsOpen, closeModal, termsHref, privacyHref, cookieHref } = useFooter();
 
   return (
     <footer className="bg-white -indigo-200 py-12 border-t">
@@ -34,73 +34,28 @@ const Footer = () => {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    href="about-us"
+                    href="/about-us"
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Press
-                  </a>
+                  <span className="text-sm text-gray-600">Blog</span>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-medium mb-4">Resources</h4>
+              <h4 className="text-white font-medium mb-4">Support</h4>
               <ul className="space-y-2">
                 <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Help Center
-                  </a>
-                </li>
-                <li>
                   <Link
-                    href="faq"
+                    href="/faq"
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
                     FAQs
                   </Link>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Community
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-primary text-sm text-gray-600 transition-colors"
-                  >
-                    Contact
-                  </a>
                 </li>
               </ul>
             </div>
@@ -109,28 +64,28 @@ const Footer = () => {
               <h4 className="text-white font-medium mb-4">Legal</h4>
               <ul className="space-y-2">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href={termsHref}
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href={privacyHref}
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href={cookieHref}
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
                     Cookie Policy
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -141,29 +96,17 @@ const Footer = () => {
           <p className="text-sm font-bold text-gray-600">© 2025 CleerCut. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex justify-center md:justify-end space-x-4">
             <Link
-              href="https://www.tiktok.com/@cleercut_?_t=ZT-8wYDbw8X7Cl&_r=1"
+              href="https://www.linkedin.com/company/cleercut"
               target="_blank"
-              className="text-gray-600 hover:text-indigo-800 transition-colors"
-            >
-              <Twitter />
-            </Link>
-            <Link
-              href="https://www.linkedin.com/in/cleer-cut-578618362?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
-              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <LinkedIn />
             </Link>
             <Link
-              href="https://www.facebook.com/profile.php?id=61576240868963&mibextid=wwXIfr"
-              target="_blank"
-              className="text-gray-600 hover:text-indigo-800 transition-colors"
-            >
-              <Facebook />
-            </Link>
-            <Link
               href="https://www.instagram.com/cleercut?igsh=NTc4MTIwNjQ2YQ%3D%3D&utm_source=qr"
               target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-600 hover:text-indigo-800 transition-colors"
             >
               <Instagram />
