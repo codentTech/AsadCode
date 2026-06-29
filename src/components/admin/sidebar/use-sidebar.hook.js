@@ -3,6 +3,7 @@ import { getUser } from "@/common/utils/users.util";
 import { expandedSidebarSections, setSidebarActiveItem } from "@/provider/features/auth/auth.slice";
 import {
   Clipboard,
+  FileText,
   LayoutDashboard,
   Link2,
   ScrollText,
@@ -28,6 +29,12 @@ const adminNavItems = [
     icon: ScrollText,
     isActive: false,
     href: "/admin/audit-logs",
+  },
+  {
+    label: "Blog",
+    icon: FileText,
+    isActive: false,
+    href: "/admin/blog",
   },
   {
     label: "Creator Applications",

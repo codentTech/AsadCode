@@ -66,6 +66,13 @@ function Header() {
           >
             About
           </Link>
+          <Link
+            href="/blog"
+            prefetch={true}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
+          >
+            Blog
+          </Link>
           {/* <div
             onClick={() => setShowDropdown(!showDropdown)}
             className="bg-gray-200 p-2 rounded-full cursor-pointer"
@@ -165,12 +172,18 @@ function Header() {
           >
             Pricing
           </p>
-          <p
-            onClick={() => router.push("/about-us")}
+          <Link
+            href="/about-us"
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
           >
             About
-          </p>
+          </Link>
+          <Link
+            href="/blog"
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
+            Blog
+          </Link>
 
           {/* Mobile Authentication Buttons */}
           <div className="border-t border-gray-200 pt-4">
