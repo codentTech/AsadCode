@@ -2,6 +2,7 @@ import { avatar } from "@/common/constants/auth.constant";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { TIMELINE_STATUS, TIMELINE_STEPS } from "@/common/constants/campaign.constant";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
+import { requiresCollaborationPayment } from "@/common/utils/campaign.utils";
 import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import {
   createCampaignNote,
@@ -31,7 +32,8 @@ const useDeliverablesProgress = (
   selectedCreator = null,
   isIndividualCreator = false,
   onClearCreator = null,
-  filters = { status: "HIRED", sort: "newest" }
+  filters = { status: "HIRED", sort: "newest" },
+  onPipelineUpdated = null
 ) => {
   const creatorMode = isCreatorMode();
   const user = getUser();
@@ -80,9 +82,7 @@ const useDeliverablesProgress = (
     if (isIndividualCreator) {
       return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
     }
-    return (
-      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id || null
-    );
+    return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
   }, [
     selectedCreator?.id,
     selectedCreator?.creatorUserId,
@@ -542,9 +542,12 @@ const useDeliverablesProgress = (
       ? "Final content must be published before completion"
       : "Complete all campaign steps before marking complete";
 
-  const handleMarkCompleteClick = () => {
+  const handleMarkCompleteClick = useCallback(() => {
+    if (effectiveCampaignId && creatorUserId) {
+      dispatch(getTimeline({ campaignId: effectiveCampaignId, creatorId: creatorUserId }));
+    }
     setShowMarkCompleteModal(true);
-  };
+  }, [dispatch, effectiveCampaignId, creatorUserId]);
 
   const handleCancelMarkComplete = () => {
     setShowMarkCompleteModal(false);
@@ -610,6 +613,7 @@ const useDeliverablesProgress = (
     setMarkCompleteRating(0);
     setMarkCompleteFeedback("");
     setIsMarkingComplete(false);
+    onPipelineUpdated?.();
   };
 
   // Format shipping address for display
@@ -670,6 +674,17 @@ const useDeliverablesProgress = (
     }
   }, [creatorUserId]);
 
+  const requiresCollaborationPaymentFlag = useMemo(
+    () =>
+      requiresCollaborationPayment({
+        contract: selectedContract,
+        campaign: selectedCampaign,
+        application: selectedCreator,
+        compensation: selectedCreator?.compensation,
+      }),
+    [selectedContract, selectedCampaign, selectedCreator]
+  );
+
   return {
     messageThreadHook,
     handleMessageClick,
@@ -712,6 +727,7 @@ const useDeliverablesProgress = (
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
     handleViewCreatorPortfolio,
+    requiresCollaborationPayment: requiresCollaborationPaymentFlag,
   };
 };
 

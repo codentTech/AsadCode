@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getTimeline,
@@ -8,8 +8,19 @@ import {
 } from "@/provider/features/campaign-timeline/campaign-timeline.slice";
 import { TIMELINE_STEPS, TIMELINE_STATUS } from "@/common/constants/campaign.constant";
 
-export default function useBrandTimeline(campaignId, creatorId) {
+function getTimelineFingerprint(steps) {
+  if (!Array.isArray(steps) || steps.length === 0) return "";
+  return steps
+    .map(
+      (step) =>
+        `${step.step}:${step.status}:${step.submitted_at || ""}:${step.updated_at || ""}:${step.file_url || ""}`,
+    )
+    .join("|");
+}
+
+export default function useBrandTimeline(campaignId, creatorId, onPipelineUpdated, onWorkflowComplete) {
   const dispatch = useDispatch();
+  const timelineFingerprintRef = useRef("");
 
   // Try to get timeline from keyed storage first, fallback to general state
   const timelineKey = campaignId && creatorId ? `${campaignId}-${creatorId}` : null;
@@ -68,6 +79,23 @@ export default function useBrandTimeline(campaignId, creatorId) {
     return () => clearInterval(interval);
   }, [campaignId, creatorId, dispatch]);
 
+  useEffect(() => {
+    if (!campaignId || !creatorId || timelineSteps.length === 0) return;
+
+    const fingerprint = getTimelineFingerprint(timelineSteps);
+    if (
+      timelineFingerprintRef.current &&
+      timelineFingerprintRef.current !== fingerprint
+    ) {
+      onPipelineUpdated?.();
+    }
+    timelineFingerprintRef.current = fingerprint;
+  }, [timelineSteps, campaignId, creatorId, onPipelineUpdated]);
+
+  useEffect(() => {
+    timelineFingerprintRef.current = "";
+  }, [campaignId, creatorId]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -117,7 +145,20 @@ export default function useBrandTimeline(campaignId, creatorId) {
     ).unwrap();
 
     await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
-  }, [campaignId, creatorId, timelineSteps, dispatch]);
+    onPipelineUpdated?.();
+
+    if (isDeliverablesOnlyWorkflow) {
+      onWorkflowComplete?.();
+    }
+  }, [
+    campaignId,
+    creatorId,
+    timelineSteps,
+    dispatch,
+    onPipelineUpdated,
+    onWorkflowComplete,
+    isDeliverablesOnlyWorkflow,
+  ]);
 
   const handleRequestRevision = useCallback(async () => {
     if (!revisionNotes.trim() || !selectedStepForRevision) return;
@@ -154,7 +195,8 @@ export default function useBrandTimeline(campaignId, creatorId) {
     setShowRevisionModal(false);
     setRevisionNotes("");
     setSelectedStepForRevision(null);
-  }, [revisionNotes, campaignId, creatorId, selectedStepForRevision, dispatch]);
+    onPipelineUpdated?.();
+  }, [revisionNotes, campaignId, creatorId, selectedStepForRevision, dispatch, onPipelineUpdated]);
 
   const handleMarkAsComplete = useCallback(async () => {
     // Find the FINAL_PUBLISHED step from timelineSteps
@@ -174,7 +216,9 @@ export default function useBrandTimeline(campaignId, creatorId) {
     ).unwrap();
 
     await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
-  }, [campaignId, creatorId, timelineSteps, dispatch]);
+    onPipelineUpdated?.();
+    onWorkflowComplete?.();
+  }, [campaignId, creatorId, timelineSteps, dispatch, onPipelineUpdated, onWorkflowComplete]);
 
   const timelineProgressNumerator = timelineSteps.filter(
     (step) =>

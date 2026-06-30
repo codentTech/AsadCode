@@ -58,7 +58,7 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex h-full w-full flex-1 items-center justify-center bg-white border-x md:h-screen">
+      <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center border-x bg-white">
         <Loading />
       </div>
     );
@@ -67,10 +67,10 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   // No campaign selected state
   if (!campaign) {
     return (
-      <div className="flex h-full w-full flex-1 flex-col overflow-y-auto bg-white border-x md:h-screen">
-        <div className="flex-1 flex items-center justify-center">
+      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border-x bg-white">
+        <div className="flex flex-1 items-center justify-center overflow-y-auto p-4">
           <div className="text-center">
-            <div className="text-sm text-gray-500 mb-2">No campaign selected</div>
+            <div className="mb-2 text-sm text-gray-500">No campaign selected</div>
             <div className="text-xs text-gray-400">
               Select a campaign from the list to view details.
             </div>
@@ -81,9 +81,9 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
   }
 
   return (
-    <div className="flex h-full w-full flex-1 flex-col overflow-y-auto bg-white border-x md:h-screen">
-      <div className="flex-1 overflow-y-auto">
-        <div className="space-y-4 p-3 pb-20 sm:p-4">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border-x bg-white">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+        <div className="space-y-4 p-3 pb-10 sm:p-4 sm:pb-12">
           {/* Header Section */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
@@ -105,13 +105,13 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
             </div>
 
             {/* Campaign Type Badge and Compensation */}
-            <div className="flex flex-shrink-0 flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
+            <div className="flex flex-shrink-0 flex-row items-center justify-center gap-2 sm:flex-col">
               <div
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-medium sm:px-3 sm:py-1.5 sm:text-xs ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}
               >
                 {formattedType}
               </div>
-              <div className="flex items-center gap-2 text-left text-[10px] font-semibold text-gray-900 sm:text-xs">
+              <div className="flex items-center gap-2 text-center text-[10px] font-semibold text-gray-900 sm:text-xs">
                 <div>{resolvedCompensationType || campaign.compensation} -</div>
                 <div>
                   {campaign?.compensationAmount ||
@@ -364,13 +364,15 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
 
           {/* Campaign Progress - Only for CleerCut campaigns */}
           {isCleerCutCampaign && (
-            <CreatorTimelineSteps
-              campaignId={campaign?.id}
-              deadline={campaign?.campaign_deadline || campaign?.application_deadline}
-              revisionsLimit={
-                campaign?.contract?.revisionsLimit || campaign?.contract?.revisions_limit || 2
-              }
-            />
+            <div className="pb-2">
+              <CreatorTimelineSteps
+                campaignId={campaign?.id}
+                deadline={campaign?.campaign_deadline || campaign?.application_deadline}
+                revisionsLimit={
+                  campaign?.contract?.revisionsLimit || campaign?.contract?.revisions_limit || 2
+                }
+              />
+            </div>
           )}
         </div>
       </div>

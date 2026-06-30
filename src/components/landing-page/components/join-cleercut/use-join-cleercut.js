@@ -1,3 +1,5 @@
+import useLegalLinks from "@/common/hooks/use-legal-links.hook";
+import { LEGAL_AUDIENCE } from "@/common/utils/legal.utils";
 import { addUserToWaitlist } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
@@ -32,7 +34,16 @@ function useJoinCleercut() {
     }
   };
 
-  return { loading, register, handleSubmit, onSubmit, errors, isSubmitted };
+  return {
+    loading,
+    register,
+    handleSubmit,
+    onSubmit,
+    errors,
+    isSubmitted,
+    termsHref,
+    privacyHref,
+  };
 }
 
 export default useJoinCleercut;

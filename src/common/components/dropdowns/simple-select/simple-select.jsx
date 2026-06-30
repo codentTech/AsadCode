@@ -86,7 +86,7 @@ export default function SimpleSelect({
 
         {showMenu && !isDisabled && (
           <div
-            className={`absolute z-50 mt-1 ${
+            className={`absolute z-[100] mt-1 ${
               isSearchable && isMulti
                 ? "top-10"
                 : isSearchable

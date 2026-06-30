@@ -7,6 +7,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import { ExternalLink } from "lucide-react";
 
 const DeliverablesProgress = ({
@@ -52,10 +53,14 @@ const DeliverablesProgress = ({
           >
             {creatorData.name}
           </button>
-          <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creatorData.rating}</span>
-          <span className="ml-1 text-sm text-gray-500 sm:text-lg">
-            ({creatorData.reviewCount || 0})
-          </span>
+          {!HIDE_CREATOR_RATING_UI ? (
+            <>
+              <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creatorData.rating}</span>
+              <span className="ml-1 text-sm text-gray-500 sm:text-lg">
+                ({creatorData.reviewCount || 0})
+              </span>
+            </>
+          ) : null}
         </h3>
         <p className="-mt-1 flex w-full flex-wrap items-center justify-start gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
           <span>{creatorData.age}</span>
@@ -74,20 +79,17 @@ const DeliverablesProgress = ({
           <CustomButton text="Reject" className="btn-danger" onClick={onRejectClick} />
         </div>
 
-        {connectedPlatforms.length > 0 && (
+        {platforms.length > 0 && (
           <div className="flex flex-col gap-2 w-full">
             {platforms.map((platform) => {
-              const isConnected = platform.isConnected;
               const isSelected =
                 selectedPlatform?.toLowerCase() === platform.name?.toLowerCase();
               return (
                 <button
                   key={platform.name}
                   type="button"
-                  disabled={!isConnected}
                   onClick={() => setSelectedPlatform(platform.name)}
-                  className={`relative flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full
-                    ${!isConnected ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                  className={`relative flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full cursor-pointer hover:shadow-md
                     ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
                   `}
                 >
@@ -106,18 +108,16 @@ const DeliverablesProgress = ({
                       )}
                     </div>
                   </div>
-                  {isConnected && (
-                    <div className="text-sm font-bold text-gray-900">
-                      {formatNumber(platform.followers)}
-                    </div>
-                  )}
+                  <div className="text-sm font-bold text-gray-900">
+                    {formatNumber(platform.followers)}
+                  </div>
                   {(() => {
                     const url = getPlatformProfileUrl(
                       platform.name,
                       platform.username,
                       platform.profileUrl
                     );
-                    return url && isConnected ? (
+                    return url ? (
                       <a
                         href={url}
                         target="_blank"

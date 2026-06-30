@@ -1,27 +1,13 @@
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-platforms.utils";
 
 export const mapUserToCreator = (user) => {
   const creatorProfile = user?.creator_profile || {};
-  const socialAccounts = user?.social_accounts || [];
-
-  const platforms = socialAccounts.map((s) => s.platform).filter(Boolean);
-  const platformStats = socialAccounts.reduce((acc, s) => {
-    const pd = s.profile_data || {};
-    const followers =
-      Number(pd.follower_count) ||
-      Number(pd.subscriber_count) ||
-      Number(pd.followers) ||
-      Number(pd.followers_count) ||
-      Number(pd.reputation?.follower_count) ||
-      Number(pd.reputation?.subscriber_count) ||
-      0;
-    const username = pd.username ?? pd.handle ?? pd.platform_username ?? null;
-    const profileUrl = pd.profile_url ?? pd.url ?? null;
-    if (s.platform) {
-      acc[s.platform] = { followers, username, profile_url: profileUrl };
-    }
-    return acc;
-  }, {});
+  const {
+    platformStats,
+    platformList,
+    hasConnectedSocialAccounts,
+  } = buildConnectedPlatformsFromCreatorUser(user);
 
   const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Creator";
   const portfolioImages = Array.isArray(creatorProfile?.mini_profile_pictures)
@@ -56,12 +42,12 @@ export const mapUserToCreator = (user) => {
     niches: creatorProfile?.categories || [],
     tagline: creatorProfile?.bio || "Creating authentic content that resonates with audiences",
     followers: Object.values(platformStats).reduce((sum, stat) => sum + (stat.followers || 0), 0),
-    platforms,
+    platforms: platformList,
     platformStats,
     rating: Number(creatorProfile?.rating) || 0,
     reviewCount: Number(creatorProfile?.reviewCount ?? creatorProfile?.review_count) || 0,
     mediaKitUrl: creatorProfile?.media_kit_url || null,
-    hasConnectedSocialAccounts: socialAccounts.length > 0,
+    hasConnectedSocialAccounts,
   };
 };
 

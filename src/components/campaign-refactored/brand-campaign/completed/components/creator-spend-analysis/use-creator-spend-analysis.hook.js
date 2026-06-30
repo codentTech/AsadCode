@@ -1,11 +1,15 @@
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
 import { formatFollowers } from "@/common/utils/format.utils";
-import { buildCreatorPublishedMetricsMap } from "@/common/utils/published-campaign-metrics.util";
+import {
+  buildCreatorPublishedMetricsMap,
+  resolveCreatorRowUserId,
+} from "@/common/utils/published-campaign-metrics.util";
+import usePrefetchCampaignCreatorTimelines from "@/common/hooks/use-prefetch-campaign-creator-timelines.hook";
 import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreatorSpendAnalysis } from "../../../active/components/creator-spend-analysis/use-creator-spend-analysis.hook";
-
 /**
  * Builds comparison label relative to campaign average for a given metric value.
  */
@@ -35,9 +39,9 @@ export const useCreatorSpendAnalysisCompleted = ({
   onCreatorSelect,
   onClearCreator,
   onSortChange,
+  currentSort = "urgency",
   isCompleted = true,
 }) => {
-  const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const hookData = useCreatorSpendAnalysis(
     selectedCampaign,
@@ -46,7 +50,8 @@ export const useCreatorSpendAnalysisCompleted = ({
     onClearCreator,
     selectedCreator,
     onCreatorSelect,
-    onSortChange
+    onSortChange,
+    currentSort
   );
 
   const timelinesByKey = useSelector((state) => state.campaignTimeline.timelinesByKey || {});
@@ -55,18 +60,17 @@ export const useCreatorSpendAnalysisCompleted = ({
   );
   const performanceData = performanceFetch?.data || null;
   const creatorBreakdown = performanceData?.creator_breakdown || {};
-
-  const { data: creatorsData } = useSelector((state) => state.campaigns.getAppliedCreators || {});
-
   const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
 
-  const creatorsListForPublishedMetrics = useMemo(() => {
-    if (hookData.isIndividualMode) {
-      return Array.isArray(hookData.creators) ? hookData.creators : [];
-    }
-    const list = creatorsData?.data;
-    return Array.isArray(list) ? list : [];
-  }, [hookData.isIndividualMode, hookData.creators, creatorsData?.data]);
+  const creatorsListForPublishedMetrics = useMemo(
+    () => (Array.isArray(hookData.creators) ? hookData.creators : []),
+    [hookData.creators]
+  );
+
+  usePrefetchCampaignCreatorTimelines(
+    !isUgc ? selectedCampaign?.id : null,
+    creatorsListForPublishedMetrics
+  );
 
   useEffect(() => {
     if (selectedCampaign?.id && !isUgc) {
@@ -74,16 +78,7 @@ export const useCreatorSpendAnalysisCompleted = ({
     }
   }, [dispatch, selectedCampaign?.id, isUgc]);
 
-  const handleOpenModal = () => setOpen(true);
-  const handleCloseModal = () => setOpen(false);
-
-  const getPlatformEntries = (platforms) => {
-    if (Array.isArray(platforms)) {
-      return platforms.map((p) => [p.name, { followers: p.followers }]);
-    }
-    return Object.entries(platforms || {});
-  };
-
+  const getPlatformEntries = (platforms) => getConnectedPlatformEntries(platforms);
   /**
    * Per-creator metrics map: creatorUserId → metrics object.
    * Prefer API creator_breakdown (from campaign performance metrics); fallback to timeline engagement.
@@ -96,12 +91,9 @@ export const useCreatorSpendAnalysisCompleted = ({
       timelinesByKey,
       campaignId: selectedCampaign.id,
       creatorBreakdown,
+      campaign: selectedCampaign,
     });
-
-    if (
-      !hookData.isIndividualMode ||
-      creatorsListForPublishedMetrics.length !== 1
-    ) {
+    if (!hookData.isIndividualMode || creatorsListForPublishedMetrics.length !== 1) {
       return base;
     }
 
@@ -111,10 +103,7 @@ export const useCreatorSpendAnalysisCompleted = ({
 
     const uid = String(raw);
     const existing = base[uid];
-    const hasUsableRow =
-      existing != null &&
-      !existing.metricsUnavailable &&
-      existing.views != null;
+    const hasUsableRow = existing != null && !existing.metricsUnavailable && existing.views != null;
 
     if (hasUsableRow) return base;
 
@@ -126,11 +115,13 @@ export const useCreatorSpendAnalysisCompleted = ({
     const fee =
       Number(
         row.totalSpent ??
+          row.total_spent ??
           row.contract?.totalCompensation ??
           row.contract?.total_compensation ??
+          row.contract?.productPrice ??
+          row.contract?.product_price ??
           0
-      ) || 0;
-    const er = tv > 0 ? te / tv : 0;
+      ) || 0;    const er = tv > 0 ? te / tv : 0;
 
     return {
       ...base,
@@ -155,12 +146,10 @@ export const useCreatorSpendAnalysisCompleted = ({
   const getCreatorMetrics = useCallback(
     (creator) => {
       if (isUgc) return null;
-      const raw = creator?.creator?.id ?? creator?.creatorUserId;
-      if (raw == null || raw === "") return null;
-      const uid = String(raw);
+      const uid = resolveCreatorRowUserId(creator);
+      if (!uid) return null;
 
-      if (!(uid in creatorMetricsMap)) {
-        const transitioning =
+      if (!(uid in creatorMetricsMap)) {        const transitioning =
           performanceFetch.isLoading &&
           (!performanceFetch.campaignId ||
             String(performanceFetch.campaignId) === String(selectedCampaign?.id ?? ""));
@@ -249,9 +238,6 @@ export const useCreatorSpendAnalysisCompleted = ({
 
   return {
     ...hookData,
-    open,
-    handleOpenModal,
-    handleCloseModal,
     getPlatformEntries,
     isUgc,
     getCreatorMetrics,

@@ -1,16 +1,26 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
+import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
 import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
-import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import {
-  buildPlatformsFromPhylloAccounts,
-  buildPlatformsFromSocialAccounts,
+  applyLivePipelineUrgency,
+  resolveCreatorUrgency,
+  sortCreatorsByUrgency,
+} from "@/common/utils/creator-urgency.util";
+import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+import { getAge } from "@/common/utils/date.utils";
+import {
+  buildConnectedPlatformsFromCreatorUser,
+  buildConnectedPlatformsFromPhylloAccounts,
   ratingAndReviewCountFromCreatorUser,
 } from "@/common/utils/creator-platforms.utils";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import {
   resolveEffectiveCollaborationType,
   isIndividualCollaborationFlow,
+  isCompletedAppliedCreatorsFiltersKey,
+  individualContractsScopeMatches,
+  individualContractsForPhase,
 } from "@/common/utils/brand-campaign-context.utils";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import usersService from "@/provider/features/users/users.service";
@@ -23,10 +33,12 @@ export const useCreatorSpendAnalysis = (
   onClearCreator,
   selectedCreator,
   onCreatorSelect,
-  onSortChange
+  onSortChange,
+  currentSort = "urgency"
 ) => {
   const [showBrandCalendar, setShowBrandCalendar] = useState(false);
   const [showTaskManager, setShowTaskManager] = useState(false);
+  const urgencyTick = useUrgencyTick();
   const [hydratedUsersById, setHydratedUsersById] = useState({});
   const [phylloAccountsByCreatorId, setPhylloAccountsByCreatorId] = useState({});
   const { getPlatformIcon, formatFollowers, getPlatformColor } = useGetplatform();
@@ -40,30 +52,6 @@ export const useCreatorSpendAnalysis = (
     (state) => state.campaignContext?.selectedCollaborationType ?? null
   );
 
-  const {
-    isLoading: creatorsLoading,
-    isSuccess: creatorsSuccess,
-    isError: creatorsError,
-    data: creatorsData,
-    campaignId: creatorsListCampaignId,
-  } = useSelector(
-    (state) =>
-      (isCompleted ? state.campaigns.getAppliedCreators : state.campaigns.getHiredCreators) || {}
-  );
-
-  const {
-    isLoading: individualContractsLoading,
-    isSuccess: individualContractsSuccess,
-    isError: individualContractsError,
-    data: individualContractsData,
-  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
-
-  const normalizedIndividualContracts = useMemo(() => {
-    if (Array.isArray(individualContractsData)) return individualContractsData;
-    if (Array.isArray(individualContractsData?.data)) return individualContractsData.data;
-    return [];
-  }, [individualContractsData]);
-
   const effectiveCollaborationType = useMemo(
     () => resolveEffectiveCollaborationType(selectedCampaign, selectedCollaborationTypeFromContext),
     [selectedCampaign, selectedCollaborationTypeFromContext]
@@ -74,14 +62,57 @@ export const useCreatorSpendAnalysis = (
     [isMultiCreator, effectiveCollaborationType]
   );
 
+  const {
+    isLoading: creatorsLoading,
+    isSuccess: creatorsSuccess,
+    isError: creatorsError,
+    data: creatorsData,
+    campaignId: creatorsListCampaignId,
+    filtersKey: creatorsListFiltersKey,
+  } = useSelector(
+    (state) =>
+      (isCompleted ? state.campaigns.getAppliedCreators : state.campaigns.getHiredCreators) || {}
+  );
+
+  const {
+    isLoading: individualContractsLoading,
+    isSuccess: individualContractsSuccess,
+    isError: individualContractsError,
+    data: individualContractsData,
+    isCompleted: individualContractsIsCompleted,
+  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
+
+  const normalizedIndividualContracts = useMemo(() => {
+    if (Array.isArray(individualContractsData)) return individualContractsData;
+    if (Array.isArray(individualContractsData?.data)) return individualContractsData.data;
+    return [];
+  }, [individualContractsData]);
+
+  const scopedIndividualContracts = useMemo(() => {
+    if (!isIndividualMode) return [];
+    if (!individualContractsScopeMatches(isCompleted, individualContractsIsCompleted)) {
+      return [];
+    }
+    return individualContractsForPhase(normalizedIndividualContracts, isCompleted);
+  }, [
+    isIndividualMode,
+    isCompleted,
+    individualContractsIsCompleted,
+    normalizedIndividualContracts,
+  ]);
+
+  const individualContractsReady =
+    individualContractsSuccess &&
+    individualContractsScopeMatches(isCompleted, individualContractsIsCompleted);
+
   const prevIsIndividualModeRef = useRef(isIndividualMode);
 
   const individualCreators = useMemo(() => {
-    if (!isIndividualMode || normalizedIndividualContracts.length === 0) {
+    if (!isIndividualMode || scopedIndividualContracts.length === 0) {
       return [];
     }
 
-    return normalizedIndividualContracts
+    return scopedIndividualContracts
       .filter((contract) => {
         const contractCampaignId = contract.campaignId || contract.campaign?.id;
 
@@ -107,6 +138,18 @@ export const useCreatorSpendAnalysis = (
 
         const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(mergedCreator);
 
+        const pipeline = contract.pipeline;
+        const urgency = resolveCreatorUrgency({ pipeline });
+
+        const connectedPlatforms = buildConnectedPlatformsFromCreatorUser(mergedCreator);
+        const phylloConnected =
+          mergedCreator?.id && phylloAccountsByCreatorId[mergedCreator.id]
+            ? buildConnectedPlatformsFromPhylloAccounts(phylloAccountsByCreatorId[mergedCreator.id])
+            : null;
+        const platformData = phylloConnected?.hasConnectedSocialAccounts
+          ? phylloConnected
+          : connectedPlatforms;
+
         return {
           id: contract.id,
           contractId: contract.id,
@@ -115,6 +158,9 @@ export const useCreatorSpendAnalysis = (
           age: getAge(mergedCreator?.date_of_birth),
           creatorUserId: mergedCreator?.id || creator?.id,
           creator: mergedCreator || creator,
+          pipeline,
+          urgencyLabel: urgency.label,
+          urgencyTier: urgency.tier,
           name:
             `${mergedCreator?.first_name || ""} ${mergedCreator?.last_name || ""}`.trim() ||
             "Unknown Creator",
@@ -130,10 +176,9 @@ export const useCreatorSpendAnalysis = (
           totalSpent: contract.totalCompensation || 0,
           rating,
           reviewCount,
-          platforms:
-            mergedCreator?.id && phylloAccountsByCreatorId[mergedCreator.id]
-              ? buildPlatformsFromPhylloAccounts(phylloAccountsByCreatorId[mergedCreator.id])
-              : buildPlatformsFromSocialAccounts(mergedCreator),
+          platforms: platformData.platforms,
+          platformStats: platformData.platformStats,
+          hasConnectedSocialAccounts: platformData.hasConnectedSocialAccounts,
           projects: 0,
           successRate: 0,
           avgDeliveryTime: "N/A",
@@ -147,7 +192,7 @@ export const useCreatorSpendAnalysis = (
       });
   }, [
     isIndividualMode,
-    normalizedIndividualContracts,
+    scopedIndividualContracts,
     hydratedUsersById,
     phylloAccountsByCreatorId,
     selectedCampaign?.id,
@@ -206,15 +251,20 @@ export const useCreatorSpendAnalysis = (
     });
   }, [isIndividualMode, individualCreators, phylloAccountsByCreatorId]);
 
-  const creators = Array.isArray(creatorsData?.data)
-    ? creatorsData.data.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean)
-    : [];
+  const mappedCreators = useMemo(() => {
+    return Array.isArray(creatorsData?.data)
+      ? creatorsData.data.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean)
+      : [];
+  }, [creatorsData?.data]);
 
-  const getSuccessRateColor = (rate) => {
-    if (rate >= 95) return "text-green-600 bg-green-50";
-    if (rate >= 90) return "text-blue-600 bg-blue-50";
-    return "text-orange-600 bg-orange-50";
-  };
+  const creators = useMemo(() => {
+    urgencyTick;
+    const withLiveUrgency = mappedCreators.map(applyLivePipelineUrgency);
+    if (currentSort === "urgency") {
+      return sortCreatorsByUrgency(withLiveUrgency);
+    }
+    return withLiveUrgency;
+  }, [mappedCreators, urgencyTick, currentSort]);
 
   const handleSortChange = useCallback(
     (option) => {
@@ -239,12 +289,29 @@ export const useCreatorSpendAnalysis = (
     [onCreatorSelect]
   );
 
-  const displayCreators = isIndividualMode ? individualCreators : creators;
+  const sortedIndividualCreators = useMemo(() => {
+    urgencyTick;
+    const withLiveUrgency = individualCreators.map(applyLivePipelineUrgency);
+    if (currentSort === "urgency") {
+      return sortCreatorsByUrgency(withLiveUrgency);
+    }
+    return withLiveUrgency;
+  }, [individualCreators, urgencyTick, currentSort]);
+
+  const displayCreators = isIndividualMode ? sortedIndividualCreators : creators;
+
+  const hasCompletedCreatorsList =
+    isCompleted &&
+    creatorsSuccess &&
+    String(creatorsListCampaignId) === String(selectedCampaign?.id ?? "") &&
+    isCompletedAppliedCreatorsFiltersKey(creatorsListFiltersKey);
+
+  const resolvedCreatorsSuccess = isCompleted ? hasCompletedCreatorsList : creatorsSuccess;
 
   const awaitingAppliedCreators =
     !!selectedCampaign?.id &&
     !isIndividualMode &&
-    !creatorsSuccess &&
+    !resolvedCreatorsSuccess &&
     !creatorsError &&
     !creatorsLoading;
 
@@ -253,29 +320,29 @@ export const useCreatorSpendAnalysis = (
     !isIndividualMode &&
     creatorsListCampaignId === selectedCampaign?.id &&
     Array.isArray(creatorsData?.data) &&
-    creatorsData.data.length > 0;
+    creatorsData.data.length > 0 &&
+    (!isCompleted || isCompletedAppliedCreatorsFiltersKey(creatorsListFiltersKey));
 
   const awaitingIndividualContracts =
-    !!selectedCampaign?.id &&
     isIndividualMode &&
-    !individualContractsSuccess &&
+    !individualContractsReady &&
     !individualContractsError &&
     !individualContractsLoading;
 
   const displayLoading = isIndividualMode
     ? individualContractsLoading || awaitingIndividualContracts
     : (creatorsLoading && !showStaleCreatorsList) || awaitingAppliedCreators;
-  const displaySuccess = isIndividualMode ? individualContractsSuccess : creatorsSuccess;
+  const displaySuccess = isIndividualMode ? individualContractsReady : resolvedCreatorsSuccess;
   const displayError = isIndividualMode ? individualContractsError : creatorsError;
 
   const appliedCreatorsFingerprint = useMemo(() => {
     if (isIndividualMode) {
-      return normalizedIndividualContracts.map((c) => c.id).join("|");
+      return scopedIndividualContracts.map((c) => c.id).join("|");
     }
     const list = creatorsData?.data;
     if (!Array.isArray(list)) return "";
     return list.map((row) => row?.creator?.id ?? row?.id ?? "").join("|");
-  }, [isIndividualMode, normalizedIndividualContracts, creatorsData?.data]);
+  }, [isIndividualMode, scopedIndividualContracts, creatorsData?.data]);
 
   useEffect(() => {
     if (prevIsIndividualModeRef.current === isIndividualMode) return;
@@ -330,7 +397,6 @@ export const useCreatorSpendAnalysis = (
     creatorsListCampaignId,
     isMultiCreator,
     isIndividualMode,
-    getSuccessRateColor,
     formatFollowers,
     getPlatformIcon,
     getPlatformColor,

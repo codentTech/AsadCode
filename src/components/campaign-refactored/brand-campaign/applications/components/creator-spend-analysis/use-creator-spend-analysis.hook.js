@@ -14,9 +14,16 @@ import {
 } from "@/provider/features/shortlist/shortlist.slice";
 import { avatar } from "@/common/constants/auth.constant";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
-import { sortOptions } from "@/common/constants/auth.constant";
+import { applyLivePipelineUrgency, resolveCreatorUrgency } from "@/common/utils/creator-urgency.util";
+import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-platforms.utils";
+import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
+import { VISIBLE_APPLICATIONS_SORT_OPTIONS } from "@/common/constants/applications-sort.constant";
+import {
+  isInvitedCreatorRow,
+  partitionPinnedInvitedCreators,
+  sortApplicationsCreators,
+} from "@/common/utils/campaign.utils";
 import { setBrandCampaignMultiCreatorMode } from "@/provider/features/campaign-context/campaign-context.slice";
-import { normalizeActivePhylloPlatforms } from "@/common/utils/creator-platforms.utils";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -30,13 +37,12 @@ function useCreatorSpendAnalysis({
   onClearFilters,
   fetchIndividualCollaborations: fetchFromHook,
   onClearCreator,
+  applicationsSubTab = "applications",
+  displayCreators = [],
 }) {
-  const backendSortOptions = useMemo(
-    () => sortOptions.filter((option) => option.value !== "most-expensive"),
-    []
-  );
+  const backendSortOptions = useMemo(() => VISIBLE_APPLICATIONS_SORT_OPTIONS, []);
   const dispatch = useDispatch();
-  const [open, setOpen] = useState(false);
+  const urgencyTick = useUrgencyTick();
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
   const [isSwitchingMode, setIsSwitchingMode] = useState(false);
@@ -106,6 +112,36 @@ function useCreatorSpendAnalysis({
   const individualCollaborations = (individualCollaborationsData?.data || []).filter(
     (invitation) => invitation.status === "PENDING"
   );
+
+  const sortedIndividualCollaborations = useMemo(() => {
+    if (!individualCollaborations.length) return [];
+    urgencyTick;
+    const withLiveUrgency = individualCollaborations.map(applyLivePipelineUrgency);
+    return sortApplicationsCreators(withLiveUrgency, filters?.sort || "urgency");
+  }, [individualCollaborations, filters?.sort, urgencyTick]);
+
+  const sortedAppliedCreators = useMemo(() => {
+    const rows = Array.isArray(displayCreators) ? displayCreators : [];
+    if (!rows.length) return [];
+    urgencyTick;
+    return sortApplicationsCreators(rows, filters?.sort || "newest");
+  }, [displayCreators, filters?.sort, urgencyTick]);
+
+  const { pinnedAppliedCreators, unpinnedAppliedCreators } = useMemo(() => {
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedAppliedCreators);
+    return {
+      pinnedAppliedCreators: pinned,
+      unpinnedAppliedCreators: unpinned,
+    };
+  }, [sortedAppliedCreators]);
+
+  const { pinnedIndividualCreators, unpinnedIndividualCreators } = useMemo(() => {
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedIndividualCollaborations);
+    return {
+      pinnedIndividualCreators: pinned,
+      unpinnedIndividualCreators: unpinned,
+    };
+  }, [sortedIndividualCollaborations]);
 
   const filteredCampaignOptions = useMemo(() => {
     return campaignOptions.filter((option) => {
@@ -273,36 +309,17 @@ function useCreatorSpendAnalysis({
   const mapCreatorForCard = (data) => {
     const creatorData = data.creator;
     const profile = creatorData?.creator_profile;
-    const socialAccounts = creatorData?.social_accounts || [];
     const appliedDate = data.applied_at || data.created_at;
-    const {
-      platforms: activePlatforms,
-      platformStats: platformStatsFromAccounts,
-      totalFollowers: totalFromAccounts,
-    } = normalizeActivePhylloPlatforms(socialAccounts);
-
-    const platforms =
-      activePlatforms.length > 0
-        ? activePlatforms
-        : (profile?.social_platforms || [])
-            .map((p) => (typeof p === "object" ? p.platform : p))
-            .filter(Boolean)
-            .map((p) => String(p).toLowerCase());
-
-    const platformStats =
-      Object.keys(platformStatsFromAccounts).length > 0
-        ? platformStatsFromAccounts
-        : platforms.reduce((acc, platformName) => {
-            if (platformName) acc[platformName] = { followers: 0 };
-            return acc;
-          }, {});
-
-    const followers = totalFromAccounts > 0 ? totalFromAccounts : profile?.total_followers || 0;
+    const connectedPlatforms = buildConnectedPlatformsFromCreatorUser(creatorData);
+    const urgency = resolveCreatorUrgency(data);
 
     return {
       id: creatorData?.id,
       name: `${creatorData?.first_name || ""} ${creatorData?.last_name || ""}`.trim(),
       profileImage: profile?.profile_photo_url || avatar,
+      pipeline: data.pipeline,
+      urgencyLabel: urgency.label,
+      urgencyTier: urgency.tier,
       age: creatorData?.date_of_birth
         ? Math.floor(
             (new Date() - new Date(creatorData.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)
@@ -317,13 +334,19 @@ function useCreatorSpendAnalysis({
         }) || "Location not specified",
       rating: parseFloat(profile?.rating) || 0,
       reviewCount: profile?.review_count || 0,
-      followers,
-      platforms,
-      platformStats,
+      followers: Object.values(connectedPlatforms.platformStats).reduce(
+        (sum, stat) => sum + (stat.followers || 0),
+        0,
+      ),
+      platforms: connectedPlatforms.platformList,
+      platformStats: connectedPlatforms.platformStats,
+      hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
       portfolioImages: profile?.mini_profile_pictures || [],
       niches: profile?.categories || [],
-      tagline: data.custom_message || data.pitch || profile?.bio || "",
+      applicationMessage: (data.pitch || data.custom_message)?.trim() || "",
+      isInvited: isInvitedCreatorRow(data),
       appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
+      sourceRow: data,
     };
   };
 
@@ -344,7 +367,9 @@ function useCreatorSpendAnalysis({
     if (filters?.sort) {
       return {
         value: filters.sort,
-        label: backendSortOptions.find((opt) => opt.value === filters.sort)?.label,
+        label:
+          backendSortOptions.find((opt) => opt.value === filters.sort)?.label ||
+          VISIBLE_APPLICATIONS_SORT_OPTIONS.find((opt) => opt.value === filters.sort)?.label,
       };
     }
     return null;
@@ -379,14 +404,6 @@ function useCreatorSpendAnalysis({
     } else if (selectedCampaign?.id && fetchFromHook) {
       fetchFromHook();
     }
-  };
-
-  const handleOpenModal = () => {
-    setOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpen(false);
   };
 
   const handleNicheToggle = (niche) => {
@@ -562,16 +579,19 @@ function useCreatorSpendAnalysis({
   const isSelectedCampaignListingOpen = isCampaignListingOpen(selectedCampaign);
 
   return {
-    open,
-    handleOpenModal,
-    handleCloseModal,
     showFilterModal,
     setShowFilterModal,
     filterType,
     setFilterType,
     isMultiCreator,
     isSwitchingMode,
-    individualCollaborations,
+    individualCollaborations: sortedIndividualCollaborations,
+    sortedAppliedCreators,
+    pinnedAppliedCreators,
+    unpinnedAppliedCreators,
+    pinnedIndividualCreators,
+    unpinnedIndividualCreators,
+    applicationsSubTab,
     individualCollaborationsLoading,
     campaignsData,
     campaignsLoading,

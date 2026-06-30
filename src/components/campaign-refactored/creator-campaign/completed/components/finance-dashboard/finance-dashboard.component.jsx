@@ -16,6 +16,7 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
     paymentsLoading,
     formattedPayoutAvailableAt,
     expectedPayoutAvailableAt,
+    requiresCollaborationPayment,
     isPaymentSettlementLockActive,
     reviewStatus,
     campaignReviews,
@@ -262,8 +263,10 @@ const FinanceDashboard = ({ expandedMonths, setExpandedMonths, selectedCampaign 
             </div>
             <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
               <p className="text-xs text-blue-800">
-                <span className="font-semibold">Notice:</span> Submitting releases your payout when
-                funds have settled. This collaboration closes after you complete this step.
+                <span className="font-semibold">Notice:</span>{" "}
+                {requiresCollaborationPayment
+                  ? "Submitting releases your payout when funds have settled. This collaboration closes after you complete this step."
+                  : "This collaboration closes after you complete this step."}
               </p>
             </div>
           </div>

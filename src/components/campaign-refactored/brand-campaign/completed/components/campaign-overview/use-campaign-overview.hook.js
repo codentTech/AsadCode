@@ -16,12 +16,15 @@ import {
   aggregateCombinedPublishedMetrics,
   buildCreatorPublishedMetricsMap,
 } from "@/common/utils/published-campaign-metrics.util";
+import usePrefetchCampaignCreatorTimelines from "@/common/hooks/use-prefetch-campaign-creator-timelines.hook";
+import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
 import {
   resolveEffectiveCollaborationType,
   isCampaignCompatibleWithOverviewToggle,
   isIndividualCollaborationFlow,
   creatorRowHasIdentity,
   individualCreatorDisplayLabel,
+  isCompletedAppliedCreatorsFiltersKey,
 } from "@/common/utils/brand-campaign-context.utils";
 
 const campaignIdKey = (id) => (id == null || id === "" ? null : String(id));
@@ -31,7 +34,8 @@ export default function useCampaignOverviewCompleted(
   onToggleChange,
   _parentIsMultiCreator,
   parentSelectedCampaign,
-  parentSelectedCreator
+  parentSelectedCreator,
+  isAwaitingInitialData = false
 ) {
   const dispatch = useDispatch();
   const isMultiCreator = useSelector(
@@ -55,8 +59,7 @@ export default function useCampaignOverviewCompleted(
     parentSelectedCampaign === undefined ? hookSelectedCampaign : parentSelectedCampaign;
 
   const effectiveCollaborationType = useMemo(
-    () =>
-      resolveEffectiveCollaborationType(resolvedCampaign, selectedCollaborationTypeFromContext),
+    () => resolveEffectiveCollaborationType(resolvedCampaign, selectedCollaborationTypeFromContext),
     [resolvedCampaign, selectedCollaborationTypeFromContext]
   );
 
@@ -94,6 +97,9 @@ export default function useCampaignOverviewCompleted(
   const appliedCreatorsCampaignId = useSelector(
     (state) => state.campaigns.getAppliedCreators?.campaignId ?? null
   );
+  const appliedCreatorsFiltersKey = useSelector(
+    (state) => state.campaigns.getAppliedCreators?.filtersKey ?? null
+  );
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const campaignPerformance = useSelector(selectCampaignPerformanceMetrics);
   const {
@@ -101,6 +107,7 @@ export default function useCampaignOverviewCompleted(
     isSuccess: individualContractsSuccess,
     isLoading: individualContractsLoading,
     isError: individualContractsError,
+    isCompleted: individualContractsIsCompleted,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const normalizedIndividualContracts = useMemo(() => {
@@ -152,17 +159,25 @@ export default function useCampaignOverviewCompleted(
     if (
       !showMultiCreatorUI ||
       !displayCampaign?.id ||
-      campaignIdKey(appliedCreatorsCampaignId) !== campaignIdKey(displayCampaign.id)
+      campaignIdKey(appliedCreatorsCampaignId) !== campaignIdKey(displayCampaign.id) ||
+      !isCompletedAppliedCreatorsFiltersKey(appliedCreatorsFiltersKey)
     ) {
       return [];
     }
-    return Array.isArray(creatorsData?.data) ? creatorsData.data : [];
+    const list = Array.isArray(creatorsData?.data) ? creatorsData.data : [];
+    return list.map((row) => mapBrandAppliedCreatorRow(row)).filter(Boolean);
   }, [
     showMultiCreatorUI,
     displayCampaign?.id,
     appliedCreatorsCampaignId,
+    appliedCreatorsFiltersKey,
     creatorsData?.data,
   ]);
+
+  usePrefetchCampaignCreatorTimelines(
+    !isUgc && showMultiCreatorUI ? campaignId : null,
+    creatorsRowsScopedToDisplayCampaign
+  );
 
   const individualCreatorId = useMemo(() => {
     const key = campaignIdKey(campaignId);
@@ -212,30 +227,17 @@ export default function useCampaignOverviewCompleted(
       dispatch(fetchCampaignPerformanceMetrics(campaignId));
       dispatch(resetAudience());
     }
-  }, [
-    campaignId,
-    isMultiCreator,
-    individualCreatorId,
-    individualContractsSuccess,
-    dispatch,
-  ]);
+  }, [campaignId, isMultiCreator, individualCreatorId, individualContractsSuccess, dispatch]);
 
   const demographicsData = campaignDemographics?.data;
   const awaitingIndividualDemographicsContext =
-    !isUgc &&
-    !isMultiCreator &&
-    !!campaignId &&
-    !individualCreatorId &&
-    individualContractsLoading;
-  const demographicsFetchSettled =
-    campaignDemographics?.isSuccess || campaignDemographics?.isError;
+    !isUgc && !isMultiCreator && !!campaignId && !individualCreatorId && individualContractsLoading;
+  const demographicsFetchSettled = campaignDemographics?.isSuccess || campaignDemographics?.isError;
   const demographicsLoading = isUgc
     ? false
     : campaignDemographics?.isLoading ||
       awaitingIndividualDemographicsContext ||
-      (!!campaignId &&
-        (isMultiCreator || !!individualCreatorId) &&
-        !demographicsFetchSettled);
+      (!!campaignId && (isMultiCreator || !!individualCreatorId) && !demographicsFetchSettled);
   const hasDemographicsData =
     campaignDemographics?.isSuccess &&
     (demographicsData?.has_data || demographicsData?.no_connection);
@@ -250,6 +252,7 @@ export default function useCampaignOverviewCompleted(
         timelinesByKey,
         campaignId: campaignId || null,
         creatorBreakdown: creatorBreakdownForMetrics,
+        campaign: displayCampaign,
       }),
     [creatorsRowsScopedToDisplayCampaign, timelinesByKey, campaignId, creatorBreakdownForMetrics]
   );
@@ -292,16 +295,14 @@ export default function useCampaignOverviewCompleted(
     if (phyllo && phyllo.has_data !== false && phyllo.totalViews != null) {
       return {
         ...phyllo,
-        engagementRate:
-          phyllo.engagementRate != null ? Number(phyllo.engagementRate) / 100 : 0,
+        engagementRate: phyllo.engagementRate != null ? Number(phyllo.engagementRate) / 100 : 0,
       };
     }
 
     const fallback = hookPerformanceMetrics || {};
     return {
       ...fallback,
-      engagementRate:
-        fallback.engagementRate != null ? Number(fallback.engagementRate) / 100 : 0,
+      engagementRate: fallback.engagementRate != null ? Number(fallback.engagementRate) / 100 : 0,
     };
   }, [
     showMultiCreatorUI,
@@ -312,8 +313,7 @@ export default function useCampaignOverviewCompleted(
   ]);
 
   const performanceLoading = campaignPerformance?.isLoading || false;
-  const performanceFetchSettled =
-    campaignPerformance?.isSuccess || campaignPerformance?.isError;
+  const performanceFetchSettled = campaignPerformance?.isSuccess || campaignPerformance?.isError;
   const performanceSectionLoading =
     !isUgc &&
     showMultiCreatorUI &&
@@ -332,12 +332,9 @@ export default function useCampaignOverviewCompleted(
   }, []);
 
   const overviewLoading = useMemo(() => {
+    if (isAwaitingInitialData) return true;
     if (!isMultiCreator && individualContractsLoading) return true;
-    if (
-      displayCampaign &&
-      isMultiCreator &&
-      isSelectedCampaignValid
-    ) {
+    if (displayCampaign && isMultiCreator && isSelectedCampaignValid) {
       return false;
     }
     if (
@@ -350,6 +347,7 @@ export default function useCampaignOverviewCompleted(
     }
     return isLoading;
   }, [
+    isAwaitingInitialData,
     isLoading,
     displayCampaign,
     isMultiCreator,
@@ -378,18 +376,15 @@ export default function useCampaignOverviewCompleted(
   }, [isMultiCreator, displayCampaign, parentSelectedCreator]);
 
   const showEmptyState = useMemo(() => {
-    if (overviewLoading) return false;
+    if (isAwaitingInitialData || overviewLoading) return false;
 
     const hasIndividualCreatorContext = (campaign) =>
-      !!(
-        campaign?.creator?.id ||
-        campaign?.contract?.creator?.id ||
-        campaign?.creator_id
-      );
+      !!(campaign?.creator?.id || campaign?.contract?.creator?.id || campaign?.creator_id);
 
     if (
       !isMultiCreator &&
       individualContractsSuccess &&
+      individualContractsIsCompleted === true &&
       displayCampaign &&
       !hasIndividualCreatorContext(displayCampaign) &&
       !creatorRowHasIdentity(parentSelectedCreator)
@@ -399,12 +394,20 @@ export default function useCampaignOverviewCompleted(
 
     if (displayCampaign) return false;
     if (isMultiCreator) return filteredCampaignOptions.length === 0;
+
+    if (individualContractsLoading) return false;
     if (!individualContractsSuccess && !individualContractsError) return false;
-    const completedCount = normalizedIndividualContracts.filter(
-      (c) => c.campaign?.status === "COMPLETE"
-    ).length;
-    return completedCount === 0;
+    if (individualContractsIsCompleted !== true) return false;
+    if (!displayCampaign) {
+      const completedCount = normalizedIndividualContracts.filter(
+        (c) => c.campaign?.status === "COMPLETE"
+      ).length;
+      return completedCount === 0;
+    }
+
+    return false;
   }, [
+    isAwaitingInitialData,
     overviewLoading,
     displayCampaign,
     isMultiCreator,
@@ -412,6 +415,8 @@ export default function useCampaignOverviewCompleted(
     normalizedIndividualContracts,
     individualContractsSuccess,
     individualContractsError,
+    individualContractsLoading,
+    individualContractsIsCompleted,
     parentSelectedCreator,
   ]);
 
@@ -473,17 +478,12 @@ export default function useCampaignOverviewCompleted(
   ]);
 
   useLayoutEffect(() => {
-    if (
-      !isMultiCreator ||
-      filteredCampaignOptions.length === 0 ||
-      overviewLoading
-    ) {
+    if (!isMultiCreator || filteredCampaignOptions.length === 0 || overviewLoading) {
       return;
     }
     const parentHasNoCampaign = !parentSelectedCampaign;
     const needInitialSelection =
-      (parentHasNoCampaign || !isSelectedCampaignValid) &&
-      !hasAutoSelectedFiltered.current;
+      (parentHasNoCampaign || !isSelectedCampaignValid) && !hasAutoSelectedFiltered.current;
     if (!needInitialSelection) return;
     const firstFilteredOption = filteredCampaignOptions[0];
     if (firstFilteredOption?.campaign) {
@@ -516,7 +516,6 @@ export default function useCampaignOverviewCompleted(
         ? eventOrValue
         : (eventOrValue?.target?.checked ?? !isMultiCreator);
     hasAutoSelectedFiltered.current = false;
-
     hasAutoSelectedIndividual.current = false;
     if (!newIsMultiCreator) {
       lastIndividualContractsDataRef.current = null;
@@ -526,19 +525,9 @@ export default function useCampaignOverviewCompleted(
       onToggleChange(newIsMultiCreator);
     }
 
-    if (resolvedCampaign) {
-      const campaignType =
-        effectiveCollaborationType || COLLABORATION_TYPE.MULTI_CREATOR;
-      const shouldReset =
-        (newIsMultiCreator && campaignType !== COLLABORATION_TYPE.MULTI_CREATOR) ||
-        (!newIsMultiCreator && campaignType !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR);
-
-      if (shouldReset) {
-        internalHandleCampaignSelect(null);
-        if (onCampaignSelect) {
-          onCampaignSelect(null);
-        }
-      }
+    internalHandleCampaignSelect(null);
+    if (onCampaignSelect) {
+      onCampaignSelect(null);
     }
   };
 

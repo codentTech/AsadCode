@@ -14,7 +14,10 @@ import {
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
 import usersService from "@/provider/features/users/users.service";
-import { resolveBrandMarkedCompleteAt } from "@/common/utils/campaign.utils";
+import {
+  requiresCollaborationPayment,
+  resolveBrandMarkedCompleteAt,
+} from "@/common/utils/campaign.utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -23,7 +26,8 @@ const useDeliverablesProgress = (
   selectedCreator = null,
   isIndividualCreator = false,
   onClearCreator = null,
-  filters = { status: "COMPLETED", sort: "newest" }
+  filters = { status: "COMPLETED", sort: "newest" },
+  onPipelineUpdated = null
 ) => {
   const creatorMode = isCreatorMode();
   const dispatch = useDispatch();
@@ -57,6 +61,7 @@ const useDeliverablesProgress = (
     timeline: null,
     reviews: null,
   });
+  const reviewStatusFingerprintRef = useRef("");
 
   // Extract stable IDs to prevent unnecessary recalculations - extract once at the top
   const selectedCreatorContractCampaignId = selectedCreator?.contract?.campaignId;
@@ -68,7 +73,7 @@ const useDeliverablesProgress = (
       return selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null;
     }
     return (
-      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || selectedCreator?.id || null
+      selectedCreator?.creatorUserId || selectedCreator?.creator?.id || null
     );
   }, [
     selectedCreator?.id,
@@ -493,6 +498,25 @@ const useDeliverablesProgress = (
     );
   }, [dispatch, effectiveCampaignId, creatorProfileId, creatorMode]);
 
+  const reviewStatus = getReviewStatusState.data || null;
+
+  useEffect(() => {
+    reviewStatusFingerprintRef.current = "";
+  }, [effectiveCampaignId, creatorProfileId]);
+
+  useEffect(() => {
+    if (!reviewStatus) return;
+
+    const fingerprint = JSON.stringify(reviewStatus);
+    if (
+      reviewStatusFingerprintRef.current &&
+      reviewStatusFingerprintRef.current !== fingerprint
+    ) {
+      onPipelineUpdated?.();
+    }
+    reviewStatusFingerprintRef.current = fingerprint;
+  }, [reviewStatus, onPipelineUpdated]);
+
   const handleViewCreatorPortfolio = useCallback(() => {
     if (creatorUserId) {
       window.open(`/creator-profile/${creatorUserId}`, "_blank", "noopener,noreferrer");
@@ -508,6 +532,18 @@ const useDeliverablesProgress = (
         isIndividualCreator,
       }),
     [selectedCreator, selectedCampaign, selectedContract, isIndividualCreator]
+  );
+
+  const requiresCollaborationPaymentFlag = useMemo(
+    () =>
+      requiresCollaborationPayment({
+        contract: selectedContract,
+        campaign: selectedCampaign,
+        application: selectedCreator,
+        compensation: selectedCreator?.compensation,
+        type: selectedCreator?.type,
+      }),
+    [selectedContract, selectedCampaign, selectedCreator]
   );
 
   return {
@@ -536,10 +572,11 @@ const useDeliverablesProgress = (
     selectedContract,
     contracts,
     campaignReviews: getReviewsByCreatorProfileState.data || [],
-    reviewStatus: getReviewStatusState.data || null,
+    reviewStatus,
     isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
     handleViewCreatorPortfolio,
     brandMarkedCompleteAt,
+    requiresCollaborationPayment: requiresCollaborationPaymentFlag,
   };
 };
 

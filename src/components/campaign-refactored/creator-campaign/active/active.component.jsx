@@ -132,7 +132,7 @@ export default function CreatorActive() {
           isLoading={getApplicationsState.isLoading}
         />
       </div>
-      <div className={`${mobilePane === "detail" ? "flex" : "hidden"} min-h-0 flex-1 md:flex md:flex-[1_1_50%]`}>
+      <div className={`${mobilePane === "detail" ? "flex" : "hidden"} min-h-0 flex-1 overflow-hidden md:flex md:flex-[1_1_50%]`}>
         <CampaignDetail selectedCampaign={selectedCampaign} isLoading={getApplicationsState.isLoading} />
       </div>
       <div className={`${mobilePane === "planner" ? "flex" : "hidden"} min-h-0 flex-1 md:flex md:flex-[0_1_27%]`}>

@@ -1,18 +1,47 @@
 import { getAge } from "@/common/utils/date.utils";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import {
-  buildPlatformsFromSocialAccounts,
+  buildConnectedPlatformsFromCreatorUser,
   ratingAndReviewCountFromCreatorUser,
 } from "@/common/utils/creator-platforms.utils";
+import { resolveCreatorUrgency } from "@/common/utils/creator-urgency.util";
+
+function resolveBrandCreatorDeadlineLabel(creatorRow) {
+  const status = creatorRow?.status;
+  if (status === "REJECTED" || status === "CREATOR_REJECTED") {
+    return "Cancelled";
+  }
+
+  const contract = creatorRow?.contract;
+  const completionDeadline =
+    contract?.completion_deadline || contract?.completionDeadline;
+  if (!completionDeadline) {
+    return creatorRow?.deadline ?? null;
+  }
+
+  const completedAt = creatorRow?.completed_at || creatorRow?.completedAt || null;
+  if (!completedAt) {
+    return new Date(completionDeadline) >= new Date() ? "On time" : "Overdue";
+  }
+
+  return new Date(completedAt) <= new Date(completionDeadline) ? "On time" : "Overdue";
+}
 
 export function mapBrandAppliedCreatorRow(creator) {
   if (!creator) return null;
 
   const { rating, reviewCount } = ratingAndReviewCountFromCreatorUser(creator.creator);
   const contract = creator.contract;
+  const urgency = resolveCreatorUrgency(creator);
+  const connectedPlatforms = buildConnectedPlatformsFromCreatorUser(creator.creator);
 
   return {
     ...creator,
+    pipeline: creator.pipeline,
+    urgencyLabel: urgency.label,
+    urgencyTier: urgency.tier,
+    boardColumn: urgency.boardColumn,
+    contentSubState: urgency.contentSubState,
     id: creator?.creator?.creator_profile?.id,
     age: getAge(creator?.creator?.date_of_birth),
     creatorUserId: creator?.creator?.id,
@@ -31,35 +60,17 @@ export function mapBrandAppliedCreatorRow(creator) {
     totalSpent: creator.total_spent || 0,
     rating,
     reviewCount,
-    platforms: (() => {
-      const fromAccounts = buildPlatformsFromSocialAccounts(creator.creator);
-      const c = creator.creator;
-      if (
-        !Array.isArray(c?.social_accounts) ||
-        (c.social_accounts && c.social_accounts.length === 0)
-      ) {
-        return {
-          instagram: {
-            followers: c?.instagram_followers ?? 0,
-            verified: c?.instagram_verified ?? false,
-          },
-          youtube: {
-            followers: c?.youtube_followers ?? 0,
-            verified: c?.youtube_verified ?? false,
-          },
-          twitter: {
-            followers: c?.twitter_followers ?? 0,
-            verified: c?.twitter_verified ?? false,
-          },
-          tiktok: { followers: 0, verified: false },
-        };
-      }
-      return fromAccounts;
-    })(),
+    platforms: connectedPlatforms.platforms,
+    platformStats: connectedPlatforms.platformStats,
+    hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
     projects: creator.creator?.total_projects || 0,
     successRate: creator.creator?.success_rate || 0,
     avgDeliveryTime: creator.creator?.avg_delivery_time || "N/A",
     specialty: creator.creator?.specialty || "General",
+    deadline:
+      creator.status === "COMPLETED"
+        ? resolveBrandCreatorDeadlineLabel(creator)
+        : creator.deadline ?? null,
     status: creator.status,
     appliedAt: creator.applied_at,
     hiredAt: creator.hired_at,

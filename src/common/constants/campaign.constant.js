@@ -75,6 +75,13 @@ export const COLLABORATION_TYPE = Object.freeze({
   INDIVIDUAL_CREATOR: "INDIVIDUAL_CREATOR",
 });
 
+export const BRAND_CAMPAIGN_TAB = Object.freeze({
+  DISCOVER: 1,
+  APPLICATIONS: 2,
+  ACTIVE: 3,
+  COMPLETED: 4,
+});
+
 export const REQUIREMENT_LEVEL = Object.freeze({
   NONE: "none",
   PREFERRED: "preferred",
@@ -88,3 +95,13 @@ export const CREATOR_STATUS = Object.freeze({
   COMPLETED: "COMPLETED",
   DRAFT: "DRAFT",
 });
+
+export const CONTRACT_USAGE_RIGHTS_VALUES = Object.freeze([
+  "no_usage",
+  "3",
+  "6",
+  "12",
+  "permanent",
+]);
+
+export const CONTRACT_EXCLUSIVITY_VALUES = Object.freeze(["none", "3", "6", "12"]);
