@@ -6,6 +6,7 @@ import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import AudienceDemographics from "@/components/audience-demographics/audience-demographics.component";
 import { VerifiedRounded } from "@mui/icons-material";
 import { ExternalLink, MapPin, Shield, Star } from "lucide-react";
@@ -48,21 +49,23 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                 <MapPin className="w-3 h-3" />
                 <span>{previewCreator.location}</span>
               </div>
-              <div className="flex items-center justify-start text-xs text-yellow-500">
-                {[...Array(5)].map((_, i) => {
-                  const rating = previewCreator.rating || 0;
-                  const isFilled = i < Math.floor(rating);
-                  return (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 ${isFilled ? "fill-current" : "fill-none"}`}
-                    />
-                  );
-                })}
-                <span className="ml-1 mt-[0.6px] text-[10px] text-gray-700 sm:text-xs">
-                  {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
-                </span>
-              </div>
+              {!HIDE_CREATOR_RATING_UI ? (
+                <div className="flex items-center justify-start text-xs text-yellow-500">
+                  {[...Array(5)].map((_, i) => {
+                    const rating = previewCreator.rating || 0;
+                    const isFilled = i < Math.floor(rating);
+                    return (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${isFilled ? "fill-current" : "fill-none"}`}
+                      />
+                    );
+                  })}
+                  <span className="ml-1 mt-[0.6px] text-[10px] text-gray-700 sm:text-xs">
+                    {previewCreator.rating || 0} ({previewCreator.reviewCount || 0})
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -81,20 +84,19 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
           </div>
         </div>
 
-        {/* Platform Tiles — clickable selector */}
+        {platformData.length > 0 ? (
         <div className="mt-3 grid grid-cols-1 gap-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
           {platformData.map((platform) => {
             const isSelected = selectedPlatform?.toLowerCase() === platform.key?.toLowerCase();
-            const isConnected = connectedPlatforms.includes(platform.key);
 
             return (
               <button
                 key={platform.key}
                 type="button"
-                disabled={platform.loading || !isConnected}
+                disabled={platform.loading}
                 onClick={() => setSelectedPlatform(platform.key)}
                 className={`relative flex items-center justify-between rounded-lg p-2 pr-2.5 text-left transition-all sm:pr-3
-                  ${!isConnected || platform.loading ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
+                  ${platform.loading ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:shadow-md"}
                   ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
                 `}
               >
@@ -131,7 +133,7 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
                       platform.username,
                       platform.profileUrl
                     );
-                    return url && isConnected ? (
+                    return url ? (
                       <a
                         href={url}
                         target="_blank"
@@ -148,6 +150,9 @@ function CreatorPreview({ previewCreator, setIsPreviewOpen }) {
             );
           })}
         </div>
+        ) : (
+          <p className="mt-3 text-[10px] text-gray-500 sm:text-xs">No social accounts connected</p>
+        )}
       </div>
 
       {/* Metrics Section */}

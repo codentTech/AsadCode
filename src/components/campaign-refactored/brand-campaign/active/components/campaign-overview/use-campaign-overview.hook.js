@@ -5,6 +5,10 @@ import { getIndividualCollaborationContracts } from "@/provider/features/contrac
 import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import {
+  individualContractsScopeMatches,
+  individualContractsForPhase,
+} from "@/common/utils/brand-campaign-context.utils";
+import {
   fetchCreatorAudience,
   fetchCampaignCombinedDemographics,
   resetCampaignDemographics,
@@ -29,6 +33,17 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const hasAutoSelectedFiltered = useRef(false);
   const lastSelectedCampaignId = useRef(null);
   const hasAutoSelectedIndividual = useRef(false);
+  const hasRequestedBrandCampaignsRef = useRef(false);
+  const onCampaignSelectRef = useRef(onCampaignSelect);
+  const onToggleChangeRef = useRef(onToggleChange);
+
+  useEffect(() => {
+    onCampaignSelectRef.current = onCampaignSelect;
+  }, [onCampaignSelect]);
+
+  useEffect(() => {
+    onToggleChangeRef.current = onToggleChange;
+  }, [onToggleChange]);
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const {
@@ -49,6 +64,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     data: individualContractsData,
     isSuccess: individualContractsSuccess,
     isLoading: individualContractsLoading,
+    isCompleted: individualContractsIsCompleted,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const normalizedIndividualContracts = Array.isArray(individualContractsData)
@@ -56,6 +72,15 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     : Array.isArray(individualContractsData?.data)
       ? individualContractsData.data
       : [];
+
+  const activeIndividualContracts =
+    individualContractsScopeMatches(false, individualContractsIsCompleted)
+      ? individualContractsForPhase(normalizedIndividualContracts, false)
+      : [];
+
+  const activeIndividualContractsReady =
+    individualContractsSuccess &&
+    individualContractsScopeMatches(false, individualContractsIsCompleted);
 
   const campaignDemographics = useSelector(selectCampaignCombinedDemographics);
   const creatorAudience = useSelector(selectCreatorAudience);
@@ -89,8 +114,10 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // --- Brand: fetch campaigns on mount ---
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   // --- Brand: reset restoration flag when context id changes ---
   useEffect(() => {
@@ -101,36 +128,30 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     }
   }, [selectedCampaignId]);
 
-  // --- Brand: restore selection from context ---
+  // --- Brand: restore selection from context (once per context id) ---
   useEffect(() => {
-    if (campaignsSuccess && campaignsData?.data && selectedCampaignId) {
-      if (!isMultiCreator) {
-        return;
+    if (!isMultiCreator) return;
+    if (!campaignsSuccess || !campaignsData?.data || !selectedCampaignId) {
+      if (!selectedCampaignId) {
+        lastRestoredCampaignIdRef.current = null;
+        hasRestoredFromContext.current = false;
       }
-      const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
-      const ctxKey = campaignIdKey(selectedCampaignId);
-      const restoredCampaign = allCampaigns.find((c) => campaignIdKey(c.id) === ctxKey);
-      const localKey = campaignIdKey(selectedCampaign?.id);
-      const shouldRestore =
-        !hasRestoredFromContext.current || localKey !== ctxKey;
-
-      if (restoredCampaign && shouldRestore) {
-        setSelectedCampaign(restoredCampaign);
-        hasAutoSelected.current = true;
-        hasRestoredFromContext.current = true;
-        lastRestoredCampaignIdRef.current = selectedCampaignId;
-      }
-    } else if (!selectedCampaignId) {
-      lastRestoredCampaignIdRef.current = null;
-      hasRestoredFromContext.current = false;
+      return;
     }
-  }, [
-    campaignsSuccess,
-    campaignsData?.data,
-    selectedCampaignId,
-    selectedCampaign?.id,
-    isMultiCreator,
-  ]);
+    if (hasRestoredFromContext.current) return;
+
+    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
+    const ctxKey = campaignIdKey(selectedCampaignId);
+    const restoredCampaign = activeCampaigns.find((c) => campaignIdKey(c.id) === ctxKey);
+
+    if (restoredCampaign) {
+      setSelectedCampaign(restoredCampaign);
+      hasAutoSelected.current = true;
+      hasRestoredFromContext.current = true;
+      lastRestoredCampaignIdRef.current = selectedCampaignId;
+    }
+  }, [campaignsSuccess, campaignsData?.data, selectedCampaignId, isMultiCreator]);
 
   // --- Brand: auto-select / reconcile selected campaign when list loads ---
   useEffect(() => {
@@ -148,9 +169,25 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       if (selectedCampaign.status === "COMPLETE") {
         setSelectedCampaign(null);
         hasAutoSelected.current = false;
+        hasRestoredFromContext.current = false;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: null,
+            collaborationType: null,
+          })
+        );
       } else {
-        setSelectedCampaign(activeCampaigns[0]);
+        const fallback = activeCampaigns[0];
+        setSelectedCampaign(fallback);
         hasAutoSelected.current = true;
+        hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = fallback.id;
+        dispatch(
+          setSelectedCampaignContext({
+            campaignId: fallback.id,
+            collaborationType: fallback.collaboration_type || null,
+          })
+        );
       }
       return;
     }
@@ -323,7 +360,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const isLoadingBrand = campaignsLoading || creatorsLoading;
 
-  const hasIndividualData = !isMultiCreator && normalizedIndividualContracts.length > 0;
+  const hasIndividualData = !isMultiCreator && activeIndividualContracts.length > 0;
 
   const computedHasData = useMemo(() => {
     if (!selectedCampaign) return false;
@@ -335,7 +372,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const overviewLoading = useMemo(() => {
     if (!isMultiCreator) {
-      return individualContractsLoading;
+      return individualContractsLoading || !activeIndividualContractsReady;
     }
     if (isSelectedCampaignValid && selectedCampaign) {
       return campaignsLoading;
@@ -344,6 +381,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, [
     isMultiCreator,
     individualContractsLoading,
+    activeIndividualContractsReady,
     isSelectedCampaignValid,
     selectedCampaign,
     campaignsLoading,
@@ -359,7 +397,20 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     [showMultiCreatorUI, selectedCampaign, creatorsSuccess, creatorsError]
   );
 
-  const isLoadingIndividual = !isMultiCreator && individualContractsLoading;
+  const isLoadingIndividual = !isMultiCreator && (individualContractsLoading || !activeIndividualContractsReady);
+
+  useEffect(() => {
+    if (isMultiCreator) return;
+    if (selectedCampaign?.status !== "COMPLETE") return;
+    setSelectedCampaign(null);
+    hasNotifiedParent.current = false;
+    dispatch(
+      setSelectedCampaignContext({
+        campaignId: null,
+        collaborationType: null,
+      })
+    );
+  }, [isMultiCreator, selectedCampaign?.status, dispatch]);
 
   // --- Overview: notify parent when selected campaign changes ---
   useEffect(() => {
@@ -368,18 +419,23 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       hasNotifiedParent.current = false;
       lastSelectedCampaignId.current = currentCampaignId;
     }
-    if (selectedCampaign && onCampaignSelect && !hasNotifiedParent.current) {
-      onCampaignSelect(selectedCampaign);
+    if (selectedCampaign && onCampaignSelectRef.current && !hasNotifiedParent.current) {
+      onCampaignSelectRef.current(selectedCampaign);
       hasNotifiedParent.current = true;
     }
-  }, [selectedCampaign, onCampaignSelect]);
+  }, [selectedCampaign]);
 
   // --- Overview: fetch individual contracts when in individual mode ---
   useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(false));
-    }
-  }, [isMultiCreator, dispatch]);
+    if (isMultiCreator) return;
+    if (activeIndividualContractsReady || individualContractsLoading) return;
+    dispatch(getIndividualCollaborationContracts(false));
+  }, [
+    isMultiCreator,
+    dispatch,
+    activeIndividualContractsReady,
+    individualContractsLoading,
+  ]);
 
   // --- Overview: auto-select first individual contract ---
   useEffect(() => {
@@ -390,12 +446,12 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     if (
       !isMultiCreator &&
       !hasAutoSelectedIndividual.current &&
-      individualContractsSuccess &&
-      normalizedIndividualContracts.length > 0 &&
+      activeIndividualContractsReady &&
+      activeIndividualContracts.length > 0 &&
       !selectedCampaign
     ) {
       hasAutoSelectedIndividual.current = true;
-      const firstContract = normalizedIndividualContracts[0];
+      const firstContract = activeIndividualContracts[0];
       const campaignId = firstContract.campaignId || firstContract.campaign?.id;
       if (campaignId) {
         const individualCampaign = {
@@ -409,17 +465,16 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
           brand: firstContract.brand,
         };
         setSelectedCampaign(individualCampaign);
-        if (onCampaignSelect) {
-          onCampaignSelect(individualCampaign);
+        if (onCampaignSelectRef.current) {
+          onCampaignSelectRef.current(individualCampaign);
         }
       }
     }
   }, [
     isMultiCreator,
-    individualContractsSuccess,
-    normalizedIndividualContracts,
+    activeIndividualContractsReady,
+    activeIndividualContracts,
     selectedCampaign,
-    onCampaignSelect,
   ]);
 
   // --- Overview: auto-select first filtered multi-creator option ---
@@ -429,8 +484,8 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
         const firstFilteredOption = filteredCampaignOptions[0];
         if (firstFilteredOption && firstFilteredOption.campaign) {
           internalHandleCampaignSelect(firstFilteredOption);
-          if (onCampaignSelect) {
-            onCampaignSelect(firstFilteredOption.campaign);
+          if (onCampaignSelectRef.current) {
+            onCampaignSelectRef.current(firstFilteredOption.campaign);
           }
           hasAutoSelectedFiltered.current = true;
         }
@@ -444,7 +499,6 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     isSelectedCampaignValid,
     isLoadingBrand,
     internalHandleCampaignSelect,
-    onCampaignSelect,
   ]);
 
   const handleCampaignSelect = useCallback(

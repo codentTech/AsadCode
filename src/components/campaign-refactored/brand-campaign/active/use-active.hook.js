@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getHiredCreators } from "@/provider/features/campaigns/campaigns.slice";
-import { CAMPAIGN_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { refreshBrandPipelineData } from "@/common/utils/pipeline-refresh.util";
+import usePipelineBackgroundRefresh from "@/common/hooks/use-pipeline-background-refresh.hook";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
   setBrandCampaignMultiCreatorMode,
@@ -9,6 +11,10 @@ import {
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
+import {
+  individualContractsScopeMatches,
+  individualContractsForPhase,
+} from "@/common/utils/brand-campaign-context.utils";
 
 export default function useActive() {
   const dispatch = useDispatch();
@@ -32,15 +38,29 @@ export default function useActive() {
     isSuccess: hiredCreatorsSuccess,
   } = useSelector((state) => state.campaigns.getHiredCreators || {});
 
-  const { data: individualContractsData, isSuccess: individualContractsSuccess } = useSelector(
-    (state) => state.contracts.getIndividualCollaborationContracts || {}
-  );
+  const {
+    data: individualContractsData,
+    isSuccess: individualContractsSuccess,
+    isLoading: individualContractsLoading,
+    isCompleted: individualContractsIsCompleted,
+  } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
 
   const normalizedIndividualContracts = useMemo(() => {
     if (Array.isArray(individualContractsData)) return individualContractsData;
     if (Array.isArray(individualContractsData?.data)) return individualContractsData.data;
     return [];
   }, [individualContractsData]);
+
+  const activeIndividualContracts = useMemo(() => {
+    if (!individualContractsScopeMatches(false, individualContractsIsCompleted)) {
+      return [];
+    }
+    return individualContractsForPhase(normalizedIndividualContracts, false);
+  }, [normalizedIndividualContracts, individualContractsIsCompleted]);
+
+  const activeIndividualContractsReady =
+    individualContractsSuccess &&
+    individualContractsScopeMatches(false, individualContractsIsCompleted);
 
   // ============================================
   // 3. LOCAL STATE
@@ -49,8 +69,11 @@ export default function useActive() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [filters, setFilters] = useState({
     status: "HIRED",
-    sort: "newest",
+    sort: "urgency",
   });
+  const [viewMode, setViewMode] = useState("standard");
+  const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
+  const [hasManualSortOverride, setHasManualSortOverride] = useState(false);
   const [mobilePane, setMobilePane] = useState("overview");
 
   // ============================================
@@ -63,10 +86,60 @@ export default function useActive() {
   }, [selectedCampaignId]);
 
   useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(false));
+    if (isMultiCreator) return;
+    if (activeIndividualContractsReady || individualContractsLoading) return;
+    dispatch(getIndividualCollaborationContracts(false));
+  }, [isMultiCreator, dispatch, activeIndividualContractsReady, individualContractsLoading]);
+
+  useEffect(() => {
+    if (isMultiCreator) return;
+    if (selectedCampaign?.status === "COMPLETE") {
+      setSelectedCampaign(null);
+      setSelectedCreator(null);
+      autoSelectedForCampaignRef.current = null;
+      dispatch(
+        setSelectedCampaignContext({
+          campaignId: null,
+          collaborationType: null,
+        })
+      );
     }
-  }, [isMultiCreator, dispatch]);
+  }, [isMultiCreator, selectedCampaign?.status, dispatch]);
+
+  useEffect(() => {
+    if (isMultiCreator) return;
+    if (selectedCampaign?.id) return;
+    if (!activeIndividualContractsReady || activeIndividualContracts.length === 0) return;
+
+    const firstContract = activeIndividualContracts[0];
+    const campaignId = firstContract.campaignId || firstContract.campaign?.id;
+    if (!campaignId) return;
+
+    const individualCampaign = {
+      id: campaignId,
+      collaboration_type: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+      campaign_title: firstContract.campaign?.campaign_title || "Individual Collaboration",
+      campaign: firstContract.campaign,
+      contract: firstContract,
+      creator: firstContract.creator,
+      created_by: firstContract.campaign?.created_by,
+      brand: firstContract.campaign?.created_by,
+    };
+
+    setSelectedCampaign(individualCampaign);
+    dispatch(
+      setSelectedCampaignContext({
+        campaignId: individualCampaign.id,
+        collaborationType: COLLABORATION_TYPE.INDIVIDUAL_CREATOR,
+      })
+    );
+  }, [
+    isMultiCreator,
+    selectedCampaign?.id,
+    activeIndividualContractsReady,
+    activeIndividualContracts,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (!selectedCreator && mobilePane === "detail") {
@@ -76,20 +149,18 @@ export default function useActive() {
 
   // Auto-select first creator for individual collaborations
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
-      individualContractsSuccess &&
-      normalizedIndividualContracts.length > 0 &&
+      activeIndividualContractsReady &&
+      activeIndividualContracts.length > 0 &&
       !selectedCreator &&
       autoSelectedForCampaignRef.current !== selectedCampaign.id
     ) {
-      const matchingContracts = normalizedIndividualContracts.filter((contract) => {
+      const matchingContracts = activeIndividualContracts.filter((contract) => {
         const contractCampaignId = contract.campaignId || contract.campaign?.id;
-        if (contractCampaignId !== selectedCampaign.id) {
-          return false;
-        }
-        return true;
+        return String(contractCampaignId) === String(selectedCampaign.id);
       });
 
       const taskCreatorId = sessionStorage.getItem("taskCreatorId");
@@ -155,13 +226,15 @@ export default function useActive() {
   }, [
     selectedCampaign?.id,
     selectedCampaign?.collaboration_type,
-    normalizedIndividualContracts,
-    individualContractsSuccess,
+    activeIndividualContracts,
+    activeIndividualContractsReady,
     selectedCreator,
+    viewMode,
   ]);
 
   // Auto-select first creator for multi-creator campaigns
   useEffect(() => {
+    if (viewMode === "board") return;
     if (
       selectedCampaign &&
       selectedCampaign.collaboration_type !== COLLABORATION_TYPE.INDIVIDUAL_CREATOR &&
@@ -196,7 +269,7 @@ export default function useActive() {
       setSelectedCreator(hiredCreatorsData.data[0]);
       autoSelectedForCampaignRef.current = selectedCampaign.id;
     }
-  }, [hiredCreatorsSuccess, hiredCreatorsData, selectedCampaign, selectedCreator]);
+  }, [hiredCreatorsSuccess, hiredCreatorsData, selectedCampaign, selectedCreator, viewMode]);
 
   // ============================================
   // 5. CALLBACKS
@@ -252,23 +325,15 @@ export default function useActive() {
         return;
       }
 
-      const isPaidCampaign =
-        campaign?.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
-        campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
-      const isGiftedOrAffiliate =
-        campaign?.campaign_type === CAMPAIGN_TYPE.GIFTED ||
-        campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE;
-
-      let defaultSort = "newest";
-      if (isPaidCampaign) {
-        defaultSort = "most-expensive";
-      } else if (isGiftedOrAffiliate) {
-        defaultSort = "newest";
+      let defaultSort = "urgency";
+      if (hasManualSortOverride) {
+        defaultSort = filters.sort || "newest";
       }
 
       const updatedFilters = {
         ...filters,
-        sort: filters.sort || defaultSort,
+        status: "HIRED",
+        sort: hasManualSortOverride ? filters.sort || defaultSort : "urgency",
       };
       setFilters(updatedFilters);
 
@@ -285,7 +350,7 @@ export default function useActive() {
         setMobilePane("creators");
       }
     },
-    [dispatch, filters]
+    [dispatch, filters, hasManualSortOverride]
   );
 
   const handleCreatorSelect = useCallback(
@@ -347,10 +412,53 @@ export default function useActive() {
 
   const handleSortChange = useCallback(
     (sortValue) => {
+      setHasManualSortOverride(true);
       handleFilterChange("sort", sortValue);
     },
     [handleFilterChange]
   );
+
+  const handleOpenBoard = useCallback(() => {
+    setViewMode("board");
+    setSelectedCreator(null);
+    if (selectedCampaign?.id) {
+      autoSelectedForCampaignRef.current = selectedCampaign.id;
+    }
+  }, [selectedCampaign?.id]);
+
+  const handleCloseBoard = useCallback(() => {
+    setViewMode("standard");
+    autoSelectedForCampaignRef.current = null;
+  }, []);
+
+  const refreshPipelineData = useCallback(() => {
+    refreshBrandPipelineData(dispatch, {
+      campaignId: selectedCampaign?.id,
+      collaborationType: selectedCampaign?.collaboration_type,
+      isMultiCreator,
+      activeFilters: filters,
+      includeBoard: Boolean(selectedCampaign?.id),
+      includeActive: true,
+      silent: true,
+    });
+    setPipelineRefreshToken((token) => token + 1);
+  }, [
+    dispatch,
+    selectedCampaign?.id,
+    selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    filters,
+  ]);
+
+  usePipelineBackgroundRefresh({
+    enabled: Boolean(selectedCampaign?.id),
+    campaignId: selectedCampaign?.id,
+    collaborationType: selectedCampaign?.collaboration_type,
+    isMultiCreator,
+    activeFilters: filters,
+    includeBoard: viewMode === "board",
+    includeActive: true,
+  });
 
   const handleToggleChange = useCallback(
     (newIsMultiCreator) => {
@@ -385,11 +493,11 @@ export default function useActive() {
   }, [hiredCreatorsData]);
 
   const individualContracts = useMemo(() => {
-    if (!isMultiCreator && normalizedIndividualContracts.length > 0) {
-      return normalizedIndividualContracts;
+    if (!isMultiCreator && activeIndividualContracts.length > 0) {
+      return activeIndividualContracts;
     }
     return [];
-  }, [isMultiCreator, normalizedIndividualContracts]);
+  }, [isMultiCreator, activeIndividualContracts]);
 
   const displayCreators = useMemo(() => {
     if (
@@ -406,10 +514,23 @@ export default function useActive() {
       selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
       !isMultiCreator
     ) {
-      return false;
+      return !isMultiCreator && individualContractsLoading;
     }
     return hiredCreatorsLoading;
-  }, [selectedCampaign, isMultiCreator, hiredCreatorsLoading]);
+  }, [selectedCampaign, isMultiCreator, hiredCreatorsLoading, individualContractsLoading]);
+
+  const showFullPageSkeleton = useMemo(() => {
+    if (selectedCampaign) return false;
+    if (isMultiCreator) return isLoading;
+    if (activeIndividualContractsReady && activeIndividualContracts.length > 0) return false;
+    return isLoading;
+  }, [
+    selectedCampaign,
+    isMultiCreator,
+    isLoading,
+    activeIndividualContractsReady,
+    activeIndividualContracts.length,
+  ]);
 
   const rightPaneState = useMemo(() => {
     if (isLoading) {
@@ -473,6 +594,7 @@ export default function useActive() {
     isMultiCreator,
     filters,
     isLoading,
+    showFullPageSkeleton,
     displayCreators,
     mobilePane,
     rightPaneState,
@@ -482,6 +604,11 @@ export default function useActive() {
     handleFilterChange,
     handleSortChange,
     handleToggleChange,
+    handleOpenBoard,
+    handleCloseBoard,
+    viewMode,
+    pipelineRefreshToken,
+    refreshPipelineData,
     goToCreatorsPane,
     backFromCreatorsToOverview,
     backFromDetailToCreators,

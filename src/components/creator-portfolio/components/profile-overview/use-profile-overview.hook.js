@@ -8,9 +8,11 @@ import {
   getAllShortlists,
 } from "@/provider/features/shortlist/shortlist.slice";
 import { selectCreatorSocialAccounts } from "@/provider/features/phyllo/phyllo.slice";
+import { useSnackbar } from "notistack";
 
 export default function useProfileOverview(creatorId = null, refreshKey = 0) {
   const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
   const [creator, setCreator] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -74,8 +76,7 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
     if (creatorId && user?.id && creatorId !== user.id) return;
     if (!isCreatorMode()) return;
     if (typeof window === "undefined") return;
-    const fromQuery =
-      new URLSearchParams(window.location.search).get("showcase") === "1";
+    const fromQuery = new URLSearchParams(window.location.search).get("showcase") === "1";
     let fromStorage = false;
     try {
       fromStorage = sessionStorage.getItem(CLEERCUT_OPEN_SHOWCASE_MODAL) === "1";
@@ -104,13 +105,14 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
   }, []);
 
   useEffect(() => {
-    if (creatorId) dispatch(getAllShortlists());
+    if (creatorId && !isCreatorMode()) dispatch(getAllShortlists());
   }, [creatorId, dispatch]);
 
   const handleShare = async () => {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(window.location.href);
     }
+    enqueueSnackbar("Profile copied to clipboard", { variant: "success" });
   };
 
   const handleSaveToShortlist = () => {

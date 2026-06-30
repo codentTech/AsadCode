@@ -3,6 +3,7 @@
 import SettingSidebar from "./setting-sidebar/setting-sidebar.component";
 import PrivateHeader from "@/components/private-header/private-header.component";
 import { Menu } from "lucide-react";
+import Link from "next/link";
 import useSettingsLayout from "./use-settings-layout.hook";
 
 export default function SettingsLayout({ children }) {
@@ -13,6 +14,8 @@ export default function SettingsLayout({ children }) {
     openMobileMenu,
     closeMobileMenu,
     toggleSidebarCollapse,
+    termsHref,
+    privacyHref,
   } = useSettingsLayout();
 
   return (
@@ -56,24 +59,19 @@ export default function SettingsLayout({ children }) {
             <div className="flex items-center space-x-4 text-sm text-gray-600">
               <span>© 2024 Cleercut. All rights reserved.</span>
               <span className="hidden md:inline">•</span>
-              <button className="hidden md:inline hover:text-indigo-600 transition-colors">
+              <Link
+                href={privacyHref}
+                className="hidden md:inline hover:text-indigo-600 transition-colors"
+              >
                 Privacy Policy
-              </button>
+              </Link>
               <span className="hidden md:inline">•</span>
-              <button className="hidden md:inline hover:text-indigo-600 transition-colors">
+              <Link
+                href={termsHref}
+                className="hidden md:inline hover:text-indigo-600 transition-colors"
+              >
                 Terms of Service
-              </button>
-            </div>
-
-            <div className="flex items-center space-x-4 mt-2 md:mt-0 text-sm text-gray-600">
-              <span className="hidden md:inline">•</span>
-              <button className="hidden md:inline hover:text-indigo-600 transition-colors">
-                Documentation
-              </button>
-              <span className="hidden md:inline">•</span>
-              <button className="hidden md:inline hover:text-indigo-600 transition-colors">
-                Support
-              </button>
+              </Link>
             </div>
           </div>
         </footer>

@@ -21,6 +21,7 @@ const DeliverablesProgressCompleted = ({
   selectedCreator,
   isIndividualCreator = false,
   onClearCreator = null,
+  onPipelineUpdated = null,
   filters = { status: "COMPLETED", sort: "newest" },
 }) => {
   const [showContractPreview, setShowContractPreview] = useState(false);
@@ -54,12 +55,14 @@ const DeliverablesProgressCompleted = ({
     isReviewsLoading,
     handleViewCreatorPortfolio,
     brandMarkedCompleteAt,
+    requiresCollaborationPayment,
   } = useDeliverablesProgress(
     selectedCampaign,
     selectedCreator,
     isIndividualCreator,
     onClearCreator,
-    filters
+    filters,
+    onPipelineUpdated
   );
 
   const renderCampaignSelectionMessage = () => (
@@ -199,7 +202,9 @@ const DeliverablesProgressCompleted = ({
           <li className="flex items-center justify-between">
             <span>
               Payment: <span className="font-medium">{formatCompensation()}</span>
-              <span className="text-green-600 text-xs ml-1">(Paid)</span>
+              {requiresCollaborationPayment ? (
+                <span className="text-green-600 text-xs ml-1">(Paid)</span>
+              ) : null}
             </span>
           </li>
           {selectedContract.usageRights && (

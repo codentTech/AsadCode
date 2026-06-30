@@ -9,7 +9,8 @@ import {
   selectCreatorSocialAccounts,
   selectCreatorMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { KNOWN_PLATFORMS, PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
+import { PLATFORM_PRIORITY } from "@/common/constants/genaric.constant";
+import { mapConnectedPlatformsForDisplay } from "@/common/utils/creator-platforms.utils";
 
 export default function useCreatorPreview(previewCreator) {
   const dispatch = useDispatch();
@@ -52,45 +53,8 @@ export default function useCreatorPreview(previewCreator) {
 
   const platformData = useMemo(() => {
     const accounts = socialAccounts.data;
-    const accountMap = {};
-    if (Array.isArray(accounts)) {
-      accounts
-        .filter((a) => a.is_active)
-        .forEach((a) => {
-          const key = String(a.platform).toLowerCase();
-          accountMap[key] = {
-            username: a.username || a.profile_data?.username || null,
-            followers: Number(
-              a.follower_count ??
-                a.profile_data?.follower_count ??
-                a.profile_data?.subscriber_count ??
-                0
-            ),
-            isVerified: a.is_verified,
-            profileUrl: a.profile_url,
-          };
-        });
-    }
-
-    const LABEL = {
-      instagram: "Instagram",
-      youtube: "YouTube",
-      twitter: "Twitter",
-      tiktok: "TikTok",
-      facebook: "Facebook",
-    };
-
     const loading = socialAccounts.isLoading && !Array.isArray(accounts);
-
-    return KNOWN_PLATFORMS.map((key) => ({
-      key,
-      name: LABEL[key] || key,
-      followers: accountMap[key]?.followers ?? 0,
-      username: accountMap[key]?.username ?? null,
-      isVerified: accountMap[key]?.isVerified ?? false,
-      profileUrl: accountMap[key]?.profileUrl ?? null,
-      loading,
-    }));
+    return mapConnectedPlatformsForDisplay(accounts, { loading });
   }, [socialAccounts.data, socialAccounts.isLoading]);
 
   const metricsData = useMemo(() => {

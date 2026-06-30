@@ -1,7 +1,9 @@
 import React from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.component";
+import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import { Bookmark, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
 
@@ -12,15 +14,20 @@ const CreatorCard = ({
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
-  tab = "discover", // discover | applications | rejected
+  tab = "discover",
   onReinstateClick,
   onViewNotesClick,
   isReinstateLoading = false,
   hideActions = false,
   creatorType = creator?.creator_profile?.creator_type,
+  urgencyLabel,
+  urgencyTier,
+  isInvited = false,
 }) => {
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
+  const isApplicationsTab = tab === "applications";
+  const showRating = !HIDE_CREATOR_RATING_UI;
   const ratingValue =
     creator?.rating ??
     creator?.creator_profile?.rating ??
@@ -34,6 +41,7 @@ const CreatorCard = ({
     creator?.creator?.creator_profile?.reviewCount ??
     creator?.creator?.creator_profile?.review_count ??
     0;
+  const applicationMessage = creator?.applicationMessage?.trim() || "";
 
   const {
     getPlatformIcon,
@@ -73,7 +81,6 @@ const CreatorCard = ({
         if (onCreatorPreview) handleCardClick();
       }}
     >
-      {/* Cover */}
       <div className="relative h-32 shrink-0 bg-gray-100 overflow-hidden">
         {Array.isArray(creator.portfolioImages) && creator.portfolioImages.some(Boolean) ? (
           <div className="flex h-full">
@@ -99,7 +106,19 @@ const CreatorCard = ({
           <div className="w-full h-full bg-primary" />
         )}
 
-        {tagMeta ? (
+        {isApplicationsTab && isInvited ? (
+          <div className="absolute left-1 top-1 z-[1] rounded-lg bg-black px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+            Invited
+          </div>
+        ) : null}
+
+        {isApplicationsTab && urgencyLabel ? (
+          <div className="absolute right-1 top-1 z-[1] max-w-[9rem]">
+            <UrgencyPill label={urgencyLabel} tier={urgencyTier} />
+          </div>
+        ) : null}
+
+        {!isApplicationsTab && tagMeta ? (
           <div
             className={`absolute top-1 right-1 max-w-[9rem] truncate px-2 py-1 text-[10px] font-semibold rounded-lg shadow-sm ${tagMeta.pillClass}`}
           >
@@ -109,7 +128,6 @@ const CreatorCard = ({
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-4 pb-4">
-        {/* Avatar */}
         <div className="absolute top-[-55px] left-1/2 -translate-x-1/2">
           <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
             {creator.profileImage ? (
@@ -127,17 +145,18 @@ const CreatorCard = ({
         </div>
 
         <div className="flex flex-col gap-3 my-4">
-          {/* Name */}
           <div className="text-center">
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mb-1">
               <h4 className="text-sm font-semibold leading-snug text-gray-900 m-0">
                 {creator.name}
               </h4>
-              <div className="inline-flex items-center gap-1 text-sm leading-none">
-                <Star className="h-4 w-4 shrink-0 text-yellow-400 fill-current" />
-                <span className="text-gray-500 mt-1 ml-0.5">{ratingValue}</span>
-                <span className="text-gray-400 mt-1">({reviewCountValue})</span>
-              </div>
+              {showRating ? (
+                <div className="inline-flex items-center gap-1 text-sm leading-none">
+                  <Star className="h-4 w-4 shrink-0 text-yellow-400 fill-current" />
+                  <span className="text-gray-500 mt-1 ml-0.5">{ratingValue}</span>
+                  <span className="text-gray-400 mt-1">({reviewCountValue})</span>
+                </div>
+              ) : null}
             </div>
             <p className="text-xs text-gray-500">
               {creator.age} •{" "}
@@ -148,22 +167,32 @@ const CreatorCard = ({
             </p>
           </div>
 
-          {/* Niches */}
-          <div className="flex min-h-[3.25rem] flex-wrap content-start items-start justify-center gap-1">
-            {displayNiches.map((niche) => (
-              <span
-                key={niche}
-                className="px-2 py-1 bg-gray-100 text-xs rounded-lg text-gray-600 capitalize whitespace-nowrap"
-              >
-                {niche}
-              </span>
-            ))}
-          </div>
+          {displayNiches.length > 0 ? (
+            <div className="min-h-[3rem] flex flex-wrap content-start items-start justify-center gap-1">
+              {displayNiches.map((niche) => (
+                <span
+                  key={niche}
+                  className="px-2 py-1 bg-gray-100 text-xs rounded-lg text-gray-600 capitalize whitespace-nowrap"
+                >
+                  {niche}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
-          {/* Bio */}
-          <p className="min-h-[3rem] line-clamp-3 text-center text-xs text-gray-500">
-            {creator.bio || creator.tagline || ""}
-          </p>
+          {isApplicationsTab ? (
+            <p className="min-h-[3rem] line-clamp-3 text-center text-xs">
+              {applicationMessage ? (
+                <span className="text-gray-500">{applicationMessage}</span>
+              ) : (
+                <span className="italic text-gray-400">No application message</span>
+              )}
+            </p>
+          ) : (
+            <p className="min-h-[3rem] line-clamp-3 text-center text-xs text-gray-500">
+              {creator.bio || creator.tagline || ""}
+            </p>
+          )}
 
           {creator.id === "onboarding-preview" && creator.longBio && (
             <div className="text-center bg-gray-100 p-2 rounded-lg">
@@ -229,6 +258,7 @@ const CreatorCard = ({
                 </p>
               )}
             </div>
+
             {tab === "discover" && (
               <>
                 <div className="flex justify-center gap-3">
@@ -271,12 +301,27 @@ const CreatorCard = ({
               </>
             )}
 
-            {tab !== "discover" && tab !== "rejected" && (
-              <CustomButton
-                text={isShortlist ? "Remove" : "Save"}
-                className={`${isShortlist ? "btn-danger" : "btn-primary"} w-full rounded-lg`}
-                onClick={handleSaveClick}
-              />
+            {isApplicationsTab && (
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSaveClick}
+                  className="rounded-lg bg-gray-100 p-2 hover:bg-gray-200"
+                >
+                  <Bookmark
+                    className={`h-5 w-5 ${
+                      isShortlist ? "text-primary fill-current" : "text-gray-600"
+                    }`}
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleViewProfileClick}
+                  className="inline-flex rounded-lg bg-gray-100 p-2 hover:bg-gray-200"
+                >
+                  <User className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
             )}
           </div>
         )}

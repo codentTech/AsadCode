@@ -6,6 +6,12 @@ import {
 import { CAMPAIGN_TYPE_OPTIONS } from "../constants/options.constant";
 import { formatCompactCurrency } from "./format.utils";
 import { capitalizeFirstWord } from "./helper.utils";
+import {
+  applyLivePipelineUrgency,
+  resolveCreatorUrgency,
+  sortCreatorsByUrgency,
+} from "@/common/utils/creator-urgency.util";
+import { PIPELINE_STATE } from "@/common/constants/creator-urgency.constant";
 
 export const CAMPAIGN_TYPE_MAP = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
@@ -68,6 +74,118 @@ export const getCompensationTypeLabel = (type) => {
       return type || "—";
   }
 };
+
+export function requiresCollaborationPayment(source = {}) {
+  const application =
+    source.application && typeof source.application === "object" ? source.application : {};
+  const stubContract =
+    (source.contract && typeof source.contract === "object" ? source.contract : null) ||
+    (application.contract && typeof application.contract === "object"
+      ? application.contract
+      : null) ||
+    {};
+  const campaign =
+    (source.campaign && typeof source.campaign === "object" ? source.campaign : null) ||
+    application.campaign ||
+    source;
+
+  const creatorUserId =
+    source.creatorUserId ||
+    source.creator?.id ||
+    application.creator?.id ||
+    null;
+
+  const campaignContracts = Array.isArray(campaign?.contracts) ? campaign.contracts : [];
+  const matchedContract = creatorUserId
+    ? campaignContracts.find(
+        (contractItem) =>
+          contractItem?.creator_id === creatorUserId ||
+          contractItem?.creatorId === creatorUserId ||
+          contractItem?.creator?.id === creatorUserId,
+      )
+    : null;
+
+  const contractHasPaymentFields = Boolean(
+    stubContract?.compensationType ||
+      stubContract?.compensation_type ||
+      stubContract?.campaignType ||
+      stubContract?.campaign_type ||
+      stubContract?.productPrice ||
+      stubContract?.product_price,
+  );
+
+  const contract = contractHasPaymentFields ? stubContract : matchedContract || stubContract;
+
+  const formattedCompensation = (source.compensation || "").toString().toUpperCase();
+  const formattedCampaignType =
+    source.type === "Gifted"
+      ? CAMPAIGN_TYPE.GIFTED
+      : (source.campaignType || source.campaign_type || "").toString().toUpperCase();
+
+  const compensationType = (
+    contract.compensationType ||
+    contract.compensation_type ||
+    campaign.compensation_type ||
+    campaign.compensationType ||
+    source.compensationType ||
+    source.compensation_type ||
+    formattedCompensation ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  const campaignType = (
+    contract.campaignType ||
+    contract.campaign_type ||
+    campaign.campaign_type ||
+    campaign.campaignType ||
+    formattedCampaignType ||
+    source.campaignType ||
+    source.campaign_type ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  if (
+    compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+    compensationType === COMPENSATION_TYPE.COMMISSION
+  ) {
+    return false;
+  }
+
+  if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+    return false;
+  }
+
+  const productValue = Number(
+    contract.productPrice ||
+      contract.product_price ||
+      contract.productValue ||
+      contract.product_value ||
+      campaign.product_value ||
+      campaign.productValue ||
+      0,
+  );
+  const cashCompensation = Number(
+    contract.totalCompensation ||
+      contract.total_compensation ||
+      campaign.creator_fixed_price ||
+      campaign.creator_fee ||
+      0,
+  );
+
+  if (
+    productValue > 0 &&
+    cashCompensation <= 0 &&
+    compensationType !== COMPENSATION_TYPE.PAID
+  ) {
+    return false;
+  }
+
+  return true;
+}
 
 export const sanitizeGuidelines = (list = []) =>
   (Array.isArray(list) ? list : [])
@@ -571,3 +689,143 @@ export const resolveBrandMarkedCompleteAt = ({
 
   return null;
 };
+
+export const resolveCampaignFeeForOffer = (campaign) => {
+  const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
+  if (fee === undefined || fee === null || fee === "") return "";
+  return String(fee);
+};
+
+export const HIDE_CREATOR_RATING_UI = true;
+
+const APPLICATIONS_BOARD_COLUMNS = new Set(["applications", "negotiations"]);
+
+const APPLICATIONS_PIPELINE_STATES = new Set([
+  PIPELINE_STATE.NEEDS_REVIEW,
+  PIPELINE_STATE.REVIEW_OVERDUE,
+]);
+
+export function resolveCreatorBoardColumn(creator) {
+  const urgency = resolveCreatorUrgency(creator);
+  if (urgency.boardColumn && APPLICATIONS_BOARD_COLUMNS.has(urgency.boardColumn)) {
+    return urgency.boardColumn;
+  }
+
+  const pipelineState =
+    urgency.pipelineState || creator?.pipeline?.pipeline_state || null;
+  if (pipelineState && APPLICATIONS_PIPELINE_STATES.has(pipelineState)) {
+    return "applications";
+  }
+  if (pipelineState) {
+    return "negotiations";
+  }
+
+  return urgency.boardColumn || "applications";
+}
+
+export function isInvitedCreatorRow(creator) {
+  return Boolean(
+    creator?.is_invited ??
+      creator?.isInvited ??
+      creator?.source_invitation_id ??
+      creator?.invitation_id,
+  );
+}
+
+export function splitCreatorsByApplicationsSubTab(creators) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const applications = [];
+  const negotiations = [];
+
+  rows.forEach((creator) => {
+    const column = resolveCreatorBoardColumn(creator);
+    if (column === "negotiations") {
+      negotiations.push(creator);
+      return;
+    }
+    if (column === "applications" || !column) {
+      applications.push(creator);
+    }
+  });
+
+  return { applications, negotiations };
+}
+
+export function partitionPinnedInvitedCreators(creators) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const pinned = [];
+  const unpinned = [];
+
+  rows.forEach((creator) => {
+    if (isInvitedCreatorRow(creator)) {
+      pinned.push(creator);
+    } else {
+      unpinned.push(creator);
+    }
+  });
+
+  return { pinned, unpinned };
+}
+
+function sortCreatorsClientSide(creators, sortKey) {
+  if (!Array.isArray(creators) || creators.length === 0) return [];
+
+  const rows = [...creators];
+
+  switch (sortKey) {
+    case "urgency":
+      return sortCreatorsByUrgency(rows);
+    case "oldest":
+      return rows.sort((a, b) => {
+        const aTime = new Date(a.applied_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.applied_at || b.created_at || 0).getTime();
+        return aTime - bTime;
+      });
+    case "newest":
+      return rows.sort((a, b) => {
+        const aTime = new Date(a.applied_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.applied_at || b.created_at || 0).getTime();
+        return bTime - aTime;
+      });
+    case "rating":
+      return rows.sort((a, b) => {
+        const aRating = parseFloat(a.creator?.creator_profile?.rating) || 0;
+        const bRating = parseFloat(b.creator?.creator_profile?.rating) || 0;
+        return bRating - aRating;
+      });
+    case "followers":
+      return rows.sort((a, b) => {
+        const aFollowers = a.creator?.creator_profile?.total_followers || 0;
+        const bFollowers = b.creator?.creator_profile?.total_followers || 0;
+        return bFollowers - aFollowers;
+      });
+    case "engagement":
+      return rows.sort((a, b) => {
+        const aRate = parseFloat(a.creator?.creator_profile?.engagement_rate) || 0;
+        const bRate = parseFloat(b.creator?.creator_profile?.engagement_rate) || 0;
+        return bRate - aRate;
+      });
+    default:
+      return rows;
+  }
+}
+
+export function sortApplicationsCreators(creators, sortKey) {
+  const rows = Array.isArray(creators) ? creators.map(applyLivePipelineUrgency) : [];
+  if (!rows.length) return [];
+
+  const { pinned, unpinned } = partitionPinnedInvitedCreators(rows);
+  const sortedPinned = sortCreatorsByUrgency(pinned);
+  const sortedUnpinned =
+    sortKey === "urgency" ? sortCreatorsByUrgency(unpinned) : sortCreatorsClientSide(unpinned, sortKey);
+
+  return [...sortedPinned, ...sortedUnpinned];
+}
+
+export function creatorBelongsToApplicationsSubTab(creator, subTab) {
+  const column = resolveCreatorBoardColumn(creator);
+  if (subTab === "negotiations") {
+    return column === "negotiations";
+  }
+  return column === "applications";
+}

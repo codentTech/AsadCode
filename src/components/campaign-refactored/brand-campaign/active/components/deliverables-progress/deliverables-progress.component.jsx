@@ -21,6 +21,7 @@ const DeliverablesProgress = ({
   isIndividualCreator = false,
   onClearCreator = null,
   filters = { status: "HIRED", sort: "newest" },
+  onPipelineUpdated = null,
 }) => {
   const [showContractPreview, setShowContractPreview] = useState(false);
 
@@ -63,12 +64,14 @@ const DeliverablesProgress = ({
     handleCancelMarkComplete,
     handleConfirmMarkComplete,
     handleViewCreatorPortfolio,
+    requiresCollaborationPayment,
   } = useDeliverablesProgress(
     selectedCampaign,
     selectedCreator,
     isIndividualCreator,
     onClearCreator,
-    filters
+    filters,
+    onPipelineUpdated
   );
 
   const renderCampaignSelectionMessage = () => (
@@ -102,7 +105,7 @@ const DeliverablesProgress = ({
           {creator.name?.charAt(0) || "C"}
         </Avatar>
       </div>
-      <h3 className="w-full text-left sm:text-center">
+      <h3 className="w-full text-center">
         <button
           type="button"
           onClick={handleViewCreatorPortfolio}
@@ -113,7 +116,7 @@ const DeliverablesProgress = ({
         <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator?.rating}</span>
         <span className="ml-1 text-sm text-gray-500 sm:text-lg">({creator?.reviewCount || 0})</span>
       </h3>
-      <p className="-mt-1 flex w-full flex-wrap items-center justify-start gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
+      <p className="-mt-1 flex w-full items-center justify-center gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
         <span>{creator.age}</span>
         <span aria-hidden>•</span>
         <span>{creator.location}</span>
@@ -298,7 +301,12 @@ const DeliverablesProgress = ({
     return (
       <div className="bg-white rounded border p-3">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Timeline</h4>
-        <BrandTimelineSteps campaignId={campaignId} creatorId={creatorUserId} />
+        <BrandTimelineSteps
+          campaignId={campaignId}
+          creatorId={creatorUserId}
+          onPipelineUpdated={onPipelineUpdated}
+          onWorkflowComplete={handleMarkCompleteClick}
+        />
       </div>
     );
   };
@@ -442,25 +450,26 @@ const DeliverablesProgress = ({
                 <p className="text-sm text-gray-600 mb-4">
                   Your review helps other brands on CleerCut choose creators with confidence.
                 </p>
-                <div className="flex justify-between items-center mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rating <span className="text-red-500">*</span>
-                  </label>
+                <div className="flex justify-between items-center bg-gray-200 p-2 rounded-lg">
+                  <label className="block text-base font-medium text-gray-700">Rating</label>
+
                   <div className="flex items-center gap-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-6 h-6 cursor-pointer transition-colors ${
-                          i < markCompleteRating ? "text-yellow-400 fill-current" : "text-gray-300"
+                        className={`w-5 h-5 cursor-pointer transition-colors ${
+                          i < markCompleteRating ? "text-yellow-400 fill-current" : "text-gray-500"
                         }`}
                         onClick={() => setMarkCompleteRating(i + 1)}
                       />
                     ))}
-                    {markCompleteRating > 0 && (
-                      <span className="text-sm text-gray-600 ml-2">{markCompleteRating}/5</span>
-                    )}
                   </div>
                 </div>
+                {markCompleteRating > 0 && (
+                  <span className="flex justify-end text-xs text-gray-600 ml-2 mt-1.5">
+                    You rated {creator.name} with {markCompleteRating}/5
+                  </span>
+                )}
                 <div className="mb-4">
                   <TextArea
                     label="Feedback"
@@ -472,9 +481,10 @@ const DeliverablesProgress = ({
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800">
-                    <span className="font-semibold">Notice:</span> This completes the collaboration
-                    on your side. Payout to the creator runs after they submit their review and
-                    funds have finished settling.
+                    <span className="font-semibold">Notice:</span>{" "}
+                    {requiresCollaborationPayment
+                      ? "This completes the collaboration on your side. Payout to the creator runs after they submit their review and funds have finished settling."
+                      : "This completes the collaboration on your side."}
                   </p>
                 </div>
               </div>

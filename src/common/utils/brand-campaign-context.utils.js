@@ -29,6 +29,27 @@ export function isCampaignCompatibleWithOverviewToggle(
   return isIndividualCollaborationFlow(isMultiCreator, effectiveCollaborationType);
 }
 
+export function isCompletedAppliedCreatorsFiltersKey(filtersKey) {
+  if (!filtersKey) return false;
+  try {
+    return JSON.parse(filtersKey)?.status === "COMPLETED";
+  } catch {
+    return false;
+  }
+}
+
+export function individualContractsScopeMatches(isCompletedPhase, storeIsCompleted) {
+  return storeIsCompleted === isCompletedPhase;
+}
+
+export function individualContractsForPhase(contracts, isCompletedPhase) {
+  const list = Array.isArray(contracts) ? contracts : [];
+  if (isCompletedPhase) {
+    return list.filter((contract) => contract.campaign?.status === "COMPLETE");
+  }
+  return list.filter((contract) => contract.campaign?.status !== "COMPLETE");
+}
+
 export function creatorRowHasIdentity(row) {
   if (!row || typeof row !== "object") return false;
   return !!(

@@ -1,4 +1,5 @@
 import { getDefaultCreatorPlatformFromConnectedList } from "@/common/utils/generic.util";
+import { isActiveSocialAccount } from "@/common/utils/creator-platforms.utils";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
 import {
   fetchCreatorSocialAccounts,
@@ -9,7 +10,7 @@ import {
   selectCreatorAudience,
   selectCreatorSocialAccounts,
 } from "@/provider/features/phyllo/phyllo.slice";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function useCreatorPortfolio(creatorId = null) {
@@ -43,6 +44,14 @@ export default function useCreatorPortfolio(creatorId = null) {
     if (def) setSelectedPlatform(def);
   }, [id, selectedPlatform, socialAccounts.isSuccess, socialAccounts.data]);
 
+  const hasConnectedSocialAccounts = useMemo(() => {
+    if (!socialAccounts.isSuccess || !Array.isArray(socialAccounts.data)) return null;
+    return socialAccounts.data.some(isActiveSocialAccount);
+  }, [socialAccounts.isSuccess, socialAccounts.data]);
+
+  const showMediaKitPrompt =
+    !creatorId && isCreatorMode() && hasConnectedSocialAccounts === false;
+
   const handleProfileUpdate = useCallback(() => {
     setRefreshKey((prev) => prev + 1);
   }, []);
@@ -58,5 +67,6 @@ export default function useCreatorPortfolio(creatorId = null) {
     audienceState,
     handleProfileUpdate,
     handlePlatformSelect,
+    showMediaKitPrompt,
   };
 }

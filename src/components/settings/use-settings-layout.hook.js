@@ -1,10 +1,12 @@
 "use client";
 
+import useLegalLinks from "@/common/hooks/use-legal-links.hook";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 
 export default function useSettingsLayout() {
   const pathname = usePathname();
+  const { termsHref, privacyHref } = useLegalLinks();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -47,5 +49,7 @@ export default function useSettingsLayout() {
     openMobileMenu,
     closeMobileMenu,
     toggleSidebarCollapse,
+    termsHref,
+    privacyHref,
   };
 }
