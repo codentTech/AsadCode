@@ -111,7 +111,7 @@ export default function useCompleted() {
       startDate,
       deadline,
       type: normalizedType,
-      compensation: compensationTypeRaw || "PAID",
+      compensation: compensationTypeRaw || null,
       compensationAmount:
         compensationTypeRaw === "PAID"
           ? `$${paidAmountRaw || 0}`

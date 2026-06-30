@@ -14,7 +14,10 @@ import {
 } from "@/provider/features/campaign-reviews/campaign-reviews.slice";
 import { getContractsByCampaign } from "@/provider/features/contracts/contracts.slice";
 import usersService from "@/provider/features/users/users.service";
-import { resolveBrandMarkedCompleteAt } from "@/common/utils/campaign.utils";
+import {
+  requiresCollaborationPayment,
+  resolveBrandMarkedCompleteAt,
+} from "@/common/utils/campaign.utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -531,6 +534,18 @@ const useDeliverablesProgress = (
     [selectedCreator, selectedCampaign, selectedContract, isIndividualCreator]
   );
 
+  const requiresCollaborationPaymentFlag = useMemo(
+    () =>
+      requiresCollaborationPayment({
+        contract: selectedContract,
+        campaign: selectedCampaign,
+        application: selectedCreator,
+        compensation: selectedCreator?.compensation,
+        type: selectedCreator?.type,
+      }),
+    [selectedContract, selectedCampaign, selectedCreator]
+  );
+
   return {
     messageThreadHook,
     handleMessageClick,
@@ -561,6 +576,7 @@ const useDeliverablesProgress = (
     isReviewsLoading: getReviewsByCreatorProfileState.isLoading || getReviewStatusState.isLoading,
     handleViewCreatorPortfolio,
     brandMarkedCompleteAt,
+    requiresCollaborationPayment: requiresCollaborationPaymentFlag,
   };
 };
 

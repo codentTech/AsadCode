@@ -75,6 +75,13 @@ export const COLLABORATION_TYPE = Object.freeze({
   INDIVIDUAL_CREATOR: "INDIVIDUAL_CREATOR",
 });
 
+export const BRAND_CAMPAIGN_TAB = Object.freeze({
+  DISCOVER: 1,
+  APPLICATIONS: 2,
+  ACTIVE: 3,
+  COMPLETED: 4,
+});
+
 export const REQUIREMENT_LEVEL = Object.freeze({
   NONE: "none",
   PREFERRED: "preferred",

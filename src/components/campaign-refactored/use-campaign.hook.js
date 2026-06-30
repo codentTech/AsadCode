@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { useSearchParams } from "next/navigation";
+import {
+  selectCampaignActiveTab,
+  setCampaignActiveTab,
+} from "@/provider/features/campaign-context/campaign-context.slice";
 
 import BrandDiscover from "./brand-campaign/discover/discover.component";
 import BrandApplications from "./brand-campaign/applications/applications.component";
@@ -13,9 +18,10 @@ import CreatorActive from "./creator-campaign/active/active.component";
 import CreatorCompleted from "./creator-campaign/completed/completed.component";
 
 export default function useCampaign() {
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const tab = Number(searchParams.get("tab")) || 1;
-  const [activeTab, setActiveTab] = useState(tab || 1);
+  const activeTab = useSelector(selectCampaignActiveTab) || 1;
 
   const componentMap = useMemo(
     () => ({
@@ -56,9 +62,16 @@ export default function useCampaign() {
   const userRole = useMemo(() => (isCreatorMode() ? "creator" : "brand"), []);
   const ActiveComponent = componentMap[userRole][activeTab];
 
+  const setActiveTab = useCallback(
+    (tabId) => {
+      dispatch(setCampaignActiveTab(tabId));
+    },
+    [dispatch]
+  );
+
   useEffect(() => {
-    setActiveTab(tab || 1);
-  }, [tab]);
+    dispatch(setCampaignActiveTab(tab || 1));
+  }, [tab, dispatch]);
 
   return {
     activeTab,

@@ -5,7 +5,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { sortOptions } from "@/common/constants/auth.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
-import TaskManagerModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/task-manager.component";
+import TaskManagerBrandModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/brand/task-manager-brand.component";
 import { ExternalLink, LayoutGrid, MapPin, Star } from "lucide-react";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
 
@@ -505,7 +505,7 @@ const CreatorSpendAnalysisCompleted = ({
         onClose={() => setShowBrandCalendar(false)}
         selectedCampaign={selectedCampaign}
       />
-      <TaskManagerModal
+      <TaskManagerBrandModal
         show={showTaskManager}
         onClose={() => setShowTaskManager(false)}
         isMultiCreator={isMultiCreator}
