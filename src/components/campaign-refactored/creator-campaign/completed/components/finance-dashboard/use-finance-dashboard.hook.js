@@ -18,6 +18,7 @@ import {
   getExpectedPayoutAvailableAtFromHistoryRow,
 } from "@/common/utils/creator-payout-availability.util";
 import { getUser } from "@/common/utils/users.util";
+import { requiresCollaborationPayment } from "@/common/utils/campaign.utils";
 import { PAYOUT_AVAILABLE_DATETIME_FORMAT } from "@/common/utils/date.utils";
 
 export default function useFinanceDashboard(selectedCampaign, setExpandedMonths) {
@@ -227,7 +228,18 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
     [paymentHistory]
   );
 
+  const requiresCollaborationPaymentFlag = useMemo(() => {
+    if (!selectedCampaign) {
+      return true;
+    }
+    return requiresCollaborationPayment(selectedCampaign);
+  }, [selectedCampaign]);
+
   const expectedPayoutAvailableAt = useMemo(() => {
+    if (!requiresCollaborationPaymentFlag) {
+      return null;
+    }
+
     const rows = getCollaborationHistoryRows(historyData);
     if (!historySuccess || !Array.isArray(rows)) {
       return null;
@@ -257,7 +269,13 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
     }
     const row = scope.find((item) => getExpectedPayoutAvailableAtFromHistoryRow(item) != null);
     return getExpectedPayoutAvailableAtFromHistoryRow(row) ?? null;
-  }, [historySuccess, historyData, selectedCampaign, fallbackHistoryItem]);
+  }, [
+    historySuccess,
+    historyData,
+    selectedCampaign,
+    fallbackHistoryItem,
+    requiresCollaborationPaymentFlag,
+  ]);
 
   const formattedPayoutAvailableAt = useMemo(() => {
     if (!expectedPayoutAvailableAt) return null;
@@ -265,6 +283,9 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
   }, [expectedPayoutAvailableAt]);
 
   const isPaymentSettlementLockActive = useMemo(() => {
+    if (!requiresCollaborationPaymentFlag) {
+      return false;
+    }
     if (expectedPayoutAvailableAt == null || expectedPayoutAvailableAt === "") {
       return false;
     }
@@ -273,7 +294,7 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
       return false;
     }
     return unlockMs > Date.now();
-  }, [expectedPayoutAvailableAt]);
+  }, [requiresCollaborationPaymentFlag, expectedPayoutAvailableAt]);
 
   useEffect(() => {
     if (!campaignId || !creatorProfileId) return;
@@ -357,6 +378,7 @@ export default function useFinanceDashboard(selectedCampaign, setExpandedMonths)
     paymentsLoading,
     formattedPayoutAvailableAt,
     expectedPayoutAvailableAt,
+    requiresCollaborationPayment: requiresCollaborationPaymentFlag,
     isPaymentSettlementLockActive,
     reviewStatus,
     campaignReviews,

@@ -5,7 +5,7 @@ import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { sortOptions } from "@/common/constants/auth.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
-import TaskManagerModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/task-manager.component";
+import TaskManagerBrandModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/brand/task-manager-brand.component";
 import { LayoutGrid, ExternalLink, MapPin, Star } from "lucide-react";
 import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
@@ -457,7 +457,7 @@ const CreatorSpendAnalysis = ({
         onClose={closeBrandCalendar}
         selectedCampaign={selectedCampaign}
       />
-      <TaskManagerModal
+      <TaskManagerBrandModal
         show={showTaskManager}
         onClose={closeTaskManagerModal}
         selectedCampaignId={selectedCampaign?.id || null}

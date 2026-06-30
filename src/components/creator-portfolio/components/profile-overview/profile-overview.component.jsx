@@ -145,16 +145,16 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
           {/* Right Side - Actions */}
           <div className="mt-4 flex flex-col items-start md:mt-0 md:items-end">
             <div className="w-full flex justify-between items-center gap-2">
-              {isCreatorMode() && (
+              {!isCreatorMode() && creatorId ? (
                 <CustomButton
                   text="Shortlist"
                   className="btn-primary w-full"
                   startIcon={<BookmarkPlus className="w-4 h-4" />}
                   onClick={handleSaveToShortlist}
                 />
-              )}
+              ) : null}
               <CustomButton
-                text={isCreatorMode() ? "Share" : "Share Your Profile"}
+                text="Share"
                 className="btn-outline w-full"
                 startIcon={<Share2 className="w-4 h-4" />}
                 onClick={handleShare}
@@ -184,7 +184,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
       </section>
 
       {/* Shortlist Modal */}
-      {isCreatorMode() && (
+      {!isCreatorMode() && creatorId ? (
         <Modal
           title="Save to Shortlist"
           show={saveToShortlistDialogOpen}
@@ -211,7 +211,7 @@ export default function ProfileOverview({ creatorId, refreshKey = 0 }) {
             )}
           </div>
         </Modal>
-      )}
+      ) : null}
 
       {/* Profile Edit Modal */}
       <ProfileEditModal

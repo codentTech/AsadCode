@@ -13,7 +13,7 @@ import {
 } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.util";
 import { deliverablesToContentFormatString } from "@/common/utils/deliverables-to-content-format.util";
-import { getTodayHtmlDateInputValue, toHtmlDateInputValue } from "@/common/utils/date.utils";
+import { getTodayHtmlDateInputValue, toHtmlDateInputValue, isValidHtmlDateInputValue, isHtmlDateInputOnOrAfterToday, isHtmlDateInputAfter } from "@/common/utils/date.utils";
 import { resolveCampaignFeeForOffer } from "@/common/utils/campaign.utils";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
@@ -22,30 +22,20 @@ const createValidationSchema = (isIndividual) => {
     startDate: Yup.string()
       .required("Start date is required")
       .test("is-valid-date", "Please select a valid date", function (value) {
-        if (!value) return false;
-        const date = new Date(value);
-        return date instanceof Date && !isNaN(date);
+        return isValidHtmlDateInputValue(value);
       })
       .test("is-future-date", "Start date cannot be in the past", function (value) {
-        if (!value) return false;
-        const date = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return date >= today;
+        return isHtmlDateInputOnOrAfterToday(value);
       }),
     completionDeadline: Yup.string()
       .required("Completion deadline is required")
       .test("is-valid-date", "Please select a valid date", function (value) {
-        if (!value) return false;
-        const date = new Date(value);
-        return date instanceof Date && !isNaN(date);
+        return isValidHtmlDateInputValue(value);
       })
       .test("is-after-start", "Completion deadline must be after start date", function (value) {
         const { startDate } = this.parent;
         if (!value || !startDate) return false;
-        const completionDate = new Date(value);
-        const startDateObj = new Date(startDate);
-        return completionDate > startDateObj;
+        return isHtmlDateInputAfter(value, startDate);
       }),
     contentFormat: Yup.string()
       .required("Content format is required")

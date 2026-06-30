@@ -33,6 +33,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const hasAutoSelectedFiltered = useRef(false);
   const lastSelectedCampaignId = useRef(null);
   const hasAutoSelectedIndividual = useRef(false);
+  const hasRequestedBrandCampaignsRef = useRef(false);
   const onCampaignSelectRef = useRef(onCampaignSelect);
   const onToggleChangeRef = useRef(onToggleChange);
 
@@ -113,8 +114,10 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // --- Brand: fetch campaigns on mount ---
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess]);
 
   // --- Brand: reset restoration flag when context id changes ---
   useEffect(() => {
@@ -424,10 +427,15 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // --- Overview: fetch individual contracts when in individual mode ---
   useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(false));
-    }
-  }, [isMultiCreator, dispatch]);
+    if (isMultiCreator) return;
+    if (activeIndividualContractsReady || individualContractsLoading) return;
+    dispatch(getIndividualCollaborationContracts(false));
+  }, [
+    isMultiCreator,
+    dispatch,
+    activeIndividualContractsReady,
+    individualContractsLoading,
+  ]);
 
   // --- Overview: auto-select first individual contract ---
   useEffect(() => {

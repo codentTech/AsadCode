@@ -86,10 +86,10 @@ export default function useActive() {
   }, [selectedCampaignId]);
 
   useEffect(() => {
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(false));
-    }
-  }, [isMultiCreator, dispatch]);
+    if (isMultiCreator) return;
+    if (activeIndividualContractsReady || individualContractsLoading) return;
+    dispatch(getIndividualCollaborationContracts(false));
+  }, [isMultiCreator, dispatch, activeIndividualContractsReady, individualContractsLoading]);
 
   useEffect(() => {
     if (isMultiCreator) return;
@@ -519,6 +519,19 @@ export default function useActive() {
     return hiredCreatorsLoading;
   }, [selectedCampaign, isMultiCreator, hiredCreatorsLoading, individualContractsLoading]);
 
+  const showFullPageSkeleton = useMemo(() => {
+    if (selectedCampaign) return false;
+    if (isMultiCreator) return isLoading;
+    if (activeIndividualContractsReady && activeIndividualContracts.length > 0) return false;
+    return isLoading;
+  }, [
+    selectedCampaign,
+    isMultiCreator,
+    isLoading,
+    activeIndividualContractsReady,
+    activeIndividualContracts.length,
+  ]);
+
   const rightPaneState = useMemo(() => {
     if (isLoading) {
       return { type: "loading" };
@@ -581,6 +594,7 @@ export default function useActive() {
     isMultiCreator,
     filters,
     isLoading,
+    showFullPageSkeleton,
     displayCreators,
     mobilePane,
     rightPaneState,

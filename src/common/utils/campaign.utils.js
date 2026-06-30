@@ -75,6 +75,118 @@ export const getCompensationTypeLabel = (type) => {
   }
 };
 
+export function requiresCollaborationPayment(source = {}) {
+  const application =
+    source.application && typeof source.application === "object" ? source.application : {};
+  const stubContract =
+    (source.contract && typeof source.contract === "object" ? source.contract : null) ||
+    (application.contract && typeof application.contract === "object"
+      ? application.contract
+      : null) ||
+    {};
+  const campaign =
+    (source.campaign && typeof source.campaign === "object" ? source.campaign : null) ||
+    application.campaign ||
+    source;
+
+  const creatorUserId =
+    source.creatorUserId ||
+    source.creator?.id ||
+    application.creator?.id ||
+    null;
+
+  const campaignContracts = Array.isArray(campaign?.contracts) ? campaign.contracts : [];
+  const matchedContract = creatorUserId
+    ? campaignContracts.find(
+        (contractItem) =>
+          contractItem?.creator_id === creatorUserId ||
+          contractItem?.creatorId === creatorUserId ||
+          contractItem?.creator?.id === creatorUserId,
+      )
+    : null;
+
+  const contractHasPaymentFields = Boolean(
+    stubContract?.compensationType ||
+      stubContract?.compensation_type ||
+      stubContract?.campaignType ||
+      stubContract?.campaign_type ||
+      stubContract?.productPrice ||
+      stubContract?.product_price,
+  );
+
+  const contract = contractHasPaymentFields ? stubContract : matchedContract || stubContract;
+
+  const formattedCompensation = (source.compensation || "").toString().toUpperCase();
+  const formattedCampaignType =
+    source.type === "Gifted"
+      ? CAMPAIGN_TYPE.GIFTED
+      : (source.campaignType || source.campaign_type || "").toString().toUpperCase();
+
+  const compensationType = (
+    contract.compensationType ||
+    contract.compensation_type ||
+    campaign.compensation_type ||
+    campaign.compensationType ||
+    source.compensationType ||
+    source.compensation_type ||
+    formattedCompensation ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  const campaignType = (
+    contract.campaignType ||
+    contract.campaign_type ||
+    campaign.campaign_type ||
+    campaign.campaignType ||
+    formattedCampaignType ||
+    source.campaignType ||
+    source.campaign_type ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  if (
+    compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+    compensationType === COMPENSATION_TYPE.COMMISSION
+  ) {
+    return false;
+  }
+
+  if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+    return false;
+  }
+
+  const productValue = Number(
+    contract.productPrice ||
+      contract.product_price ||
+      contract.productValue ||
+      contract.product_value ||
+      campaign.product_value ||
+      campaign.productValue ||
+      0,
+  );
+  const cashCompensation = Number(
+    contract.totalCompensation ||
+      contract.total_compensation ||
+      campaign.creator_fixed_price ||
+      campaign.creator_fee ||
+      0,
+  );
+
+  if (
+    productValue > 0 &&
+    cashCompensation <= 0 &&
+    compensationType !== COMPENSATION_TYPE.PAID
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export const sanitizeGuidelines = (list = []) =>
   (Array.isArray(list) ? list : [])
     .map((item) => (typeof item === "string" ? item.trim() : ""))
