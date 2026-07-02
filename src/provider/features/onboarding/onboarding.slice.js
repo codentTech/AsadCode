@@ -23,12 +23,15 @@ const initialState = {
 const onboardingSlice = createSlice({
   name: "onboarding",
   initialState,
-  reducers: {},
+  reducers: {
+    resetOnboardingSession: () => ({ ...initialState }),
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getOnboardingStatus.pending, (state) => {
         state.onboardingStatusLoading = true;
         state.onboardingStatusError = null;
+        state.onboardingStatus = null;
       })
       .addCase(getOnboardingStatus.fulfilled, (state, action) => {
         state.onboardingStatusLoading = false;
@@ -37,8 +40,11 @@ const onboardingSlice = createSlice({
       .addCase(getOnboardingStatus.rejected, (state, action) => {
         state.onboardingStatusLoading = false;
         state.onboardingStatusError = action.payload;
+        state.onboardingStatus = null;
       });
   },
 });
+
+export const { resetOnboardingSession } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

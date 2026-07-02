@@ -7,14 +7,37 @@ export const PLATFORM_OPTIONS = [
   { value: "tiktok", label: "TikTok" },
 ];
 
+export const BRAND_ACCOUNT_TYPE_OPTIONS = [
+  { value: "brand", label: "This is a brand account" },
+  { value: "agency", label: "This is an agency account" },
+];
+
+export const IDEAL_CREATOR_GENDER_OPTIONS = [
+  { id: "male", label: "Male", icon: "👨" },
+  { id: "female", label: "Female", icon: "👩" },
+  { id: "mixed", label: "Mixed/Any", icon: "👥" },
+];
+
+export const IDEAL_CREATOR_AGE_RANGES = [
+  { id: "13-17", label: "13-17", desc: "Gen Z Early" },
+  { id: "18-25", label: "18-25", desc: "Gen Z Core" },
+  { id: "26-32", label: "26-32", desc: "Millennials" },
+  { id: "33-40", label: "33-40", desc: "Elder Millennials" },
+  { id: "41-50", label: "41-50", desc: "Gen X" },
+  { id: "50+", label: "50+", desc: "Boomers+" },
+];
+
 // Follower count options for filtering
 export const FOLLOWER_OPTIONS = [
-  { value: "1000", label: "1K+" },
-  { value: "10000", label: "10K+" },
-  { value: "50000", label: "50K+" },
-  { value: "100000", label: "100K+" },
-  { value: "500000", label: "500K+" },
-  { value: "1000000", label: "1M+" },
+  { value: "1000", label: "1K" },
+  { value: "5000", label: "5K" },
+  { value: "10000", label: "10K" },
+  { value: "25000", label: "25K" },
+  { value: "50000", label: "50K" },
+  { value: "100000", label: "100K" },
+  { value: "250000", label: "250K" },
+  { value: "500000", label: "500K" },
+  { value: "1000000", label: "1M" },
 ];
 
 // Gender options for creator filtering
@@ -48,6 +71,8 @@ export const NICHE_OPTIONS = [
 ];
 
 // Sort by options for creator ordering
+export const DISCOVER_CREATORS_DEFAULT_SORT_BY = "followers";
+
 export const SORT_BY_OPTIONS = [
   { value: "followers", label: "Followers" },
   { value: "rating", label: "Rating" },
@@ -128,17 +153,17 @@ export const LOCATION_OPTIONS = [
 
 export const USAGE_RIGHTS_OPTIONS = [
   { value: "no_usage", label: "No Usage Rights" },
-  { value: "3", label: "3 Months Usage" },
-  { value: "6", label: "6 Months Usage" },
-  { value: "12", label: "12 Months Usage" },
+  { value: "3 months", label: "3 Months Usage" },
+  { value: "6 months", label: "6 Months Usage" },
+  { value: "12 months", label: "12 Months Usage" },
   { value: "permanent", label: "Permanent Usage" },
 ];
 
 export const EXCLUSIVITY_CLAUSE_OPTIONS = [
   { value: "none", label: "None" },
-  { value: "3", label: "3 Months" },
-  { value: "6", label: "6 Months" },
-  { value: "12", label: "12 Months" },
+  { value: "3 months", label: "3 Months" },
+  { value: "6 months", label: "6 Months" },
+  { value: "12 months", label: "12 Months" },
 ];
 
 export const REVISION_LIMIT_OPTIONS = [
@@ -157,4 +182,92 @@ export const NEGOTIATION_TOGGLE_OPTIONS = [
     label: "Non Negotiable",
     activeClasses: "bg-orange-100 text-orange-700",
   },
+];
+
+export const CREATOR_APPLICATION_STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "DENIED", label: "Denied" },
+  { value: "ONBOARDING_STARTED", label: "Onboarding Started" },
+  { value: "APPROVED", label: "Approved" },
+];
+
+export const CREATOR_APPLICATION_SORT_OPTIONS = [
+  { value: "created_at", label: "Date" },
+  { value: "country", label: "Country" },
+  { value: "status", label: "Status" },
+];
+
+export const CREATOR_APPLICATION_DEFAULT_SORT_BY = "created_at";
+export const CREATOR_APPLICATION_DEFAULT_SORT_ORDER = "DESC";
+
+export const CONNECTED_ACCOUNTS_PLATFORM_FILTER_OPTIONS = [
+  { value: "ALL", label: "All platforms" },
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "twitter", label: "Twitter" },
+];
+
+export const CONNECTED_ACCOUNTS_SORT_OPTIONS = [
+  { value: "created_at", label: "Date connected" },
+  { value: "platform", label: "Platform" },
+  { value: "full_name", label: "Creator" },
+  { value: "follower_count", label: "Followers" },
+];
+
+export const CONNECTED_ACCOUNTS_DEFAULT_SORT_BY = "created_at";
+export const CONNECTED_ACCOUNTS_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_USERS_ROLE_FILTER_OPTIONS = [
+  { value: "ALL", label: "All roles" },
+  { value: "CREATOR", label: "Creator" },
+  { value: "BRAND", label: "Brand" },
+];
+
+export const ADMIN_USERS_STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "All statuses" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "BLOCKED", label: "Blocked" },
+];
+
+export const ADMIN_USERS_ONBOARDING_FILTER_OPTIONS = [
+  { value: "ALL", label: "All onboarding" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+];
+
+export const ADMIN_USERS_SORT_OPTIONS = [
+  { value: "created_at", label: "Date joined" },
+  { value: "name", label: "Name" },
+];
+
+export const ADMIN_USERS_DEFAULT_SORT_BY = "created_at";
+export const ADMIN_USERS_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_WAITLIST_SORT_OPTIONS = [
+  { value: "created_at", label: "Date" },
+  { value: "email", label: "Email" },
+];
+
+export const ADMIN_WAITLIST_DEFAULT_SORT_BY = "created_at";
+export const ADMIN_WAITLIST_DEFAULT_SORT_ORDER = "DESC";
+
+export const ADMIN_PAYMENTS_FUNDING_FILTER_OPTIONS = [
+  { value: "ALL", label: "All funding statuses" },
+  { value: "not_required", label: "Not required" },
+  { value: "pending", label: "Pending" },
+  { value: "succeeded", label: "Succeeded" },
+  { value: "failed_action_required", label: "Failed (action required)" },
+];
+
+export const ADMIN_PAYMENTS_PAYOUT_FILTER_OPTIONS = [
+  { value: "ALL", label: "All payout statuses" },
+  { value: "not_required", label: "Not required" },
+  { value: "blocked", label: "Blocked" },
+  { value: "ready", label: "Ready" },
+  { value: "transferring", label: "Transferring" },
+  { value: "transferred", label: "Transferred" },
+  { value: "failed", label: "Failed" },
 ];

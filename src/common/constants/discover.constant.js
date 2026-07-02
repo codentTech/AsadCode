@@ -1,0 +1,3 @@
+export const DISCOVER_SEARCH_DEBOUNCE_MS = 500;
+export const DISCOVER_MIN_SEARCH_LENGTH = 2;
+export const DISCOVER_PAGE_LIMIT = 20;

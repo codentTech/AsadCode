@@ -14,15 +14,30 @@ function DeleteConfirmationModal({
   subText,
   subStyling,
   confirmText,
+  confirmLoading = false,
+  confirmLoadingText = "",
   closeText,
   action,
   type,
 }) {
+  const dismiss = () => {
+    if (confirmLoading) return;
+    setOpenConfirmationPopup(false);
+  };
+
+  const handleDialogClose = (_event, reason) => {
+    if (confirmLoading && (reason === "backdropClick" || reason === "escapeKeyDown")) {
+      return;
+    }
+    dismiss();
+  };
+
   return (
     <Dialog
       className="scrol-bar"
       ref={confirmationRef}
       open={openConfirmationPopup}
+      onClose={handleDialogClose}
       maxWidth="sm"
       fullWidth
     >
@@ -36,8 +51,10 @@ function DeleteConfirmationModal({
             <h3 className="text-base font-semibold text-gray-900">Delete Confirmation</h3>
           </div>
           <button
-            onClick={() => setOpenConfirmationPopup(false)}
-            className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+            type="button"
+            onClick={dismiss}
+            disabled={confirmLoading}
+            className="p-1 hover:bg-gray-100 rounded transition-colors duration-200 disabled:opacity-50 disabled:pointer-events-none"
           >
             <X className="w-4 h-4 text-gray-500" />
           </button>
@@ -65,9 +82,17 @@ function DeleteConfirmationModal({
           <CustomButton
             className="btn-cancel"
             text={closeText}
-            onClick={() => setOpenConfirmationPopup(false)}
+            onClick={dismiss}
+            disabled={confirmLoading}
           />
-          <CustomButton className="btn-danger" text={confirmText} onClick={() => action(id)} />
+          <CustomButton
+            className="btn-danger"
+            text={confirmText}
+            onClick={() => action(id)}
+            disabled={confirmLoading}
+            loading={confirmLoading}
+            loadingText={confirmLoadingText}
+          />
         </div>
       </div>
     </Dialog>
@@ -88,6 +113,8 @@ DeleteConfirmationModal.propTypes = {
   subText: PropTypes.string,
   subStyling: PropTypes.string,
   confirmText: PropTypes.string.isRequired,
+  confirmLoading: PropTypes.bool,
+  confirmLoadingText: PropTypes.string,
   closeText: PropTypes.string.isRequired,
   action: PropTypes.func.isRequired,
   type: PropTypes.string.isRequired,

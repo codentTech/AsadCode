@@ -3,10 +3,10 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
-import { ArrowLeft, ExternalLink, Globe, Mail, Plus, Trash2, User, X } from "lucide-react";
+import { ArrowLeft, ExternalLink, Globe, Mail, Plus, Trash2, User } from "lucide-react";
 import useCreatorApplication from "./use-creator-application.hook";
 
-const CreatorApplication = ({ onBack }) => {
+const CreatorApplication = ({ onBack, onSuccess }) => {
   const {
     register,
     handleSubmit,
@@ -22,42 +22,51 @@ const CreatorApplication = ({ onBack }) => {
     selectedCountry,
     socialLinkInputs,
     additionalLinkInput,
+    additionalLinkInputError,
     setSocialLinkInputs,
-    setAdditionalLinkInput,
+    handleAdditionalLinkInputChange,
     handleCountrySelect,
     handleSocialLinkChange,
     handleAddAdditionalLink,
     socialPlatforms,
     getPlatformIcon,
-  } = useCreatorApplication({ onSuccess: () => {} });
+  } = useCreatorApplication({ onSuccess });
 
   return (
-    <div className="py-8 px-4 bg-gray-100 min-h-screen">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+    <div className="min-h-screen bg-gray-100 px-2.5 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:px-4 sm:py-8 md:px-6">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-4 rounded-lg bg-primary px-3 py-3 text-left sm:mb-5 sm:p-4 md:rounded-xl">
+          <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+            Apply to Join CleerCut
+          </h1>
+          <p className="mt-1 text-[10px] leading-snug text-white/90 sm:text-xs md:text-sm">
+            Share your details and we&apos;ll review your application
+          </p>
+        </div>
+        <div className="mb-4 sm:mb-6">
+          <div className="mb-2 flex items-center justify-between text-[10px] text-gray-600 sm:mb-3 sm:text-xs md:text-sm">
             <button
+              type="button"
               onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:text-indigo-700"
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="h-3 w-3 shrink-0 sm:h-4 sm:w-4" />
               Back
             </button>
           </div>
         </div>
 
-        <div className="text-center mb-6">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-2">
-            Apply to Join CleerCut
-          </h1>
-          <p className="text-sm lg:text-base text-gray-600">
-            Share your details and we'll review your application
-          </p>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-6">
+        <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4 md:p-6 md:shadow-md">
+          {isError && message ? (
+            <div
+              className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-[10px] text-red-800 sm:mb-4 sm:px-3 sm:py-2.5 sm:text-xs"
+              role="alert"
+            >
+              {message}
+            </div>
+          ) : null}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4 md:space-y-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:gap-6">
               <CustomInput
                 label="Full Name"
                 name="full_name"
@@ -65,7 +74,7 @@ const CreatorApplication = ({ onBack }) => {
                 errors={errors}
                 placeholder="Enter your full name"
                 isRequired={true}
-                startIcon={<User className="h-4 w-4" />}
+                startIcon={<User className="h-3 w-3 sm:h-4 sm:w-4" />}
               />
 
               <CustomInput
@@ -76,31 +85,33 @@ const CreatorApplication = ({ onBack }) => {
                 errors={errors}
                 placeholder="Enter your email address"
                 isRequired={true}
-                startIcon={<Mail className="h-4 w-4" />}
+                startIcon={<Mail className="h-3 w-3 sm:h-4 sm:w-4" />}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <CountrySelect
-                label="Country"
-                value={selectedCountry}
-                onChange={handleCountrySelect}
-                errors={errors}
-                isRequired
-                name="country"
-              />
-              <input type="hidden" {...register("country")} />
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6">
+              <div className="sm:col-span-2">
+                <CountrySelect
+                  label="Country"
+                  value={selectedCountry}
+                  onChange={handleCountrySelect}
+                  errors={errors}
+                  isRequired
+                  name="country"
+                />
+                <input type="hidden" {...register("country")} />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-900 mb-3">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6">
+              <div className="sm:col-span-2">
+                <label className="mb-2 block text-xs font-medium text-gray-900 sm:mb-3 sm:text-sm">
                   Primary Social Media Links <span className="text-red-500">*</span>
-                  <span className="text-xs text-gray-500 font-normal ml-2">
-                    At least one required - Instagram, TikTok, or YouTube
+                  <span className="mt-0.5 block text-[10px] font-normal leading-snug text-gray-500 sm:mt-0 sm:ml-2 sm:inline sm:text-xs">
+                    At least one required — Instagram, TikTok, or YouTube
                   </span>
                 </label>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {socialPlatforms.map((platform) => {
                     const Icon = getPlatformIcon(platform.key);
                     const existingLink = primarySocialLinks.find(
@@ -109,8 +120,8 @@ const CreatorApplication = ({ onBack }) => {
 
                     return (
                       <div key={platform.key}>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-1">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="min-w-0 flex-1">
                             <CustomInput
                               type="url"
                               name={`social_${platform.key}`}
@@ -124,7 +135,11 @@ const CreatorApplication = ({ onBack }) => {
                                 }));
                                 handleSocialLinkChange(platform.key, value);
                               }}
-                              startIcon={<div className="w-4 h-4">{Icon}</div>}
+                              startIcon={
+                                <div className="flex h-3 w-3 shrink-0 items-center sm:h-4 sm:w-4">
+                                  {Icon}
+                                </div>
+                              }
                             />
                           </div>
                           {existingLink && (
@@ -134,9 +149,10 @@ const CreatorApplication = ({ onBack }) => {
                                 setSocialLinkInputs((prev) => ({ ...prev, [platform.key]: "" }));
                                 removePrimarySocialLink(platform.key);
                               }}
-                              className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                              className="shrink-0 rounded-lg p-2 text-red-600 hover:bg-red-50"
+                              aria-label={`Remove ${platform.key} link`}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                           )}
                         </div>
@@ -144,69 +160,74 @@ const CreatorApplication = ({ onBack }) => {
                     );
                   })}
                 </div>
-                {errors.primary_social_links && (
-                  <p className="text-xs text-red-600 mt-2">{errors.primary_social_links.message}</p>
-                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-900 mb-3">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6">
+              <div className="sm:col-span-2">
+                <label className="mb-2 block text-xs font-medium text-gray-900 sm:mb-3 sm:text-sm">
                   Additional Links{" "}
-                  <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                  <span className="text-[10px] font-normal text-gray-500 sm:text-xs">
+                    (Optional)
+                  </span>
                 </label>
-                <div className="space-y-3">
-                  <div className="flex space-x-2">
-                    <div className="flex-1">
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex flex-wrap items-stretch gap-2 sm:flex-nowrap">
+                    <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                       <CustomInput
                         type="url"
                         name="additional_link_input"
                         placeholder="Portfolio, website, or other social handles"
                         value={additionalLinkInput}
-                        onChange={(e) => setAdditionalLinkInput(e.target.value)}
-                        onKeyPress={(e) => {
+                        onChange={handleAdditionalLinkInputChange}
+                        errors={
+                          additionalLinkInputError
+                            ? { additional_link_input: { message: additionalLinkInputError } }
+                            : undefined
+                        }
+                        onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
                             handleAddAdditionalLink();
                           }
                         }}
-                        startIcon={<Globe className="h-4 w-4" />}
+                        startIcon={<Globe className="h-3 w-3 sm:h-4 sm:w-4" />}
                       />
                     </div>
-                    <button
+                    <CustomButton
                       type="button"
+                      text="Add"
+                      startIcon={<Plus className="h-4 w-4" />}
                       onClick={handleAddAdditionalLink}
-                      className="flex-shrink-0 px-2 py-1 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </button>
+                      className="btn-primary h-8 min-h-8 w-full shrink-0 px-3 sm:w-auto"
+                    />
                   </div>
                   {additionalLinks.length > 0 && (
                     <div className="space-y-2">
                       {additionalLinks.map((link, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg"
+                          className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5"
                         >
-                          <div className="flex items-center space-x-2 flex-1 min-w-0">
-                            <Globe className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                            <Globe className="h-3 w-3 shrink-0 text-gray-400 sm:h-4 sm:w-4" />
                             <a
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-indigo-600 hover:text-indigo-700 truncate"
+                              className="truncate text-xs text-primary hover:text-indigo-700 sm:text-sm"
                             >
                               {link.url}
                             </a>
-                            <ExternalLink className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <ExternalLink className="h-3 w-3 shrink-0 text-gray-400 sm:h-4 sm:w-4" />
                           </div>
                           <button
                             type="button"
                             onClick={() => removeAdditionalLink(index)}
-                            className="flex-shrink-0 p-1 text-red-600 hover:bg-red-50 rounded ml-2"
+                            className="shrink-0 rounded-lg p-1.5 text-red-600 hover:bg-red-50 sm:p-2"
+                            aria-label="Remove link"
                           >
-                            <X className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       ))}
@@ -216,8 +237,8 @@ const CreatorApplication = ({ onBack }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 gap-3 pt-1 sm:pt-2">
+              <div className="sm:col-span-2">
                 <CustomButton
                   text="Submit Application"
                   className="btn-primary w-full"

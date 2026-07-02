@@ -1,4 +1,11 @@
+"use client";
+
+import {
+  CREATOR_APPLICATION_DEFAULT_SORT_BY,
+  CREATOR_APPLICATION_DEFAULT_SORT_ORDER,
+} from "@/common/constants/options.constant";
 import { formatDate } from "@/common/utils/date.utils";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import {
   getAllCreatorApplications,
   approveApplicationAndInvite,
@@ -6,12 +13,11 @@ import {
   resetApproveState,
   resetDenyState,
 } from "@/provider/features/creator-applications/creator-applications.slice";
-import { useEffect, useState } from "react";
+import { ExternalLink, Mail, UserCheck, UserX } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ExternalLink, Mail } from "lucide-react";
 
-// Define table columns
-const columns = [
+const creatorApplicationsColumns = [
   {
     key: "full_name",
     title: "Creator Name",
@@ -75,6 +81,8 @@ const columns = [
             return "bg-yellow-100 text-yellow-800";
           case "APPROVED":
             return "bg-green-100 text-green-800";
+          case "ONBOARDING_STARTED":
+            return "bg-blue-100 text-blue-800";
           case "DENIED":
             return "bg-red-100 text-red-800";
           default:
@@ -100,22 +108,42 @@ const columns = [
   },
 ];
 
+function getCreatorApplicationRowActions(row) {
+  const actions = [];
+
+  if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
+    actions.push({
+      key: "approve",
+      label: "Approve and Invite",
+      icon: <UserCheck size={16} />,
+    });
+  }
+
+  if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
+    actions.push({
+      key: "deny",
+      label: "Deny",
+      icon: <UserX size={16} />,
+    });
+  }
+
+  return actions;
+}
+
 function useCreatorApplications() {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedApplications, setSelectedApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState(null);
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState("DESC");
+  const [sortBy, setSortBy] = useState(CREATOR_APPLICATION_DEFAULT_SORT_BY);
+  const [sortOrder, setSortOrder] = useState(CREATOR_APPLICATION_DEFAULT_SORT_ORDER);
+  const [showFilters, setShowFilters] = useState(false);
 
   const rawApplications = useSelector(
     (state) => state.creatorApplications.getAllApplications?.data || []
   );
 
-  // Safety filter: Never show APPROVED applications on frontend
-  const applications = Array.isArray(rawApplications)
-    ? rawApplications.filter((app) => app?.status !== "APPROVED")
-    : [];
+  const applications = Array.isArray(rawApplications) ? rawApplications : [];
   const { isLoading } = useSelector((state) => state.creatorApplications.getAllApplications);
   const { isLoading: isApproving, isSuccess: approveSuccess } = useSelector(
     (state) => state.creatorApplications.approveApplication
@@ -124,45 +152,43 @@ function useCreatorApplications() {
     (state) => state.creatorApplications.denyApplication
   );
 
+  const fetchApplications = useCallback(async () => {
+    const statusParam = statusFilter != null && statusFilter !== "ALL" ? statusFilter : null;
+    const trimmed = typeof searchTerm === "string" ? searchTerm.trim() : "";
+    const searchParam = trimmed ? trimmed : null;
+
+    await dispatch(
+      getAllCreatorApplications({
+        status: statusParam,
+        search: searchParam,
+        sortBy,
+        sortOrder,
+      })
+    );
+  }, [dispatch, statusFilter, searchTerm, sortBy, sortOrder]);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchApplications();
     }, 300);
 
     return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, searchTerm, sortBy, sortOrder]);
+  }, [fetchApplications]);
 
   useEffect(() => {
     if (approveSuccess) {
       dispatch(resetApproveState());
       fetchApplications();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [approveSuccess]);
+  }, [approveSuccess, dispatch, fetchApplications]);
 
   useEffect(() => {
     if (denySuccess) {
       dispatch(resetDenyState());
       fetchApplications();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [denySuccess]);
+  }, [denySuccess, dispatch, fetchApplications]);
 
-  const fetchApplications = async () => {
-    // Never pass APPROVED status filter - backend always excludes it
-    const filterStatus = statusFilter === "APPROVED" ? null : statusFilter;
-    await dispatch(
-      getAllCreatorApplications({
-        status: filterStatus,
-        search: searchTerm,
-        sortBy,
-        sortOrder,
-      })
-    );
-  };
-
-  // Handle action clicks
   const handleActionClick = async (actionKey, row) => {
     switch (actionKey) {
       case "approve":
@@ -184,43 +210,73 @@ function useCreatorApplications() {
     await dispatch(denyApplication(applicationId));
   };
 
-  // Handle selection change
   const handleSelectionChange = (selectedIds) => {
     setSelectedApplications(selectedIds);
   };
 
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-  };
+  const handleSearchChange = useCallback((value) => {
+    const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setSearchTerm(next);
+  }, []);
 
-  const handleSortChange = (field) => {
+  const handleSortChange = (fieldOrOption) => {
+    const field = extractSimpleSelectValue(fieldOrOption);
+    if (field == null || field === "") return;
     if (sortBy === field) {
-      // Toggle sort order if same field
-      setSortOrder(sortOrder === "ASC" ? "DESC" : "ASC");
+      setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
     } else {
-      // Set new field and default to DESC
       setSortBy(field);
       setSortOrder("DESC");
     }
   };
 
-  const handleStatusFilterChange = (status) => {
-    setStatusFilter(status === "ALL" ? null : status);
+  const handleStatusFilterChange = (option) => {
+    const v = extractSimpleSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setStatusFilter(null);
+    } else {
+      setStatusFilter(v);
+    }
   };
+
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter(null);
+    setSortBy(CREATOR_APPLICATION_DEFAULT_SORT_BY);
+    setSortOrder(CREATOR_APPLICATION_DEFAULT_SORT_ORDER);
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+    const hasStatus = statusFilter != null;
+    const sortChanged =
+      sortBy !== CREATOR_APPLICATION_DEFAULT_SORT_BY ||
+      sortOrder !== CREATOR_APPLICATION_DEFAULT_SORT_ORDER;
+    return hasSearch || hasStatus || sortChanged;
+  }, [searchTerm, statusFilter, sortBy, sortOrder]);
 
   return {
     searchTerm,
     filteredApplications: applications || [],
-    columns,
+    columns: creatorApplicationsColumns,
     selectedApplications,
     statusFilter,
     sortBy,
     sortOrder,
+    showFilters,
     handleSearchChange,
     handleSortChange,
     handleStatusFilterChange,
     handleSelectionChange,
     handleActionClick,
+    toggleFilters,
+    handleClearFilters,
+    hasActiveFilters,
+    getCreatorApplicationRowActions,
     isLoading: isLoading || isApproving || isDenying,
   };
 }

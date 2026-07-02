@@ -307,6 +307,7 @@ const chatSlice = createSlice({
         state.createOrGetConversation.isLoading = true;
         state.createOrGetConversation.isError = false;
         state.createOrGetConversation.isSuccess = false;
+        state.createOrGetConversation.data = null;
       })
       .addCase(createOrGetConversation.fulfilled, (state, action) => {
         state.createOrGetConversation.isLoading = false;
@@ -362,21 +363,21 @@ const chatSlice = createSlice({
         // Store messages by conversation ID (sort chronologically)
         const conversationId = action.payload.conversationId;
         const fetchedMessages = action.payload.data || [];
-        
+
         // Merge with existing messages, avoiding duplicates
         const existingMessages = state.messages[conversationId] || [];
         const existingIds = new Set(existingMessages.map((m) => m.id));
-        
+
         const newMessages = fetchedMessages.filter((m) => !existingIds.has(m.id));
         const allMessages = [...existingMessages, ...newMessages];
-        
+
         // Sort by created_at chronologically (create new array to avoid mutation)
         const sortedMessages = [...allMessages].sort((a, b) => {
           const dateA = new Date(a.created_at || a.createdAt || 0);
           const dateB = new Date(b.created_at || b.createdAt || 0);
           return dateA - dateB;
         });
-        
+
         state.messages[conversationId] = sortedMessages;
       })
       .addCase(getConversationMessages.rejected, (state, action) => {

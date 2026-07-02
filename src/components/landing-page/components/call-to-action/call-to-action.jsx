@@ -19,13 +19,13 @@ function CallToAction() {
               Join thousands of brands already growing with CleerCut's platform.
             </p>
           </div>
-          <div className="mt-3 w-full sm:w-[200px]">
+          {/* <div className="mt-3 w-full sm:w-[200px]">
             <CustomButton
               text="Join"
               startIcon={<JoinFullOutlined />}
               onClick={() => setIsOpen(true)}
             />
-          </div>
+          </div> */}
         </div>
       </div>
 

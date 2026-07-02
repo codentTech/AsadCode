@@ -1,14 +1,24 @@
 import { getUser } from "@/common/utils/users.util";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import authService from "./auth.service";
 
-// Helper function to extract serializable error information
+const normalizeAuthMessage = (value) => {
+  if (value == null || value === "") return "";
+  if (Array.isArray(value)) {
+    const first = value.find((x) => x != null && String(x).trim() !== "");
+    if (first != null) return String(first);
+    return value.filter(Boolean).join(" ");
+  }
+  return String(value);
+};
+
 const getSerializableError = (error) => {
-  if (error?.response?.data?.message) {
-    return { message: error.response.data.message };
+  if (error?.response?.data?.message != null) {
+    return { message: normalizeAuthMessage(error.response.data.message) || "An unexpected error occurred" };
   }
   if (error?.message) {
-    return { message: error.message };
+    return { message: normalizeAuthMessage(error.message) || "An unexpected error occurred" };
   }
   if (typeof error === "string") {
     return { message: error };
@@ -24,6 +34,30 @@ const generalState = {
   data: null,
 };
 
+const ensurePasswordResetRequest = (state) => {
+  if (!state.passwordResetRequest) {
+    state.passwordResetRequest = { ...generalState };
+  }
+};
+
+const ensurePasswordResetSubmit = (state) => {
+  if (!state.passwordResetSubmit) {
+    state.passwordResetSubmit = { ...generalState };
+  }
+};
+
+const ensureImpersonateUser = (state) => {
+  if (!state.impersonateUser) {
+    state.impersonateUser = { ...generalState };
+  }
+};
+
+const ensureExitImpersonation = (state) => {
+  if (!state.exitImpersonation) {
+    state.exitImpersonation = { ...generalState };
+  }
+};
+
 // Get user from localStorage
 const user = getUser();
 const initialState = {
@@ -34,7 +68,12 @@ const initialState = {
   login: generalState,
   signUp: generalState,
   verifyEmail: generalState,
+  sendVerificationEmail: generalState,
   resendEmail: generalState,
+  passwordResetRequest: generalState,
+  passwordResetSubmit: generalState,
+  impersonateUser: generalState,
+  exitImpersonation: generalState,
   logout: generalState,
   loginAndSignUpWithOAuth: generalState,
   loginAndSignUpWithLinkedin: generalState,
@@ -73,6 +112,19 @@ export const verifyEmail = createAsyncThunk("auth/verifyEmail", async (payload, 
   }
 });
 
+export const sendVerificationEmail = createAsyncThunk(
+  "auth/sendVerificationEmail",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.sendVerificationEmail(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const resendEmail = createAsyncThunk("auth/resendEmail", async (payload, thunkAPI) => {
   try {
     const response = await authService.resendEmail(payload);
@@ -82,6 +134,88 @@ export const resendEmail = createAsyncThunk("auth/resendEmail", async (payload, 
     return thunkAPI.rejectWithValue(getSerializableError(error));
   }
 });
+
+export const requestPasswordReset = createAsyncThunk(
+  "auth/requestPasswordReset",
+  async (email, thunkAPI) => {
+    try {
+      const response = await authService.requestPasswordReset(email);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const resetPasswordWithToken = createAsyncThunk(
+  "auth/resetPasswordWithToken",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.resetPasswordWithToken(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const impersonateUser = createAsyncThunk(
+  "auth/impersonateUser",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await authService.impersonate(userId);
+      if (!response?.success) {
+        return thunkAPI.rejectWithValue(response);
+      }
+
+      const payload = response?.data;
+      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
+        const activeToken = localStorage.getItem("token");
+        const activeUser = localStorage.getItem("user");
+        if (!localStorage.getItem("admin_token") && activeToken) {
+          localStorage.setItem("admin_token", activeToken);
+        }
+        if (!localStorage.getItem("admin_user") && activeUser) {
+          localStorage.setItem("admin_user", activeUser);
+        }
+        localStorage.setItem("token", payload.token);
+        localStorage.setItem("user", JSON.stringify(payload.user));
+      }
+
+      thunkAPI.dispatch(resetOnboardingSession());
+
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const exitImpersonation = createAsyncThunk(
+  "auth/exitImpersonation",
+  async (_, thunkAPI) => {
+    try {
+      const response = await authService.exitImpersonation();
+      if (!response?.success) {
+        return thunkAPI.rejectWithValue(response);
+      }
+
+      const payload = response?.data;
+      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
+        localStorage.setItem("token", payload.token);
+        localStorage.setItem("user", JSON.stringify(payload.user));
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_user");
+      }
+
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
 
 export const authSlice = createSlice({
   name: "auth",
@@ -104,7 +238,12 @@ export const authSlice = createSlice({
       state.logout = generalState;
       state.signUp = generalState;
       state.verifyEmail = generalState;
+      state.sendVerificationEmail = generalState;
       state.resendEmail = generalState;
+      state.passwordResetRequest = generalState;
+      state.passwordResetSubmit = generalState;
+      state.impersonateUser = generalState;
+      state.exitImpersonation = generalState;
       state.loginAndSignUpWithOAuth = generalState;
       state.loginAndSignUpWithLinkedin = generalState;
     },
@@ -165,6 +304,27 @@ export const authSlice = createSlice({
         state.verifyEmail.isError = true;
         state.verifyEmail.data = null;
       })
+      .addCase(sendVerificationEmail.pending, (state) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.isLoading = true;
+        state.sendVerificationEmail.message = "";
+        state.sendVerificationEmail.isError = false;
+        state.sendVerificationEmail.isSuccess = false;
+        state.sendVerificationEmail.data = null;
+      })
+      .addCase(sendVerificationEmail.fulfilled, (state, action) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.isLoading = false;
+        state.sendVerificationEmail.isSuccess = true;
+        state.sendVerificationEmail.data = action.payload;
+      })
+      .addCase(sendVerificationEmail.rejected, (state, action) => {
+        if (!state.sendVerificationEmail) state.sendVerificationEmail = { ...generalState };
+        state.sendVerificationEmail.message = action.payload?.message || "Failed to send email";
+        state.sendVerificationEmail.isLoading = false;
+        state.sendVerificationEmail.isError = true;
+        state.sendVerificationEmail.data = null;
+      })
       .addCase(resendEmail.pending, (state) => {
         state.resendEmail.isLoading = true;
         state.resendEmail.message = "";
@@ -182,6 +342,94 @@ export const authSlice = createSlice({
         state.resendEmail.isLoading = false;
         state.resendEmail.isError = true;
         state.resendEmail.data = null;
+      })
+      .addCase(requestPasswordReset.pending, (state) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.isLoading = true;
+        state.passwordResetRequest.message = "";
+        state.passwordResetRequest.isError = false;
+        state.passwordResetRequest.isSuccess = false;
+        state.passwordResetRequest.data = null;
+      })
+      .addCase(requestPasswordReset.fulfilled, (state, action) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.isLoading = false;
+        state.passwordResetRequest.isSuccess = true;
+        state.passwordResetRequest.message = action.payload?.message || "";
+        state.passwordResetRequest.data = action.payload;
+      })
+      .addCase(requestPasswordReset.rejected, (state, action) => {
+        ensurePasswordResetRequest(state);
+        state.passwordResetRequest.message =
+          action.payload?.message || "Could not send reset email";
+        state.passwordResetRequest.isLoading = false;
+        state.passwordResetRequest.isError = true;
+        state.passwordResetRequest.data = null;
+      })
+      .addCase(resetPasswordWithToken.pending, (state) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.isLoading = true;
+        state.passwordResetSubmit.message = "";
+        state.passwordResetSubmit.isError = false;
+        state.passwordResetSubmit.isSuccess = false;
+        state.passwordResetSubmit.data = null;
+      })
+      .addCase(resetPasswordWithToken.fulfilled, (state, action) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.isLoading = false;
+        state.passwordResetSubmit.isSuccess = true;
+        state.passwordResetSubmit.data = action.payload;
+      })
+      .addCase(resetPasswordWithToken.rejected, (state, action) => {
+        ensurePasswordResetSubmit(state);
+        state.passwordResetSubmit.message =
+          action.payload?.message || "Password reset failed";
+        state.passwordResetSubmit.isLoading = false;
+        state.passwordResetSubmit.isError = true;
+        state.passwordResetSubmit.data = null;
+      })
+      .addCase(impersonateUser.pending, (state) => {
+        ensureImpersonateUser(state);
+        state.impersonateUser.isLoading = true;
+        state.impersonateUser.isError = false;
+        state.impersonateUser.isSuccess = false;
+        state.impersonateUser.message = "";
+        state.impersonateUser.data = null;
+      })
+      .addCase(impersonateUser.fulfilled, (state, action) => {
+        ensureImpersonateUser(state);
+        state.impersonateUser.isLoading = false;
+        state.impersonateUser.isSuccess = true;
+        state.impersonateUser.data = action.payload;
+      })
+      .addCase(impersonateUser.rejected, (state, action) => {
+        ensureImpersonateUser(state);
+        state.impersonateUser.isLoading = false;
+        state.impersonateUser.isError = true;
+        state.impersonateUser.message = action.payload?.message || "Failed to impersonate user";
+        state.impersonateUser.data = null;
+      })
+      .addCase(exitImpersonation.pending, (state) => {
+        ensureExitImpersonation(state);
+        state.exitImpersonation.isLoading = true;
+        state.exitImpersonation.isError = false;
+        state.exitImpersonation.isSuccess = false;
+        state.exitImpersonation.message = "";
+        state.exitImpersonation.data = null;
+      })
+      .addCase(exitImpersonation.fulfilled, (state, action) => {
+        ensureExitImpersonation(state);
+        state.exitImpersonation.isLoading = false;
+        state.exitImpersonation.isSuccess = true;
+        state.exitImpersonation.data = action.payload;
+      })
+      .addCase(exitImpersonation.rejected, (state, action) => {
+        ensureExitImpersonation(state);
+        state.exitImpersonation.isLoading = false;
+        state.exitImpersonation.isError = true;
+        state.exitImpersonation.message =
+          action.payload?.message || "Failed to exit impersonation";
+        state.exitImpersonation.data = null;
       });
   },
 });

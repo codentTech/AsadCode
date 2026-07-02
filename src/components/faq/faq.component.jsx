@@ -1,4 +1,7 @@
+"use client";
+
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import { ChevronDown, ChevronUp, HelpCircle, Search } from "lucide-react";
 import useFaqHook from "./use-faq.hook";
 
@@ -19,7 +22,8 @@ export default function FAQPage() {
   } = useFaqHook();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-50">
+    <HeaderFooterLayout>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-50">
       {/* Header */}
       <header className="bg-primary shadow-lg">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
@@ -186,6 +190,7 @@ export default function FAQPage() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </HeaderFooterLayout>
   );
 }

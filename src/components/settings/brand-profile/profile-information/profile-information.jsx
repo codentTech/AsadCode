@@ -1,14 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
-import { getUserById } from "@/provider/features/users/users.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
+import { getUserById } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Camera, Upload, Instagram, Youtube } from "lucide-react";
+import { Camera, Instagram, Upload, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -252,28 +251,30 @@ const ProfileInformation = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header (from settings) */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-8">
-        <h1 className="text-xl font-bold text-white">Profile Information</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-4 rounded-lg bg-primary p-3 text-white sm:mb-8 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Profile Information
+        </h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Create an impressive brand profile that attracts the right creators
         </p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
           {/* Left Column */}
           <div className="space-y-4">
             {/* Brand Information */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
                 Brand Information <span className="text-red-500">*</span>
               </h3>
               <div className="space-y-4">
                 <CustomInput
                   label="Brand Name"
                   name="brandName"
-                  placeholder="Enter your brand or agency name"
+                  placeholder="Enter your client name"
                   register={register}
                   errors={errors}
                 />
@@ -288,11 +289,11 @@ const ProfileInformation = () => {
               </div>
             </div>
             {/* Brand Logo */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
                 Brand Logo <span className="text-red-500">*</span>
               </h3>
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:space-x-6 sm:gap-0">
                 <div className="relative">
                   {brandLogoPreview || brandLogo ? (
                     <img
@@ -339,8 +340,8 @@ const ProfileInformation = () => {
               )}
             </div>
             {/* Location */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
                 Location <span className="text-red-500">*</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -367,11 +368,11 @@ const ProfileInformation = () => {
           {/* Right Column */}
           <div className="space-y-4">
             {/* Company Description */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">
                 Company Description <span className="text-red-500">*</span>
               </h3>
-              <p className="text-xs text-gray-600 mb-2">
+              <p className="mb-2 text-[10px] text-gray-600 sm:text-xs">
                 Tell creators about your brand and what makes you unique
               </p>
               <div>
@@ -392,8 +393,10 @@ const ProfileInformation = () => {
             </div>
 
             {/* Social Media Links */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h3>
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-lg">
+                Social Media Links
+              </h3>
               <div className="space-y-4">
                 <CustomInput
                   label="Instagram"
@@ -433,16 +436,16 @@ const ProfileInformation = () => {
           </div>
         </div>
         {/* Action Buttons */}
-        <div className="flex justify-end mt-10">
+        <div className="mt-6 flex justify-end sm:mt-10">
           <CustomButton
             text={isSubmitting || isLoading || uploadState.isLoading ? "Saving..." : "Save"}
-            className="btn-primary"
+            className="btn-primary w-full sm:w-auto"
             type="submit"
             disabled={isSubmitting || isLoading || uploadState.isLoading}
           />
         </div>
       </form>
-    </DashboardLayout>
+    </>
   );
 };
 

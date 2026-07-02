@@ -1,16 +1,66 @@
-import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "../constants/campaign.constant";
+import {
+  CAMPAIGN_TYPE,
+  COMPENSATION_TYPE,
+  REQUIREMENT_LEVEL,
+} from "../constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "../constants/options.constant";
-import CampaignTypeNiche from "@/components/campaign/create-campaign/components/campaign-type-niche.component/campaign-type-niche.component";
-import AudienceRequirementsExperience from "@/components/campaign/create-campaign/components/audience-requirements-experience/audience-requirements-experience";
-import Compensation from "@/components/campaign/create-campaign/components/compensation/compensation";
-import Eligibility from "@/components/campaign/create-campaign/components/eligibility/eligibility";
-import Description from "@/components/campaign/create-campaign/components/description/description";
-import Preview from "@/components/campaign/create-campaign/components/preview/preview";
+import { formatCompactCurrency } from "./format.utils";
+import { capitalizeFirstWord } from "./helper.utils";
+import {
+  applyLivePipelineUrgency,
+  resolveCreatorUrgency,
+  sortCreatorsByUrgency,
+} from "@/common/utils/creator-urgency.util";
+import { PIPELINE_STATE } from "@/common/constants/creator-urgency.constant";
 
 export const CAMPAIGN_TYPE_MAP = CAMPAIGN_TYPE_OPTIONS.reduce((acc, option) => {
   acc[option.value] = option.label;
   return acc;
 }, {});
+
+export const deriveCompensation = (campaign) => {
+  if (!campaign) {
+    return {
+      label: "Paid",
+      detail: "Compensation TBD",
+    };
+  }
+
+  if (campaign.creator_fixed_price) {
+    return {
+      label: "Paid",
+      detail: `${formatCompactCurrency(Number(campaign.creator_fixed_price))}`,
+    };
+  }
+
+  if (campaign.suggested_min && campaign.suggested_max) {
+    return {
+      label: "Paid",
+      detail: `${formatCompactCurrency(Number(campaign.suggested_min))} - ${formatCompactCurrency(
+        Number(campaign.suggested_max)
+      )}`,
+    };
+  }
+
+  if (campaign.product_value) {
+    return {
+      label: "Gifted",
+      detail: `Product (${formatCompactCurrency(Number(campaign.product_value))} value)`,
+    };
+  }
+
+  if (campaign.commission_percentage) {
+    return {
+      label: "Commission",
+      detail: `${campaign.commission_percentage}% per sale`,
+    };
+  }
+
+  return {
+    label: "Paid",
+    detail: "Budget available",
+  };
+};
 
 export const getCompensationTypeLabel = (type) => {
   switch (type) {
@@ -25,6 +75,118 @@ export const getCompensationTypeLabel = (type) => {
   }
 };
 
+export function requiresCollaborationPayment(source = {}) {
+  const application =
+    source.application && typeof source.application === "object" ? source.application : {};
+  const stubContract =
+    (source.contract && typeof source.contract === "object" ? source.contract : null) ||
+    (application.contract && typeof application.contract === "object"
+      ? application.contract
+      : null) ||
+    {};
+  const campaign =
+    (source.campaign && typeof source.campaign === "object" ? source.campaign : null) ||
+    application.campaign ||
+    source;
+
+  const creatorUserId =
+    source.creatorUserId ||
+    source.creator?.id ||
+    application.creator?.id ||
+    null;
+
+  const campaignContracts = Array.isArray(campaign?.contracts) ? campaign.contracts : [];
+  const matchedContract = creatorUserId
+    ? campaignContracts.find(
+        (contractItem) =>
+          contractItem?.creator_id === creatorUserId ||
+          contractItem?.creatorId === creatorUserId ||
+          contractItem?.creator?.id === creatorUserId,
+      )
+    : null;
+
+  const contractHasPaymentFields = Boolean(
+    stubContract?.compensationType ||
+      stubContract?.compensation_type ||
+      stubContract?.campaignType ||
+      stubContract?.campaign_type ||
+      stubContract?.productPrice ||
+      stubContract?.product_price,
+  );
+
+  const contract = contractHasPaymentFields ? stubContract : matchedContract || stubContract;
+
+  const formattedCompensation = (source.compensation || "").toString().toUpperCase();
+  const formattedCampaignType =
+    source.type === "Gifted"
+      ? CAMPAIGN_TYPE.GIFTED
+      : (source.campaignType || source.campaign_type || "").toString().toUpperCase();
+
+  const compensationType = (
+    contract.compensationType ||
+    contract.compensation_type ||
+    campaign.compensation_type ||
+    campaign.compensationType ||
+    source.compensationType ||
+    source.compensation_type ||
+    formattedCompensation ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  const campaignType = (
+    contract.campaignType ||
+    contract.campaign_type ||
+    campaign.campaign_type ||
+    campaign.campaignType ||
+    formattedCampaignType ||
+    source.campaignType ||
+    source.campaign_type ||
+    ""
+  )
+    .toString()
+    .toUpperCase();
+
+  if (
+    compensationType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
+    compensationType === COMPENSATION_TYPE.COMMISSION
+  ) {
+    return false;
+  }
+
+  if (campaignType === CAMPAIGN_TYPE.GIFTED || campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+    return false;
+  }
+
+  const productValue = Number(
+    contract.productPrice ||
+      contract.product_price ||
+      contract.productValue ||
+      contract.product_value ||
+      campaign.product_value ||
+      campaign.productValue ||
+      0,
+  );
+  const cashCompensation = Number(
+    contract.totalCompensation ||
+      contract.total_compensation ||
+      campaign.creator_fixed_price ||
+      campaign.creator_fee ||
+      0,
+  );
+
+  if (
+    productValue > 0 &&
+    cashCompensation <= 0 &&
+    compensationType !== COMPENSATION_TYPE.PAID
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export const sanitizeGuidelines = (list = []) =>
   (Array.isArray(list) ? list : [])
     .map((item) => (typeof item === "string" ? item.trim() : ""))
@@ -32,7 +194,84 @@ export const sanitizeGuidelines = (list = []) =>
 
 export const formatCountriesDisplay = (countries = []) => {
   if (!Array.isArray(countries) || countries.length === 0) return null;
-  return countries.map((c) => c.country).join(", ");
+  return countries.map((c) => c.country).filter(Boolean).join(", ");
+};
+
+const formatRequirementSuffix = (requirement) => {
+  if (!requirement || requirement === REQUIREMENT_LEVEL.NONE) return "";
+  const label = String(requirement).charAt(0).toUpperCase() + String(requirement).slice(1);
+  return ` (${label})`;
+};
+
+export const formatCountriesWithRequirement = (
+  countries = [],
+  legacyCountry = null,
+  legacyRequirement = null
+) => {
+  if (Array.isArray(countries) && countries.length > 0) {
+    const mandatory = countries.filter((c) => c.requirement === REQUIREMENT_LEVEL.MANDATORY);
+    const preferred = countries.filter((c) => c.requirement === REQUIREMENT_LEVEL.PREFERRED);
+
+    if (mandatory.length > 0) {
+      return `${formatCountriesDisplay(mandatory)}${formatRequirementSuffix(REQUIREMENT_LEVEL.MANDATORY)}`;
+    }
+
+    if (preferred.length > 0) {
+      return `${formatCountriesDisplay(preferred)}${formatRequirementSuffix(REQUIREMENT_LEVEL.PREFERRED)}`;
+    }
+
+    return formatCountriesDisplay(countries);
+  }
+
+  if (legacyCountry) {
+    return `${legacyCountry}${formatRequirementSuffix(legacyRequirement)}`;
+  }
+
+  return null;
+};
+
+export const formatCampaignGeographySummary = (campaign = {}) => {
+  const fromCountries = formatCountriesWithRequirement(
+    campaign.creator_countries,
+    campaign.creator_country,
+    campaign.country_requirement
+  );
+
+  if (fromCountries) {
+    const citySuffix =
+      campaign.creator_city && campaign.city_requirement !== REQUIREMENT_LEVEL.NONE
+        ? ` • ${campaign.creator_city}${formatRequirementSuffix(campaign.city_requirement)}`
+        : campaign.creator_city
+          ? ` • ${campaign.creator_city}`
+          : "";
+    return `${fromCountries}${citySuffix}`;
+  }
+
+  if (campaign.creator_city) {
+    return `${campaign.creator_city}${formatRequirementSuffix(campaign.city_requirement)}`;
+  }
+
+  const locationOptions = Array.isArray(campaign.location_options)
+    ? campaign.location_options
+    : [];
+
+  if (locationOptions.includes("on-location") || locationOptions.includes("on_location")) {
+    return "On Location";
+  }
+
+  if (locationOptions.includes("remote")) {
+    return "Remote";
+  }
+
+  return null;
+};
+
+export const campaignHasGeographyRequirement = (campaign = {}) => {
+  const hasCountries =
+    Array.isArray(campaign.creator_countries) && campaign.creator_countries.length > 0;
+  const hasLegacyCountry = Boolean(campaign.creator_country);
+  const hasCity = Boolean(campaign.creator_city);
+  return hasCountries || hasLegacyCountry || hasCity;
 };
 
 export const createTagArray = (items = [], prefix = "item") =>
@@ -50,215 +289,6 @@ export const createPlatformMinimums = (platformMinimums = {}, formatNumber) =>
       platform,
       value: formatNumber(value),
     }));
-
-export const buildHeroStats = (
-  campaignData,
-  formatCurrency,
-  formatNumber,
-  deliverableTags,
-  requiredPlatforms
-) =>
-  [
-    campaignData.budget && {
-      label: "Budget",
-      value: formatCurrency(campaignData.budget),
-    },
-    campaignData.min_combined_followers && {
-      label: "Min Followers",
-      value: formatNumber(campaignData.min_combined_followers),
-    },
-    deliverableTags.length > 0 && {
-      label: "Deliverables",
-      value: deliverableTags.length,
-    },
-    requiredPlatforms.length > 0 && {
-      label: "Platforms",
-      value: requiredPlatforms.length,
-    },
-  ].filter(Boolean);
-
-export const buildCompensationItems = (campaignData, formatCurrency, commissionPerSale) =>
-  [
-    campaignData.budget && {
-      label:
-        campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED
-          ? "Product Value"
-          : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-            ? "Commission Rate"
-            : "Total Budget",
-      value:
-        campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED
-          ? formatCurrency(campaignData.product_value)
-          : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-            ? `${campaignData.commission_percentage}%`
-            : formatCurrency(campaignData.budget),
-      hint: "Private",
-    },
-    campaignData.suggested_min &&
-      campaignData.suggested_max && {
-        label: "Suggested Range",
-        value: `${formatCurrency(campaignData.suggested_min)} — ${formatCurrency(campaignData.suggested_max)}`,
-      },
-    campaignData.creator_fixed_price && {
-      label: "Fixed Payment",
-      value: formatCurrency(campaignData.creator_fixed_price),
-    },
-    campaignData.product_value && {
-      label: "Product Value",
-      value: formatCurrency(campaignData.product_value),
-    },
-    campaignData.product_price && {
-      label: "Product Price",
-      value: formatCurrency(campaignData.product_price),
-    },
-    campaignData.commission_percentage && {
-      label: "Commission Rate",
-      value: `${campaignData.commission_percentage}%`,
-    },
-    commissionPerSale > 0 && {
-      label: "Earnings per Sale",
-      value: formatCurrency(commissionPerSale),
-    },
-  ].filter(Boolean);
-
-export const buildWorkMode = (isRemote, inPersonRequired) =>
-  [isRemote && "Remote", inPersonRequired && "In-Person"].filter(Boolean);
-
-export const buildLocationMeta = (campaignData, countriesDisplay) =>
-  [
-    campaignData.location_details && {
-      label: "Location Details",
-      value: campaignData.location_details,
-    },
-    countriesDisplay && {
-      label: campaignData.creator_countries?.length > 1 ? "Countries" : "Country",
-      value: countriesDisplay,
-    },
-    campaignData.creator_city && {
-      label: "City",
-      value: `${campaignData.creator_city}${campaignData.creator_city_region ? `, ${campaignData.creator_city_region}` : ""}`,
-    },
-  ].filter(Boolean);
-
-export const buildCreatorRequirements = (campaignData) =>
-  [
-    campaignData.countryRequirement &&
-      campaignData.countryRequirement !== "none" && {
-        label: "Country Requirement",
-        value: campaignData.countryRequirement,
-      },
-    campaignData.cityRequirement &&
-      campaignData.cityRequirement !== "none" && {
-        label: "City Requirement",
-        value: campaignData.cityRequirement,
-      },
-    campaignData.ageRequirement &&
-      campaignData.ageRequirement !== "none" && {
-        label: "Age Requirement",
-        value: campaignData.ageRequirement,
-      },
-    (campaignData.min_age || campaignData.max_age) && {
-      label: "Age Range",
-      value: `${campaignData.min_age || "Any"} — ${campaignData.max_age || "Any"}`,
-    },
-    campaignData.genderRequirement &&
-      campaignData.genderRequirement !== "none" && {
-        label: "Gender Requirement",
-        value: campaignData.genderRequirement,
-      },
-    campaignData.creator_gender && {
-      label: "Preferred Gender",
-      value: campaignData.creator_gender,
-    },
-    campaignData.languageRequirement &&
-      campaignData.languageRequirement !== "none" && {
-        label: "Language Requirement",
-        value: campaignData.languageRequirement,
-      },
-    campaignData.creator_language && {
-      label: "Preferred Language",
-      value: campaignData.creator_language,
-    },
-  ].filter(Boolean);
-
-export const buildContentSections = (campaignData) =>
-  [
-    campaignData.short_description && {
-      title: "Campaign Overview",
-      body: campaignData.short_description,
-      tone: "muted",
-    },
-    campaignData.long_description && {
-      title: "Detailed Brief",
-      body: campaignData.long_description,
-      tone: "rich",
-    },
-    campaignData.hashtags && {
-      title: "Hashtags & Captions",
-      body: campaignData.hashtags,
-      tone: "accent",
-    },
-    campaignData.styleGuide && {
-      title: "Style Guide Notes",
-      body: campaignData.styleGuide,
-      tone: "muted",
-    },
-  ].filter(Boolean);
-
-export const buildGuidelineGroups = (doGuidelines, dontGuidelines) => {
-  const groups = [];
-  if (doGuidelines.length) groups.push({ title: "Do's", items: doGuidelines });
-  if (dontGuidelines.length) groups.push({ title: "Don'ts", items: dontGuidelines });
-  return groups;
-};
-
-export const buildQuickFields = (
-  campaignData,
-  campaignTypeLabel,
-  compensationItems,
-  compensationTypeLabel,
-  commissionPerSale,
-  formatCurrency,
-  applicationDeadlineLabel,
-  workMode,
-  countriesDisplay,
-  ageRangeSummary
-) =>
-  [
-    { label: "Campaign Type", value: campaignTypeLabel },
-    {
-      label:
-        campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED
-          ? "Product Value"
-          : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-            ? "Commission Rate"
-            : "Total Budget",
-      value: compensationItems[0]?.value || compensationTypeLabel,
-    },
-    compensationItems[1] && { label: "Creator Fee", value: compensationItems[1].value },
-    commissionPerSale > 0 && {
-      label: "Earnings per Sale",
-      value: formatCurrency(commissionPerSale),
-    },
-    { label: "Deadline", value: applicationDeadlineLabel },
-    workMode.length > 0 && { label: "Work Mode", value: workMode.join(" • ") },
-    countriesDisplay && {
-      label: campaignData.creator_countries?.length > 1 ? "Countries" : "Country",
-      value: countriesDisplay,
-    },
-    campaignData.creator_city && {
-      label: "City",
-      value: `${campaignData.creator_city}${campaignData.creator_city_region ? `, ${campaignData.creator_city_region}` : ""}`,
-    },
-    campaignData.creator_language && {
-      label: "Language",
-      value: campaignData.creator_language,
-    },
-    campaignData.creator_gender && { label: "Gender", value: campaignData.creator_gender },
-    ageRangeSummary && { label: "Age Range", value: ageRangeSummary },
-  ]
-    .filter(Boolean)
-    .filter((field) => field.value);
 
 export const campaignTitle = (campaignType) => {
   if (campaignType === CAMPAIGN_TYPE.SPONSORED_POST) {
@@ -278,7 +308,10 @@ export const campaignTitle = (campaignType) => {
 export const getCompensationType = (campaign) => {
   if (campaign.creator_fixed_price) return "Paid";
   if (campaign.commission_percentage) return "Commission";
-  if (campaign.product_value) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type === CAMPAIGN_TYPE.UGC) return "Gifted";
+  if (campaign.product_value && campaign.campaign_type !== CAMPAIGN_TYPE.UGC)
+    return "Product value";
+
   return "Paid";
 };
 
@@ -312,6 +345,7 @@ export const getCompensationValue = (campaign) => {
   return 0;
 };
 
+// --- Internal helpers (used by transformDataForAPI / formatCreatorFeeForDisplay; not exported) ---
 const trim = (value) => (typeof value === "string" ? value.trim() : "");
 const toNumber = (value) => {
   if (value === "" || value === null || value === undefined) return null;
@@ -348,9 +382,22 @@ const calculateCreatorFee = (data) => {
     data?.campaign_type === CAMPAIGN_TYPE.UGC
   ) {
     if (data.compensation_type === COMPENSATION_TYPE.PAID) {
-      return data.creator_fixed_price || 0;
+      if (data.creator_fixed_price != null && data.creator_fixed_price > 0) {
+        return data.creator_fixed_price;
+      }
+      if (data.suggested_min != null || data.suggested_max != null) {
+        const min = data.suggested_min ?? data.suggested_max ?? 0;
+        const max = data.suggested_max ?? data.suggested_min ?? 0;
+        return `${min}-${max}`;
+      }
+      return 0;
     }
-    return `${data.suggested_min || 0} - ${data.suggested_max || 0} (Range)` || 0;
+    if (data.suggested_min != null || data.suggested_max != null) {
+      const min = data.suggested_min ?? data.suggested_max ?? 0;
+      const max = data.suggested_max ?? data.suggested_min ?? 0;
+      return `${min}-${max}`;
+    }
+    return 0;
   }
 
   if (data.campaign_type === CAMPAIGN_TYPE.GIFTED) {
@@ -362,6 +409,97 @@ const calculateCreatorFee = (data) => {
   }
 
   return 0;
+};
+
+/**
+ * Formats gender for display, showing "No preference" instead of null, empty, or "none"
+ */
+export const formatGenderForDisplay = (gender) => {
+  if (!gender || gender === "" || gender === "none" || gender === null || gender === undefined) {
+    return "No preference";
+  }
+  // Capitalize first letter
+  return capitalizeFirstWord(gender);
+};
+
+/**
+ * Formats language for display, showing "No preference" instead of null, empty, or "none"
+ */
+export const formatLanguageForDisplay = (language) => {
+  if (
+    !language ||
+    language === "" ||
+    language === "none" ||
+    language === null ||
+    language === undefined
+  ) {
+    return "No preference";
+  }
+  // Capitalize first letter
+  return capitalizeFirstWord(language);
+};
+
+/**
+ * Formats creator fee for display, showing "Negotiable" instead of $0 when appropriate
+ */
+export const formatCreatorFeeForDisplay = (campaign) => {
+  if (campaign.campaign_type === CAMPAIGN_TYPE.GIFTED) {
+    if (campaign.product_value) {
+      return `$${campaign.product_value}`;
+    }
+    return "Gifted Product";
+  }
+
+  if (
+    campaign.compensation_type === COMPENSATION_TYPE.GIFTED_PRODUCT &&
+    campaign.product_value
+  ) {
+    return `$${campaign.product_value}`;
+  }
+
+  if (campaign.creator_fixed_price && campaign.creator_fixed_price > 0) {
+    return `$${campaign.creator_fixed_price}`;
+  }
+
+  if (campaign.suggested_min || campaign.suggested_max) {
+    return `$${campaign.suggested_min || 0} - $${campaign.suggested_max || 0}`;
+  }
+
+  if (
+    (campaign.campaign_type === CAMPAIGN_TYPE.SPONSORED_POST ||
+      campaign.campaign_type === CAMPAIGN_TYPE.UGC) &&
+    campaign.compensation_type === COMPENSATION_TYPE.PAID &&
+    (!campaign.creator_fixed_price || campaign.creator_fixed_price === 0) &&
+    !campaign.suggested_min &&
+    !campaign.suggested_max &&
+    (!campaign.creator_fee || campaign.creator_fee === 0)
+  ) {
+    return "Negotiable";
+  }
+
+  // For affiliate campaigns, show commission
+  if (campaign.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
+    const commissionPayment = calculateCommissionPayment(
+      campaign.commission_percentage,
+      campaign.product_price
+    );
+    if (commissionPayment > 0) {
+      return `$${commissionPayment}`;
+    }
+  }
+
+  // If creator_fee exists and is > 0, show it
+  if (campaign.creator_fee && campaign.creator_fee > 0) {
+    return `$${campaign.creator_fee}`;
+  }
+
+  if (campaign.product_value) {
+    return `$${campaign.product_value}`;
+  }
+
+  return campaign.creator_fee && Number(campaign.creator_fee) > 0
+    ? `$${campaign.creator_fee}`
+    : "—";
 };
 
 export const transformDataForAPI = (data) => {
@@ -422,85 +560,12 @@ export const transformDataForAPI = (data) => {
     style_guide_file: data.styleGuideFile || "",
     questions: sanitizeStrings(data.questions),
 
-    creator_fee: Number(calculateCreatorFee(data)),
+    creator_fee: (() => {
+      const fee = calculateCreatorFee(data);
+      return typeof fee === "string" ? fee : Number(fee);
+    })(),
   };
 };
-
-export const STEP_NAMES = [
-  "Campaign Title & Niche",
-  "Audience Requirements",
-  "Compensation",
-  "Eligibility",
-  "Description",
-  "Preview & Publish",
-];
-
-export const STEP_FIELDS = {
-  0: ["campaign_title", "niches"],
-  1: ["min_combined_followers", "required_platforms"],
-  2: [
-    "campaign_type",
-    "budget",
-    "suggested_min",
-    "suggested_max",
-    "creator_fixed_price",
-    "product_value",
-    "commission_percentage",
-    "product_price",
-  ],
-  3: [
-    "creator_countries",
-    "creator_city",
-    "min_age",
-    "max_age",
-    "creator_gender",
-    "creator_language",
-    "application_deadline",
-  ],
-  4: ["short_description", "campaignImage"],
-  5: ["termsAgreed"],
-};
-
-export const STEP_COMPONENTS = [
-  {
-    component: CampaignTypeNiche,
-    getProps: (commonProps, extraProps) => ({
-      ...commonProps,
-      addDeliverable: extraProps.addDeliverable,
-      removeDeliverable: extraProps.removeDeliverable,
-    }),
-  },
-  {
-    component: AudienceRequirementsExperience,
-    getProps: (commonProps) => commonProps,
-  },
-  {
-    component: Compensation,
-    getProps: (commonProps) => commonProps,
-  },
-  {
-    component: Eligibility,
-    getProps: (commonProps, extraProps) => ({
-      ...commonProps,
-      handleRequirementToggle: extraProps.handleRequirementToggle,
-      getWatchedValue: extraProps.getWatchedValue,
-    }),
-  },
-  {
-    component: Description,
-    getProps: (commonProps) => commonProps,
-  },
-  {
-    component: Preview,
-    getProps: (commonProps, extraProps) => ({
-      ...commonProps,
-      handleSubmit: extraProps.handleSubmit,
-      isLoading: extraProps.isLoading,
-      isError: extraProps.isError,
-      message: extraProps.message,
-    }),
-  },
-];
 
 export const getDefaultValues = () => ({
   campaign_title: "",
@@ -557,3 +622,210 @@ export const getDefaultValues = () => ({
 
   termsAgreed: false,
 });
+
+/**
+ * Aggregates per-creator metrics into combined campaign-level metrics.
+ *
+ * Formula reference (spec §3):
+ *   combinedViews       = sum of all views
+ *   combinedEngagement  = sum of all engagement
+ *   combinedER          = AVERAGE of individual ERs  (NOT recalculated from totals)
+ *   combinedCPE         = AVERAGE of individual CPEs (NOT total spend / total engagement)
+ */
+export function computeCombinedMetrics(creatorMetricsArray) {
+  const valid = creatorMetricsArray.filter((m) => m?.metrics != null);
+  if (valid.length === 0) return null;
+
+  const combinedViews = valid.reduce((sum, m) => sum + m.metrics.views, 0);
+  const combinedEngagement = valid.reduce((sum, m) => sum + m.metrics.totalEngagement, 0);
+
+  const erValues = valid.map((m) => m.metrics.engagementRate);
+  const combinedEngagementRate = erValues.reduce((s, v) => s + v, 0) / erValues.length;
+
+  const cpeValues = valid
+    .map((m) => m.metrics.costPerEngagement)
+    .filter((v) => v !== null && v !== undefined);
+  const combinedCostPerEngagement =
+    cpeValues.length > 0 ? cpeValues.reduce((s, v) => s + v, 0) / cpeValues.length : null;
+
+  return {
+    totalViews: combinedViews,
+    totalEngagement: combinedEngagement,
+    engagementRate: combinedEngagementRate,
+    costPerEngagement: combinedCostPerEngagement,
+    creatorCount: valid.length,
+  };
+}
+
+/**
+ * Returns true when the campaign type is UGC — metrics should be hidden.
+ */
+export function isUgcCampaign(campaign) {
+  return campaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+}
+
+export const resolveBrandMarkedCompleteAt = ({
+  selectedCreator,
+  selectedCampaign,
+  selectedContract,
+  isIndividualCreator,
+}) => {
+  const fromCreatorRow = selectedCreator?.completed_at ?? selectedCreator?.completedAt;
+  if (fromCreatorRow) return fromCreatorRow;
+
+  if (!isIndividualCreator) return null;
+
+  const fromCampaign =
+    selectedCreator?.campaign?.completed_date ??
+    selectedCreator?.campaign?.completedDate ??
+    selectedCampaign?.completed_date ??
+    selectedCampaign?.completedDate;
+  if (fromCampaign) return fromCampaign;
+
+  const workStatus = selectedContract?.work_status ?? selectedContract?.workStatus;
+  if (workStatus === "COMPLETED") {
+    return selectedContract?.updated_at ?? selectedContract?.updatedAt ?? null;
+  }
+
+  return null;
+};
+
+export const resolveCampaignFeeForOffer = (campaign) => {
+  const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
+  if (fee === undefined || fee === null || fee === "") return "";
+  return String(fee);
+};
+
+export const HIDE_CREATOR_RATING_UI = true;
+
+const APPLICATIONS_BOARD_COLUMNS = new Set(["applications", "negotiations"]);
+
+const APPLICATIONS_PIPELINE_STATES = new Set([
+  PIPELINE_STATE.NEEDS_REVIEW,
+  PIPELINE_STATE.REVIEW_OVERDUE,
+]);
+
+export function resolveCreatorBoardColumn(creator) {
+  const urgency = resolveCreatorUrgency(creator);
+  if (urgency.boardColumn && APPLICATIONS_BOARD_COLUMNS.has(urgency.boardColumn)) {
+    return urgency.boardColumn;
+  }
+
+  const pipelineState =
+    urgency.pipelineState || creator?.pipeline?.pipeline_state || null;
+  if (pipelineState && APPLICATIONS_PIPELINE_STATES.has(pipelineState)) {
+    return "applications";
+  }
+  if (pipelineState) {
+    return "negotiations";
+  }
+
+  return urgency.boardColumn || "applications";
+}
+
+export function isInvitedCreatorRow(creator) {
+  return Boolean(
+    creator?.is_invited ??
+      creator?.isInvited ??
+      creator?.source_invitation_id ??
+      creator?.invitation_id,
+  );
+}
+
+export function splitCreatorsByApplicationsSubTab(creators) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const applications = [];
+  const negotiations = [];
+
+  rows.forEach((creator) => {
+    const column = resolveCreatorBoardColumn(creator);
+    if (column === "negotiations") {
+      negotiations.push(creator);
+      return;
+    }
+    if (column === "applications" || !column) {
+      applications.push(creator);
+    }
+  });
+
+  return { applications, negotiations };
+}
+
+export function partitionPinnedInvitedCreators(creators) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const pinned = [];
+  const unpinned = [];
+
+  rows.forEach((creator) => {
+    if (isInvitedCreatorRow(creator)) {
+      pinned.push(creator);
+    } else {
+      unpinned.push(creator);
+    }
+  });
+
+  return { pinned, unpinned };
+}
+
+function sortCreatorsClientSide(creators, sortKey) {
+  if (!Array.isArray(creators) || creators.length === 0) return [];
+
+  const rows = [...creators];
+
+  switch (sortKey) {
+    case "urgency":
+      return sortCreatorsByUrgency(rows);
+    case "oldest":
+      return rows.sort((a, b) => {
+        const aTime = new Date(a.applied_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.applied_at || b.created_at || 0).getTime();
+        return aTime - bTime;
+      });
+    case "newest":
+      return rows.sort((a, b) => {
+        const aTime = new Date(a.applied_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.applied_at || b.created_at || 0).getTime();
+        return bTime - aTime;
+      });
+    case "rating":
+      return rows.sort((a, b) => {
+        const aRating = parseFloat(a.creator?.creator_profile?.rating) || 0;
+        const bRating = parseFloat(b.creator?.creator_profile?.rating) || 0;
+        return bRating - aRating;
+      });
+    case "followers":
+      return rows.sort((a, b) => {
+        const aFollowers = a.creator?.creator_profile?.total_followers || 0;
+        const bFollowers = b.creator?.creator_profile?.total_followers || 0;
+        return bFollowers - aFollowers;
+      });
+    case "engagement":
+      return rows.sort((a, b) => {
+        const aRate = parseFloat(a.creator?.creator_profile?.engagement_rate) || 0;
+        const bRate = parseFloat(b.creator?.creator_profile?.engagement_rate) || 0;
+        return bRate - aRate;
+      });
+    default:
+      return rows;
+  }
+}
+
+export function sortApplicationsCreators(creators, sortKey) {
+  const rows = Array.isArray(creators) ? creators.map(applyLivePipelineUrgency) : [];
+  if (!rows.length) return [];
+
+  const { pinned, unpinned } = partitionPinnedInvitedCreators(rows);
+  const sortedPinned = sortCreatorsByUrgency(pinned);
+  const sortedUnpinned =
+    sortKey === "urgency" ? sortCreatorsByUrgency(unpinned) : sortCreatorsClientSide(unpinned, sortKey);
+
+  return [...sortedPinned, ...sortedUnpinned];
+}
+
+export function creatorBelongsToApplicationsSubTab(creator, subTab) {
+  const column = resolveCreatorBoardColumn(creator);
+  if (subTab === "negotiations") {
+    return column === "negotiations";
+  }
+  return column === "applications";
+}

@@ -50,6 +50,8 @@ export default function CustomInput({
   onBlur = null,
   onFocus = null,
   autoFocus = false,
+  onPaste = null,
+  inputProps = null,
 }) {
   const {
     inputChangeHandler,
@@ -106,6 +108,8 @@ export default function CustomInput({
           {...(onChange && { onChange: inputChangeHandler })}
           readOnly={readOnly}
           {...(onBlur && { onBlur })}
+          {...(onPaste && { onPaste })}
+          {...(inputProps && { inputProps })}
           style={errors && errors[name] ? borderErrorStyle : borderSuccessStyle}
         />
 
@@ -144,6 +148,8 @@ CustomInput.propTypes = {
   readOnly: PropTypes.bool,
   customRef: PropTypes.object,
   autoFocus: PropTypes.bool,
+  onPaste: PropTypes.func,
+  inputProps: PropTypes.object,
 };
 
 CustomInput.defaultProps = {

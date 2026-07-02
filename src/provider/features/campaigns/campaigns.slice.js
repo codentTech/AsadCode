@@ -15,21 +15,35 @@ const generalState = {
   data: null,
 };
 
+const campaignScopedCreatorsState = { ...generalState, campaignId: null, filtersKey: null };
+
+function appliedCreatorsFiltersKey(filters = {}) {
+  return JSON.stringify(filters ?? {});
+}
+
+function resolvePipelineBoardArg(arg) {
+  if (typeof arg === "object" && arg !== null) {
+    return { campaignId: arg.campaignId, silent: Boolean(arg.silent) };
+  }
+  return { campaignId: arg, silent: false };
+}
+
 const initialState = {
   createCampaign: { ...generalState },
   getAllCampaigns: { ...generalState },
   getCampaignById: { ...generalState },
   updateCampaign: { ...generalState },
   deleteCampaign: { ...generalState },
-  publishCampaign: { ...generalState },
+  closeCampaignListing: { ...generalState },
   filterCampaigns: { ...generalState },
   getCampaignStats: { ...generalState },
   applyToCampaign: { ...generalState },
   withdrawApplication: { ...generalState },
   getAllBrandCampaigns: { ...generalState },
-  getBrandCampaignsExcludingCompleted: { ...generalState },
-  getAppliedCreators: { ...generalState },
-  getHiredCreators: { ...generalState }, // Separate state for active-completed tab
+  getAppliedCreators: { ...campaignScopedCreatorsState },
+  getAppliedCreatorsForBudget: { ...generalState }, // No status filter; used for budget calculation on completed tab
+  getHiredCreators: { ...campaignScopedCreatorsState },
+  getPipelineBoard: { ...campaignScopedCreatorsState },
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
@@ -112,16 +126,17 @@ export const deleteCampaign = createAsyncThunk(
   }
 );
 
-// Publish campaign
-export const publishCampaign = createAsyncThunk(
-  "campaigns/publishCampaign",
+export const closeCampaignListing = createAsyncThunk(
+  "campaigns/closeCampaignListing",
   async (campaignId, thunkAPI) => {
     try {
-      const response = await campaignsService.publishCampaign(campaignId);
+      const response = await campaignsService.closeCampaignListing(campaignId);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to close campaign listing")
+      );
     }
   }
 );
@@ -198,6 +213,22 @@ export const getAppliedCreators = createAsyncThunk(
   }
 );
 
+// Get applied creators with no status filter (for budget calculation on completed tab only)
+export const getAppliedCreatorsForBudget = createAsyncThunk(
+  "campaigns/getAppliedCreatorsForBudget",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.getAppliedCreators(campaignId, {});
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get creators for budget")
+      );
+    }
+  }
+);
+
 // Get hired creators for a campaign (separate from applied creators)
 export const getHiredCreators = createAsyncThunk(
   "campaigns/getHiredCreators",
@@ -212,6 +243,22 @@ export const getHiredCreators = createAsyncThunk(
   }
 );
 
+export const getPipelineBoard = createAsyncThunk(
+  "campaigns/getPipelineBoard",
+  async (arg, thunkAPI) => {
+    const { campaignId } = resolvePipelineBoardArg(arg);
+    try {
+      const response = await campaignsService.getPipelineBoard(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to fetch pipeline board"),
+      );
+    }
+  },
+);
+
 // Get all brand campaigns (unified endpoint for Applications, Active, and Completed tabs)
 export const getAllBrandCampaigns = createAsyncThunk(
   "campaigns/getAllBrandCampaigns",
@@ -224,21 +271,6 @@ export const getAllBrandCampaigns = createAsyncThunk(
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to fetch brand campaigns")
       );
-    }
-  }
-);
-
-// [DEPRECATED] Get brand campaigns excluding completed ones
-// Use getAllBrandCampaigns instead and filter on frontend
-export const getBrandCampaignsExcludingCompleted = createAsyncThunk(
-  "campaigns/getBrandCampaignsExcludingCompleted",
-  async (_, thunkAPI) => {
-    try {
-      const response = await campaignsService.getBrandCampaignsExcludingCompleted();
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
-    } catch (error) {
-      return thunkAPI.rejectWithValue(getSerializableError(error, "Failed to create campaign"));
     }
   }
 );
@@ -376,8 +408,18 @@ export const getCreatorCollaborationHistory = createAsyncThunk(
   async (creatorProfileId, thunkAPI) => {
     try {
       const response = await campaignsService.getCreatorCollaborationHistory(creatorProfileId);
-      if (response.success) return response;
-      return thunkAPI.rejectWithValue(response);
+      if (Array.isArray(response)) {
+        return { success: true, data: response };
+      }
+      if (response?.success === false) {
+        return thunkAPI.rejectWithValue(response);
+      }
+      if (response?.data !== undefined || response?.success === true) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        response || { message: "Failed to get creator collaboration history" }
+      );
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to get creator collaboration history")
@@ -396,7 +438,6 @@ export const campaignsSlice = createSlice({
       state.getCampaignById = { ...generalState };
       state.updateCampaign = { ...generalState };
       state.deleteCampaign = { ...generalState };
-      state.publishCampaign = { ...generalState };
       state.filterCampaigns = { ...generalState };
       state.getCampaignStats = { ...generalState };
     },
@@ -415,11 +456,8 @@ export const campaignsSlice = createSlice({
     resetGetAllBrandCampaigns: (state) => {
       state.getAllBrandCampaigns = { ...generalState };
     },
-    resetGetBrandCampaignsExcludingCompleted: (state) => {
-      state.getBrandCampaignsExcludingCompleted = { ...generalState };
-    },
     resetGetAppliedCreators: (state) => {
-      state.getAppliedCreators = { ...generalState };
+      state.getAppliedCreators = { ...campaignScopedCreatorsState };
     },
   },
   extraReducers: (builder) => {
@@ -519,24 +557,32 @@ export const campaignsSlice = createSlice({
         state.deleteCampaign.isError = true;
         state.deleteCampaign.data = null;
       })
-      // publishCampaign
-      .addCase(publishCampaign.pending, (state) => {
-        state.publishCampaign.isLoading = true;
-        state.publishCampaign.message = "";
-        state.publishCampaign.isError = false;
-        state.publishCampaign.isSuccess = false;
-        state.publishCampaign.data = null;
+      .addCase(closeCampaignListing.pending, (state) => {
+        state.closeCampaignListing.isLoading = true;
+        state.closeCampaignListing.message = "";
+        state.closeCampaignListing.isError = false;
+        state.closeCampaignListing.isSuccess = false;
       })
-      .addCase(publishCampaign.fulfilled, (state, action) => {
-        state.publishCampaign.isLoading = false;
-        state.publishCampaign.isSuccess = true;
-        state.publishCampaign.data = action.payload;
+      .addCase(closeCampaignListing.fulfilled, (state, action) => {
+        state.closeCampaignListing.isLoading = false;
+        state.closeCampaignListing.isSuccess = true;
+        state.closeCampaignListing.data = action.payload;
+
+        const updatedCampaign = action.payload?.data;
+        const brandCampaigns = state.getAllBrandCampaigns.data?.data;
+        if (updatedCampaign?.id && Array.isArray(brandCampaigns)) {
+          state.getAllBrandCampaigns.data.data = brandCampaigns.map((campaign) =>
+            campaign.id === updatedCampaign.id
+              ? { ...campaign, accepting_applications: false }
+              : campaign
+          );
+        }
       })
-      .addCase(publishCampaign.rejected, (state, action) => {
-        state.publishCampaign.message = action.payload?.message || "Failed to publish campaign";
-        state.publishCampaign.isLoading = false;
-        state.publishCampaign.isError = true;
-        state.publishCampaign.data = null;
+      .addCase(closeCampaignListing.rejected, (state, action) => {
+        state.closeCampaignListing.message =
+          action.payload?.message || "Failed to close campaign listing";
+        state.closeCampaignListing.isLoading = false;
+        state.closeCampaignListing.isError = true;
       })
       // filterCampaigns
       .addCase(filterCampaigns.pending, (state) => {
@@ -621,8 +667,11 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.isLoading = true;
         state.getAllBrandCampaigns.message = "";
         state.getAllBrandCampaigns.isError = false;
-        state.getAllBrandCampaigns.isSuccess = false;
-        state.getAllBrandCampaigns.data = null;
+        const hadData = Boolean(state.getAllBrandCampaigns.data);
+        if (!hadData) {
+          state.getAllBrandCampaigns.isSuccess = false;
+          state.getAllBrandCampaigns.data = null;
+        }
       })
       .addCase(getAllBrandCampaigns.fulfilled, (state, action) => {
         state.getAllBrandCampaigns.isLoading = false;
@@ -636,65 +685,127 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.isError = true;
         state.getAllBrandCampaigns.data = null;
       })
-      // getBrandCampaignsExcludingCompleted
-      .addCase(getBrandCampaignsExcludingCompleted.pending, (state) => {
-        state.getBrandCampaignsExcludingCompleted.isLoading = true;
-        state.getBrandCampaignsExcludingCompleted.message = "";
-        state.getBrandCampaignsExcludingCompleted.isError = false;
-        state.getBrandCampaignsExcludingCompleted.isSuccess = false;
-        state.getBrandCampaignsExcludingCompleted.data = null;
-      })
-      .addCase(getBrandCampaignsExcludingCompleted.fulfilled, (state, action) => {
-        state.getBrandCampaignsExcludingCompleted.isLoading = false;
-        state.getBrandCampaignsExcludingCompleted.isSuccess = true;
-        state.getBrandCampaignsExcludingCompleted.data = action.payload;
-      })
-      .addCase(getBrandCampaignsExcludingCompleted.rejected, (state, action) => {
-        state.getBrandCampaignsExcludingCompleted.message =
-          action.payload?.message || "Failed to fetch brand campaigns";
-        state.getBrandCampaignsExcludingCompleted.isLoading = false;
-        state.getBrandCampaignsExcludingCompleted.isError = true;
-        state.getBrandCampaignsExcludingCompleted.data = null;
-      })
       // getAppliedCreators
-      .addCase(getAppliedCreators.pending, (state) => {
+      .addCase(getAppliedCreators.pending, (state, action) => {
+        if (action.meta.arg?.silent) return;
+        const requestedCampaignId = action.meta.arg?.campaignId ?? null;
+        const requestedFiltersKey = appliedCreatorsFiltersKey(action.meta.arg?.filters);
+        const loadedCampaignId = state.getAppliedCreators.campaignId;
+        const loadedFiltersKey = state.getAppliedCreators.filtersKey;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null ||
+            requestedCampaignId !== loadedCampaignId ||
+            requestedFiltersKey !== loadedFiltersKey);
         state.getAppliedCreators.isLoading = true;
         state.getAppliedCreators.message = "";
         state.getAppliedCreators.isError = false;
         state.getAppliedCreators.isSuccess = false;
-        state.getAppliedCreators.data = null;
+        if (shouldClearData) {
+          state.getAppliedCreators.data = null;
+        }
       })
       .addCase(getAppliedCreators.fulfilled, (state, action) => {
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isSuccess = true;
         state.getAppliedCreators.data = action.payload;
+        state.getAppliedCreators.campaignId = action.meta.arg?.campaignId ?? null;
+        state.getAppliedCreators.filtersKey = appliedCreatorsFiltersKey(action.meta.arg?.filters);
       })
       .addCase(getAppliedCreators.rejected, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getAppliedCreators.message =
           action.payload?.message || "Failed to fetch applied creators";
         state.getAppliedCreators.isLoading = false;
         state.getAppliedCreators.isError = true;
         state.getAppliedCreators.data = null;
+        state.getAppliedCreators.campaignId = null;
+        state.getAppliedCreators.filtersKey = null;
+      })
+      // getAppliedCreatorsForBudget
+      .addCase(getAppliedCreatorsForBudget.pending, (state) => {
+        state.getAppliedCreatorsForBudget.isLoading = true;
+        state.getAppliedCreatorsForBudget.message = "";
+        state.getAppliedCreatorsForBudget.isError = false;
+        state.getAppliedCreatorsForBudget.isSuccess = false;
+        state.getAppliedCreatorsForBudget.data = null;
+      })
+      .addCase(getAppliedCreatorsForBudget.fulfilled, (state, action) => {
+        state.getAppliedCreatorsForBudget.isLoading = false;
+        state.getAppliedCreatorsForBudget.isSuccess = true;
+        state.getAppliedCreatorsForBudget.data = action.payload;
+      })
+      .addCase(getAppliedCreatorsForBudget.rejected, (state, action) => {
+        state.getAppliedCreatorsForBudget.message =
+          action.payload?.message || "Failed to get creators for budget";
+        state.getAppliedCreatorsForBudget.isLoading = false;
+        state.getAppliedCreatorsForBudget.isError = true;
+        state.getAppliedCreatorsForBudget.data = null;
       })
       // getHiredCreators
-      .addCase(getHiredCreators.pending, (state) => {
+      .addCase(getHiredCreators.pending, (state, action) => {
+        if (action.meta.arg?.silent) return;
+        const requestedCampaignId = action.meta.arg?.campaignId ?? null;
+        const loadedCampaignId = state.getHiredCreators.campaignId;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
         state.getHiredCreators.isLoading = true;
         state.getHiredCreators.message = "";
         state.getHiredCreators.isError = false;
         state.getHiredCreators.isSuccess = false;
-        state.getHiredCreators.data = null;
+        if (shouldClearData) {
+          state.getHiredCreators.data = null;
+        }
       })
       .addCase(getHiredCreators.fulfilled, (state, action) => {
         state.getHiredCreators.isLoading = false;
         state.getHiredCreators.isSuccess = true;
         state.getHiredCreators.data = action.payload;
+        state.getHiredCreators.campaignId = action.meta.arg?.campaignId ?? null;
       })
       .addCase(getHiredCreators.rejected, (state, action) => {
+        if (action.meta.arg?.silent) return;
         state.getHiredCreators.message =
           action.payload?.message || "Failed to fetch hired creators";
         state.getHiredCreators.isLoading = false;
         state.getHiredCreators.isError = true;
         state.getHiredCreators.data = null;
+        state.getHiredCreators.campaignId = null;
+      })
+      // getPipelineBoard
+      .addCase(getPipelineBoard.pending, (state, action) => {
+        const { campaignId: requestedCampaignId, silent } = resolvePipelineBoardArg(
+          action.meta.arg,
+        );
+        if (silent) return;
+        const loadedCampaignId = state.getPipelineBoard.campaignId;
+        const shouldClearData =
+          requestedCampaignId != null &&
+          (loadedCampaignId == null || requestedCampaignId !== loadedCampaignId);
+        state.getPipelineBoard.isLoading = true;
+        state.getPipelineBoard.message = "";
+        state.getPipelineBoard.isError = false;
+        state.getPipelineBoard.isSuccess = false;
+        if (shouldClearData) {
+          state.getPipelineBoard.data = null;
+        }
+      })
+      .addCase(getPipelineBoard.fulfilled, (state, action) => {
+        const { campaignId } = resolvePipelineBoardArg(action.meta.arg);
+        state.getPipelineBoard.isLoading = false;
+        state.getPipelineBoard.isSuccess = true;
+        state.getPipelineBoard.data = action.payload;
+        state.getPipelineBoard.campaignId = campaignId ?? null;
+      })
+      .addCase(getPipelineBoard.rejected, (state, action) => {
+        if (resolvePipelineBoardArg(action.meta.arg).silent) return;
+        state.getPipelineBoard.message =
+          action.payload?.message || "Failed to fetch pipeline board";
+        state.getPipelineBoard.isLoading = false;
+        state.getPipelineBoard.isError = true;
+        state.getPipelineBoard.data = null;
+        state.getPipelineBoard.campaignId = null;
       })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {
@@ -870,8 +981,6 @@ export const campaignsSlice = createSlice({
         state.getCreatorCollaborationHistory.isLoading = true;
         state.getCreatorCollaborationHistory.message = "";
         state.getCreatorCollaborationHistory.isError = false;
-        state.getCreatorCollaborationHistory.isSuccess = false;
-        state.getCreatorCollaborationHistory.data = null;
       })
       .addCase(getCreatorCollaborationHistory.fulfilled, (state, action) => {
         state.getCreatorCollaborationHistory.isLoading = false;
@@ -882,6 +991,7 @@ export const campaignsSlice = createSlice({
         state.getCreatorCollaborationHistory.message =
           action.payload?.message || "Failed to get creator collaboration history";
         state.getCreatorCollaborationHistory.isLoading = false;
+        state.getCreatorCollaborationHistory.isSuccess = false;
         state.getCreatorCollaborationHistory.isError = true;
         state.getCreatorCollaborationHistory.data = null;
       });
@@ -895,7 +1005,6 @@ export const {
   resetFilteredCampaigns,
   resetGetAllCampaigns,
   resetGetAllBrandCampaigns,
-  resetGetBrandCampaignsExcludingCompleted,
   resetGetAppliedCreators,
 } = campaignsSlice.actions;
 export default campaignsSlice.reducer;

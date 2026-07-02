@@ -1,20 +1,43 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import COUNTRIES from "@/common/constants/countries.constant";
 import MAJOR_WORLD_CITIES from "@/common/constants/cities-fallback.constant";
-import { autocompletePlaces, fetchPlaceDetails } from "@/common/utils/places-api-new";
+import {
+  autocompletePlacesThunk,
+  fetchPlaceDetailsThunk,
+} from "@/provider/features/places/places.slice";
 
 const countryNameLookup = COUNTRIES.reduce((acc, country) => {
   acc[country.code] = country.label;
   return acc;
 }, {});
 
-const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
+const matchesStateRegion = (cityRegion, stateName, stateShort) => {
+  const region = String(cityRegion || "").trim().toLowerCase();
+  if (!region) return false;
+  const name = String(stateName || "").trim().toLowerCase();
+  const short = String(stateShort || "").trim().toLowerCase();
+  if (name && region === name) return true;
+  if (short && region === short) return true;
+  if (name && region.includes(name)) return true;
+  if (short && region.includes(short)) return true;
+  return false;
+};
+
+const normalizeFallbackCities = (
+  cities,
+  searchTerm,
+  allowedCountryCodes,
+  stateName,
+  stateShort
+) => {
   const normalizedTerm = searchTerm.trim().toLowerCase();
   const allowedSet = Array.isArray(allowedCountryCodes)
     ? new Set(allowedCountryCodes.filter(Boolean).map((code) => String(code).toUpperCase()))
     : null;
+  const hasStateFilter = Boolean(stateName || stateShort);
 
   return cities
     .filter((city) => {
@@ -24,6 +47,9 @@ const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
         allowedSet.size &&
         !allowedSet.has(String(city.countryCode).toUpperCase())
       ) {
+        return false;
+      }
+      if (hasStateFilter && !matchesStateRegion(city.region, stateName, stateShort)) {
         return false;
       }
       return city.name.toLowerCase().includes(normalizedTerm);
@@ -47,9 +73,16 @@ const normalizeFallbackCities = (cities, searchTerm, allowedCountryCodes) => {
 
 const FALLBACK_LIMIT = 15;
 
-export default function useCitySelect({ countryCode, countryCodes = [] }) {
+export default function useCitySelect({
+  countryCode,
+  countryCodes = [],
+  stateName = "",
+  stateShort = "",
+}) {
+  const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const searchSeqRef = useRef(0);
 
   const normalizedAllowedCodes = useMemo(() => {
     const codes = [];
@@ -69,11 +102,14 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
 
   const fallbackSearch = useCallback(
     (term) =>
-      normalizeFallbackCities(MAJOR_WORLD_CITIES, term, normalizedAllowedCodes).slice(
-        0,
-        FALLBACK_LIMIT
-      ),
-    [normalizedAllowedCodes]
+      normalizeFallbackCities(
+        MAJOR_WORLD_CITIES,
+        term,
+        normalizedAllowedCodes,
+        stateName,
+        stateShort
+      ).slice(0, FALLBACK_LIMIT),
+    [normalizedAllowedCodes, stateName, stateShort]
   );
 
   const searchCities = useCallback(
@@ -88,71 +124,97 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
       const localResults = fallbackSearch(term);
       setOptions(localResults);
 
+      const seq = ++searchSeqRef.current;
       setIsSearching(true);
 
-      try {
-        const suggestions = await autocompletePlaces({
-          input: term,
+      const placesInput =
+        stateName || stateShort ? `${term}, ${stateName || stateShort}`.trim() : term;
+
+      const action = await dispatch(
+        autocompletePlacesThunk({
+          input: placesInput,
           includedPrimaryTypes: ["locality"],
           includedRegionCodes: normalizedAllowedCodes,
           languageCode: process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en",
-        });
+        })
+      );
 
-        const normalized = suggestions
-          .map((suggestion) => {
-            const prediction = suggestion?.placePrediction;
-            if (!prediction?.placeId) return null;
-
-            const mainText =
-              prediction?.structuredFormat?.mainText?.text || prediction?.text?.text || "";
-            const secondary =
-              prediction?.structuredFormat?.secondaryText?.text ||
-              prediction?.text?.secondaryText ||
-              "";
-            const label = secondary ? `${mainText}, ${secondary}` : mainText;
-
-            return {
-              label,
-              value: prediction.placeId,
-              placeId: prediction.placeId,
-              cityName: mainText,
-            };
-          })
-          .filter(Boolean);
-
-        if (!normalized.length) {
-          setOptions(localResults);
-        } else {
-          const deduped = [...normalized, ...localResults].filter(
-            (option, index, arr) => index === arr.findIndex((item) => item.label === option.label)
-          );
-          setOptions(deduped.slice(0, FALLBACK_LIMIT));
-        }
-      } catch (error) {
-        setOptions(localResults);
-      } finally {
+      if (seq !== searchSeqRef.current) {
         setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(false);
+
+      if (!autocompletePlacesThunk.fulfilled.match(action)) {
+        setOptions(localResults);
+        return;
+      }
+
+      const suggestions = action.payload;
+      const normalized = suggestions
+        .map((suggestion) => {
+          const prediction = suggestion?.placePrediction;
+          if (!prediction?.placeId) return null;
+
+          const mainText =
+            prediction?.structuredFormat?.mainText?.text || prediction?.text?.text || "";
+          const secondary =
+            prediction?.structuredFormat?.secondaryText?.text ||
+            prediction?.text?.secondaryText ||
+            "";
+          const label = secondary ? `${mainText}, ${secondary}` : mainText;
+
+          return {
+            label,
+            value: prediction.placeId,
+            placeId: prediction.placeId,
+            cityName: mainText,
+          };
+        })
+        .filter(Boolean);
+
+      if (!normalized.length) {
+        setOptions(localResults);
+      } else {
+        const deduped = [...normalized, ...localResults].filter(
+          (option, index, arr) => index === arr.findIndex((item) => item.label === option.label)
+        );
+        setOptions(deduped.slice(0, FALLBACK_LIMIT));
       }
     },
-    [fallbackSearch, normalizedAllowedCodes]
+    [dispatch, fallbackSearch, normalizedAllowedCodes, stateName, stateShort]
   );
 
-  const resolveCityDetails = useCallback(async (option) => {
-    if (!option) return null;
+  const resolveCityDetails = useCallback(
+    async (option) => {
+      if (!option) return null;
 
-    if (!option.placeId) {
-      return {
-        cityName: option.cityName || option.label,
-        countryCode: option.countryCode || "",
-        region: option.region || "",
-        latitude: option.latitude ?? null,
-        longitude: option.longitude ?? null,
-        geonameId: option.geonameId || null,
-      };
-    }
+      if (!option.placeId) {
+        return {
+          cityName: option.cityName || option.label,
+          countryCode: option.countryCode || "",
+          region: option.region || "",
+          latitude: option.latitude ?? null,
+          longitude: option.longitude ?? null,
+          geonameId: option.geonameId || null,
+        };
+      }
 
-    try {
-      const place = await fetchPlaceDetails(option.placeId);
+      const languageCode = process.env.NEXT_PUBLIC_GOOGLE_PLACES_LANGUAGE || "en";
+      const action = await dispatch(
+        fetchPlaceDetailsThunk({ placeId: option.placeId, languageCode })
+      );
+
+      if (!fetchPlaceDetailsThunk.fulfilled.match(action)) {
+        return {
+          cityName: option.cityName || option.label,
+          countryCode: option.countryCode || "",
+          region: option.region || "",
+        };
+      }
+
+      const place = action.payload;
 
       if (!place) {
         return {
@@ -180,14 +242,9 @@ export default function useCitySelect({ countryCode, countryCodes = [] }) {
         longitude: place.location?.longitude ?? null,
         placeId: option.placeId,
       };
-    } catch (error) {
-      return {
-        cityName: option.cityName || option.label,
-        countryCode: option.countryCode || "",
-        region: option.region || "",
-      };
-    }
-  }, []);
+    },
+    [dispatch]
+  );
 
   return {
     options,

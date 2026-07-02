@@ -14,6 +14,7 @@ const BrandProfile = ({ onNext, onBack }) => {
     onSubmit,
     getValues,
     isLoading,
+    logoLoading,
     isError,
     errorMessage,
     handleLogoUpload,
@@ -32,6 +33,14 @@ const BrandProfile = ({ onNext, onBack }) => {
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
+            Build Your Client Profile
+          </h1>
+          <p className="text-sm lg:text-md text-white">
+            Set up your public profile that creators will see
+          </p>
+        </div>
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
@@ -45,19 +54,9 @@ const BrandProfile = ({ onNext, onBack }) => {
             <span>Step 4 of 6</span>
             <span>66% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-2/3 transition-all duration-500"></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-2/3 transition-all duration-500"></div>
           </div>
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
-            Build Your Brand Profile
-          </h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Set up your public profile that creators will see
-          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -67,14 +66,14 @@ const BrandProfile = ({ onNext, onBack }) => {
               {/* Brand Information */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Brand Information <span className="text-red-500">*</span>
+                  Client Information <span className="text-red-500">*</span>
                 </h3>
 
                 <div className="space-y-4">
                   <CustomInput
-                    label="Brand Name"
+                    label="Client Name"
                     name="brandName"
-                    placeholder="Enter your brand or agency name"
+                    placeholder="Enter your client name"
                     register={register}
                     errors={errors}
                   />
@@ -83,7 +82,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                     label="Website URL"
                     name="websiteUrl"
                     type="url"
-                    placeholder="https://www.yourbrand.com"
+                    placeholder="https://www.yourclient.com"
                     register={register}
                     errors={errors}
                   />
@@ -92,42 +91,58 @@ const BrandProfile = ({ onNext, onBack }) => {
 
               {/* Brand Logo */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Brand Logo <span className="text-red-500">*</span>
                 </h3>
-                <div className="flex items-center space-x-6">
-                  <div className="relative">
-                    {brandLogoPreview || brandLogo ? (
-                      <img
-                        src={brandLogoPreview || brandLogo}
-                        alt="Brand Logo"
-                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
-                        <Camera className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                    {(brandLogoPreview || brandLogo) && (
+
+                <div className="grid grid-cols-3 gap-3 items-start">
+                  <div className="col-span-3 md:col-span-1 space-y-2">
+                    <div className="relative aspect-[3/4] rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                      {brandLogoPreview || brandLogo ? (
+                        <img
+                          src={brandLogoPreview || brandLogo}
+                          alt="Brand Logo"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Camera className="h-5 w-5 text-gray-400" />
+                      )}
+
+                      {!!logoLoading && (
+                        <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={handleRemoveLogo}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 text-xs"
                         type="button"
+                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        onClick={handleLogoUpload}
+                        disabled={logoLoading}
                       >
-                        ×
+                        {brandLogoPreview || brandLogo ? "Change" : "Upload"}
                       </button>
-                    )}
+
+                      {(brandLogoPreview || brandLogo) && (
+                        <button
+                          type="button"
+                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          onClick={handleRemoveLogo}
+                          disabled={logoLoading}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <CustomButton
-                      text="Upload Logo"
-                      className="btn-secondary"
-                      icon={Upload}
-                      onClick={handleLogoUpload}
-                      type="button"
-                      disabled={isLoading}
-                    />
-                    <p className="text-xs text-gray-600 mt-2">PNG or JPG, max 5MB</p>
+
+                  <div className="col-span-3 md:col-span-2 rounded-lg bg-gray-50 border border-gray-200 p-3">
+                    <p className="text-sm text-gray-700 font-medium">Upload guidelines</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      JPG or PNG, max 5MB. Use a clear square logo so it looks good in previews.
+                    </p>
                     {isError && <p className="text-xs text-red-600 mt-2">{errorMessage}</p>}
                   </div>
                 </div>
@@ -180,7 +195,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                 </div>
 
                 {/* Brand Profile Card Preview */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 text-center">
+                <div className="bg-primary rounded-lg p-6 text-center">
                   <div className="relative inline-block mb-4">
                     {brandLogoPreview || brandLogo ? (
                       <img
@@ -189,7 +204,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                         className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center shadow-md">
+                      <div className="w-16 h-16 border-2 border-white bg-primary rounded-full flex items-center justify-center shadow-md">
                         <Building2 className="h-8 w-8 text-white" />
                       </div>
                     )}
@@ -198,20 +213,20 @@ const BrandProfile = ({ onNext, onBack }) => {
                     </div>
                   </div>
 
-                  <h4 className="font-semibold text-gray-900 mb-1">
+                  <h4 className="font-semibold text-white mb-1">
                     {getValues("brandName") || "Your Brand Name"}
                   </h4>
-                  <p className="text-xs text-gray-600 mb-3">
+                  <p className="text-xs text-white mb-3">
                     {getValues("websiteUrl") || "example.com"}
                   </p>
 
                   {description && (
-                    <p className="text-xs text-gray-600 bg-white/70 p-3 rounded-lg mb-3 text-left">
+                    <p className="text-xs text-black bg-gray-100 p-3 rounded-lg mb-3 text-left">
                       {description}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-center text-xs text-gray-500">
+                  <div className="flex items-center justify-center text-xs text-white">
                     <MapPin className="h-3 w-3 mr-1" />
                     {previewCityName}, {previewCountryName}
                   </div>
@@ -262,7 +277,7 @@ const BrandProfile = ({ onNext, onBack }) => {
                   },
                   {
                     label: "Description",
-                    status: (description || "").length > 50 ? "complete" : "pending",
+                    status: description ? "complete" : "pending",
                   },
                   {
                     label: "Location",

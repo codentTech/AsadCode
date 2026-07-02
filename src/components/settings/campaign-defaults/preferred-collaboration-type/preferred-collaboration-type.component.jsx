@@ -1,157 +1,54 @@
+"use client";
+
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { getUser } from "@/common/utils/users.util";
-import { updateCreatorPreferences } from "@/provider/features/users/users.slice";
-import { CheckCircle, DollarSign, Gift, MapPin, Percent } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
+import { CheckCircle, MapPin } from "lucide-react";
+import usePreferredCollaborationType from "./use-preferred-collaboration-type.hook";
 
 const PreferredCollaborationType = () => {
-  const dispatch = useDispatch();
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
-  const [inPersonOpportunities, setInPersonOpportunities] = useState(null);
-  const [shippingAddress, setShippingAddress] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    campaignTypes,
+    ethnicityOptions,
+    selectedTypes,
+    selectedLanguages,
+    selectedEthnicity,
+    inPersonOpportunities,
+    shippingAddress,
+    countrySelection,
+    citySelection,
+    countryCode,
+    isLoading,
+    toggleCampaignType,
+    handleLanguagesChange,
+    handleEthnicityChange,
+    handleInPersonChange,
+    handleShippingChange,
+    handleCountrySelect,
+    handleCitySelect,
+    handleSavePreferences,
+  } = usePreferredCollaborationType();
 
-  // Load user data on component mount
-  useEffect(() => {
-    const loadUserData = () => {
-      try {
-        const user = getUser();
-        if (user) {
-          // Set initial values from user data
-          if (user.creator_profile?.campaign_types) {
-            setSelectedTypes(user.creator_profile.campaign_types);
-          }
-          if (user.creator_profile?.languages) {
-            setSelectedLanguages(user.creator_profile.languages);
-          }
-          if (user.creator_profile?.in_person_opportunities !== undefined) {
-            setInPersonOpportunities(user.creator_profile.in_person_opportunities);
-          }
-          if (user.creator_profile?.shipping_address) {
-            setShippingAddress(user.creator_profile.shipping_address);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, []);
-
-  const campaignTypes = [
-    {
-      id: "sponsored",
-      label: "Sponsored Post",
-      desc: "Get paid to post on your own platform",
-      icon: DollarSign,
-    },
-    {
-      id: "ugc",
-      label: "UGC",
-      desc: "Create content for brands to post on their platforms or in ads",
-      icon: Gift,
-    },
-    {
-      id: "gifted",
-      label: "Gifted",
-      desc: "Receive free products in exchange for content",
-      icon: Gift,
-    },
-    {
-      id: "affiliate",
-      label: "Affiliate",
-      desc: "Earn commission for driving sales",
-      icon: Percent,
-    },
-  ];
-
-  const languages = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Chinese",
-    "Japanese",
-  ];
-
-  const toggleCampaignType = (typeId) => {
-    setSelectedTypes((prev) =>
-      prev.includes(typeId) ? prev.filter((id) => id !== typeId) : [...prev, typeId]
-    );
-  };
-
-  const toggleLanguage = (language) => {
-    setSelectedLanguages((prev) =>
-      prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
-    );
-  };
-
-  const handleInPersonChange = (value) => {
-    setInPersonOpportunities(value === "yes");
-  };
-
-  const handleShippingChange = (field, value) => {
-    setShippingAddress((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSavePreferences = async () => {
-    try {
-      setIsLoading(true);
-
-      const preferences = {
-        campaignTypes: selectedTypes,
-        languages: selectedLanguages,
-        inPersonOpportunities: inPersonOpportunities,
-        shippingAddress: shippingAddress,
-      };
-
-      console.log("Sending preferences:", preferences);
-
-      const result = await dispatch(updateCreatorPreferences(preferences)).unwrap();
-
-      if (result.success) {
-        // Refresh user data from localStorage after successful update
-        getUser(result?.data);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error updating preferences:", error);
-      // Show user-friendly error message
-      if (error.response?.data?.message) {
-        console.error("API Error:", error.response.data.message);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Use local loading state as fallback if Redux state is not available
+  const shippingErrors = {};
 
   return (
-    <DashboardLayout>
-      {/* Header - Keep the primary banner */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Preferred Collaboration Type</h1>
-        <p className="text-sm mt-1">
+    <>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
+          Preferred Collaboration Type
+        </h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Choose your default collaboration preferences. This helps brands understand how you prefer
           to work together.
         </p>
       </div>
 
       <div className="max-w-full mx-auto">
-        <div className="space-y-8">
-          {/* Campaign Types */}
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Campaign Types</h3>
+        <div className="space-y-4 sm:space-y-8">
+          <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+            <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-xl">Campaign Types</h3>
             <div className="grid md:grid-cols-2 gap-4">
               {campaignTypes.map((type) => {
                 const Icon = type.icon;
@@ -180,9 +77,9 @@ const PreferredCollaborationType = () => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="text-sm font-bold text-gray-900">{type.label}</h4>
-                          {selectedTypes?.includes(type.id) && (
+                          {selectedTypes?.includes(type.id) ? (
                             <CheckCircle className="h-5 w-5 text-indigo-500" />
-                          )}
+                          ) : null}
                         </div>
                         <p className="text-xs text-gray-600">{type.desc}</p>
                       </div>
@@ -193,111 +90,173 @@ const PreferredCollaborationType = () => {
             </div>
           </div>
 
-          {/* Language & Location */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Languages */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Languages</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {languages.map((language) => (
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() => toggleLanguage(language)}
-                    className={
-                      `p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 ` +
-                      (selectedLanguages?.includes(language)
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                        : "border-gray-200 text-gray-600 hover:border-indigo-200")
-                    }
-                  >
-                    {language}
-                  </button>
-                ))}
+          <div className="grid gap-4 sm:gap-8 lg:grid-cols-2">
+            <div className="space-y-4 rounded-lg bg-white p-3 shadow-lg sm:space-y-6 sm:p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 sm:text-xl">Languages</h3>
+              <div>
+                <LanguageSelect
+                  name="languages"
+                  value={selectedLanguages || []}
+                  onChange={handleLanguagesChange}
+                  errors={{}}
+                  maxSelections={8}
+                />
+              </div>
+
+              <div>
+                <h3 className="mb-1 border-t pt-4 text-sm font-semibold text-gray-900 sm:text-xl">
+                  In-Person Opportunities <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-gray-600 mb-4">
+                  Are you open to in-person opportunities in your city?
+                </p>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="inPerson"
+                      value="yes"
+                      checked={inPersonOpportunities === true}
+                      onChange={() => handleInPersonChange("yes")}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                    />
+                    <span className="text-gray-600 font-medium">Yes, I'm interested</span>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="inPerson"
+                      value="no"
+                      checked={inPersonOpportunities === false}
+                      onChange={() => handleInPersonChange("no")}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                    />
+                    <span className="text-gray-600 font-medium">No, I'm not interested</span>
+                  </label>
+                </div>
               </div>
             </div>
 
-            {/* In-Person Opportunities */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">In-Person Opportunities</h3>
-              <p className="text-xs text-gray-600 mb-4">
-                Are you open to in-person opportunities in your city?
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+              <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-xl">Ethnicity (Optional)</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                This information is used only for brand filtering and is never shown publicly.
               </p>
-              <div className="space-y-3">
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="inPerson"
-                    value="yes"
-                    checked={inPersonOpportunities === true}
-                    onChange={() => handleInPersonChange("yes")}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  />
-                  <span className="text-gray-600 font-medium">Yes, I'm interested</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="inPerson"
-                    value="no"
-                    checked={inPersonOpportunities === false}
-                    onChange={() => handleInPersonChange("no")}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  />
-                  <span className="text-gray-600 font-medium">No, I'm not interested</span>
-                </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ethnicityOptions.map((opt) => {
+                  const active = selectedEthnicity === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => handleEthnicityChange(opt)}
+                      className={`text-left rounded-lg border p-2 text-xs transition-colors ${
+                        active
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:border-indigo-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-gray-800">{opt}</span>
+                        {active ? <CheckCircle className="h-4 w-4 text-indigo-500" /> : null}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Shipping Address */}
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">
-              Shipping Address (Optional)
+          <div className="rounded-lg bg-white p-3 shadow-lg sm:p-4">
+            <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-xl">
+              Shipping Address <span className="text-red-500">*</span>
             </h3>
+
             <p className="text-xs text-gray-600 mb-4">
-              Only visible when a brand is sending you a product
+              Your shipping address is kept private and is never publicly visible. It will only be
+              shared with a brand after you are hired for a campaign that requires product delivery.
             </p>
-            <div className="grid md:grid-cols-2 gap-6">
+
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
               <CustomInput
-                label="Street Address"
-                name="address"
+                label="Address line 1"
+                name="street"
                 placeholder="Enter your address"
                 icon={MapPin}
                 value={shippingAddress?.street || ""}
                 onChange={(e) => handleShippingChange("street", e.target.value)}
+                errors={shippingErrors}
+                required
               />
+
               <CustomInput
-                label="City"
-                name="city"
-                placeholder="Enter city"
-                value={shippingAddress?.city || ""}
-                onChange={(e) => handleShippingChange("city", e.target.value)}
+                label="Address line 2 (Optional)"
+                name="line2"
+                placeholder="Apartment, suite, unit, etc."
+                value={shippingAddress?.line2 || ""}
+                onChange={(e) => handleShippingChange("line2", e.target.value)}
+                errors={shippingErrors}
               />
+
               <CustomInput
-                label="State/Province"
+                label="Address line 3 (Optional)"
+                name="line3"
+                placeholder="Building, floor, landmark"
+                value={shippingAddress?.line3 || ""}
+                onChange={(e) => handleShippingChange("line3", e.target.value)}
+                errors={shippingErrors}
+              />
+
+              <CustomInput
+                label="State or Province"
                 name="state"
-                placeholder="Enter state"
+                placeholder="Enter state/province"
                 value={shippingAddress?.state || ""}
                 onChange={(e) => handleShippingChange("state", e.target.value)}
+                errors={shippingErrors}
+                required
               />
+
               <CustomInput
-                label="ZIP/Postal Code"
+                label="Postal code"
                 name="zipCode"
-                placeholder="Enter ZIP code"
+                placeholder="Enter postal code"
                 value={shippingAddress?.zipCode || ""}
                 onChange={(e) => handleShippingChange("zipCode", e.target.value)}
+                errors={shippingErrors}
+                required
+              />
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 md:grid-cols-2">
+              <CountrySelect
+                label="Country"
+                name="country"
+                value={countrySelection}
+                onChange={handleCountrySelect}
+                isRequired={true}
+                errors={shippingErrors}
+              />
+
+              <CitySelect
+                label="City"
+                name="city"
+                countryCode={countryCode}
+                countryCodes={countryCode ? [countryCode] : []}
+                value={citySelection}
+                onChange={handleCitySelect}
+                isRequired={true}
+                errors={shippingErrors}
               />
             </div>
           </div>
 
-          {/* Save Button */}
           <div className="text-center">
-            <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="rounded-lg bg-white p-3 shadow-lg sm:p-8">
               <div className="flex justify-end">
                 <CustomButton
-                  text={"Save Preferences"}
-                  className="btn-primary"
+                  text="Save Preferences"
+                  className="btn-primary w-full sm:w-auto"
                   loading={isLoading}
                   onClick={handleSavePreferences}
                 />
@@ -306,7 +265,7 @@ const PreferredCollaborationType = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

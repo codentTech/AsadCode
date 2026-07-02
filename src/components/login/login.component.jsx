@@ -2,41 +2,43 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Loader from "@/common/components/loader/loader.component";
 import Link from "next/link";
+import ReEngagementEmailModal from "./components/re-engagement-email-modal/re-engagement-email-modal.component";
 import useLogin from "./use-login.hook";
 
 export default function Login() {
-  // hooks
   const {
     onSubmit,
     isChecked,
     setIsChecked,
-    router,
     loading,
     register,
     handleSubmit,
     errors,
     email,
     password,
+    showReengagementModal,
+    handleReengagementComplete,
   } = useLogin();
 
   return (
-    <div className="form-wrapper">
+    <>
+      <ReEngagementEmailModal
+        show={showReengagementModal}
+        onComplete={handleReengagementComplete}
+      />
+      <div className="form-wrapper px-2.5 sm:px-4">
       <div className="form-container">
-        <div className="form-card">
+        <div className="form-card w-full max-w-[437px] px-0 py-6 sm:py-10">
           <Link href="/" className="flex justify-center mb-2">
-            <img
-              src="/assets/images/horizontal-logo.png"
-              alt="Logo"
-              className="h-[40px] sm:h-[60px]"
-            />
+            <img src="/assets/images/horizontal-logo.png" alt="Logo" className="h-8 sm:h-[60px]" />
           </Link>
           <div className="form-header">
             {/* <h1 className="form-header-h1">Login</h1> */}
-            <p className="form-header-p">
+            <p className="form-header-p text-sm leading-snug sm:text-[20px] sm:leading-[30px]">
               Welcome back. <span className="text-primary">Login</span> to your account
             </p>
           </div>
-          <div className="form-body">
+          <div className="form-body px-3 pt-4 sm:px-6 sm:pt-6">
             <form className="w-full" onSubmit={handleSubmit(onSubmit)} method="post">
               <div className="form-fields">
                 <CustomInput
@@ -59,7 +61,7 @@ export default function Login() {
                 />
               </div>
 
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-3 flex items-center justify-between sm:mt-4">
                 <div className="flex gap-[6.5px]" onClick={() => setIsChecked(!isChecked)}>
                   {isChecked ? (
                     <img src="/assets/icons/check.svg" alt="" />
@@ -70,24 +72,22 @@ export default function Login() {
                   <label
                     htmlFor="terms"
                     id="terms"
-                    className="fon cursor-pointer text-[12px]
-                 font-normal not-italic leading-[18px]"
+                    className="fon cursor-pointer text-[10px] font-normal not-italic leading-[16px] sm:text-[12px] sm:leading-[18px]"
                   >
                     Remember Me
                   </label>
                 </div>
                 <Link
                   href="/forget-password"
-                  onClick={() => router.push("/forget-password?btnText=Password%20Recovery%20Link")}
-                  className="forgotText rounded-xl text-xs font-bold leading-[18px] "
+                  className="forgotText rounded-xl text-[10px] font-bold leading-[16px] sm:text-xs sm:leading-[18px]"
                 >
                   Forgot Password?
                 </Link>
               </div>
-              <div className="form-btn-c mt-[32px]">
+              <div className="form-btn-c mt-4">
                 <CustomButton
                   type="submit"
-                  className="btn-primary h-[50px] w-full rounded-xl px-[30px] py-3 text-base leading-6"
+                  className="btn-primary w-full"
                   text={!loading && "Login"}
                   startIcon={<Loader loading={loading} />}
                   disabled={!email || !password || loading}
@@ -134,8 +134,8 @@ export default function Login() {
                   />
                 </button>
               </div>
-              <div className="text-xs font-normal leading-[18px] text-text-dark-gray">
-                <p className="login mt-5 text-center">
+              <div className="text-[10px] font-normal leading-[16px] text-text-dark-gray sm:text-xs sm:leading-[18px]">
+                <p className="login mt-4 text-center sm:mt-5">
                   Create an account?
                   <Link href="/onboarding" className="span-link">
                     Signup
@@ -147,5 +147,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   );
 }

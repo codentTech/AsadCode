@@ -24,6 +24,16 @@ const initialState = {
   connectSocialMedia: { ...generalState },
   getSocialAccounts: { ...generalState },
   disconnectSocialAccount: { ...generalState },
+  adminGetConnectedAccounts: { ...generalState },
+  adminRemoveConnectedAccount: { ...generalState },
+  adminDeleteUser: { ...generalState },
+  requestEmailChange: { ...generalState },
+  verifyEmailChange: { ...generalState },
+};
+
+const getSerializableErrorMessage = (error, fallback = "Request failed") => {
+  if (typeof error === "string") return error;
+  return error?.response?.data?.message || error?.message || fallback;
 };
 
 export const getAllUsers = createAsyncThunk("users/getAllUsers", async (payload, thunkAPI) => {
@@ -180,7 +190,9 @@ export const connectSocialMedia = createAsyncThunk(
       const response = await usersService.connectSocialMedia(platform);
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to connect social media")
+      );
     }
   }
 );
@@ -192,7 +204,9 @@ export const getSocialAccounts = createAsyncThunk(
       const response = await usersService.getSocialAccounts();
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to fetch social accounts")
+      );
     }
   }
 );
@@ -205,6 +219,87 @@ export const disconnectSocialAccount = createAsyncThunk(
       return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const adminGetConnectedAccounts = createAsyncThunk(
+  "users/adminGetConnectedAccounts",
+  async (params = {}, thunkAPI) => {
+    try {
+      const response = await usersService.adminGetConnectedAccounts(params);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const adminRemoveConnectedAccount = createAsyncThunk(
+  "users/adminRemoveConnectedAccount",
+  async (accountId, thunkAPI) => {
+    try {
+      const response = await usersService.adminRemoveConnectedAccount(accountId);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const adminDeleteUser = createAsyncThunk(
+  "users/adminDeleteUser",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await usersService.adminDeleteUser(userId);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableErrorMessage(error, "Failed to delete user")
+      );
+    }
+  }
+);
+
+export const requestEmailChange = createAsyncThunk(
+  "users/requestEmailChange",
+  async (newEmail, thunkAPI) => {
+    try {
+      const response = await usersService.requestEmailChange(newEmail);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        typeof response?.message === "string" ? response.message : "Request failed"
+      );
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableErrorMessage(error, "Request failed"));
+    }
+  }
+);
+
+export const verifyEmailChange = createAsyncThunk(
+  "users/verifyEmailChange",
+  async (code, thunkAPI) => {
+    try {
+      const response = await usersService.verifyEmailChange(code);
+      if (response.success) {
+        return response;
+      }
+      return thunkAPI.rejectWithValue(
+        typeof response?.message === "string" ? response.message : "Verification failed"
+      );
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableErrorMessage(error, "Verification failed"));
     }
   }
 );
@@ -225,6 +320,11 @@ export const usersSlice = createSlice({
       state.getBlockedUsers = { ...generalState };
       state.isUserBlocked = { ...generalState };
       state.addUserToWaitlist = { ...generalState };
+      state.adminGetConnectedAccounts = { ...generalState };
+      state.adminRemoveConnectedAccount = { ...generalState };
+      state.adminDeleteUser = { ...generalState };
+      state.requestEmailChange = { ...generalState };
+      state.verifyEmailChange = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -415,12 +515,16 @@ export const usersSlice = createSlice({
       .addCase(connectSocialMedia.pending, (state) => {
         if (state.connectSocialMedia) {
           state.connectSocialMedia.isLoading = true;
+          state.connectSocialMedia.isError = false;
+          state.connectSocialMedia.message = "";
         }
       })
       .addCase(connectSocialMedia.fulfilled, (state, action) => {
         if (state.connectSocialMedia) {
           state.connectSocialMedia.isLoading = false;
           state.connectSocialMedia.isSuccess = true;
+          state.connectSocialMedia.isError = false;
+          state.connectSocialMedia.message = "";
           state.connectSocialMedia.data = action.payload;
         }
       })
@@ -435,12 +539,16 @@ export const usersSlice = createSlice({
       .addCase(getSocialAccounts.pending, (state) => {
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = true;
+          state.getSocialAccounts.isError = false;
+          state.getSocialAccounts.message = "";
         }
       })
       .addCase(getSocialAccounts.fulfilled, (state, action) => {
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = false;
           state.getSocialAccounts.isSuccess = true;
+          state.getSocialAccounts.isError = false;
+          state.getSocialAccounts.message = "";
           state.getSocialAccounts.data = action.payload;
         }
       })
@@ -448,7 +556,8 @@ export const usersSlice = createSlice({
         if (state.getSocialAccounts) {
           state.getSocialAccounts.isLoading = false;
           state.getSocialAccounts.isError = true;
-          state.getSocialAccounts.message = action.payload;
+          state.getSocialAccounts.message =
+            typeof action.payload === "string" ? action.payload : "Failed to fetch social accounts";
         }
       })
       // disconnectSocialAccount
@@ -470,9 +579,138 @@ export const usersSlice = createSlice({
           state.disconnectSocialAccount.isError = true;
           state.disconnectSocialAccount.message = action.payload;
         }
+      })
+      .addCase(requestEmailChange.pending, (state) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = true;
+        state.requestEmailChange.isError = false;
+        state.requestEmailChange.isSuccess = false;
+        state.requestEmailChange.message = "";
+      })
+      .addCase(requestEmailChange.fulfilled, (state, action) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = false;
+        state.requestEmailChange.isSuccess = true;
+        state.requestEmailChange.data = action.payload;
+      })
+      .addCase(requestEmailChange.rejected, (state, action) => {
+        if (!state.requestEmailChange) {
+          state.requestEmailChange = { ...generalState };
+        }
+        state.requestEmailChange.isLoading = false;
+        state.requestEmailChange.isError = true;
+        state.requestEmailChange.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Request failed");
+      })
+      .addCase(verifyEmailChange.pending, (state) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = true;
+        state.verifyEmailChange.isError = false;
+        state.verifyEmailChange.isSuccess = false;
+        state.verifyEmailChange.message = "";
+      })
+      .addCase(verifyEmailChange.fulfilled, (state, action) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = false;
+        state.verifyEmailChange.isSuccess = true;
+        state.verifyEmailChange.data = action.payload;
+      })
+      .addCase(verifyEmailChange.rejected, (state, action) => {
+        if (!state.verifyEmailChange) {
+          state.verifyEmailChange = { ...generalState };
+        }
+        state.verifyEmailChange.isLoading = false;
+        state.verifyEmailChange.isError = true;
+        state.verifyEmailChange.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Verification failed");
+      })
+      // adminGetConnectedAccounts
+      .addCase(adminGetConnectedAccounts.pending, (state) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = true;
+      })
+      .addCase(adminGetConnectedAccounts.fulfilled, (state, action) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = false;
+        state.adminGetConnectedAccounts.isSuccess = true;
+        state.adminGetConnectedAccounts.data = action.payload;
+      })
+      .addCase(adminGetConnectedAccounts.rejected, (state, action) => {
+        if (!state.adminGetConnectedAccounts) {
+          state.adminGetConnectedAccounts = { ...generalState };
+        }
+        state.adminGetConnectedAccounts.isLoading = false;
+        state.adminGetConnectedAccounts.isError = true;
+        state.adminGetConnectedAccounts.message = action.payload;
+      })
+      // adminRemoveConnectedAccount
+      .addCase(adminRemoveConnectedAccount.pending, (state) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = true;
+      })
+      .addCase(adminRemoveConnectedAccount.fulfilled, (state, action) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = false;
+        state.adminRemoveConnectedAccount.isSuccess = true;
+        state.adminRemoveConnectedAccount.data = action.payload;
+      })
+      .addCase(adminRemoveConnectedAccount.rejected, (state, action) => {
+        if (!state.adminRemoveConnectedAccount) {
+          state.adminRemoveConnectedAccount = { ...generalState };
+        }
+        state.adminRemoveConnectedAccount.isLoading = false;
+        state.adminRemoveConnectedAccount.isError = true;
+        state.adminRemoveConnectedAccount.message = action.payload;
+      })
+      .addCase(adminDeleteUser.pending, (state) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = true;
+      })
+      .addCase(adminDeleteUser.fulfilled, (state, action) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = false;
+        state.adminDeleteUser.isSuccess = true;
+        state.adminDeleteUser.data = action.payload;
+      })
+      .addCase(adminDeleteUser.rejected, (state, action) => {
+        if (!state.adminDeleteUser) {
+          state.adminDeleteUser = { ...generalState };
+        }
+        state.adminDeleteUser.isLoading = false;
+        state.adminDeleteUser.isError = true;
+        state.adminDeleteUser.message =
+          typeof action.payload === "string"
+            ? action.payload
+            : getSerializableErrorMessage(action.payload, "Failed to delete user");
       });
   },
 });
 
 export const { reset } = usersSlice.actions;
+export const selectRequestEmailChange = (state) => state.users.requestEmailChange;
+export const selectVerifyEmailChange = (state) => state.users.verifyEmailChange;
 export default usersSlice.reducer;

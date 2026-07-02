@@ -18,7 +18,7 @@ import {
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBrandCampaignPreferences from "./use-campaign-preferences.hook";
 import SetupProgress from "../../components/setup-progress/setup-progress.component";
-import SearchableNicheInput from "@/components/campaign/create-campaign/components/searchable-niche-input/searchable-niche-input.component";
+import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 
 const BrandCampaignPreferences = ({ onNext, onBack }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
@@ -154,6 +154,12 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
   return (
     <div className="py-8 px-4 bg-gray-100">
       <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
+          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">Campaign Preferences</h1>
+          <p className="text-sm lg:text-md text-white">
+            Set your campaign needs and find the right creators
+          </p>
+        </div>
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
@@ -167,17 +173,9 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
             <span>Step 5 of 6</span>
             <span>83% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-5/6 transition-all duration-500"></div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-5/6 transition-all duration-500"></div>
           </div>
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">Campaign Preferences</h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Set your campaign needs and find the right creators
-          </p>
         </div>
 
         <form>

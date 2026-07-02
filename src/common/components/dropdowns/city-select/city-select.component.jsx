@@ -10,6 +10,8 @@ export default function CitySelect({
   name = "city",
   countryCode,
   countryCodes = [],
+  stateName = "",
+  stateShort = "",
   value = null,
   onChange,
   isRequired = false,
@@ -24,6 +26,8 @@ export default function CitySelect({
   const { options, isLoading, searchCities, resolveCityDetails } = useCitySelect({
     countryCode,
     countryCodes: normalizedCodes,
+    stateName,
+    stateShort,
   });
 
   const handleSearch = useCallback(
@@ -106,6 +110,8 @@ CitySelect.propTypes = {
   name: PropTypes.string,
   countryCode: PropTypes.string,
   countryCodes: PropTypes.arrayOf(PropTypes.string),
+  stateName: PropTypes.string,
+  stateShort: PropTypes.string,
   value: PropTypes.shape({
     cityName: PropTypes.string,
     countryCode: PropTypes.string,

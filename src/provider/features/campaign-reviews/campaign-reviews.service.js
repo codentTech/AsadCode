@@ -7,8 +7,16 @@ const createCampaignReview = async (campaignId, reviewData) => {
 };
 
 // Get all reviews for a campaign
-const getCampaignReviews = async (campaignId) => {
-  const response = await api().get(`/campaign-reviews/campaign/${campaignId}`);
+const getCampaignReviews = async (campaignId, params = {}) => {
+  const response = await api().get(`/campaign-reviews/campaign/${campaignId}`, {
+    params,
+  });
+  return response.data;
+};
+
+// Get all unlocked brand reviews for a creator (creator portfolio)
+const getCampaignReviewsByCreator = async (creatorId) => {
+  const response = await api().get(`/campaign-reviews/creator/${creatorId}`);
   return response.data;
 };
 
@@ -43,6 +51,7 @@ const deleteCampaignReview = async (reviewId) => {
 const campaignReviewsService = {
   createCampaignReview,
   getCampaignReviews,
+  getCampaignReviewsByCreator,
   getCampaignReviewsByCreatorProfile,
   getReviewStatus,
   updateCampaignReview,

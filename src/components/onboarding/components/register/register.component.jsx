@@ -1,225 +1,67 @@
+import Link from "next/link";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import { ArrowLeft, Calendar, Lock, Mail, User } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
+import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
+import { ArrowLeft, Calendar, Lock, Mail, User, UserPlus } from "lucide-react";
 import useRegister from "./use-register.hook";
-import api from "@/common/utils/api";
 
 const Register = ({ onNext, onBack, inviteToken }) => {
-  const { register, handleSubmit, errors, onSubmit, watch, setValue, isLoading } = useRegister({
-    onNext,
-    inviteToken,
-  });
-  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-  
-  const email = watch("email");
-  
-  // When invite token exists, we need to validate it and get the email
-  // For now, we'll validate in the hook on submit
-  // The email should be pre-filled from URL params or validated
-
-  const [selectedAccountType, setSelectedAccountType] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [hasManualLocationOverride, setHasManualLocationOverride] = useState(false);
-  const hasAutoDetectedLocation = useRef(false);
-
-  const password = watch("password");
-
-  useEffect(() => {
-    if (password) {
-      let strength = 0;
-      if (password.length >= 8) strength += 25;
-      if (/[A-Z]/.test(password)) strength += 25;
-      if (/[0-9]/.test(password)) strength += 25;
-      if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-      setPasswordStrength(strength);
-    }
-  }, [password]);
-
-  useEffect(() => {
-    if (selectedAccountType) {
-      setValue("account_type", selectedAccountType);
-    }
-  }, [selectedAccountType, setValue]);
-
-  const handleCountrySelect = useCallback(
-    (country) => {
-      setHasManualLocationOverride(true);
-
-      if (!country) {
-        setSelectedCountry(null);
-        setValue("country", "", { shouldValidate: true });
-        setValue("country_code", "", { shouldValidate: true });
-        setSelectedCity(null);
-        setValue("city", "", { shouldValidate: true });
-        setValue("city_country_code", "", { shouldValidate: true });
-        setValue("latitude", "", { shouldValidate: false });
-        setValue("longitude", "", { shouldValidate: false });
-        return;
-      }
-
-      const normalizedCountry = {
-        name: country.countryName || country.label || country.name || "",
-        code: country.countryCode || country.value || country.code || "",
-        countryCode: country.countryCode || country.value || country.code || "",
-        dialCode: country.phoneCode || country.phone || "",
-      };
-
-      setSelectedCountry(normalizedCountry);
-      setValue("country", normalizedCountry.name, { shouldValidate: true });
-      setValue("country_code", normalizedCountry.code, { shouldValidate: true });
-
-      setSelectedCity(null);
-      setValue("city", "", { shouldValidate: true });
-      setValue("city_country_code", normalizedCountry.code || "", { shouldValidate: true });
-      setValue("latitude", "", { shouldValidate: false });
-      setValue("longitude", "", { shouldValidate: false });
-    },
-    [setValue]
-  );
-
-  const handleCitySelect = useCallback(
-    (city) => {
-      setHasManualLocationOverride(true);
-
-      if (!city) {
-        setSelectedCity(null);
-        setValue("city", "", { shouldValidate: true });
-        setValue("city_country_code", selectedCountry?.code || "", { shouldValidate: true });
-        setValue("latitude", "", { shouldValidate: false });
-        setValue("longitude", "", { shouldValidate: false });
-        return;
-      }
-
-      const normalizedCity = {
-        name: city.cityName || city.label || city.name || "",
-        cityName: city.cityName || city.label || city.name || "",
-        countryCode: city.countryCode || selectedCountry?.code || "",
-        region: city.region || "",
-        geonameId: city.geonameId || null,
-        latitude: city.latitude ?? null,
-        longitude: city.longitude ?? null,
-      };
-
-      setSelectedCity(normalizedCity);
-      setValue("city", normalizedCity.name, { shouldValidate: true });
-      setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
-      setValue("latitude", normalizedCity.latitude ?? "", { shouldValidate: false });
-      setValue("longitude", normalizedCity.longitude ?? "", { shouldValidate: false });
-    },
-    [selectedCountry?.code, setValue]
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (
-      hasManualLocationOverride ||
-      hasAutoDetectedLocation.current ||
-      selectedCountry ||
-      selectedCity
-    ) {
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const autoDetectLocation = async () => {
-      try {
-        const client = api({ "x-skip-toast": "true" });
-        const response = await client.get("/auth/location/auto-detect");
-        const data = response.data?.data;
-        if (!isMounted || !data) return;
-
-        hasAutoDetectedLocation.current = true;
-
-        if (data.countryName && data.countryCode && !selectedCountry) {
-          const normalizedCountry = {
-            name: data.countryName,
-            code: data.countryCode,
-            countryCode: data.countryCode,
-            dialCode: data.dialCode || "",
-          };
-          setSelectedCountry(normalizedCountry);
-          setValue("country", normalizedCountry.name, { shouldValidate: true });
-          setValue("country_code", normalizedCountry.code, { shouldValidate: true });
-          setValue("city_country_code", normalizedCountry.code, { shouldValidate: true });
-        }
-
-        if (data.city && !selectedCity) {
-          const normalizedCity = {
-            name: data.city,
-            cityName: data.city,
-            countryCode: data.cityCountryCode || data.countryCode || "",
-            latitude: typeof data.latitude === "number" ? data.latitude : null,
-            longitude: typeof data.longitude === "number" ? data.longitude : null,
-          };
-          setSelectedCity(normalizedCity);
-          setValue("city", normalizedCity.name, { shouldValidate: true });
-          setValue("city_country_code", normalizedCity.countryCode, { shouldValidate: true });
-          if (normalizedCity.latitude !== null) {
-            setValue("latitude", normalizedCity.latitude, { shouldValidate: false });
-          }
-          if (normalizedCity.longitude !== null) {
-            setValue("longitude", normalizedCity.longitude, { shouldValidate: false });
-          }
-        } else {
-          if (typeof data.latitude === "number") {
-            setValue("latitude", data.latitude, { shouldValidate: false });
-          }
-          if (typeof data.longitude === "number") {
-            setValue("longitude", data.longitude, { shouldValidate: false });
-          }
-        }
-      } catch (error) {
-        // Silent failover
-      }
-    };
-
-    autoDetectLocation();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [hasManualLocationOverride, selectedCountry, selectedCity, setValue]);
+  const {
+    register,
+    handleSubmit,
+    errors,
+    onSubmit,
+    isLoading,
+    showBrandRegisterExtras,
+    brandAccountTypeOptions,
+    selectedAccountType,
+    setSelectedAccountType,
+    selectedCountry,
+    selectedState,
+    selectedCity,
+    handleCountrySelect,
+    handleStateSelect,
+    handleCitySelect,
+    termsHref,
+    privacyHref,
+  } = useRegister({ onNext, inviteToken });
 
   return (
-    <div className="py-8 px-4 bg-gray-100">
+    <div className="bg-gray-100 px-2.5 py-4 sm:px-4 sm:py-8">
       <div className="max-w-xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 2 of 5</span>
-            <span>40% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full w-2/5 transition-all duration-500"></div>
-          </div>
-        </div>
-
-        <div className="text-center mb-5">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-1">
+        <div className="mb-4 rounded-lg bg-primary p-3 text-center sm:mb-5 sm:p-4">
+          <h1 className="mb-1 text-sm font-semibold text-white sm:text-lg md:text-xl lg:text-3xl">
             Account Owner Information
           </h1>
-          <p className="text-sm lg:text-lg text-gray-600">
-            Let's set up your profile to start connecting with creators
+          <p className="text-[10px] text-white sm:text-xs md:text-sm lg:text-lg">
+            Let&apos;s set up your profile to start connecting with creators
           </p>
         </div>
+        <div className="mb-6">
+          <div className="mb-3 flex items-center justify-between text-xs text-gray-500 sm:text-sm">
+            {!inviteToken ? (
+              <button
+                onClick={onBack}
+                className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-700 sm:text-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </button>
+            ) : null}
 
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+            <span className="text-[10px] sm:text-sm">Step 2 of 5</span>
+            <span className="text-[10px] sm:text-sm">40% Complete</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-2/5 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-white p-3 shadow-2xl sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CustomInput
                 label="First Name"
                 name="first_name"
@@ -240,17 +82,17 @@ const Register = ({ onNext, onBack, inviteToken }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <CustomInput
-                label="Email Address"
-                name="email"
-                type="email"
-                register={register}
-                errors={errors}
-                placeholder="Enter your email address"
-                isRequired={true}
-                icon={Mail}
-              />
+            <CustomInput
+              label="Email Address"
+              name="email"
+              type="email"
+              register={register}
+              errors={errors}
+              placeholder="Enter your email address"
+              isRequired={true}
+              icon={Mail}
+            />
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CustomInput
                 label="Date of Birth"
                 name="date_of_birth"
@@ -260,9 +102,6 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 isRequired={true}
                 icon={Calendar}
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CustomInput
                 label="Password"
                 name="password"
@@ -273,7 +112,9 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 isRequired={true}
                 icon={Lock}
               />
+            </div>
 
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
               <CustomInput
                 label="Confirm Password"
                 name="confirm_password"
@@ -283,9 +124,6 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 placeholder="Re-enter your password"
                 isRequired={true}
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <CountrySelect
                 label="Select country"
                 value={selectedCountry}
@@ -295,11 +133,25 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                 name="country"
                 autoDetect
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
+              <StateSelect
+                label="State or Province (Optional)"
+                name="state"
+                countryCode={selectedCountry?.code || ""}
+                countryCodes={selectedCountry?.code ? [selectedCountry.code] : []}
+                value={selectedState}
+                onChange={handleStateSelect}
+                errors={errors}
+              />
 
               <CitySelect
                 label="City"
-                countryName={selectedCountry?.name}
-                countryCode={selectedCountry?.code}
+                countryCode={selectedCountry?.code || ""}
+                countryCodes={selectedCountry?.code ? [selectedCountry.code] : []}
+                stateName={selectedState?.stateName || ""}
+                stateShort={selectedState?.stateShort || ""}
                 value={selectedCity}
                 onChange={handleCitySelect}
                 errors={errors}
@@ -310,27 +162,26 @@ const Register = ({ onNext, onBack, inviteToken }) => {
 
             <input type="hidden" {...register("country")} />
             <input type="hidden" {...register("country_code")} />
+            <input type="hidden" {...register("state")} />
+            <input type="hidden" {...register("state_short")} />
             <input type="hidden" {...register("city")} />
             <input type="hidden" {...register("city_country_code")} />
             <input type="hidden" {...register("latitude")} />
             <input type="hidden" {...register("longitude")} />
 
-            {!isCreatorMode && !inviteToken && (
+            {showBrandRegisterExtras && (
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="mb-2 block text-xs font-medium text-gray-900 sm:text-sm">
                   Account Type <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: "brand", label: "This is a brand account" },
-                    { value: "agency", label: "This is an agency account" },
-                  ].map((type) => (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+                  {brandAccountTypeOptions.map((type) => (
                     <button
                       key={type.value}
                       type="button"
                       onClick={() => setSelectedAccountType(type.value)}
                       className={`
-                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200 hover:scale-105
+                      rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm
                       ${
                         selectedAccountType === type.value
                           ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -349,14 +200,32 @@ const Register = ({ onNext, onBack, inviteToken }) => {
               </div>
             )}
 
-            <div className="space-y-4 bg-gray-100 p-4 rounded-xl">
+            {showBrandRegisterExtras && (
+              <div className="space-y-2">
+                <CustomInput
+                  label="Referred by (optional)"
+                  name="referred_by"
+                  register={register}
+                  errors={errors}
+                  placeholder="Full name, @handle, or email"
+                  isRequired={false}
+                  icon={UserPlus}
+                />
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  If someone referred you, enter their email, full name, brand name as on CleerCut,
+                  or @handle from a linked social account. It must match an existing CleerCut user.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3 rounded-xl bg-gray-100 p-3 sm:space-y-4 sm:p-4">
               <label className="flex items-start space-x-3 cursor-pointer">
                 <input
                   type="checkbox"
                   {...register("marketing_emails")}
                   className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                 />
-                <span className="text-sm text-gray-700">
+                <span className="text-xs text-gray-700 sm:text-sm">
                   Send me campaign suggestions and brand matches
                 </span>
               </label>
@@ -367,15 +236,15 @@ const Register = ({ onNext, onBack, inviteToken }) => {
                   {...register("agree_terms")}
                   className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                 />
-                <span className="text-sm text-gray-700">
-                  I agree to CleerCut's{" "}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-700 underline">
+                <span className="text-xs text-gray-700 sm:text-sm">
+                  I agree to CleerCut&apos;s{" "}
+                  <Link href={termsHref} className="text-indigo-600 hover:text-indigo-700 underline">
                     Terms of Service
-                  </a>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-700 underline">
+                  <Link href={privacyHref} className="text-indigo-600 hover:text-indigo-700 underline">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </span>
               </label>
               {errors.agree_terms && (

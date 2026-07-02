@@ -1,303 +1,186 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
-import { Edit2, Eye, EyeOff, Plus, Shield, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { CreditCard, ExternalLink, AlertTriangle, X } from "lucide-react";
+import usePayoutMethod from "./use-payout-method.hook";
 
 const PayoutMethodsPage = () => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState("paypal");
-  const [showBankDetails, setShowBankDetails] = useState(false);
-
-  // Sample data
-  const [payoutMethods, setPayoutMethods] = useState([
-    {
-      id: 1,
-      type: "paypal",
-      email: "creator@example.com",
-      isDefault: true,
-      isVerified: true,
-      lastUsed: "2 days ago",
-    },
-    {
-      id: 2,
-      type: "stripe",
-      last4: "4242",
-      brand: "Visa",
-      isDefault: false,
-      isVerified: true,
-      lastUsed: "1 week ago",
-    },
-    {
-      id: 3,
-      type: "bank",
-      accountNumber: "****1234",
-      bankName: "Chase Bank",
-      isDefault: false,
-      isVerified: false,
-      lastUsed: "Never",
-    },
-  ]);
-
-  const paymentIcons = {
-    paypal: "🅿️",
-    stripe: "💳",
-    bank: "🏦",
-  };
-
-  const getStatusColor = (method) => {
-    if (!method.isVerified) return "text-yellow-600 bg-yellow-100";
-    if (method.isDefault) return "text-green-600 bg-green-100";
-    return "text-blue-600 bg-blue-100";
-  };
-
-  const getStatusText = (method) => {
-    if (!method.isVerified) return "Pending Verification";
-    if (method.isDefault) return "Default Method";
-    return "Active";
-  };
-
-  const setAsDefault = (id) => {
-    setPayoutMethods((prev) =>
-      prev.map((method) => ({
-        ...method,
-        isDefault: method.id === id,
-      }))
-    );
-  };
-
-  const deleteMethod = (id) => {
-    if (window.confirm("Are you sure you want to remove this payout method?")) {
-      setPayoutMethods((prev) => prev.filter((method) => method.id !== id));
-    }
-  };
+  const { statusConfig, isLoading, connectError, setConnectError } = usePayoutMethod();
 
   return (
-    <DashboardLayout>
-      {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Payout Methods</h1>
-        <p className="text-sm mt-1">Manage how you receive payments for your collaborations</p>
+    <>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Payouts</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
+          Connect Stripe to receive escrow payments.
+        </p>
       </div>
 
-      {/* Payout Methods List */}
-      <div className="bg-white rounded-lg border mb-6">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Your Payout Methods</h2>
-          <CustomButton
-            text="Add Method"
-            className="btn-primary"
-            icon={Plus}
-            onClick={() => setShowAddForm(true)}
-          />
-        </div>
+      <div className="space-y-6">
+        {/* Connect Error Warning Banner */}
+        {connectError && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="mb-1 text-xs font-semibold text-amber-900 sm:text-sm">
+                  Unable to start payout setup
+                </h3>
+                <p className="text-xs whitespace-pre-line text-amber-900 sm:text-sm">{connectError}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConnectError(null)}
+                className="p-1 hover:bg-amber-100 rounded transition-colors"
+              >
+                <X className="h-4 w-4 text-amber-600" />
+              </button>
+            </div>
+          </div>
+        )}
 
-        <div className="divide-y divide-gray-200">
-          {payoutMethods.map((method) => (
-            <div key={method.id} className="p-4 hover:bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="text-2xl">{paymentIcons[method.type]}</div>
+        {/* Card 1: Stripe Account */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="p-3 sm:p-6">
+            <div className="mb-4 flex items-center justify-between sm:mb-6">
+              <h2 className="text-sm font-semibold text-gray-900 sm:text-lg">Stripe Account</h2>
+            </div>
 
+            <div className="space-y-4">
+              {/* Status Row */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-lg">
+                    <CreditCard className="h-5 w-5 text-indigo-600" />
+                  </div>
                   <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-medium text-gray-900 capitalize">
-                        {method.type === "paypal"
-                          ? "PayPal"
-                          : method.type === "stripe"
-                            ? "Stripe Card"
-                            : "Bank Account"}
-                      </h3>
+                    <div className="flex items-center gap-2">
                       <span
-                        className={`
-                          px-2 py-1 text-xs font-medium rounded-full
-                          ${getStatusColor(method)}
-                        `}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.badgeColor}`}
                       >
-                        {getStatusText(method)}
+                        {statusConfig.badge}
                       </span>
                     </div>
-
-                    <div className="text-sm text-gray-600">
-                      {method.type === "paypal" && method.email}
-                      {method.type === "stripe" && `${method.brand} •••• ${method.last4}`}
-                      {method.type === "bank" && `${method.bankName} •••• ${method.accountNumber}`}
-                    </div>
-
-                    <div className="text-xs text-gray-500 mt-1">Last used: {method.lastUsed}</div>
                   </div>
                 </div>
+                <CustomButton
+                  text={statusConfig.buttonText}
+                  className="btn-primary w-full sm:w-auto"
+                  onClick={statusConfig.buttonAction}
+                  startIcon={statusConfig.buttonText.includes("Stripe") ? <ExternalLink size={18} /> : null}
+                  loading={isLoading}
+                  disabled={isLoading}
+                />
+              </div>
 
-                <div className="flex items-center space-x-2">
-                  {!method.isDefault && method.isVerified && (
-                    <button
-                      onClick={() => setAsDefault(method.id)}
-                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
-                    >
-                      Set as Default
-                    </button>
+              {/* Status Description */}
+              {statusConfig.description && (
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+                    <p className="mb-3 text-xs font-medium text-gray-700 sm:text-sm">
+                      {statusConfig.description}
+                    </p>
+                    {statusConfig.details && statusConfig.details.length > 0 && (
+                      <ul className="space-y-2">
+                        {statusConfig.details.map((detail, index) => (
+                          <li key={index} className="flex items-start gap-2 text-xs text-gray-600 sm:text-sm">
+                            <span className="text-indigo-600 font-semibold mt-0.5">•</span>
+                            <span>{detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {/* What You Need Section */}
+                  {statusConfig.whatYouNeed && statusConfig.whatYouNeed.length > 0 && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 sm:p-4">
+                      <h4 className="mb-2 text-xs font-semibold text-blue-900 sm:text-sm">
+                        What you'll need:
+                      </h4>
+                      <ul className="space-y-2">
+                        {statusConfig.whatYouNeed.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-xs text-blue-800 sm:text-sm">
+                            <span className="text-blue-600 font-semibold mt-0.5">✓</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
+                </div>
+              )}
 
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
-                    <Edit2 className="h-4 w-4" />
-                  </button>
+              {/* Helper Text */}
+              <p className="mt-4 text-xs text-gray-500 sm:text-sm">
+                <strong>Security:</strong> Stripe manages your payout method and identity verification. CleerCut does not store bank details.
+              </p>
+            </div>
+          </div>
+        </div>
 
-                  {!method.isDefault && (
-                    <button
-                      onClick={() => deleteMethod(method.id)}
-                      className="p-2 text-gray-400 hover:text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
+        {/* Card 2: How payouts work */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="p-3 sm:p-6">
+            <h2 className="mb-4 text-sm font-semibold text-gray-900 sm:text-lg">How payouts work</h2>
+            <ul className="space-y-1 mb-6">
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-600 font-semibold mt-0.5">•</span>
+                <span className="text-sm text-gray-700">Brands fund escrow when they hire you</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-600 font-semibold mt-0.5">•</span>
+                <span className="text-sm text-gray-700">
+                  Escrow releases when the brand marks work complete or after admin resolution
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-600 font-semibold mt-0.5">•</span>
+                <span className="text-sm text-gray-700">
+                  Funds are automatically transferred to your connected bank account via Stripe
+                </span>
+              </li>
+            </ul>
+
+            <div className="pt-4 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800 mb-1">
+                    Is my information secure?
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    Yes! Stripe is a PCI-compliant payment processor trusted by millions. CleerCut never sees or stores your bank account details.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800 mb-1">
+                    How long does setup take?
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    Typically 5-10 minutes if you have all required documents ready. Identity verification may take 1-2 business days.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800 mb-1">
+                    When will I receive payments?
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    Once your Stripe account is fully set up and verified, payments will be automatically transferred to your bank account after work is completed and approved.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800 mb-1">
+                    Can I use a business bank account?
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    Yes! You can connect either a personal or business bank account, depending on your account type.
+                  </p>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add New Method Form */}
-      {showAddForm && (
-        <div className="bg-white rounded-lg border p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Add New Payout Method</h3>
-            <button
-              onClick={() => setShowAddForm(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Method Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-900 mb-3">
-              Select Payment Method
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {["paypal", "stripe", "bank"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedMethod(type)}
-                  className={`
-                      p-4 border-2 rounded-lg text-center transition-colors
-                      ${
-                        selectedMethod === type
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:border-indigo-200"
-                      }
-                    `}
-                >
-                  <div className="text-2xl mb-2">{paymentIcons[type]}</div>
-                  <div className="text-sm font-medium capitalize">
-                    {type === "paypal"
-                      ? "PayPal"
-                      : type === "stripe"
-                        ? "Credit Card"
-                        : "Bank Account"}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Form Fields */}
-          <div className="space-y-4">
-            {selectedMethod === "paypal" && (
-              <CustomInput
-                label="PayPal Email"
-                name="paypalEmail"
-                type="email"
-                placeholder="your.email@example.com"
-                isRequired={true}
-              />
-            )}
-
-            {selectedMethod === "stripe" && (
-              <>
-                <CustomInput
-                  label="Card Number"
-                  name="cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  isRequired={true}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <CustomInput
-                    label="Expiry Date"
-                    name="expiryDate"
-                    placeholder="MM/YY"
-                    isRequired={true}
-                  />
-                  <CustomInput label="CVV" name="cvv" placeholder="123" isRequired={true} />
-                </div>
-              </>
-            )}
-
-            {selectedMethod === "bank" && (
-              <>
-                <CustomInput
-                  label="Bank Name"
-                  name="bankName"
-                  placeholder="Enter your bank name"
-                  isRequired={true}
-                />
-                <CustomInput
-                  label="Account Number"
-                  name="accountNumber"
-                  type={showBankDetails ? "text" : "password"}
-                  placeholder="Enter account number"
-                  isRequired={true}
-                />
-                <CustomInput
-                  label="Routing Number"
-                  name="routingNumber"
-                  placeholder="Enter routing number"
-                  isRequired={true}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowBankDetails(!showBankDetails)}
-                  className="flex items-center text-sm text-indigo-600 hover:text-indigo-700"
-                >
-                  {showBankDetails ? (
-                    <EyeOff className="h-4 w-4 mr-1" />
-                  ) : (
-                    <Eye className="h-4 w-4 mr-1" />
-                  )}
-                  {showBankDetails ? "Hide" : "Show"} account details
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-6">
-            <CustomButton
-              text="Cancel"
-              className="btn-secondary"
-              onClick={() => setShowAddForm(false)}
-            />
-            <CustomButton text="Add Method" className="btn-primary" />
-          </div>
-        </div>
-      )}
-
-      {/* Security Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Secure & Protected</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              All payment information is encrypted and secured. We never store sensitive financial
-              data on our servers.
-            </p>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

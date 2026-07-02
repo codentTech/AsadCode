@@ -73,13 +73,12 @@ export default function SimpleSelect({
     >
       {label && <FieldLabel label={label} isRequired={isRequired} />}
 
-      <div className="relative w-full">
+      <div ref={inputRef} className="relative w-full">
         <div
-          ref={inputRef}
           onClick={handleClick}
-          className={`flex justify-between items-center px-3 py-[9px] rounded-md border ${
+          className={`flex min-h-9 sm:min-h-10 items-center justify-between rounded-md border px-2.5 sm:px-3 py-1.5 sm:py-2 ${
             errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
-          } ${isDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 cursor-pointer"} shadow-sm text-sm transition-colors`}
+          } ${isDisabled ? "cursor-not-allowed bg-gray-100 text-gray-400" : "cursor-pointer bg-white text-gray-700"} text-xs sm:text-sm shadow-sm transition-colors`}
         >
           <div className="truncate">{getDisplay()}</div>
           <Icon isOpen={showMenu && !isDisabled} />
@@ -87,7 +86,7 @@ export default function SimpleSelect({
 
         {showMenu && !isDisabled && (
           <div
-            className={`absolute z-50 mt-1 ${
+            className={`absolute z-[100] mt-1 ${
               isSearchable && isMulti
                 ? "top-10"
                 : isSearchable

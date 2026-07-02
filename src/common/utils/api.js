@@ -19,7 +19,7 @@ const api = (headers = null) => {
     : { ...defaultHeaders, ...headers };
 
   const apiInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:3000/api",
+    baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
     headers: combinedHeaders,
   });
 
@@ -52,11 +52,11 @@ const api = (headers = null) => {
         throw error;
       }
 
-      const message = error.response?.data?.message || error.message || error.toString();
-
-      const responseURL = error.request?.responseURL;
-
-      if (responseURL.includes("onboarding")) return null;
+      let message = error.response?.data?.message || error.message || error.toString();
+      if (Array.isArray(message)) {
+        message = message[0] ?? message.join(" ");
+      }
+      const responseURL = error.request?.responseURL || "";
 
       // Handle unauthorized
       if (error.response?.status === 401) {
@@ -65,10 +65,32 @@ const api = (headers = null) => {
         return;
       }
 
+      const path403 =
+        typeof window !== "undefined" ? window.location.pathname || "" : "";
+      const reqUrl403 = String(error.config?.url || "");
+      const onboarding403Context =
+        error.response?.status === 403 &&
+        (path403.startsWith("/onboarding") ||
+          reqUrl403.includes("/auth/onboarding") ||
+          reqUrl403.includes("/phyllo/") ||
+          reqUrl403.includes("social-account"));
+      if (error.response?.status === 403 && typeof window !== "undefined" && onboarding403Context) {
+        if (!path403.startsWith("/onboarding")) {
+          window.location.href = "/onboarding";
+        }
+      }
+
+      // Check if toast should be skipped for this request
+      const skipToast =
+        error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
+
+      // Skip toast for payment method errors (they're shown in the component)
+      const isPaymentMethodError =
+        responseURL?.includes("/payment-methods/attach") ||
+        responseURL?.includes("/payment-methods/setup-intent");
+
       // Handle message display
-      if (Array.isArray(message)) {
-        message.forEach((msg) => enqueueSnackbar(msg, { variant: "error" }));
-      } else {
+      if (!skipToast && !isPaymentMethodError && !onboarding403Context) {
         if (message !== "Record Not Found") {
           enqueueSnackbar(message, { variant: "error" });
         }

@@ -2,7 +2,6 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { Eye, FileText, Info, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -101,36 +100,38 @@ const BriefTemplate = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Content Brief Templates</h1>
-        <p className="text-sm mt-1">Create reusable content briefs to speed up campaign creation</p>
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Content Brief Templates</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
+          Create reusable content briefs to speed up campaign creation
+        </p>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:mb-6 sm:p-4">
         <div className="flex items-start space-x-3">
           <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg flex-shrink-0">
             <Info className="h-4 w-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-medium text-blue-900 mb-1">Brief Templates</h3>
-            <p className="text-blue-800 text-sm leading-relaxed">
+            <h3 className="mb-1 text-xs font-medium text-blue-900 sm:text-sm">Brief Templates</h3>
+            <p className="text-xs leading-relaxed text-blue-800 sm:text-sm">
               Save time by creating reusable content brief templates for your campaigns.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Create New Template */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border">
+        <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
           <div className="flex items-center mb-4">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
               <FileText className="h-4 w-4 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Create Brief Template</h3>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Create Brief Template</h3>
           </div>
 
           <div className="space-y-4">
@@ -144,9 +145,9 @@ const BriefTemplate = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <label className="mb-2 block text-xs font-medium text-gray-700 sm:text-sm">Category</label>
               <select
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full rounded-lg border border-gray-300 p-2.5 text-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:p-3 sm:text-sm"
                 value={newTemplate.category}
                 onChange={(e) => handleInputChange("category", e.target.value)}
               >
@@ -171,7 +172,7 @@ const BriefTemplate = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
               {newTemplate.requirements.map((req, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
+                <div key={index} className="mb-2 flex items-center space-x-2">
                   <CustomInput
                     placeholder="Add requirement"
                     value={req}
@@ -180,7 +181,7 @@ const BriefTemplate = () => {
                   {newTemplate.requirements.length > 1 && (
                     <button
                       onClick={() => removeArrayItem("requirements", index)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                      className="rounded p-2 text-red-500 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -189,7 +190,7 @@ const BriefTemplate = () => {
               ))}
               <button
                 onClick={() => addArrayItem("requirements")}
-                className="inline-flex items-center px-3 py-1 text-sm text-indigo-600 hover:bg-indigo-50 rounded"
+                className="inline-flex items-center rounded px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 sm:px-3 sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Requirement
@@ -199,7 +200,7 @@ const BriefTemplate = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Deliverables</label>
               {newTemplate.deliverables.map((del, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
+                <div key={index} className="mb-2 flex items-center space-x-2">
                   <CustomInput
                     placeholder="Add deliverable"
                     value={del}
@@ -208,7 +209,7 @@ const BriefTemplate = () => {
                   {newTemplate.deliverables.length > 1 && (
                     <button
                       onClick={() => removeArrayItem("deliverables", index)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                      className="rounded p-2 text-red-500 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -217,7 +218,7 @@ const BriefTemplate = () => {
               ))}
               <button
                 onClick={() => addArrayItem("deliverables")}
-                className="inline-flex items-center px-3 py-1 text-sm text-indigo-600 hover:bg-indigo-50 rounded"
+                className="inline-flex items-center rounded px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 sm:px-3 sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Deliverable
@@ -253,17 +254,17 @@ const BriefTemplate = () => {
         </div>
 
         {/* Saved Templates */}
-        <div className="bg-white rounded-lg shadow-sm p-5 border">
+        <div className="rounded-lg border bg-white p-3 shadow-sm sm:p-5">
           <div className="flex items-center mb-4">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
               <FileText className="h-4 w-4 text-purple-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Saved Templates</h3>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">Saved Templates</h3>
           </div>
 
           <div className="space-y-3">
             {templates.map((template) => (
-              <div key={template.id} className="border border-gray-200 rounded-lg p-4">
+              <div key={template.id} className="rounded-lg border border-gray-200 p-3 sm:p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h4 className="font-medium text-gray-900">{template.name}</h4>
@@ -362,7 +363,7 @@ const BriefTemplate = () => {
           </div>
         </div>
       </Modal>
-    </DashboardLayout>
+    </>
   );
 };
 

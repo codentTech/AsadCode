@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -23,11 +23,19 @@ const schema = yup.object().shape({
     then: (schema) => schema.required("Account type is required"),
     otherwise: (schema) => schema,
   }),
+  date_of_birth: yup
+    .string()
+    .optional()
+    .test("dob-format", "Use a valid date (YYYY-MM-DD)", (value) => {
+      if (value == null || value === "") return true;
+      return /^\d{4}-\d{2}-\d{2}$/.test(value);
+    }),
 });
 
 export default function usePersonalInformation() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [selectedAccountType, setSelectedAccountType] = useState("");
@@ -35,9 +43,9 @@ export default function usePersonalInformation() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     setValue,
-    watch,
   } = useForm({
     resolver: yupResolver(schema),
     context: { isCreatorMode: isCreatorMode() },
@@ -52,6 +60,7 @@ export default function usePersonalInformation() {
       country_code: "",
       city_country_code: "",
       account_type: "",
+      date_of_birth: "",
     },
   });
 
@@ -77,6 +86,13 @@ export default function usePersonalInformation() {
       setValue("first_name", user.first_name || "");
       setValue("last_name", user.last_name || "");
       setValue("email", user.email || "");
+
+      if (user.date_of_birth) {
+        const raw = String(user.date_of_birth);
+        setValue("date_of_birth", raw.length >= 10 ? raw.slice(0, 10) : raw);
+      } else {
+        setValue("date_of_birth", "");
+      }
 
       if (user.country) {
         const countryValue = {
@@ -113,6 +129,15 @@ export default function usePersonalInformation() {
       setValue("account_type", selectedAccountType);
     }
   }, [selectedAccountType, setValue]);
+
+  const displayEmail = watch("email");
+
+  const onEmailUpdated = useCallback(
+    (email) => {
+      setValue("email", email);
+    },
+    [setValue],
+  );
 
   const handleCountryChange = (country) => {
     if (!country) {
@@ -168,6 +193,13 @@ export default function usePersonalInformation() {
       setValue("last_name", user.last_name || "");
       setValue("email", user.email || "");
 
+      if (user.date_of_birth) {
+        const raw = String(user.date_of_birth);
+        setValue("date_of_birth", raw.length >= 10 ? raw.slice(0, 10) : raw);
+      } else {
+        setValue("date_of_birth", "");
+      }
+
       if (user.country) {
         const countryValue = {
           countryName: user.country,
@@ -219,11 +251,17 @@ export default function usePersonalInformation() {
       first_name,
       last_name,
     };
+    if (!updateData.date_of_birth || String(updateData.date_of_birth).trim() === "") {
+      delete updateData.date_of_birth;
+    }
 
-    const result = await dispatch(updateUser(updateData)).unwrap();
-    if (result.success) {
-      setIsLoading(false);
-      getUser(result?.data);
+    const resultAction = await dispatch(updateUser(updateData));
+    if (updateUser.fulfilled.match(resultAction)) {
+      const payload = resultAction.payload;
+      const userEntity = payload?.data;
+      if (userEntity) {
+        getUser(userEntity);
+      }
     }
     setIsLoading(false);
   };
@@ -233,6 +271,10 @@ export default function usePersonalInformation() {
     handleSubmit,
     errors,
     isLoading,
+    displayEmail,
+    showEmailModal,
+    setShowEmailModal,
+    onEmailUpdated,
     selectedCountry,
     selectedCity,
     selectedAccountType,

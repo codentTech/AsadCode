@@ -3,7 +3,6 @@ import CustomDataTable from "@/common/components/custom-data-table/custom-data-t
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import Modal from "@/common/components/modal/modal.component";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { isCreatorMode } from "@/common/utils/users.util";
 import {
   AlertTriangle,
@@ -265,67 +264,67 @@ const BlockedBrandsPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">
           {creatorMode ? "Blocked Brands" : "Blocked Creators"}
         </h1>
-        <p className="text-sm mt-1">
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           {`Manage ${creatorMode ? "brands" : "creators"} that are blocked from contacting or hiring you`}
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg border p-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:mb-6 sm:gap-4 md:grid-cols-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-red-100 rounded-lg mr-3">
               <Ban className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Blocked</p>
-              <p className="text-xl font-semibold text-gray-900">{blockedBrands.length}</p>
+              <p className="text-xs text-gray-600 sm:text-sm">Total Blocked</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">{blockedBrands.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-orange-100 rounded-lg mr-3">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Payment Issues</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs text-gray-600 sm:text-sm">Payment Issues</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">
                 {blockedBrands.filter((b) => b.reason === "payment_issues").length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg mr-3">
               <Shield className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Spam/Harassment</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs text-gray-600 sm:text-sm">Spam/Harassment</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">
                 {blockedBrands.filter((b) => b.reason === "spam_harassment").length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="rounded-lg border bg-white p-3 sm:p-4">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg mr-3">
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Pending Review</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs text-gray-600 sm:text-sm">Pending Review</p>
+              <p className="text-sm font-semibold text-gray-900 sm:text-xl">
                 {blockedBrands.filter((b) => b.status === "pending_review").length}
               </p>
             </div>
@@ -334,15 +333,15 @@ const BlockedBrandsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-lg border">
+      <div className="rounded-lg border bg-white">
         {/* Header Actions */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-lg">
               Blocked {creatorMode ? "Brands" : "Creators"} List
             </h3>
-            <div className="flex space-x-3">
-              <div className="w-full min-w-[230px]">
+            <div className="flex flex-col gap-2 sm:flex-row sm:space-x-3 sm:gap-0">
+              <div className="w-full sm:min-w-[230px]">
                 <SimpleSelect
                   placeHolder="Select a reason"
                   options={reasonOptions}
@@ -361,7 +360,7 @@ const BlockedBrandsPage = () => {
 
               <CustomButton
                 text="Block New Brand"
-                className="btn-primary w-full"
+                className="btn-primary w-full sm:w-auto"
                 icon={Plus}
                 onClick={() => setShowAddModal(true)}
               />
@@ -425,14 +424,14 @@ const BlockedBrandsPage = () => {
       </Modal>
 
       {/* Info Section */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:mt-6 sm:p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">How Blocking Works</h3>
-            <div className="text-sm text-blue-700 mt-1 space-y-1">
+            <h3 className="text-xs font-medium text-blue-800 sm:text-sm">How Blocking Works</h3>
+            <div className="mt-1 space-y-1 text-xs text-blue-700 sm:text-sm">
               <p>
                 • Blocked {creatorMode ? "brands" : "creators"} cannot send you campaign invitations
                 or direct messages
@@ -447,7 +446,7 @@ const BlockedBrandsPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

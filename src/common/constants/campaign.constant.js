@@ -1,9 +1,19 @@
+export const MIN_FOLLOWERS = 2000;
+
+export const PLATFORM_TYPE = Object.freeze({
+  INSTAGRAM: "INSTAGRAM",
+  TIKTOK: "TIKTOK",
+  YOUTUBE: "YOUTUBE",
+});
+
 export const CAMPAIGN_STATUS = Object.freeze({
   INCOMPLETE: "INCOMPLETE",
   COMPLETE: "COMPLETE",
 });
 
 export const CAMPAIGN_TYPE = Object.freeze({
+  INFLUENCER: "INFLUENCER",
+  HYBRID: "HYBRID",
   GIFTED: "GIFTED",
   SPONSORED_POST: "SPONSORED_POST",
   AFFILIATE: "AFFILIATE",
@@ -19,6 +29,25 @@ export const COMPENSATION_TYPE = Object.freeze({
 export const TASK_STATUS = Object.freeze({
   REVIEW: "REVIEW",
   COMPLETE: "COMPLETE",
+});
+
+export const TASK_TYPE = Object.freeze({
+  // Brand tasks
+  REVIEW_DRAFT: "REVIEW_DRAFT",
+  REVIEW_REVISION: "REVIEW_REVISION",
+  VERIFY_POST: "VERIFY_POST",
+  MARK_COMPLETE: "MARK_COMPLETE",
+  OVERDUE_ACTION: "OVERDUE_ACTION",
+  UNREAD_MESSAGE: "UNREAD_MESSAGE",
+  RESOLVE_BLOCKED: "RESOLVE_BLOCKED",
+  // Creator tasks
+  SIGN_AGREEMENT: "SIGN_AGREEMENT",
+  SUBMIT_FIRST_DRAFT: "SUBMIT_FIRST_DRAFT",
+  SUBMIT_REVISED_DRAFT: "SUBMIT_REVISED_DRAFT",
+  PUBLISH_FINAL_POST: "PUBLISH_FINAL_POST",
+  SUBMIT_POST_LINK: "SUBMIT_POST_LINK",
+  REPLY_TO_BRAND: "REPLY_TO_BRAND",
+  FIX_PAYMENT: "FIX_PAYMENT",
 });
 
 export const SOURCE_PLATFORM = Object.freeze({
@@ -46,6 +75,13 @@ export const COLLABORATION_TYPE = Object.freeze({
   INDIVIDUAL_CREATOR: "INDIVIDUAL_CREATOR",
 });
 
+export const BRAND_CAMPAIGN_TAB = Object.freeze({
+  DISCOVER: 1,
+  APPLICATIONS: 2,
+  ACTIVE: 3,
+  COMPLETED: 4,
+});
+
 export const REQUIREMENT_LEVEL = Object.freeze({
   NONE: "none",
   PREFERRED: "preferred",
@@ -59,3 +95,13 @@ export const CREATOR_STATUS = Object.freeze({
   COMPLETED: "COMPLETED",
   DRAFT: "DRAFT",
 });
+
+export const CONTRACT_USAGE_RIGHTS_VALUES = Object.freeze([
+  "no_usage",
+  "3",
+  "6",
+  "12",
+  "permanent",
+]);
+
+export const CONTRACT_EXCLUSIVITY_VALUES = Object.freeze(["none", "3", "6", "12"]);

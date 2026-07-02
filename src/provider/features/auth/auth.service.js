@@ -29,9 +29,36 @@ const verifyEmail = async (data) => {
   return response.data;
 };
 
+const sendVerificationEmail = async (email) => {
+  const response = await api().post("/auth/send-verification-email", { email });
+  return response.data;
+};
+
 const resendEmail = async (email) => {
   const response = await api().post("/auth/resend-email", { email });
   return response.data;
+};
+
+const requestPasswordReset = async (email) => {
+  const response = await api().post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+const resetPasswordWithToken = async (payload) => {
+  const response = await api().post("/auth/reset-password", payload);
+  return response.data;
+};
+
+const impersonate = async (userId) => {
+  const { data } = await api({ "x-skip-toast": "true" }).post("/auth/impersonate", {
+    user_id: userId,
+  });
+  return data;
+};
+
+const exitImpersonation = async () => {
+  const { data } = await api({ "x-skip-toast": "true" }).post("/auth/impersonate/exit", {});
+  return data;
 };
 
 const loginAndSignUpWithOAuth = async ({ loginType, email, accessToken }) => {
@@ -61,7 +88,12 @@ const authService = {
   login,
   signUp,
   verifyEmail,
+  sendVerificationEmail,
   resendEmail,
+  requestPasswordReset,
+  resetPasswordWithToken,
+  impersonate,
+  exitImpersonation,
   loginAndSignUpWithOAuth,
   loginAndSignUpWithLinkedin,
 };

@@ -1,23 +1,24 @@
-"use client";
+import LandingPage from "@/components/landing-page/landing-page.component";
+import HomeCrawlableContent from "@/components/seo/crawlable/home-crawlable-content.component";
+import JsonLd from "@/components/seo/json-ld.component";
+import { SOFTWARE_APPLICATION_SCHEMA } from "@/common/constants/seo-schema.constant";
+import { SITE_NAME, SITE_URL } from "@/common/constants/site.constant";
 
-import { checkExpiryDateOfToken } from "@/common/utils/access-token.util";
-import { removeUser } from "@/common/utils/users.util";
-import LandinPage from "@/components/landing-page/landing-page.component";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+export const metadata = {
+  title: {
+    absolute: `${SITE_NAME} — Influencer Marketing Platform`,
+  },
+  description:
+    "Discover verified creators, generate contracts in seconds, protect your budget with escrow, and manage campaigns from outreach to deliverables.",
+  alternates: { canonical: SITE_URL },
+};
 
-/**
- * @returns lazy loaded component for home page
- */
 export default function Home() {
-  const router = useRouter();
-
-  // useEffect(() => {
-  //   if (checkExpiryDateOfToken() !== true) {
-  //     removeUser();
-  //     router.push("/");
-  //   }
-  // }, []);
-
-  return <LandinPage />;
+  return (
+    <>
+      <JsonLd data={SOFTWARE_APPLICATION_SCHEMA} />
+      <HomeCrawlableContent />
+      <LandingPage />
+    </>
+  );
 }

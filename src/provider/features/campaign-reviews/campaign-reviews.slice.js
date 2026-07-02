@@ -12,6 +12,7 @@ const generalState = {
 const initialState = {
   createCampaignReview: { ...generalState },
   getCampaignReviews: { ...generalState },
+  getCampaignReviewsByCreator: { ...generalState },
   getCampaignReviewsByCreatorProfile: { ...generalState },
   updateCampaignReview: { ...generalState },
   deleteCampaignReview: { ...generalState },
@@ -40,15 +41,31 @@ export const createCampaignReview = createAsyncThunk(
 // Get campaign reviews
 export const getCampaignReviews = createAsyncThunk(
   "campaignReviews/getCampaignReviews",
-  async (campaignId, thunkAPI) => {
+  async ({ campaignId, params = {} }, thunkAPI) => {
     try {
-      const response = await campaignReviewsService.getCampaignReviews(campaignId);
+      const response = await campaignReviewsService.getCampaignReviews(campaignId, params);
       if (response.success) {
         return response.data;
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+// Get all unlocked brand reviews for a creator (portfolio)
+export const getCampaignReviewsByCreator = createAsyncThunk(
+  "campaignReviews/getCampaignReviewsByCreator",
+  async (creatorId, thunkAPI) => {
+    try {
+      const response = await campaignReviewsService.getCampaignReviewsByCreator(creatorId);
+      if (response?.success && Array.isArray(response.data)) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error?.response?.data || error);
     }
   }
 );
@@ -129,6 +146,7 @@ export const campaignReviewsSlice = createSlice({
     reset: (state) => {
       state.createCampaignReview = { ...generalState };
       state.getCampaignReviews = { ...generalState };
+      state.getCampaignReviewsByCreator = { ...generalState };
       state.getCampaignReviewsByCreatorProfile = { ...generalState };
       state.updateCampaignReview = { ...generalState };
       state.deleteCampaignReview = { ...generalState };
@@ -178,6 +196,24 @@ export const campaignReviewsSlice = createSlice({
         state.getCampaignReviews.isLoading = false;
         state.getCampaignReviews.isError = true;
         state.getCampaignReviews.message = action.payload?.message || "Failed to fetch reviews";
+      })
+
+      // getCampaignReviewsByCreator
+      .addCase(getCampaignReviewsByCreator.pending, (state) => {
+        state.getCampaignReviewsByCreator.isLoading = true;
+        state.getCampaignReviewsByCreator.isError = false;
+        state.getCampaignReviewsByCreator.isSuccess = false;
+      })
+      .addCase(getCampaignReviewsByCreator.fulfilled, (state, action) => {
+        state.getCampaignReviewsByCreator.isLoading = false;
+        state.getCampaignReviewsByCreator.isSuccess = true;
+        state.getCampaignReviewsByCreator.data = action.payload;
+      })
+      .addCase(getCampaignReviewsByCreator.rejected, (state, action) => {
+        state.getCampaignReviewsByCreator.isLoading = false;
+        state.getCampaignReviewsByCreator.isError = true;
+        state.getCampaignReviewsByCreator.message =
+          action.payload?.message || "Failed to fetch reviews";
       })
 
       // getCampaignReviewsByCreatorProfile

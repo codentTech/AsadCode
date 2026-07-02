@@ -27,12 +27,27 @@ export default function CustomButton({
   endIcon = null,
   startIcon = null,
   loading = false,
+  loadingText = "",
   title = "",
 }) {
+  const isLightOutlineButton =
+    /\bbtn-outline\b/.test(className) ||
+    /\bbtn-danger-outline\b/.test(className) ||
+    /\bbtn-white-cancel\b/.test(className);
+  const isMutedSurfaceButton =
+    /\bbtn-secondary\b/.test(className) || /\bbtn-cancel\b/.test(className);
+
+  const loadingSpinnerClass = isLightOutlineButton
+    ? "shrink-0 text-primary"
+    : isMutedSurfaceButton
+      ? "shrink-0 text-gray-600"
+      : "shrink-0 text-white";
+
   return (
     <Button
       id={id}
       type={type}
+      size="small"
       onClick={onClick}
       variant={variant}
       href={href}
@@ -41,8 +56,24 @@ export default function CustomButton({
       startIcon={startIcon}
       className={`btn font-dm normal-case ${className}`}
       title={title}
+      sx={{
+        "&&": {
+          height: { xs: "32px", sm: "40px" },
+          minHeight: { xs: "32px", sm: "40px" },
+        },
+        textTransform: "none",
+      }}
     >
-      {loading ? <CircularProgress className="text-white" size={20} /> : text}
+      {loading ? (
+        <span className="inline-flex items-center justify-center gap-2 min-w-0">
+          <CircularProgress className={loadingSpinnerClass} size={16} />
+          {loadingText ? (
+            <span className="text-sm font-medium truncate max-w-[220px]">{loadingText}</span>
+          ) : null}
+        </span>
+      ) : (
+        text
+      )}
     </Button>
   );
 }
@@ -60,4 +91,5 @@ CustomButton.propTypes = {
   id: PropTypes.string,
   title: PropTypes.string,
   loading: PropTypes.bool,
+  loadingText: PropTypes.string,
 };

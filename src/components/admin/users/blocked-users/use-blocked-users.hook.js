@@ -1,10 +1,20 @@
+"use client";
+
+import {
+  ADMIN_USERS_DEFAULT_SORT_BY,
+  ADMIN_USERS_DEFAULT_SORT_ORDER,
+} from "@/common/constants/options.constant";
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { formatDate } from "@/common/utils/date.utils";
+import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import { adminToggleBlockUser, getAllUsers } from "@/provider/features/users/users.slice";
 import { Email } from "@mui/icons-material";
-import { useEffect, useState } from "react";
+import { ShieldOff, User } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-// Define table columns
+
+const ADMIN_LIST_LIMIT = 100;
+
 const columns = [
   {
     key: "first_name",
@@ -34,7 +44,7 @@ const columns = [
   {
     key: "role",
     title: "Role",
-    customRender: (value) => {
+    customRender: (row) => {
       const getRoleColor = (role) => {
         switch (role) {
           case "ADMIN":
@@ -50,9 +60,9 @@ const columns = [
 
       return (
         <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(value.role)}`}
+          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(row.role)}`}
         >
-          {value.role}
+          {row.role}
         </span>
       );
     },
@@ -65,6 +75,11 @@ const columns = [
   {
     key: "blocked_at",
     title: "Blocked Date",
+    customRender: (row) => {
+      const value = row.blocked_at;
+      if (!value) return <span className="text-sm text-gray-400">-</span>;
+      return <span className="text-sm text-red-600 font-medium">{formatDate(value)}</span>;
+    },
   },
   {
     key: "onboarding_step",
@@ -86,71 +101,81 @@ const columns = [
 function useBlockedUsers() {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState(null);
+  const [sortBy, setSortBy] = useState(ADMIN_USERS_DEFAULT_SORT_BY);
+  const [sortOrder, setSortOrder] = useState(ADMIN_USERS_DEFAULT_SORT_ORDER);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  const { users } = useSelector((state) => state.users.getAllUsers?.data);
-  const { isLoading } = useSelector((state) => state.users.getAllUsers);
+  const users =
+    useSelector((state) => state.users?.getAllUsers?.data?.users) ?? [];
+  const isLoading = useSelector(
+    (state) => state.users?.getAllUsers?.isLoading ?? false
+  );
 
-  // Filter only blocked users
-  const blockedUsers = users.filter((user) => user.is_blocked);
+  const fetchUsers = useCallback(async () => {
+    const trimmed = typeof searchTerm === "string" ? searchTerm.trim() : "";
+    const payload = {
+      isBlocked: true,
+      limit: ADMIN_LIST_LIMIT,
+      sortBy,
+      sortOrder,
+    };
+    if (trimmed) payload.search = trimmed;
+    if (roleFilter != null && roleFilter !== "ALL") payload.role = roleFilter;
+    await dispatch(getAllUsers(payload));
+  }, [dispatch, searchTerm, roleFilter, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const t = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+    return () => clearTimeout(t);
+  }, [fetchUsers]);
 
-  const fetchUsers = async () => {
-    await dispatch(
-      getAllUsers({
-        isBlocked: true,
-      })
-    );
-  };
+  const blockedUsers = useMemo(() => users.filter((u) => u.is_blocked), [users]);
 
-  // Handle action clicks
-  const handleActionClick = async (actionKey, row) => {
-    switch (actionKey) {
-      case "view":
-        console.log("View user:", row);
-        break;
-      case "admin-unblock":
-        await handleAdminUnblock(row);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleAdminUnblock = async (user) => {
-    if (!user.is_blocked) {
-      console.log("User is not blocked");
-      return;
-    }
-
-    try {
-      const response = await dispatch(
+  const handleAdminUnblock = useCallback(
+    (user) => {
+      if (!user.is_blocked) {
+        return;
+      }
+      dispatch(
         adminToggleBlockUser({
           user_id: user.id,
         })
-      );
+      ).then((result) => {
+        if (adminToggleBlockUser.fulfilled.match(result)) {
+          fetchUsers();
+        }
+      });
+    },
+    [dispatch, fetchUsers]
+  );
 
-      if (response.payload?.success) {
-        // Refresh users list
-        await fetchUsers();
+  const handleActionClick = useCallback(
+    (actionKey, row) => {
+      switch (actionKey) {
+        case "view":
+          break;
+        case "admin-unblock":
+          handleAdminUnblock(row);
+          break;
+        default:
+          break;
       }
-    } catch (error) {
-      console.error("Failed to unblock user:", error);
-    }
-  };
+    },
+    [handleAdminUnblock]
+  );
 
-  // Handle selection change
-  const handleSelectionChange = (selectedIds) => {
+  const handleSelectionChange = useCallback((selectedIds) => {
     setSelectedUsers(selectedIds);
-  };
+  }, []);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const csvContent = [
       ["Email", "Role", "Joined Date", "Blocked Date"],
-      ...filteredUsers.map((user) => [
+      ...blockedUsers.map((user) => [
         user.email,
         user.role,
         user.created_at,
@@ -167,11 +192,67 @@ function useBlockedUsers() {
     a.download = "blocked-users.csv";
     a.click();
     window.URL.revokeObjectURL(url);
+  }, [blockedUsers]);
+
+  const handleSearchChange = useCallback((value) => {
+    const next = typeof value === "string" ? value : value?.target?.value ?? "";
+    setSearchTerm(next);
+  }, []);
+
+  const handleSortChange = (fieldOrOption) => {
+    const field = extractSimpleSelectValue(fieldOrOption);
+    if (field == null || field === "") return;
+    if (sortBy === field) {
+      setSortOrder((order) => (order === "ASC" ? "DESC" : "ASC"));
+    } else {
+      setSortBy(field);
+      setSortOrder("DESC");
+    }
   };
 
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
+  const handleRoleFilterChange = (option) => {
+    const v = extractSimpleSelectValue(option);
+    if (v === "ALL" || v == null) {
+      setRoleFilter(null);
+    } else {
+      setRoleFilter(v);
+    }
   };
+
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setRoleFilter(null);
+    setSortBy(ADMIN_USERS_DEFAULT_SORT_BY);
+    setSortOrder(ADMIN_USERS_DEFAULT_SORT_ORDER);
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    const hasSearch = typeof searchTerm === "string" && searchTerm.trim() !== "";
+    const hasRole = roleFilter != null;
+    const sortChanged =
+      sortBy !== ADMIN_USERS_DEFAULT_SORT_BY || sortOrder !== ADMIN_USERS_DEFAULT_SORT_ORDER;
+    return hasSearch || hasRole || sortChanged;
+  }, [searchTerm, roleFilter, sortBy, sortOrder]);
+
+  const actions = useMemo(
+    () => [
+      {
+        key: "view",
+        label: "View Details",
+        icon: <User size={16} />,
+      },
+      {
+        key: "admin-unblock",
+        label: "Unblock User",
+        icon: <ShieldOff size={16} />,
+      },
+    ],
+    []
+  );
 
   return {
     searchTerm,
@@ -183,6 +264,16 @@ function useBlockedUsers() {
     handleExport,
     handleSelectionChange,
     handleActionClick,
+    actions,
+    roleFilter,
+    sortBy,
+    sortOrder,
+    showFilters,
+    handleSortChange,
+    handleRoleFilterChange,
+    toggleFilters,
+    handleClearFilters,
+    hasActiveFilters,
   };
 }
 

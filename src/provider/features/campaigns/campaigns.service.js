@@ -1,4 +1,5 @@
 import api from "@/common/utils/api";
+import { normalizeAppliedCreatorsFilters } from "@/common/utils/normalize-applied-creators-filters.util";
 
 // Create campaign
 const createCampaign = async (campaignData) => {
@@ -30,9 +31,9 @@ const deleteCampaign = async (campaignId) => {
   return response.data;
 };
 
-// Publish campaign
-const publishCampaign = async (campaignId) => {
-  const response = await api().post(`/campaigns/${campaignId}/publish`);
+// Close campaign listing to new applicants and hires
+const closeCampaignListing = async (campaignId) => {
+  const response = await api().post(`/campaigns/${campaignId}/close-listing`);
   return response.data;
 };
 
@@ -83,21 +84,19 @@ const withdrawApplication = async (campaignId) => {
 // Get applied creators for a campaign
 const getAppliedCreators = async (campaignId, filters = {}) => {
   const response = await api().get(`/campaigns/${campaignId}/applied-creators`, {
-    params: filters,
+    params: normalizeAppliedCreatorsFilters(filters),
   });
+  return response.data;
+};
+
+const getPipelineBoard = async (campaignId) => {
+  const response = await api().get(`/campaigns/${campaignId}/pipeline-board`);
   return response.data;
 };
 
 // Get all brand campaigns (unified endpoint for Applications, Active, and Completed tabs)
 const getAllBrandCampaigns = async () => {
   const response = await api().get("/campaigns/brand");
-  return response.data;
-};
-
-// [DEPRECATED] Get brand campaigns excluding completed ones
-// Use getAllBrandCampaigns instead and filter on frontend
-const getBrandCampaignsExcludingCompleted = async () => {
-  const response = await api().get("/campaigns/brand/active");
   return response.data;
 };
 
@@ -145,14 +144,14 @@ const campaignsService = {
   getCampaignById,
   updateCampaign,
   deleteCampaign,
-  publishCampaign,
+  closeCampaignListing,
   filterCampaigns,
   getCampaignStats,
   applyToCampaign,
   withdrawApplication,
   getAllBrandCampaigns,
-  getBrandCampaignsExcludingCompleted,
   getAppliedCreators,
+  getPipelineBoard,
   getCreatorApplications,
   rejectCreator,
   reinstateCreator,

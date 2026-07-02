@@ -1,11 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import SearchIcon from "@/common/icons/search-icon";
-import DashboardLayout from "@/common/layouts/dashboard-layout";
 import { getUser } from "@/common/utils/users.util";
 import { setupBrandCampaignPreferences } from "@/provider/features/brand-profile/brand-profile.slice";
-import { X, Search } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 
 // All niche options from searchable-niche-input
@@ -525,21 +523,21 @@ const NicheTags = () => {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Header */}
-      <div className="bg-primary p-4 rounded-lg text-white mb-4">
-        <h1 className="text-xl font-bold text-white">Niche Tags</h1>
-        <p className="text-sm mt-1">
+      <div className="mb-3 rounded-lg bg-primary p-3 text-white sm:mb-4 sm:p-4">
+        <h1 className="text-sm font-semibold text-white sm:text-lg md:text-xl">Niche Tags</h1>
+        <p className="mt-1 text-[10px] leading-snug sm:text-xs md:text-sm">
           Niche Tags are required. They provide the brand industry category and are used in:
         </p>
-        <ul className="text-xs mt-2 list-disc list-inside space-y-1">
+        <ul className="mt-2 list-inside list-disc space-y-1 text-[10px] sm:text-xs">
           <li>Brand profile</li>
           <li>Discovery pages such as "Top in Skincare", "Trending in Beauty", "Top in Fashion"</li>
         </ul>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6">
+      <div className="rounded-xl border border-white/20 bg-white/80 p-3 shadow-lg backdrop-blur-sm sm:p-6">
         {/* Search Input */}
         <div className="mb-6">
           <div className="relative">
@@ -595,7 +593,7 @@ const NicheTags = () => {
         {/* Selected Tags */}
         {selectedTags.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">
+            <h3 className="mb-3 text-sm font-semibold text-gray-800 sm:text-base">
               Selected Tags ({selectedTags.length}/5)
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -620,8 +618,8 @@ const NicheTags = () => {
 
         {/* Info Message */}
         {selectedTags.length === 0 && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
+          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-3 sm:p-4">
+            <p className="text-xs text-yellow-800 sm:text-sm">
               Please select at least one niche tag. You can select up to 5 niches.
             </p>
           </div>
@@ -637,7 +635,7 @@ const NicheTags = () => {
           />
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

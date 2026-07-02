@@ -1,11 +1,12 @@
 "use client";
 
-import { isLoginVerified } from "@/common/utils/access-token.util";
+import ROLES from "@/common/constants/role.constant";
 import { login } from "@/provider/features/auth/auth.slice";
+import { getEmailPreferences } from "@/provider/features/email-preferences/email-preferences.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AES, enc } from "crypto-js";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import * as Yup from "yup";
@@ -21,8 +22,8 @@ export default function useLogin() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [showReengagementModal, setShowReengagementModal] = useState(false);
 
   const {
     register,
@@ -43,7 +44,6 @@ export default function useLogin() {
 
   const handleLogin = () => {
     if (typeof window === "object") {
-      // Check if the browser supports localStorage
       if (
         localStorage &&
         localStorage.getItem("rememberedUsername") &&
@@ -51,7 +51,6 @@ export default function useLogin() {
       ) {
         const storedUsername = localStorage.getItem("rememberedUsername");
         const storedEncryptedPassword = localStorage.getItem("rememberedPassword");
-        // Compare the entered password with the stored encrypted password
         const bytes = AES.decrypt(
           storedEncryptedPassword,
           process.env.NEXT_PUBLIC_MAIN_URL_SECRET_KEY
@@ -63,22 +62,46 @@ export default function useLogin() {
     }
   };
 
+  const navigateAfterLogin = useCallback(
+    (role) => {
+      if (role === ROLES.ADMIN) {
+        router.push("/admin/dashboard");
+        return;
+      }
+      router.push("/campaign");
+    },
+    [router]
+  );
+
+  const handleReengagementComplete = useCallback(() => {
+    setShowReengagementModal(false);
+    router.push("/campaign");
+  }, [router]);
+
   const onSubmit = async (values) => {
     setLoading(true);
-    const response = await dispatch(login(values));
-    console.log(response);
-    if (response.payload.success) {
-      if (response.payload?.data?.user?.role === "ADMIN") {
-        router.push("/admin/dashboard");
+    const response = await dispatch(login({ ...values, email: email.toLowerCase() }));
+    if (response.payload && response.payload.success) {
+      const role = response.payload?.data?.user?.role;
+
+      if (role === ROLES.CREATOR) {
+        const prefsResponse = await dispatch(getEmailPreferences());
+
+        if (
+          getEmailPreferences.fulfilled.match(prefsResponse) &&
+          prefsResponse.payload?.should_show_reengagement_popup
+        ) {
+          setShowReengagementModal(true);
+        } else {
+          navigateAfterLogin(role);
+        }
       } else {
-        router.push("/campaign");
+        navigateAfterLogin(role);
       }
     }
     setLoading(false);
     if (typeof window === "object" && isChecked) {
-      // Check if the browser supports localStorage
       if (localStorage) {
-        // Encrypt the password
         const encryptedPassword = AES.encrypt(
           values.password,
           process.env.NEXT_PUBLIC_MAIN_URL_SECRET_KEY
@@ -104,5 +127,7 @@ export default function useLogin() {
     errors,
     email,
     password,
+    showReengagementModal,
+    handleReengagementComplete,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Loading from "@/common/components/loadar/loading.component";
+import Loading from "@/common/components/loader/loading.component";
 import Footer from "../home/footer/footer.component";
 import Header from "../home/header/header.component";
 import UserMiniProfile from "../home/user-mini-profile/user-mini-profile";

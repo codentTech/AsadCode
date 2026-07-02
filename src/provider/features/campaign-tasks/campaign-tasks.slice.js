@@ -11,11 +11,15 @@ const generalState = {
 
 const initialState = {
   tasks: [],
+  brandTasks: [],
+  creatorTasks: [],
   createTask: generalState,
   updateTask: generalState,
   deleteTask: generalState,
   getTasksByCampaign: generalState,
   getAllTasks: generalState,
+  getBrandTasks: generalState,
+  getCreatorTasks: generalState,
 };
 
 // Create task
@@ -82,6 +86,34 @@ export const deleteTask = createAsyncThunk("campaignTasks/deleteTask", async (ta
   }
 });
 
+// Get brand tasks
+export const getBrandTasks = createAsyncThunk(
+  "campaignTasks/getBrandTasks",
+  async (campaignId = null, thunkAPI) => {
+    try {
+      const response = await campaignTaskService.getBrandTasks(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
+// Get creator tasks
+export const getCreatorTasks = createAsyncThunk(
+  "campaignTasks/getCreatorTasks",
+  async (_, thunkAPI) => {
+    try {
+      const response = await campaignTaskService.getCreatorTasks();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
 export const campaignTasksSlice = createSlice({
   name: "campaignTasks",
   initialState,
@@ -92,13 +124,19 @@ export const campaignTasksSlice = createSlice({
       state.deleteTask = generalState;
       state.getTasksByCampaign = generalState;
       state.getAllTasks = generalState;
+      state.getBrandTasks = generalState;
+      state.getCreatorTasks = generalState;
     },
     clearTasks: (state) => {
       state.tasks = [];
+      state.brandTasks = [];
+      state.creatorTasks = [];
     },
     removeTaskFromList: (state, action) => {
       const taskId = action.payload;
       state.tasks = state.tasks.filter((task) => task.id !== taskId);
+      state.brandTasks = state.brandTasks.filter((task) => task.id !== taskId);
+      state.creatorTasks = state.creatorTasks.filter((task) => task.id !== taskId);
     },
   },
   extraReducers: (builder) => {
@@ -215,6 +253,48 @@ export const campaignTasksSlice = createSlice({
         state.deleteTask.isLoading = false;
         state.deleteTask.isError = true;
         state.deleteTask.data = null;
+      })
+
+      // Get brand tasks
+      .addCase(getBrandTasks.pending, (state) => {
+        state.getBrandTasks.isLoading = true;
+        state.getBrandTasks.message = "";
+        state.getBrandTasks.isError = false;
+        state.getBrandTasks.isSuccess = false;
+        state.getBrandTasks.data = null;
+      })
+      .addCase(getBrandTasks.fulfilled, (state, action) => {
+        state.getBrandTasks.isLoading = false;
+        state.getBrandTasks.isSuccess = true;
+        state.getBrandTasks.data = action.payload.data;
+        state.brandTasks = action.payload.data || [];
+      })
+      .addCase(getBrandTasks.rejected, (state, action) => {
+        state.getBrandTasks.message = action.payload?.message || "Failed to fetch brand tasks";
+        state.getBrandTasks.isLoading = false;
+        state.getBrandTasks.isError = true;
+        state.getBrandTasks.data = null;
+      })
+
+      // Get creator tasks
+      .addCase(getCreatorTasks.pending, (state) => {
+        state.getCreatorTasks.isLoading = true;
+        state.getCreatorTasks.message = "";
+        state.getCreatorTasks.isError = false;
+        state.getCreatorTasks.isSuccess = false;
+        state.getCreatorTasks.data = null;
+      })
+      .addCase(getCreatorTasks.fulfilled, (state, action) => {
+        state.getCreatorTasks.isLoading = false;
+        state.getCreatorTasks.isSuccess = true;
+        state.getCreatorTasks.data = action.payload.data;
+        state.creatorTasks = action.payload.data || [];
+      })
+      .addCase(getCreatorTasks.rejected, (state, action) => {
+        state.getCreatorTasks.message = action.payload?.message || "Failed to fetch creator tasks";
+        state.getCreatorTasks.isLoading = false;
+        state.getCreatorTasks.isError = true;
+        state.getCreatorTasks.data = null;
       });
   },
 });

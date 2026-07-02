@@ -1,3 +1,5 @@
+"use client";
+
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import useSolution from "./use-solution.hook";
 
