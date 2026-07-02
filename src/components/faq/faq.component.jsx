@@ -1,3 +1,5 @@
+"use client";
+
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import { ChevronDown, ChevronUp, HelpCircle, Search } from "lucide-react";

@@ -1,3 +1,5 @@
+"use client";
+
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import CallToAction from "./components/call-to-action/call-to-action";
 import CreatorBrandPrompt from "./components/creator-brand-prompt/prompt.component";
