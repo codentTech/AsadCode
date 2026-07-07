@@ -1,5 +1,7 @@
+import { COMPARISON_ALTERNATIVE_SLUGS, COMPARISON_VS_SLUGS } from "@/common/constants/comparison-pages.constant";
 import { SITE_URL } from "@/common/constants/site.constant";
 import { fetchPublishedBlogPosts } from "@/common/utils/blog-server.util";
+import { LEGAL_DOC_INDEX } from "@/content/legal/legal-docs.config";
 
 const STATIC_ROUTES = [
   "",
@@ -19,11 +21,28 @@ export default async function sitemap() {
     lastModified: now,
   }));
 
+  const legalUrls = Object.entries(LEGAL_DOC_INDEX).flatMap(([audience, docs]) =>
+    docs.map((doc) => ({
+      url: `${SITE_URL}/legal/${audience}/${doc.slug}`,
+      lastModified: now,
+    }))
+  );
+
+  const vsUrls = COMPARISON_VS_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/vs/${slug}`,
+    lastModified: now,
+  }));
+
+  const alternativeUrls = COMPARISON_ALTERNATIVE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/alternatives/${slug}`,
+    lastModified: now,
+  }));
+
   const posts = await fetchPublishedBlogPosts();
   const blogUrls = posts.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
     lastModified: post.updated_at ? new Date(post.updated_at) : new Date(post.published_at),
   }));
 
-  return [...staticUrls, ...blogUrls];
+  return [...staticUrls, ...legalUrls, ...vsUrls, ...alternativeUrls, ...blogUrls];
 }

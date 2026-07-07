@@ -232,13 +232,16 @@ export const contractsSlice = createSlice({
         const scopeChanged =
           state.getIndividualCollaborationContracts.isCompleted !== null &&
           state.getIndividualCollaborationContracts.isCompleted !== isCompleted;
+        const hadData = Boolean(state.getIndividualCollaborationContracts.data);
         state.getIndividualCollaborationContracts.isLoading = true;
         state.getIndividualCollaborationContracts.isError = false;
-        state.getIndividualCollaborationContracts.isSuccess = false;
         state.getIndividualCollaborationContracts.message = "";
-        state.getIndividualCollaborationContracts.isCompleted = null;
-        if (scopeChanged) {
-          state.getIndividualCollaborationContracts.data = null;
+        if (scopeChanged || !hadData) {
+          state.getIndividualCollaborationContracts.isSuccess = false;
+          state.getIndividualCollaborationContracts.isCompleted = null;
+          if (scopeChanged) {
+            state.getIndividualCollaborationContracts.data = null;
+          }
         }
       })
       .addCase(getIndividualCollaborationContracts.fulfilled, (state, action) => {

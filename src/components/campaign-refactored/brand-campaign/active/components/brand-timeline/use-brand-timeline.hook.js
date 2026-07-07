@@ -18,7 +18,7 @@ function getTimelineFingerprint(steps) {
     .join("|");
 }
 
-export default function useBrandTimeline(campaignId, creatorId, onPipelineUpdated) {
+export default function useBrandTimeline(campaignId, creatorId, onPipelineUpdated, onWorkflowComplete) {
   const dispatch = useDispatch();
   const timelineFingerprintRef = useRef("");
 
@@ -146,7 +146,19 @@ export default function useBrandTimeline(campaignId, creatorId, onPipelineUpdate
 
     await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
     onPipelineUpdated?.();
-  }, [campaignId, creatorId, timelineSteps, dispatch, onPipelineUpdated]);
+
+    if (isDeliverablesOnlyWorkflow) {
+      onWorkflowComplete?.();
+    }
+  }, [
+    campaignId,
+    creatorId,
+    timelineSteps,
+    dispatch,
+    onPipelineUpdated,
+    onWorkflowComplete,
+    isDeliverablesOnlyWorkflow,
+  ]);
 
   const handleRequestRevision = useCallback(async () => {
     if (!revisionNotes.trim() || !selectedStepForRevision) return;
@@ -205,7 +217,8 @@ export default function useBrandTimeline(campaignId, creatorId, onPipelineUpdate
 
     await dispatch(getTimeline({ campaignId, creatorId: stepCreatorId }));
     onPipelineUpdated?.();
-  }, [campaignId, creatorId, timelineSteps, dispatch, onPipelineUpdated]);
+    onWorkflowComplete?.();
+  }, [campaignId, creatorId, timelineSteps, dispatch, onPipelineUpdated, onWorkflowComplete]);
 
   const timelineProgressNumerator = timelineSteps.filter(
     (step) =>

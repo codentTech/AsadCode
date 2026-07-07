@@ -2,8 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getBrandTasks } from "@/provider/features/campaign-tasks/campaign-tasks.slice";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
-import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
-import { TASK_TYPE, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  setSelectedCampaign as setSelectedCampaignContext,
+  setCampaignActiveTab,
+} from "@/provider/features/campaign-context/campaign-context.slice";
+import { TASK_TYPE, COLLABORATION_TYPE, BRAND_CAMPAIGN_TAB } from "@/common/constants/campaign.constant";
 
 export default function useBrandTaskManager(show, selectedCampaignId = null, onClose = null) {
   const dispatch = useDispatch();
@@ -175,8 +178,8 @@ export default function useBrandTaskManager(show, selectedCampaignId = null, onC
       sessionStorage.setItem("taskIsIndividualCreator", "false");
     }
 
-    // Close the modal after setting context
-    // Using setTimeout to ensure Redux state updates first
+    dispatch(setCampaignActiveTab(BRAND_CAMPAIGN_TAB.ACTIVE));
+
     setTimeout(() => {
       if (onClose) {
         onClose();

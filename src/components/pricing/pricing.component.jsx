@@ -1,3 +1,5 @@
+"use client";
+
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 import BrandPricing from "./components/brand-pricing/brand-pricing";
 import CreatorPricing from "./components/creator-pricing/creator-pricing";

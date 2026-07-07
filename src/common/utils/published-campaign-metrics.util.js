@@ -1,5 +1,35 @@
 import { TIMELINE_STEPS } from "@/common/constants/campaign.constant";
 
+export function resolveCreatorRowUserId(creatorRow) {
+  const raw = creatorRow?.creatorUserId ?? creatorRow?.creator?.id;
+  if (raw == null || raw === "") return null;
+  return String(raw);
+}
+
+export function resolveCreatorCollaborationFee(creatorRow, campaign = null) {
+  const contract = creatorRow?.contract;
+  const spent = Number(creatorRow?.total_spent ?? creatorRow?.totalSpent ?? 0);
+  if (Number.isFinite(spent) && spent > 0) return spent;
+
+  const compensation = Number(
+    contract?.totalCompensation ?? contract?.total_compensation ?? 0
+  );
+  if (Number.isFinite(compensation) && compensation > 0) return compensation;
+
+  const productValue = Number(
+    contract?.productPrice ??
+      contract?.product_price ??
+      contract?.productValue ??
+      contract?.product_value ??
+      campaign?.product_value ??
+      campaign?.productValue ??
+      0
+  );
+  if (Number.isFinite(productValue) && productValue > 0) return productValue;
+
+  return 0;
+}
+
 export function extractCreatorPublishedMetrics(
   timelinesByKey,
   campaignId,
@@ -53,27 +83,20 @@ export function buildCreatorPublishedMetricsMap({
   timelinesByKey,
   campaignId,
   creatorBreakdown,
+  campaign = null,
 }) {
   if (!campaignId || !Array.isArray(creatorsList)) return {};
 
   const map = {};
-  const breakdown = creatorBreakdown && typeof creatorBreakdown === "object" ? creatorBreakdown : {};
+  const breakdown =
+    creatorBreakdown && typeof creatorBreakdown === "object" ? creatorBreakdown : {};
 
   creatorsList.forEach((c) => {
-    const rawId = c.creator?.id ?? c.creatorUserId;
-    if (rawId == null || rawId === "") return;
+    const creatorUserId = resolveCreatorRowUserId(c);
+    if (!creatorUserId) return;
 
-    const creatorUserId = String(rawId);
-
-    const feeRaw =
-      c.total_spent ??
-      c.totalSpent ??
-      c.contract?.totalCompensation ??
-      c.contract?.total_compensation ??
-      0;
-    const feeNum = Number(feeRaw);
-    const fee = Number.isFinite(feeNum) ? feeNum : 0;
-    const fromApi = breakdown[creatorUserId] ?? breakdown[rawId];
+    const fee = resolveCreatorCollaborationFee(c, campaign);
+    const fromApi = breakdown[creatorUserId] ?? breakdown[c.creator?.id];
     const fromTimeline = extractCreatorPublishedMetrics(
       timelinesByKey,
       campaignId,
@@ -81,28 +104,59 @@ export function buildCreatorPublishedMetricsMap({
       fee
     );
 
-    if (fromApi && (fromApi.views != null || fromApi.totalEngagement != null)) {
-      const apiViews = fromApi.views ?? 0;
-      const apiEngagement = fromApi.totalEngagement ?? 0;
+    const apiUnavailable =
+      fromApi?.metrics_unavailable === true || fromApi?.metricsUnavailable === true;
+    const publishedUrl =
+      fromApi?.publishedUrl || fromTimeline?.publishedUrl || null;
+
+    if (
+      fromApi &&
+      !apiUnavailable &&
+      (fromApi.views != null || fromApi.totalEngagement != null)
+    ) {
+      const apiViews = Number(fromApi.views) || 0;
+      const apiEngagement = Number(fromApi.totalEngagement) || 0;
+      const apiEr =
+        fromApi.engagementRate != null
+          ? Number(fromApi.engagementRate) > 1
+            ? Number(fromApi.engagementRate) / 100
+            : Number(fromApi.engagementRate)
+          : apiViews > 0
+            ? apiEngagement / apiViews
+            : 0;
+
       map[creatorUserId] = {
-        publishedUrl: fromApi.publishedUrl || fromTimeline?.publishedUrl,
+        publishedUrl,
         views: apiViews,
         totalEngagement: apiEngagement,
-        engagementRate: fromApi.engagementRate ?? 0,
+        engagementRate: apiEr,
         costPerView:
           fromApi.costPerView != null
             ? Number(fromApi.costPerView)
             : apiViews > 0
-              ? Number((fee / apiViews).toFixed(2))
+              ? Number((fee / apiViews).toFixed(4))
               : null,
         costPerEngagement:
           fromApi.costPerEngagement != null
             ? Number(fromApi.costPerEngagement)
             : apiEngagement > 0
-              ? Number((fee / apiEngagement).toFixed(2))
+              ? Number((fee / apiEngagement).toFixed(4))
               : null,
       };
-    } else {
+      return;
+    }
+
+    if (fromTimeline && !fromTimeline.metricsUnavailable && fromTimeline.views != null) {
+      map[creatorUserId] = fromTimeline;
+      return;
+    }
+
+    if (publishedUrl) {
+      map[creatorUserId] = { publishedUrl, metricsUnavailable: true };
+      return;
+    }
+
+    if (fromTimeline) {
       map[creatorUserId] = fromTimeline;
     }
   });
@@ -118,8 +172,7 @@ export function aggregateCombinedPublishedMetrics(metricsMap) {
 
   const totalViews = values.reduce((s, m) => s + m.views, 0);
   const totalEngagement = values.reduce((s, m) => s + m.totalEngagement, 0);
-  const avgEngagementRateDecimal =
-    values.reduce((s, m) => s + m.engagementRate, 0) / values.length;
+  const avgEngagementRateDecimal = values.reduce((s, m) => s + m.engagementRate, 0) / values.length;
   const cpvVals = values
     .map((m) => m.costPerView)
     .filter((v) => v != null && v !== undefined && Number.isFinite(Number(v)));

@@ -4,6 +4,7 @@ const initialState = {
   selectedCampaignId: null,
   selectedCollaborationType: null, // "MULTI_CREATOR" or "INDIVIDUAL_CREATOR"
   isBrandCampaignMultiCreatorMode: true,
+  activeTab: 1,
 };
 
 const campaignContextSlice = createSlice({
@@ -21,6 +22,9 @@ const campaignContextSlice = createSlice({
     setBrandCampaignMultiCreatorMode: (state, action) => {
       state.isBrandCampaignMultiCreatorMode = action.payload;
     },
+    setCampaignActiveTab: (state, action) => {
+      state.activeTab = action.payload;
+    },
   },
 });
 
@@ -28,6 +32,10 @@ export const {
   setSelectedCampaign,
   clearSelectedCampaign,
   setBrandCampaignMultiCreatorMode,
+  setCampaignActiveTab,
 } = campaignContextSlice.actions;
+
+export const selectCampaignActiveTab = (state) => state.campaignContext.activeTab;
+
 export default campaignContextSlice.reducer;
 
