@@ -15,6 +15,7 @@ function useJoinCleercut() {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { termsHref, privacyHref } = useLegalLinks(LEGAL_AUDIENCE.CLIENT);
 
   const {
     register,
