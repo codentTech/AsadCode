@@ -31,6 +31,7 @@ import phylloReducer from "./features/phyllo/phyllo.slice";
 import galleryReducer from "./features/gallery/gallery.slice";
 import dashboardReducer from "./features/dashboard/dashboard.slice";
 import adminAuditReducer from "./features/admin-audit/admin-audit.slice";
+import blogReducer from "./features/blog/blog.slice";
 import placesReducer from "./features/places/places.slice";
 import emailPreferencesReducer from "./features/email-preferences/email-preferences.slice";
 
@@ -110,6 +111,7 @@ const rootReducer = combineReducers({
   phyllo: phylloReducer,
   gallery: galleryReducer,
   adminAudit: adminAuditReducer,
+  blog: blogReducer,
   places: placesReducer,
   emailPreferences: emailPreferencesReducer,
 });

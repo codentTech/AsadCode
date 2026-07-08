@@ -861,6 +861,48 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background-color: rgba(79, 70, 229, 0.35);
 }
 
+/* blog post body */
+.blog-post-body h2 {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.blog-post-body h3 {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.blog-post-body p {
+  margin-top: 0.5rem;
+}
+
+.blog-post-body ul,
+.blog-post-body ol {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.blog-post-body ul {
+  list-style-type: disc;
+}
+
+.blog-post-body ol {
+  list-style-type: decimal;
+}
+
+.blog-post-body a {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+.blog-post-body strong {
+  font-weight: 600;
+}
+
 /* primary scroll  */
 
 /* For webkit browsers (Chrome, Safari) */
