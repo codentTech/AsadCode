@@ -6,7 +6,9 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import Loader from "@/common/components/loader/loader.component";
 import { avatar } from "@/common/constants/auth.constant";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import useBulkMessageModal from "./use-bulk-message-modal.hook";
+import useBulkMessageModal, {
+  resolveCreatorUserId,
+} from "./use-bulk-message-modal.hook";
 
 const BulkMessageModal = ({ isOpen, onClose, creators, selectedCampaign }) => {
   const { getPlatformIcon, getPlatformColor, formatFollowers } = useGetplatform();
@@ -115,7 +117,8 @@ const BulkMessageModal = ({ isOpen, onClose, creators, selectedCampaign }) => {
             </div>
           ) : (
             activeCreators.map((creator) => {
-              const creatorId = creator.creatorUserId || creator.id;
+              const creatorId = resolveCreatorUserId(creator);
+              if (!creatorId) return null;
               const isSelected = selectedCreatorIds.has(creatorId);
               const isFailed =
                 showResults && sendResults.failed.some((f) => f.creatorId === creatorId);

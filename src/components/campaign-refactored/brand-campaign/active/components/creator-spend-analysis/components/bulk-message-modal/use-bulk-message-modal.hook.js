@@ -1,7 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { getUser } from "@/common/utils/users.util";
 import { createOrGetConversation, sendMessage } from "@/provider/features/chat/chat.slice";
+
+const resolveCreatorUserId = (creator) =>
+  creator?.creatorUserId || creator?.creator?.id || null;
+
+export { resolveCreatorUserId };
 
 const useBulkMessageModal = (creators, selectedCampaign) => {
   const dispatch = useDispatch();
@@ -14,19 +19,34 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
 
   const activeCreators = creators?.filter((creator) => creator.status === "HIRED") || [];
 
+  const activeCreatorIdsKey = useMemo(
+    () =>
+      activeCreators
+        .map((creator) => resolveCreatorUserId(creator))
+        .filter(Boolean)
+        .join(","),
+    [activeCreators]
+  );
+
   useEffect(() => {
     if (activeCreators.length > 0) {
-      const allIds = new Set(activeCreators.map((creator) => creator.creatorUserId || creator.id));
+      const allIds = new Set(
+        activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
+      );
       setSelectedCreatorIds(allIds);
+    } else {
+      setSelectedCreatorIds(new Set());
     }
-  }, [activeCreators.length]);
+  }, [activeCreatorIdsKey, activeCreators]);
 
   const resetState = useCallback(() => {
     setMessageText("");
     setValidationError("");
     setSendResults({ success: [], failed: [] });
     setShowResults(false);
-    const allIds = new Set(activeCreators.map((creator) => creator.creatorUserId || creator.id));
+    const allIds = new Set(
+      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
+    );
     setSelectedCreatorIds(allIds);
   }, [activeCreators]);
 
@@ -43,7 +63,9 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    const allIds = new Set(activeCreators.map((creator) => creator.creatorUserId || creator.id));
+    const allIds = new Set(
+      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
+    );
     setSelectedCreatorIds(allIds);
   }, [activeCreators]);
 
@@ -98,15 +120,16 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
     const successResults = [];
     const failedResults = [];
 
-    const selectedCreators = activeCreators.filter((creator) =>
-      selectedCreatorIds.has(creator.creatorUserId || creator.id)
-    );
+    const selectedCreators = activeCreators.filter((creator) => {
+      const creatorId = resolveCreatorUserId(creator);
+      return creatorId && selectedCreatorIds.has(creatorId);
+    });
 
     for (const creator of selectedCreators) {
-      const creatorId = creator.creatorUserId || creator.id;
+      const creatorId = resolveCreatorUserId(creator);
       if (!creatorId) {
         failedResults.push({
-          creatorId,
+          creatorId: creator.id,
           creatorName: creator.name || "Unknown",
           error: "Invalid creator ID",
         });
@@ -129,10 +152,11 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
         }
 
         const conversationId = conversationResult.data.id;
+        const receiverId = conversationResult.data.creator?.id || creatorId;
 
         const messageData = {
           conversation_id: conversationId,
-          receiver_id: creatorId,
+          receiver_id: receiverId,
           content: messageText.trim(),
           message_type: "TEXT",
           attachment_url: null,
@@ -146,7 +170,10 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
         });
       } catch (error) {
         const errorMessage =
-          error?.message || error?.response?.data?.message || "Failed to send message";
+          error?.message ||
+          error?.payload?.message ||
+          error?.response?.data?.message ||
+          "Failed to send message";
         failedResults.push({
           creatorId,
           creatorName: creator.name || "Unknown",
