@@ -167,13 +167,14 @@ export default function BrandCompleted() {
   const emptyCampaignCopy = "Please select a campaign with completed creators.";
   const emptyCreatorCopy = "Please select a campaign and creator.";
 
-  const detailPanel =
+  const deliverablesProgressElement =
     selectedCreator ? (
       <DeliverablesProgress
         selectedCampaign={selectedCampaign}
         selectedCreator={selectedCreator}
         isIndividualCreator={isIndividualCreator}
         onClearCreator={handleClearCreator}
+        showProfileClose={viewMode === "board"}
         onPipelineUpdated={refreshPipelineData}
         filters={{ status: "COMPLETED", sort: currentSort }}
       />
@@ -188,7 +189,7 @@ export default function BrandCompleted() {
           onCreatorSelect={handleCreatorSelect}
           onClearCreator={handleClearCreator}
           selectedCreator={selectedCreator}
-          detailPanel={detailPanel}
+          detailPanel={deliverablesProgressElement}
           pipelineRefreshToken={pipelineRefreshToken}
         />
       </div>
@@ -252,14 +253,7 @@ export default function BrandCompleted() {
               <CompletedEmptyPanel description={emptyCreatorCopy} />
             )
           ) : (
-            <DeliverablesProgress
-              selectedCampaign={selectedCampaign}
-              selectedCreator={selectedCreator}
-              isIndividualCreator={isIndividualCreator}
-              onClearCreator={handleClearCreator}
-              onPipelineUpdated={refreshPipelineData}
-              filters={{ status: "COMPLETED", sort: currentSort }}
-            />
+            deliverablesProgressElement
           )}
         </CompletedPaneContent>
       </div>

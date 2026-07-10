@@ -240,19 +240,19 @@ function useBrandApplications() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCreator) {
+    if (!selectedCreator && viewMode !== "board") {
       setMobilePane("list");
     }
-  }, [selectedCreator]);
+  }, [selectedCreator, viewMode]);
 
   const handleCreatorSelectWithPane = useCallback(
     (creator) => {
       handleCreatorSelect(creator);
-      if (isMobileViewport()) {
+      if (isMobileViewport() && viewMode !== "board") {
         setMobilePane("detail");
       }
     },
-    [handleCreatorSelect]
+    [handleCreatorSelect, viewMode]
   );
 
   const backToApplicationList = useCallback(() => {
@@ -562,12 +562,13 @@ function useBrandApplications() {
   }, [selectedCreator, selectedCampaign]);
 
   useEffect(() => {
+    if (viewMode === "board") return;
     if (!selectedCreator || !selectedCampaign) return;
     if (!isSelectedCreatorForCurrentCampaign()) {
       setSelectedCreator(null);
       autoSelectedForCampaignRef.current = null;
     }
-  }, [selectedCreator, selectedCampaign, isSelectedCreatorForCurrentCampaign]);
+  }, [selectedCreator, selectedCampaign, isSelectedCreatorForCurrentCampaign, viewMode]);
 
   const initialMessagePayload = useMemo(() => {
     if (!selectedCreator || !selectedCampaign || !isSelectedCreatorForCurrentCampaign()) {
@@ -701,12 +702,13 @@ function useBrandApplications() {
   }, [isIndividualCreator, individualCreators, enrichedMultiCreators, applicationsSubTab]);
 
   useEffect(() => {
+    if (viewMode === "board") return;
     if (isIndividualCreator || !selectedCreator) return;
     if (!creatorBelongsToApplicationsSubTab(selectedCreator, applicationsSubTab)) {
       setSelectedCreator(null);
       autoSelectedForCampaignRef.current = null;
     }
-  }, [isIndividualCreator, selectedCreator, applicationsSubTab]);
+  }, [isIndividualCreator, selectedCreator, applicationsSubTab, viewMode]);
 
   useEffect(() => {
     if (viewMode === "board") return;
@@ -848,6 +850,10 @@ function useBrandApplications() {
     autoSelectedForCampaignRef.current !== selectedCampaign.id;
 
   const rightPaneState = (() => {
+    if (viewMode === "board" && selectedCreator) {
+      return { type: "content", isIndividualCreator: isIndividualCreatorMode };
+    }
+
     if (
       campaignsLoading ||
       individualCollaborationsLoading ||

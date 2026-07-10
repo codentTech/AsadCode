@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
+import { enqueueSnackbar } from "notistack";
 import { getUser } from "@/common/utils/users.util";
 import { createOrGetConversation, sendMessage } from "@/provider/features/chat/chat.slice";
 
@@ -8,90 +9,157 @@ const resolveCreatorUserId = (creator) =>
 
 export { resolveCreatorUserId };
 
-const useBulkMessageModal = (creators, selectedCampaign) => {
+const MAX_MESSAGE_LENGTH = 2000;
+
+const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
   const dispatch = useDispatch();
   const [selectedCreatorIds, setSelectedCreatorIds] = useState(new Set());
   const [messageText, setMessageText] = useState("");
-  const [validationError, setValidationError] = useState("");
+  const [selectionError, setSelectionError] = useState("");
+  const [messageError, setMessageError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendResults, setSendResults] = useState({ success: [], failed: [] });
   const [showResults, setShowResults] = useState(false);
+  const [resultSummary, setResultSummary] = useState("");
 
-  const activeCreators = creators?.filter((creator) => creator.status === "HIRED") || [];
+  const lastInitializedIdsKeyRef = useRef("");
+  const wasOpenRef = useRef(false);
+  const sendCompletedRef = useRef(false);
+
+  const activeCreators = useMemo(
+    () => creators?.filter((creator) => creator.status === "HIRED") ?? [],
+    [creators]
+  );
 
   const activeCreatorIdsKey = useMemo(
     () =>
       activeCreators
         .map((creator) => resolveCreatorUserId(creator))
         .filter(Boolean)
+        .sort()
         .join(","),
     [activeCreators]
   );
 
+  const buildAllSelectedIds = useCallback(() => {
+    return new Set(
+      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
+    );
+  }, [activeCreators]);
+
   useEffect(() => {
-    if (activeCreators.length > 0) {
-      const allIds = new Set(
-        activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
-      );
-      setSelectedCreatorIds(allIds);
-    } else {
-      setSelectedCreatorIds(new Set());
+    if (!isOpen) {
+      wasOpenRef.current = false;
+      return;
     }
-  }, [activeCreatorIdsKey, activeCreators]);
+
+    const isOpening = !wasOpenRef.current;
+
+    if (isOpening) {
+      lastInitializedIdsKeyRef.current = activeCreatorIdsKey;
+      wasOpenRef.current = true;
+      sendCompletedRef.current = false;
+      setSelectedCreatorIds(buildAllSelectedIds());
+      setMessageText("");
+      setSelectionError("");
+      setMessageError("");
+      setSendResults({ success: [], failed: [] });
+      setShowResults(false);
+      setResultSummary("");
+      return;
+    }
+
+    const creatorsChanged = activeCreatorIdsKey !== lastInitializedIdsKeyRef.current;
+    if (creatorsChanged && !sendCompletedRef.current) {
+      lastInitializedIdsKeyRef.current = activeCreatorIdsKey;
+      setSelectedCreatorIds(buildAllSelectedIds());
+    }
+  }, [isOpen, activeCreatorIdsKey, buildAllSelectedIds]);
 
   const resetState = useCallback(() => {
+    sendCompletedRef.current = false;
     setMessageText("");
-    setValidationError("");
+    setSelectionError("");
+    setMessageError("");
     setSendResults({ success: [], failed: [] });
     setShowResults(false);
-    const allIds = new Set(
-      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
-    );
-    setSelectedCreatorIds(allIds);
-  }, [activeCreators]);
+    setResultSummary("");
+    setSelectedCreatorIds(buildAllSelectedIds());
+  }, [buildAllSelectedIds]);
+
+  const handleDismissResults = useCallback(() => {
+    setShowResults(false);
+    setResultSummary("");
+  }, []);
+
+  const updateMessageText = useCallback((value) => {
+    setMessageText(value);
+    if (value.length > MAX_MESSAGE_LENGTH) {
+      setMessageError(`Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
+      return;
+    }
+    setMessageError("");
+  }, []);
 
   const handleCreatorToggle = useCallback((creatorId) => {
+    if (isSending) return;
+    setSelectionError("");
     setSelectedCreatorIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(creatorId)) {
-        newSet.delete(creatorId);
+      const next = new Set(prev);
+      if (next.has(creatorId)) {
+        next.delete(creatorId);
       } else {
-        newSet.add(creatorId);
+        next.add(creatorId);
       }
-      return newSet;
+      return next;
     });
-  }, []);
+  }, [isSending]);
 
   const handleSelectAll = useCallback(() => {
-    const allIds = new Set(
-      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
-    );
-    setSelectedCreatorIds(allIds);
-  }, [activeCreators]);
+    if (isSending) return;
+    setSelectionError("");
+    setSelectedCreatorIds(buildAllSelectedIds());
+  }, [buildAllSelectedIds, isSending]);
 
   const handleDeselectAll = useCallback(() => {
+    if (isSending) return;
+    setSelectionError("");
     setSelectedCreatorIds(new Set());
-  }, []);
+  }, [isSending]);
+
+  const handleSelectAllToggle = useCallback(
+    (checked) => {
+      if (isSending) return;
+      if (checked) {
+        handleSelectAll();
+      } else {
+        handleDeselectAll();
+      }
+    },
+    [handleSelectAll, handleDeselectAll, isSending]
+  );
 
   const validateMessage = useCallback(() => {
-    if (!messageText.trim()) {
-      setValidationError("Message is required");
-      return false;
-    }
-    if (messageText.trim().length < 5) {
-      setValidationError("Message must be at least 5 characters long");
-      return false;
-    }
-    if (messageText.trim().length > 2000) {
-      setValidationError("Message must be less than 2000 characters");
-      return false;
-    }
+    let isValid = true;
+
     if (selectedCreatorIds.size === 0) {
-      setValidationError("Please select at least one creator");
-      return false;
+      setSelectionError("Select at least one creator to send a bulk message.");
+      isValid = false;
+    } else {
+      setSelectionError("");
     }
-    setValidationError("");
-    return true;
+
+    if (!messageText.trim() || messageText.trim().length < 5) {
+      setMessageError("Please enter a message before sending.");
+      isValid = false;
+    } else if (messageText.length > MAX_MESSAGE_LENGTH) {
+      setMessageError(`Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
+      isValid = false;
+    } else {
+      setMessageError("");
+    }
+
+    return isValid;
   }, [messageText, selectedCreatorIds]);
 
   const handleSendMessages = useCallback(async () => {
@@ -100,13 +168,13 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
     }
 
     if (!selectedCampaign?.id) {
-      setValidationError("Campaign ID is required");
+      setMessageError("Campaign ID is required");
       return;
     }
 
     const currentUser = getUser();
     if (!currentUser?.id) {
-      setValidationError("User not authenticated");
+      setMessageError("User not authenticated");
       return;
     }
 
@@ -114,8 +182,11 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
     const campaignId = selectedCampaign.id;
 
     setIsSending(true);
-    setValidationError("");
+    setSelectionError("");
+    setMessageError("");
     setSendResults({ success: [], failed: [] });
+    setShowResults(false);
+    setResultSummary("");
 
     const successResults = [];
     const failedResults = [];
@@ -182,15 +253,35 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
       }
     }
 
-    setSendResults({ success: successResults, failed: failedResults });
-    setShowResults(true);
     setIsSending(false);
 
-    if (failedResults.length === 0) {
-      setTimeout(() => {
-        resetState();
-      }, 10000);
+    const successCount = successResults.length;
+    const failedCount = failedResults.length;
+
+    if (failedCount === 0) {
+      const summary = `Bulk message sent to ${successCount} creator${successCount !== 1 ? "s" : ""}.`;
+      sendCompletedRef.current = true;
+      setSendResults({ success: successResults, failed: [] });
+      setResultSummary(summary);
+      setShowResults(true);
+      setMessageText("");
+      setMessageError("");
+      enqueueSnackbar(summary, { variant: "success" });
+      return;
     }
+
+    sendCompletedRef.current = true;
+    setSendResults({ success: successResults, failed: failedResults });
+    setShowResults(true);
+
+    if (successCount === 0) {
+      setResultSummary("We could not send this message. Please try again.");
+      return;
+    }
+
+    setResultSummary(
+      `Message sent to ${successCount} creator${successCount !== 1 ? "s" : ""}. Failed for ${failedCount} creator${failedCount !== 1 ? "s" : ""}. Please try again or contact support if this continues.`
+    );
   }, [
     validateMessage,
     selectedCampaign,
@@ -198,30 +289,36 @@ const useBulkMessageModal = (creators, selectedCampaign) => {
     messageText,
     activeCreators,
     dispatch,
-    resetState,
   ]);
 
   const selectedCount = selectedCreatorIds.size;
   const totalCount = activeCreators.length;
+  const isAllSelected = selectedCount === totalCount && totalCount > 0;
+  const isMessageOverLimit = messageText.length > MAX_MESSAGE_LENGTH;
 
   return {
     selectedCreatorIds,
     messageText,
-    setMessageText,
-    validationError,
+    setMessageText: updateMessageText,
+    selectionError,
+    messageError,
     isSending,
     sendResults,
     showResults,
-    setShowResults,
+    resultSummary,
     activeCreators,
     selectedCount,
     totalCount,
+    isAllSelected,
+    isMessageOverLimit,
+    maxMessageLength: MAX_MESSAGE_LENGTH,
     handleCreatorToggle,
     handleSelectAll,
     handleDeselectAll,
+    handleSelectAllToggle,
     handleSendMessages,
     resetState,
-    validateMessage,
+    handleDismissResults,
   };
 };
 

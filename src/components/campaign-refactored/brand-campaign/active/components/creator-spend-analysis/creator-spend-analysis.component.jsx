@@ -99,7 +99,7 @@ const CreatorSpendAnalysis = ({
                 <CustomButton
                   text="Bulk Message"
                   title="Bulk Message"
-                  className="btn-outline min-w-0 w-full sm:w-auto"
+                  className="btn-primary min-w-0 w-full sm:w-auto"
                   startIcon={<MessageSquare className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />}
                   onClick={() => setShowBulkMessageModal(true)}
                   disabled={!selectedCampaign || !hasActiveCreators}
