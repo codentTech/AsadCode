@@ -46,8 +46,8 @@ export default function TextArea({
           className={`input-field default-input min hover:border-text-dark-gray focus:border-[1px] focus:border-text-dark-gray ${
             errors && errors[name] && "error-field"
           } ${className} ${!disabled || "disabled-input"} `}
-          {...(!register && defaultValue && { defaultValue })}
-          {...(!register && value && { value })}
+          {...(!register && defaultValue != null && { defaultValue })}
+          {...(!register && value != null && { value })}
           {...(!register && onChange && { onChange })}
           onKeyDown={onKeyDown} // Add this line to handle key events
           readOnly={readOnly}
