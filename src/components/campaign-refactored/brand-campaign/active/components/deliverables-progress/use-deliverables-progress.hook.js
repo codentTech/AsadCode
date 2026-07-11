@@ -303,7 +303,8 @@ const useDeliverablesProgress = (
     creatorUserId,
     messageCampaignId,
     null,
-    applicationPitch
+    applicationPitch,
+    selectedCreator?.creator || selectedCreator
   );
 
   const handleMessageClick = () => {

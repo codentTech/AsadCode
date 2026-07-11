@@ -634,7 +634,8 @@ function useBrandApplications() {
     getCreatorId(),
     getCampaignId(),
     handleMessageSent,
-    initialMessagePayload
+    initialMessagePayload,
+    selectedCreator?.creator || selectedCreator
   );
 
   const handleMessageClick = () => {

@@ -34,6 +34,7 @@ import adminAuditReducer from "./features/admin-audit/admin-audit.slice";
 import blogReducer from "./features/blog/blog.slice";
 import placesReducer from "./features/places/places.slice";
 import emailPreferencesReducer from "./features/email-preferences/email-preferences.slice";
+import messageTemplatesReducer from "./features/message-templates/message-templates.slice";
 
 const defaultAdminDashboardSummary = {
   data: null,
@@ -114,6 +115,7 @@ const rootReducer = combineReducers({
   blog: blogReducer,
   places: placesReducer,
   emailPreferences: emailPreferencesReducer,
+  messageTemplates: messageTemplatesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
