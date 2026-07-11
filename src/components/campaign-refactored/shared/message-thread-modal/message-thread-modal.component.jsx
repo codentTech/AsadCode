@@ -1,19 +1,20 @@
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import SendIcon from "@mui/icons-material/Send";
+import EmojiPicker from "emoji-picker-react";
 import {
-  X,
-  Phone,
-  Video,
-  MoreHorizontal,
-  Search,
   FileText,
   Image as ImageIcon,
+  LayoutTemplate,
+  MoreHorizontal,
+  Phone,
+  Search,
+  Smile,
+  Video,
+  X,
 } from "lucide-react";
-import EmojiPicker from "emoji-picker-react";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
-import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import SendIcon from "@mui/icons-material/Send";
-import { IconButton } from "@mui/material";
-import MessageThreadMessagesSkeleton from "./components/message-thread-messages-skeleton.component";
+import MessageTemplatesModal from "../message-templates-modal/message-templates-modal.component";
 import MessageThreadMessagesList from "./components/message-thread-messages-list.component";
+import MessageThreadMessagesSkeleton from "./components/message-thread-messages-skeleton.component";
 import MessageThreadModalAvatar from "./components/message-thread-modal-avatar/message-thread-modal-avatar.component";
 
 const MessageThreadModal = ({
@@ -44,6 +45,12 @@ const MessageThreadModal = ({
   removeAttachment,
   openFilePicker,
   fileInputRef,
+  showTemplatesModal,
+  openTemplatesModal,
+  closeTemplatesModal,
+  handleTemplateSelect,
+  creatorFirstName,
+  showTemplatesButton,
 }) => {
   if (!isOpen) return null;
 
@@ -210,7 +217,7 @@ const MessageThreadModal = ({
             </div>
           ) : null}
 
-          <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-1">
+          <div className="flex min-h-10 items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 sm:min-h-11">
             {fileInputRef ? (
               <input
                 ref={fileInputRef}
@@ -221,41 +228,58 @@ const MessageThreadModal = ({
               />
             ) : null}
 
-            <div className="flex px-2">
-              <IconButton
-                size="small"
-                className="text-gray-500 hover:text-primary"
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
                 onClick={() => openFilePicker?.()}
                 disabled={isUploading || typeof openFilePicker !== "function"}
+                title="Attach file"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-200 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8"
               >
                 {isUploading ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent sm:h-4 sm:w-4" />
                 ) : (
-                  <AttachFileIcon fontSize="small" />
+                  <AttachFileIcon sx={{ fontSize: 17 }} />
                 )}
-              </IconButton>
-              <IconButton
+              </button>
+              <button
                 ref={emojiButtonRef}
-                size="small"
-                className="text-gray-500 hover:text-primary"
+                type="button"
                 onClick={handleToggleEmojiClick}
+                title="Emoji"
+                className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors sm:h-8 sm:w-8 ${
+                  actualShowEmojiPicker
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-gray-200 bg-gray-100 text-gray-600 hover:border-gray-300 hover:bg-gray-200 hover:text-primary"
+                }`}
               >
-                <EmojiEmotionsIcon fontSize="small" />
-              </IconButton>
+                <Smile className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.75} />
+              </button>
+              {showTemplatesButton ? (
+                <button
+                  type="button"
+                  onClick={openTemplatesModal}
+                  title="Templates"
+                  className="flex h-7 items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-1.5 text-primary transition-colors hover:border-primary/30 hover:bg-primary/15 sm:h-8 sm:px-2"
+                >
+                  <LayoutTemplate className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={1.75} />
+                  <span className="text-[10px] font-semibold leading-none sm:text-xs">Templates</span>
+                </button>
+              ) : null}
             </div>
             <input
               type="text"
               placeholder="Type your message..."
-              className="flex-1 bg-transparent px-2.5 py-2 text-xs focus:outline-none sm:px-3 sm:text-sm"
+              className="min-w-0 flex-1 bg-transparent px-1.5 py-2 text-sm leading-snug focus:outline-none sm:px-2 sm:py-2.5 sm:text-base"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress ?? undefined}
               disabled={isSending || isUploading}
             />
-            <div className="pr-2">
+            <div className="shrink-0 pr-0.5">
               <button
                 type="button"
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                className={`flex h-7 w-7 items-center justify-center rounded-full sm:h-8 sm:w-8 ${
                   (newMessage.trim() || attachmentPreview) && !isSending && !isUploading
                     ? "bg-primary text-white shadow-sm"
                     : "bg-gray-200 text-gray-400"
@@ -264,7 +288,7 @@ const MessageThreadModal = ({
                 disabled={(!newMessage.trim() && !attachmentPreview) || isSending || isUploading}
               >
                 {isSending ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent sm:h-4 sm:w-4" />
                 ) : (
                   <SendIcon fontSize="small" className="h-4 w-4" />
                 )}
@@ -273,6 +297,13 @@ const MessageThreadModal = ({
           </div>
         </div>
       </div>
+
+      <MessageTemplatesModal
+        isOpen={showTemplatesModal}
+        onClose={closeTemplatesModal}
+        onSelectTemplate={handleTemplateSelect}
+        creatorName={creatorFirstName}
+      />
     </div>
   );
 };

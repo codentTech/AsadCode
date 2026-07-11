@@ -9,9 +9,16 @@ import {
 import chatSocketService from "@/provider/features/chat/chat-socket.service";
 import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
+import { getCreatorFirstName } from "@/common/utils/creator-name.util";
 import ROLES from "@/common/constants/role.constant";
 
-const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch = null) => {
+const useMessageThread = (
+  creatorId,
+  campaignId,
+  onMessageSent,
+  applicationPitch = null,
+  threadParticipant = null
+) => {
   const dispatch = useDispatch();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +26,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
   const [conversationId, setConversationId] = useState(null);
   const [error, setError] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [attachmentPreview, setAttachmentPreview] = useState(null);
 
@@ -177,6 +185,14 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
 
   const currentUser = getUser();
 
+  const creatorFirstName = useMemo(() => {
+    const participant =
+      conversationState?.data?.creator || threadParticipant || null;
+    return getCreatorFirstName(participant);
+  }, [conversationState?.data?.creator, threadParticipant]);
+
+  const showTemplatesButton = currentUser?.role === ROLES.BRAND;
+
   const otherUserId =
     conversationState?.data?.brand?.id === currentUser?.id
       ? conversationState?.data?.creator?.id
@@ -294,6 +310,7 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     setNewMessage("");
     setError(null);
     setShowEmojiPicker(false);
+    setShowTemplatesModal(false);
     hasFetchedMessagesRef.current = false;
 
     if (typingTimeoutRef.current) {
@@ -538,6 +555,24 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     fileInputRef.current?.click();
   }, []);
 
+  const openTemplatesModal = useCallback(() => {
+    setShowTemplatesModal(true);
+  }, []);
+
+  const closeTemplatesModal = useCallback(() => {
+    setShowTemplatesModal(false);
+  }, []);
+
+  const handleTemplateSelect = useCallback(
+    (templateText) => {
+      const resolvedName = creatorFirstName || "there";
+      const finalMessage = templateText.replace(/\{\{creator_name\}\}/gi, resolvedName);
+      handleMessageChange(finalMessage);
+      setShowTemplatesModal(false);
+    },
+    [creatorFirstName, handleMessageChange]
+  );
+
   // Single useEffect to handle socket connection and message fetching
   useEffect(() => {
     if (!conversationId || !isModalOpen) {
@@ -662,6 +697,12 @@ const useMessageThread = (creatorId, campaignId, onMessageSent, applicationPitch
     emojiButtonRef,
     handleKeyPress,
     handleToggleEmojiClick: toggleEmojiPicker,
+    showTemplatesModal,
+    openTemplatesModal,
+    closeTemplatesModal,
+    handleTemplateSelect,
+    creatorFirstName,
+    showTemplatesButton,
   };
 };
 
@@ -681,6 +722,12 @@ export function pickMessageThreadModalProps(hook) {
     removeAttachment: hook.removeAttachment,
     openFilePicker: hook.openFilePicker,
     fileInputRef: hook.fileInputRef,
+    showTemplatesModal: hook.showTemplatesModal,
+    openTemplatesModal: hook.openTemplatesModal,
+    closeTemplatesModal: hook.closeTemplatesModal,
+    handleTemplateSelect: hook.handleTemplateSelect,
+    creatorFirstName: hook.creatorFirstName,
+    showTemplatesButton: hook.showTemplatesButton,
   };
 }
 

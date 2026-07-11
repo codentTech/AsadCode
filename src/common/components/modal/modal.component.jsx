@@ -14,6 +14,7 @@ export default function Modal({
   size,
   height,
   fullScreenOnMobile = false,
+  zIndex,
 }) {
   const theme = useTheme();
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
@@ -64,6 +65,7 @@ export default function Modal({
       fullWidth={false}
       maxWidth={false}
       className="custom_modal_design"
+      sx={zIndex ? { zIndex } : undefined}
       PaperProps={{
         className: fullScreen ? "" : "rounded-2xl",
         sx: paperSx,
