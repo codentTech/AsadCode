@@ -20,11 +20,11 @@ export default function BlogPostCard({ post }) {
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h2 className="line-clamp-2 text-left text-sm font-semibold text-gray-900 transition-colors bg-indigo-100 p-2 rounded-lg sm:text-base">
+        <h2 className="line-clamp-2 text-left text-sm font-bold text-gray-900 transition-colors group-hover:text-primary sm:text-base">
           {post.title}
         </h2>
 
-        <p className="mt-2 line-clamp-3 flex-1 rounded-lg bg-gray-100 p-2 text-left text-[10px] leading-snug text-gray-600 sm:text-xs">
+        <p className="mt-2 line-clamp-3 flex-1 text-left text-[10px] leading-snug text-gray-600 sm:text-xs">
           {post.excerpt}
         </p>
 

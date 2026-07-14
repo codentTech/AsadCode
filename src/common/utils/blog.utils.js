@@ -77,3 +77,7 @@ export function formatBlogDate(isoDate) {
     day: "numeric",
   });
 }
+
+export function formatBlogReadingTime(minutes) {
+  return `${minutes} Min`;
+}
