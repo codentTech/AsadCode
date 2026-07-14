@@ -186,10 +186,12 @@ const useMessageThread = (
   const currentUser = getUser();
 
   const creatorFirstName = useMemo(() => {
-    const participant =
-      conversationState?.data?.creator || threadParticipant || null;
-    return getCreatorFirstName(participant);
-  }, [conversationState?.data?.creator, threadParticipant]);
+    return (
+      getCreatorFirstName(threadParticipant) ||
+      getCreatorFirstName(conversationState?.data?.creator) ||
+      null
+    );
+  }, [threadParticipant, conversationState?.data?.creator]);
 
   const showTemplatesButton = currentUser?.role === ROLES.BRAND;
 
@@ -565,12 +567,21 @@ const useMessageThread = (
 
   const handleTemplateSelect = useCallback(
     (templateText) => {
-      const resolvedName = creatorFirstName || "there";
+      const resolvedName =
+        creatorFirstName ||
+        getCreatorFirstName(threadParticipant) ||
+        getCreatorFirstName(conversationState?.data?.creator) ||
+        "there";
       const finalMessage = templateText.replace(/\{\{creator_name\}\}/gi, resolvedName);
       handleMessageChange(finalMessage);
       setShowTemplatesModal(false);
     },
-    [creatorFirstName, handleMessageChange]
+    [
+      creatorFirstName,
+      threadParticipant,
+      conversationState?.data?.creator,
+      handleMessageChange,
+    ]
   );
 
   // Single useEffect to handle socket connection and message fetching
