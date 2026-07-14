@@ -14,6 +14,7 @@ export default function Modal({
   size,
   height,
   fullScreenOnMobile = false,
+  zIndex,
 }) {
   const theme = useTheme();
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
@@ -64,13 +65,14 @@ export default function Modal({
       fullWidth={false}
       maxWidth={false}
       className="custom_modal_design"
+      sx={zIndex ? { zIndex } : undefined}
       PaperProps={{
         className: fullScreen ? "" : "rounded-2xl",
         sx: paperSx,
       }}
     >
-      <div className="flex items-center justify-between bg-primary px-3 py-3 sm:px-4 sm:py-[14px]">
-        <DialogTitle className="px-0 py-0 font-dm text-base font-bold leading-snug text-white sm:text-lg sm:leading-8 md:text-xl pr-2">
+      <div className="flex min-w-0 items-center justify-between bg-primary px-3 py-3 sm:px-4 sm:py-[14px]">
+        <DialogTitle className="min-w-0 flex-1 truncate px-0 py-0 pr-2 font-dm text-base font-bold leading-snug text-white sm:text-lg sm:leading-8 md:text-xl">
           {title}
         </DialogTitle>
         {onClose && (
@@ -102,7 +104,7 @@ export default function Modal({
 
 Modal.propTypes = {
   show: PropTypes.bool,
-  title: PropTypes.string.isRequired,
+  title: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
   children: PropTypes.node.isRequired,
   onClose: PropTypes.func.isRequired,
   fullScreenOnMobile: PropTypes.bool,

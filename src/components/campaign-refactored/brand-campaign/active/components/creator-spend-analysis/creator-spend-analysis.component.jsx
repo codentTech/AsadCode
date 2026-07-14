@@ -6,9 +6,11 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import { sortOptions } from "@/common/constants/auth.constant";
 import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
 import TaskManagerBrandModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/brand/task-manager-brand.component";
-import { LayoutGrid, ExternalLink, MapPin, Star } from "lucide-react";
+import { LayoutGrid, ExternalLink, MapPin, Star, MessageSquare } from "lucide-react";
+import { useMemo, useState } from "react";
 import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import BulkMessageModal from "./components/bulk-message-modal/bulk-message-modal.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
 const CreatorSpendAnalysis = ({
@@ -53,6 +55,13 @@ const CreatorSpendAnalysis = ({
     currentSort
   );
 
+  const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
+
+  const hasActiveCreators = useMemo(
+    () => creators.some((creator) => creator.status === "HIRED"),
+    [creators]
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-gray-100 to-gray-50/80">
       <div className="shrink-0 z-10 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-sm">
@@ -85,17 +94,27 @@ const CreatorSpendAnalysis = ({
                 />
               )}
             </div>
-            <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+              {isMultiCreator && !isCompleted && (
+                <CustomButton
+                  text="Bulk Message"
+                  title="Bulk Message"
+                  className="btn-primary min-w-0 w-full sm:w-auto"
+                  startIcon={<MessageSquare className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />}
+                  onClick={() => setShowBulkMessageModal(true)}
+                  disabled={!selectedCampaign || !hasActiveCreators}
+                />
+              )}
               <CustomButton
                 text="Calendar"
                 title="Calendar"
-                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
+                className="btn-primary min-w-0 w-full sm:w-auto"
                 onClick={openBrandCalendar}
               />
               <CustomButton
                 text="Tasks"
                 title="Task Manager"
-                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                className="btn-outline min-w-0 w-full px-2 sm:hidden sm:w-auto"
                 onClick={openTaskManagerModal}
               />
               <CustomButton
@@ -107,9 +126,9 @@ const CreatorSpendAnalysis = ({
               {!isCompleted && onOpenBoard ? (
                 <>
                   <CustomButton
-                    text="Board"
+                    text="Campaign Board"
                     title="Campaign Board"
-                    className="btn btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                    className="btn btn-outline min-w-0 w-full px-2 sm:hidden sm:w-auto"
                     startIcon={<LayoutGrid className="h-3.5 w-3.5 shrink-0" />}
                     onClick={onOpenBoard}
                   />
@@ -278,7 +297,7 @@ const CreatorSpendAnalysis = ({
                                     data?.username ?? creator.platformStats?.[platform]?.username,
                                     data?.profile_url ??
                                       creator.platformStats?.[platform]?.profile_url ??
-                                      creator.platformStats?.[platform]?.profileUrl,
+                                      creator.platformStats?.[platform]?.profileUrl
                                   );
                                   const row = (
                                     <div className="flex w-full items-center justify-between rounded-lg bg-gray-100 px-2 py-1.5 pr-3 transition-colors duration-200 hover:bg-gray-100/80 sm:px-1">
@@ -316,7 +335,7 @@ const CreatorSpendAnalysis = ({
                                   ) : (
                                     <div key={platform}>{row}</div>
                                   );
-                                },
+                                }
                               )}
                             </div>
                           </div>
@@ -400,7 +419,7 @@ const CreatorSpendAnalysis = ({
                                     data?.username ?? creator.platformStats?.[platform]?.username,
                                     data?.profile_url ??
                                       creator.platformStats?.[platform]?.profile_url ??
-                                      creator.platformStats?.[platform]?.profileUrl,
+                                      creator.platformStats?.[platform]?.profileUrl
                                   );
                                   const row = (
                                     <div className="flex items-center justify-between rounded-lg bg-gray-100 px-1 pr-3 transition-colors duration-200 hover:bg-gray-100/80">
@@ -438,7 +457,7 @@ const CreatorSpendAnalysis = ({
                                   ) : (
                                     <div key={platform}>{row}</div>
                                   );
-                                },
+                                }
                               )}
                             </div>
                           </div>
@@ -462,6 +481,12 @@ const CreatorSpendAnalysis = ({
         onClose={closeTaskManagerModal}
         selectedCampaignId={selectedCampaign?.id || null}
         isMultiCreator={isMultiCreator}
+      />
+      <BulkMessageModal
+        isOpen={showBulkMessageModal}
+        onClose={() => setShowBulkMessageModal(false)}
+        creators={creators}
+        selectedCampaign={selectedCampaign}
       />
     </div>
   );

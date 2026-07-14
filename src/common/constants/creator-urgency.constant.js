@@ -33,7 +33,7 @@ export const BOARD_THEME = {
   ring: "ring-primary/10",
   card: "border-l-[3px] border-l-primary bg-white hover:border-primary/25 hover:bg-primary/[0.03] hover:shadow-md hover:shadow-primary/10",
   avatarRing: "ring-primary/25",
-  subStateChip: "bg-primary/5 text-indigo-900",
+  subStateChip: "bg-primary/10 text-primary",
 };
 
 export const CONTENT_SUB_STATE_LABELS = {

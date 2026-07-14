@@ -336,6 +336,8 @@ export default function useCompleted(disableAutoSelect = false) {
       costPerEngagement,
     });
 
+    if (viewMode === "board") return;
+
     if (creators.length === 0) {
       setSelectedCreator(null);
     }
@@ -350,6 +352,7 @@ export default function useCompleted(disableAutoSelect = false) {
     selectedCampaign?.used_budget,
     selectedCollaborationType,
     isMultiCreator,
+    viewMode,
   ]);
 
   useEffect(() => {
@@ -494,21 +497,21 @@ export default function useCompleted(disableAutoSelect = false) {
         );
       }
 
-      if (isMobileViewport() && !options?.suppressMobileDetail) {
+      if (isMobileViewport() && viewMode !== "board" && !options?.suppressMobileDetail) {
         setMobilePane("detail");
       }
     },
-    [isMultiCreator, selectedCampaign, dispatch]
+    [isMultiCreator, selectedCampaign, dispatch, viewMode]
   );
 
   const handleClearCreator = useCallback(() => {
     setSelectedCreator(null);
     hasAutoSelected.current = null;
     skipMultiCreatorAutoSelectRef.current = true;
-    if (isMobileViewport()) {
+    if (isMobileViewport() && viewMode !== "board") {
       setMobilePane((prev) => (prev === "detail" ? "creators" : prev));
     }
-  }, [selectedCampaign?.id]);
+  }, [viewMode]);
 
   const handleToggleChange = useCallback(
     (newIsMultiCreator) => {

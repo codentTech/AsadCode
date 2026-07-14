@@ -86,11 +86,11 @@ const CampaignBoard = ({
         <>
           <button
             type="button"
-            className="absolute inset-0 z-40 bg-black/40 sm:hidden"
+            className="absolute inset-0 z-40 bg-black/40"
             onClick={onClearCreator}
             aria-label="Close creator details"
           />
-          <div className="absolute inset-0 z-50 flex min-h-0 flex-col overflow-hidden bg-white sm:inset-y-0 sm:left-auto sm:right-0 sm:w-full sm:max-w-md sm:border-l sm:border-gray-200 sm:shadow-xl lg:max-w-lg">
+          <div className="absolute inset-0 z-50 min-h-0 overflow-hidden sm:inset-y-0 sm:left-auto sm:right-0 sm:w-full sm:max-w-md lg:max-w-lg">
             {detailPanel}
           </div>
         </>

@@ -99,6 +99,9 @@ const CustomDataTable = ({
     onSelectionChange,
   });
 
+  const hasActionsColumn =
+    typeof actions === "function" || (Array.isArray(actions) && actions.length > 0);
+
   // Helper function to get nested value from object
   const getNestedValue = (obj, path) => {
     return path.split(".").reduce((current, key) => {
@@ -171,7 +174,7 @@ const CustomDataTable = ({
 
   const calculateColSpan = () => {
     return (
-      columns.length + (selectable ? 1 : 0) + (statusField ? 1 : 0) + (actions.length > 0 ? 1 : 0)
+      columns.length + (selectable ? 1 : 0) + (statusField ? 1 : 0) + (hasActionsColumn ? 1 : 0)
     );
   };
 
@@ -240,7 +243,7 @@ const CustomDataTable = ({
                 )}
 
                 {/* Actions column */}
-                {actions.length > 0 && (
+                {hasActionsColumn && (
                   <th className="px-2 py-2.5 text-left text-xs font-medium text-gray-900 sm:px-4 sm:py-3 sm:text-sm">
                     Actions
                   </th>
@@ -310,22 +313,30 @@ const CustomDataTable = ({
                     )}
 
                     {/* Actions cell */}
-                    {(() => {
-                      const rowActions = typeof actions === "function" ? actions(row) : actions;
-                      return Array.isArray(rowActions) && rowActions.length > 0 ? (
-                        <td className="relative px-2 py-2.5 sm:px-4 sm:py-3">
-                          <button
-                            onClick={(e) => handleActionRowToggle(row.id, e)}
-                            ref={(el) => {
-                              if (el) actionButtonRefs.current[row.id] = el;
-                            }}
-                            className="p-2 rounded hover:bg-gray-100 transition-colors duration-150"
-                          >
-                            <ThreedotIcon />
-                          </button>
-                        </td>
-                      ) : null;
-                    })()}
+                    {hasActionsColumn && (
+                      <td className="relative px-2 py-2.5 sm:px-4 sm:py-3">
+                        {(() => {
+                          const rowActions =
+                            typeof actions === "function" ? actions(row) : actions;
+                          if (!Array.isArray(rowActions) || rowActions.length === 0) {
+                            return null;
+                          }
+                          return (
+                            <button
+                              onClick={(e) => handleActionRowToggle(row.id, e)}
+                              ref={(el) => {
+                                if (el) actionButtonRefs.current[row.id] = el;
+                              }}
+                              className="rounded p-2 transition-colors duration-150 hover:bg-gray-100"
+                              type="button"
+                              aria-label="Row actions"
+                            >
+                              <ThreedotIcon />
+                            </button>
+                          );
+                        })()}
+                      </td>
+                    )}
                   </tr>
                 </React.Fragment>
               ))

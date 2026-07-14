@@ -6,7 +6,7 @@ import TextArea from "@/common/components/text-area/text-area.component";
 import { avatar } from "@/common/constants/auth.constant";
 import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { Avatar } from "@mui/material";
-import { Edit2, Star, Trash2 } from "lucide-react";
+import { Edit2, Star, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
@@ -21,6 +21,7 @@ const DeliverablesProgressCompleted = ({
   selectedCreator,
   isIndividualCreator = false,
   onClearCreator = null,
+  showProfileClose = false,
   onPipelineUpdated = null,
   filters = { status: "COMPLETED", sort: "newest" },
 }) => {
@@ -86,7 +87,17 @@ const DeliverablesProgressCompleted = ({
   );
 
   const renderCreatorProfile = () => (
-    <div className="shrink-0 z-10 flex flex-col items-center gap-1 border-b border-gray-100 bg-white/95 px-3 pb-3 pt-3 backdrop-blur-sm sm:pb-4">
+    <div className="relative shrink-0 z-10 flex flex-col items-center gap-1 border-b border-gray-100 bg-white/95 px-3 pb-3 pt-3 backdrop-blur-sm sm:pb-4">
+      {showProfileClose && onClearCreator ? (
+        <button
+          type="button"
+          onClick={onClearCreator}
+          className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 sm:right-3 sm:top-3"
+          aria-label="Close creator details"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : null}
       <div className="relative">
         <Avatar
           src={creator?.image || avatar}

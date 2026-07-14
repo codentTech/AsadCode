@@ -7,7 +7,7 @@ import TextArea from "@/common/components/text-area/text-area.component";
 import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { formatDate } from "@/common/utils/formate-date";
 import { Avatar } from "@mui/material";
-import { Check, Copy, Edit2, MapPin, Star, Trash2 } from "lucide-react";
+import { Check, Copy, Edit2, MapPin, Star, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 import ContractPreviewModal from "../../../applications/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
@@ -20,6 +20,7 @@ const DeliverablesProgress = ({
   selectedCreator,
   isIndividualCreator = false,
   onClearCreator = null,
+  showProfileClose = false,
   filters = { status: "HIRED", sort: "newest" },
   onPipelineUpdated = null,
 }) => {
@@ -95,7 +96,17 @@ const DeliverablesProgress = ({
   );
 
   const renderCreatorProfile = () => (
-    <div className="shrink-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white/95 px-2.5 pb-3 pt-3 text-left backdrop-blur-sm sm:items-center sm:px-3 sm:pb-4 sm:text-center">
+    <div className="relative shrink-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white/95 px-2.5 pb-3 pt-3 text-left backdrop-blur-sm sm:items-center sm:px-3 sm:pb-4 sm:text-center">
+      {showProfileClose && onClearCreator ? (
+        <button
+          type="button"
+          onClick={onClearCreator}
+          className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 sm:right-3 sm:top-3"
+          aria-label="Close creator details"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : null}
       <div className="relative self-center sm:self-auto">
         <Avatar
           src={creator?.image}
@@ -124,37 +135,35 @@ const DeliverablesProgress = ({
       {/* Shipping Address Section - Replaces Bio on Active Campaign Screen */}
       {creator?.shippingAddress ? (
         <div className="mt-3 w-full">
-          <div className="bg-white rounded border border-gray-200 shadow-sm p-3">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="rounded border border-gray-200 bg-white p-3 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
               <h4 className="text-sm font-semibold text-gray-800">Shipping Address</h4>
             </div>
-            <div className="space-y-1.5 mb-4">
+            <div className="mb-4 space-y-1.5">
               {formatShippingAddress(creator.shippingAddress)?.map((line, index) => (
                 <div key={index} className="flex items-start gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-700 leading-relaxed">{line}</p>
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
+                  <p className="text-sm leading-relaxed text-gray-700">{line}</p>
                 </div>
               ))}
             </div>
             <CustomButton
               text={isAddressCopied ? "Copied!" : "Copy Shipping Address"}
-              className={`text-xs w-full ${
+              className={`w-full text-xs ${
                 isAddressCopied
                   ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                   : "btn-secondary"
               }`}
               onClick={() => onCopyShippingAddress(creator.shippingAddress)}
-              icon={isAddressCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              icon={isAddressCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               disabled={isAddressCopied}
             />
           </div>
         </div>
       ) : (
         <div className="mt-3 w-full">
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-500 italic">Shipping address not provided</p>
-            </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <p className="text-sm italic text-gray-500">Shipping address not provided</p>
           </div>
         </div>
       )}
