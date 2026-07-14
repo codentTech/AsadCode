@@ -16,6 +16,7 @@ import MessageTemplatesModal from "../message-templates-modal/message-templates-
 import MessageThreadMessagesList from "./components/message-thread-messages-list.component";
 import MessageThreadMessagesSkeleton from "./components/message-thread-messages-skeleton.component";
 import MessageThreadModalAvatar from "./components/message-thread-modal-avatar/message-thread-modal-avatar.component";
+import { getCreatorFirstName } from "@/common/utils/creator-name.util";
 
 const MessageThreadModal = ({
   isOpen,
@@ -302,7 +303,7 @@ const MessageThreadModal = ({
         isOpen={showTemplatesModal}
         onClose={closeTemplatesModal}
         onSelectTemplate={handleTemplateSelect}
-        creatorName={creatorFirstName}
+        creatorName={creatorFirstName || getCreatorFirstName(creator)}
       />
     </div>
   );
