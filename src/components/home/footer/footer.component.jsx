@@ -6,7 +6,8 @@ import Link from "next/link";
 import useFooter from "./use-footer.hook";
 
 const Footer = () => {
-  const { isOpen, setIsOpen, closeModal, termsHref, privacyHref, cookieHref } = useFooter();
+  const { isOpen, setIsOpen, closeModal, termsHref, privacyHref, cookieHref, currentYear } =
+    useFooter();
 
   return (
     <footer className="bg-white -indigo-200 py-12 border-t">
@@ -41,7 +42,12 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <span className="text-sm text-gray-600">Blog</span>
+                  <Link
+                    href="/blog"
+                    className="hover:text-primary text-sm text-gray-600 transition-colors"
+                  >
+                    Blog
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -93,7 +99,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-primary mt-8 pt-8 text-center md:text-left md:flex md:justify-between md:items-center">
-          <p className="text-sm font-bold text-gray-600">© 2025 CleerCut. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© {currentYear} CleerCut. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex justify-center md:justify-end space-x-4">
             <Link
               href="https://www.linkedin.com/company/cleercut"

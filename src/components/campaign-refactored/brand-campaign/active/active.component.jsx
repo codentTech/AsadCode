@@ -136,6 +136,19 @@ export default function BrandActive() {
   const creatorsVisible = mobilePane === "creators" ? "flex" : "hidden";
   const detailVisible = mobilePane === "detail" ? "flex" : "hidden";
 
+  const deliverablesProgressElement =
+    rightPaneState.type === "content" ? (
+      <DeliverablesProgress
+        selectedCampaign={selectedCampaign}
+        selectedCreator={selectedCreator}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
+        onClearCreator={handleClearCreator}
+        showProfileClose={viewMode === "board"}
+        filters={filters}
+        onPipelineUpdated={refreshPipelineData}
+      />
+    ) : null;
+
   const rightColumn = (
     <>
       {rightPaneState.type === "loading" ? (
@@ -149,29 +162,10 @@ export default function BrandActive() {
           />
         </div>
       ) : (
-        <DeliverablesProgress
-          selectedCampaign={selectedCampaign}
-          selectedCreator={selectedCreator}
-          isIndividualCreator={rightPaneState.isIndividualCreator}
-          onClearCreator={handleClearCreator}
-          filters={filters}
-          onPipelineUpdated={refreshPipelineData}
-        />
+        deliverablesProgressElement
       )}
     </>
   );
-
-  const detailPanel =
-    rightPaneState.type === "content" ? (
-      <DeliverablesProgress
-        selectedCampaign={selectedCampaign}
-        selectedCreator={selectedCreator}
-        isIndividualCreator={rightPaneState.isIndividualCreator}
-        onClearCreator={handleClearCreator}
-        filters={filters}
-        onPipelineUpdated={refreshPipelineData}
-      />
-    ) : null;
 
   if (viewMode === "board") {
     return (
@@ -182,7 +176,7 @@ export default function BrandActive() {
           onCreatorSelect={handleCreatorSelect}
           onClearCreator={handleClearCreator}
           selectedCreator={selectedCreator}
-          detailPanel={detailPanel}
+          detailPanel={deliverablesProgressElement}
           pipelineRefreshToken={pipelineRefreshToken}
         />
       </div>

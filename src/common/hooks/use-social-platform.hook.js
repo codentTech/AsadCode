@@ -60,7 +60,14 @@ function useGetplatform() {
     return count.toString();
   };
 
-  return { getPlatformIcon, getPlatformColor, formatFollowers };
+  const getVisiblePlatformEntries = (platforms) => {
+    if (!platforms || typeof platforms !== "object") return [];
+    return Object.entries(platforms).filter(
+      ([, data]) => data && (data.followers > 0 || data.verified)
+    );
+  };
+
+  return { getPlatformIcon, getPlatformColor, formatFollowers, getVisiblePlatformEntries };
 }
 
 export default useGetplatform;

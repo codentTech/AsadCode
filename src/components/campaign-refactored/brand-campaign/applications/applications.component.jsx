@@ -138,6 +138,19 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     );
   }
 
+  const deliverablesProgressElement =
+    rightPaneState.type === "content" ? (
+      <DeliverablesProgress
+        selectedCreator={selectedCreator}
+        onHireClick={handleHireClick}
+        onRejectClick={handleRejectClick}
+        onMessageClick={handleMessageClick}
+        onClearCreator={handleClearCreator}
+        showProfileClose={viewMode === "board"}
+        isIndividualCreator={rightPaneState.isIndividualCreator}
+      />
+    ) : null;
+
   const rightColumn = (
     <>
       {rightPaneState.type === "loading" ? (
@@ -151,27 +164,10 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
           />
         </div>
       ) : (
-        <DeliverablesProgress
-          selectedCreator={selectedCreator}
-          onHireClick={handleHireClick}
-          onRejectClick={handleRejectClick}
-          onMessageClick={handleMessageClick}
-          isIndividualCreator={rightPaneState.isIndividualCreator}
-        />
+        deliverablesProgressElement
       )}
     </>
   );
-
-  const detailPanel =
-    rightPaneState.type === "content" ? (
-      <DeliverablesProgress
-        selectedCreator={selectedCreator}
-        onHireClick={handleHireClick}
-        onRejectClick={handleRejectClick}
-        onMessageClick={handleMessageClick}
-        isIndividualCreator={rightPaneState.isIndividualCreator}
-      />
-    ) : null;
 
   const sharedModals = (
     <>
@@ -232,7 +228,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
             onCreatorSelect={handleCreatorSelectWithPane}
             onClearCreator={handleClearCreator}
             selectedCreator={selectedCreator}
-            detailPanel={detailPanel}
+            detailPanel={deliverablesProgressElement}
             pipelineRefreshToken={pipelineRefreshToken}
           />
         </div>

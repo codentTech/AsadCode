@@ -8,13 +8,15 @@ import capitalizeFirstLetter from "@/common/utils/capitalize-first-letter";
 import { formatNumber } from "@/common/utils/format.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 
 const DeliverablesProgress = ({
   selectedCreator,
   onHireClick,
   onRejectClick,
   onMessageClick,
+  onClearCreator = null,
+  showProfileClose = false,
   isIndividualCreator = false,
 }) => {
   const {
@@ -35,7 +37,17 @@ const DeliverablesProgress = ({
 
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border-l border-gray-200 bg-white">
-      <div className="shrink-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white px-2.5 pb-3 pt-3 text-left sm:items-center sm:px-4 sm:text-center">
+      <div className="relative shrink-0 z-10 flex flex-col items-start gap-1 border-b border-gray-100 bg-white px-2.5 pb-3 pt-3 text-left sm:items-center sm:px-4 sm:text-center">
+        {showProfileClose && onClearCreator ? (
+          <button
+            type="button"
+            onClick={onClearCreator}
+            className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 sm:right-3 sm:top-3"
+            aria-label="Close creator details"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
         <div className="relative self-center sm:self-auto">
           <Avatar
             src={creatorData?.image}

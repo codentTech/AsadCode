@@ -533,6 +533,15 @@ export default function useActive() {
   ]);
 
   const rightPaneState = useMemo(() => {
+    if (viewMode === "board" && selectedCreator) {
+      const isIndividualCreator =
+        !selectedCampaign ||
+        selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
+        !isMultiCreator;
+
+      return { type: "content", isIndividualCreator };
+    }
+
     if (isLoading) {
       return { type: "loading" };
     }
@@ -583,7 +592,7 @@ export default function useActive() {
       !isMultiCreator;
 
     return { type: "content", isIndividualCreator };
-  }, [isLoading, selectedCampaign, selectedCreator, isMultiCreator, displayCreators]);
+  }, [isLoading, selectedCampaign, selectedCreator, isMultiCreator, displayCreators, viewMode]);
 
   // ============================================
   // 7. RETURN OBJECT

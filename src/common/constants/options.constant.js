@@ -271,3 +271,14 @@ export const ADMIN_PAYMENTS_PAYOUT_FILTER_OPTIONS = [
   { value: "transferred", label: "Transferred" },
   { value: "failed", label: "Failed" },
 ];
+
+export const BLOG_CATEGORY_OPTIONS = [
+  { value: "Influencer Marketing Strategy", label: "Influencer Marketing Strategy" },
+  { value: "Platform Updates", label: "Platform Updates" },
+  { value: "Creator Economy", label: "Creator Economy" },
+];
+
+export const BLOG_CATEGORY_FILTER_OPTIONS = [
+  { value: "ALL", label: "All categories" },
+  ...BLOG_CATEGORY_OPTIONS,
+];

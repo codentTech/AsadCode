@@ -42,7 +42,7 @@ export function mapBrandAppliedCreatorRow(creator) {
     urgencyTier: urgency.tier,
     boardColumn: urgency.boardColumn,
     contentSubState: urgency.contentSubState,
-    id: creator?.creator?.creator_profile?.id,
+    id: creator?.id || creator?.creator?.creator_profile?.id || creator?.creator?.id,
     age: getAge(creator?.creator?.date_of_birth),
     creatorUserId: creator?.creator?.id,
     name:

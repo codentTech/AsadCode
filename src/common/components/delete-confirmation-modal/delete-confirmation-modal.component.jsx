@@ -19,6 +19,7 @@ function DeleteConfirmationModal({
   closeText,
   action,
   type,
+  zIndex,
 }) {
   const dismiss = () => {
     if (confirmLoading) return;
@@ -40,6 +41,7 @@ function DeleteConfirmationModal({
       onClose={handleDialogClose}
       maxWidth="sm"
       fullWidth
+      sx={zIndex ? { zIndex } : undefined}
     >
       <div className="bg-white rounded-lg shadow-xl">
         {/* Header */}
