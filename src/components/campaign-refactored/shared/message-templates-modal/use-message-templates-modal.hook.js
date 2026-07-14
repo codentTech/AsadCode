@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllTemplates,
@@ -6,6 +6,12 @@ import {
   updateTemplate,
   deleteTemplate,
 } from "@/provider/features/message-templates/message-templates.slice";
+import { DEFAULT_MESSAGE_TEMPLATE_CATEGORY } from "@/common/constants/message-template.constant";
+import {
+  buildTemplateMessage,
+  groupTemplatesByCategory,
+  normalizeTemplateCategory,
+} from "@/common/utils/message-template.util";
 
 const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
   const dispatch = useDispatch();
@@ -15,7 +21,11 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
 
   const [showForm, setShowForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [formData, setFormData] = useState({ name: "", body: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    body: "",
+    category: DEFAULT_MESSAGE_TEMPLATE_CATEGORY,
+  });
   const [deleteTemplateId, setDeleteTemplateId] = useState(null);
   const prevCreatingRef = useRef(false);
   const prevUpdatingRef = useRef(false);
@@ -27,6 +37,8 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
   const createSuccess = useSelector((state) => state.messageTemplates.createTemplate.isSuccess);
   const updateSuccess = useSelector((state) => state.messageTemplates.updateTemplate.isSuccess);
 
+  const templatesByCategory = useMemo(() => groupTemplatesByCategory(templates), [templates]);
+
   useEffect(() => {
     if (isOpen) {
       dispatch(getAllTemplates());
@@ -37,7 +49,7 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
     if (!isOpen) {
       setShowForm(false);
       setEditingTemplate(null);
-      setFormData({ name: "", body: "" });
+      setFormData({ name: "", body: "", category: DEFAULT_MESSAGE_TEMPLATE_CATEGORY });
       setDeleteTemplateId(null);
     }
   }, [isOpen]);
@@ -46,7 +58,7 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
     if (prevCreatingRef.current && !isCreating && createSuccess) {
       setShowForm(false);
       setEditingTemplate(null);
-      setFormData({ name: "", body: "" });
+      setFormData({ name: "", body: "", category: DEFAULT_MESSAGE_TEMPLATE_CATEGORY });
     }
     prevCreatingRef.current = isCreating;
   }, [isCreating, createSuccess]);
@@ -55,20 +67,28 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
     if (prevUpdatingRef.current && !isUpdating && updateSuccess) {
       setShowForm(false);
       setEditingTemplate(null);
-      setFormData({ name: "", body: "" });
+      setFormData({ name: "", body: "", category: DEFAULT_MESSAGE_TEMPLATE_CATEGORY });
     }
     prevUpdatingRef.current = isUpdating;
   }, [isUpdating, updateSuccess]);
 
-  const handleCreate = useCallback(() => {
+  const handleCreateInCategory = useCallback((category) => {
     setShowForm(true);
     setEditingTemplate(null);
-    setFormData({ name: "", body: "" });
+    setFormData({
+      name: "",
+      body: "",
+      category: normalizeTemplateCategory(category),
+    });
   }, []);
 
   const handleEdit = useCallback((template) => {
     setEditingTemplate(template);
-    setFormData({ name: template.name, body: template.body });
+    setFormData({
+      name: template.name,
+      body: template.body,
+      category: normalizeTemplateCategory(template.category),
+    });
     setShowForm(true);
   }, []);
 
@@ -92,35 +112,40 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
       return;
     }
 
+    const payload = {
+      name: formData.name.trim(),
+      body: formData.body.trim(),
+      category: normalizeTemplateCategory(formData.category),
+    };
+
     if (editingTemplate) {
       dispatch(
         updateTemplate({
           templateId: editingTemplate.id,
-          templateData: { name: formData.name.trim(), body: formData.body.trim() },
+          templateData: payload,
         })
       );
-    } else {
-      dispatch(createTemplate({ name: formData.name.trim(), body: formData.body.trim() }));
+      return;
     }
+
+    dispatch(createTemplate(payload));
   }, [formData, editingTemplate, dispatch]);
 
   const handleCancel = useCallback(() => {
     setShowForm(false);
     setEditingTemplate(null);
-    setFormData({ name: "", body: "" });
+    setFormData({ name: "", body: "", category: DEFAULT_MESSAGE_TEMPLATE_CATEGORY });
   }, []);
 
   const handleSelectTemplate = useCallback(
     (template) => {
-      const greeting = `Hey ${creatorName || "{{creator_name}}"},`;
-      const fullMessage = `${greeting} ${template.body}`;
-      onSelectTemplate(fullMessage);
+      onSelectTemplate(buildTemplateMessage(template, creatorName));
     },
     [creatorName, onSelectTemplate]
   );
 
   return {
-    templates,
+    templatesByCategory,
     isLoading,
     isCreating,
     isUpdating,
@@ -130,7 +155,7 @@ const useMessageTemplatesModal = (isOpen, onSelectTemplate, creatorName) => {
     formData,
     setFormData,
     deleteTemplateId,
-    handleCreate,
+    handleCreateInCategory,
     handleEdit,
     handleDeleteClick,
     handleCancelDelete,

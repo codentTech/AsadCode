@@ -2,14 +2,16 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import Modal from "@/common/components/modal/modal.component";
+import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { Edit, FileText, Trash2 } from "lucide-react";
-import MessageTemplatesListSkeleton from "./components/message-templates-list-skeleton.component";
+import { MESSAGE_TEMPLATE_CATEGORY_CONFIG } from "@/common/constants/message-template.constant";
+import { getCategoryLabel } from "@/common/utils/message-template.util";
+import MessageTemplatesCategoryList from "./components/message-templates-category-list/message-templates-category-list.component";
 import useMessageTemplatesModal from "./use-message-templates-modal.hook";
 
 const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName }) => {
   const {
-    templates,
+    templatesByCategory,
     isLoading,
     isCreating,
     isUpdating,
@@ -18,7 +20,7 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
     editingTemplate,
     formData,
     setFormData,
-    handleCreate,
+    handleCreateInCategory,
     handleEdit,
     handleDeleteClick,
     handleCancelDelete,
@@ -38,132 +40,100 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
 
   const isSubmitting = isCreating || isUpdating;
 
+  const categorySelectOptions = MESSAGE_TEMPLATE_CATEGORY_CONFIG.map((category) => ({
+    label: category.label,
+    value: category.value,
+  }));
+
   return (
     <>
-      <Modal show={isOpen} title="Message Templates" onClose={handleClose} size="md" zIndex={2100}>
-        <div className="space-y-4">
-          {!showForm ? (
-            <div className="flex items-center justify-between gap-5">
-              <p className="min-w-0 flex-1 text-[10px] leading-snug text-gray-600 sm:text-xs">
-                Save reusable messages to speed up creator outreach. Each template starts with a
-                personal greeting automatically.
-              </p>
-              <CustomButton onClick={handleCreate} text="Create template" className="btn-primary" />
+      <Modal
+        show={isOpen}
+        title="Message templates"
+        onClose={handleClose}
+        size="md"
+        zIndex={2100}
+      >
+        {showForm ? (
+          <div className="space-y-4">
+            <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+              {editingTemplate ? "Edit template" : "Create template"} in{" "}
+              <span className="font-semibold text-gray-900">
+                {getCategoryLabel(formData.category)}
+              </span>
+              . The greeting &quot;Hey {creatorName || "{{creator_name}}"},&quot; is added
+              automatically when you send.
+            </p>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <SimpleSelect
+                options={categorySelectOptions}
+                value={formData.category}
+                onChange={(value) => setFormData({ ...formData, category: value })}
+                isDisabled={isSubmitting}
+              />
             </div>
-          ) : null}
 
-          {showForm ? (
-            <div className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Template Name <span className="text-red-500">*</span>
-                </label>
-                <CustomInput
-                  type="text"
-                  name="name"
-                  placeholder="e.g., Initial Outreach – Paid"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Message Body <span className="text-red-500">*</span>
-                  <span className="ml-2 text-xs text-gray-500">
-                    (The greeting &quot;Hey {creatorName || "{{creator_name}}"},&quot; will be added
-                    automatically)
-                  </span>
-                </label>
-                <TextArea
-                  name="body"
-                  placeholder="Enter your message here"
-                  value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-                  disabled={isSubmitting}
-                  minRows={6}
-                />
-              </div>
-
-              <div className="flex items-center justify-end space-x-3">
-                <CustomButton
-                  text="Cancel"
-                  className="btn-secondary"
-                  onClick={handleCancel}
-                  disabled={isSubmitting}
-                />
-                <CustomButton
-                  text={editingTemplate ? "Update" : "Create"}
-                  className="btn-primary"
-                  onClick={handleSubmit}
-                  disabled={!formData.name.trim() || !formData.body.trim() || isSubmitting}
-                  loading={isSubmitting}
-                  loadingText={editingTemplate ? "Updating" : "Creating"}
-                />
-              </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Template Name <span className="text-red-500">*</span>
+              </label>
+              <CustomInput
+                type="text"
+                name="name"
+                placeholder="e.g., Initial Outreach – Paid"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                disabled={isSubmitting}
+                required
+              />
             </div>
-          ) : null}
 
-          {!showForm ? (
-            <div className="max-h-96 space-y-2 overflow-y-auto overflow-x-visible">
-              {isLoading ? (
-                <MessageTemplatesListSkeleton />
-              ) : templates.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <FileText className="mx-auto mb-3 h-12 w-12 text-gray-400" />
-                  <p className="text-sm">No templates yet. Create your first template!</p>
-                </div>
-              ) : (
-                templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="group relative cursor-pointer overflow-visible rounded-md border border-gray-200 bg-white p-3 transition-all hover:border-primary hover:shadow-sm"
-                    onClick={() => handleSelectTemplate(template)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex items-center gap-2">
-                          <FileText className="h-4 w-4 shrink-0 text-primary" />
-                          <h3 className="truncate text-sm font-medium text-gray-900">
-                            {template.name}
-                          </h3>
-                        </div>
-                        <p className="line-clamp-2 text-xs text-gray-600">{template.body}</p>
-                      </div>
-
-                      <div className="ml-1 flex shrink-0 items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(template);
-                          }}
-                          className="rounded-md p-1.5 text-gray-500 transition-colors bg-gray-200 hover:bg-gray-100 hover:text-primary"
-                          title="Edit template"
-                        >
-                          <Edit className="h-4 w-4 text-primary" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(template.id);
-                          }}
-                          className="rounded-md p-1.5 text-gray-500 transition-colors bg-red-100 hover:bg-red-50 hover:text-red-600"
-                          title="Delete template"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Message Body <span className="text-red-500">*</span>
+              </label>
+              <TextArea
+                name="body"
+                placeholder="Enter your message here"
+                value={formData.body}
+                onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                disabled={isSubmitting}
+                minRows={6}
+              />
             </div>
-          ) : null}
-        </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <CustomButton
+                text="Cancel"
+                className="btn-secondary"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              />
+              <CustomButton
+                text={editingTemplate ? "Update" : "Create"}
+                className="btn-primary"
+                onClick={handleSubmit}
+                disabled={!formData.name.trim() || !formData.body.trim() || isSubmitting}
+                loading={isSubmitting}
+                loadingText={editingTemplate ? "Updating" : "Creating"}
+              />
+            </div>
+          </div>
+        ) : (
+          <MessageTemplatesCategoryList
+            isOpen={isOpen}
+            templatesByCategory={templatesByCategory}
+            isLoading={isLoading}
+            onSelectTemplate={handleSelectTemplate}
+            onCreateInCategory={handleCreateInCategory}
+            onEditTemplate={handleEdit}
+            onDeleteTemplate={handleDeleteClick}
+          />
+        )}
       </Modal>
 
       <DeleteConfirmationModal
