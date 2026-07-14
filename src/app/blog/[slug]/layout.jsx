@@ -2,7 +2,8 @@ import { buildBlogPostPageMetadata } from "@/common/constants/genaric.constant";
 import { fetchPublishedBlogPost } from "@/common/utils/blog-server.util";
 
 export async function generateMetadata({ params }) {
-  const post = await fetchPublishedBlogPost(params.slug);
+  const { slug } = await params;
+  const post = await fetchPublishedBlogPost(slug);
   return buildBlogPostPageMetadata(post);
 }
 

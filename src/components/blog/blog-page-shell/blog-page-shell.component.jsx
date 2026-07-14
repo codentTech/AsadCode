@@ -1,6 +1,18 @@
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
 
-export default function BlogPageShell({ children }) {
+export default function BlogPageShell({ children, variant = "index" }) {
+  if (variant === "post") {
+    return (
+      <HeaderFooterLayout>
+        <main className="min-h-screen bg-white">
+          <div className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </HeaderFooterLayout>
+    );
+  }
+
   return (
     <HeaderFooterLayout>
       <div className="min-h-screen bg-gray-100">
