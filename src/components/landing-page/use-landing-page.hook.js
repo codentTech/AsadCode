@@ -28,8 +28,11 @@ function useLandingPage() {
     [dispatch]
   );
 
+  const hasSelectedMode = creatorMode === true || creatorMode === false;
+
   return {
     creatorMode,
+    hasSelectedMode,
     handleSelectMode,
   };
 }

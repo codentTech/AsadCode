@@ -59,6 +59,20 @@ function LayoutWrapper({ children }) {
   );
 }
 
+/**
+ * PersistGate must not block children during SSR. With loading={null}, the
+ * gate returns null on the server, so crawlers receive an empty <body> shell
+ * even when page.jsx is a Server Component. Always render children for SSR
+ * and the initial paint; persist rehydration still runs in the background.
+ */
+function PersistGateSSR({ children }) {
+  return (
+    <PersistGate loading={children} persistor={persistor}>
+      {children}
+    </PersistGate>
+  );
+}
+
 export default function AppProviders({ children }) {
   return (
     <StyledEngineProvider injectFirst>
@@ -72,11 +86,11 @@ export default function AppProviders({ children }) {
         }}
       >
         <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
+          <PersistGateSSR>
             <ChatProvider>
               <LayoutWrapper>{children}</LayoutWrapper>
             </ChatProvider>
-          </PersistGate>
+          </PersistGateSSR>
         </Provider>
       </SnackbarProvider>
     </StyledEngineProvider>
