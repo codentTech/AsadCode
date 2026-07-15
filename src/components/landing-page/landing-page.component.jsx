@@ -9,30 +9,45 @@ import HowCleerCutWorks from "./components/how-it-works/how-it-works";
 import WhyChooseCleercut from "./components/why-choose-cleercut/why-choose-cleercut";
 import useLandingPage from "./use-landing-page.hook";
 
+const SSR_ONLY_STYLE = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
 export default function LandingPage() {
-  const { creatorMode, handleSelectMode } = useLandingPage();
+  const { creatorMode, handleSelectMode, hasSelectedMode } = useLandingPage();
+
+  // Brand marketing copy by default so SSR HTML includes real page content
+  // (e.g. "collaborate") even before the user picks a mode.
+  const isCreatorMode = creatorMode === true;
 
   return (
     <div className="relative min-h-screen bg-white text-gray-800 font-sans">
-      {creatorMode || creatorMode === false ? (
+      {!hasSelectedMode ? (
+        <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
+      ) : null}
+
+      <div
+        style={!hasSelectedMode ? SSR_ONLY_STYLE : undefined}
+        aria-hidden={!hasSelectedMode}
+      >
         <HeaderFooterLayout>
-          <Hero isCreatorMode={creatorMode} />
-
-
-          <HowCleerCutWorks isCreatorMode={creatorMode} />
-
-
-          <Features isCreatorMode={creatorMode} />
+          <Hero isCreatorMode={isCreatorMode} />
+          <HowCleerCutWorks isCreatorMode={isCreatorMode} />
+          <Features isCreatorMode={isCreatorMode} />
           <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-
-          <WhyChooseCleercut isCreatorMode={creatorMode} />
+          <WhyChooseCleercut isCreatorMode={isCreatorMode} />
           <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-
           <CallToAction />
         </HeaderFooterLayout>
-      ) : (
-        <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
-      )}
+      </div>
     </div>
   );
 }
