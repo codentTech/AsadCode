@@ -22,6 +22,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         />
+        <link rel="alternate" type="text/plain" title="LLMs" href="/llms.txt" />
       </head>
       <body>
         <AppProviders>{children}</AppProviders>
