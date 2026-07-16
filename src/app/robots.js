@@ -1,5 +1,18 @@
 import { SITE_URL } from "@/common/constants/site.constant";
 
+const AI_CRAWLER_AGENTS = [
+  "GPTBot",
+  "ChatGPT-User",
+  "ClaudeBot",
+  "Claude-User",
+  "Claude-SearchBot",
+  "anthropic-ai",
+  "PerplexityBot",
+  "Googlebot",
+  "Google-Extended",
+  "Bingbot",
+];
+
 export default function robots() {
   return {
     rules: [
@@ -7,26 +20,10 @@ export default function robots() {
         userAgent: "*",
         allow: "/",
       },
-      {
-        userAgent: "GPTBot",
+      ...AI_CRAWLER_AGENTS.map((userAgent) => ({
+        userAgent,
         allow: "/",
-      },
-      {
-        userAgent: "ClaudeBot",
-        allow: "/",
-      },
-      {
-        userAgent: "PerplexityBot",
-        allow: "/",
-      },
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-      },
-      {
-        userAgent: "Bingbot",
-        allow: "/",
-      },
+      })),
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
