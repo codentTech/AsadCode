@@ -1,0 +1,20 @@
+﻿[
+    {
+        "name":  "AI guide file (llms.txt)",
+        "url":  "https://cleercut.com/llms.txt",
+        "pass":  true,
+        "length":  854
+    },
+    {
+        "name":  "Search engine rules (robots.txt)",
+        "url":  "https://cleercut.com/robots.txt",
+        "pass":  true,
+        "length":  244
+    },
+    {
+        "name":  "Sitemap (sitemap.xml)",
+        "url":  "https://cleercut.com/sitemap.xml",
+        "pass":  true,
+        "length":  6224
+    }
+]

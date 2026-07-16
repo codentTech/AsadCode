@@ -34,10 +34,7 @@ export default function LandingPage() {
         <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
       ) : null}
 
-      <div
-        style={!hasSelectedMode ? SSR_ONLY_STYLE : undefined}
-        aria-hidden={!hasSelectedMode}
-      >
+      <div style={!hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
         <HeaderFooterLayout>
           <Hero isCreatorMode={isCreatorMode} />
           <HowCleerCutWorks isCreatorMode={isCreatorMode} />
