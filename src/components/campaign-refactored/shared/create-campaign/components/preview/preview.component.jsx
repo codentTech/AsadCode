@@ -222,7 +222,7 @@ function Preview({ campaignData, handleChange }) {
             platformMinimums.length > 0) && (
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
               <header className="flex items-center gap-2">
-                <Target className="h-4 w-4  -indigo-600" />
+                <Target className="h-4 w-4 text-indigo-600" />
                 <h2 className="text-sm font-bold uppercase tracking-wide text-gray-900">
                   Audience Requirements
                 </h2>
