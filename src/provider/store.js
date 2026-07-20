@@ -35,6 +35,7 @@ import blogReducer from "./features/blog/blog.slice";
 import placesReducer from "./features/places/places.slice";
 import emailPreferencesReducer from "./features/email-preferences/email-preferences.slice";
 import messageTemplatesReducer from "./features/message-templates/message-templates.slice";
+import shopifyReducer from "./features/shopify/shopify.slice";
 
 const defaultAdminDashboardSummary = {
   data: null,
@@ -116,6 +117,7 @@ const rootReducer = combineReducers({
   places: placesReducer,
   emailPreferences: emailPreferencesReducer,
   messageTemplates: messageTemplatesReducer,
+  shopify: shopifyReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
