@@ -37,6 +37,13 @@ const closeCampaignListing = async (campaignId) => {
   return response.data;
 };
 
+const extendApplicationDeadline = async (campaignId, applicationDeadline) => {
+  const response = await api().post(`/campaigns/${campaignId}/extend-application-deadline`, {
+    application_deadline: applicationDeadline,
+  });
+  return response.data;
+};
+
 // Mark a specific creator as complete in a campaign
 const markCreatorComplete = async (campaignId, creatorId) => {
   const response = await api().post(`/campaigns/${campaignId}/creators/${creatorId}/complete`);
@@ -145,6 +152,7 @@ const campaignsService = {
   updateCampaign,
   deleteCampaign,
   closeCampaignListing,
+  extendApplicationDeadline,
   filterCampaigns,
   getCampaignStats,
   applyToCampaign,

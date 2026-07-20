@@ -2,9 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   closeCampaignListing,
+  extendApplicationDeadline,
   getAllBrandCampaigns,
 } from "@/provider/features/campaigns/campaigns.slice";
 import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
+import {
+  getTodayHtmlDateInputValue,
+  isHtmlDateInputOnOrAfterToday,
+  isValidHtmlDateInputValue,
+  toHtmlDateInputValue,
+} from "@/common/utils/date.utils";
 
 const getCampaignTypeStyle = (type) => {
   const styles = {
@@ -43,12 +50,20 @@ export default function useActiveCampaigns(refreshKey) {
   const { isLoading: isClosingListing, isSuccess: isCloseListingSuccess } = useSelector(
     (state) => state.campaigns.closeCampaignListing || {}
   );
+  const { isLoading: isExtendingDeadline, isSuccess: isExtendDeadlineSuccess } = useSelector(
+    (state) => state.campaigns.extendApplicationDeadline || {}
+  );
 
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuCampaignId, setMenuCampaignId] = useState(null);
   const [showCloseListingModal, setShowCloseListingModal] = useState(false);
   const [confirmCloseCampaignId, setConfirmCloseCampaignId] = useState(null);
   const closeListingSubmittedRef = useRef(false);
+  const [showExtendDeadlineModal, setShowExtendDeadlineModal] = useState(false);
+  const [extendDeadlineCampaignId, setExtendDeadlineCampaignId] = useState(null);
+  const [extendDeadlineValue, setExtendDeadlineValue] = useState("");
+  const [extendDeadlineError, setExtendDeadlineError] = useState("");
+  const extendDeadlineSubmittedRef = useRef(false);
 
   useEffect(() => {
     dispatch(getAllBrandCampaigns());
@@ -98,6 +113,50 @@ export default function useActiveCampaigns(refreshKey) {
     dispatch(closeCampaignListing(confirmCloseCampaignId));
   }, [confirmCloseCampaignId, dispatch]);
 
+  const handleRequestExtendDeadline = useCallback(() => {
+    if (!menuCampaignId) return;
+    const campaign = campaigns.find((item) => item.id === menuCampaignId);
+    const currentDeadline = toHtmlDateInputValue(campaign?.application_deadline);
+    const today = getTodayHtmlDateInputValue();
+    setExtendDeadlineCampaignId(menuCampaignId);
+    setExtendDeadlineValue(currentDeadline && currentDeadline >= today ? currentDeadline : today);
+    setExtendDeadlineError("");
+    setShowExtendDeadlineModal(true);
+    handleMenuClose();
+  }, [menuCampaignId, campaigns, handleMenuClose]);
+
+  const handleCancelExtendDeadline = useCallback(() => {
+    extendDeadlineSubmittedRef.current = false;
+    setShowExtendDeadlineModal(false);
+    setExtendDeadlineCampaignId(null);
+    setExtendDeadlineValue("");
+    setExtendDeadlineError("");
+  }, []);
+
+  const handleExtendDeadlineChange = useCallback((event) => {
+    setExtendDeadlineValue(event?.target?.value || "");
+    setExtendDeadlineError("");
+  }, []);
+
+  const handleConfirmExtendDeadline = useCallback(() => {
+    if (!extendDeadlineCampaignId) return;
+    if (!isValidHtmlDateInputValue(extendDeadlineValue)) {
+      setExtendDeadlineError("Enter a valid date");
+      return;
+    }
+    if (!isHtmlDateInputOnOrAfterToday(extendDeadlineValue)) {
+      setExtendDeadlineError("Deadline must be today or a future date");
+      return;
+    }
+    extendDeadlineSubmittedRef.current = true;
+    dispatch(
+      extendApplicationDeadline({
+        campaignId: extendDeadlineCampaignId,
+        applicationDeadline: extendDeadlineValue,
+      })
+    );
+  }, [extendDeadlineCampaignId, extendDeadlineValue, dispatch]);
+
   useEffect(() => {
     if (
       !showCloseListingModal ||
@@ -112,6 +171,22 @@ export default function useActiveCampaigns(refreshKey) {
     setConfirmCloseCampaignId(null);
   }, [showCloseListingModal, isClosingListing, isCloseListingSuccess]);
 
+  useEffect(() => {
+    if (
+      !showExtendDeadlineModal ||
+      isExtendingDeadline ||
+      !isExtendDeadlineSuccess ||
+      !extendDeadlineSubmittedRef.current
+    ) {
+      return;
+    }
+    extendDeadlineSubmittedRef.current = false;
+    setShowExtendDeadlineModal(false);
+    setExtendDeadlineCampaignId(null);
+    setExtendDeadlineValue("");
+    setExtendDeadlineError("");
+  }, [showExtendDeadlineModal, isExtendingDeadline, isExtendDeadlineSuccess]);
+
   const menuCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === menuCampaignId) || null,
     [campaigns, menuCampaignId]
@@ -122,16 +197,26 @@ export default function useActiveCampaigns(refreshKey) {
     [campaigns, confirmCloseCampaignId]
   );
 
+  const campaignToExtendDeadline = useMemo(
+    () => campaigns.find((campaign) => campaign.id === extendDeadlineCampaignId) || null,
+    [campaigns, extendDeadlineCampaignId]
+  );
+
   return {
     campaigns,
     isLoading,
     isError,
     message,
     isClosingListing,
+    isExtendingDeadline,
     menuAnchorEl,
     menuCampaign,
     showCloseListingModal,
     campaignToClose,
+    showExtendDeadlineModal,
+    campaignToExtendDeadline,
+    extendDeadlineValue,
+    extendDeadlineError,
     isCampaignListingOpen,
     getCampaignTypeStyle,
     handleRefresh,
@@ -140,5 +225,9 @@ export default function useActiveCampaigns(refreshKey) {
     handleRequestCloseListing,
     handleCancelCloseListing,
     handleConfirmCloseListing,
+    handleRequestExtendDeadline,
+    handleCancelExtendDeadline,
+    handleExtendDeadlineChange,
+    handleConfirmExtendDeadline,
   };
 }
