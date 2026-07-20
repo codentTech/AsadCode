@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   closeCampaignListing,
+  extendApplicationDeadline,
   getAllBrandCampaigns,
   getAppliedCreators,
 } from "@/provider/features/campaigns/campaigns.slice";
@@ -24,6 +25,12 @@ import {
   sortApplicationsCreators,
 } from "@/common/utils/campaign.utils";
 import { setBrandCampaignMultiCreatorMode } from "@/provider/features/campaign-context/campaign-context.slice";
+import {
+  getTodayHtmlDateInputValue,
+  isHtmlDateInputOnOrAfterToday,
+  isValidHtmlDateInputValue,
+  toHtmlDateInputValue,
+} from "@/common/utils/date.utils";
 
 function useCreatorSpendAnalysis({
   selectedCampaign,
@@ -96,9 +103,17 @@ function useCreatorSpendAnalysis({
   const [showCloseListingModal, setShowCloseListingModal] = useState(false);
   const [confirmCloseCampaignId, setConfirmCloseCampaignId] = useState(null);
   const closeListingSubmittedRef = useRef(false);
+  const [showExtendDeadlineModal, setShowExtendDeadlineModal] = useState(false);
+  const [extendDeadlineCampaignId, setExtendDeadlineCampaignId] = useState(null);
+  const [extendDeadlineValue, setExtendDeadlineValue] = useState("");
+  const [extendDeadlineError, setExtendDeadlineError] = useState("");
+  const extendDeadlineSubmittedRef = useRef(false);
 
   const { isLoading: isClosingListing, isSuccess: isCloseListingSuccess } = useSelector(
     (state) => state.campaigns.closeCampaignListing || {}
+  );
+  const { isLoading: isExtendingDeadline, isSuccess: isExtendDeadlineSuccess } = useSelector(
+    (state) => state.campaigns.extendApplicationDeadline || {}
   );
 
   // Fetch shortlists once unless already loaded
@@ -537,6 +552,49 @@ function useCreatorSpendAnalysis({
     dispatch(closeCampaignListing(confirmCloseCampaignId));
   }, [confirmCloseCampaignId, dispatch]);
 
+  const handleRequestExtendDeadline = useCallback(() => {
+    if (!selectedCampaign?.id) return;
+    const currentDeadline = toHtmlDateInputValue(selectedCampaign.application_deadline);
+    const today = getTodayHtmlDateInputValue();
+    setExtendDeadlineCampaignId(selectedCampaign.id);
+    setExtendDeadlineValue(currentDeadline && currentDeadline >= today ? currentDeadline : today);
+    setExtendDeadlineError("");
+    setShowExtendDeadlineModal(true);
+    handleMenuClose();
+  }, [selectedCampaign?.id, selectedCampaign?.application_deadline, handleMenuClose]);
+
+  const handleCancelExtendDeadline = useCallback(() => {
+    extendDeadlineSubmittedRef.current = false;
+    setShowExtendDeadlineModal(false);
+    setExtendDeadlineCampaignId(null);
+    setExtendDeadlineValue("");
+    setExtendDeadlineError("");
+  }, []);
+
+  const handleExtendDeadlineChange = useCallback((event) => {
+    setExtendDeadlineValue(event?.target?.value || "");
+    setExtendDeadlineError("");
+  }, []);
+
+  const handleConfirmExtendDeadline = useCallback(() => {
+    if (!extendDeadlineCampaignId) return;
+    if (!isValidHtmlDateInputValue(extendDeadlineValue)) {
+      setExtendDeadlineError("Enter a valid date");
+      return;
+    }
+    if (!isHtmlDateInputOnOrAfterToday(extendDeadlineValue)) {
+      setExtendDeadlineError("Deadline must be today or a future date");
+      return;
+    }
+    extendDeadlineSubmittedRef.current = true;
+    dispatch(
+      extendApplicationDeadline({
+        campaignId: extendDeadlineCampaignId,
+        applicationDeadline: extendDeadlineValue,
+      })
+    );
+  }, [extendDeadlineCampaignId, extendDeadlineValue, dispatch]);
+
   useEffect(() => {
     if (
       !showCloseListingModal ||
@@ -568,6 +626,39 @@ function useCreatorSpendAnalysis({
     campaignsData?.data,
   ]);
 
+  useEffect(() => {
+    if (
+      !showExtendDeadlineModal ||
+      isExtendingDeadline ||
+      !isExtendDeadlineSuccess ||
+      !extendDeadlineSubmittedRef.current
+    ) {
+      return;
+    }
+    extendDeadlineSubmittedRef.current = false;
+    setShowExtendDeadlineModal(false);
+    const extendedCampaignId = extendDeadlineCampaignId;
+    setExtendDeadlineCampaignId(null);
+    setExtendDeadlineValue("");
+    setExtendDeadlineError("");
+
+    if (extendedCampaignId && onCampaignSelect && campaignsData?.data) {
+      const updatedCampaign = campaignsData.data.find(
+        (campaign) => campaign.id === extendedCampaignId
+      );
+      if (updatedCampaign) {
+        onCampaignSelect(updatedCampaign);
+      }
+    }
+  }, [
+    showExtendDeadlineModal,
+    isExtendingDeadline,
+    isExtendDeadlineSuccess,
+    extendDeadlineCampaignId,
+    onCampaignSelect,
+    campaignsData?.data,
+  ]);
+
   const campaignToClose = useMemo(() => {
     if (!confirmCloseCampaignId) return null;
     return (
@@ -575,6 +666,14 @@ function useCreatorSpendAnalysis({
       (selectedCampaign?.id === confirmCloseCampaignId ? selectedCampaign : null)
     );
   }, [confirmCloseCampaignId, campaignsData?.data, selectedCampaign]);
+
+  const campaignToExtendDeadline = useMemo(() => {
+    if (!extendDeadlineCampaignId) return null;
+    return (
+      campaignsData?.data?.find((campaign) => campaign.id === extendDeadlineCampaignId) ||
+      (selectedCampaign?.id === extendDeadlineCampaignId ? selectedCampaign : null)
+    );
+  }, [extendDeadlineCampaignId, campaignsData?.data, selectedCampaign]);
 
   const isSelectedCampaignListingOpen = isCampaignListingOpen(selectedCampaign);
 
@@ -634,6 +733,15 @@ function useCreatorSpendAnalysis({
     handleRequestCloseListing,
     handleCancelCloseListing,
     handleConfirmCloseListing,
+    showExtendDeadlineModal,
+    campaignToExtendDeadline,
+    extendDeadlineValue,
+    extendDeadlineError,
+    isExtendingDeadline,
+    handleRequestExtendDeadline,
+    handleCancelExtendDeadline,
+    handleExtendDeadlineChange,
+    handleConfirmExtendDeadline,
   };
 }
 

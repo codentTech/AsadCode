@@ -1,5 +1,6 @@
 import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
@@ -13,6 +14,7 @@ import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-secti
 import { Menu, MenuItem } from "@mui/material";
 import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
+import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 
 const GRID_CLASS =
   "mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]";
@@ -91,6 +93,15 @@ const CreatorSpendAnalysis = ({
     handleRequestCloseListing,
     handleCancelCloseListing,
     handleConfirmCloseListing,
+    showExtendDeadlineModal,
+    campaignToExtendDeadline,
+    extendDeadlineValue,
+    extendDeadlineError,
+    isExtendingDeadline,
+    handleRequestExtendDeadline,
+    handleCancelExtendDeadline,
+    handleExtendDeadlineChange,
+    handleConfirmExtendDeadline,
   } = useCreatorSpendAnalysis({
     selectedCampaign,
     appliedCreatorsData,
@@ -172,21 +183,22 @@ const CreatorSpendAnalysis = ({
                   />
                 </div>
                 {showCloseListingMenu && selectedCampaign ? (
-                  isSelectedCampaignListingOpen ? (
+                  <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                    {!isSelectedCampaignListingOpen ? (
+                      <span className="rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
+                        Listing closed
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleMenuOpen}
-                      disabled={isClosingListing}
+                      disabled={isClosingListing || isExtendingDeadline}
                       className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Campaign options"
                     >
                       <EllipsisVertical className="h-4 w-4" />
                     </button>
-                  ) : (
-                    <span className="shrink-0 rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
-                      Listing closed
-                    </span>
-                  )
+                  </div>
                 ) : null}
               </div>
             ) : null}
@@ -378,6 +390,13 @@ const CreatorSpendAnalysis = ({
         }}
       >
         <MenuItem
+          onClick={handleRequestExtendDeadline}
+          disabled={isExtendingDeadline}
+          sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
+        >
+          Extend application deadline
+        </MenuItem>
+        <MenuItem
           onClick={handleRequestCloseListing}
           disabled={isClosingListing || !isSelectedCampaignListingOpen}
           sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
@@ -406,6 +425,53 @@ const CreatorSpendAnalysis = ({
         confirmLoading={isClosingListing}
         confirmLoadingText="Closing"
       />
+
+      <Modal
+        title="Extend application deadline"
+        show={showExtendDeadlineModal}
+        onClose={handleCancelExtendDeadline}
+      >
+        <div className="space-y-3">
+          <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+            {campaignToExtendDeadline?.campaign_title
+              ? `Update the deadline for ${campaignToExtendDeadline.campaign_title}. Choosing a future date reopens the listing to new applicants.`
+              : "Choose a new application deadline. A future date reopens the listing to new applicants."}
+          </p>
+          <p className="text-[10px] text-gray-500 sm:text-xs">
+            Current deadline: {formatDateOrNA(campaignToExtendDeadline?.application_deadline)}
+          </p>
+          <CustomInput
+            label="New application deadline"
+            type="date"
+            name="extend_application_deadline"
+            value={extendDeadlineValue}
+            onChange={handleExtendDeadlineChange}
+            inputProps={{ min: getTodayHtmlDateInputValue() }}
+            isRequired
+            errors={
+              extendDeadlineError
+                ? { extend_application_deadline: { message: extendDeadlineError } }
+                : null
+            }
+          />
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <CustomButton
+              text="Cancel"
+              onClick={handleCancelExtendDeadline}
+              className="btn-outline w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+            />
+            <CustomButton
+              text="Save deadline"
+              onClick={handleConfirmExtendDeadline}
+              className="btn-primary w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+              loading={isExtendingDeadline}
+              loadingText="Saving"
+            />
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         title="Save to Shortlist"
