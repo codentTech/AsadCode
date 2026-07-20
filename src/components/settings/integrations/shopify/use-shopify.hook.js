@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   disconnectShopify,
   getShopifyConnection,
@@ -17,9 +17,9 @@ import {
 export default function useShopifyIntegration() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [shopInput, setShopInput] = useState("");
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   const { data: connection, isLoading: connectionLoading } = useSelector(
     selectShopifyConnectionState
@@ -34,16 +34,15 @@ export default function useShopifyIntegration() {
   );
 
   useEffect(() => {
+    setHasMounted(true);
     dispatch(getShopifyConnection());
-  }, [dispatch]);
 
-  useEffect(() => {
-    const connected = searchParams.get("connected");
-    if (connected === "1") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected") === "1") {
       dispatch(getShopifyConnection());
       router.replace("/settings/integrations/shopify", { scroll: false });
     }
-  }, [searchParams, dispatch, router]);
+  }, [dispatch, router]);
 
   useEffect(() => {
     if (connectSuccess && connectUrlData?.authUrl) {
@@ -116,12 +115,8 @@ export default function useShopifyIntegration() {
   }, [dispatch, shopInput]);
 
   const handleDisconnectClick = useCallback(() => {
-    if (connection?.hasLiveAffiliateCampaigns) {
-      setShowDisconnectConfirm(true);
-      return;
-    }
-    dispatch(disconnectShopify({ confirm: false }));
-  }, [connection?.hasLiveAffiliateCampaigns, dispatch]);
+    setShowDisconnectConfirm(true);
+  }, []);
 
   const handleConfirmDisconnect = useCallback(() => {
     dispatch(disconnectShopify({ confirm: true }));
@@ -132,7 +127,12 @@ export default function useShopifyIntegration() {
     setShowDisconnectConfirm(false);
   }, [disconnectLoading]);
 
+  const disconnectConfirmSubText = connection?.hasLiveAffiliateCampaigns
+    ? "You have a live campaign. Disconnecting will stop sales tracking. Are you sure?"
+    : "Disconnecting will pause Shopify sales tracking for CleerCut. You can reconnect the same store later.";
+
   return {
+    hasMounted,
     shopInput,
     handleShopInputChange,
     handleConnect,
@@ -141,6 +141,7 @@ export default function useShopifyIntegration() {
     handleCloseDisconnectConfirm,
     showDisconnectConfirm,
     setShowDisconnectConfirm,
+    disconnectConfirmSubText,
     isConnected,
     isAccessLost,
     statusConfig,

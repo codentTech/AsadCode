@@ -26,7 +26,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 // Define nav items for Brand users
@@ -198,7 +198,8 @@ function useSettingSidebar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const currentUser = getUser();
+  const [hasMounted, setHasMounted] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const { sidebarActiveItem, sidebarSections } = useSelector(({ auth }) => auth);
 
@@ -206,13 +207,21 @@ function useSettingSidebar() {
   const expandedSections = sidebarSections || {};
   const activeItem = sidebarActiveItem || "Account Settings";
 
-  // Memoize navItems to prevent recreation
+  useEffect(() => {
+    setCurrentUser(getUser());
+    setHasMounted(true);
+  }, []);
+
+  // Defer role-based nav until after mount so SSR HTML matches the first client render
   const navItems = useMemo(() => {
-    if (currentUser) {
-      return currentUser.role === ROLES.CREATOR ? creatorNavItems : brandNavItems;
+    if (!hasMounted) {
+      return [];
     }
-    return [];
-  }, [currentUser]);
+    if (currentUser?.role === ROLES.CREATOR) {
+      return creatorNavItems;
+    }
+    return brandNavItems;
+  }, [currentUser, hasMounted]);
 
   // Memoize the active item finder function
   const findActiveItemFromPath = useCallback((items, currentPath) => {
@@ -230,18 +239,21 @@ function useSettingSidebar() {
     }
   }, []);
 
-  const getSectionPathsForPath = useCallback((items, currentPath) => {
-    const sectionPaths = [];
-    if (!items?.length) return sectionPaths;
+  const getSectionPathsForPath = useCallback(
+    (items, currentPath) => {
+      const sectionPaths = [];
+      if (!items?.length) return sectionPaths;
 
-    for (const item of items) {
-      if (!item.children?.length) continue;
-      const sectionPath = item.label;
-      const activeChild = findActiveItemFromPath(item.children, currentPath);
-      if (activeChild) sectionPaths.push(sectionPath);
-    }
-    return sectionPaths;
-  }, [findActiveItemFromPath]);
+      for (const item of items) {
+        if (!item.children?.length) continue;
+        const sectionPath = item.label;
+        const activeChild = findActiveItemFromPath(item.children, currentPath);
+        if (activeChild) sectionPaths.push(sectionPath);
+      }
+      return sectionPaths;
+    },
+    [findActiveItemFromPath]
+  );
 
   useEffect(() => {
     const foundActiveItem = findActiveItemFromPath(navItems, pathname);
