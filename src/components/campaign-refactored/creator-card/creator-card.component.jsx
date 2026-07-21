@@ -167,18 +167,18 @@ const CreatorCard = ({
             </p>
           </div>
 
-          {displayNiches.length > 0 ? (
-            <div className="min-h-[3rem] flex flex-wrap content-start items-start justify-center gap-1">
-              {displayNiches.map((niche) => (
-                <span
-                  key={niche}
-                  className="px-2 py-1 bg-gray-100 text-xs rounded-lg text-gray-600 capitalize whitespace-nowrap"
-                >
-                  {niche}
-                </span>
-              ))}
-            </div>
-          ) : null}
+          <div className="min-h-[3rem] flex flex-wrap content-start items-start justify-center gap-1">
+            {displayNiches.length > 0
+              ? displayNiches.map((niche) => (
+                  <span
+                    key={niche}
+                    className="px-2 py-1 bg-gray-100 text-xs rounded-lg text-gray-600 capitalize whitespace-nowrap"
+                  >
+                    {niche}
+                  </span>
+                ))
+              : null}
+          </div>
 
           {isApplicationsTab ? (
             <p className="min-h-[3rem] line-clamp-3 text-center text-xs">
