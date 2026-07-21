@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, HelpCircle, LayoutGrid, LogOut, Settings, Shield, User, UserRound } from "lucide-react";
 
@@ -16,24 +16,31 @@ function navHrefMatchesPath(pathname, href) {
   );
 }
 
+const FALLBACK_USER = {
+  first_name: "CleerCut",
+  last_name: "Member",
+  email: "member@cleercut.com",
+  role: ROLES.BRAND,
+  avatar: null,
+};
+
 const usePrivateHeader = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const isCreator = isCreatorMode();
+  const [currentUser, setCurrentUser] = useState(FALLBACK_USER);
+  const [isCreator, setIsCreator] = useState(false);
+
+  useEffect(() => {
+    const user = getUser();
+    setCurrentUser(user || FALLBACK_USER);
+    setIsCreator(isCreatorMode());
+  }, []);
 
   const isNavLinkActive = useCallback(
     (href) => navHrefMatchesPath(pathname, href),
     [pathname]
   );
-
-  const currentUser = getUser() || {
-    first_name: "CleerCut",
-    last_name: "Member",
-    email: "member@cleercut.com",
-    role: ROLES.BRAND,
-    avatar: null,
-  };
 
   const profileMenuItems = useMemo(
     () => [
