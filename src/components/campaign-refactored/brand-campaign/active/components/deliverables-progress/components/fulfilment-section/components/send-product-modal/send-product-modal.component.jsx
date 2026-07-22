@@ -1,9 +1,14 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
+import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
+import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
+import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import Modal from "@/common/components/modal/modal.component";
 import TextArea from "@/common/components/text-area/text-area.component";
+import { Gift, MapPin, Package } from "lucide-react";
 import useSendProductModal from "./use-send-product-modal.hook";
 
 export default function SendProductModal({
@@ -30,6 +35,9 @@ export default function SendProductModal({
     editAddress,
     setEditAddress,
     addressForm,
+    selectedCountry,
+    selectedState,
+    selectedCity,
     productSelectOptions,
     variantOptions,
     selectedProductTitle,
@@ -39,6 +47,9 @@ export default function SendProductModal({
     handleProductChange,
     handleVariantChange,
     handleAddressFieldChange,
+    handleCountrySelect,
+    handleStateSelect,
+    handleCitySelect,
     handleSubmit,
     handleClose,
   } = useSendProductModal({
@@ -52,21 +63,33 @@ export default function SendProductModal({
     onClose,
   });
 
+  const countryCode = selectedCountry?.countryCode || selectedCountry?.code || "";
+
   return (
-    <Modal
-      show={show}
-      onClose={handleClose}
-      title={`Send Product to ${creatorName}`}
-      size="md"
-    >
-      <div className="space-y-3 p-3 sm:space-y-4 sm:p-4">
+    <Modal show={show} onClose={handleClose} title={`Send Product to ${creatorName}`} size="md">
+      <div className="space-y-3 sm:space-y-4">
         <p className="text-[11px] leading-snug text-gray-600 sm:text-xs">
           CleerCut creates a free Shopify order for this creator. The creator never pays for
           shipping.
         </p>
 
         {productsLoading ? (
-          <p className="text-xs text-gray-500">Loading products…</p>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            </div>
+          </div>
         ) : (
           <>
             <SimpleSelect
@@ -76,53 +99,67 @@ export default function SendProductModal({
               onChange={handleProductChange}
               placeHolder="Select product"
               isRequired
+              isSearchable
             />
-            <SimpleSelect
-              label="Variant"
-              options={variantOptions}
-              value={variantId}
-              onChange={handleVariantChange}
-              placeHolder="Select variant"
-              isRequired
-            />
-            <CustomInput
-              label="Quantity"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              min={1}
-            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
+              <SimpleSelect
+                label="Variant"
+                options={variantOptions}
+                value={variantId}
+                onChange={handleVariantChange}
+                placeHolder="Select variant"
+                isRequired
+              />
+              <CustomInput
+                label="Quantity"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                min={1}
+              />
+            </div>
           </>
         )}
 
-        <div className="rounded border border-gray-200 bg-gray-50 p-2.5 sm:p-3">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h5 className="text-[10px] font-semibold text-gray-700 sm:text-xs">
-              Shipping address
-            </h5>
+        <div className="rounded-lg border border-gray-200 bg-white p-2.5 sm:p-3">
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-500" />
+              <h5 className="text-[10px] font-semibold text-gray-800 sm:text-xs">
+                Shipping address
+              </h5>
+            </div>
             <CustomSwitch
               checked={editAddress}
               onChange={(e) => setEditAddress(Boolean(e.target.checked))}
               label="Edit for this order only"
               labelClassName="text-[10px] sm:text-xs"
+              labelRight={false}
             />
           </div>
           {!editAddress ? (
             shippingLines?.length ? (
-              <div className="space-y-1">
-                {shippingLines.map((line) => (
-                  <p key={line} className="text-[10px] text-gray-700 sm:text-xs">
-                    {line}
-                  </p>
-                ))}
+              <div className="rounded-md border border-gray-100 bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
+                <div className="space-y-1">
+                  {shippingLines.map((line) => (
+                    <p
+                      key={line}
+                      className="text-left text-[11px] leading-snug text-gray-700 sm:text-xs"
+                    >
+                      {line}
+                    </p>
+                  ))}
+                </div>
               </div>
             ) : (
-              <p className="text-[10px] italic text-gray-500 sm:text-xs">
-                No shipping address on file. Enable edit to enter one for this order.
-              </p>
+              <div className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-2.5 py-3 text-center">
+                <p className="text-[10px] italic text-gray-500 sm:text-xs">
+                  No shipping address on file. Enable edit to enter one for this order.
+                </p>
+              </div>
             )
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-3">
               <CustomInput
                 label="Street"
                 value={addressForm.street}
@@ -133,28 +170,39 @@ export default function SendProductModal({
                 value={addressForm.line2}
                 onChange={(e) => handleAddressFieldChange("line2", e.target.value)}
               />
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <CustomInput
-                  label="City"
-                  value={addressForm.city}
-                  onChange={(e) => handleAddressFieldChange("city", e.target.value)}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+                <CountrySelect
+                  label="Country"
+                  name="send_product_country"
+                  value={selectedCountry}
+                  onChange={handleCountrySelect}
+                  isRequired
                 />
-                <CustomInput
-                  label="State"
-                  value={addressForm.state}
-                  onChange={(e) => handleAddressFieldChange("state", e.target.value)}
+                <StateSelect
+                  label="State or Province"
+                  name="send_product_state"
+                  countryCode={countryCode}
+                  countryCodes={countryCode ? [countryCode] : []}
+                  value={selectedState}
+                  onChange={handleStateSelect}
                 />
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+                <CitySelect
+                  label="City"
+                  name="send_product_city"
+                  countryCode={countryCode}
+                  countryCodes={countryCode ? [countryCode] : []}
+                  stateName={selectedState?.stateName || ""}
+                  stateShort={selectedState?.stateShort || ""}
+                  value={selectedCity}
+                  onChange={handleCitySelect}
+                  isRequired
+                />
                 <CustomInput
                   label="ZIP"
                   value={addressForm.zipCode}
                   onChange={(e) => handleAddressFieldChange("zipCode", e.target.value)}
-                />
-                <CustomInput
-                  label="Country"
-                  value={addressForm.country}
-                  onChange={(e) => handleAddressFieldChange("country", e.target.value)}
                 />
               </div>
             </div>
@@ -169,34 +217,52 @@ export default function SendProductModal({
           rows={3}
         />
 
-        <div className="rounded border border-gray-200 bg-white p-2.5 sm:p-3">
-          <h5 className="mb-1 text-[10px] font-semibold text-gray-700 sm:text-xs">Summary</h5>
-          <p className="text-[10px] text-gray-700 sm:text-xs">
-            {selectedProductTitle || "Product"}
-            {selectedVariantTitle ? ` · ${selectedVariantTitle}` : ""}
-            {` · Qty ${quantityValue}`}
-          </p>
-          <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">
-            Free gift order · Creator does not pay shipping
-          </p>
+        <div className="rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 sm:p-3">
+          <div className="mb-2 flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5 shrink-0 text-indigo-600" />
+            <h5 className="text-[10px] font-semibold text-indigo-900 sm:text-xs">Order summary</h5>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-start justify-between gap-3 rounded-md bg-gray-200 px-2.5 py-2">
+              <span className="text-[10px] text-gray-600 sm:text-xs">Product</span>
+              <span className="max-w-[65%] text-right text-[10px] font-medium text-gray-900 sm:text-xs">
+                {selectedProductTitle || "—"}
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-3 rounded-md bg-gray-200 px-2.5 py-2">
+              <span className="text-[10px] text-gray-600 sm:text-xs">Variant</span>
+              <span className="max-w-[65%] text-right text-[10px] font-medium text-gray-900 sm:text-xs">
+                {selectedVariantTitle || "—"}
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-3 rounded-md bg-gray-200 px-2.5 py-2">
+              <span className="text-[10px] text-gray-600 sm:text-xs">Quantity</span>
+              <span className="text-[10px] font-medium tabular-nums text-gray-900 sm:text-xs">
+                {quantityValue}
+              </span>
+            </div>
+          </div>
+          <div className="mt-2.5 flex items-start gap-1.5 border-t border-indigo-100 pt-2">
+            <Gift className="mt-0.5 h-3 w-3 shrink-0 text-indigo-500" />
+            <p className="text-[10px] leading-snug text-indigo-700 sm:text-xs">
+              Free gift order · Creator does not pay shipping
+            </p>
+          </div>
         </div>
 
-        {sendError ? (
-          <p className="text-[10px] text-red-600 sm:text-xs">{sendError}</p>
-        ) : null}
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex justify-end gap-2">
           <CustomButton
             text="Cancel"
-            className="btn-outline w-full sm:w-auto"
+            className="btn-outline"
             onClick={handleClose}
             disabled={isSendLoading}
           />
           <CustomButton
-            text={isSendLoading ? "Sending…" : "Send Product"}
-            className="btn-primary w-full sm:w-auto"
+            text="Send Product"
+            className="btn-primary"
             onClick={handleSubmit}
             disabled={!canSubmit}
+            loading={isSendLoading}
           />
         </div>
       </div>

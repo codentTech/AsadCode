@@ -142,6 +142,8 @@ export default function useFulfilmentSection({
           productId: payload.productId,
           variantId: payload.variantId,
           quantity: payload.quantity,
+          productTitle: payload.productTitle || undefined,
+          variantTitle: payload.variantTitle || undefined,
           giftNote: payload.giftNote || undefined,
           shippingAddressOverride: payload.shippingAddressOverride || undefined,
         })
@@ -188,11 +190,11 @@ export default function useFulfilmentSection({
       );
       if (match) return match.id;
     }
-    const available = variants.find(
-      (v) =>
-        v.availableForSale !== false &&
-        (v.inventoryQuantity == null || v.inventoryQuantity > 0)
-    );
+    const available = variants.find((v) => {
+      if (v.availableForSale === false) return false;
+      if (v.availableForSale === true) return true;
+      return v.inventoryQuantity == null || v.inventoryQuantity > 0;
+    });
     return available?.id || variants[0]?.id || "";
   }, [selectedCampaign, productOptions, initialProductId]);
 
