@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 import PageHeader from "../page-header/page-header.component";
 import ActiveFilters from "../active-filters/active-filters.component";
 import CreatorGrid from "../creator-grid/creator-grid.component";
@@ -121,10 +122,7 @@ const DiscoverView = ({
             </div>
           ) : null}
           {isDiscoverInitialLoading && creators.length === 0 ? (
-            <SkeletonCardGrid
-              count={8}
-              gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
-            />
+            <SkeletonCardGrid count={8} gridClass={CREATOR_CARD_GRID_CLASS} />
           ) : creators.length === 0 ? (
             <NotFound
               title="No Creators Found"
@@ -155,10 +153,7 @@ const DiscoverView = ({
             </div>
           ) : null}
           {isDiscoverInitialLoading && nicheCategories.length === 0 ? (
-            <SkeletonCardGrid
-              count={8}
-              gridClass="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4"
-            />
+            <SkeletonCardGrid count={8} gridClass={CREATOR_CARD_GRID_CLASS} />
           ) : nicheCategories.length === 0 ? (
             <NotFound
               title="No Creators Found"
