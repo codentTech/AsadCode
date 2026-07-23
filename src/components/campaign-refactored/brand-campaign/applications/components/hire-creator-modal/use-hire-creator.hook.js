@@ -342,6 +342,32 @@ export default function useHireCreator({
     [campaignData, creatorData, isIndividual]
   );
 
+  // Payment required for paid offers and Affiliate (card on file for commission settlement)
+  const isPaymentRequired = useCallback(() => {
+    const compType = (watchedValues?.compensationType || "").toUpperCase();
+    const campType = (
+      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
+    )?.toUpperCase?.();
+    if (compType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      return false;
+    }
+    if (campType === CAMPAIGN_TYPE.GIFTED) {
+      return false;
+    }
+    if (
+      compType === COMPENSATION_TYPE.COMMISSION ||
+      campType === CAMPAIGN_TYPE.AFFILIATE
+    ) {
+      return true;
+    }
+    return true;
+  }, [
+    watchedValues?.compensationType,
+    watchedValues?.campaignType,
+    isIndividual,
+    campaignData?.campaign_type,
+  ]);
+
   const onSubmit = async (values) => {
     // Trigger validation for all fields to ensure errors are shown
     const isValid = await trigger();
@@ -349,8 +375,22 @@ export default function useHireCreator({
       return;
     }
 
+    const affiliateOffer =
+      (isIndividual
+        ? values.campaignType === CAMPAIGN_TYPE.AFFILIATE
+        : campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) ||
+      values.compensationType === COMPENSATION_TYPE.COMMISSION;
+
+    if (affiliateOffer && !hasPaymentMethod) {
+      enqueueSnackbar(
+        "Add a card in Settings → Payments → Payment Methods before sending an Affiliate offer.",
+        { variant: "error" }
+      );
+      return;
+    }
+
     // CRITICAL: Validate payment method exists before submission (only for paid offers)
-    if (isPaymentRequired() && !canFundCollaborations) {
+    if (!affiliateOffer && isPaymentRequired() && !canFundCollaborations) {
       const errorMessage = !hasPaymentMethod
         ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
         : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
@@ -403,29 +443,6 @@ export default function useHireCreator({
   const exclusivityOption =
     HIRE_EXCLUSIVITY_CLAUSE_OPTIONS.find((option) => option.value === exclusivityValue) ||
     HIRE_EXCLUSIVITY_CLAUSE_OPTIONS[0];
-
-  // Payment not required for gifted/affiliate (campaign type) or gifted product/commission (compensation type)
-  const isPaymentRequired = useCallback(() => {
-    const compType = (watchedValues?.compensationType || "").toUpperCase();
-    const campType = (
-      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
-    )?.toUpperCase?.();
-    if (
-      compType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
-      compType === COMPENSATION_TYPE.COMMISSION
-    ) {
-      return false;
-    }
-    if (campType === CAMPAIGN_TYPE.GIFTED || campType === CAMPAIGN_TYPE.AFFILIATE) {
-      return false;
-    }
-    return true;
-  }, [
-    watchedValues?.compensationType,
-    watchedValues?.campaignType,
-    isIndividual,
-    campaignData?.campaign_type,
-  ]);
 
   return {
     register,

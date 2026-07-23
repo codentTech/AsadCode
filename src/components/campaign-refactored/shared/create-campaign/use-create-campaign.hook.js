@@ -1,7 +1,9 @@
 import { createCampaign, resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
 import { selectShopifyConnectionState } from "@/provider/features/shopify/shopify.slice";
+import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
+import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,6 +29,10 @@ export default function useCreateCampaign(close) {
     (state) => state.campaigns?.createCampaign || {}
   );
   const { data: shopifyConnection } = useSelector(selectShopifyConnectionState);
+  const { data: hasPaymentMethodData } = useSelector(
+    (state) => state.collaborationPayment?.hasPaymentMethod || {}
+  );
+  const hasPaymentMethod = hasPaymentMethodData?.hasPaymentMethod || false;
 
   const {
     register,
@@ -49,6 +55,10 @@ export default function useCreateCampaign(close) {
     currentStep === 2 &&
     campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE &&
     !shopifyConnection?.connected;
+
+  useEffect(() => {
+    dispatch(checkHasPaymentMethod());
+  }, [dispatch]);
 
   useEffect(() => {
     return () => {
@@ -117,6 +127,14 @@ export default function useCreateCampaign(close) {
   );
 
   const handleCampaignSubmit = async (data) => {
+    if (data.campaign_type === CAMPAIGN_TYPE.AFFILIATE && !hasPaymentMethod) {
+      enqueueSnackbar(
+        "Add a card in Settings → Payments → Payment Methods before publishing an Affiliate campaign.",
+        { variant: "error" }
+      );
+      return;
+    }
+
     const apiData = transformDataForAPI(data);
     const result = await dispatch(createCampaign(apiData));
 

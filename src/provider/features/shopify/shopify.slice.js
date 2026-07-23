@@ -16,6 +16,8 @@ export const shopifyInitialState = {
   getProducts: { ...generalState },
   getDiscountCodes: { ...generalState },
   getFulfilment: { ...generalState },
+  getCommissionTally: { ...generalState },
+  getCommissionSettlements: { ...generalState },
   sendProduct: { ...generalState },
   renameDiscountCode: { ...generalState },
   deactivateDiscountCode: { ...generalState },
@@ -51,6 +53,13 @@ export const selectShopifyDiscountCodesState = (state) =>
 
 export const selectShopifyFulfilmentState = (state) =>
   state?.shopify?.getFulfilment ?? shopifyInitialState.getFulfilment;
+
+export const selectShopifyCommissionTallyState = (state) =>
+  state?.shopify?.getCommissionTally ?? shopifyInitialState.getCommissionTally;
+
+export const selectShopifyCommissionSettlementsState = (state) =>
+  state?.shopify?.getCommissionSettlements ??
+  shopifyInitialState.getCommissionSettlements;
 
 export const selectShopifySendProductState = (state) =>
   state?.shopify?.sendProduct ?? shopifyInitialState.sendProduct;
@@ -177,6 +186,32 @@ export const getShopifyFulfilment = createAsyncThunk(
   async (contractId, thunkAPI) => {
     try {
       const response = await shopifyService.getFulfilment(contractId);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const getShopifyCommissionTally = createAsyncThunk(
+  "shopify/getCommissionTally",
+  async (contractId, thunkAPI) => {
+    try {
+      const response = await shopifyService.getCommissionTally(contractId);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const getShopifyCommissionSettlements = createAsyncThunk(
+  "shopify/getCommissionSettlements",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await shopifyService.getCommissionSettlements(campaignId);
       if (response.success) return response.data;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -463,6 +498,50 @@ const shopifySlice = createSlice({
       })
       .addCase(getShopifyFulfilment.rejected, (state, action) => {
         state.getFulfilment = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(getShopifyCommissionTally.pending, (state) => {
+        state.getCommissionTally.isLoading = true;
+        state.getCommissionTally.isError = false;
+      })
+      .addCase(getShopifyCommissionTally.fulfilled, (state, action) => {
+        state.getCommissionTally = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyCommissionTally.rejected, (state, action) => {
+        state.getCommissionTally = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(getShopifyCommissionSettlements.pending, (state) => {
+        state.getCommissionSettlements.isLoading = true;
+        state.getCommissionSettlements.isError = false;
+      })
+      .addCase(getShopifyCommissionSettlements.fulfilled, (state, action) => {
+        state.getCommissionSettlements = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyCommissionSettlements.rejected, (state, action) => {
+        state.getCommissionSettlements = {
           isLoading: false,
           isSuccess: false,
           isError: true,
