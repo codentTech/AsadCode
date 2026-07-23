@@ -1,5 +1,6 @@
-import React from "react";
+import React, { memo } from "react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import DeferredImage from "@/common/components/deferred-image/deferred-image.component";
 import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.component";
 import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
@@ -42,6 +43,8 @@ const CreatorCard = ({
     creator?.creator?.creator_profile?.review_count ??
     0;
   const applicationMessage = creator?.applicationMessage?.trim() || "";
+  const profileInitials =
+    `${creator.name?.charAt(0) || ""}${creator.name?.split(" ")[1]?.charAt(0) || ""}`.trim();
 
   const {
     getPlatformIcon,
@@ -89,10 +92,12 @@ const CreatorCard = ({
               return (
                 <div key={index} className="flex-1 relative">
                   {image ? (
-                    <img
+                    <DeferredImage
                       src={image}
                       alt={`Portfolio ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      placeholderClassName="bg-primary/15"
+                      rootMargin={index === 0 ? "420px 0px" : "280px 0px"}
+                      priority={index === 0}
                     />
                   ) : (
                     <div className="w-full h-full bg-primary" />
@@ -129,16 +134,24 @@ const CreatorCard = ({
 
       <div className="relative flex min-h-0 flex-1 flex-col px-4 pb-4">
         <div className="absolute top-[-55px] left-1/2 -translate-x-1/2">
-          <div className="w-16 h-16 rounded-full border-2 border-white bg-white overflow-hidden">
+          <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary">
             {creator.profileImage ? (
-              <img
-                src={creator.profileImage}
-                alt={creator.name}
-                className="w-full h-full object-cover"
-              />
+              <>
+                <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-white">
+                  {profileInitials}
+                </span>
+                <DeferredImage
+                  src={creator.profileImage}
+                  alt={creator.name}
+                  placeholderClassName="bg-transparent"
+                  rootMargin="360px 0px"
+                  priority
+                  className="relative z-[1]"
+                />
+              </>
             ) : (
-              <span className="text-white bg-primary rounded-full w-full h-full flex items-center justify-center font-semibold text-2xl">
-                {creator.name?.charAt(0) + creator.name?.split(" ")[1]?.charAt(0)}
+              <span className="flex h-full w-full items-center justify-center text-2xl font-semibold text-white">
+                {profileInitials}
               </span>
             )}
           </div>
@@ -334,4 +347,4 @@ const CreatorCard = ({
   );
 };
 
-export default CreatorCard;
+export default memo(CreatorCard);

@@ -19,6 +19,7 @@ import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
 import { refreshBrandPipelineData } from "@/common/utils/pipeline-refresh.util";
+import { buildAppliedCreatorThreadInitialMessages } from "@/common/utils/message-thread-initial-messages.util";
 import usePipelineBackgroundRefresh from "@/common/hooks/use-pipeline-background-refresh.hook";
 import {
   readPersistedApplicationsSort,
@@ -575,27 +576,12 @@ function useBrandApplications() {
       return null;
     }
 
-    const campaignId = selectedCampaign.id;
-    const creatorUserId = selectedCreator?.creator?.id || selectedCreator?.id || null;
-    const invitationMessage = selectedCreator?.custom_message?.trim();
-    if (invitationMessage) {
-      return {
-        content: invitationMessage,
-        senderRole: "BRAND",
-        campaignId,
-        creatorId: creatorUserId,
-      };
-    }
-    const creatorPitch = selectedCreator?.pitch?.trim();
-    if (creatorPitch) {
-      return {
-        content: creatorPitch,
-        senderRole: "CREATOR",
-        campaignId,
-        creatorId: creatorUserId,
-      };
-    }
-    return null;
+    return buildAppliedCreatorThreadInitialMessages({
+      pitch: selectedCreator?.pitch,
+      custom_message: selectedCreator?.custom_message,
+      campaignId: selectedCampaign.id,
+      creatorId: selectedCreator?.creator?.id || selectedCreator?.id || null,
+    });
   }, [selectedCreator, selectedCampaign, isSelectedCreatorForCurrentCampaign]);
 
   const handleMessageSent = useCallback(() => {
