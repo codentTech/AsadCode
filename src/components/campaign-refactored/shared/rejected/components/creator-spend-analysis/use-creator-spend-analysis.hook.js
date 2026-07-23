@@ -267,6 +267,7 @@ function useCreatorSpendAnalysis({
       platforms: connectedPlatforms.platformList,
       platformStats: connectedPlatforms.platformStats,
       hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
+      mediaKitUrl: profile?.media_kit_url || null,
       appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
       rejectedDate: rejectedDate ? new Date(rejectedDate).toLocaleDateString() : "N/A",
       originalData: data,
