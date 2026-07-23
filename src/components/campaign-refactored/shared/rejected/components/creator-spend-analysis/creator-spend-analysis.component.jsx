@@ -11,6 +11,7 @@ import CampaignCreationWizard from "@/components/campaign-refactored/shared/crea
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { useSelector } from "react-redux";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -90,10 +91,7 @@ const CreatorSpendAnalysis = ({
   const renderScrollBody = () => {
     if (leftContentLoading) {
       return (
-        <SkeletonCardGrid
-          count={8}
-          gridClass="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-3"
-        />
+        <SkeletonCardGrid count={8} gridClass={`mb-8 ${CREATOR_CARD_GRID_CLASS}`} />
       );
     }
 

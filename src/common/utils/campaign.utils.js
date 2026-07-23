@@ -767,6 +767,33 @@ export function partitionPinnedInvitedCreators(creators) {
   return { pinned, unpinned };
 }
 
+export function getCreatorDisplayName(creator) {
+  if (!creator) return "";
+  if (typeof creator.name === "string" && creator.name.trim()) {
+    return creator.name.trim();
+  }
+  const first =
+    creator.first_name ||
+    creator.creator?.first_name ||
+    "";
+  const last =
+    creator.last_name ||
+    creator.creator?.last_name ||
+    "";
+  return `${first} ${last}`.trim();
+}
+
+export function filterCreatorsByName(creators, searchQuery) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const query = typeof searchQuery === "string" ? searchQuery.trim().toLowerCase() : "";
+  if (!query) return rows;
+
+  return rows.filter((creator) => {
+    const name = getCreatorDisplayName(creator).toLowerCase();
+    return name.includes(query);
+  });
+}
+
 function sortCreatorsClientSide(creators, sortKey) {
   if (!Array.isArray(creators) || creators.length === 0) return [];
 
