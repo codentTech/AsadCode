@@ -368,6 +368,7 @@ function useCreatorSpendAnalysis({
       platforms: connectedPlatforms.platformList,
       platformStats: connectedPlatforms.platformStats,
       hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
+      mediaKitUrl: profile?.media_kit_url || null,
       portfolioImages: profile?.mini_profile_pictures || [],
       niches: profile?.categories || [],
       applicationMessage: (data.pitch || data.custom_message)?.trim() || "",

@@ -50,6 +50,9 @@ export default function usePreview(campaignData = {}) {
   const applicationDeadline = formatDate(campaignData.application_deadline);
   const applicationDeadlineLabel =
     applicationDeadline === "—" ? "No deadline set" : applicationDeadline;
+  const trackingEndDate = formatDate(campaignData.tracking_end_date);
+  const trackingEndDateLabel =
+    trackingEndDate === "—" ? null : trackingEndDate;
   const compensationTypeLabel = getCompensationTypeLabel(campaignData.compensation_type);
 
   const nicheTags = useMemo(
@@ -102,16 +105,30 @@ export default function usePreview(campaignData = {}) {
         deliverableTags,
         requiredPlatforms
       ),
-    [campaignData.budget, campaignData.min_combined_followers, deliverableTags, requiredPlatforms]
+    [
+      campaignData,
+      campaignData.budget,
+      campaignData.min_combined_followers,
+      campaignData.commission_percentage,
+      campaignData.customer_discount_percent,
+      campaignData.product_value,
+      campaignData.shopify_products,
+      campaignData.campaign_type,
+      deliverableTags,
+      requiredPlatforms,
+    ]
   );
 
   const compensationItems = useMemo(
     () => buildCompensationItems(campaignData, formatCurrency, commissionPerSale),
     [
+      campaignData,
       campaignData.budget,
       campaignData.campaign_type,
       campaignData.product_value,
       campaignData.commission_percentage,
+      campaignData.customer_discount_percent,
+      campaignData.shopify_products,
       campaignData.suggested_min,
       campaignData.suggested_max,
       campaignData.creator_fixed_price,
@@ -171,6 +188,7 @@ export default function usePreview(campaignData = {}) {
         commissionPerSale,
         formatCurrency,
         applicationDeadlineLabel,
+        trackingEndDateLabel,
         workMode,
         countriesDisplay,
         ageRangeSummary,
@@ -184,6 +202,7 @@ export default function usePreview(campaignData = {}) {
       compensationTypeLabel,
       commissionPerSale,
       applicationDeadlineLabel,
+      trackingEndDateLabel,
       workMode,
       countriesDisplay,
       ageRangeSummary,

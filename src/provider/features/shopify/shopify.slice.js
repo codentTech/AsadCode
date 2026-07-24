@@ -13,6 +13,7 @@ export const shopifyInitialState = {
   getConnection: { ...generalState },
   getConnectUrl: { ...generalState },
   disconnect: { ...generalState },
+  getProducts: { ...generalState },
 };
 
 const initialState = shopifyInitialState;
@@ -34,6 +35,9 @@ export const selectShopifyConnectUrlState = (state) =>
 
 export const selectShopifyDisconnectState = (state) =>
   state?.shopify?.disconnect ?? shopifyInitialState.disconnect;
+
+export const selectShopifyProductsState = (state) =>
+  state?.shopify?.getProducts ?? shopifyInitialState.getProducts;
 
 export const getShopifyConnection = createAsyncThunk(
   "shopify/getConnection",
@@ -74,6 +78,19 @@ export const disconnectShopify = createAsyncThunk(
   }
 );
 
+export const getShopifyProducts = createAsyncThunk(
+  "shopify/getProducts",
+  async (_, thunkAPI) => {
+    try {
+      const response = await shopifyService.getProducts();
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 const shopifySlice = createSlice({
   name: "shopify",
   initialState,
@@ -83,6 +100,9 @@ const shopifySlice = createSlice({
     },
     resetShopifyDisconnect: (state) => {
       state.disconnect = { ...generalState };
+    },
+    resetShopifyProducts: (state) => {
+      state.getProducts = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -156,9 +176,34 @@ const shopifySlice = createSlice({
           message: action.payload?.message,
           data: null,
         };
+      })
+      .addCase(getShopifyProducts.pending, (state) => {
+        state.getProducts.isLoading = true;
+        state.getProducts.isError = false;
+        state.getProducts.isSuccess = false;
+        state.getProducts.message = "";
+      })
+      .addCase(getShopifyProducts.fulfilled, (state, action) => {
+        state.getProducts = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyProducts.rejected, (state, action) => {
+        state.getProducts = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message || "Unable to load products from Shopify",
+          data: state.getProducts.data,
+        };
       });
   },
 });
 
-export const { resetShopifyConnectUrl, resetShopifyDisconnect } = shopifySlice.actions;
+export const { resetShopifyConnectUrl, resetShopifyDisconnect, resetShopifyProducts } =
+  shopifySlice.actions;
 export default shopifySlice.reducer;

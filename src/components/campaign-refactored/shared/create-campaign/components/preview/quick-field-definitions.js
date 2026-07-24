@@ -11,14 +11,12 @@ import { capitalizeFirstLetter } from "@/common/utils/common.utils";
  * getValue(ctx) returns the display value or null/undefined to hide the row.
  */
 
-/** Format requirement level for display (only first letter capitalized); returns null for "none". */
 const formatRequirementLevel = (value) => {
   if (!value || value === "none") return null;
   const v = String(value).toLowerCase().replace(/_/g, " ");
   return capitalizeFirstLetter(v);
 };
 
-/** Append (Requirement) to value when requirement is not "none". Returns null if both value and requirement are empty. */
 const withRequirement = (value, requirement) => {
   const level = formatRequirementLevel(requirement);
   const hasValue = value != null && value !== "";
@@ -28,7 +26,6 @@ const withRequirement = (value, requirement) => {
   return `${value} (${level})`;
 };
 
-/** Get label from options by value, or format value as "X Months" (capitalize each word). */
 const getOptionLabel = (options, value) => {
   if (!value) return null;
   const option = options.find((o) => o.value === value);
@@ -40,9 +37,39 @@ const getOptionLabel = (options, value) => {
 };
 
 const getCompensationLabel = (campaignData) => {
-  if (campaignData?.campaign_type === CAMPAIGN_TYPE.GIFTED) return "Product Value";
-  if (campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) return "Commission Rate";
+  if (campaignData?.campaign_type === CAMPAIGN_TYPE.GIFTED) return "Your cost per unit";
+  if (campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) return "Commission rate";
   return "Total Budget";
+};
+
+const getPrimaryCompensationValue = (ctx) => {
+  const { campaignData, formatCurrency, compensationItems, compensationTypeLabel } = ctx;
+  const type = campaignData?.campaign_type;
+
+  if (type === CAMPAIGN_TYPE.GIFTED) {
+    if (campaignData.product_value != null && campaignData.product_value !== "") {
+      return formatCurrency(campaignData.product_value);
+    }
+    return compensationItems[0]?.value ?? null;
+  }
+
+  if (type === CAMPAIGN_TYPE.AFFILIATE) {
+    if (campaignData.commission_percentage != null && campaignData.commission_percentage !== "") {
+      return `${campaignData.commission_percentage}%`;
+    }
+    return compensationItems[0]?.value ?? compensationTypeLabel;
+  }
+
+  return compensationItems[0]?.value ?? compensationTypeLabel;
+};
+
+const getShopifyProductNames = (campaignData) => {
+  const products = campaignData?.shopify_products;
+  if (!Array.isArray(products) || products.length === 0) return null;
+  return products
+    .map((product) => product?.title)
+    .filter(Boolean)
+    .join(", ");
 };
 
 export const QUICK_FIELD_DEFINITIONS = [
@@ -52,24 +79,87 @@ export const QUICK_FIELD_DEFINITIONS = [
     getValue: (ctx) => ctx.campaignTypeLabel,
   },
   {
+    id: "compensationType",
+    label: "Compensation Type",
+    getValue: (ctx) => {
+      const type = ctx.campaignData?.campaign_type;
+      if (type === CAMPAIGN_TYPE.AFFILIATE || type === CAMPAIGN_TYPE.GIFTED) {
+        return ctx.compensationTypeLabel;
+      }
+      return null;
+    },
+  },
+  {
     id: "budget",
     label: (ctx) => getCompensationLabel(ctx.campaignData),
-    getValue: (ctx) => ctx.compensationItems[0]?.value ?? ctx.compensationTypeLabel,
+    getValue: (ctx) => getPrimaryCompensationValue(ctx),
+  },
+  {
+    id: "shopperDiscount",
+    label: "Discount for the shopper",
+    getValue: (ctx) => {
+      if (ctx.campaignData?.campaign_type !== CAMPAIGN_TYPE.AFFILIATE) return null;
+      const value = ctx.campaignData?.customer_discount_percent;
+      if (value == null || value === "") return null;
+      return `${value}%`;
+    },
+  },
+  {
+    id: "trackingEndDate",
+    label: "Sales tracking ends",
+    getValue: (ctx) => {
+      if (ctx.campaignData?.campaign_type !== CAMPAIGN_TYPE.AFFILIATE) return null;
+      return ctx.trackingEndDateLabel;
+    },
+  },
+  {
+    id: "shopifyProducts",
+    label: (ctx) =>
+      ctx.campaignData?.campaign_type === CAMPAIGN_TYPE.GIFTED
+        ? "Gifted product"
+        : "Promoted products",
+    getValue: (ctx) => {
+      const type = ctx.campaignData?.campaign_type;
+      if (type !== CAMPAIGN_TYPE.AFFILIATE && type !== CAMPAIGN_TYPE.GIFTED) return null;
+      return getShopifyProductNames(ctx.campaignData);
+    },
+  },
+  {
+    id: "shipsPhysicalProduct",
+    label: "Ships physical product",
+    getValue: (ctx) => {
+      const type = ctx.campaignData?.campaign_type;
+      if (
+        type !== CAMPAIGN_TYPE.AFFILIATE &&
+        type !== CAMPAIGN_TYPE.SPONSORED_POST &&
+        type !== CAMPAIGN_TYPE.UGC
+      ) {
+        return null;
+      }
+      if (ctx.campaignData?.ships_physical_product == null) return null;
+      return ctx.campaignData.ships_physical_product ? "Yes" : "No";
+    },
   },
   {
     id: "creatorFee",
     label: "Creator Fee",
-    getValue: (ctx) => ctx.compensationItems[1]?.value ?? null,
+    getValue: (ctx) => {
+      const type = ctx.campaignData?.campaign_type;
+      if (type === CAMPAIGN_TYPE.AFFILIATE || type === CAMPAIGN_TYPE.GIFTED) return null;
+      return ctx.compensationItems[1]?.value ?? null;
+    },
   },
   {
     id: "earningsPerSale",
-    label: "Earnings per Sale",
-    getValue: (ctx) =>
-      ctx.commissionPerSale > 0 ? ctx.formatCurrency(ctx.commissionPerSale) : null,
+    label: "Est. earnings per sale",
+    getValue: (ctx) => {
+      if (ctx.campaignData?.campaign_type !== CAMPAIGN_TYPE.AFFILIATE) return null;
+      return ctx.commissionPerSale > 0 ? ctx.formatCurrency(ctx.commissionPerSale) : null;
+    },
   },
   {
     id: "deadline",
-    label: "Deadline",
+    label: "Application deadline",
     getValue: (ctx) => ctx.applicationDeadlineLabel,
   },
   {
@@ -117,22 +207,14 @@ export const QUICK_FIELD_DEFINITIONS = [
     getValue: (ctx) =>
       withRequirement(ctx.ageRangeSummary ?? null, ctx.campaignData?.ageRequirement),
   },
-  // Usage Rights: value (e.g. "3 months") + requirement → "3 Months (Non negotiable)"
   {
     id: "usageRights",
     label: "Usage Rights",
     getValue: (ctx) => {
-      const valueLabel = getOptionLabel(
-        USAGE_RIGHTS_OPTIONS,
-        ctx.campaignData?.usageRights
-      );
-      return withRequirement(
-        valueLabel,
-        ctx.campaignData?.usageRightsRequirement
-      );
+      const valueLabel = getOptionLabel(USAGE_RIGHTS_OPTIONS, ctx.campaignData?.usageRights);
+      return withRequirement(valueLabel, ctx.campaignData?.usageRightsRequirement);
     },
   },
-  // Exclusivity Clause: value (e.g. "6 months") + requirement → "6 Months (Non negotiable)"
   {
     id: "exclusivityClause",
     label: "Exclusivity Clause",
@@ -141,10 +223,7 @@ export const QUICK_FIELD_DEFINITIONS = [
         EXCLUSIVITY_CLAUSE_OPTIONS,
         ctx.campaignData?.exclusivityClause
       );
-      return withRequirement(
-        valueLabel,
-        ctx.campaignData?.exclusivityClauseRequirement
-      );
+      return withRequirement(valueLabel, ctx.campaignData?.exclusivityClauseRequirement);
     },
   },
 ];
