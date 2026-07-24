@@ -5,6 +5,14 @@
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { formatGenderForDisplay } from "@/common/utils/campaign.utils";
 
+function formatShopifyProductNames(products) {
+  if (!Array.isArray(products) || products.length === 0) return null;
+  return products
+    .map((product) => product?.title)
+    .filter(Boolean)
+    .join(", ");
+}
+
 export function buildHeroStats(
   campaignData,
   formatCurrency,
@@ -12,6 +20,55 @@ export function buildHeroStats(
   deliverableTags,
   requiredPlatforms
 ) {
+  const campaignType = campaignData.campaign_type;
+
+  if (campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+    return [
+      campaignData.commission_percentage != null &&
+        campaignData.commission_percentage !== "" && {
+          label: "Commission",
+          value: `${campaignData.commission_percentage}%`,
+        },
+      campaignData.customer_discount_percent != null &&
+        campaignData.customer_discount_percent !== "" && {
+          label: "Shopper discount",
+          value: `${campaignData.customer_discount_percent}%`,
+        },
+      Array.isArray(campaignData.shopify_products) &&
+        campaignData.shopify_products.length > 0 && {
+          label: "Products",
+          value: campaignData.shopify_products.length,
+        },
+      requiredPlatforms.length > 0 && {
+        label: "Platforms",
+        value: requiredPlatforms.length,
+      },
+    ].filter(Boolean);
+  }
+
+  if (campaignType === CAMPAIGN_TYPE.GIFTED) {
+    return [
+      campaignData.product_value != null &&
+        campaignData.product_value !== "" && {
+          label: "Cost per unit",
+          value: formatCurrency(campaignData.product_value),
+        },
+      Array.isArray(campaignData.shopify_products) &&
+        campaignData.shopify_products.length > 0 && {
+          label: "Products",
+          value: campaignData.shopify_products.length,
+        },
+      deliverableTags.length > 0 && {
+        label: "Deliverables",
+        value: deliverableTags.length,
+      },
+      requiredPlatforms.length > 0 && {
+        label: "Platforms",
+        value: requiredPlatforms.length,
+      },
+    ].filter(Boolean);
+  }
+
   return [
     campaignData.budget && {
       label: "Budget",
@@ -33,20 +90,49 @@ export function buildHeroStats(
 }
 
 export function buildCompensationItems(campaignData, formatCurrency, commissionPerSale) {
+  const campaignType = campaignData.campaign_type;
+
+  if (campaignType === CAMPAIGN_TYPE.GIFTED) {
+    return [
+      campaignData.product_value != null &&
+        campaignData.product_value !== "" && {
+          label: "Your cost per unit",
+          value: formatCurrency(campaignData.product_value),
+        },
+      formatShopifyProductNames(campaignData.shopify_products) && {
+        label: "Gifted product",
+        value: formatShopifyProductNames(campaignData.shopify_products),
+      },
+    ].filter(Boolean);
+  }
+
+  if (campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+    return [
+      campaignData.commission_percentage != null &&
+        campaignData.commission_percentage !== "" && {
+          label: "Commission rate",
+          value: `${campaignData.commission_percentage}%`,
+        },
+      campaignData.customer_discount_percent != null &&
+        campaignData.customer_discount_percent !== "" && {
+          label: "Shopper discount",
+          value: `${campaignData.customer_discount_percent}%`,
+        },
+      formatShopifyProductNames(campaignData.shopify_products) && {
+        label: "Promoted products",
+        value: formatShopifyProductNames(campaignData.shopify_products),
+      },
+      commissionPerSale > 0 && {
+        label: "Est. earnings per sale",
+        value: formatCurrency(commissionPerSale),
+      },
+    ].filter(Boolean);
+  }
+
   return [
     campaignData.budget && {
-      label:
-        campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED
-          ? "Product Value"
-          : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-            ? "Commission Rate"
-            : "Total Budget",
-      value:
-        campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED
-          ? formatCurrency(campaignData.product_value)
-          : campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE
-            ? `${campaignData.commission_percentage}%`
-            : formatCurrency(campaignData.budget),
+      label: "Total Budget",
+      value: formatCurrency(campaignData.budget),
       hint: "Private",
     },
     campaignData.suggested_min &&
@@ -59,20 +145,8 @@ export function buildCompensationItems(campaignData, formatCurrency, commissionP
       value: formatCurrency(campaignData.creator_fixed_price),
     },
     campaignData.product_value && {
-      label: "Product Value",
+      label: "Your cost per unit",
       value: formatCurrency(campaignData.product_value),
-    },
-    campaignData.product_price && {
-      label: "Product Price",
-      value: formatCurrency(campaignData.product_price),
-    },
-    campaignData.commission_percentage && {
-      label: "Commission Rate",
-      value: `${campaignData.commission_percentage}%`,
-    },
-    commissionPerSale > 0 && {
-      label: "Earnings per Sale",
-      value: formatCurrency(commissionPerSale),
     },
   ].filter(Boolean);
 }

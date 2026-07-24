@@ -1,9 +1,11 @@
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import CustomRadioGroup from "@/common/components/radio-group/radio-group.component";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { CAMPAIGN_TYPE_OPTIONS } from "@/common/constants/options.constant";
-import { Lock } from "lucide-react";
+import { ExternalLink, RefreshCw, Store } from "lucide-react";
 import useCompensation from "./use-compensation.hook";
 
 function Compensation({ campaignData, errors = {}, register, setValue }) {
@@ -13,12 +15,49 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
     creatorCompOption,
     creatorCompensationOptions,
     isGiftedCampaign,
+    isAffiliateCampaign,
+    showPhysicalProductToggle,
     selectedCampaignTypeOption,
     creatorFee,
+    isShopifyConnected,
+    connectionLoading,
+    connectLoading,
+    shopInput,
+    handleShopInputChange,
+    handleInlineConnect,
+    shopName,
+    productOptions,
+    selectedProductOptions,
+    selectedGiftedProductOption,
+    productsLoading,
+    productsError,
+    productsErrorMessage,
+    hasLoadedProducts,
+    productValueFromShopify,
+    handleRefreshProducts,
     handleCampaignTypeChange,
     handlePaymentTypeChange,
     handleCreatorCompOptionChange,
+    handleAffiliateProductsChange,
+    handleGiftedProductChange,
+    handleShipsPhysicalChange,
   } = useCompensation({ campaignData, setValue });
+
+  const productsPlaceholder = productsLoading
+    ? "Loading products…"
+    : productsError
+      ? "Could not load products"
+      : productOptions.length === 0 && hasLoadedProducts
+        ? "No products found"
+        : "Select products";
+
+  const giftedProductsPlaceholder = productsLoading
+    ? "Loading products…"
+    : productsError
+      ? "Could not load products"
+      : productOptions.length === 0 && hasLoadedProducts
+        ? "No products found"
+        : "Select a product";
 
   return (
     <div className="space-y-6">
@@ -54,6 +93,11 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
                     )}
                   </p>
                 )}
+              {isAffiliateCampaign && campaignData.commission_percentage ? (
+                <p className="text-sm font-medium text-indigo-900">
+                  <span className="font-bold">Commission:</span> {creatorFee}
+                </p>
+              ) : null}
             </div>
             <p className="text-sm text-indigo-700">
               {campaignData.compensation_type === COMPENSATION_TYPE.PAID &&
@@ -77,28 +121,13 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
                 </>
               ) : null}
               {campaignData.compensation_type === COMPENSATION_TYPE.COMMISSION && (
-                // <>
-                //   <span className="font-semibold">Commission-based (Percentage per sale)</span>
-                //   <br />
-                //   <span className="text-xs text-indigo-600">
-                //     Creator payout per sale (Automatically calculates % x product price)
-                //   </span>
-                // </>
-
-                <div className="flex items-start gap-2 opacity-60 cursor-not-allowed">
-                  <Lock className="w-4 h-4 mt-1 text-gray-500" />
-
-                  <div>
-                    <span className="font-semibold text-gray-500">
-                      Commission Based – Coming Soon
-                    </span>
-                    <br />
-
-                    <span className="text-xs text-gray-500">
-                      Requires Shopify or ecommerce integration for automated tracking and payouts.
-                    </span>
-                  </div>
-                </div>
+                <>
+                  <span className="font-semibold">Affiliate (commission per sale)</span>
+                  <br />
+                  <span className="text-xs text-indigo-600">
+                    Creators earn a commission on Shopify sales using their unique discount code
+                  </span>
+                </>
               )}
             </p>
           </div>
@@ -159,7 +188,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
 
               {creatorCompOption === "suggested" && (
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-600 mb-2">
+                  <p className="mb-2 text-xs text-gray-600">
                     Enter a minimum and maximum amount that you are comfortable to pay each creator
                   </p>
                   <div className="flex flex-col gap-4 sm:flex-row">
@@ -187,7 +216,7 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
 
               {creatorCompOption === "set-price" && (
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-600 mb-2">
+                  <p className="mb-2 text-xs text-gray-600">
                     Enter a fixed payment amount per creator
                   </p>
                   <CustomInput
@@ -206,11 +235,168 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
         </div>
       )}
 
-      {campaignData.campaign_type === CAMPAIGN_TYPE.GIFTED || paymentType === "gifted" ? (
+      {isAffiliateCampaign && (
         <div className="space-y-4">
+          {!isShopifyConnected ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
+              <div className="mb-3 flex items-start gap-2">
+                <Store className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                <div>
+                  <p className="text-xs font-semibold text-amber-900 sm:text-sm">
+                    Connect Shopify to continue
+                  </p>
+                  <p className="mt-1 text-[10px] leading-snug text-amber-800 sm:text-xs">
+                    Affiliate campaigns need your Shopify store so CleerCut can pick products and
+                    track sales. Your draft campaign stays here while you connect.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="min-w-0 flex-1">
+                  <CustomInput
+                    label="Store domain"
+                    placeholder="mystore.myshopify.com"
+                    value={shopInput}
+                    onChange={handleShopInputChange}
+                  />
+                </div>
+                <CustomButton
+                  text="Connect Shopify"
+                  className="btn-primary w-full sm:w-auto"
+                  onClick={handleInlineConnect}
+                  startIcon={<ExternalLink size={16} />}
+                  loading={connectLoading || connectionLoading}
+                  disabled={connectLoading || !shopInput.trim()}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-green-800 sm:text-sm">
+                  Connected to <span className="font-semibold">{shopName}</span>
+                </p>
+                <CustomButton
+                  text="Refresh products"
+                  className="btn-outline w-full sm:w-auto"
+                  onClick={handleRefreshProducts}
+                  loading={productsLoading}
+                  loadingText="Refresh products"
+                />
+              </div>
+
+              {productsError ? (
+                <p className="text-[10px] leading-snug text-red-600 sm:text-xs">
+                  {productsErrorMessage ||
+                    "Unable to load products from Shopify. Refresh or reconnect your store."}
+                </p>
+              ) : null}
+
+              {!productsLoading &&
+              hasLoadedProducts &&
+              productOptions.length === 0 &&
+              !productsError ? (
+                <p className="text-[10px] leading-snug text-gray-500 sm:text-xs">
+                  No products found in your Shopify store. Add products in Shopify, then refresh.
+                </p>
+              ) : null}
+
+              <SimpleSelect
+                label="Which products is this campaign promoting?"
+                placeHolder={productsPlaceholder}
+                options={productOptions}
+                isMulti
+                isSearchable
+                value={selectedProductOptions}
+                onChange={handleAffiliateProductsChange}
+                name="shopify_products"
+                errors={errors}
+                isRequired
+                isDisabled={productsLoading || (productsError && productOptions.length === 0)}
+              />
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                <CustomInput
+                  label="When does sales tracking end?"
+                  type="date"
+                  name="tracking_end_date"
+                  errors={errors}
+                  register={register}
+                  isRequired
+                />
+                <div>
+                  <CustomInput
+                    label="Discount for the shopper (%)"
+                    type="number"
+                    name="customer_discount_percent"
+                    placeholder="e.g., 15"
+                    errors={errors}
+                    register={register}
+                    isRequired
+                  />
+                  <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs">
+                    Same for every creator&apos;s audience.
+                  </p>
+                </div>
+                <div>
+                  <CustomInput
+                    label="Commission the creator earns (%)"
+                    type="number"
+                    name="commission_percentage"
+                    placeholder="e.g., 10"
+                    errors={errors}
+                    register={register}
+                    isRequired
+                  />
+                  <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs">
+                    Default; adjustable per creator when hiring.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isGiftedCampaign ? (
+        <div className="space-y-4">
+          {isShopifyConnected && (
+            <div className="space-y-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-green-800 sm:text-sm">
+                  Connected to <span className="font-semibold">{shopName}</span>
+                </p>
+                {!isAffiliateCampaign ? (
+                  <CustomButton
+                    text="Refresh products"
+                    className="btn-outline w-full sm:w-auto"
+                    onClick={handleRefreshProducts}
+                    loading={productsLoading}
+                    loadingText="Refresh products"
+                  />
+                ) : null}
+              </div>
+              {productsError ? (
+                <p className="text-[10px] leading-snug text-red-600 sm:text-xs">
+                  {productsErrorMessage ||
+                    "Unable to load products from Shopify. Refresh or reconnect your store."}
+                </p>
+              ) : null}
+              <SimpleSelect
+                label="Which product are you gifting?"
+                placeHolder={giftedProductsPlaceholder}
+                options={productOptions}
+                isSearchable
+                value={selectedGiftedProductOption}
+                onChange={handleGiftedProductChange}
+                name="gifted_shopify_product"
+                isDisabled={productsLoading || (productsError && productOptions.length === 0)}
+              />
+            </div>
+          )}
           <div className="w-full sm:max-w-sm">
             <CustomInput
-              label="Product Value in USD"
+              label="Your cost per unit (USD)"
               type="number"
               name="product_value"
               placeholder="e.g., 75"
@@ -218,36 +404,27 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
               register={register}
               isRequired={true}
             />
+            {productValueFromShopify ? (
+              <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs">
+                Pulled from Shopify. You can edit if your true cost differs.
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
 
-      {/* {campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CustomInput
-              label="Product price"
-              type="number"
-              name="product_price"
-              placeholder="e.g., 49.99"
-              // errors={errors}
-              // register={register}
-              isRequired={true}
-              disabled={true}
-            />
-            <CustomInput
-              label="% commission per sale"
-              type="number"
-              name="commission_percentage"
-              placeholder="e.g., 10"
-              // errors={errors}
-              // register={register}
-              isRequired={true}
-              disabled={true}
-            />
-          </div>
-        </div>
-      )} */}
+      {showPhysicalProductToggle ? (
+        <CustomSwitch
+          label="Will you be shipping a physical product?"
+          name="ships_physical_product"
+          checked={Boolean(campaignData.ships_physical_product)}
+          onChange={handleShipsPhysicalChange}
+          register={register}
+          inlineLabel
+          labelRight={false}
+          parentDivClassName="justify-start gap-3"
+        />
+      ) : null}
     </div>
   );
 }

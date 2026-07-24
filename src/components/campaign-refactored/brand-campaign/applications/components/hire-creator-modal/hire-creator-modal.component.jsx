@@ -7,9 +7,9 @@ import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.co
 import {
   CAMPAIGN_TYPE_OPTIONS,
   COMPENSATION_TYPE_OPTIONS,
-  EXCLUSIVITY_CLAUSE_OPTIONS,
+  HIRE_EXCLUSIVITY_CLAUSE_OPTIONS,
+  HIRE_USAGE_RIGHTS_OPTIONS,
   REVISION_LIMIT_OPTIONS,
-  USAGE_RIGHTS_OPTIONS,
 } from "@/common/constants/options.constant";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
@@ -44,9 +44,13 @@ export default function HireCreatorModal({
     revisionsLimitValue,
     usageRightsValue,
     exclusivityValue,
+    usageRightsOption,
+    exclusivityOption,
     campaignTypeValue,
     isIndividualCollaboration,
     refreshPaymentStatus,
+    isAffiliateOffer,
+    isCompensationTypeLocked,
   } = useHireCreator({
     creatorData,
     campaignData,
@@ -211,6 +215,7 @@ export default function HireCreatorModal({
                 onChange={(option) => setValue("compensationType", option.value)}
                 errors={errors}
                 name="compensationType"
+                isDisabled={isCompensationTypeLocked}
               />
             </div>
             {isCompensationRequired() && (
@@ -224,7 +229,26 @@ export default function HireCreatorModal({
                 isRequired={true}
               />
             )}
-            {watch?.compensationType === COMPENSATION_TYPE.COMMISSION && (
+            {isAffiliateOffer && (
+              <CustomInput
+                label="Discount for the shopper (%)"
+                type="number"
+                name="customerDiscountPercent"
+                register={register}
+                value={
+                  watch?.customerDiscountPercent === "" ||
+                  watch?.customerDiscountPercent == null
+                    ? ""
+                    : String(watch.customerDiscountPercent)
+                }
+                errors={errors}
+                placeholder="0"
+                disabled={!isIndividualCollaboration}
+                readOnly={!isIndividualCollaboration}
+                isRequired={isIndividualCollaboration}
+              />
+            )}
+            {watch?.compensationType === COMPENSATION_TYPE.COMMISSION && !isAffiliateOffer && (
               <CustomInput
                 label="Product Price ($)"
                 type="number"
@@ -232,10 +256,15 @@ export default function HireCreatorModal({
                 name="productPrice"
                 errors={errors}
                 placeholder="0"
-                isRequired={true}
               />
             )}
           </div>
+          {isAffiliateOffer && !isIndividualCollaboration ? (
+            <p className="mt-3 text-[10px] text-gray-600 sm:text-xs">
+              Shopper discount is fixed for the campaign. Commission rate can be adjusted for this
+              creator before you send the offer.
+            </p>
+          ) : null}
           {isIndividualCollaboration && campaignTypeValue === CAMPAIGN_TYPE.UGC && (
             <p className="mt-3 text-[10px] text-gray-600 sm:text-xs">
               UGC: the creator timeline has two steps (recorded → draft delivery). They are not
@@ -253,9 +282,14 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Exclusivity Clause"
-                options={EXCLUSIVITY_CLAUSE_OPTIONS}
-                defaultValue={exclusivityValue}
-                onChange={(option) => setValue("exclusivityClause", option.value)}
+                options={HIRE_EXCLUSIVITY_CLAUSE_OPTIONS}
+                value={exclusivityOption}
+                onChange={(option) =>
+                  setValue("exclusivityClause", option?.value || "none", {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
                 errors={errors}
                 name="exclusivityClause"
               />
@@ -263,9 +297,14 @@ export default function HireCreatorModal({
             <div>
               <SimpleSelect
                 label="Usage Rights"
-                options={USAGE_RIGHTS_OPTIONS}
-                defaultValue={usageRightsValue}
-                onChange={(option) => setValue("usageRights", option.value)}
+                options={HIRE_USAGE_RIGHTS_OPTIONS}
+                value={usageRightsOption}
+                onChange={(option) =>
+                  setValue("usageRights", option?.value || "no_usage", {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
                 errors={errors}
                 name="usageRights"
               />

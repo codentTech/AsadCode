@@ -31,8 +31,25 @@ import {
   creatorBelongsToApplicationsSubTab,
 } from "@/common/utils/campaign.utils";
 import { applyLivePipelineUrgency } from "@/common/utils/creator-urgency.util";
+import {
+  normalizeHireExclusivity,
+  normalizeHireUsageRights,
+} from "@/common/utils/contract-terms.util";
 
 const APPLICATIONS_LIST_STATUSES = ["PENDING", "NEGOTIATIONS"];
+
+function toApiUsageRights(raw) {
+  const normalized = normalizeHireUsageRights(raw);
+  if (!normalized) return "no_usage";
+  if (normalized === "no_usage" || normalized === "permanent") return normalized;
+  return `${normalized}_months`;
+}
+
+function toApiExclusivity(raw) {
+  const normalized = normalizeHireExclusivity(raw);
+  if (!normalized || normalized === "none") return "none";
+  return `${normalized}_months`;
+}
 
 function useBrandApplications() {
   const dispatch = useDispatch();
@@ -294,16 +311,14 @@ function useBrandApplications() {
         ? parseFloat(contractData.totalCompensation)
         : undefined,
       productPrice: contractData.productPrice ? parseFloat(contractData.productPrice) : undefined,
-      usageRights:
-        contractData.usageRights === "no_usage"
-          ? "no_usage"
-          : contractData.usageRights === "permanent"
-            ? "permanent"
-            : `${contractData.usageRights}_months`,
-      exclusivityClause:
-        contractData.exclusivityClause === "none"
-          ? "none"
-          : `${contractData.exclusivityClause}_months`,
+      usageRights: toApiUsageRights(contractData.usageRights),
+      exclusivityClause: toApiExclusivity(contractData.exclusivityClause),
+      customerDiscountPercent:
+        contractData.customerDiscountPercent !== undefined &&
+        contractData.customerDiscountPercent !== null &&
+        contractData.customerDiscountPercent !== ""
+          ? parseFloat(contractData.customerDiscountPercent)
+          : undefined,
       hashtags: contractData.hashtags,
       mentions: contractData.mentions,
       inPersonRequired: contractData.inPersonRequired,
