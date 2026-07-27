@@ -353,6 +353,20 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
                   </p>
                 </div>
               </div>
+              <div>
+                <CustomInput
+                  label="Optional usage cap (orders)"
+                  type="number"
+                  name="usage_cap"
+                  placeholder="Leave blank for no cap"
+                  errors={errors}
+                  register={register}
+                />
+                <p className="mt-1 text-[10px] leading-snug text-gray-500 sm:text-xs">
+                  When attributed orders reach this number, live discount codes turn off
+                  automatically.
+                </p>
+              </div>
             </div>
           )}
         </div>

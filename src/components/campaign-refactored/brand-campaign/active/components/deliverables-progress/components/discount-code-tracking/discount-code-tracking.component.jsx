@@ -27,10 +27,23 @@ export default function DiscountCodeTracking({
     setRenameValue,
     showKillConfirm,
     handleCloseKillConfirm,
+    showExtendModal,
+    extendDateValue,
+    setExtendDateValue,
     isRenameLoading,
     isManageActionLoading,
     isKillLoading,
+    isExtendLoading,
     canRename,
+    canExtendTracking,
+    trackingEndDate,
+    payoutDate,
+    previewPayoutDate,
+    formatDisplayDate,
+    minExtendDate,
+    usageCount,
+    usageCap,
+    hasUsageCap,
     handleCopyCode,
     handleRefreshCodes,
     handleToggleManage,
@@ -41,6 +54,9 @@ export default function DiscountCodeTracking({
     handleTurnOn,
     handleOpenKillConfirm,
     handleConfirmKill,
+    handleOpenExtend,
+    handleCloseExtend,
+    handleConfirmExtend,
   } = useDiscountCodeTracking({
     selectedCampaign,
     selectedContract,
@@ -50,6 +66,9 @@ export default function DiscountCodeTracking({
   if (!isAffiliate) return null;
 
   const showCreatorRefresh = !isManageEnabled;
+  const trackingEndLabel = formatDisplayDate(trackingEndDate);
+  const payoutLabel = formatDisplayDate(payoutDate);
+  const previewPayoutLabel = formatDisplayDate(previewPayoutDate);
 
   const renderManageButton = () => (
     <button
@@ -235,6 +254,31 @@ export default function DiscountCodeTracking({
         <p className="mb-2 text-[10px] text-gray-500 sm:text-xs">Tracking paused</p>
       ) : null}
       {renderLiveRow()}
+      {hasUsageCap ? (
+        <p className="mt-2 text-[10px] text-gray-600 sm:text-xs">
+          {Number(usageCount) || 0} of {Number(usageCap)} used
+        </p>
+      ) : null}
+      {isManageEnabled && trackingEndLabel ? (
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] text-gray-600 sm:text-xs">
+              Tracking ends {trackingEndLabel}
+            </p>
+            {payoutLabel ? (
+              <p className="text-[10px] text-gray-500 sm:text-xs">Payout {payoutLabel}</p>
+            ) : null}
+          </div>
+          {canExtendTracking ? (
+            <CustomButton
+              text="Extend"
+              className="btn-outline"
+              onClick={handleOpenExtend}
+              disabled={isManageActionLoading}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {historyCodes.length > 0 ? (
         <div className="mt-3 border-t border-gray-100 pt-3">
           <div className="mb-2 flex items-center justify-between gap-2 bg-gray-100 p-1.5">
@@ -298,6 +342,44 @@ export default function DiscountCodeTracking({
               onClick={handleConfirmRename}
               disabled={!renameValue.trim() || isRenameLoading}
               loading={isRenameLoading}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        show={showExtendModal}
+        onClose={handleCloseExtend}
+        title="Extend tracking"
+        size="sm"
+      >
+        <div className="space-y-3">
+          <CustomInput
+            label="New tracking end date"
+            type="date"
+            value={extendDateValue}
+            onChange={(e) => setExtendDateValue(e.target.value)}
+            inputProps={minExtendDate ? { min: minExtendDate } : undefined}
+            disabled={isExtendLoading}
+          />
+          {previewPayoutLabel ? (
+            <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+              This also moves this creator&apos;s payout date to {previewPayoutLabel}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <CustomButton
+              text="Cancel"
+              className="btn-cancel"
+              onClick={handleCloseExtend}
+              disabled={isExtendLoading}
+            />
+            <CustomButton
+              text="Extend"
+              className="btn-primary"
+              onClick={handleConfirmExtend}
+              disabled={!extendDateValue || isExtendLoading}
+              loading={isExtendLoading}
             />
           </div>
         </div>

@@ -538,6 +538,10 @@ export const transformDataForAPI = (data) => {
     product_price: toNumber(data.product_price),
     customer_discount_percent: toNumber(data.customer_discount_percent),
     tracking_end_date: data.tracking_end_date || null,
+    usage_cap:
+      data.usage_cap === "" || data.usage_cap == null
+        ? null
+        : toInteger(data.usage_cap),
     ships_physical_product: Boolean(data.ships_physical_product),
     shopify_products: Array.isArray(data.shopify_products) ? data.shopify_products : [],
 
@@ -601,6 +605,7 @@ export const getDefaultValues = () => ({
   product_price: null,
   customer_discount_percent: null,
   tracking_end_date: "",
+  usage_cap: "",
   ships_physical_product: false,
   shopify_products: [],
 

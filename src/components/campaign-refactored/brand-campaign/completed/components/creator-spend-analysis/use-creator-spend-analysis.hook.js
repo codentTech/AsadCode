@@ -7,12 +7,14 @@ import {
 } from "@/common/utils/published-campaign-metrics.util";
 import usePrefetchCampaignCreatorTimelines from "@/common/hooks/use-prefetch-campaign-creator-timelines.hook";
 import { fetchCampaignPerformanceMetrics } from "@/provider/features/phyllo/phyllo.slice";
+import {
+  getShopifyCompletedMetrics,
+  selectShopifyCompletedMetricsState,
+} from "@/provider/features/shopify/shopify.slice";
 import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useCreatorSpendAnalysis } from "../../../active/components/creator-spend-analysis/use-creator-spend-analysis.hook";
-/**
- * Builds comparison label relative to campaign average for a given metric value.
- */
+
 function buildComparison(value, campaignAverage, formatFn, isRate = false, isCurrency = false) {
   if (value == null || campaignAverage == null) {
     return { label: "N/A", textColor: "text-gray-400" };
@@ -60,7 +62,16 @@ export const useCreatorSpendAnalysisCompleted = ({
   );
   const performanceData = performanceFetch?.data || null;
   const creatorBreakdown = performanceData?.creator_breakdown || {};
+  const completedMetricsState = useSelector(selectShopifyCompletedMetricsState);
   const isUgc = selectedCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+  const isAffiliate = useMemo(() => {
+    const type =
+      selectedCampaign?.campaign_type ||
+      selectedCampaign?.campaignType ||
+      selectedCampaign?.type;
+    const compensation = selectedCampaign?.compensation_type;
+    return type === CAMPAIGN_TYPE.AFFILIATE || compensation === "COMMISSION";
+  }, [selectedCampaign]);
 
   const creatorsListForPublishedMetrics = useMemo(
     () => (Array.isArray(hookData.creators) ? hookData.creators : []),
@@ -78,11 +89,24 @@ export const useCreatorSpendAnalysisCompleted = ({
     }
   }, [dispatch, selectedCampaign?.id, isUgc]);
 
+  useEffect(() => {
+    if (isAffiliate && selectedCampaign?.id) {
+      dispatch(getShopifyCompletedMetrics(selectedCampaign.id));
+    }
+  }, [dispatch, isAffiliate, selectedCampaign?.id]);
+
+  const salesByCreatorId = useMemo(() => {
+    const map = {};
+    const rows = completedMetricsState?.data?.creators;
+    if (!Array.isArray(rows)) return map;
+    for (const row of rows) {
+      if (row?.creatorId != null) map[String(row.creatorId)] = row;
+    }
+    return map;
+  }, [completedMetricsState?.data?.creators]);
+
   const getPlatformEntries = (platforms) => getConnectedPlatformEntries(platforms);
-  /**
-   * Per-creator metrics map: creatorUserId → metrics object.
-   * Prefer API creator_breakdown (from campaign performance metrics); fallback to timeline engagement.
-   */
+
   const creatorMetricsMap = useMemo(() => {
     if (isUgc || !selectedCampaign?.id) return {};
 
@@ -121,7 +145,8 @@ export const useCreatorSpendAnalysisCompleted = ({
           row.contract?.productPrice ??
           row.contract?.product_price ??
           0
-      ) || 0;    const er = tv > 0 ? te / tv : 0;
+      ) || 0;
+    const er = tv > 0 ? te / tv : 0;
 
     return {
       ...base,
@@ -141,6 +166,7 @@ export const useCreatorSpendAnalysisCompleted = ({
     creatorBreakdown,
     hookData.isIndividualMode,
     performanceData,
+    selectedCampaign,
   ]);
 
   const getCreatorMetrics = useCallback(
@@ -149,28 +175,67 @@ export const useCreatorSpendAnalysisCompleted = ({
       const uid = resolveCreatorRowUserId(creator);
       if (!uid) return null;
 
-      if (!(uid in creatorMetricsMap)) {        const transitioning =
+      let base = null;
+      if (!(uid in creatorMetricsMap)) {
+        const transitioning =
           performanceFetch.isLoading &&
           (!performanceFetch.campaignId ||
             String(performanceFetch.campaignId) === String(selectedCampaign?.id ?? ""));
-        return transitioning ? null : { metricsUnavailable: true };
+        base = transitioning ? null : { metricsUnavailable: true };
+      } else {
+        base = creatorMetricsMap[uid] ?? { metricsUnavailable: true };
       }
 
-      return creatorMetricsMap[uid] ?? { metricsUnavailable: true };
+      if (!isAffiliate) return base;
+
+      const sales = salesByCreatorId[uid];
+      const salesLoading = Boolean(completedMetricsState?.isLoading) && !sales;
+      if (salesLoading && !base) return null;
+
+      const commission = Number(sales?.commissionTotal) || 0;
+      const revenue = Number(sales?.revenue) || 0;
+      const orders = Number(sales?.orders) || 0;
+      const unitsSold = Number(sales?.unitsSold) || 0;
+      const aov = Number(sales?.aov) || 0;
+      const views = base?.views ?? null;
+      const totalEngagement = base?.totalEngagement ?? null;
+      const engagementRate = base?.engagementRate ?? null;
+
+      return {
+        ...(base || {}),
+        metricsUnavailable: false,
+        isAffiliateSales: true,
+        revenue,
+        aov,
+        orders,
+        unitsSold,
+        commissionTotal: commission,
+        roi: commission > 0 ? Number((revenue / commission).toFixed(2)) : null,
+        costPerSale: orders > 0 ? Number((commission / orders).toFixed(2)) : null,
+        costPerView:
+          views != null && views > 0 ? Number((commission / views).toFixed(4)) : null,
+        costPerEngagement:
+          totalEngagement != null && totalEngagement > 0
+            ? Number((commission / totalEngagement).toFixed(4))
+            : null,
+        views,
+        totalEngagement,
+        engagementRate,
+        publishedUrl: base?.publishedUrl,
+      };
     },
     [
       isUgc,
+      isAffiliate,
       creatorMetricsMap,
+      salesByCreatorId,
+      completedMetricsState?.isLoading,
       performanceFetch.isLoading,
       performanceFetch.campaignId,
       selectedCampaign?.id,
     ]
   );
 
-  /**
-   * Campaign-level averages (for comparison labels).
-   * ER and CPE use the averaged formula per spec §3.
-   */
   const campaignAverages = useMemo(() => {
     const values = Object.values(creatorMetricsMap).filter(
       (m) => m && !m.metricsUnavailable && m.views != null
@@ -192,9 +257,6 @@ export const useCreatorSpendAnalysisCompleted = ({
     return { avgViews, avgEngagement, avgER, avgCPE, avgCPV };
   }, [creatorMetricsMap]);
 
-  /**
-   * Returns comparison labels for a creator's metrics vs campaign average.
-   */
   const getCreatorComparisons = (creatorMetrics) => {
     if (!creatorMetrics || creatorMetrics.metricsUnavailable || !campaignAverages) {
       return {
@@ -232,7 +294,9 @@ export const useCreatorSpendAnalysisCompleted = ({
     if (value == null) return "N/A";
     if (type === "views" || type === "engagement") return formatFollowers(value);
     if (type === "rate") return `${(value * 100).toFixed(1)}%`;
-    if (type === "currency") return `$${value.toFixed(2)}`;
+    if (type === "currency") return `$${Number(value).toFixed(2)}`;
+    if (type === "number") return String(Math.round(Number(value)));
+    if (type === "ratio") return `${Number(value).toFixed(2)}x`;
     return String(value);
   };
 
@@ -240,9 +304,12 @@ export const useCreatorSpendAnalysisCompleted = ({
     ...hookData,
     getPlatformEntries,
     isUgc,
+    isAffiliate,
     getCreatorMetrics,
     getCreatorComparisons,
     campaignAverages,
     formatMetricValue,
+    completedMetricsAsOf: completedMetricsState?.data?.asOf || null,
+    completedMetrics: completedMetricsState?.data || null,
   };
 };
