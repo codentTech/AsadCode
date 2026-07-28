@@ -11,11 +11,18 @@ function SectionLabel({ label }) {
   return <p className="mb-2 text-xs font-semibold text-black sm:text-sm">{label}</p>;
 }
 
-function MetaCard({ label, value }) {
+function MetaCard({ label, value, icon = null, colorClasses = "" }) {
   if (!value && value !== 0) return null;
   return (
     <div className="flex items-center justify-between gap-3 rounded-md bg-gray-100 px-2.5 py-2">
-      <span className="shrink-0 text-[10px] font-medium text-gray-800 sm:text-xs">{label}</span>
+      <span className="flex min-w-0 items-center gap-1.5">
+        {icon ? (
+          <span className={`rounded-md p-1 ${colorClasses || "bg-white text-gray-700"}`}>
+            {icon}
+          </span>
+        ) : null}
+        <span className="shrink-0 text-[10px] font-medium text-gray-800 sm:text-xs">{label}</span>
+      </span>
       <span className="min-w-0 truncate text-right text-[10px] font-medium text-gray-800 sm:text-xs">
         {value}
       </span>
@@ -146,16 +153,19 @@ function Preview({ campaignData, handleChange }) {
               />
             ) : null}
             {requiredPlatforms.length > 0 ? (
-              <div className="rounded-md bg-gray-100 p-2.5 sm:col-span-2">
+              <div className="sm:col-span-2">
                 <p className="text-[10px] font-medium text-gray-800 sm:text-xs">
                   Required Platforms
                 </p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <div className="mt-2 flex justify-between rounded-md bg-gray-100 p-2.5  gap-1.5">
                   {requiredPlatforms.map((platform) => (
                     <span
                       key={platform.id}
-                      className="rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-800 sm:text-xs"
+                      className={`flex justify-between items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-medium sm:text-xs ${
+                        platform.colorClasses || "bg-sky-100 text-sky-800"
+                      }`}
                     >
+                      {platform.icon}
                       {platform.label}
                     </span>
                   ))}
@@ -166,8 +176,10 @@ function Preview({ campaignData, handleChange }) {
               ? platformMinimums.map((minimum) => (
                   <MetaCard
                     key={minimum.id}
-                    label={`${minimum.platform} Minimum`}
+                    label={`${minimum.label} Minimum`}
                     value={minimum.value}
+                    icon={minimum.icon}
+                    colorClasses={minimum.colorClasses}
                   />
                 ))
               : null}
