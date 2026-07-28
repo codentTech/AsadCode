@@ -573,7 +573,7 @@ export const transformDataForAPI = (data) => {
 
 export const getDefaultValues = () => ({
   campaign_title: "",
-  campaign_type: "",
+  campaign_type: CAMPAIGN_TYPE.SPONSORED_POST,
   niches: [],
   deliverables: [],
   usageRights: "no_usage",
@@ -591,7 +591,7 @@ export const getDefaultValues = () => ({
   },
   required_platforms: [],
 
-  compensation_type: "PAID",
+  compensation_type: COMPENSATION_TYPE.PAID,
   budget: null,
   suggested_min: null,
   suggested_max: null,

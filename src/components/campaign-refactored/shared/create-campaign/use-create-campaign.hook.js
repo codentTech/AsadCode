@@ -63,7 +63,15 @@ export default function useCreateCampaign() {
   useEffect(() => {
     const draft = loadCreateCampaignDraft();
     if (draft?.formValues) {
-      reset({ ...getDefaultValues(), ...draft.formValues });
+      const defaults = getDefaultValues();
+      const formValues = { ...draft.formValues };
+      if (!formValues.campaign_type) {
+        formValues.campaign_type = defaults.campaign_type;
+      }
+      if (!formValues.compensation_type) {
+        formValues.compensation_type = defaults.compensation_type;
+      }
+      reset({ ...defaults, ...formValues });
     }
     if (typeof draft?.currentStep === "number") {
       const maxStep = STEP_NAMES.length - 1;
