@@ -37,6 +37,8 @@ const CustomStepper = ({
   onSave = null,
   isLoading = false,
   canProceed = true,
+  showStepIndicator = true,
+  hidePreviousOnFirstStep = false,
 }) => {
   const {
     nextStep: defaultNextStep,
@@ -83,7 +85,11 @@ const CustomStepper = ({
                       : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
-                {index < activeStep ? <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : index + 1}
+                {index < activeStep ? (
+                  <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                ) : (
+                  index + 1
+                )}
               </div>
 
               {showLabels && (
@@ -159,18 +165,26 @@ const CustomStepper = ({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {orientation === "vertical" ? renderVerticalStepper() : renderHorizontalStepper()}
+      {showStepIndicator
+        ? orientation === "vertical"
+          ? renderVerticalStepper()
+          : renderHorizontalStepper()
+        : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
 
-      <div className="sticky bottom-0 z-[1] mt-auto flex flex-col gap-2 border-t bg-white p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4">
-        <CustomButton
-          text="Previous"
-          onClick={prevStep}
-          disabled={activeStep === 0}
-          className="btn-outline order-2 flex w-full items-center justify-center rounded-md py-2.5 sm:order-1 sm:w-auto sm:justify-start sm:px-4"
-          startIcon={<ArrowBack className="mr-1 h-4 w-4" />}
-        />
+      <div className="bg-indigo-100 sticky bottom-0 z-[1] mt-auto flex flex-col gap-2 border-t p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        {hidePreviousOnFirstStep && activeStep === 0 ? (
+          <div className="order-2 hidden sm:order-1 sm:block sm:w-auto" />
+        ) : (
+          <CustomButton
+            text="Previous"
+            onClick={prevStep}
+            disabled={activeStep === 0}
+            className="btn-outline order-2 flex w-full items-center justify-center rounded-md py-2.5 sm:order-1 sm:w-auto sm:justify-start sm:px-4"
+            startIcon={<ArrowBack className="mr-1 h-4 w-4" />}
+          />
+        )}
 
         <CustomButton
           text={
