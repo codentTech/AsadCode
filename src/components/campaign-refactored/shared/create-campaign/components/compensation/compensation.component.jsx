@@ -359,11 +359,10 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
 
               <div className="space-y-3">
                 {campaignData.commission_percentage ? (
-                  <div className="flex justify-end">
-                    <div className="rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-right">
-                      <p className="text-[10px] font-semibold text-gray-500">Creator fee</p>
-                      <p className="text-sm font-bold tabular-nums text-black">{creatorFeeLabel}</p>
-                    </div>
+                  <div className="flex justify-stretch sm:justify-end">
+                    <p className="w-full rounded-md bg-primary px-2.5 py-1.5 text-center text-xs font-semibold tabular-nums text-white sm:w-auto sm:text-left">
+                      Creator fee - {creatorFeeLabel}
+                    </p>
                   </div>
                 ) : null}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

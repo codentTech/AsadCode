@@ -12,10 +12,10 @@ function AudienceRequirementsExperience({ errors = {}, register, setValue, watch
   return (
     <div className="flex flex-col gap-3">
       <section className="rounded-lg border border-gray-200 p-3">
-        <FieldLabel label="Min. Combined Followers" isRequired />
-        <div className="mt-1.5 max-w-xs">
+        <div className="mt-1.5 w-full sm:max-w-xs">
           <CustomInput
             type="number"
+            label="Min. Combined Followers"
             name="min_combined_followers"
             placeholder="e.g., 2000"
             errors={errors}
