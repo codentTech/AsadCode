@@ -7,7 +7,6 @@ import CreatorCard from "@/components/campaign-refactored/creator-card/creator-c
 import Modal from "@/common/components/modal/modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
-import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { useSelector } from "react-redux";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
@@ -50,11 +49,9 @@ const CreatorSpendAnalysis = ({
     handleSaveToShortlistClick,
     handleConfirmSaveToShortlist,
     handleCancelSaveToShortlist,
-    open,
     isMultiCreator,
     sortOptions,
-    handleOpenModal,
-    handleCloseModal,
+    handleNewCampaignClick,
     handleCreatorPreview,
     mapCreatorForCard,
   } = useCreatorSpendAnalysis({
@@ -269,7 +266,7 @@ const CreatorSpendAnalysis = ({
               </div>
               <CustomButton
                 text="Start a new campaign"
-                onClick={handleOpenModal}
+                onClick={handleNewCampaignClick}
                 className="btn-primary w-full !h-9 !text-xs sm:!h-10 sm:w-auto sm:!text-sm md:max-w-[200px]"
               />
             </div>
@@ -359,8 +356,6 @@ const CreatorSpendAnalysis = ({
           )}
         </div>
       </Modal>
-
-      <CampaignCreationWizard open={open} close={handleCloseModal} />
     </div>
   );
 };
