@@ -873,3 +873,21 @@ export function creatorBelongsToApplicationsSubTab(creator, subTab) {
   }
   return column === "applications";
 }
+
+export function buildCreateCampaignPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("returnTab", String(returnTab));
+  if (returnView != null && returnView !== "") {
+    params.set("returnView", String(returnView));
+  }
+  return `/campaign/create?${params.toString()}`;
+}
+
+export function buildCampaignReturnPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("tab", String(returnTab || 1));
+  if (returnView != null && returnView !== "") {
+    params.set("view", String(returnView));
+  }
+  return `/campaign?${params.toString()}`;
+}

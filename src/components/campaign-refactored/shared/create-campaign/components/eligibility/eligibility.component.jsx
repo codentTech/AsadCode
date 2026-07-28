@@ -1,22 +1,96 @@
-import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
-import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import FieldLabel from "@/common/components/field-label/field-label.component";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { REQUIREMENT_LEVEL } from "@/common/constants/campaign.constant";
-import { GENDER_OPTIONS, LOCATION_OPTIONS } from "@/common/constants/options.constant";
-import { X } from "lucide-react";
+import { Check, MapPin, Monitor, User, UserRound, X } from "lucide-react";
+import { PREFERRED_MANDATORY_TOGGLE_OPTIONS } from "../../requirement-toggle.options";
 import useEligibility from "./use-eligibility.hook";
 
-/**
- * Eligibility Component
- *
- * Handles creator eligibility criteria including location requirements,
- * demographics, and platform requirements.
- */
+const LOCATION_CARDS = [
+  {
+    value: "remote",
+    label: "Remote",
+    description: "Work from anywhere",
+    icon: Monitor,
+  },
+  {
+    value: "on-location",
+    label: "On Location",
+    description: "In-person filming",
+    icon: MapPin,
+  },
+];
+
+const GENDER_CARDS = [
+  {
+    value: "male",
+    label: "Male",
+    description: "Male creators",
+    icon: User,
+  },
+  {
+    value: "female",
+    label: "Female",
+    description: "Female creators",
+    icon: UserRound,
+  },
+];
+
+function FieldBlock({
+  label,
+  isRequired = false,
+  requirement,
+  onRequirementChange,
+  children,
+  afterRequirement = null,
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="mb-1.5">
+        <FieldLabel label={label} isRequired={isRequired} />
+      </div>
+      {children}
+      {onRequirementChange ? (
+        <div className="mt-1.5 flex justify-end">
+          <RequirementToggle
+            prefix=""
+            className="!mt-0"
+            value={requirement ?? REQUIREMENT_LEVEL.PREFERRED}
+            options={PREFERRED_MANDATORY_TOGGLE_OPTIONS}
+            onChange={onRequirementChange}
+          />
+        </div>
+      ) : null}
+      {afterRequirement}
+    </div>
+  );
+}
+
+function OptionCard({ selected, onClick, icon: Icon, label, description }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={description}
+      className={`flex h-9 w-full items-center gap-2 rounded-[5px] border px-2.5 text-left sm:h-[40px] ${
+        selected
+          ? "border-primary bg-primary/5"
+          : "border-gray-200 bg-gray-100 hover:border-gray-300"
+      }`}
+    >
+      <span className="rounded bg-white p-1 text-primary">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-xs font-semibold text-black">{label}</span>
+      {selected ? <Check className="h-3.5 w-3.5 shrink-0 text-primary" /> : null}
+    </button>
+  );
+}
+
 function Eligibility({
   campaignData,
   handleChange,
@@ -34,249 +108,279 @@ function Eligibility({
     handleCitySelect,
     isCityDisabled,
     selectedCountries,
-    handleCountriesChange,
     handleCountryRemove,
     handleRequirementChange,
     countrySelectValueForMulti,
     handleCountrySelectForMulti,
   } = useEligibility({ campaignData, setValue });
 
-  const requirementOptions = [
-    {
-      value: REQUIREMENT_LEVEL.PREFERRED,
-      label: "Preferred",
-      activeClasses: "bg-blue-100 text-blue-700",
-    },
-    {
-      value: REQUIREMENT_LEVEL.MANDATORY,
-      label: "Mandatory",
-      activeClasses: "bg-orange-100 text-orange-700",
-    },
-  ];
+  const locationOptions = getWatchedValue("locationOptions") || campaignData.locationOptions || [];
+  const selectedGender = campaignData.creator_gender || campaignData.creatorGender || "";
+  const isOnLocation =
+    locationOptions.includes("on-location") ||
+    locationOptions.includes("On Location") ||
+    Boolean(campaignData.inPersonRequired);
 
-  const renderRequirementToggle = (field) => (
-    <RequirementToggle
-      prefix="Requirement:"
-      value={campaignData?.[`${field}Requirement`] ?? REQUIREMENT_LEVEL.PREFERRED}
-      options={requirementOptions}
-      onChange={(status) => handleRequirementToggle(field, status)}
-      helperContent={(currentValue) =>
-        currentValue === REQUIREMENT_LEVEL.MANDATORY ? (
-          <span className="text-xs text-orange-600 ml-2">
-            ⚠️ Ineligible creators will be unable to apply.
-          </span>
-        ) : null
-      }
-    />
-  );
+  const getRequirement = (field) =>
+    campaignData?.[`${field}Requirement`] ?? REQUIREMENT_LEVEL.PREFERRED;
+
+  const handleLocationToggle = (value) => {
+    const current = Array.isArray(locationOptions) ? [...locationOptions] : [];
+    const normalizedCurrent = current.map((item) =>
+      item === "Remote" ? "remote" : item === "On Location" ? "on-location" : item
+    );
+    const next = normalizedCurrent.includes(value)
+      ? normalizedCurrent.filter((item) => item !== value)
+      : [...normalizedCurrent.filter((item) => item === "remote" || item === "on-location"), value];
+
+    const isRemote = next.includes("remote");
+    const inPersonRequired = next.includes("on-location");
+
+    setValue("locationOptions", next, { shouldDirty: true, shouldValidate: true });
+    handleChange({
+      target: { name: "isRemote", value: isRemote, type: "checkbox", checked: isRemote },
+    });
+    handleChange({
+      target: {
+        name: "inPersonRequired",
+        value: inPersonRequired,
+        type: "checkbox",
+        checked: inPersonRequired,
+      },
+    });
+  };
+
+  const handleRemoveLanguage = (languageLabel) => {
+    const next = (selectedLanguages || []).filter(
+      (language) => language.toLowerCase() !== languageLabel.toLowerCase()
+    );
+    handleLanguageChange(next);
+  };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* In-Person Filming Required */}
-      <div className="border rounded-lg p-4">
-        <CustomCheckboxGroup
-          label="Location Requirements"
-          name="locationOptions"
-          options={LOCATION_OPTIONS}
-          values={getWatchedValue("locationOptions") || []}
-          setValue={setValue}
-          watch={getWatchedValue}
-          onChange={(selectedValues) => {
-            const isRemote = selectedValues.includes("isRemote");
-            const inPersonRequired = selectedValues.includes("inPersonRequired");
+    <div className="flex flex-col gap-3">
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <FieldBlock
+            label="Gender"
+            requirement={getRequirement("gender")}
+            onRequirementChange={(status) => handleRequirementToggle("gender", status)}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              {GENDER_CARDS.map((option) => (
+                <OptionCard
+                  key={option.value}
+                  selected={selectedGender === option.value}
+                  onClick={() =>
+                    handleChange({
+                      target: {
+                        name: "creator_gender",
+                        value: selectedGender === option.value ? "" : option.value,
+                      },
+                    })
+                  }
+                  icon={option.icon}
+                  label={option.label}
+                  description={option.description}
+                />
+              ))}
+            </div>
+          </FieldBlock>
 
-            handleChange({
-              target: { name: "isRemote", value: isRemote, type: "checkbox", checked: isRemote },
-            });
-            handleChange({
-              target: {
-                name: "inPersonRequired",
-                value: inPersonRequired,
-                type: "checkbox",
-                checked: inPersonRequired,
-              },
-            });
-          }}
-        />
+          <div className="min-w-0">
+            <div className="mb-1.5">
+              <FieldLabel label="Location Requirements" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {LOCATION_CARDS.map((option) => {
+                const selected =
+                  locationOptions.includes(option.value) ||
+                  (option.value === "remote" && locationOptions.includes("Remote")) ||
+                  (option.value === "on-location" &&
+                    (locationOptions.includes("On Location") || campaignData.inPersonRequired));
+                return (
+                  <OptionCard
+                    key={option.value}
+                    selected={selected}
+                    onClick={() => handleLocationToggle(option.value)}
+                    icon={option.icon}
+                    label={option.label}
+                    description={option.description}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-        {campaignData.inPersonRequired && (
-          <>
+        {isOnLocation ? (
+          <div className="mt-3">
             <TextArea
               label="Location Details"
               name="location_details"
-              placeholder="Provide specific location details (essential for restaurants, hotels, etc.)"
-              className="mt-3"
+              placeholder="Specific location details for in-person filming"
               errors={errors}
               register={register}
               isRequired={true}
             />
-            <div className="mt-2 p-2 bg-orange-50 rounded text-sm text-orange-700">
-              ⚠️ In-person filming requirement will prevent remote creators from applying
+          </div>
+        ) : null}
+      </section>
+
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <FieldBlock
+            label="Age range"
+            requirement={getRequirement("age")}
+            onRequirementChange={(status) => handleRequirementToggle("age", status)}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <CustomInput
+                type="number"
+                name="min_age"
+                placeholder="Min age"
+                min="13"
+                max="100"
+                errors={errors}
+                register={register}
+              />
+              <CustomInput
+                type="number"
+                name="max_age"
+                placeholder="Max age"
+                min="13"
+                max="100"
+                errors={errors}
+                register={register}
+              />
             </div>
-          </>
-        )}
-      </div>
+          </FieldBlock>
 
-      {/* Country Selection - Multi-Select */}
-      <div className="border rounded-lg p-4">
-        <CountrySelect
-          label="Creator Country (Optional)"
-          name="countries_selector"
-          value={countrySelectValueForMulti}
-          onChange={handleCountrySelectForMulti}
-          isRequired={false}
-          errors={errors}
-        />
-        {selectedCountries.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {selectedCountries.map((country) => (
-              <span
-                key={country.countryCode}
-                className="flex w-full min-w-0 flex-col gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 sm:inline-flex sm:w-auto sm:flex-row sm:items-center sm:py-1"
-              >
-                <div className="font-medium text-gray-800">{country.country}</div>
-                <RequirementToggle
-                  prefix=""
-                  value={country.requirement}
-                  options={requirementOptions}
-                  onChange={(status) => handleRequirementChange(country.countryCode, status)}
-                  disabled={
-                    selectedCountries.length > 1 &&
-                    country.requirement === REQUIREMENT_LEVEL.MANDATORY
-                  }
-                  helperContent={(currentValue) =>
-                    currentValue === REQUIREMENT_LEVEL.MANDATORY && selectedCountries.length > 1 ? (
-                      <span className="text-xs text-orange-600 ml-2">
-                        ⚠️ Mandatory is only available for single country selection
-                      </span>
-                    ) : currentValue === REQUIREMENT_LEVEL.MANDATORY ? (
-                      <span className="text-xs text-orange-600 ml-2">
-                        ⚠️ Ineligible creators will be unable to apply.
-                      </span>
-                    ) : null
-                  }
-                />
-                <button
-                  type="button"
-                  onClick={() => handleCountryRemove(country.countryCode)}
-                  className="text-gray-500 hover:text-gray-700"
-                  aria-label={`Remove ${country.country}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-        {selectedCountries.length > 1 && (
-          <div className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
-            ℹ️ With multiple countries selected, all are treated as Preferred. Mandatory option is
-            only available for single country selection.
-          </div>
-        )}
-      </div>
-
-      {/* City Selection */}
-      {selectedCountries.length > 0 && (
-        <div className="border rounded-lg p-4">
-          <CitySelect
-            label="Creator City (Optional)"
-            name="creator_city"
-            countryCode={countrySelectValue?.countryCode || selectedCountries[0]?.countryCode}
-            value={citySelectValue}
-            onChange={handleCitySelect}
-            isRequired={campaignData.cityRequirement === REQUIREMENT_LEVEL.MANDATORY}
-            errors={errors}
-            disabled={isCityDisabled || selectedCountries.length === 0}
-          />
-
-          {renderRequirementToggle("city")}
+          <FieldBlock label="Application Deadline" isRequired>
+            <CustomInput
+              type="date"
+              name="application_deadline"
+              errors={errors}
+              register={register}
+              isRequired={true}
+            />
+          </FieldBlock>
         </div>
-      )}
+      </section>
 
-      {/* Age Range */}
-      <div className="border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Creator Age Range (Optional)
-        </label>
-        <div className="grid grid-cols-1 gap-4 xs:grid-cols-2">
-          <CustomInput
-            label="Minimum Age"
-            type="number"
-            name="min_age"
-            placeholder="18"
-            min="13"
-            max="100"
-            errors={errors}
-            register={register}
-          />
-          <CustomInput
-            label="Maximum Age"
-            type="number"
-            name="max_age"
-            placeholder="65"
-            min="13"
-            max="100"
-            errors={errors}
-            register={register}
-          />
-        </div>
-
-        {renderRequirementToggle("age")}
-      </div>
-
-      {/* Gender Selection */}
-      <div className="border rounded-lg p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <SimpleSelect
-              label="Creator Gender (Optional)"
-              name="creator_gender"
-              placeHolder="Select gender preference"
-              options={GENDER_OPTIONS}
-              value={campaignData.creatorGender}
-              onChange={(selectedOption) =>
-                handleChange({
-                  target: {
-                    name: "creator_gender",
-                    value: selectedOption?.value || "",
-                  },
-                })
-              }
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div
+          className={`grid grid-cols-1 gap-3 sm:gap-4 ${
+            selectedCountries.length > 0 ? "sm:grid-cols-2" : ""
+          }`}
+        >
+          <FieldBlock label="Creator Country">
+            <CountrySelect
+              label=""
+              name="countries_selector"
+              value={countrySelectValueForMulti}
+              onChange={handleCountrySelectForMulti}
+              isRequired={false}
               errors={errors}
             />
-          </div>
+            {selectedCountries.length > 0 ? (
+              <div className="mt-2 space-y-1">
+                {selectedCountries.map((country) => (
+                  <div
+                    key={country.countryCode}
+                    className="flex items-center justify-between gap-2 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5"
+                  >
+                    <span className="min-w-0 truncate text-xs font-medium text-black">
+                      {country.country}
+                    </span>
+                    <div className="flex shrink-0 items-center justify-end gap-1.5">
+                      <RequirementToggle
+                        prefix=""
+                        className="!mt-0"
+                        value={country.requirement}
+                        options={PREFERRED_MANDATORY_TOGGLE_OPTIONS}
+                        onChange={(status) => handleRequirementChange(country.countryCode, status)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleCountryRemove(country.countryCode)}
+                        className="rounded p-0.5 text-gray-500 hover:bg-white hover:text-black"
+                        aria-label={`Remove ${country.country}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {selectedCountries.length > 1 ? (
+                  <p className="text-[10px] text-gray-500">
+                    Multiple countries stay Preferred. Mandatory works for one country only.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </FieldBlock>
+
+          {selectedCountries.length > 0 ? (
+            <FieldBlock
+              label="Creator City"
+              isRequired={getRequirement("city") === REQUIREMENT_LEVEL.MANDATORY}
+              requirement={getRequirement("city")}
+              onRequirementChange={(status) => handleRequirementToggle("city", status)}
+            >
+              <CitySelect
+                label=""
+                name="creator_city"
+                countryCode={countrySelectValue?.countryCode || selectedCountries[0]?.countryCode}
+                value={citySelectValue}
+                onChange={handleCitySelect}
+                isRequired={getRequirement("city") === REQUIREMENT_LEVEL.MANDATORY}
+                errors={errors}
+                disabled={isCityDisabled}
+              />
+            </FieldBlock>
+          ) : null}
         </div>
+      </section>
 
-        {renderRequirementToggle("gender")}
-      </div>
-
-      <div className="border rounded-lg p-4">
-        <LanguageSelect
-          label="Creator Language (Optional)"
-          name="creator_language"
-          value={selectedLanguages}
-          onChange={handleLanguageChange}
-          maxSelections={1}
-          errors={errors}
-        />
-
-        {renderRequirementToggle("language")}
-      </div>
-
-      {/* Application Deadline */}
-      <div className="border rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          <CustomInput
-            label="Application Deadline"
-            type="date"
-            name="application_deadline"
+      <section className="rounded-lg border border-gray-200 p-3">
+        <FieldBlock
+          label="Language"
+          requirement={getRequirement("language")}
+          onRequirementChange={(status) => handleRequirementToggle("language", status)}
+          afterRequirement={
+            selectedLanguages.length > 0 ? (
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                {selectedLanguages.map((language) => (
+                  <span
+                    key={language}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                  >
+                    {language}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveLanguage(language)}
+                      className="text-gray-500 hover:text-gray-700"
+                      aria-label={`Remove ${language}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null
+          }
+        >
+          <LanguageSelect
+            name="creator_language"
+            value={selectedLanguages}
+            onChange={handleLanguageChange}
+            maxSelections={1}
             errors={errors}
-            register={register}
-            isRequired={true}
+            hideSelectedTags
           />
-        </div>
-      </div>
+        </FieldBlock>
+      </section>
     </div>
   );
 }
