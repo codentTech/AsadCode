@@ -112,7 +112,7 @@ export default function WhyChooseCleercut({ isCreatorMode }) {
       competitorNote: "Scattered across multiple tools and platforms",
     },
     {
-      name: "Smart Inbox",
+      name: "Automated Creator Pipeline",
       cleercut: true,
       competitor: "warning",
       cleerCutNote: "Messages grouped by pending, active, and completed campaigns",

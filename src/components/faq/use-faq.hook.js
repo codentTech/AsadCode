@@ -218,9 +218,9 @@ const faqData = [
     category: "Platform Tools & Features",
     questions: [
       {
-        question: "What is the Smart Inbox and how does it work?",
+        question: "What is the Automated Creator Pipeline and how does it work?",
         answer:
-          "Our Smart Inbox organizes all conversations by campaign and stage — so you never lose track of deliverables, applicants, or messages.",
+          "Our Automated Creator Pipeline organizes all conversations by campaign and stage — so you never lose track of deliverables, applicants, or messages.",
       },
       {
         question: "Can I save posts or campaigns I'm interested in?",
