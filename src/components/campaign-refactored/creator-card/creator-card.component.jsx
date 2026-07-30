@@ -118,7 +118,7 @@ const CreatorCard = ({
         ) : null}
 
         {isApplicationsTab && urgencyLabel ? (
-          <div className="absolute right-1 top-1 z-[1] max-w-[9rem]">
+          <div className="absolute right-1 top-1 z-[1] max-w-[calc(100%-0.5rem)]">
             <UrgencyPill label={urgencyLabel} tier={urgencyTier} />
           </div>
         ) : null}
