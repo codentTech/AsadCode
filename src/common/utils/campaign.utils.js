@@ -573,7 +573,7 @@ export const transformDataForAPI = (data) => {
 
 export const getDefaultValues = () => ({
   campaign_title: "",
-  campaign_type: "",
+  campaign_type: CAMPAIGN_TYPE.SPONSORED_POST,
   niches: [],
   deliverables: [],
   usageRights: "no_usage",
@@ -591,7 +591,7 @@ export const getDefaultValues = () => ({
   },
   required_platforms: [],
 
-  compensation_type: "PAID",
+  compensation_type: COMPENSATION_TYPE.PAID,
   budget: null,
   suggested_min: null,
   suggested_max: null,
@@ -872,4 +872,22 @@ export function creatorBelongsToApplicationsSubTab(creator, subTab) {
     return column === "negotiations";
   }
   return column === "applications";
+}
+
+export function buildCreateCampaignPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("returnTab", String(returnTab));
+  if (returnView != null && returnView !== "") {
+    params.set("returnView", String(returnView));
+  }
+  return `/campaign/create?${params.toString()}`;
+}
+
+export function buildCampaignReturnPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("tab", String(returnTab || 1));
+  if (returnView != null && returnView !== "") {
+    params.set("view", String(returnView));
+  }
+  return `/campaign?${params.toString()}`;
 }

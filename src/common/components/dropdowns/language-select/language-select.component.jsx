@@ -31,6 +31,7 @@ export default function LanguageSelect({
   quickSelectCodes = COMMON_LANGUAGE_CODES,
   disabled = false,
   isRequired = false,
+  hideSelectedTags = false,
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -213,7 +214,7 @@ export default function LanguageSelect({
 
       {helper && !fieldError && <p className="text-xs text-gray-500">{helper}</p>}
 
-      {selectedLabels.length > 0 && (
+      {!hideSelectedTags && selectedLabels.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedLabels.map((language) => (
             <span
@@ -250,4 +251,5 @@ LanguageSelect.propTypes = {
   quickSelectCodes: PropTypes.arrayOf(PropTypes.string),
   disabled: PropTypes.bool,
   isRequired: PropTypes.bool,
+  hideSelectedTags: PropTypes.bool,
 };
