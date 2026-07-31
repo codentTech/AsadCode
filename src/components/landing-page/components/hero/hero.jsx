@@ -6,10 +6,10 @@ import useHero from "./use-hero";
 function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
   return (
-    <section className="relative pt-8 overflow-hidden bg-white">
+    <section className="relative pt-8 overflow-hidden">
       {/* Abstract background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-indigo-50 via-white to-indigo-50 opacity-70"></div>
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-indigo-50/60 via-transparent to-indigo-50/40"></div>
         {/* Animated blob shapes */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
         <div className="absolute top-1/3 -left-24 w-80 h-80 bg-indigo-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
@@ -61,25 +61,23 @@ function Hero({ isCreatorMode }) {
           {/* Image Area with Floating Elements */}
           <div className="w-full md:w-1/2 relative">
             <div className="relative z-10 perspective-1000">
-              {/* Main image with 3D hover effect */}
               <div className="relative group transform transition-all duration-700 hover:rotate-y-12">
-                {/* Image Frame */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-2xl transform -rotate-3 scale-105 blur-sm opacity-30 group-hover:opacity-40 transition-opacity duration-500"></div>
-                <div className="relative rounded-xl overflow-hidden shadow-2xl border border-indigo-100">
-                  {/* Image */}
+                <div className="absolute -inset-6 rounded-[2rem] bg-indigo-300/45 blur-3xl opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+                <div className="absolute -inset-3 rounded-3xl bg-indigo-100/60 blur-xl"></div>
+                <div
+                  className={`relative rounded-xl overflow-hidden border border-indigo-50 shadow-[0_8px_40px_rgba(129,140,248,0.35)] ${
+                    isCreatorMode ? "bg-transparent" : "bg-white"
+                  }`}
+                >
                   <img
                     src={
                       isCreatorMode
-                        ? "/assets/images/landing/hero-bg-2.jpeg"
+                        ? "/assets/images/landing/creator-hero.jpeg"
                         : "/assets/images/landing/hero-header.jpeg"
                     }
-                    alt="Brand collaboration"
+                    alt={isCreatorMode ? "Creator collaboration" : "Brand collaboration"}
                     className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900/30 to-transparent"></div>
-
-                  {/* Animated overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
               </div>
             </div>

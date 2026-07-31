@@ -13,7 +13,10 @@ function HowCleerCutWorks({ isCreatorMode }) {
         ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
         : "Set deliverables, and budget in minutes.",
       images: isCreatorMode
-        ? ["/assets/images/landing/portfolio Photoshopped.png"]
+        ? [
+            "/assets/images/landing/creator-step-1-set-up-your-portfolio-1.jpeg",
+            "/assets/images/landing/creator-step-1-set-up-your-portfolio-2.jpeg",
+          ]
         : ["/assets/images/landing/step-1-create-a-campaign.jpeg"],
     },
     {
@@ -22,7 +25,7 @@ function HowCleerCutWorks({ isCreatorMode }) {
         ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
         : "Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics",
       images: isCreatorMode
-        ? ["/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"]
+        ? ["/assets/images/landing/creator-step-2-discover-campaigns-you-love.jpeg"]
         : [
             "/assets/images/landing/step-2-discover-the-right-creators-1.jpeg",
             "/assets/images/landing/step-2-discover-the-right-creators-2.jpeg",
@@ -43,7 +46,9 @@ function HowCleerCutWorks({ isCreatorMode }) {
         ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized pipeline. Keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
         : "Manage campaigns on a visual board and track each creator’s progress — from application through active deliverables — in one streamlined pipeline.",
       images: isCreatorMode
-        ? ["/assets/images/landing/Creator inbox Completed.png"]
+        ? [
+            "/assets/images/landing/creator-step-3-collaborate-with-smart-campaign-management.jpeg",
+          ]
         : [
             "/assets/images/landing/step-4-automated-creator-pipeline-1.jpeg",
             "/assets/images/landing/step-4-automated-creator-pipeline-2.jpeg",
@@ -55,7 +60,10 @@ function HowCleerCutWorks({ isCreatorMode }) {
         ? "CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps."
         : "Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.",
       images: isCreatorMode
-        ? ["/assets/images/landing/hero-bg-3.jpeg"]
+        ? [
+            "/assets/images/landing/creator-step-4-get-paid-with-peace-of-mind-1.jpeg",
+            "/assets/images/landing/creator-step-4-get-paid-with-peace-of-mind-2.jpeg",
+          ]
         : [
             "/assets/images/landing/step-5-finalize-protect-and-pay-1.jpeg",
             "/assets/images/landing/step-5-finalize-protect-and-pay-2.jpeg",
@@ -145,8 +153,13 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
           <div className="lg:w-3/4 relative">
             <div className="relative group perspective-1000 transform transition-all duration-700 hover:rotate-y-12">
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-2xl transform -rotate-3 scale-105 blur-sm opacity-30 group-hover:opacity-40 transition-opacity duration-500"></div>
-              <div className="relative rounded-xl overflow-hidden shadow-2xl border border-indigo-100">
+              <div className="absolute -inset-6 rounded-[2rem] bg-indigo-300/45 blur-3xl opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+              <div className="absolute -inset-3 rounded-3xl bg-indigo-100/60 blur-xl"></div>
+              <div
+                className={`relative rounded-xl overflow-hidden border border-indigo-50 shadow-[0_8px_40px_rgba(129,140,248,0.35)] ${
+                  isCreatorMode ? "bg-transparent" : "bg-white"
+                }`}
+              >
                 {steps.map((step, idx) => (
                   <div
                     key={idx}
