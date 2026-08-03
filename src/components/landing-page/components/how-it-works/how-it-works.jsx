@@ -153,13 +153,15 @@ function HowCleerCutWorks({ isCreatorMode }) {
 
           <div className="lg:w-3/4 relative">
             <div className="relative group perspective-1000 transform transition-all duration-700 hover:rotate-y-12">
-              <div className="absolute -inset-6 rounded-[2rem] bg-indigo-300/45 blur-3xl opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
-              <div className="absolute -inset-3 rounded-3xl bg-indigo-100/60 blur-xl"></div>
               <div
-                className={`relative rounded-xl overflow-hidden border border-indigo-50 shadow-[0_8px_40px_rgba(129,140,248,0.35)] ${
-                  isCreatorMode ? "bg-transparent" : "bg-white"
-                }`}
-              >
+                className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-indigo-300/50 blur-3xl opacity-80 group-hover:opacity-95 transition-opacity duration-500"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -inset-3 rounded-3xl bg-indigo-200/45 blur-2xl"
+                aria-hidden
+              />
+              <div className="relative z-10 rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(129,140,248,0.35)]">
                 {steps.map((step, idx) => (
                   <div
                     key={idx}
