@@ -3,7 +3,7 @@ import AUTH from "@/common/constants/auth.constant";
 import { SITE_URL } from "@/common/constants/site.constant";
 import { fetchPublishedBlogPosts } from "@/common/utils/blog-server.util";
 import BlogIndexPage from "@/components/blog/blog-index/blog-index.component";
-import CrawlableContent from "@/components/seo/crawlable-content.component";
+import ServerReadableContent from "@/components/seo/server-readable-content.component";
 
 export const revalidate = 60;
 
@@ -12,7 +12,7 @@ export default async function Page() {
 
   return (
     <>
-      <CrawlableContent>
+      <ServerReadableContent id="server-readable-blog-index">
         <h1>CleerCut Blog</h1>
         <p>
           Influencer marketing strategy, creator economy insights, and platform
@@ -30,7 +30,7 @@ export default async function Page() {
             ))}
           </ul>
         )}
-      </CrawlableContent>
+      </ServerReadableContent>
       <Auth component={<BlogIndexPage initialPosts={posts} />} type={AUTH.PUBLIC} />
     </>
   );
