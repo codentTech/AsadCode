@@ -1,3 +1,5 @@
+"use client";
+
 import BlogPageShell from "@/components/blog/blog-page-shell/blog-page-shell.component";
 import JsonLd from "@/components/seo/json-ld.component";
 import { buildBlogArticleSchema } from "@/common/utils/blog.utils";
@@ -9,7 +11,7 @@ import BlogPostRelated from "./components/blog-post-related/blog-post-related.co
 import BlogPostBottomCta from "./components/blog-post-bottom-cta/blog-post-bottom-cta.component";
 import useBlogPost from "./use-blog-post.hook";
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ initialPost = null, initialRelatedPosts = null }) {
   const {
     post,
     relatedPosts,
@@ -20,7 +22,7 @@ export default function BlogPostPage() {
     faqItems,
     readingTimeMinutes,
     showUpdatedDate,
-  } = useBlogPost();
+  } = useBlogPost({ initialPost, initialRelatedPosts });
 
   if (isLoading) {
     return (

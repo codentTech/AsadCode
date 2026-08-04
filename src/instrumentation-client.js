@@ -11,5 +11,14 @@ if (enabled) {
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
     replaysOnErrorSampleRate: 0,
     replaysSessionSampleRate: 0,
+    ignoreErrors: [
+      "Network Error",
+      "Non-Error promise rejection captured with value: Network Error",
+      /^Network Error$/,
+      "Failed to fetch",
+      "Load failed",
+      "cancelled",
+      "AbortError",
+    ],
   });
 }
