@@ -382,15 +382,13 @@ export default function useProfileSetup({ onNext }) {
     });
 
   const uploadProfilePhoto = async (file) => {
-    try {
-      setProfilePhotoLoading(true);
-      const response = await dispatch(uploadSingleFile({ file, folder: "creator" })).unwrap();
-      return response?.url || null;
-    } catch (e) {
-      return null;
-    } finally {
-      setProfilePhotoLoading(false);
+    setProfilePhotoLoading(true);
+    const result = await dispatch(uploadSingleFile({ file, folder: "creator" }));
+    setProfilePhotoLoading(false);
+    if (uploadSingleFile.fulfilled.match(result)) {
+      return result.payload?.url || null;
     }
+    return null;
   };
 
   const handleFileUpload = async (file) => {
@@ -444,24 +442,20 @@ export default function useProfileSetup({ onNext }) {
 
       setMiniLoading(index, true);
 
-      try {
-        const response = await dispatch(uploadSingleFile({ file, folder: "creator" })).unwrap();
+      const result = await dispatch(uploadSingleFile({ file, folder: "creator" }));
 
-        if (response?.url) {
-          const next = [...(miniProfilePictures || [null, null, null])];
-          next[index] = response.url;
+      if (uploadSingleFile.fulfilled.match(result) && result.payload?.url) {
+        const next = [...(miniProfilePictures || [null, null, null])];
+        next[index] = result.payload.url;
 
-          setValue("miniProfilePictures", next, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-      } catch (err) {
-        // silent by design
-      } finally {
-        setMiniLoading(index, false);
+        setValue("miniProfilePictures", next, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
       }
+
+      setMiniLoading(index, false);
     };
 
     input.click();

@@ -159,11 +159,13 @@ export default function FAQPage() {
                           <ChevronDown className="h-5 w-5 text-primary flex-shrink-0" />
                         )}
                       </button>
-                      {isOpen && (
-                        <div className="px-6 py-5 bg-indigo-50 text-gray-700">
-                          <p>{item.answer}</p>
-                        </div>
-                      )}
+                      <div
+                        className={`px-6 py-5 bg-indigo-50 text-gray-700 ${
+                          isOpen ? "block" : "hidden"
+                        }`}
+                      >
+                        <p>{item.answer}</p>
+                      </div>
                     </div>
                   );
                 })}

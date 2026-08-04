@@ -46,10 +46,11 @@ const api = (headers = null) => {
       return response;
     },
     (error) => {
-      // Network issues
+      // Network issues (status 0 / offline / CORS) — toast then reject; do not `throw`
+      // (throw can surface as onunhandledrejection in Safari + Sentry).
       if (error.message === "Network Error") {
         enqueueSnackbar(error.message, { variant: "error" });
-        throw error;
+        return Promise.reject(error);
       }
 
       let message = error.response?.data?.message || error.message || error.toString();
@@ -62,7 +63,7 @@ const api = (headers = null) => {
       if (error.response?.status === 401) {
         removeUser();
         window.location.href = "/login";
-        return;
+        return Promise.reject(error);
       }
 
       const path403 =

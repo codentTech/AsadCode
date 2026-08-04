@@ -7,17 +7,26 @@ import {
   processBlogPostHtml,
 } from "@/common/utils/blog-content.util";
 
-export default function useBlogPost() {
+export default function useBlogPost({ initialPost = null, initialRelatedPosts = null } = {}) {
   const router = useRouter();
   const params = useParams();
   const slug = params?.slug;
 
-  const [post, setPost] = useState(null);
-  const [relatedPosts, setRelatedPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [post, setPost] = useState(() => initialPost || null);
+  const [relatedPosts, setRelatedPosts] = useState(() =>
+    Array.isArray(initialRelatedPosts) ? initialRelatedPosts : []
+  );
+  const [isLoading, setIsLoading] = useState(() => !initialPost);
 
   const loadPost = useCallback(async () => {
     if (!slug) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (initialPost && initialPost.slug === slug) {
+      setPost(initialPost);
+      setRelatedPosts(Array.isArray(initialRelatedPosts) ? initialRelatedPosts : []);
       setIsLoading(false);
       return;
     }
@@ -42,7 +51,7 @@ export default function useBlogPost() {
     setRelatedPosts([]);
     setIsLoading(false);
     router.replace("/not-found");
-  }, [router, slug]);
+  }, [router, slug, initialPost, initialRelatedPosts]);
 
   useEffect(() => {
     loadPost();
