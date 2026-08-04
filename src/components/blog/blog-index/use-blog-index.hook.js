@@ -3,9 +3,10 @@ import { BLOG_CATEGORY_FILTER_OPTIONS } from "@/common/constants/options.constan
 import { extractSimpleSelectValue } from "@/common/utils/generic.util";
 import blogService from "@/provider/features/blog/blog.service";
 
-export default function useBlogIndex() {
-  const [posts, setPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function useBlogIndex({ initialPosts = null } = {}) {
+  const hasInitialPosts = Array.isArray(initialPosts);
+  const [posts, setPosts] = useState(() => (hasInitialPosts ? initialPosts : []));
+  const [isLoading, setIsLoading] = useState(!hasInitialPosts);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -35,12 +36,22 @@ export default function useBlogIndex() {
   }, [buildListParams]);
 
   useEffect(() => {
+    const hasFilters =
+      (typeof searchTerm === "string" && searchTerm.trim() !== "") ||
+      categoryFilter != null;
+
+    if (!hasFilters && hasInitialPosts) {
+      setPosts(initialPosts);
+      setIsLoading(false);
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       loadPosts();
-    }, 300);
+    }, hasFilters ? 300 : 0);
 
     return () => clearTimeout(timeoutId);
-  }, [loadPosts]);
+  }, [loadPosts, searchTerm, categoryFilter, hasInitialPosts, initialPosts]);
 
   const handleSearchChange = useCallback((value) => {
     const next = typeof value === "string" ? value : value?.target?.value ?? "";

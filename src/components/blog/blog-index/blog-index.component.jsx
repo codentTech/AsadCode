@@ -1,3 +1,5 @@
+"use client";
+
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import SearchIcon from "@/common/icons/search-icon";
@@ -9,7 +11,7 @@ import BlogIndexSkeleton from "./components/blog-index-skeleton/blog-index-skele
 import BlogPostCard from "./components/blog-post-card/blog-post-card.component";
 import useBlogIndex from "./use-blog-index.hook";
 
-export default function BlogIndexPage() {
+export default function BlogIndexPage({ initialPosts = null }) {
   const {
     posts,
     isLoading,
@@ -22,7 +24,7 @@ export default function BlogIndexPage() {
     handleCategoryFilterChange,
     toggleFilters,
     handleClearFilters,
-  } = useBlogIndex();
+  } = useBlogIndex({ initialPosts });
 
   const postCountLabel =
     posts.length === 1 ? "1 article" : `${posts.length} articles`;

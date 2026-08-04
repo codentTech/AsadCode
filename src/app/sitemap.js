@@ -5,6 +5,7 @@ import { LEGAL_DOC_INDEX } from "@/content/legal/legal-docs.config";
 
 const STATIC_ROUTES = [
   "",
+  "/creators",
   "/about-us",
   "/pricing",
   "/faq",

@@ -73,6 +73,13 @@ function Header() {
           >
             Blog
           </Link>
+          <Link
+            href="/creators"
+            prefetch={true}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
+          >
+            For Creators
+          </Link>
           {/* <div
             onClick={() => setShowDropdown(!showDropdown)}
             className="bg-gray-200 p-2 rounded-full cursor-pointer"
@@ -183,6 +190,12 @@ function Header() {
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
           >
             Blog
+          </Link>
+          <Link
+            href="/creators"
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
+            For Creators
           </Link>
 
           {/* Mobile Authentication Buttons */}
