@@ -7,6 +7,8 @@ import FAQPage from "@/components/faq/faq.component";
 import FaqCrawlableContent from "@/components/seo/crawlable/faq-crawlable-content.component";
 import JsonLd from "@/components/seo/json-ld.component";
 
+export const revalidate = 60;
+
 export const metadata = {
   title: `FAQ | ${SITE_NAME}`,
   description:
