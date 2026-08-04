@@ -138,23 +138,12 @@ export default function FAQPage() {
                     </h2>
                     <div className="divide-y divide-indigo-100">
                       {category.questions.map((item) => (
-                        <details
-                          key={item.question}
-                          className="group px-6 py-2 open:bg-indigo-50/60"
-                        >
-                          <summary className="cursor-pointer list-none py-3 text-left text-lg font-medium text-indigo-900 marker:content-none [&::-webkit-details-marker]:hidden">
-                            <span className="flex items-start justify-between gap-3">
-                              <span>{item.question}</span>
-                              <span className="mt-1 shrink-0 text-primary group-open:hidden">
-                                +
-                              </span>
-                              <span className="mt-1 hidden shrink-0 text-primary group-open:inline">
-                                −
-                              </span>
-                            </span>
-                          </summary>
-                          <p className="pb-4 text-left text-gray-700">{item.answer}</p>
-                        </details>
+                        <div key={item.question} className="px-6 py-4 text-left">
+                          <h3 className="text-lg font-medium text-indigo-900">
+                            {item.question}
+                          </h3>
+                          <p className="mt-2 text-gray-700">{item.answer}</p>
+                        </div>
                       ))}
                     </div>
                   </section>
