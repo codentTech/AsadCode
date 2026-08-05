@@ -16,6 +16,8 @@ function Header() {
     notifications,
     isAuthenticated,
     user,
+    audienceSwitch,
+    handleAudienceSwitch,
   } = useHeader();
 
   return (
@@ -73,16 +75,14 @@ function Header() {
           >
             Blog
           </Link>
-          {/* <div
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="bg-gray-200 p-2 rounded-full cursor-pointer"
-          >
-            <Bell size={20} />
-          </div> */}
-
           {/* Authentication Buttons */}
           {!isAuthenticated ? (
             <div className="flex items-center space-x-3 ml-4">
+              <CustomButton
+                text={audienceSwitch.text}
+                onClick={handleAudienceSwitch}
+                className="btn-primary"
+              />
               <CustomButton
                 text="Login"
                 onClick={() => router.push("/login")}
@@ -96,6 +96,11 @@ function Header() {
             </div>
           ) : (
             <div className="flex items-center space-x-3 ml-4">
+              <CustomButton
+                text={audienceSwitch.text}
+                onClick={handleAudienceSwitch}
+                className="btn-primary"
+              />
               <CustomButton
                 text="Campaigns"
                 onClick={() => router.push("/campaign")}
@@ -184,11 +189,15 @@ function Header() {
           >
             Blog
           </Link>
-
           {/* Mobile Authentication Buttons */}
           <div className="border-t border-gray-200 pt-4">
             {!isAuthenticated ? (
               <div className="flex flex-col space-y-3">
+                <CustomButton
+                  text={audienceSwitch.text}
+                  onClick={handleAudienceSwitch}
+                  className="btn-primary w-full"
+                />
                 <CustomButton
                   text="Login"
                   onClick={() => router.push("/login")}
@@ -202,6 +211,11 @@ function Header() {
               </div>
             ) : (
               <div className="flex flex-col space-y-3">
+                <CustomButton
+                  text={audienceSwitch.text}
+                  onClick={handleAudienceSwitch}
+                  className="btn-primary w-full"
+                />
                 <CustomButton
                   text="Campaigns"
                   onClick={() => router.push("/campaign")}
