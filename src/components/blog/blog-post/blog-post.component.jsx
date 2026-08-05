@@ -1,3 +1,5 @@
+"use client";
+
 import BlogPageShell from "@/components/blog/blog-page-shell/blog-page-shell.component";
 import JsonLd from "@/components/seo/json-ld.component";
 import { buildBlogArticleSchema } from "@/common/utils/blog.utils";

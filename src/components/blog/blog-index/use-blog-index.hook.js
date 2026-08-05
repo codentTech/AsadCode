@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BLOG_CATEGORY_FILTER_OPTIONS } from "@/common/constants/options.constant";
 import { extractSimpleSelectValue } from "@/common/utils/generic.util";
