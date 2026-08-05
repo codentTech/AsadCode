@@ -400,7 +400,9 @@ const shopifySlice = createSlice({
           message: "",
           data: action.payload,
         };
-        state.getDiscountCodes.data = action.payload;
+        if (Array.isArray(action.payload)) {
+          state.getDiscountCodes.data = action.payload;
+        }
       })
       .addCase(killAndReissueShopifyDiscountCode.rejected, (state, action) => {
         state.killAndReissueDiscountCode = {
