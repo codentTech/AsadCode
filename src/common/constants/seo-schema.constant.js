@@ -36,6 +36,11 @@ export const SEO_FAQ_ITEMS = [
     answer:
       "Cleercut supports influencer campaigns across major platforms including Instagram, TikTok, and YouTube, with tools for discovery, contracts, messaging, and campaign tracking in one workspace.",
   },
+  {
+    question: "Who can sign up for CleerCut?",
+    answer:
+      "Any brand, agency, or content creator over the age of 18 can join CleerCut. Whether you're running your first campaign or managing multiple influencer partnerships, CleerCut is built to scale with you.",
+  },
 ];
 
 export const SOFTWARE_APPLICATION_SCHEMA = {

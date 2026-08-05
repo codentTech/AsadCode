@@ -161,36 +161,47 @@ function HowCleerCutWorks({ isCreatorMode }) {
                 className="pointer-events-none absolute -inset-3 rounded-3xl bg-indigo-200/45 blur-2xl"
                 aria-hidden
               />
-              <div className="relative z-10 rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(129,140,248,0.35)]">
-                {steps.map((step, idx) => (
-                  <div
-                    key={idx}
-                    className={`transition-opacity duration-500 ${
-                      activeStep === idx
-                        ? "relative opacity-100"
-                        : "absolute inset-0 opacity-0 pointer-events-none"
-                    }`}
-                  >
-                    <div className="relative flex items-center justify-center">
-                      {step.images.map((src, frameIdx) => (
+              <div className="relative z-10 min-h-[20rem] overflow-hidden rounded-xl bg-white/40 shadow-[0_8px_40px_rgba(129,140,248,0.35)] md:min-h-[28rem]">
+                {steps.map((step, idx) => {
+                  const isActiveStep = activeStep === idx;
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`transition-opacity duration-500 ${
+                        isActiveStep
+                          ? "relative opacity-100"
+                          : "pointer-events-none absolute inset-0 opacity-0"
+                      }`}
+                    >
+                      <div className="relative flex min-h-[20rem] items-center justify-center md:min-h-[28rem]">
+                        {/* Keep layout height even when frames are absolutely stacked */}
                         <img
-                          key={src}
-                          src={src}
-                          alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
-                          className={`w-full h-auto max-h-[28rem] md:max-h-[32rem] object-contain transition-all duration-500 group-hover:scale-105 ${
-                            step.images.length > 1 ? "absolute inset-0 m-auto" : ""
-                          } ${
-                            activeStep === idx && activeFrame === frameIdx
-                              ? "opacity-100 relative"
-                              : step.images.length > 1
-                                ? "opacity-0"
-                                : "opacity-100"
-                          }`}
+                          src={step.images[0]}
+                          alt=""
+                          aria-hidden
+                          className="invisible max-h-[28rem] w-full object-contain md:max-h-[32rem]"
                         />
-                      ))}
+                        {step.images.map((src, frameIdx) => {
+                          const isVisible =
+                            isActiveStep &&
+                            (step.images.length === 1 || activeFrame === frameIdx);
+
+                          return (
+                            <img
+                              key={src}
+                              src={src}
+                              alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
+                              className={`absolute inset-0 m-auto max-h-[28rem] w-full object-contain transition-opacity duration-500 group-hover:scale-105 md:max-h-[32rem] ${
+                                isVisible ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
