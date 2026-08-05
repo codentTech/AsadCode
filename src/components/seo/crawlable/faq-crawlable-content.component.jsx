@@ -1,6 +1,10 @@
-import { FAQ_DATA } from "@/common/constants/faq.constant";
+import { SEO_FAQ_ITEMS } from "@/common/constants/seo-schema.constant";
 import CrawlableContent from "@/components/seo/crawlable-content.component";
 
+/**
+ * Compact server FAQ block. Keep this short — large hidden dumps get dropped by
+ * some AI fetch/extract tools. Answers must stay in plain text here.
+ */
 export default function FaqCrawlableContent() {
   return (
     <CrawlableContent>
@@ -9,16 +13,11 @@ export default function FaqCrawlableContent() {
         Everything you need to know about using CleerCut for seamless brand-creator
         collaborations.
       </p>
-      {FAQ_DATA.map((category) => (
-        <section key={category.category}>
-          <h2>{category.category}</h2>
-          {category.questions.map((item) => (
-            <div key={item.question}>
-              <h3>{item.question}</h3>
-              <p>{item.answer}</p>
-            </div>
-          ))}
-        </section>
+      {SEO_FAQ_ITEMS.map((item) => (
+        <div key={item.question}>
+          <h2>{item.question}</h2>
+          <p>{item.answer}</p>
+        </div>
       ))}
     </CrawlableContent>
   );

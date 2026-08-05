@@ -139,9 +139,9 @@ export default function FAQPage() {
                     <div className="divide-y divide-indigo-100">
                       {category.questions.map((item) => (
                         <div key={item.question} className="px-6 py-4 text-left">
-                          <h3 className="text-lg font-medium text-indigo-900">
-                            {item.question}
-                          </h3>
+                          <p className="text-lg font-medium text-indigo-900">
+                            <strong>{item.question}</strong>
+                          </p>
                           <p className="mt-2 text-gray-700">{item.answer}</p>
                         </div>
                       ))}
