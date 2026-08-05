@@ -1,19 +1,10 @@
 import { CheckCircle } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 function HowCleerCutWorks({ isCreatorMode }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [activeFrame, setActiveFrame] = useState(0);
   const [disableAutoRotate, setDisableAutoRotate] = useState(false);
-
-  // Auto-rotate through steps every 5 seconds
-  useEffect(() => {
-    if (!disableAutoRotate) {
-      const interval = setInterval(() => {
-        setActiveStep((prev) => (prev + 1) % steps.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [disableAutoRotate]);
 
   const steps = [
     {
@@ -21,46 +12,88 @@ function HowCleerCutWorks({ isCreatorMode }) {
       description: isCreatorMode
         ? "Build a clean, professional portfolio in minutes. Showcase your past work, audience data, and reviews — no Canva or graphic design needed."
         : "Set deliverables, and budget in minutes.",
-      image: isCreatorMode
-        ? "/assets/images/landing/portfolio Photoshopped.png"
-        : "/assets/images/landing/create campaign on iphone perfected (1).png",
+      images: isCreatorMode
+        ? [
+            "/assets/images/landing/creator-step-1-set-up-your-portfolio-1.jpeg",
+            "/assets/images/landing/creator-step-1-set-up-your-portfolio-2.jpeg",
+          ]
+        : ["/assets/images/landing/step-1-create-a-campaign.jpeg"],
     },
     {
       title: isCreatorMode ? "Discover Campaigns you Love" : "Discover the Right Creators",
       description: isCreatorMode
         ? "Quick-apply to campaigns that match your audience and rates. No more hours lost to cold pitch emails"
         : "Invite creators to apply or browse applicants using advanced filters — sort by niche, platform, follower count, engagement rate and more, including audience demographics",
-      image: isCreatorMode
-        ? "/assets/images/landing/9170B750-8380-4C96-BFAC-BDF63FF035DF.png"
-        : "/assets/images/landing/Discover Perfect.png",
+      images: isCreatorMode
+        ? ["/assets/images/landing/creator-step-2-discover-campaigns-you-love.jpeg"]
+        : [
+            "/assets/images/landing/step-2-discover-the-right-creators-1.jpeg",
+            "/assets/images/landing/step-2-discover-the-right-creators-2.jpeg",
+            "/assets/images/landing/step-2-discover-the-right-creators-3.jpeg",
+          ],
     },
     {
       title: isCreatorMode ? null : "Review & Compare",
       description:
         "Instantly view creator profiles, rates, content samples, audience data, and verified brand reviews — all in one place.",
-      image: "/assets/images/landing/portfolio Photoshopped.png",
+      images: ["/assets/images/landing/step-3-review-and-compare.jpeg"],
     },
     {
       title: isCreatorMode
         ? "Collaborate with Smart Campaign Management"
-        : "Collaborate Inside the Smart Inbox",
+        : "Automated Creator Pipeline",
       description: isCreatorMode
-        ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized inbox. With your new Smart Inbox, keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
-        : "Message creators, assign deliverables, track revisions, and manage deadlines — all within a single, campaign-organized thread. You can also sort through message requests from creators who cold-pitch you directly, making it easy to spot high-potential inbound talent.",
-      image: isCreatorMode
-        ? "/assets/images/landing/Creator inbox Completed.png"
-        : "/assets/images/landing/inbox on macbook office perfected.png",
+        ? "Negotiate deals, track deliverables, and manage deadlines — all in one organized pipeline. Keep cold pitches, active projects, and ongoing negotiations separated, yet easy to navigate."
+        : "Manage campaigns on a visual board and track each creator’s progress — from application through active deliverables — in one streamlined pipeline.",
+      images: isCreatorMode
+        ? [
+            "/assets/images/landing/creator-step-3-collaborate-with-smart-campaign-management.jpeg",
+          ]
+        : [
+            "/assets/images/landing/step-4-automated-creator-pipeline-1.jpeg",
+            "/assets/images/landing/step-4-automated-creator-pipeline-2.jpeg",
+          ],
     },
     {
       title: isCreatorMode ? "Get Paid with Peace of Mind" : "Finalize, Protect, and Pay",
       description: isCreatorMode
         ? "CleerCut holds payments in escrow as soon as the contract is signed — you deliver the work, we guarantee the rest. No more ghosting, chasing invoices, or revision traps."
         : "Secure payments via escrow, auto-generated customizable  contracts, and streamlined dispute management.",
-      image: isCreatorMode
-        ? "/assets/images/landing/hero-bg-3.jpeg"
-        : "/assets/images/landing/reports on mac Perfected.png",
+      images: isCreatorMode
+        ? [
+            "/assets/images/landing/creator-step-4-get-paid-with-peace-of-mind-1.jpeg",
+            "/assets/images/landing/creator-step-4-get-paid-with-peace-of-mind-2.jpeg",
+          ]
+        : [
+            "/assets/images/landing/step-5-finalize-protect-and-pay-1.jpeg",
+            "/assets/images/landing/step-5-finalize-protect-and-pay-2.jpeg",
+          ],
     },
   ].filter((s) => s.title);
+
+  useEffect(() => {
+    if (!disableAutoRotate) {
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length);
+        setActiveFrame(0);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [disableAutoRotate, steps.length]);
+
+  useEffect(() => {
+    setActiveFrame(0);
+  }, [activeStep]);
+
+  const activeFrameCount = steps[activeStep]?.images?.length ?? 1;
+
+  useEffect(() => {
+    if (activeFrameCount <= 1) return undefined;
+    const interval = setInterval(() => {
+      setActiveFrame((prev) => (prev + 1) % activeFrameCount);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeStep, activeFrameCount]);
 
   return (
     <section className="py-24 bg-gradient-to-tr from-blue-300/30 to-transparent overflow-hidden">
@@ -72,7 +105,6 @@ function HowCleerCutWorks({ isCreatorMode }) {
         </div>
 
         <div className="lg:flex items-start gap-12">
-          {/* Left side: Step navigation */}
           <div className="lg:w-2/5">
             <div className="space-y-4 mb-8 lg:mb-0">
               {steps.map(
@@ -80,7 +112,10 @@ function HowCleerCutWorks({ isCreatorMode }) {
                   step.title && (
                     <div
                       key={idx}
-                      onClick={() => setActiveStep(idx)}
+                      onClick={() => {
+                        setActiveStep(idx);
+                        setActiveFrame(0);
+                      }}
                       onMouseEnter={() => setDisableAutoRotate(true)}
                       onMouseLeave={() => setDisableAutoRotate(false)}
                       className={`p-4 rounded-lg cursor-pointer transition-all duration-300 flex gap-4 items-start ${
@@ -116,70 +151,58 @@ function HowCleerCutWorks({ isCreatorMode }) {
             </div>
           </div>
 
-          {/* Right side: Image showcase */}
           <div className="lg:w-3/4 relative">
-            <div className="bg-white p-4 rounded-lg shadow-xl h-auto min-h-96">
-              {steps.map((step, idx) => (
-                <div
-                  key={idx}
-                  className={`absolute inset-0 transition-opacity duration-500 ${
-                    activeStep === idx ? "opacity-100" : "opacity-0 pointer-events-none"
-                  }`}
-                >
-                  <div className="h-full flex items-center justify-center">
-                    <img
-                      src={step.image}
-                      alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
-                      className={`max-w-full max-h-96 ${
-                        [1, 3, 4].includes(idx) && !isCreatorMode
-                          ? "object-contain"
-                          : "object-contain"
-                      } rounded-lg mx-auto`}
-                    />
+            <div className="relative group perspective-1000 transform transition-all duration-700 hover:rotate-y-12">
+              <div
+                className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-indigo-300/50 blur-3xl opacity-80 group-hover:opacity-95 transition-opacity duration-500"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -inset-3 rounded-3xl bg-indigo-200/45 blur-2xl"
+                aria-hidden
+              />
+              <div className="relative z-10 min-h-[20rem] overflow-hidden rounded-xl bg-white/40 shadow-[0_8px_40px_rgba(129,140,248,0.35)] md:min-h-[28rem]">
+                {steps.map((step, idx) => {
+                  const isActiveStep = activeStep === idx;
 
-                    {isCreatorMode && step.image.includes("hero-bg-3") && (
-                      <React.Fragment>
-                        <div className="w-40 absolute top-24 right-2 md:right-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                          <div className="relative bg-primary rounded-lg py-1 px-2 shadow-lg">
-                            <div className="flex items-center">
-                              <div>
-                                <span className="text-[10px] text-white">
-                                  Campaign marked complete
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                  return (
+                    <div
+                      key={idx}
+                      className={`transition-opacity duration-500 ${
+                        isActiveStep
+                          ? "relative opacity-100"
+                          : "pointer-events-none absolute inset-0 opacity-0"
+                      }`}
+                    >
+                      <div className="relative flex min-h-[20rem] items-center justify-center md:min-h-[28rem]">
+                        {/* Keep layout height even when frames are absolutely stacked */}
+                        <img
+                          src={step.images[0]}
+                          alt=""
+                          aria-hidden
+                          className="invisible max-h-[28rem] w-full object-contain md:max-h-[32rem]"
+                        />
+                        {step.images.map((src, frameIdx) => {
+                          const isVisible =
+                            isActiveStep &&
+                            (step.images.length === 1 || activeFrame === frameIdx);
 
-                        <div className="w-36 absolute top-44 left-2 md:left-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                          <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                            <div className="flex items-center">
-                              <div>
-                                <span className="text-[10px] text-black">
-                                  $550 payment received
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="w-52 absolute top-56 right-2 lg:right-28 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                          <div className="relative bg-primary rounded-lg py-1 px-2 shadow-lg">
-                            <div className="flex items-center">
-                              <div>
-                                <span className="text-[10px] text-white">
-                                  You received a new rating ⭐️⭐️⭐️⭐️⭐ It was pleasure working
-                                  with ..
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </React.Fragment>
-                    )}
-                  </div>
-                </div>
-              ))}
+                          return (
+                            <img
+                              key={src}
+                              src={src}
+                              alt={`${isCreatorMode ? "Creator" : "Brand"} - ${step.title || "Step"}`}
+                              className={`absolute inset-0 m-auto max-h-[28rem] w-full object-contain transition-opacity duration-500 group-hover:scale-105 md:max-h-[32rem] ${
+                                isVisible ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
