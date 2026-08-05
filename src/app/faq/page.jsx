@@ -4,7 +4,10 @@ import { FAQ_DATA } from "@/common/constants/faq.constant";
 import { buildFaqPageSchema } from "@/common/constants/seo-schema.constant";
 import { SITE_NAME, SITE_URL } from "@/common/constants/site.constant";
 import FAQPage from "@/components/faq/faq.component";
+import FaqCrawlableContent from "@/components/seo/crawlable/faq-crawlable-content.component";
 import JsonLd from "@/components/seo/json-ld.component";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: `FAQ | ${SITE_NAME}`,
@@ -27,6 +30,7 @@ export default function Page() {
   return (
     <>
       <JsonLd data={buildFaqSchemaFromFullData()} />
+      <FaqCrawlableContent />
       <Auth component={<FAQPage />} type={AUTH.PUBLIC} />
     </>
   );

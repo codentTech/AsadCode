@@ -1,4 +1,4 @@
-import { SEO_FAQ_ITEMS } from "@/common/constants/seo-schema.constant";
+import { FAQ_DATA } from "@/common/constants/faq.constant";
 import CrawlableContent from "@/components/seo/crawlable-content.component";
 
 export default function FaqCrawlableContent() {
@@ -9,11 +9,16 @@ export default function FaqCrawlableContent() {
         Everything you need to know about using CleerCut for seamless brand-creator
         collaborations.
       </p>
-      {SEO_FAQ_ITEMS.map((item) => (
-        <div key={item.question}>
-          <h2>{item.question}</h2>
-          <p>{item.answer}</p>
-        </div>
+      {FAQ_DATA.map((category) => (
+        <section key={category.category}>
+          <h2>{category.category}</h2>
+          {category.questions.map((item) => (
+            <div key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </div>
+          ))}
+        </section>
       ))}
     </CrawlableContent>
   );
