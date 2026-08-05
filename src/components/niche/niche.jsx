@@ -1,36 +1,64 @@
+"use client";
+
 import { useState, useEffect, useMemo } from "react";
 import { getUser } from "@/common/utils/users.util";
+
+function toCategoryLabel(category) {
+  if (typeof category === "string" || typeof category === "number") {
+    return String(category);
+  }
+  if (category && typeof category === "object") {
+    return (
+      category.name ||
+      category.label ||
+      category.title ||
+      category.id ||
+      ""
+    );
+  }
+  return "";
+}
 
 function Niche({ categories = [], onNicheChange, selectedNiche = null }) {
   const [localCategories, setLocalCategories] = useState([]);
 
-  // Memoize categories to prevent unnecessary re-renders
-  const memoizedCategories = useMemo(() => categories, [JSON.stringify(categories)]);
+  const categoriesKey = useMemo(() => {
+    if (!Array.isArray(categories) || categories.length === 0) return "";
+    return categories.map(toCategoryLabel).filter(Boolean).join("\0");
+  }, [categories]);
 
   useEffect(() => {
-    // If categories are passed as props, use them; otherwise fetch from user data
-    if (memoizedCategories && memoizedCategories.length > 0) {
-      setLocalCategories(memoizedCategories);
-    } else {
-      const user = getUser();
-      if (user && user.creator_profile && user.creator_profile.categories) {
-        setLocalCategories(user.creator_profile.categories);
-      } else {
-        // Fallback to default categories if no data is available
-        setLocalCategories([
-          "Beauty",
-          "Skincare",
-          "Fitness",
-          "Fashion",
-          "Travel",
-          "Food",
-          "Finance",
-          "Business",
-          "Health",
-        ]);
+    if (categoriesKey) {
+      setLocalCategories(categoriesKey.split("\0"));
+      return;
+    }
+
+    const user = getUser();
+    if (user?.creator_profile?.categories) {
+      const fromUser = (Array.isArray(user.creator_profile.categories)
+        ? user.creator_profile.categories
+        : []
+      )
+        .map(toCategoryLabel)
+        .filter(Boolean);
+      if (fromUser.length > 0) {
+        setLocalCategories(fromUser);
+        return;
       }
     }
-  }, [memoizedCategories]);
+
+    setLocalCategories([
+      "Beauty",
+      "Skincare",
+      "Fitness",
+      "Fashion",
+      "Travel",
+      "Food",
+      "Finance",
+      "Business",
+      "Health",
+    ]);
+  }, [categoriesKey]);
 
   const handleNicheClick = (niche) => {
     if (onNicheChange) {
@@ -38,19 +66,16 @@ function Niche({ categories = [], onNicheChange, selectedNiche = null }) {
     }
   };
 
-  // Add "All" option at the beginning
-  const displayCategories = [...localCategories];
-
-  // Don't render if no categories available
   if (localCategories.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      {displayCategories.map((category) => (
+      {localCategories.map((category) => (
         <button
           key={category}
+          type="button"
           onClick={() => handleNicheClick(category)}
           className={`px-2 py-1.5 rounded-lg text-xs border transition-colors ${
             selectedNiche === category
