@@ -15,6 +15,8 @@ export const shopifyInitialState = {
   disconnect: { ...generalState },
   getProducts: { ...generalState },
   getDiscountCodes: { ...generalState },
+  getFulfilment: { ...generalState },
+  sendProduct: { ...generalState },
   renameDiscountCode: { ...generalState },
   deactivateDiscountCode: { ...generalState },
   reactivateDiscountCode: { ...generalState },
@@ -46,6 +48,12 @@ export const selectShopifyProductsState = (state) =>
 
 export const selectShopifyDiscountCodesState = (state) =>
   state?.shopify?.getDiscountCodes ?? shopifyInitialState.getDiscountCodes;
+
+export const selectShopifyFulfilmentState = (state) =>
+  state?.shopify?.getFulfilment ?? shopifyInitialState.getFulfilment;
+
+export const selectShopifySendProductState = (state) =>
+  state?.shopify?.sendProduct ?? shopifyInitialState.sendProduct;
 
 export const getShopifyConnection = createAsyncThunk(
   "shopify/getConnection",
@@ -164,6 +172,32 @@ export const killAndReissueShopifyDiscountCode = createAsyncThunk(
   }
 );
 
+export const getShopifyFulfilment = createAsyncThunk(
+  "shopify/getFulfilment",
+  async (contractId, thunkAPI) => {
+    try {
+      const response = await shopifyService.getFulfilment(contractId);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const sendShopifyProduct = createAsyncThunk(
+  "shopify/sendProduct",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await shopifyService.sendProduct(payload);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 const shopifySlice = createSlice({
   name: "shopify",
   initialState,
@@ -182,6 +216,9 @@ const shopifySlice = createSlice({
     },
     resetShopifyKillAndReissueDiscountCode: (state) => {
       state.killAndReissueDiscountCode = { ...generalState };
+    },
+    resetShopifySendProduct: (state) => {
+      state.sendProduct = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -412,6 +449,59 @@ const shopifySlice = createSlice({
           message: action.payload?.message,
           data: null,
         };
+      })
+      .addCase(getShopifyFulfilment.pending, (state) => {
+        state.getFulfilment.isLoading = true;
+        state.getFulfilment.isError = false;
+      })
+      .addCase(getShopifyFulfilment.fulfilled, (state, action) => {
+        state.getFulfilment = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyFulfilment.rejected, (state, action) => {
+        state.getFulfilment = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(sendShopifyProduct.pending, (state) => {
+        state.sendProduct.isLoading = true;
+        state.sendProduct.isError = false;
+        state.sendProduct.isSuccess = false;
+        state.sendProduct.message = "";
+      })
+      .addCase(sendShopifyProduct.fulfilled, (state, action) => {
+        state.sendProduct = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        state.getFulfilment = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(sendShopifyProduct.rejected, (state, action) => {
+        state.sendProduct = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
       });
   },
 });
@@ -422,5 +512,6 @@ export const {
   resetShopifyProducts,
   resetShopifyRenameDiscountCode,
   resetShopifyKillAndReissueDiscountCode,
+  resetShopifySendProduct,
 } = shopifySlice.actions;
 export default shopifySlice.reducer;
