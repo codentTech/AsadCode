@@ -16,6 +16,14 @@ const setupCreatorCampaignPreferences = async (data, email) => {
   return response.data;
 };
 
+const completeCreatorConnectSocial = async (data, email) => {
+  const response = await api().post(
+    `/auth/onboarding/creator/connect-social?email=${encodeURIComponent(email)}`,
+    data
+  );
+  return response.data;
+};
+
 const getCreatorById = async (creatorId) => {
   const response = await api().get(`/user/${creatorId}`);
   return response.data;
@@ -24,6 +32,7 @@ const getCreatorById = async (creatorId) => {
 const creatorProfileService = {
   setupCreatorProfile,
   setupCreatorCampaignPreferences,
+  completeCreatorConnectSocial,
   getCreatorById,
 };
 

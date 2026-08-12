@@ -1,11 +1,13 @@
 "use client";
 
 import ROLES from "@/common/constants/role.constant";
-import { login } from "@/provider/features/auth/auth.slice";
+import { isOnboardingCompleted } from "@/common/utils/users.util";
+import { login, setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import { getEmailPreferences } from "@/provider/features/email-preferences/email-preferences.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AES, enc } from "crypto-js";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -20,6 +22,7 @@ const validationSchema = Yup.object().shape({
 
 export default function useLogin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -39,10 +42,11 @@ export default function useLogin() {
   const { email, password } = watch();
 
   useEffect(() => {
-    handleLogin();
-  }, []);
-
-  const handleLogin = () => {
+    const resumeEmail = searchParams?.get("email");
+    if (resumeEmail) {
+      setValue("email", resumeEmail);
+      return;
+    }
     if (typeof window === "object") {
       if (
         localStorage &&
@@ -60,17 +64,31 @@ export default function useLogin() {
         setValue("password", decryptedPassword);
       }
     }
-  };
+  }, [searchParams, setValue]);
 
   const navigateAfterLogin = useCallback(
-    (role) => {
+    (user) => {
+      const role = user?.role;
       if (role === ROLES.ADMIN) {
         router.push("/admin/dashboard");
         return;
       }
+      if (!isOnboardingCompleted(user)) {
+        if (typeof window !== "undefined" && user?.email) {
+          window.localStorage.setItem("email", user.email);
+        }
+        dispatch(resetOnboardingSession());
+        if (role === ROLES.CREATOR) {
+          dispatch(setIsCreatorModeMode(true));
+        } else if (role === ROLES.BRAND) {
+          dispatch(setIsCreatorModeMode(false));
+        }
+        router.push("/onboarding");
+        return;
+      }
       router.push("/campaign");
     },
-    [router]
+    [dispatch, router]
   );
 
   const handleReengagementComplete = useCallback(() => {
@@ -82,9 +100,10 @@ export default function useLogin() {
     setLoading(true);
     const response = await dispatch(login({ ...values, email: email.toLowerCase() }));
     if (response.payload && response.payload.success) {
-      const role = response.payload?.data?.user?.role;
+      const user = response.payload?.data?.user;
+      const role = user?.role;
 
-      if (role === ROLES.CREATOR) {
+      if (role === ROLES.CREATOR && isOnboardingCompleted(user)) {
         const prefsResponse = await dispatch(getEmailPreferences());
 
         if (
@@ -93,10 +112,10 @@ export default function useLogin() {
         ) {
           setShowReengagementModal(true);
         } else {
-          navigateAfterLogin(role);
+          navigateAfterLogin(user);
         }
       } else {
-        navigateAfterLogin(role);
+        navigateAfterLogin(user);
       }
     }
     setLoading(false);

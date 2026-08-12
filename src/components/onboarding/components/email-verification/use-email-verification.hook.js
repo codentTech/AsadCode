@@ -1,12 +1,15 @@
 "use client";
 
+import { stripInviteTokenFromUrl } from "@/common/utils/onboarding-flow.util";
 import { getOnboardingEmail } from "@/common/utils/users.util";
+import ROLES from "@/common/constants/role.constant";
 import {
   resendEmail,
   reset,
   sendVerificationEmail,
   verifyEmail,
 } from "@/provider/features/auth/auth.slice";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -14,17 +17,21 @@ const MAX_CODE_LENGTH = 6;
 
 export default function useEmailVerification({ onNext }) {
   const dispatch = useDispatch();
+  const router = useRouter();
   const email = getOnboardingEmail();
+  const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
+  const onboardingStatus = useSelector((state) => state.onboarding?.onboardingStatus);
+  const isCreator =
+    isCreatorMode || onboardingStatus?.user?.role === ROLES.CREATOR;
 
   const [emailSent, setEmailSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [verificationCode, setVerificationCode] = useState("");
 
   const verifyEmailState = useSelector((state) => state.auth?.verifyEmail) || {};
-  const sendVerificationEmailState = useSelector(
-    (state) => state.auth?.sendVerificationEmail
-  ) || {};
-  const { isLoading, isError } = verifyEmailState;
+  const sendVerificationEmailState =
+    useSelector((state) => state.auth?.sendVerificationEmail) || {};
+  const { isLoading } = verifyEmailState;
   const { isLoading: isSendingEmail } = sendVerificationEmailState;
 
   useEffect(() => {
@@ -71,10 +78,19 @@ export default function useEmailVerification({ onNext }) {
     if (code.length !== MAX_CODE_LENGTH) return;
     const { payload } = await dispatch(verifyEmail({ email, verificationCode: code }));
     if (payload?.success || payload?.data?.id) {
-      onNext();
       dispatch(reset());
+      stripInviteTokenFromUrl();
+      if (isCreator) {
+        const params = new URLSearchParams({
+          resumeOnboarding: "1",
+          email: String(email),
+        });
+        router.push(`/login?${params.toString()}`);
+        return;
+      }
+      onNext();
     }
-  }, [dispatch, email, verificationCode, onNext]);
+  }, [dispatch, email, verificationCode, onNext, router, isCreator]);
 
   return {
     email,

@@ -37,8 +37,10 @@ export const CREATOR_TYPE_QUESTION_HELPER =
   "This helps us show your profile correctly to clients and unlock the right tools for you.";
 
 export function getAllowedPlatformsForCreatorType(creatorType) {
-  const opt = CREATOR_TAG_OPTIONS.find((o) => o.value === creatorType);
-  return opt?.allowedPlatforms ?? CREATOR_TAG_OPTIONS[0].allowedPlatforms;
+  const normalized = String(creatorType || "").toUpperCase();
+  const opt = CREATOR_TAG_OPTIONS.find((o) => o.value === normalized);
+  if (opt) return opt.allowedPlatforms;
+  return normalized ? [] : CREATOR_TAG_OPTIONS[0].allowedPlatforms;
 }
 
 export function isPlatformAllowedForCreatorType(platform, creatorType) {

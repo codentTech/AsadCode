@@ -40,11 +40,11 @@ const EmailVerification = ({ onNext, onBack }) => {
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back
             </button>
-            <span className="text-gray-500">Step 3 of 5</span>
-            <span className="text-gray-500">60% Complete</span>
+            <span className="text-gray-500">Step 2 of 5</span>
+            <span className="text-gray-500">40% Complete</span>
           </div>
           <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full w-[60%] bg-primary transition-all rounded-full" />
+            <div className="h-full w-2/5 bg-primary transition-all rounded-full" />
           </div>
         </div>
 

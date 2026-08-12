@@ -25,13 +25,28 @@ const onboardingSlice = createSlice({
   initialState,
   reducers: {
     resetOnboardingSession: () => ({ ...initialState }),
+    patchOnboardingCreatorProfile: (state, action) => {
+      if (!state.onboardingStatus) {
+        state.onboardingStatus = {
+          user: null,
+          creatorProfile: action.payload || null,
+          brandProfile: null,
+          isCompleted: false,
+          onboardingStep: null,
+        };
+        return;
+      }
+      state.onboardingStatus.creatorProfile = {
+        ...(state.onboardingStatus.creatorProfile || {}),
+        ...(action.payload || {}),
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getOnboardingStatus.pending, (state) => {
         state.onboardingStatusLoading = true;
         state.onboardingStatusError = null;
-        state.onboardingStatus = null;
       })
       .addCase(getOnboardingStatus.fulfilled, (state, action) => {
         state.onboardingStatusLoading = false;
@@ -40,11 +55,10 @@ const onboardingSlice = createSlice({
       .addCase(getOnboardingStatus.rejected, (state, action) => {
         state.onboardingStatusLoading = false;
         state.onboardingStatusError = action.payload;
-        state.onboardingStatus = null;
       });
   },
 });
 
-export const { resetOnboardingSession } = onboardingSlice.actions;
+export const { resetOnboardingSession, patchOnboardingCreatorProfile } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

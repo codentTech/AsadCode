@@ -4,9 +4,21 @@ import { CAMPAIGN_TYPE, PLATFORM_TYPE } from "@/common/constants/campaign.consta
 import { getAllowedPlatformsForCreatorType } from "@/common/constants/creator-tag.constant";
 import { STANDARD_CONTENT_TYPES } from "@/common/constants/profile-setup.constant";
 import { getOnboardingEmail, getOnboardingName } from "@/common/utils/users.util";
+import {
+  hasMeaningfulCreatorProfile,
+  mapCreatorProfileToSetupForm,
+  readCreatorTypeDraft,
+  readProfileSetupDraft,
+  writeCreatorTypeDraft,
+  writeProfileSetupDraft,
+} from "@/common/utils/onboarding-flow.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
 import { reset as resetAuth } from "@/provider/features/auth/auth.slice";
 import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
+import {
+  getOnboardingStatus,
+  patchOnboardingCreatorProfile,
+} from "@/provider/features/onboarding/onboarding.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { disconnectSocialAccount, getSocialAccounts } from "@/provider/features/users/users.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -104,7 +116,7 @@ const validationSchema = Yup.object().shape({
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export default function useProfileSetup({ onNext }) {
+export default function useProfileSetup({ onNext, onCreatorTypeChange }) {
   const dispatch = useDispatch();
 
   const email = getOnboardingEmail();
@@ -112,6 +124,9 @@ export default function useProfileSetup({ onNext }) {
 
   const { isLoading: authLoading } = useSelector((state) => state.auth);
   const { uploadSingleFile: uploadState } = useSelector((state) => state.uploadFile);
+  const onboardingStatus = useSelector((state) => state.onboarding?.onboardingStatus);
+  const creatorProfile = onboardingStatus?.creatorProfile;
+  const hasHydratedRef = useRef(false);
 
   const { openConnect: openPhylloConnect } = usePhylloConnect();
 
@@ -177,6 +192,87 @@ export default function useProfileSetup({ onNext }) {
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
 
+  const applyHydration = useCallback(
+    (mapped) => {
+      if (!mapped) return;
+      resetForm(mapped.formValues);
+      setProfilePhotoUrl(mapped.profilePhotoUrl);
+      setProfilePhotoPreview(mapped.profilePhotoPreview);
+      setSelectedCategories(mapped.selectedCategories);
+      setKeywordTags(mapped.keywordTags);
+      setContentRates(mapped.contentRates);
+      setCustomRates(mapped.customRates);
+      if (mapped.formValues?.creatorType) {
+        writeCreatorTypeDraft(email, mapped.formValues.creatorType);
+        onCreatorTypeChange?.(mapped.formValues.creatorType);
+      }
+    },
+    [email, onCreatorTypeChange, resetForm]
+  );
+
+  useEffect(() => {
+    if (hasHydratedRef.current) return;
+    const draft = readProfileSetupDraft(email);
+    if (draft?.formValues) {
+      hasHydratedRef.current = true;
+      applyHydration(draft);
+      return;
+    }
+    if (!hasMeaningfulCreatorProfile(creatorProfile)) return;
+    const mapped = mapCreatorProfileToSetupForm(creatorProfile);
+    if (!mapped) return;
+    hasHydratedRef.current = true;
+    applyHydration(mapped);
+  }, [applyHydration, creatorProfile, email]);
+
+  useEffect(() => {
+    if (!creatorType) return;
+    if (!hasHydratedRef.current && readCreatorTypeDraft(email)) return;
+    writeCreatorTypeDraft(email, creatorType);
+    onCreatorTypeChange?.(creatorType);
+  }, [creatorType, email, onCreatorTypeChange]);
+
+  useEffect(() => {
+    if (!hasHydratedRef.current && !isDirty) return;
+    writeProfileSetupDraft(email, {
+      formValues: {
+        creatorType,
+        profilePhoto: profilePhotoUrl,
+        miniProfilePictures,
+        bio,
+        longBio,
+        socialPlatforms: watch("socialPlatforms") || [],
+        categories: selectedCategories,
+        keywordTags,
+        subNiches: subNichesForm,
+        contentCharacteristics,
+        contentRates: watch("contentRates") || [],
+      },
+      profilePhotoUrl,
+      profilePhotoPreview,
+      selectedCategories,
+      keywordTags,
+      contentRates,
+      customRates,
+    });
+  }, [
+    email,
+    isDirty,
+    creatorType,
+    profilePhotoUrl,
+    profilePhotoPreview,
+    miniProfilePictures,
+    bio,
+    longBio,
+    selectedCategories,
+    keywordTags,
+    subNichesForm,
+    contentCharacteristics,
+    contentRates,
+    customRates,
+    watch,
+  ]);
+
   useEffect(() => {
     setIsConnectionLinkCopied(false);
     if (copyConnectionLinkTimeoutRef.current) {
@@ -228,6 +324,9 @@ export default function useProfileSetup({ onNext }) {
    */
   const handleCreatorTypeChange = (type) => {
     setValue("creatorType", type, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+    writeCreatorTypeDraft(email, type);
+    onCreatorTypeChange?.(type);
+    dispatch(patchOnboardingCreatorProfile({ creator_type: type }));
   };
 
   /**
@@ -654,9 +753,46 @@ export default function useProfileSetup({ onNext }) {
 
     const response = await dispatch(setupCreatorProfile({ payload, email }));
     if (response.payload?.success) {
+      const savedType =
+        response.payload?.data?.creator_profile?.creator_type ||
+        response.payload?.data?.creator_profile?.creatorType ||
+        payload.creatorType;
+      writeCreatorTypeDraft(email, savedType);
+      onCreatorTypeChange?.(savedType);
+      dispatch(
+        patchOnboardingCreatorProfile({
+          profile_photo_url: profilePhotoUrl,
+          mini_profile_pictures: payload.miniProfilePictures,
+          bio: payload.bio,
+          long_bio: payload.longBio,
+          categories: payload.categories,
+          keyword_tags: payload.keywordTags,
+          content_rates: payload.contentRates,
+          sub_niches: payload.subNiches,
+          content_characteristics: payload.contentCharacteristics,
+          social_platforms: socialPlatforms,
+          ...(response.payload?.data?.creator_profile || {}),
+          creator_type: savedType,
+        })
+      );
+      writeProfileSetupDraft(email, {
+        formValues: {
+          ...values,
+          profilePhoto: profilePhotoUrl,
+          miniProfilePictures: values.miniProfilePictures,
+        },
+        profilePhotoUrl,
+        profilePhotoPreview,
+        selectedCategories,
+        keywordTags,
+        contentRates,
+        customRates,
+      });
       onNext?.();
-      resetForm();
       dispatch(resetAuth());
+      if (email) {
+        dispatch(getOnboardingStatus(email));
+      }
     }
   };
 
