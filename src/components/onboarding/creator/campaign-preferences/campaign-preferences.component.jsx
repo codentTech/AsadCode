@@ -70,11 +70,11 @@ const CampaignPreferences = ({ onNext, onBack }) => {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </button>
-            <span>Step 4 of 5</span>
-            <span>80% Complete</span>
+            <span>Step 5 of 5</span>
+            <span>100% Complete</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-4/5 transition-all duration-500" />
+            <div className="bg-primary h-2 rounded-full w-full transition-all duration-500" />
           </div>
         </div>
 
@@ -82,7 +82,9 @@ const CampaignPreferences = ({ onNext, onBack }) => {
           <div className="space-y-8">
             {/* Campaign Types */}
             <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Campaign Types</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Campaign Types <span className="text-red-500">*</span>
+              </h3>
 
               <div className="grid md:grid-cols-2 gap-4">
                 {campaignTypes.map((type) => {
@@ -131,7 +133,9 @@ const CampaignPreferences = ({ onNext, onBack }) => {
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Languages + Ethnicity */}
               <div className="bg-white rounded-lg shadow-lg p-4 space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Languages</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  Languages <span className="text-red-500">*</span>
+                </h3>
                 <div>
                   <LanguageSelect
                     name="languages"

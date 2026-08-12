@@ -51,11 +51,11 @@ const Register = ({ onNext, onBack, inviteToken }) => {
               </button>
             ) : null}
 
-            <span className="text-[10px] sm:text-sm">Step 2 of 5</span>
-            <span className="text-[10px] sm:text-sm">40% Complete</span>
+            <span className="text-[10px] sm:text-sm">Step 1 of 5</span>
+            <span className="text-[10px] sm:text-sm">20% Complete</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-2/5 transition-all duration-500"></div>
+            <div className="bg-primary h-2 rounded-full w-1/5 transition-all duration-500"></div>
           </div>
         </div>
 

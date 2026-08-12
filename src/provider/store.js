@@ -72,7 +72,6 @@ const persistConfig = {
   whitelist: [
     "auth",
     "dashboard",
-    "onboarding",
     "users",
     "brandProfile",
     "shortlist",
