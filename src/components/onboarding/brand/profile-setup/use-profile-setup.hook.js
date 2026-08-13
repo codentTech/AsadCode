@@ -2,6 +2,7 @@ import { getOnboardingEmail } from "@/common/utils/users.util";
 import { setupBrandProfile } from "@/provider/features/brand-profile/brand-profile.slice";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
+import useOnboardingSetupProgress from "../../components/onboarding-wizard-shell/use-onboarding-setup-progress.hook";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +19,7 @@ const validationSchema = Yup.object().shape({
   companyDescription: Yup.string().required("Description is required").max(300),
 });
 
-export default function useBrandProfileSetup({ onNext }) {
+export default function useBrandProfileSetup({ onNext, isActive = true }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
   const { enqueueSnackbar } = useSnackbar();
@@ -57,6 +58,37 @@ export default function useBrandProfileSetup({ onNext }) {
   const description = watch("companyDescription");
   const countryName = watch("country");
   const cityName = watch("city");
+  const brandName = watch("brandName");
+  const websiteUrl = watch("websiteUrl");
+
+  const setupProgressSteps = useMemo(
+    () => [
+      { label: "Brand Logo", status: brandLogo ? "complete" : "pending" },
+      { label: "Brand Name", status: brandName ? "complete" : "pending" },
+      { label: "Website URL", status: websiteUrl ? "complete" : "pending" },
+      { label: "Description", status: description ? "complete" : "pending" },
+      {
+        label: "Location",
+        status:
+          (cityName || citySelection?.name) && countrySelection ? "complete" : "pending",
+      },
+    ],
+    [
+      brandLogo,
+      brandName,
+      websiteUrl,
+      description,
+      cityName,
+      citySelection?.name,
+      countrySelection,
+    ],
+  );
+  const setupProgressPercent = useMemo(() => {
+    if (!setupProgressSteps.length) return 0;
+    const completed = setupProgressSteps.filter((step) => step.status === "complete").length;
+    return Math.round((completed / setupProgressSteps.length) * 100);
+  }, [setupProgressSteps]);
+  useOnboardingSetupProgress(setupProgressPercent, setupProgressSteps, isActive);
 
   useEffect(() => {
     if (countryName) {
@@ -211,7 +243,6 @@ export default function useBrandProfileSetup({ onNext }) {
     const response = await dispatch(setupBrandProfile({ payload, email }));
     if (response.payload && response.payload.success) {
       onNext && onNext();
-      resetForm();
     }
   };
 

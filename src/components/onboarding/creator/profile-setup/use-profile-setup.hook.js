@@ -189,6 +189,10 @@ export default function useProfileSetup({ onNext, onCreatorTypeChange }) {
     false,
   ]);
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
+  const isAnyImageUploading = useMemo(
+    () => Boolean(profilePhotoLoading || miniProfilePicturesLoading.some(Boolean)),
+    [profilePhotoLoading, miniProfilePicturesLoading],
+  );
 
   const platforms = useMemo(() => getAllowedPlatformsForCreatorType(creatorType), [creatorType]);
 
@@ -806,7 +810,8 @@ export default function useProfileSetup({ onNext, onCreatorTypeChange }) {
     errors,
     handleFormSubmit,
     isDirty,
-    isLoading: authLoading || isSubmitting || uploadState?.isLoading,
+    isLoading: authLoading || isSubmitting || uploadState?.isLoading || isAnyImageUploading,
+    isAnyImageUploading,
 
     // onboarding info
     name,
