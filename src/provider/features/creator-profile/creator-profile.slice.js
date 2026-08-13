@@ -35,6 +35,7 @@ const generalState = {
 const initialState = {
   setupCreatorProfile: generalState,
   updateCampaignPreferences: generalState,
+  completeConnectSocial: generalState,
   getCreatorById: generalState,
 };
 
@@ -64,6 +65,19 @@ export const setupCreatorCampaignPreferences = createAsyncThunk(
   }
 );
 
+export const completeCreatorConnectSocial = createAsyncThunk(
+  "creator-profile/connect-social",
+  async ({ payload, email }, thunkAPI) => {
+    try {
+      const response = await creatorProfileService.completeCreatorConnectSocial(payload, email);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ payload: error });
+    }
+  }
+);
+
 export const getCreatorById = createAsyncThunk(
   "creator-profile/getById",
   async (creatorId, thunkAPI) => {
@@ -84,6 +98,7 @@ export const creatorProfileSlice = createSlice({
     reset: (state) => {
       state.setupCreatorProfile = generalState;
       state.updateCampaignPreferences = generalState;
+      state.completeConnectSocial = generalState;
     },
   },
   extraReducers: (builder) => {
@@ -113,6 +128,23 @@ export const creatorProfileSlice = createSlice({
       })
       .addCase(setupCreatorCampaignPreferences.rejected, (state, action) => {
         state.updateCampaignPreferences = {
+          ...generalState,
+          isError: true,
+          message: rejectStateMessage(action.payload),
+        };
+      })
+      .addCase(completeCreatorConnectSocial.pending, (state) => {
+        state.completeConnectSocial = { ...generalState, isLoading: true };
+      })
+      .addCase(completeCreatorConnectSocial.fulfilled, (state, action) => {
+        state.completeConnectSocial = {
+          ...generalState,
+          isSuccess: true,
+          data: action.payload,
+        };
+      })
+      .addCase(completeCreatorConnectSocial.rejected, (state, action) => {
+        state.completeConnectSocial = {
           ...generalState,
           isError: true,
           message: rejectStateMessage(action.payload),

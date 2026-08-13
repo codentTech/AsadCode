@@ -3,10 +3,10 @@
 import { isLoginVerified } from "@/common/utils/access-token.util";
 import {
   CLEERCUT_USER_STORAGE_UPDATED,
-  creatorNeedsShowcaseImages,
+  creatorNeedsProfileMedia,
   isShowcaseUploadAllowedPath,
 } from "@/common/utils/creator-showcase.util";
-import { getUser } from "@/common/utils/users.util";
+import { getUser, isOnboardingCompleted } from "@/common/utils/users.util";
 import { usePathname, useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
@@ -27,6 +27,11 @@ export default function Private({ component }) {
     const checkAuth = () => {
       if (!isLoginVerified()) {
         router.push("/login");
+        return;
+      }
+      const user = getUser();
+      if (user && !isOnboardingCompleted(user)) {
+        router.push("/onboarding");
         return;
       }
       setIsAuthenticated(true);
@@ -51,7 +56,7 @@ export default function Private({ component }) {
 
   const user = getUser();
   const blockedByShowcase =
-    creatorNeedsShowcaseImages(user) && !isShowcaseUploadAllowedPath(pathname);
+    creatorNeedsProfileMedia(user) && !isShowcaseUploadAllowedPath(pathname);
 
   if (blockedByShowcase) {
     return <CreatorShowcaseGate key={gateCheck} />;

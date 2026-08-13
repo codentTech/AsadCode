@@ -39,6 +39,14 @@ export const isOnboardingCompleted = (user) => {
   return user?.onboarding_step == ONBOARDING_STEPS.COMPLETED;
 };
 
+export const getResumeOnboardingStep = (user = getUser()) => {
+  const step = Number(user?.onboarding_step);
+  if (!Number.isFinite(step)) return null;
+  if (step < ONBOARDING_STEPS.EMAIL_VERIFICATION) return null;
+  if (step >= ONBOARDING_STEPS.COMPLETED) return null;
+  return step;
+};
+
 export const getOnboardingStepTitle = (step) => {
   const s = Number(step);
   const titles = {
@@ -46,6 +54,7 @@ export const getOnboardingStepTitle = (step) => {
     [ONBOARDING_STEPS.REGISTRATION]: "Registration",
     [ONBOARDING_STEPS.EMAIL_VERIFICATION]: "Email verification",
     [ONBOARDING_STEPS.PROFILE_SETUP]: "Profile setup",
+    [ONBOARDING_STEPS.CONNECT_SOCIAL]: "Connect social",
     [ONBOARDING_STEPS.CAMPAIGN_PREFERENCES]: "Campaign preferences",
     [ONBOARDING_STEPS.IDEAL_CREATOR_SETUP]: "Ideal creator",
     [ONBOARDING_STEPS.COMPLETED]: "Completed",
@@ -62,6 +71,21 @@ export const getAdminUserOnboardingSummaryText = (row) => {
   }
   const title = getOnboardingStepTitle(row.onboarding_step);
   return `In progress — ${title}`;
+};
+
+export const getAdminApplicationStatusLabel = (status) => {
+  switch (String(status || "").toUpperCase()) {
+    case "PENDING":
+      return "Pending review";
+    case "APPROVED":
+      return "Invited — awaiting account";
+    case "ONBOARDING_STARTED":
+      return "Account created — profile incomplete";
+    case "DENIED":
+      return "Denied";
+    default:
+      return status || "Pending";
+  }
 };
 
 export const getImpersonationLandingPath = (user) => {
