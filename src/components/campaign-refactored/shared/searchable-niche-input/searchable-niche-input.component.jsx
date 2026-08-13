@@ -1,7 +1,6 @@
 import React from "react";
-import { Search, X } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useSearchableNicheInput from "./use-searchable-input.hook";
 
 export default function SearchableNicheInput(props) {
@@ -74,15 +73,14 @@ export default function SearchableNicheInput(props) {
             {selectedNiches.map((niche, index) => (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
+                className="inline-flex items-center gap-1 p-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
               >
                 {niche}
                 {handleNicheRemove && (
-                  <CustomButton
-                    text=""
+                  <Trash2
+                    className="h-3 w-3 shrink-0 cursor-pointer text-gray-500 hover:text-red-600"
                     onClick={() => handleNicheRemove(niche)}
-                    className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
-                    startIcon={<X className="text-black w-3 h-3 ml-4" />}
+                    aria-label={`Remove ${niche}`}
                   />
                 )}
               </span>

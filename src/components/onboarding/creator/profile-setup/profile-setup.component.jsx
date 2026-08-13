@@ -12,15 +12,17 @@ import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
-import { ArrowLeft, Camera, DollarSign, Info, Trash2, X } from "lucide-react";
+import { Camera, DollarSign, Info, Trash2, X } from "lucide-react";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useProfileSetup from "./use-profile-setup.hook";
 
-const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
+const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
   const {
     handleSubmit,
     errors,
     handleFormSubmit,
     isLoading,
+    isAnyImageUploading,
 
     // Creator Type
     creatorType,
@@ -93,44 +95,25 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Build Your Public Profile
-          </h1>
-          <p className="text-sm lg:text-md text-white">
-            Showcase your content style and set your rates
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-              type="button"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 3 of 5</span>
-            <span>60% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-3/5 transition-all duration-500" />
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <div className="grid lg:grid-cols-2 gap-8">
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(handleFormSubmit)}
+      footer={
+        <CustomButton
+          text="Continue Profile Setup"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+          <div className="grid gap-3 lg:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
               {/* Creator Type */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   {CREATOR_TYPE_QUESTION} <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-3">{CREATOR_TYPE_QUESTION_HELPER}</p>
@@ -192,8 +175,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Profile Photo */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Profile Photo <span className="text-red-500">*</span>
                 </h3>
 
@@ -220,9 +203,9 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={handlePhotoUpload}
-                        disabled={profilePhotoLoading}
+                        disabled={isAnyImageUploading}
                       >
                         {profilePhotoPreview ? "Change" : "Upload"}
                       </button>
@@ -230,9 +213,9 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
                       {profilePhotoPreview && (
                         <button
                           type="button"
-                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={handleRemoveProfilePhoto}
-                          disabled={profilePhotoLoading}
+                          disabled={isAnyImageUploading}
                         >
                           Remove
                         </button>
@@ -262,8 +245,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Cover Images */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Cover Images <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-3">
@@ -300,9 +283,9 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() => handleMiniProfilePictureUpload(index)}
-                            disabled={loading}
+                            disabled={isAnyImageUploading}
                           >
                             {image ? "Change" : "Upload"}
                           </button>
@@ -310,9 +293,9 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
                           {image && (
                             <button
                               type="button"
-                              className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                              className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                               onClick={() => removeMiniProfilePicture(index)}
-                              disabled={loading}
+                              disabled={isAnyImageUploading}
                             >
                               Remove
                             </button>
@@ -329,8 +312,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Bio */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Tagline <span className="text-red-500">*</span>
                 </h3>
 
@@ -345,8 +328,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Long Bio */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Long Bio <span className="text-gray-500 font-normal text-sm">(Optional)</span>
                 </h3>
 
@@ -375,8 +358,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Categories */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Creator Categories <span className="text-red-500">*</span>
                 </h3>
 
@@ -393,8 +376,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {selectedCategories.length > 0 ? (
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <div className="rounded-lg border border-gray-200 bg-white p-3">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Sub Niches (Optional)
                   </h3>
                   <p className="text-xs text-gray-600 mb-3">
@@ -446,8 +429,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               ) : null}
 
               {/* Keywords */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Keyword Tags <span className="text-gray-500 font-normal text-sm">(Optional)</span>
                 </h3>
 
@@ -506,8 +489,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Content Characteristics (Optional)
                 </h3>
                 <p className="text-xs text-gray-600 mb-4">
@@ -542,8 +525,8 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
 
               {/* Rates */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Content Rates (Optional)
                 </h3>
 
@@ -619,20 +602,7 @@ const ProfileSetup = ({ onNext, onBack, onCreatorTypeChange }) => {
               </div>
             </div>
           </div>
-
-          {/* Continue Button */}
-          <div className="flex justify-end text-center mt-10">
-            <CustomButton
-              text="Continue Profile Setup"
-              className="btn-primary"
-              type="submit"
-              disabled={isLoading}
-              loading={isLoading}
-            />
-          </div>
-        </form>
-      </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

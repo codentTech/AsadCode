@@ -26,14 +26,21 @@ import {
   validateInviteToken,
 } from "@/provider/features/invites/invites.slice";
 import { getOnboardingStatus } from "@/provider/features/onboarding/onboarding.slice";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BrandCampaignPreferences from "./brand/campaign-preferences/campaign-preferences.component";
 import IdealCreator from "./brand/ideal-creator/ideal-creator.component";
 import BrandProfile from "./brand/profile-setup/profile-setup.component";
 import AccountType from "./components/account-type/account-type.component";
+import PreparingWorkspace from "./components/preparing-workspace/preparing-workspace.component";
 import EmailVerification from "./components/email-verification/email-verification.component";
+import OnboardingWizardShell from "./components/onboarding-wizard-shell/onboarding-wizard-shell.component";
+import {
+  getOnboardingWizardIndex,
+  getOnboardingWizardSteps,
+  isOnboardingWizardStep,
+} from "./components/onboarding-wizard-shell/onboarding-wizard.config";
 import Register from "./components/register/register.component";
 import CampaignPreferences from "./creator/campaign-preferences/campaign-preferences.component";
 import ConnectSocial from "./creator/connect-social/connect-social.component";
@@ -47,8 +54,20 @@ const CREATOR_PHASE2_STEPS = new Set([
   ONBOARDING_STEPS.CAMPAIGN_PREFERENCES,
 ]);
 
+const BRAND_PHASE2_STEPS = new Set([
+  ONBOARDING_STEPS.PROFILE_SETUP,
+  ONBOARDING_STEPS.CONNECT_SOCIAL,
+  ONBOARDING_STEPS.CAMPAIGN_PREFERENCES,
+  ONBOARDING_STEPS.IDEAL_CREATOR_SETUP,
+]);
+
+const isBrandCampaignPreferencesStep = (step) =>
+  step === ONBOARDING_STEPS.CONNECT_SOCIAL ||
+  step === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES;
+
 export default function useOnboarding() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const validateTokenState = useSelector(selectValidateInviteToken);
   const isCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
@@ -75,6 +94,7 @@ export default function useOnboarding() {
   const hasUserNavigatedRef = useRef(false);
   const [currentStep, setCurrentStep] = useState(() => (readInviteTokenFromWindow() ? 2 : 1));
   const [selectedAccountType, setSelectedAccountType] = useState("");
+  const [preparingRedirect, setPreparingRedirect] = useState(null);
   const [visitedSteps, setVisitedSteps] = useState(() => new Set());
   const [selectedCreatorType, setSelectedCreatorType] = useState(() => {
     return (
@@ -255,6 +275,20 @@ export default function useOnboarding() {
     showApplicationConfirmation,
   ]);
 
+  const getMinOnboardingStep = useCallback(() => {
+    const loggedInStep = Number(getUser()?.onboarding_step);
+    if (
+      hasCreatedAccount(onboardingStatus) ||
+      (Number.isFinite(loggedInStep) && loggedInStep >= ONBOARDING_STEPS.PROFILE_SETUP)
+    ) {
+      return ONBOARDING_STEPS.PROFILE_SETUP;
+    }
+    if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
+      return ONBOARDING_STEPS.REGISTRATION;
+    }
+    return ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION;
+  }, [onboardingStatus, inviteTokenPresent]);
+
   const nextStep = useCallback(() => {
     hasUserNavigatedRef.current = true;
     setCurrentStep((prev) => prev + 1);
@@ -263,22 +297,52 @@ export default function useOnboarding() {
   const prevStep = useCallback(() => {
     hasUserNavigatedRef.current = true;
     setCurrentStep((prev) => {
-      const loggedInStep = Number(getUser()?.onboarding_step);
-      const minStep =
-        hasCreatedAccount(onboardingStatus) ||
-        (Number.isFinite(loggedInStep) && loggedInStep >= ONBOARDING_STEPS.PROFILE_SETUP)
-          ? ONBOARDING_STEPS.PROFILE_SETUP
-          : ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION;
-      return Math.max(minStep, prev - 1);
+      if (prev === ONBOARDING_STEPS.IDEAL_CREATOR_SETUP) {
+        return ONBOARDING_STEPS.CONNECT_SOCIAL;
+      }
+      if (prev === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES) {
+        return ONBOARDING_STEPS.PROFILE_SETUP;
+      }
+      return Math.max(getMinOnboardingStep(), prev - 1);
     });
-  }, [onboardingStatus]);
+  }, [getMinOnboardingStep]);
+
+  const goToIdealCreatorSetup = useCallback(() => {
+    hasUserNavigatedRef.current = true;
+    setCurrentStep(ONBOARDING_STEPS.IDEAL_CREATOR_SETUP);
+  }, []);
+
+  const handleWizardStepSelect = useCallback(
+    (index) => {
+      const isCreatorWizard =
+        Boolean(isCreatorMode) ||
+        onboardingStatus?.user?.role === ROLES.CREATOR ||
+        getUser()?.role === ROLES.CREATOR;
+      const wizardSteps = getOnboardingWizardSteps(isCreatorWizard);
+      const target = wizardSteps[index];
+      if (!target) return;
+      const minStep = getMinOnboardingStep();
+      if (target.id < minStep) return;
+      const activeIndex = getOnboardingWizardIndex(currentStep, isCreatorWizard);
+      if (index > activeIndex) return;
+      hasUserNavigatedRef.current = true;
+      setCurrentStep(target.id);
+    },
+    [currentStep, getMinOnboardingStep, isCreatorMode, onboardingStatus?.user?.role]
+  );
 
   const handleCreatorTypeChange = useCallback((type) => {
     const normalized = normalizeCreatorType(type);
     if (normalized) setSelectedCreatorType(normalized);
   }, []);
 
-  const completeOnboarding = useCallback(() => {}, []);
+  const completeOnboarding = useCallback(() => {
+    const isCreator =
+      Boolean(isCreatorMode) ||
+      onboardingStatus?.user?.role === ROLES.CREATOR ||
+      getUser()?.role === ROLES.CREATOR;
+    setPreparingRedirect(isCreator ? "/campaign" : "/login");
+  }, [isCreatorMode, onboardingStatus?.user?.role]);
 
   const handleSelectMode = useCallback(
     (type) => {
@@ -301,7 +365,8 @@ export default function useOnboarding() {
   const { isValidatingToken, isTokenValid, tokenError, hasValidatedToken } =
     getInviteValidationState(inviteToken, validateTokenState);
 
-  const isHidden = (step) => (currentStep === step ? "block" : "hidden");
+  const isHidden = (step) =>
+    currentStep === step ? "flex h-full min-h-0 flex-1 flex-col" : "hidden";
   const showStep = (step) => visitedSteps.has(step) || currentStep === step;
 
   const renderCreatorPhase2 = () => (
@@ -342,7 +407,67 @@ export default function useOnboarding() {
     </>
   );
 
+  const showBrandCampaignPreferences =
+    isBrandCampaignPreferencesStep(currentStep) ||
+    visitedSteps.has(ONBOARDING_STEPS.CONNECT_SOCIAL) ||
+    visitedSteps.has(ONBOARDING_STEPS.CAMPAIGN_PREFERENCES);
+
+  const renderBrandPhase2 = () => (
+    <>
+      {showStep(ONBOARDING_STEPS.PROFILE_SETUP) && (
+        <div
+          className={isHidden(ONBOARDING_STEPS.PROFILE_SETUP)}
+          aria-hidden={currentStep !== ONBOARDING_STEPS.PROFILE_SETUP}
+        >
+          <BrandProfile
+            onNext={nextStep}
+            onBack={prevStep}
+            isActive={currentStep === ONBOARDING_STEPS.PROFILE_SETUP}
+          />
+        </div>
+      )}
+      {showBrandCampaignPreferences || currentStep === ONBOARDING_STEPS.PROFILE_SETUP ? (
+        <div
+          className={
+            isBrandCampaignPreferencesStep(currentStep)
+              ? "flex h-full min-h-0 flex-1 flex-col"
+              : "hidden"
+          }
+          aria-hidden={!isBrandCampaignPreferencesStep(currentStep)}
+        >
+          <BrandCampaignPreferences
+            onNext={goToIdealCreatorSetup}
+            onBack={prevStep}
+            isActive={isBrandCampaignPreferencesStep(currentStep)}
+          />
+        </div>
+      ) : null}
+      {showStep(ONBOARDING_STEPS.IDEAL_CREATOR_SETUP) && (
+        <div
+          className={isHidden(ONBOARDING_STEPS.IDEAL_CREATOR_SETUP)}
+          aria-hidden={currentStep !== ONBOARDING_STEPS.IDEAL_CREATOR_SETUP}
+        >
+          <IdealCreator
+            onNext={completeOnboarding}
+            onBack={prevStep}
+            isActive={currentStep === ONBOARDING_STEPS.IDEAL_CREATOR_SETUP}
+          />
+        </div>
+      )}
+    </>
+  );
+
   const stepContent = (() => {
+    if (preparingRedirect) {
+      return (
+        <PreparingWorkspace
+          onReady={() => {
+            router.push(preparingRedirect);
+          }}
+        />
+      );
+    }
+
     if (!hasReadInviteFromUrl) {
       return <FullPageLoader />;
     }
@@ -404,16 +529,42 @@ export default function useOnboarding() {
       onboardingStatus?.user?.role === ROLES.CREATOR ||
       getUser()?.role === ROLES.CREATOR;
 
+    const wrapWizard = (content) => {
+      if (!isOnboardingWizardStep(currentStep)) return content;
+      const activeIndex = getOnboardingWizardIndex(currentStep, isCreatorWizard);
+      const minStep = getMinOnboardingStep();
+      const wizardSteps = getOnboardingWizardSteps(isCreatorWizard).map((step, index) => ({
+        ...step,
+        disabled: step.id < minStep || index > activeIndex,
+      }));
+      const showBack = currentStep > minStep;
+      return (
+        <OnboardingWizardShell
+          title={isCreatorWizard ? "Creator setup" : "Client setup"}
+          steps={wizardSteps}
+          activeIndex={activeIndex}
+          onBack={prevStep}
+          onStepSelect={handleWizardStepSelect}
+          showBack={showBack}
+        >
+          {content}
+        </OnboardingWizardShell>
+      );
+    };
+
     if (isCreatorWizard && CREATOR_PHASE2_STEPS.has(currentStep)) {
-      return renderCreatorPhase2();
+      return wrapWizard(renderCreatorPhase2());
+    }
+
+    if (!isCreatorWizard && BRAND_PHASE2_STEPS.has(currentStep)) {
+      return wrapWizard(renderBrandPhase2());
     }
 
     if (
-      isCreatorWizard &&
-      (currentStep === ONBOARDING_STEPS.REGISTRATION ||
-        currentStep === ONBOARDING_STEPS.EMAIL_VERIFICATION)
+      currentStep === ONBOARDING_STEPS.REGISTRATION ||
+      currentStep === ONBOARDING_STEPS.EMAIL_VERIFICATION
     ) {
-      return (
+      return wrapWizard(
         <>
           {showStep(ONBOARDING_STEPS.REGISTRATION) && (
             <div
@@ -448,24 +599,6 @@ export default function useOnboarding() {
             onNext={nextStep}
           />
         );
-      case ONBOARDING_STEPS.REGISTRATION:
-        return (
-          <Register
-            onNext={nextStep}
-            onBack={prevStep}
-            inviteToken={isTokenValid ? inviteToken : null}
-          />
-        );
-      case ONBOARDING_STEPS.EMAIL_VERIFICATION:
-        return <EmailVerification onNext={nextStep} onBack={prevStep} />;
-      case ONBOARDING_STEPS.PROFILE_SETUP:
-        return <BrandProfile onNext={nextStep} onBack={prevStep} />;
-      case ONBOARDING_STEPS.CONNECT_SOCIAL:
-        return <BrandCampaignPreferences onNext={nextStep} onBack={prevStep} />;
-      case ONBOARDING_STEPS.CAMPAIGN_PREFERENCES:
-        return <BrandCampaignPreferences onNext={nextStep} onBack={prevStep} />;
-      case ONBOARDING_STEPS.IDEAL_CREATOR_SETUP:
-        return !isCreatorMode && <IdealCreator onNext={completeOnboarding} onBack={prevStep} />;
       default:
         return (
           <AccountType

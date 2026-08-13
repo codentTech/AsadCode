@@ -7,10 +7,11 @@ import LanguageSelect from "@/common/components/dropdowns/language-select/langua
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import StateSelect from "@/common/components/dropdowns/state-select/state-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
-import { ArrowLeft, CheckCircle, MapPin } from "lucide-react";
+import { CheckCircle, MapPin } from "lucide-react";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useCampaignPreferences from "./use-campaign-preferences.hook";
 
-const CampaignPreferences = ({ onNext, onBack }) => {
+const CampaignPreferences = ({ onNext }) => {
   const {
     // form
     handleSubmit,
@@ -48,41 +49,23 @@ const CampaignPreferences = ({ onNext, onBack }) => {
   } = useCampaignPreferences({ onNext });
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Tell Us the Campaigns You're Open To
-          </h1>
-          <p className="text-sm lg:text-lg text-white">
-            Help brands find you for the right opportunities
-          </p>
-        </div>
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-              type="button"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 5 of 5</span>
-            <span>100% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-full transition-all duration-500" />
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-8">
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <CustomButton
+          text="Save Preferences"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+          <div className="flex flex-col gap-3">
             {/* Campaign Types */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-3">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">
                 Campaign Types <span className="text-red-500">*</span>
               </h3>
 
@@ -132,8 +115,8 @@ const CampaignPreferences = ({ onNext, onBack }) => {
             {/* Language & Location */}
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Languages + Ethnicity */}
-              <div className="bg-white rounded-lg shadow-lg p-4 space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Languages <span className="text-red-500">*</span>
                 </h3>
                 <div>
@@ -148,7 +131,7 @@ const CampaignPreferences = ({ onNext, onBack }) => {
 
                 {/* In-Person Opportunities */}
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1 border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1 border-t pt-4">
                     In-Person Opportunities <span className="text-red-500">*</span>
                   </h3>
                   <p className="text-xs text-gray-600 mb-4">
@@ -189,8 +172,8 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                 </div>
               </div>
               {/* Ethnicity */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">Ethnicity (Optional)</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Ethnicity (Optional)</h3>
                 <p className="text-xs text-gray-600 mb-3">
                   This information is used only for brand filtering and is never shown publicly.
                 </p>
@@ -225,8 +208,8 @@ const CampaignPreferences = ({ onNext, onBack }) => {
             </div>
 
             {/* Shipping Address (MANDATORY) */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <div className="rounded-lg border border-gray-200 bg-white p-3">
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
                 Shipping Address <span className="text-red-500">*</span>
               </h3>
 
@@ -311,39 +294,11 @@ const CampaignPreferences = ({ onNext, onBack }) => {
                 />
               </div>
             </div>
-
-            {/* Save Button */}
-            <div className="text-center">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="mb-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4">
-                    <CheckCircle className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Done!</h3>
-                  <p className="text-gray-600">
-                    Save your preferences and start receiving campaign opportunities
-                  </p>
-                </div>
-
-                <div className="flex justify-end">
-                  <CustomButton
-                    text="Save Preferences"
-                    className="btn-primary"
-                    type="submit"
-                    disabled={isLoading}
-                    loading={isLoading}
-                  />
-                </div>
-              </div>
-            </div>
+            <p className="text-xs text-gray-500">
+              Used for gifting campaigns and product based collaborations
+            </p>
           </div>
-        </form>
-
-        <div className="mt-4 text-xs text-gray-500">
-          Used for gifting campaigns and product based collaborations
-        </div>
-      </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

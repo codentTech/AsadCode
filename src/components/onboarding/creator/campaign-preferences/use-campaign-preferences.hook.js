@@ -14,7 +14,6 @@ import {
   readCampaignPrefsDraft,
   writeCampaignPrefsDraft,
 } from "@/common/utils/onboarding-flow.util";
-import { useRouter } from "next/navigation";
 import { Camera, DollarSign, Gift, Percent } from "lucide-react";
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { CLEERCUT_USER_STORAGE_UPDATED } from "@/common/utils/creator-showcase.util";
@@ -66,7 +65,6 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function useCampaignPreferences({ onNext }) {
-  const route = useRouter();
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
   const hasHydratedRef = useRef(false);
@@ -448,10 +446,8 @@ export default function useCampaignPreferences({ onNext }) {
         window.dispatchEvent(new Event(CLEERCUT_USER_STORAGE_UPDATED));
       }
       clearCampaignPrefsDraft(email);
-      onNext?.();
-      resetForm();
       localStorage.removeItem("email");
-      route.push("/campaign");
+      onNext?.();
     }
   };
 

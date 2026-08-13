@@ -3,13 +3,11 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
-import { getCreatorInviteProgress } from "@/common/utils/creator-onboarding-progress.util";
-import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
-import { ArrowLeft, CheckCircle, RefreshCw } from "lucide-react";
+import { CheckCircle, Link2, RefreshCw, Share2, Users } from "lucide-react";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useConnectSocial from "./use-connect-social.hook";
 
-const ConnectSocial = ({ onNext, onBack, creatorTypeHint }) => {
-  const progress = getCreatorInviteProgress(ONBOARDING_STEPS.CONNECT_SOCIAL);
+const ConnectSocial = ({ onNext, creatorTypeHint }) => {
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
   const {
     platforms,
@@ -28,116 +26,129 @@ const ConnectSocial = ({ onNext, onBack, creatorTypeHint }) => {
   } = useConnectSocial({ onNext, creatorTypeHint });
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">Connect your socials</h1>
-          <p className="text-sm lg:text-md text-white">
-            Link accounts so brands can verify your reach — or add a media kit link instead
-          </p>
-        </div>
+    <OnboardingStepLayout
+      footer={
+        <>
+          <CustomButton
+            type="button"
+            text="Skip for now"
+            className="btn-outline w-full sm:w-auto"
+            onClick={handleSkip}
+            disabled={isLoading}
+            loading={isLoading}
+          />
 
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-              type="button"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>
-              Step {progress.step} of {progress.total}
-            </span>
-            <span>{progress.percent}% Complete</span>
+          <CustomButton
+            type="button"
+            text="Continue"
+            className="btn-primary w-full sm:ml-auto sm:w-auto"
+            onClick={handleContinue}
+            disabled={isLoading}
+          />
+        </>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <section className="flex items-start gap-3 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+            <Share2 className="h-4 w-4" />
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className={`bg-primary h-2 rounded-full ${progress.barClass} transition-all duration-500`}
-            />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold text-gray-900">Connect your reach</h3>
+            <p className="mt-0.5 text-[11px] leading-snug text-gray-600 sm:text-xs">
+              Link one account or add a media kit. You can skip and connect later from your
+              portfolio.
+            </p>
           </div>
-        </div>
+        </section>
 
-        <div className="bg-white rounded-lg shadow-lg p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Social accounts</h3>
-              <p className="text-xs text-gray-600 mt-1">
-                Connect at least one account or add a media kit to continue. You can also skip and
-                connect later from your portfolio.
-              </p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                  <Users className="h-3.5 w-3.5" />
+                </span>
+                <h3 className="text-sm font-semibold text-gray-900">Social accounts</h3>
+              </div>
+              <CustomButton
+                text="Refresh"
+                type="button"
+                onClick={loadConnectedAccounts}
+                className="btn-outline shrink-0"
+                startIcon={<RefreshCw className="h-3 w-3" />}
+              />
             </div>
-            <CustomButton
-              text="Refresh"
-              type="button"
-              onClick={loadConnectedAccounts}
-              className="btn-outline text-xs px-3 py-1.5"
-              startIcon={<RefreshCw className="w-3 h-3" />}
-            />
-          </div>
+            <p className="mb-2 text-[11px] leading-snug text-gray-600 sm:text-xs">
+              Connect at least one platform so brands can verify your reach.
+            </p>
 
-          <div className="grid grid-cols-1 gap-2.5">
-            {platforms.map((platform) => {
-              const isConnected = isPlatformConnected(platform);
-              const platformColor = getPlatformColor(platform);
-              const connectedData = getConnectedAccountData(platform);
-              const username =
-                connectedData?.profile_data?.username ||
-                connectedData?.profile_data?.handle ||
-                connectedData?.profile_data?.name ||
-                "";
-              const isPlatformLoading = Boolean(socialConnectLoadingMap?.[platform]);
+            <div className="grid gap-2 sm:grid-cols-1">
+              {platforms.map((platform) => {
+                const isConnected = isPlatformConnected(platform);
+                const platformColor = getPlatformColor(platform);
+                const connectedData = getConnectedAccountData(platform);
+                const username =
+                  connectedData?.profile_data?.username ||
+                  connectedData?.profile_data?.handle ||
+                  connectedData?.profile_data?.name ||
+                  "";
+                const isPlatformLoading = Boolean(socialConnectLoadingMap?.[platform]);
 
-              return (
-                <div
-                  key={platform}
-                  className={`relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                    isConnected
-                      ? "border-indigo-200 bg-indigo-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 flex-1">
-                      <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                          isConnected ? platformColor : "bg-gray-100"
-                        }`}
-                      >
-                        {getPlatformIcon(platform)}
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-semibold text-gray-900 text-sm">{platform}</span>
-                        {isConnected ? (
-                          <div className="flex items-center space-x-2">
-                            <CheckCircle className="w-3 h-3 text-indigo-500" />
-                            <span className="text-xs text-indigo-600 font-medium">Connected</span>
-                            {username ? (
-                              <span className="text-xs text-gray-500">@{username}</span>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-500">Not connected</span>
-                        )}
-                      </div>
+                return (
+                  <div
+                    key={platform}
+                    className={`flex items-center gap-2.5 rounded-md border px-2.5 py-2 ${
+                      isConnected ? "border-primary bg-indigo-50" : "border-gray-200 bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                        isConnected ? platformColor : "bg-white ring-1 ring-gray-200"
+                      }`}
+                    >
+                      {getPlatformIcon(platform)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-gray-900">{platform}</p>
+                      {isConnected ? (
+                        <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] text-gray-600 sm:text-xs">
+                          <CheckCircle className="h-3 w-3 shrink-0 text-primary" />
+                          <span className="shrink-0 font-medium text-primary">Connected</span>
+                          {username ? (
+                            <span className="min-w-0 truncate text-gray-500">@{username}</span>
+                          ) : null}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-[10px] text-gray-500 sm:text-xs">Not connected</p>
+                      )}
                     </div>
                     {!isConnected ? (
                       <CustomButton
-                        text={isPlatformLoading ? "Connecting…" : "Connect"}
+                        text="Connect"
                         type="button"
-                        className="btn-primary text-xs"
+                        className="btn-primary shrink-0"
                         disabled={isPlatformLoading}
+                        loading={isPlatformLoading}
                         onClick={() => handleConnectSocialAccounts(platform)}
                       />
                     ) : null}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </section>
 
-          <div className="border-t border-gray-100 pt-4">
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                <Link2 className="h-3.5 w-3.5" />
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">Media kit</h3>
+            </div>
+            <p className="mb-2 text-[11px] leading-snug text-gray-600 sm:text-xs">
+              Use a link if you cannot connect a social account right now.
+            </p>
             <CustomInput
               label="Media kit link"
               name="mediaKitUrl"
@@ -147,32 +158,16 @@ const ConnectSocial = ({ onNext, onBack, creatorTypeHint }) => {
               isRequired={false}
               errors={mediaKitErrors}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Use this if you cannot connect a social account right now.
-            </p>
-          </div>
-
-          {stepError ? <p className="text-xs text-red-600">{stepError}</p> : null}
-
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <CustomButton
-              type="button"
-              text="Skip for now"
-              className="btn-outline flex-1"
-              onClick={handleSkip}
-              disabled={isLoading}
-            />
-            <CustomButton
-              type="button"
-              text="Continue"
-              className="btn-primary flex-1"
-              onClick={handleContinue}
-              disabled={isLoading}
-            />
-          </div>
+          </section>
         </div>
+
+        {stepError ? (
+          <p className="w-full bg-red-50 border border-red-200 rounded-md p-2 text-center text-xs leading-snug text-red-600 sm:flex-1 sm:px-3 sm:text-left">
+            {stepError}
+          </p>
+        ) : null}
       </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

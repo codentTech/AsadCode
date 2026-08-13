@@ -1,12 +1,12 @@
-import { Building2, Upload, Camera, MapPin, ArrowLeft, Eye } from "lucide-react";
+import { Building2, Upload, Camera, MapPin, Eye } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import useBrandProfileSetup from "./use-profile-setup.hook";
-import SetupProgress from "../../components/setup-progress/setup-progress.component";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 
-const BrandProfile = ({ onNext, onBack }) => {
+const BrandProfile = ({ onNext, isActive = true }) => {
   const {
     register,
     handleSubmit,
@@ -28,44 +28,28 @@ const BrandProfile = ({ onNext, onBack }) => {
     previewCountryName,
     previewCityName,
     description,
-  } = useBrandProfileSetup({ onNext });
+  } = useBrandProfileSetup({ onNext, isActive });
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Build Your Client Profile
-          </h1>
-          <p className="text-sm lg:text-md text-white">
-            Set up your public profile that creators will see
-          </p>
-        </div>
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 4 of 6</span>
-            <span>66% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-2/3 transition-all duration-500"></div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid lg:grid-cols-2 gap-8">
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <CustomButton
+          text="Continue Account Setup"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+          <div className="grid gap-3 lg:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
               {/* Brand Information */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
                   Client Information <span className="text-red-500">*</span>
                 </h3>
 
@@ -90,8 +74,8 @@ const BrandProfile = ({ onNext, onBack }) => {
               </div>
 
               {/* Brand Logo */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Brand Logo <span className="text-red-500">*</span>
                 </h3>
 
@@ -152,8 +136,8 @@ const BrandProfile = ({ onNext, onBack }) => {
               </div>
 
               {/* Location */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
                   Location <span className="text-red-500">*</span>
                 </h3>
 
@@ -185,9 +169,9 @@ const BrandProfile = ({ onNext, onBack }) => {
             {/* Right Column */}
             <div className="space-y-4">
               {/* Live Preview */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">Live Preview</h3>
                   <div className="flex items-center text-xs text-gray-500">
                     <Eye className="h-3 w-3 mr-1" />
                     Public view
@@ -234,8 +218,8 @@ const BrandProfile = ({ onNext, onBack }) => {
               </div>
 
               {/* Company Description */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900">
                   Company Description <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-2">
@@ -258,51 +242,9 @@ const BrandProfile = ({ onNext, onBack }) => {
                   )}
                 </div>
               </div>
-
-              {/* Profile Completion Status */}
-              <SetupProgress
-                percent={brandLogo && (description || "").length > 50 ? 100 : 50}
-                steps={[
-                  {
-                    label: "Brand Logo",
-                    status: brandLogo ? "complete" : "pending",
-                  },
-                  {
-                    label: "Brand Name",
-                    status: getValues("brandName") ? "complete" : "pending",
-                  },
-                  {
-                    label: "Website URL",
-                    status: getValues("websiteUrl") ? "complete" : "pending",
-                  },
-                  {
-                    label: "Description",
-                    status: description ? "complete" : "pending",
-                  },
-                  {
-                    label: "Location",
-                    status:
-                      (getValues("city") || citySelection?.name) && countrySelection
-                        ? "complete"
-                        : "pending",
-                  },
-                ]}
-              />
             </div>
           </div>
-        </form>
-        {/* Continue Button */}
-        <div className="flex justify-end mt-10">
-          <CustomButton
-            text="Continue Account Setup"
-            className="btn-primary"
-            onClick={handleSubmit(onSubmit)}
-            disabled={isLoading}
-            loading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 
