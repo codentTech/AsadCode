@@ -8,8 +8,8 @@ import {
 import COUNTRIES from "@/common/constants/countries.constant";
 import { setupBrandIdealCreator } from "@/provider/features/brand-profile/brand-profile.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import useOnboardingSetupProgress from "../../components/onboarding-wizard-shell/use-onboarding-setup-progress.hook";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -30,8 +30,7 @@ const validationSchema = Yup.object().shape({
   platforms: Yup.array().min(1, "Select at least one platform"),
 });
 
-export default function useIdealCreator({ onNext }) {
-  const router = useRouter();
+export default function useIdealCreator({ onNext, isActive = true }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
@@ -64,6 +63,44 @@ export default function useIdealCreator({ onNext }) {
   const selectedCities = watch("cities") || [];
   const selectedAgeRanges = watch("age_ranges");
   const selectedPlatforms = watch("platforms");
+
+  const setupProgressSteps = useMemo(
+    () => [
+      {
+        label: "Minimum Followers",
+        status: minFollowers ? "complete" : "pending",
+      },
+      {
+        label: "Gender",
+        status: selectedGender?.length > 0 ? "count" : "pending",
+        count: selectedGender?.length,
+      },
+      {
+        label: "Countries",
+        status: selectedCountries?.length > 0 ? "count" : "pending",
+        count: selectedCountries?.length,
+      },
+      {
+        label: "Age Ranges",
+        status: selectedAgeRanges?.length > 0 ? "count" : "pending",
+        count: selectedAgeRanges?.length,
+      },
+      {
+        label: "Platforms",
+        status: selectedPlatforms?.length > 0 ? "count" : "pending",
+        count: selectedPlatforms?.length,
+      },
+    ],
+    [minFollowers, selectedGender, selectedCountries, selectedAgeRanges, selectedPlatforms],
+  );
+  const setupProgressPercent = useMemo(() => {
+    if (!setupProgressSteps.length) return 0;
+    const completed = setupProgressSteps.filter(
+      (step) => step.status === "complete" || step.status === "count"
+    ).length;
+    return Math.round((completed / setupProgressSteps.length) * 100);
+  }, [setupProgressSteps]);
+  useOnboardingSetupProgress(setupProgressPercent, setupProgressSteps, isActive);
 
   const [countrySelectValue, setCountrySelectValue] = useState(null);
   const [citySelectValue, setCitySelectValue] = useState(null);
@@ -260,10 +297,8 @@ export default function useIdealCreator({ onNext }) {
       };
       const response = await dispatch(setupBrandIdealCreator({ payload, email }));
       if (response.payload && response.payload.success) {
-        onNext && onNext();
-        resetForm();
         localStorage.removeItem("email");
-        router.push("/login");
+        onNext && onNext();
       }
     } catch (error) {
       console.error("Form submission error:", error.message);

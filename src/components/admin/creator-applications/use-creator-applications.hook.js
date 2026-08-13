@@ -6,6 +6,7 @@ import {
 } from "@/common/constants/options.constant";
 import { formatDate } from "@/common/utils/date.utils";
 import { extractSimpleSelectValue } from "@/common/utils/generic.util";
+import { getAdminApplicationStatusLabel } from "@/common/utils/users.util";
 import {
   getAllCreatorApplications,
   approveApplicationAndInvite,
@@ -94,7 +95,7 @@ const creatorApplicationsColumns = [
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(row.status)}`}
         >
-          {row.status || "Pending"}
+          {getAdminApplicationStatusLabel(row.status)}
         </span>
       );
     },
