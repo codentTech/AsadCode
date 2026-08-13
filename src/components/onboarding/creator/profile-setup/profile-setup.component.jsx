@@ -245,61 +245,61 @@ const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
               </div>
 
               {/* Cover Images */}
-              <div className="rounded-lg border border-gray-200 bg-white p-3">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-lg">
                   Cover Images <span className="text-red-500">*</span>
                 </h3>
-                <p className="text-xs text-gray-600 mb-3">
+                <p className="mb-3 text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
                   Choose 3 images that show you in action creating content, whether that is a
                   lifestyle shot, a product review or anything that gives brands a clear feel for
                   your style and niche.
                 </p>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2 md:gap-3">
                   {[0, 1, 2].map((index) => {
                     const image = miniProfilePictures?.[index];
                     const loading = miniProfilePicturesLoading?.[index];
 
                     return (
-                      <div key={index} className="space-y-2">
-                        <div className="relative aspect-[3/4] rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                      <div key={index} className="flex gap-3 sm:flex-col sm:gap-2">
+                        <div className="relative flex aspect-[3/4] w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-100 sm:w-full">
                           {image ? (
                             <img
                               src={image}
                               alt={`Cover image ${index + 1}`}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover"
                             />
                           ) : (
-                            <Camera className="h-5 w-5 text-gray-400" />
+                            <Camera className="h-4 w-4 text-gray-400 sm:h-5 sm:w-5" />
                           )}
 
                           {loading && (
-                            <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
-                              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/75">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent sm:h-5 sm:w-5" />
                             </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:flex-none sm:flex-row sm:items-center">
                           <button
                             type="button"
-                            className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full rounded-md bg-indigo-50 px-2 py-1.5 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:text-xs"
                             onClick={() => handleMiniProfilePictureUpload(index)}
                             disabled={isAnyImageUploading}
                           >
                             {image ? "Change" : "Upload"}
                           </button>
 
-                          {image && (
+                          {image ? (
                             <button
                               type="button"
-                              className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                              className="w-full rounded-md bg-red-50 px-2 py-1.5 text-[10px] text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-xs"
                               onClick={() => removeMiniProfilePicture(index)}
                               disabled={isAnyImageUploading}
                             >
                               Remove
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -307,7 +307,7 @@ const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
                 </div>
 
                 {errors.miniProfilePictures ? (
-                  <p className="text-xs text-red-600 mt-3">{errors.miniProfilePictures.message}</p>
+                  <p className="mt-3 text-xs text-red-600">{errors.miniProfilePictures.message}</p>
                 ) : null}
               </div>
 

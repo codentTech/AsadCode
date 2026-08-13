@@ -162,7 +162,7 @@ const ConnectSocial = ({ onNext, creatorTypeHint }) => {
         </div>
 
         {stepError ? (
-          <p className="w-full bg-red-50 border border-red-200 rounded-md p-2 text-center text-xs leading-snug text-red-600 sm:flex-1 sm:px-3 sm:text-left">
+          <p className="w-full bg-red-50 border border-red-200 rounded-md p-2 text-left text-xs leading-snug text-red-600 sm:flex-1 sm:px-3 sm:text-left">
             {stepError}
           </p>
         ) : null}
