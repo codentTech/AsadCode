@@ -36,6 +36,7 @@ import BrandProfile from "./brand/profile-setup/profile-setup.component";
 import AccountType from "./components/account-type/account-type.component";
 import PreparingWorkspace from "./components/preparing-workspace/preparing-workspace.component";
 import EmailVerification from "./components/email-verification/email-verification.component";
+import OnboardingEmailRecovery from "./components/onboarding-email-recovery/onboarding-email-recovery.component";
 import OnboardingWizardShell from "./components/onboarding-wizard-shell/onboarding-wizard-shell.component";
 import {
   getOnboardingWizardIndex,
@@ -100,6 +101,7 @@ export default function useOnboarding() {
   const [visitedSteps, setVisitedSteps] = useState(() => new Set());
   const [selectedCreatorType, setSelectedCreatorType] = useState(null);
   const [showUnfinishedOnboardingModal, setShowUnfinishedOnboardingModal] = useState(false);
+  const [showEmailRecovery, setShowEmailRecovery] = useState(false);
 
   const creatorTypeHint = useMemo(() => {
     return (
@@ -169,10 +171,9 @@ export default function useOnboarding() {
   useEffect(() => {
     if (
       validateTokenState?.isSuccess &&
-      validateTokenState?.data?.email &&
-      typeof window !== "undefined"
+      validateTokenState?.data?.email
     ) {
-      window.localStorage.setItem("email", validateTokenState.data.email);
+      persistOnboardingEmail(validateTokenState.data.email);
     }
   }, [validateTokenState?.isSuccess, validateTokenState?.data?.email]);
 
@@ -285,7 +286,10 @@ export default function useOnboarding() {
       shouldShowCreatorApplication({
         isCreatorMode,
         inviteToken,
-        isTokenValid: validateTokenState?.isSuccess,
+        isTokenValid: validateTokenState?.isSuccess && !validateTokenState?.data?.resumeOnly,
+        isResumeInvite: Boolean(
+          validateTokenState?.isSuccess && validateTokenState?.data?.resumeOnly
+        ),
         currentStep,
         showApplicationConfirmation,
       })
@@ -298,6 +302,7 @@ export default function useOnboarding() {
     isCreatorMode,
     inviteToken,
     validateTokenState?.isSuccess,
+    validateTokenState?.data?.resumeOnly,
     currentStep,
     showApplicationConfirmation,
   ]);
@@ -407,7 +412,29 @@ export default function useOnboarding() {
     prevStep();
   }, [prevStep]);
 
-  const { isValidatingToken, isTokenValid, tokenError, hasValidatedToken } =
+  const handleOpenEmailRecovery = useCallback(() => {
+    setShowEmailRecovery(true);
+  }, []);
+
+  const handleCloseEmailRecovery = useCallback(() => {
+    setShowEmailRecovery(false);
+  }, []);
+
+  const handleEmailRecovered = useCallback(
+    (email) => {
+      setShowEmailRecovery(false);
+      if (inviteToken) {
+        stripInviteTokenFromUrl();
+        setInviteToken(null);
+        dispatch(resetValidateInviteToken());
+      }
+      persistOnboardingEmail(email);
+      dispatch(getOnboardingStatus(email));
+    },
+    [dispatch, inviteToken]
+  );
+
+  const { isValidatingToken, isTokenValid, isResumeInvite, tokenError, hasValidatedToken } =
     getInviteValidationState(inviteToken, validateTokenState);
 
   const isHidden = (step) =>
@@ -543,6 +570,15 @@ export default function useOnboarding() {
       return <FullPageLoader />;
     }
 
+    if (showEmailRecovery) {
+      return (
+        <OnboardingEmailRecovery
+          onRecovered={handleEmailRecovered}
+          onBack={handleCloseEmailRecovery}
+        />
+      );
+    }
+
     if (inviteToken && (isValidatingToken || !hasValidatedToken) && currentStep < ONBOARDING_STEPS.PROFILE_SETUP) {
       return <FullPageLoader />;
     }
@@ -551,6 +587,7 @@ export default function useOnboarding() {
       shouldBlockOnInvalidInvite({
         inviteToken,
         isTokenValid,
+        isResumeInvite,
         hasValidatedToken,
         onboardingStatus,
         currentStep,
@@ -560,8 +597,10 @@ export default function useOnboarding() {
         <AccessDenied
           title="Access Denied"
           message={tokenError || "This invite link is invalid or has expired."}
-          buttonText="Back to Home"
-          buttonRoute="/"
+          buttonText="Continue with email"
+          onButtonClick={handleOpenEmailRecovery}
+          showBackButton
+          onBackClick={() => router.push("/")}
         />
       );
     }
@@ -659,6 +698,7 @@ export default function useOnboarding() {
             selectedType={selectedAccountType}
             handleSelectMode={handleSelectMode}
             onNext={nextStep}
+            onContinueWithEmail={handleOpenEmailRecovery}
           />
         );
       default:
@@ -667,6 +707,7 @@ export default function useOnboarding() {
             selectedType={selectedAccountType}
             handleSelectMode={handleSelectMode}
             onNext={nextStep}
+            onContinueWithEmail={handleOpenEmailRecovery}
           />
         );
     }

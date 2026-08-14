@@ -17,19 +17,35 @@ export const getUser = (user) => {
 };
 
 export const persistOnboardingEmail = (email) => {
-  if (typeof window !== "object" || !window?.localStorage) return;
+  if (typeof window !== "object") return;
   const normalized = String(email || "").trim();
   if (!normalized || normalized === "undefined") return;
-  window.localStorage.setItem("email", normalized);
+  if (window.localStorage) {
+    window.localStorage.setItem("email", normalized);
+  }
+  try {
+    window.sessionStorage?.setItem("onboarding_email", normalized);
+  } catch {
+    // ignore quota / private mode
+  }
 };
 
 export const getOnboardingEmail = () => {
-  if (typeof window !== "object" || !window?.localStorage) {
+  if (typeof window !== "object") {
     return undefined;
   }
-  const stored = window.localStorage.getItem("email");
+  const stored = window.localStorage?.getItem("email");
   if (stored && stored !== "undefined") {
     return stored;
+  }
+  try {
+    const sessionEmail = window.sessionStorage?.getItem("onboarding_email");
+    if (sessionEmail && sessionEmail !== "undefined") {
+      persistOnboardingEmail(sessionEmail);
+      return sessionEmail;
+    }
+  } catch {
+    // ignore
   }
   const userEmail = getUser()?.email;
   if (userEmail) {
@@ -136,6 +152,11 @@ export const removeUser = () => {
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_token");
   }
+  try {
+    window.sessionStorage?.removeItem("onboarding_email");
+  } catch {
+    // ignore
+  }
 };
 
 /**
@@ -143,14 +164,21 @@ export const removeUser = () => {
  */
 export const clearAuthSessionForOnboardingLogin = () => {
   if (typeof window !== "object" || !window.localStorage) return;
-  const email = localStorage.getItem("email");
+  let email = localStorage.getItem("email");
+  if (!email || email === "undefined") {
+    try {
+      email = sessionStorage.getItem("onboarding_email");
+    } catch {
+      email = null;
+    }
+  }
   const name = localStorage.getItem("name");
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("admin_token");
   localStorage.removeItem("admin_user");
   if (email && email !== "undefined") {
-    localStorage.setItem("email", email);
+    persistOnboardingEmail(email);
   }
   if (name && name !== "undefined") {
     localStorage.setItem("name", name);
