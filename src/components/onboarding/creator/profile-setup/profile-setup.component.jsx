@@ -255,14 +255,14 @@ const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
                   your style and niche.
                 </p>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2 md:gap-3">
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
                   {[0, 1, 2].map((index) => {
                     const image = miniProfilePictures?.[index];
                     const loading = miniProfilePicturesLoading?.[index];
 
                     return (
-                      <div key={index} className="flex gap-3 sm:flex-col sm:gap-2">
-                        <div className="relative flex aspect-[3/4] w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-100 sm:w-full">
+                      <div key={index} className="flex min-w-0 flex-col gap-1 sm:gap-2">
+                        <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
                           {image ? (
                             <img
                               src={image}
@@ -280,10 +280,10 @@ const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
                           )}
                         </div>
 
-                        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:flex-none sm:flex-row sm:items-center">
+                        <div className="flex w-full min-w-0 flex-col gap-1 sm:flex-row sm:items-center">
                           <button
                             type="button"
-                            className="w-full rounded-md bg-indigo-50 px-2 py-1.5 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:text-xs"
+                            className="w-full min-w-0 rounded-md bg-indigo-50 px-1.5 py-1.5 text-[10px] leading-tight text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:px-2 sm:text-xs"
                             onClick={() => handleMiniProfilePictureUpload(index)}
                             disabled={isAnyImageUploading}
                           >
@@ -293,7 +293,7 @@ const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
                           {image ? (
                             <button
                               type="button"
-                              className="w-full rounded-md bg-red-50 px-2 py-1.5 text-[10px] text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-xs"
+                              className="w-full min-w-0 rounded-md bg-red-50 px-1.5 py-1.5 text-[10px] leading-tight text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-2 sm:text-xs"
                               onClick={() => removeMiniProfilePicture(index)}
                               disabled={isAnyImageUploading}
                             >

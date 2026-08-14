@@ -1,4 +1,5 @@
 import { getOnboardingEmail } from "@/common/utils/users.util";
+import { getOnboardingResumeStepFromReject } from "@/common/utils/onboarding-flow.util";
 import { setupBrandCampaignPreferences } from "@/provider/features/brand-profile/brand-profile.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMemo } from "react";
@@ -15,7 +16,7 @@ const validationSchema = Yup.object().shape({
   geographic_focus: Yup.array().min(1, "Select at least one geographic focus"),
 });
 
-export default function useBrandCampaignPreferences({ onNext, isActive = true }) {
+export default function useBrandCampaignPreferences({ onNext, onResumeStep, isActive = true }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
@@ -103,7 +104,10 @@ export default function useBrandCampaignPreferences({ onNext, isActive = true })
       const response = await dispatch(setupBrandCampaignPreferences({ payload, email }));
       if (response.payload && response.payload.success) {
         onNext && onNext();
+        return;
       }
+      const resumeStep = getOnboardingResumeStepFromReject(response.payload);
+      if (resumeStep) onResumeStep?.(resumeStep);
     } catch (error) {
       console.error("Form submission error:", error.message);
     }
