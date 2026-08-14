@@ -1,7 +1,7 @@
 import { notificationsMockData } from "@/common/constants/notifications.data.constant";
 import { getUser } from "@/common/utils/users.util";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 function useHeader() {
   const router = useRouter();
@@ -11,10 +11,12 @@ function useHeader() {
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Authentication state
-  const user = getUser();
+  const [user, setUser] = useState(null);
   const isAuthenticated = !!user;
+
+  useLayoutEffect(() => {
+    setUser(getUser() ?? null);
+  }, [pathname]);
 
   const isCreatorsPage = useMemo(
     () => typeof pathname === "string" && pathname.startsWith("/creators"),

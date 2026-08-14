@@ -2,11 +2,13 @@
 
 import { getAllowedPlatformsForCreatorType } from "@/common/constants/creator-tag.constant";
 import {
+  getOnboardingResumeStepFromReject,
   readCreatorTypeDraft,
   readMediaKitDraft,
   resolveCreatorTypeFromSources,
   writeMediaKitDraft,
 } from "@/common/utils/onboarding-flow.util";
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
 import { parseHttpUrlInput } from "@/common/utils/url.util";
 import { getOnboardingEmail } from "@/common/utils/users.util";
 import usePhylloConnect from "@/components/social-connect/use-phyllo-connect.hook";
@@ -16,7 +18,7 @@ import { getSocialAccounts } from "@/provider/features/users/users.slice";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function useConnectSocial({ onNext, creatorTypeHint }) {
+export default function useConnectSocial({ onNext, creatorTypeHint, onResumeStep }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
   const onboardingStatus = useSelector((state) => state.onboarding?.onboardingStatus);
@@ -38,7 +40,7 @@ export default function useConnectSocial({ onNext, creatorTypeHint }) {
   );
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [socialConnectLoadingMap, setSocialConnectLoadingMap] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState(null);
   const [stepError, setStepError] = useState("");
   const [mediaKitError, setMediaKitError] = useState("");
 
@@ -106,25 +108,41 @@ export default function useConnectSocial({ onNext, creatorTypeHint }) {
 
   const submitStep = useCallback(
     async (skipped) => {
-      if (!email || isSubmitting) return;
-      setIsSubmitting(true);
+      if (!email) return;
       const parsedMediaKit = parseHttpUrlInput(mediaKitUrl);
       const payload = {
         skipped: Boolean(skipped),
         ...(parsedMediaKit.ok ? { mediaKitUrl: parsedMediaKit.href } : {}),
       };
       const response = await dispatch(completeCreatorConnectSocial({ payload, email }));
-      setIsSubmitting(false);
+      setSubmittingAction(null);
       if (response.payload?.success) {
         dispatch(getOnboardingStatus(email));
         onNext?.();
+        return;
       }
+      const resumeStep =
+        getOnboardingResumeStepFromReject(response.payload) ||
+        (String(response.payload?.message || "").includes("profile setup")
+          ? ONBOARDING_STEPS.PROFILE_SETUP
+          : null);
+      if (resumeStep) {
+        dispatch(getOnboardingStatus(email));
+        onResumeStep?.(resumeStep);
+        return;
+      }
+      const message =
+        response.payload?.message ||
+        response.payload?.payload?.response?.data?.message ||
+        "Could not save this step. Try again.";
+      setStepError(String(Array.isArray(message) ? message[0] : message));
     },
-    [dispatch, email, isSubmitting, mediaKitUrl, onNext]
+    [dispatch, email, mediaKitUrl, onNext, onResumeStep]
   );
 
   const handleContinue = useCallback(async () => {
-    if (!email || isSubmitting) return;
+    if (!email || submittingAction) return;
+    setSubmittingAction("continue");
     setStepError("");
     setMediaKitError("");
 
@@ -136,23 +154,27 @@ export default function useConnectSocial({ onNext, creatorTypeHint }) {
       const parsedMediaKit = parseHttpUrlInput(trimmedMediaKit);
       if (!parsedMediaKit.ok) {
         setMediaKitError(parsedMediaKit.error || "Enter a valid media kit URL");
+        setSubmittingAction(null);
         return;
       }
     }
 
     if (!hasConnectedAccount && !trimmedMediaKit) {
       setStepError("Connect a social account or add a media kit link to continue.");
+      setSubmittingAction(null);
       return;
     }
 
     await submitStep(false);
-  }, [email, isSubmitting, loadConnectedAccounts, mediaKitUrl, submitStep]);
+  }, [email, submittingAction, loadConnectedAccounts, mediaKitUrl, submitStep]);
 
   const handleSkip = useCallback(() => {
+    if (!email || submittingAction) return;
+    setSubmittingAction("skip");
     setStepError("");
     setMediaKitError("");
     submitStep(true);
-  }, [submitStep]);
+  }, [email, submittingAction, submitStep]);
 
   const mediaKitErrors = useMemo(
     () => (mediaKitError ? { mediaKitUrl: { message: mediaKitError } } : null),
@@ -173,6 +195,7 @@ export default function useConnectSocial({ onNext, creatorTypeHint }) {
     socialConnectLoadingMap,
     handleContinue,
     handleSkip,
-    isLoading: isSubmitting,
+    isSkipping: submittingAction === "skip",
+    isContinuing: submittingAction === "continue",
   };
 }

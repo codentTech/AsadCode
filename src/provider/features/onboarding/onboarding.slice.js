@@ -33,6 +33,8 @@ const onboardingSlice = createSlice({
           brandProfile: null,
           isCompleted: false,
           onboardingStep: null,
+          storedOnboardingStep: null,
+          checklist: null,
         };
         return;
       }

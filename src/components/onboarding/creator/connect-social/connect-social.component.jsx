@@ -7,7 +7,7 @@ import { CheckCircle, Link2, RefreshCw, Share2, Users } from "lucide-react";
 import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useConnectSocial from "./use-connect-social.hook";
 
-const ConnectSocial = ({ onNext, creatorTypeHint }) => {
+const ConnectSocial = ({ onNext, creatorTypeHint, onResumeStep }) => {
   const { getPlatformIcon, getPlatformColor } = useGetplatform();
   const {
     platforms,
@@ -22,8 +22,11 @@ const ConnectSocial = ({ onNext, creatorTypeHint }) => {
     socialConnectLoadingMap,
     handleContinue,
     handleSkip,
-    isLoading,
-  } = useConnectSocial({ onNext, creatorTypeHint });
+    isSkipping,
+    isContinuing,
+  } = useConnectSocial({ onNext, creatorTypeHint, onResumeStep });
+
+  const isBusy = isSkipping || isContinuing;
 
   return (
     <OnboardingStepLayout
@@ -34,8 +37,8 @@ const ConnectSocial = ({ onNext, creatorTypeHint }) => {
             text="Skip for now"
             className="btn-outline w-full sm:w-auto"
             onClick={handleSkip}
-            disabled={isLoading}
-            loading={isLoading}
+            disabled={isBusy}
+            loading={isSkipping}
           />
 
           <CustomButton
@@ -43,7 +46,8 @@ const ConnectSocial = ({ onNext, creatorTypeHint }) => {
             text="Continue"
             className="btn-primary w-full sm:ml-auto sm:w-auto"
             onClick={handleContinue}
-            disabled={isLoading}
+            disabled={isBusy}
+            loading={isContinuing}
           />
         </>
       }
