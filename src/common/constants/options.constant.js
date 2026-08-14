@@ -189,6 +189,7 @@ export const CREATOR_APPLICATION_STATUS_FILTER_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "DENIED", label: "Denied" },
   { value: "ONBOARDING_STARTED", label: "Onboarding Started" },
+  { value: "ONBOARDED", label: "Onboarded" },
   { value: "APPROVED", label: "Approved" },
 ];
 

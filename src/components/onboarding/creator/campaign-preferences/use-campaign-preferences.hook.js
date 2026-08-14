@@ -10,6 +10,7 @@ import { setupCreatorCampaignPreferences } from "@/provider/features/creator-pro
 import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
 import {
   clearCampaignPrefsDraft,
+  getOnboardingResumeStepFromReject,
   mapCreatorProfileToCampaignPrefsForm,
   readCampaignPrefsDraft,
   writeCampaignPrefsDraft,
@@ -64,7 +65,7 @@ const validationSchema = Yup.object().shape({
     .required("Shipping address is required"),
 });
 
-export default function useCampaignPreferences({ onNext }) {
+export default function useCampaignPreferences({ onNext, onResumeStep }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
   const hasHydratedRef = useRef(false);
@@ -448,7 +449,10 @@ export default function useCampaignPreferences({ onNext }) {
       clearCampaignPrefsDraft(email);
       localStorage.removeItem("email");
       onNext?.();
+      return;
     }
+    const resumeStep = getOnboardingResumeStepFromReject(response.payload);
+    if (resumeStep) onResumeStep?.(resumeStep);
   };
 
   return {

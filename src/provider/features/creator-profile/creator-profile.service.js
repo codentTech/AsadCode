@@ -1,8 +1,9 @@
 import api from "@/common/utils/api";
+import { requireOnboardingEmailQuery } from "@/common/utils/users.util";
 
 const setupCreatorProfile = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/creator/profile-setup?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/creator/profile-setup?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response.data;
@@ -10,7 +11,7 @@ const setupCreatorProfile = async (data, email) => {
 
 const setupCreatorCampaignPreferences = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/creator/campaign-preferences?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/creator/campaign-preferences?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response.data;
@@ -18,7 +19,7 @@ const setupCreatorCampaignPreferences = async (data, email) => {
 
 const completeCreatorConnectSocial = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/creator/connect-social?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/creator/connect-social?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response.data;

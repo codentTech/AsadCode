@@ -1,8 +1,9 @@
 import api from "@/common/utils/api";
+import { requireOnboardingEmailQuery } from "@/common/utils/users.util";
 
 const setupBrandProfile = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/brand/profile-setup?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/brand/profile-setup?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response?.data || { success: false, message: "No response from server" };
@@ -10,7 +11,7 @@ const setupBrandProfile = async (data, email) => {
 
 const setupBrandCampaignPreferences = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/brand/campaign-preferences?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/brand/campaign-preferences?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response.data;
@@ -18,7 +19,7 @@ const setupBrandCampaignPreferences = async (data, email) => {
 
 const setupBrandIdealCreator = async (data, email) => {
   const response = await api().post(
-    `/auth/onboarding/brand/ideal-creator?email=${encodeURIComponent(email)}`,
+    `/auth/onboarding/brand/ideal-creator?email=${requireOnboardingEmailQuery(email)}`,
     data
   );
   return response.data;
@@ -26,7 +27,7 @@ const setupBrandIdealCreator = async (data, email) => {
 
 const getBrandProfile = async (email) => {
   const response = await api().get(
-    `/auth/onboarding/brand/profile-setup?email=${encodeURIComponent(email)}`
+    `/auth/onboarding/brand/profile-setup?email=${requireOnboardingEmailQuery(email)}`
   );
   return response.data;
 };

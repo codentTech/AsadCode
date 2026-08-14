@@ -1,7 +1,7 @@
 "use client";
 
 import ROLES from "@/common/constants/role.constant";
-import { isOnboardingCompleted } from "@/common/utils/users.util";
+import { isOnboardingCompleted, persistOnboardingEmail } from "@/common/utils/users.util";
 import { login, setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import { getEmailPreferences } from "@/provider/features/email-preferences/email-preferences.slice";
@@ -75,7 +75,7 @@ export default function useLogin() {
       }
       if (!isOnboardingCompleted(user)) {
         if (typeof window !== "undefined" && user?.email) {
-          window.localStorage.setItem("email", user.email);
+          persistOnboardingEmail(user.email);
         }
         dispatch(resetOnboardingSession());
         if (role === ROLES.CREATOR) {

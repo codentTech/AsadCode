@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, Lightbulb, ListChecks } from "lucide-react";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
+import { ArrowLeft, ArrowRight, Check, Home, Lightbulb, ListChecks } from "lucide-react";
 import SetupProgress from "../setup-progress/setup-progress.component";
 import useOnboardingWizardShell, {
   OnboardingGuidanceContext,
@@ -45,10 +46,8 @@ export default function OnboardingWizardShell({
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-          ) : (
-            <span className="h-8 w-8 shrink-0" />
-          )}
-          <div className="min-w-0 flex-1">
+          ) : null}
+          <div className="min-w-0 flex-1 mt-1">
             <p className="truncate text-sm font-semibold text-black">{currentStepMeta.name}</p>
             <div className="mt-1 h-1 overflow-hidden rounded-full bg-gray-200">
               <div
@@ -64,21 +63,32 @@ export default function OnboardingWizardShell({
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <aside className="hidden w-[260px] shrink-0 flex-col border-r border-gray-200 bg-white lg:w-[280px] md:flex">
-            <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2.5">
-              {showBack ? (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  aria-label="Back"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              ) : null}
-              <p className="min-w-0 truncate text-sm font-semibold text-black">{title}</p>
+            <div className="border-b border-gray-200">
+              <div className="flex items-center gap-2 px-3 py-[13px]">
+                {showBack ? (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    aria-label="Back"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                ) : null}
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{title}</p>
+              </div>
+              <div className="h-[3.5px] w-full bg-gray-200">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
 
-            <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2" aria-label="Onboarding steps">
+            <nav
+              className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2"
+              aria-label="Onboarding steps"
+            >
               {steps.map((step, index) => {
                 const isDone = index < safeIndex;
                 const isActive = index === safeIndex;
@@ -127,6 +137,15 @@ export default function OnboardingWizardShell({
                 );
               })}
             </nav>
+
+            <div className="shrink-0 border-t border-gray-200 px-2 py-4">
+              <CustomButton
+                text="Back to home"
+                href="/"
+                className="btn-outline w-full"
+                startIcon={<Home className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+              />
+            </div>
           </aside>
 
           <section className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
@@ -192,7 +211,9 @@ export default function OnboardingWizardShell({
                     <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-black">Tip</p>
-                      <p className="mt-1 text-xs leading-snug text-gray-600">{currentStepMeta.tip}</p>
+                      <p className="mt-1 text-xs leading-snug text-gray-600">
+                        {currentStepMeta.tip}
+                      </p>
                     </div>
                   </div>
                 </div>

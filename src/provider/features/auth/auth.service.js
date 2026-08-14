@@ -5,8 +5,13 @@ import { removeUser } from "@/common/utils/users.util";
 const login = async (userData) => {
   const { data } = await api().post("/auth/login", userData);
   const response = data?.data;
-  if (response) localStorage.setItem("user", JSON.stringify(response.user));
-  if (response) localStorage.setItem("token", response.token);
+  if (response) {
+    localStorage.setItem("user", JSON.stringify(response.user));
+    localStorage.setItem("token", response.token);
+    if (response.user?.email) {
+      localStorage.setItem("email", response.user.email);
+    }
+  }
   return data;
 };
 

@@ -11,7 +11,7 @@ import { CheckCircle, MapPin } from "lucide-react";
 import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useCampaignPreferences from "./use-campaign-preferences.hook";
 
-const CampaignPreferences = ({ onNext }) => {
+const CampaignPreferences = ({ onNext, onResumeStep }) => {
   const {
     // form
     handleSubmit,
@@ -46,7 +46,7 @@ const CampaignPreferences = ({ onNext }) => {
     handleInPersonChange,
     handleShippingChange,
     refreshCountryCityFromForm, // optional, but kept for safety if needed
-  } = useCampaignPreferences({ onNext });
+  } = useCampaignPreferences({ onNext, onResumeStep });
 
   return (
     <OnboardingStepLayout

@@ -84,6 +84,8 @@ const creatorApplicationsColumns = [
             return "bg-green-100 text-green-800";
           case "ONBOARDING_STARTED":
             return "bg-blue-100 text-blue-800";
+          case "ONBOARDED":
+            return "bg-emerald-100 text-emerald-800";
           case "DENIED":
             return "bg-red-100 text-red-800";
           default:
@@ -109,24 +111,29 @@ const creatorApplicationsColumns = [
   },
 ];
 
+const APPLICATION_STATUSES_WITHOUT_REVIEW_ACTIONS = new Set([
+  "APPROVED",
+  "ONBOARDING_STARTED",
+  "ONBOARDED",
+]);
+
 function getCreatorApplicationRowActions(row) {
   const actions = [];
-
-  if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
-    actions.push({
-      key: "approve",
-      label: "Approve and Invite",
-      icon: <UserCheck size={16} />,
-    });
+  const status = String(row?.status || "").toUpperCase();
+  if (APPLICATION_STATUSES_WITHOUT_REVIEW_ACTIONS.has(status)) {
+    return actions;
   }
 
-  if (row?.status !== "APPROVED" && row?.status !== "ONBOARDING_STARTED") {
-    actions.push({
-      key: "deny",
-      label: "Deny",
-      icon: <UserX size={16} />,
-    });
-  }
+  actions.push({
+    key: "approve",
+    label: "Approve and Invite",
+    icon: <UserCheck size={16} />,
+  });
+  actions.push({
+    key: "deny",
+    label: "Deny",
+    icon: <UserX size={16} />,
+  });
 
   return actions;
 }

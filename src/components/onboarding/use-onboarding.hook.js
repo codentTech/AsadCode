@@ -8,7 +8,7 @@ import {
   getInviteResumeEmail,
   getInviteValidationState,
   getRememberedCreatorType,
-  getServerStep,
+  getStatusResumeStep,
   hasCreatedAccount,
   normalizeCreatorType,
   readCreatorTypeDraft,
@@ -16,9 +16,10 @@ import {
   shouldBlockOnInvalidInvite,
   shouldShowCreatorApplication,
   stripInviteTokenFromUrl,
+  syncLocalOnboardingStep,
 } from "@/common/utils/onboarding-flow.util";
 import ROLES from "@/common/constants/role.constant";
-import { getOnboardingEmail, getResumeOnboardingStep, getUser } from "@/common/utils/users.util";
+import { getOnboardingEmail, getResumeOnboardingStep, getUser, persistOnboardingEmail } from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import {
   resetValidateInviteToken,
@@ -75,7 +76,7 @@ export default function useOnboarding() {
   const onboardingStatusLoading = useSelector((state) => state.onboarding?.onboardingStatusLoading);
   const error = useSelector((state) => state.onboarding?.onboardingStatusError);
 
-  const [inviteToken, setInviteToken] = useState(() => readInviteTokenFromWindow());
+  const [inviteToken, setInviteToken] = useState(null);
   const [hasReadInviteFromUrl, setHasReadInviteFromUrl] = useState(false);
   const [showApplicationConfirmation, setShowApplicationConfirmation] = useState(false);
   const [showCreatorApplication, setShowCreatorApplication] = useState(false);
@@ -92,17 +93,13 @@ export default function useOnboarding() {
     loggedInUser?.email || inviteResumeEmail || getOnboardingEmail() || null;
 
   const hasUserNavigatedRef = useRef(false);
-  const [currentStep, setCurrentStep] = useState(() => (readInviteTokenFromWindow() ? 2 : 1));
+  const hasShownUnfinishedModalRef = useRef(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [preparingRedirect, setPreparingRedirect] = useState(null);
   const [visitedSteps, setVisitedSteps] = useState(() => new Set());
-  const [selectedCreatorType, setSelectedCreatorType] = useState(() => {
-    return (
-      getRememberedCreatorType() ||
-      readCreatorTypeDraft(getOnboardingEmail() || getUser()?.email) ||
-      null
-    );
-  });
+  const [selectedCreatorType, setSelectedCreatorType] = useState(null);
+  const [showUnfinishedOnboardingModal, setShowUnfinishedOnboardingModal] = useState(false);
 
   const creatorTypeHint = useMemo(() => {
     return (
@@ -133,8 +130,21 @@ export default function useOnboarding() {
     } else if (user?.role === ROLES.BRAND) {
       dispatch(setIsCreatorModeMode(false));
     }
-    if (resumeStep != null && !hasUserNavigatedRef.current) {
+    if (
+      resumeStep != null &&
+      !hasUserNavigatedRef.current
+    ) {
       setCurrentStep(resumeStep);
+    }
+    if (user?.email) {
+      persistOnboardingEmail(user.email);
+    }
+    const rememberedType =
+      getRememberedCreatorType() ||
+      readCreatorTypeDraft(user?.email || getOnboardingEmail()) ||
+      null;
+    if (rememberedType) {
+      setSelectedCreatorType(rememberedType);
     }
   }, [dispatch]);
 
@@ -168,6 +178,7 @@ export default function useOnboarding() {
 
   useLayoutEffect(() => {
     if (resolvedEmail) {
+      persistOnboardingEmail(resolvedEmail);
       dispatch(getOnboardingStatus(resolvedEmail));
     }
   }, [dispatch, resolvedEmail]);
@@ -202,32 +213,39 @@ export default function useOnboarding() {
       return;
     }
 
-    if (storedStep != null) {
-      setCurrentStep((prev) => (prev < storedStep ? storedStep : prev));
-    }
-
     if (onboardingStatusLoading) {
       return;
     }
 
     const statusEmail = onboardingStatus?.user?.email;
     if (!statusEmail) {
+      if (storedStep != null && storedStep < ONBOARDING_STEPS.PROFILE_SETUP) {
+        setCurrentStep(storedStep);
+      }
       return;
     }
     if (statusEmail.toLowerCase() !== resolvedEmail.toLowerCase()) {
       return;
     }
 
-    const step = onboardingStatus.onboardingStep;
-    if (step == null) return;
-
-    const serverStep = getServerStep(
-      step,
-      inviteTokenPresent && !hasCreatedAccount(onboardingStatus)
-    );
-    const resumeStep = Math.max(serverStep, storedStep || 0);
+    syncLocalOnboardingStep(onboardingStatus);
+    if (
+      onboardingStatus?.isCompleted ||
+      Number(onboardingStatus?.onboardingStep) >= ONBOARDING_STEPS.COMPLETED
+    ) {
+      return;
+    }
+    const resumeStep = getStatusResumeStep(onboardingStatus, inviteTokenPresent);
     if (resumeStep > 0) {
       setCurrentStep(resumeStep);
+      if (
+        !hasShownUnfinishedModalRef.current &&
+        resumeStep >= ONBOARDING_STEPS.EMAIL_VERIFICATION &&
+        resumeStep < ONBOARDING_STEPS.COMPLETED
+      ) {
+        hasShownUnfinishedModalRef.current = true;
+        setShowUnfinishedOnboardingModal(true);
+      }
     }
   }, [
     onboardingStatus,
@@ -244,6 +262,15 @@ export default function useOnboarding() {
       return next;
     });
   }, [currentStep]);
+
+  useEffect(() => {
+    if (onboardingStatusLoading) return;
+    const completed =
+      Boolean(onboardingStatus?.isCompleted) ||
+      Number(onboardingStatus?.onboardingStep) >= ONBOARDING_STEPS.COMPLETED;
+    if (!completed || !onboardingStatus?.user?.email) return;
+    router.push("/campaign");
+  }, [onboardingStatus, onboardingStatusLoading, router]);
 
   useEffect(() => {
     if (hasCreatedAccount(onboardingStatus) && inviteToken) {
@@ -277,10 +304,15 @@ export default function useOnboarding() {
 
   const getMinOnboardingStep = useCallback(() => {
     const loggedInStep = Number(getUser()?.onboarding_step);
+    const emailVerified = onboardingStatus?.checklist?.emailVerified === true;
+
     if (
       hasCreatedAccount(onboardingStatus) ||
-      (Number.isFinite(loggedInStep) && loggedInStep >= ONBOARDING_STEPS.PROFILE_SETUP)
+      (Number.isFinite(loggedInStep) && loggedInStep >= ONBOARDING_STEPS.EMAIL_VERIFICATION)
     ) {
+      if (!emailVerified) {
+        return ONBOARDING_STEPS.EMAIL_VERIFICATION;
+      }
       return ONBOARDING_STEPS.PROFILE_SETUP;
     }
     if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
@@ -289,23 +321,40 @@ export default function useOnboarding() {
     return ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION;
   }, [onboardingStatus, inviteTokenPresent]);
 
+  const closeUnfinishedOnboardingModal = useCallback(() => {
+    setShowUnfinishedOnboardingModal(false);
+  }, []);
+
   const nextStep = useCallback(() => {
     hasUserNavigatedRef.current = true;
     setCurrentStep((prev) => prev + 1);
   }, []);
 
+  const goToStep = useCallback((step) => {
+    const next = Number(step);
+    if (!Number.isFinite(next) || next < 1) return;
+    hasUserNavigatedRef.current = true;
+    setCurrentStep(next);
+  }, []);
+
   const prevStep = useCallback(() => {
     hasUserNavigatedRef.current = true;
+    const isCreatorWizard =
+      Boolean(isCreatorMode) ||
+      onboardingStatus?.user?.role === ROLES.CREATOR ||
+      getUser()?.role === ROLES.CREATOR;
     setCurrentStep((prev) => {
       if (prev === ONBOARDING_STEPS.IDEAL_CREATOR_SETUP) {
         return ONBOARDING_STEPS.CONNECT_SOCIAL;
       }
       if (prev === ONBOARDING_STEPS.CAMPAIGN_PREFERENCES) {
-        return ONBOARDING_STEPS.PROFILE_SETUP;
+        return isCreatorWizard
+          ? ONBOARDING_STEPS.CONNECT_SOCIAL
+          : ONBOARDING_STEPS.PROFILE_SETUP;
       }
       return Math.max(getMinOnboardingStep(), prev - 1);
     });
-  }, [getMinOnboardingStep]);
+  }, [getMinOnboardingStep, isCreatorMode, onboardingStatus?.user?.role]);
 
   const goToIdealCreatorSetup = useCallback(() => {
     hasUserNavigatedRef.current = true;
@@ -337,12 +386,8 @@ export default function useOnboarding() {
   }, []);
 
   const completeOnboarding = useCallback(() => {
-    const isCreator =
-      Boolean(isCreatorMode) ||
-      onboardingStatus?.user?.role === ROLES.CREATOR ||
-      getUser()?.role === ROLES.CREATOR;
-    setPreparingRedirect(isCreator ? "/campaign" : "/login");
-  }, [isCreatorMode, onboardingStatus?.user?.role]);
+    setPreparingRedirect("/campaign");
+  }, []);
 
   const handleSelectMode = useCallback(
     (type) => {
@@ -392,6 +437,7 @@ export default function useOnboarding() {
           <ConnectSocial
             onNext={nextStep}
             onBack={prevStep}
+            onResumeStep={goToStep}
             creatorTypeHint={creatorTypeHint}
           />
         </div>
@@ -401,7 +447,11 @@ export default function useOnboarding() {
           className={isHidden(ONBOARDING_STEPS.CAMPAIGN_PREFERENCES)}
           aria-hidden={currentStep !== ONBOARDING_STEPS.CAMPAIGN_PREFERENCES}
         >
-          <CampaignPreferences onNext={completeOnboarding} onBack={prevStep} />
+          <CampaignPreferences
+            onNext={completeOnboarding}
+            onBack={prevStep}
+            onResumeStep={goToStep}
+          />
         </div>
       )}
     </>
@@ -438,6 +488,7 @@ export default function useOnboarding() {
           <BrandCampaignPreferences
             onNext={goToIdealCreatorSetup}
             onBack={prevStep}
+            onResumeStep={goToStep}
             isActive={isBrandCampaignPreferencesStep(currentStep)}
           />
         </div>
@@ -450,6 +501,7 @@ export default function useOnboarding() {
           <IdealCreator
             onNext={completeOnboarding}
             onBack={prevStep}
+            onResumeStep={goToStep}
             isActive={currentStep === ONBOARDING_STEPS.IDEAL_CREATOR_SETUP}
           />
         </div>
@@ -473,7 +525,17 @@ export default function useOnboarding() {
     }
 
     const resumeStep = getResumeOnboardingStep();
+    if (resolvedEmail && onboardingStatusLoading && !hasUserNavigatedRef.current) {
+      return <FullPageLoader />;
+    }
     if (
+      onboardingStatus?.isCompleted ||
+      Number(onboardingStatus?.onboardingStep) >= ONBOARDING_STEPS.COMPLETED
+    ) {
+      return <FullPageLoader />;
+    }
+    if (
+      onboardingStatusLoading &&
       resumeStep != null &&
       resumeStep >= ONBOARDING_STEPS.PROFILE_SETUP &&
       currentStep < ONBOARDING_STEPS.PROFILE_SETUP
@@ -626,6 +688,8 @@ export default function useOnboarding() {
     prevStep,
     completeOnboarding,
     handleSelectMode,
+    showUnfinishedOnboardingModal,
+    closeUnfinishedOnboardingModal,
   };
 }
 
