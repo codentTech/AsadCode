@@ -1,7 +1,11 @@
 "use client";
 
 import { stripInviteTokenFromUrl } from "@/common/utils/onboarding-flow.util";
-import { getOnboardingEmail } from "@/common/utils/users.util";
+import {
+  clearAuthSessionForOnboardingLogin,
+  getOnboardingEmail,
+  persistOnboardingEmail,
+} from "@/common/utils/users.util";
 import ROLES from "@/common/constants/role.constant";
 import {
   resendEmail,
@@ -151,6 +155,8 @@ export default function useEmailVerification({ onNext }) {
       dispatch(reset());
       stripInviteTokenFromUrl();
       if (isCreator) {
+        clearAuthSessionForOnboardingLogin();
+        persistOnboardingEmail(email);
         const params = new URLSearchParams({
           resumeOnboarding: "1",
           email: String(email),

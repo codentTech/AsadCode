@@ -1,28 +1,17 @@
 "use client";
 
+import AppSnackbarProvider from "@/common/components/app-snackbar-provider/app-snackbar-provider.component";
 import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import ImpersonationBanner from "@/common/components/impersonation-banner/impersonation-banner.component";
 import ChatProvider from "@/provider/chat-provider";
 import { persistor, store } from "@/provider/store";
-import styled from "@emotion/styled";
 import { StyledEngineProvider } from "@mui/material";
 import { usePathname } from "next/navigation";
-import { MaterialDesignContent, SnackbarProvider, useSnackbar } from "notistack";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-
-const StyledMaterialDesignContent = styled(MaterialDesignContent)(() => ({
-  "&.notistack-MuiContent-success": {
-    backgroundColor: "rgb(222 255 228)",
-    color: "green",
-  },
-  "&.notistack-MuiContent-error": {
-    backgroundColor: "rgb(255 222 222)",
-    color: "red",
-  },
-}));
 
 function SnackbarExposer() {
   const { enqueueSnackbar } = useSnackbar();
@@ -76,15 +65,7 @@ function PersistGateSSR({ children }) {
 export default function AppProviders({ children }) {
   return (
     <StyledEngineProvider injectFirst>
-      <SnackbarProvider
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        autoHideDuration={8000}
-        maxSnack={3}
-        Components={{
-          success: StyledMaterialDesignContent,
-          error: StyledMaterialDesignContent,
-        }}
-      >
+      <AppSnackbarProvider>
         <Provider store={store}>
           <PersistGateSSR>
             <ChatProvider>
@@ -92,7 +73,7 @@ export default function AppProviders({ children }) {
             </ChatProvider>
           </PersistGateSSR>
         </Provider>
-      </SnackbarProvider>
+      </AppSnackbarProvider>
     </StyledEngineProvider>
   );
 }

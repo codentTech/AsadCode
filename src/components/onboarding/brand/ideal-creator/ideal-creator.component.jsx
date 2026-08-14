@@ -24,7 +24,7 @@ const selectTileClass = (isSelected) =>
       : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
   }`;
 
-const IdealCreator = ({ onNext, isActive = true }) => {
+const IdealCreator = ({ onNext, onResumeStep, isActive = true }) => {
   const {
     register,
     handleSubmit,
@@ -51,7 +51,7 @@ const IdealCreator = ({ onNext, isActive = true }) => {
     ageRanges,
     platforms,
     followerRanges,
-  } = useIdealCreator({ onNext, isActive });
+  } = useIdealCreator({ onNext, onResumeStep, isActive });
 
   return (
     <OnboardingStepLayout

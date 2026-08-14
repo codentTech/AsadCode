@@ -1,4 +1,5 @@
 import { getOnboardingEmail } from "@/common/utils/users.util";
+import { getOnboardingResumeStepFromReject } from "@/common/utils/onboarding-flow.util";
 import {
   FOLLOWER_OPTIONS,
   IDEAL_CREATOR_AGE_RANGES,
@@ -30,7 +31,7 @@ const validationSchema = Yup.object().shape({
   platforms: Yup.array().min(1, "Select at least one platform"),
 });
 
-export default function useIdealCreator({ onNext, isActive = true }) {
+export default function useIdealCreator({ onNext, onResumeStep, isActive = true }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
 
@@ -299,7 +300,10 @@ export default function useIdealCreator({ onNext, isActive = true }) {
       if (response.payload && response.payload.success) {
         localStorage.removeItem("email");
         onNext && onNext();
+        return;
       }
+      const resumeStep = getOnboardingResumeStepFromReject(response.payload);
+      if (resumeStep) onResumeStep?.(resumeStep);
     } catch (error) {
       console.error("Form submission error:", error.message);
     }

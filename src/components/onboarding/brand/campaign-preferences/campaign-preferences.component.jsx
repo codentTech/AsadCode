@@ -19,9 +19,9 @@ import useBrandCampaignPreferences from "./use-campaign-preferences.hook";
 import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 
-const BrandCampaignPreferences = ({ onNext, isActive = true }) => {
+const BrandCampaignPreferences = ({ onNext, onResumeStep, isActive = true }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
-    useBrandCampaignPreferences({ onNext, isActive });
+    useBrandCampaignPreferences({ onNext, onResumeStep, isActive });
 
   const filmingPreference = watch("filming_preference");
   const selectedCampaignTypes = watch("campaign_types");

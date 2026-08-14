@@ -20,6 +20,7 @@ import {
   toNullableNumber,
 } from "@/common/utils/register-form.util";
 import { readRegisterDraft, writeRegisterDraft } from "@/common/utils/onboarding-flow.util";
+import { persistOnboardingEmail } from "@/common/utils/users.util";
 
 export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
@@ -296,7 +297,7 @@ export default function useRegister({ onNext, inviteToken }) {
     }
     const response = await dispatch(signUp(payload));
     if (response.payload.success) {
-      localStorage.setItem("email", values.email.toLowerCase().trim());
+      persistOnboardingEmail(values.email.toLowerCase().trim());
       localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
       onNext();
       dispatch(reset());

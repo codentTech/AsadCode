@@ -16,11 +16,51 @@ export const getUser = (user) => {
   return undefined;
 };
 
+export const persistOnboardingEmail = (email) => {
+  if (typeof window !== "object") return;
+  const normalized = String(email || "").trim();
+  if (!normalized || normalized === "undefined") return;
+  if (window.localStorage) {
+    window.localStorage.setItem("email", normalized);
+  }
+  try {
+    window.sessionStorage?.setItem("onboarding_email", normalized);
+  } catch {
+    // ignore quota / private mode
+  }
+};
+
 export const getOnboardingEmail = () => {
-  if (typeof window === "object" && window?.localStorage?.getItem("email")) {
-    return localStorage.getItem("email");
+  if (typeof window !== "object") {
+    return undefined;
+  }
+  const stored = window.localStorage?.getItem("email");
+  if (stored && stored !== "undefined") {
+    return stored;
+  }
+  try {
+    const sessionEmail = window.sessionStorage?.getItem("onboarding_email");
+    if (sessionEmail && sessionEmail !== "undefined") {
+      persistOnboardingEmail(sessionEmail);
+      return sessionEmail;
+    }
+  } catch {
+    // ignore
+  }
+  const userEmail = getUser()?.email;
+  if (userEmail) {
+    persistOnboardingEmail(userEmail);
+    return userEmail;
   }
   return undefined;
+};
+
+export const requireOnboardingEmailQuery = (email) => {
+  const normalized = String(email || "").trim();
+  if (!normalized || normalized === "undefined") {
+    throw new Error("Onboarding email is missing");
+  }
+  return encodeURIComponent(normalized);
 };
 
 export const getOnboardingName = () => {
@@ -81,6 +121,8 @@ export const getAdminApplicationStatusLabel = (status) => {
       return "Invited — awaiting account";
     case "ONBOARDING_STARTED":
       return "Account created — profile incomplete";
+    case "ONBOARDED":
+      return "Account created — setup complete";
     case "DENIED":
       return "Denied";
     default:
@@ -109,6 +151,37 @@ export const removeUser = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_token");
+  }
+  try {
+    window.sessionStorage?.removeItem("onboarding_email");
+  } catch {
+    // ignore
+  }
+};
+
+/**
+ * Drop auth session but keep onboarding email/name so phase-one can hand off to login.
+ */
+export const clearAuthSessionForOnboardingLogin = () => {
+  if (typeof window !== "object" || !window.localStorage) return;
+  let email = localStorage.getItem("email");
+  if (!email || email === "undefined") {
+    try {
+      email = sessionStorage.getItem("onboarding_email");
+    } catch {
+      email = null;
+    }
+  }
+  const name = localStorage.getItem("name");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  if (email && email !== "undefined") {
+    persistOnboardingEmail(email);
+  }
+  if (name && name !== "undefined") {
+    localStorage.setItem("name", name);
   }
 };
 

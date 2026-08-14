@@ -29,25 +29,58 @@ export const getServerStep = (step, inviteTokenPresent) => {
   return inviteTokenPresent ? Math.max(n, 2) : n;
 };
 
+export const getStatusResumeStep = (onboardingStatus, inviteTokenPresent) => {
+  const step = Number(onboardingStatus?.onboardingStep);
+  if (!Number.isFinite(step) || step <= 0) return null;
+  return getServerStep(step, inviteTokenPresent && !hasCreatedAccount(onboardingStatus));
+};
+
+export const getOnboardingResumeStepFromReject = (payload) => {
+  const data =
+    payload?.data ||
+    payload?.payload?.response?.data?.data ||
+    payload?.response?.data?.data ||
+    null;
+  const step = Number(data?.resumeStep);
+  return Number.isFinite(step) && step > 0 ? step : null;
+};
+
+export const syncLocalOnboardingStep = (onboardingStatus) => {
+  if (typeof window === "undefined") return;
+  const step = Number(onboardingStatus?.onboardingStep);
+  const email = onboardingStatus?.user?.email;
+  if (!Number.isFinite(step) || !email) return;
+  try {
+    const raw = window.localStorage.getItem("user");
+    if (!raw) return;
+    const existing = JSON.parse(raw);
+    if (!existing?.email || String(existing.email).toLowerCase() !== String(email).toLowerCase()) {
+      return;
+    }
+    if (Number(existing.onboarding_step) === step) return;
+    window.localStorage.setItem("user", JSON.stringify({ ...existing, onboarding_step: step }));
+  } catch {
+    // ignore
+  }
+};
+
 export const isInvitePhaseStep = (step) => {
   const n = Number(step) || 1;
   return n <= ONBOARDING_STEPS.EMAIL_VERIFICATION;
 };
 
-export const hasCreatedAccount = (onboardingStatus) => {
-  const step = Number(onboardingStatus?.onboardingStep);
-  if (!Number.isFinite(step)) return false;
-  return step >= ONBOARDING_STEPS.EMAIL_VERIFICATION && Boolean(onboardingStatus?.user?.email);
-};
+export const hasCreatedAccount = (onboardingStatus) =>
+  Boolean(onboardingStatus?.user?.email);
 
 export const shouldBlockOnInvalidInvite = ({
   inviteToken,
   isTokenValid,
+  isResumeInvite,
   hasValidatedToken,
   onboardingStatus,
   currentStep,
 }) => {
-  if (!inviteToken || !hasValidatedToken || isTokenValid) return false;
+  if (!inviteToken || !hasValidatedToken || isTokenValid || isResumeInvite) return false;
   if (hasCreatedAccount(onboardingStatus)) return false;
   if (!isInvitePhaseStep(currentStep) && Number(currentStep) >= ONBOARDING_STEPS.PROFILE_SETUP) {
     return false;
@@ -59,19 +92,24 @@ export const shouldShowCreatorApplication = ({
   isCreatorMode,
   inviteToken,
   isTokenValid,
+  isResumeInvite,
   currentStep,
   showApplicationConfirmation,
 }) =>
   Boolean(
     isCreatorMode &&
+      !isResumeInvite &&
       (!inviteToken || !isTokenValid) &&
       currentStep === 2 &&
       !showApplicationConfirmation,
   );
 
 export const getInviteValidationState = (inviteToken, validateTokenState) => {
+  const data = validateTokenState?.data;
   const isValidatingToken = Boolean(inviteToken && validateTokenState?.isLoading);
-  const isTokenValid = Boolean(inviteToken && validateTokenState?.isSuccess);
+  const isSuccess = Boolean(inviteToken && validateTokenState?.isSuccess);
+  const isResumeInvite = Boolean(isSuccess && data?.resumeOnly);
+  const isTokenValid = Boolean(isSuccess && !data?.resumeOnly);
   const tokenError = validateTokenState?.isError ? validateTokenState?.message : null;
   const hasValidatedToken =
     !inviteToken ||
@@ -81,6 +119,7 @@ export const getInviteValidationState = (inviteToken, validateTokenState) => {
   return {
     isValidatingToken,
     isTokenValid,
+    isResumeInvite,
     tokenError,
     hasValidatedToken,
   };

@@ -1,20 +1,13 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import useBackgroundEffect from "@/common/hooks/use-background-effect.hook";
 import { CheckCircle } from "lucide-react";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import PropTypes from "prop-types";
+import useAccountType from "./use-account-type.hook";
 
-const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
-  const router = useRouter();
-  const { position } = useBackgroundEffect();
-
-  useEffect(() => {
-    localStorage.clear();
-  }, []);
+const AccountType = ({ selectedType, handleSelectMode, onNext, onContinueWithEmail }) => {
+  const { position, handleBackToLogin } = useAccountType();
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-2.5 py-6 sm:px-4 sm:py-12">
-      {/* Animated background circles */}
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="absolute w-64 h-64 rounded-full bg-indigo-100 blur-xl opacity-60"
@@ -41,9 +34,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
           }}
         />
       </div>
-      {/* Container */}
       <div className="w-full max-w-3xl space-y-4 rounded-2xl p-3 shadow-2xl sm:space-y-5 sm:rounded-3xl sm:p-10">
-        {/* Header */}
         <div className="mb-4 text-center sm:mb-8">
           <h1 className="mb-1 text-sm font-semibold text-gray-900 sm:mb-2 sm:text-lg md:text-xl lg:text-3xl">
             Let's Get Started
@@ -53,7 +44,6 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
           </p>
         </div>
 
-        {/* Selection Cards */}
         <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-2">
           <AccountCard
             title="I'm a Creator"
@@ -70,10 +60,9 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
           />
         </div>
 
-        {/* Continue Button */}
         <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-between sm:pt-4">
           <CustomButton
-            onClick={() => router.push("/login")}
+            onClick={handleBackToLogin}
             text="Back to login"
             className="btn-secondary w-full sm:w-auto"
           />
@@ -84,6 +73,18 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
             className="btn-primary w-full text-white sm:w-auto"
           />
         </div>
+        {onContinueWithEmail ? (
+          <p className="text-center text-[10px] text-gray-600 sm:text-xs">
+            Already started signup?{" "}
+            <button
+              type="button"
+              onClick={onContinueWithEmail}
+              className="font-semibold text-indigo-600 underline hover:text-indigo-700"
+            >
+              Continue with your email
+            </button>
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -108,6 +109,13 @@ const AccountCard = ({ title, description, selected, onClick }) => {
       </div>
     </div>
   );
+};
+
+AccountType.propTypes = {
+  selectedType: PropTypes.string,
+  handleSelectMode: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onContinueWithEmail: PropTypes.func,
 };
 
 export default AccountType;
