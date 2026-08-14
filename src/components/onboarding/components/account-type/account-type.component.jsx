@@ -1,8 +1,9 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { CheckCircle } from "lucide-react";
+import PropTypes from "prop-types";
 import useAccountType from "./use-account-type.hook";
 
-const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
+const AccountType = ({ selectedType, handleSelectMode, onNext, onContinueWithEmail }) => {
   const { position, handleBackToLogin } = useAccountType();
 
   return (
@@ -72,6 +73,18 @@ const AccountType = ({ selectedType, handleSelectMode, onNext }) => {
             className="btn-primary w-full text-white sm:w-auto"
           />
         </div>
+        {onContinueWithEmail ? (
+          <p className="text-center text-[10px] text-gray-600 sm:text-xs">
+            Already started signup?{" "}
+            <button
+              type="button"
+              onClick={onContinueWithEmail}
+              className="font-semibold text-indigo-600 underline hover:text-indigo-700"
+            >
+              Continue with your email
+            </button>
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -96,6 +109,13 @@ const AccountCard = ({ title, description, selected, onClick }) => {
       </div>
     </div>
   );
+};
+
+AccountType.propTypes = {
+  selectedType: PropTypes.string,
+  handleSelectMode: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onContinueWithEmail: PropTypes.func,
 };
 
 export default AccountType;

@@ -75,11 +75,12 @@ export const hasCreatedAccount = (onboardingStatus) =>
 export const shouldBlockOnInvalidInvite = ({
   inviteToken,
   isTokenValid,
+  isResumeInvite,
   hasValidatedToken,
   onboardingStatus,
   currentStep,
 }) => {
-  if (!inviteToken || !hasValidatedToken || isTokenValid) return false;
+  if (!inviteToken || !hasValidatedToken || isTokenValid || isResumeInvite) return false;
   if (hasCreatedAccount(onboardingStatus)) return false;
   if (!isInvitePhaseStep(currentStep) && Number(currentStep) >= ONBOARDING_STEPS.PROFILE_SETUP) {
     return false;
@@ -91,19 +92,24 @@ export const shouldShowCreatorApplication = ({
   isCreatorMode,
   inviteToken,
   isTokenValid,
+  isResumeInvite,
   currentStep,
   showApplicationConfirmation,
 }) =>
   Boolean(
     isCreatorMode &&
+      !isResumeInvite &&
       (!inviteToken || !isTokenValid) &&
       currentStep === 2 &&
       !showApplicationConfirmation,
   );
 
 export const getInviteValidationState = (inviteToken, validateTokenState) => {
+  const data = validateTokenState?.data;
   const isValidatingToken = Boolean(inviteToken && validateTokenState?.isLoading);
-  const isTokenValid = Boolean(inviteToken && validateTokenState?.isSuccess);
+  const isSuccess = Boolean(inviteToken && validateTokenState?.isSuccess);
+  const isResumeInvite = Boolean(isSuccess && data?.resumeOnly);
+  const isTokenValid = Boolean(isSuccess && !data?.resumeOnly);
   const tokenError = validateTokenState?.isError ? validateTokenState?.message : null;
   const hasValidatedToken =
     !inviteToken ||
@@ -113,6 +119,7 @@ export const getInviteValidationState = (inviteToken, validateTokenState) => {
   return {
     isValidatingToken,
     isTokenValid,
+    isResumeInvite,
     tokenError,
     hasValidatedToken,
   };
