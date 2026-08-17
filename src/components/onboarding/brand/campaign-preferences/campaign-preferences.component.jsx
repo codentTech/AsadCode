@@ -8,7 +8,6 @@ import {
   Gift,
   Percent,
   CheckCircle,
-  ArrowLeft,
   Users,
   TrendingUp,
   MapPin,
@@ -17,12 +16,12 @@ import {
 } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBrandCampaignPreferences from "./use-campaign-preferences.hook";
-import SetupProgress from "../../components/setup-progress/setup-progress.component";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 
-const BrandCampaignPreferences = ({ onNext, onBack }) => {
+const BrandCampaignPreferences = ({ onNext, onResumeStep, isActive = true }) => {
   const { register, handleSubmit, errors, onSubmit, setValue, getValues, watch, isLoading } =
-    useBrandCampaignPreferences({ onNext });
+    useBrandCampaignPreferences({ onNext, onResumeStep, isActive });
 
   const filmingPreference = watch("filming_preference");
   const selectedCampaignTypes = watch("campaign_types");
@@ -152,39 +151,25 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
   };
 
   return (
-    <div className="py-8 px-4 bg-gray-100">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">Campaign Preferences</h1>
-          <p className="text-sm lg:text-md text-white">
-            Set your campaign needs and find the right creators
-          </p>
-        </div>
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 5 of 6</span>
-            <span>83% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-5/6 transition-all duration-500"></div>
-          </div>
-        </div>
-
-        <form>
-          <div className="grid lg:grid-cols-2 gap-8">
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <CustomButton
+          text="Continue Setup"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+          <div className="grid gap-3 lg:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
               {/* Filming Preference */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
                   Filming Requirements <span className="text-red-500">*</span>
                 </h3>
                 <div className="space-y-3">
@@ -231,8 +216,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               </div>
 
               {/* Campaign Types */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
                   Campaign Types <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -285,8 +270,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               </div>
 
               {/* Geographic Focus */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Focus</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Geographic Focus</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {geographicFocus.map((geo) => {
                     const Icon = geo.icon;
@@ -340,8 +325,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
             {/* Right Column */}
             <div className="space-y-4">
               {/* Target Niches */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Target Niches</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Target Niches</h3>
                 <SearchableNicheInput
                   selectedNiches={selectedNiches || []}
                   onNichesChange={handleTargetNichesChange}
@@ -355,8 +340,8 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
               </div>
 
               {/* Creator Sizes */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferred Creator Size</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Preferred Creator Size</h3>
                 <div className="space-y-4">
                   {creatorSizes.map((size) => {
                     const Icon = size.icon;
@@ -409,56 +394,9 @@ const BrandCampaignPreferences = ({ onNext, onBack }) => {
                   <p className="text-xs text-red-600 mt-2">{errors.creator_sizes.message}</p>
                 )}
               </div>
-
-              {/* Progress Summary */}
-              <SetupProgress
-                percent={
-                  (filmingPreference && selectedCampaignTypes?.length > 0 ? 50 : 0) +
-                  (selectedNiches?.length > 0 ? 25 : 0) +
-                  (selectedCreatorSizes?.length > 0 ? 25 : 0)
-                }
-                steps={[
-                  {
-                    label: "Filming Requirements",
-                    status: filmingPreference ? "complete" : "pending",
-                  },
-                  {
-                    label: "Campaign Types",
-                    status: selectedCampaignTypes?.length > 0 ? "count" : "pending",
-                    count: selectedCampaignTypes?.length,
-                  },
-                  {
-                    label: "Target Niches",
-                    status: selectedNiches?.length > 0 ? "count" : "pending",
-                    count: selectedNiches?.length,
-                  },
-                  {
-                    label: "Creator Sizes",
-                    status: selectedCreatorSizes?.length > 0 ? "count" : "pending",
-                    count: selectedCreatorSizes?.length,
-                  },
-                  {
-                    label: "Geographic Focus",
-                    status: selectedGeographicFocus?.length > 0 ? "count" : "pending",
-                    count: selectedGeographicFocus?.length,
-                  },
-                ]}
-              />
             </div>
           </div>
-        </form>
-        {/* Continue Button */}
-        <div className="flex justify-end text-center mt-10">
-          <CustomButton
-            text="Continue Setup"
-            className="btn-primary"
-            onClick={handleSubmit(onSubmit)}
-            disabled={isLoading}
-            loading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

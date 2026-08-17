@@ -1051,3 +1051,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .perspective-1000 {
   perspective: 1000px;
 }
+
+@media (max-width: 639px) {
+  .notistack-SnackbarContainer {
+    top: 12px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+    align-items: stretch !important;
+  }
+}
