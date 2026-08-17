@@ -3,37 +3,26 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import TextArea from "@/common/components/text-area/text-area.component";
-import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
   CREATOR_TAG_OPTIONS,
   CREATOR_TYPE_QUESTION,
   CREATOR_TYPE_QUESTION_HELPER,
 } from "@/common/constants/creator-tag.constant";
 import { CONTENT_CHARACTERISTIC_GROUPS } from "@/common/constants/profile-setup.constant";
-import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import SearchableNicheInput from "@/components/campaign-refactored/shared/searchable-niche-input/searchable-niche-input.component";
 import { AddCircle } from "@mui/icons-material";
-import {
-  ArrowLeft,
-  Camera,
-  CheckCircle,
-  DollarSign,
-  Info,
-  RefreshCw,
-  Trash2,
-  X,
-  Copy,
-  ExternalLink,
-} from "lucide-react";
+import { Camera, DollarSign, Info, Trash2, X } from "lucide-react";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useProfileSetup from "./use-profile-setup.hook";
 
-const ProfileSetup = ({ onNext, onBack }) => {
+const ProfileSetup = ({ onNext, onCreatorTypeChange }) => {
   const {
     handleSubmit,
     errors,
     handleFormSubmit,
     isLoading,
+    isAnyImageUploading,
 
     // Creator Type
     creatorType,
@@ -52,15 +41,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
     miniProfilePicturesLoading,
     handleMiniProfilePictureUpload,
     removeMiniProfilePicture,
-
-    // Social
-    platforms,
-    isPlatformConnected,
-    getConnectedAccountData,
-    handleConnectSocialAccounts,
-    loadConnectedAccounts,
-    socialConnectLoadingMap,
-    removedPlatformMessages,
 
     // Categories
     selectedCategories,
@@ -95,15 +75,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
 
     // Onboarding name
     name,
-
-    // Connection link
-    connectionLink,
-    setConnectionLink,
-    isConnectionLinkCopied,
-    handleCopyConnectionLink,
-  } = useProfileSetup({ onNext });
-
-  const { getPlatformIcon, getPlatformColor } = useGetplatform();
+  } = useProfileSetup({ onNext, onCreatorTypeChange });
 
   const creatorCardPreviewData = {
     id: "onboarding-preview",
@@ -123,45 +95,26 @@ const ProfileSetup = ({ onNext, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Build Your Public Profile
-          </h1>
-          <p className="text-sm lg:text-md text-white">
-            Showcase your content style and set your rates
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-              type="button"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 4 of 5</span>
-            <span>80% Complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-4/5 transition-all duration-500" />
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <div className="grid lg:grid-cols-2 gap-8">
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(handleFormSubmit)}
+      footer={
+        <CustomButton
+          text="Continue Profile Setup"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+          <div className="grid gap-3 lg:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
               {/* Creator Type */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {CREATOR_TYPE_QUESTION}
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                  {CREATOR_TYPE_QUESTION} <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-600 mb-3">{CREATOR_TYPE_QUESTION_HELPER}</p>
 
@@ -222,8 +175,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Profile Photo */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Profile Photo</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  Profile Photo <span className="text-red-500">*</span>
+                </h3>
 
                 <div className="grid grid-cols-3 gap-3 items-start">
                   <div className="col-span-3 md:col-span-1 space-y-2">
@@ -248,9 +203,9 @@ const ProfileSetup = ({ onNext, onBack }) => {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                        className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={handlePhotoUpload}
-                        disabled={profilePhotoLoading}
+                        disabled={isAnyImageUploading}
                       >
                         {profilePhotoPreview ? "Change" : "Upload"}
                       </button>
@@ -258,9 +213,9 @@ const ProfileSetup = ({ onNext, onBack }) => {
                       {profilePhotoPreview && (
                         <button
                           type="button"
-                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={handleRemoveProfilePhoto}
-                          disabled={profilePhotoLoading}
+                          disabled={isAnyImageUploading}
                         >
                           Remove
                         </button>
@@ -290,59 +245,61 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Cover Images */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Cover Images</h3>
-                <p className="text-xs text-gray-600 mb-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900 sm:text-lg">
+                  Cover Images <span className="text-red-500">*</span>
+                </h3>
+                <p className="mb-3 text-[10px] leading-snug text-gray-600 sm:text-xs md:text-sm">
                   Choose 3 images that show you in action creating content, whether that is a
                   lifestyle shot, a product review or anything that gives brands a clear feel for
                   your style and niche.
                 </p>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
                   {[0, 1, 2].map((index) => {
                     const image = miniProfilePictures?.[index];
                     const loading = miniProfilePicturesLoading?.[index];
 
                     return (
-                      <div key={index} className="space-y-2">
-                        <div className="relative aspect-[3/4] rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                      <div key={index} className="flex min-w-0 flex-col gap-1 sm:gap-2">
+                        <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
                           {image ? (
                             <img
                               src={image}
                               alt={`Cover image ${index + 1}`}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover"
                             />
                           ) : (
-                            <Camera className="h-5 w-5 text-gray-400" />
+                            <Camera className="h-4 w-4 text-gray-400 sm:h-5 sm:w-5" />
                           )}
 
                           {loading && (
-                            <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
-                              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/75">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent sm:h-5 sm:w-5" />
                             </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex w-full min-w-0 flex-col gap-1 sm:flex-row sm:items-center">
                           <button
                             type="button"
-                            className="flex-1 px-2 py-1.5 text-xs rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            className="w-full min-w-0 rounded-md bg-indigo-50 px-1.5 py-1.5 text-[10px] leading-tight text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1 sm:px-2 sm:text-xs"
                             onClick={() => handleMiniProfilePictureUpload(index)}
-                            disabled={loading}
+                            disabled={isAnyImageUploading}
                           >
                             {image ? "Change" : "Upload"}
                           </button>
 
-                          {image && (
+                          {image ? (
                             <button
                               type="button"
-                              className="px-2 py-1.5 text-xs rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                              className="w-full min-w-0 rounded-md bg-red-50 px-1.5 py-1.5 text-[10px] leading-tight text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-2 sm:text-xs"
                               onClick={() => removeMiniProfilePicture(index)}
-                              disabled={loading}
+                              disabled={isAnyImageUploading}
                             >
                               Remove
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -350,13 +307,15 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 </div>
 
                 {errors.miniProfilePictures ? (
-                  <p className="text-xs text-red-600 mt-3">{errors.miniProfilePictures.message}</p>
+                  <p className="mt-3 text-xs text-red-600">{errors.miniProfilePictures.message}</p>
                 ) : null}
               </div>
 
               {/* Bio */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Tagline</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  Tagline <span className="text-red-500">*</span>
+                </h3>
 
                 <CustomInput
                   placeholder="This will appear on your creator card in Discover."
@@ -369,8 +328,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Long Bio */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Long Bio</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  Long Bio <span className="text-gray-500 font-normal text-sm">(Optional)</span>
+                </h3>
 
                 <TextArea
                   placeholder="This will appear on your full profile only."
@@ -381,138 +342,6 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 <p className="text-xs text-gray-600 mt-2 text-right">
                   {longBio.length}/500 characters
                 </p>
-              </div>
-
-              {/* Social Platforms */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">Connect</h3>
-
-                  <CustomButton
-                    text="Refresh"
-                    type="button"
-                    onClick={loadConnectedAccounts}
-                    className="btn-outline text-xs px-3 py-1.5"
-                    startIcon={<RefreshCw className="w-3 h-3" />}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-2.5">
-                  {platforms.map((platform) => {
-                    const isConnected = isPlatformConnected(platform);
-                    const platformColor = getPlatformColor(platform);
-                    const connectedData = getConnectedAccountData(platform);
-                    const removedMessage = removedPlatformMessages?.[platform];
-                    const username =
-                      connectedData?.profile_data?.username ||
-                      connectedData?.profile_data?.handle ||
-                      connectedData?.profile_data?.name ||
-                      "";
-
-                    const isPlatformLoading = Boolean(socialConnectLoadingMap?.[platform]);
-
-                    return (
-                      <div
-                        key={platform}
-                        className={`relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                          isConnected
-                            ? "border-indigo-200 bg-indigo-50"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3 flex-1">
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                                isConnected ? platformColor : "bg-gray-100"
-                              }`}
-                            >
-                              {getPlatformIcon(platform)}
-                            </div>
-
-                            <div className="flex flex-col flex-1">
-                              <span className="font-semibold text-gray-900 text-sm">
-                                {platform}
-                              </span>
-
-                              {isConnected ? (
-                                <div className="flex items-center space-x-2">
-                                  <CheckCircle className="w-3 h-3 text-indigo-500" />
-                                  <span className="text-xs text-indigo-600 font-medium">
-                                    Connected
-                                  </span>
-                                  {username ? (
-                                    <span className="text-xs text-gray-500">@{username}</span>
-                                  ) : null}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-gray-500">
-                                  {removedMessage ? removedMessage : "Click to connect"}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {!isConnected ? (
-                            <CustomButton
-                              text="Connect"
-                              type="button"
-                              onClick={() => handleConnectSocialAccounts(platform)}
-                              className="btn-primary text-xs px-4 py-1 h-7"
-                              disabled={isPlatformLoading}
-                              loading={isPlatformLoading}
-                            />
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
-                  {creatorType === CAMPAIGN_TYPE.UGC
-                    ? "UGC Specialist: connect Instagram only. TikTok and YouTube are not available for this creator type."
-                    : "For influencer campaigns, accounts need at least 2,000 followers. Accounts below this threshold may not be eligible for campaign opportunities."}
-                </p>
-
-                {errors.socialPlatforms && (
-                  <p className="text-xs text-red-600 mt-2">{errors.socialPlatforms.message}</p>
-                )}
-
-                {connectionLink ? (
-                  <div className="bg-indigo-100 p-2 rounded-lg mt-2">
-                    <div className="text-xs text-gray-600 font-semibold">
-                      If nothing happens when you click the{" "}
-                      <span className="font-bold">Connect</span> button, try opening the link
-                      manually. This may occur because your browser has blocked the pop-up. You can
-                      allow pop-ups for this site, or copy the link and paste it into a new tab.”
-                    </div>
-
-                    <div className="flex gap-2 justify-between mt-4">
-                      <CustomButton
-                        text="Close"
-                        type="button"
-                        onClick={() => setConnectionLink(null)}
-                        className="btn-secondary text-xs px-4 py-1 h-7"
-                      />
-                      <div className="flex gap-2">
-                        <CustomButton
-                          text={isConnectionLinkCopied ? "Copied!" : "Copy link"}
-                          type="button"
-                          onClick={handleCopyConnectionLink}
-                          disabled={isConnectionLinkCopied}
-                          className="btn-primary text-xs px-4 py-1 h-7"
-                        />
-                        <CustomButton
-                          text="Open in new tab"
-                          type="button"
-                          onClick={() => window.open(connectionLink, "_blank")}
-                          className="btn-primary text-xs px-4 py-1 h-7"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
               </div>
             </div>
 
@@ -529,8 +358,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Categories */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Creator Categories</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                  Creator Categories <span className="text-red-500">*</span>
+                </h3>
 
                 <SearchableNicheInput
                   selectedNiches={selectedCategories}
@@ -545,8 +376,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {selectedCategories.length > 0 ? (
-                <div className="bg-white rounded-lg shadow-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <div className="rounded-lg border border-gray-200 bg-white p-3">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Sub Niches (Optional)
                   </h3>
                   <p className="text-xs text-gray-600 mb-3">
@@ -598,8 +429,10 @@ const ProfileSetup = ({ onNext, onBack }) => {
               ) : null}
 
               {/* Keywords */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Keyword Tags</h3>
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                  Keyword Tags <span className="text-gray-500 font-normal text-sm">(Optional)</span>
+                </h3>
 
                 <p className="text-xs text-gray-600 my-2">
                   Add up to <b>15</b> tags (optional). Each tag must be <b>2–30</b> characters.
@@ -656,8 +489,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Content Characteristics (Optional)
                 </h3>
                 <p className="text-xs text-gray-600 mb-4">
@@ -692,8 +525,8 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
 
               {/* Rates */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Content Rates (Optional)
                 </h3>
 
@@ -769,20 +602,7 @@ const ProfileSetup = ({ onNext, onBack }) => {
               </div>
             </div>
           </div>
-
-          {/* Continue Button */}
-          <div className="flex justify-end text-center mt-10">
-            <CustomButton
-              text="Continue Profile Setup"
-              className="btn-primary"
-              type="submit"
-              disabled={isLoading}
-              loading={isLoading}
-            />
-          </div>
-        </form>
-      </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

@@ -24,5 +24,6 @@ export function parseInviteValidationBody(body) {
     valid,
     message: inner.message,
     email: inner.email,
+    resumeOnly: Boolean(inner.resumeOnly),
   };
 }

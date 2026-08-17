@@ -12,6 +12,16 @@ export function creatorNeedsShowcaseImages(user) {
   return filled.length < 3;
 }
 
+export function creatorNeedsProfilePhoto(user) {
+  if (!user || user.role !== ROLES.CREATOR) return false;
+  const photo = user?.creator_profile?.profile_photo_url;
+  return !(typeof photo === "string" && photo.trim().length > 0);
+}
+
+export function creatorNeedsProfileMedia(user) {
+  return creatorNeedsShowcaseImages(user) || creatorNeedsProfilePhoto(user);
+}
+
 export function isShowcaseUploadAllowedPath(pathname) {
   if (!pathname || typeof pathname !== "string") return false;
   return (

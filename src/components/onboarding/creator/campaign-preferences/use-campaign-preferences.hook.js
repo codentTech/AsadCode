@@ -2,14 +2,22 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import { setupCreatorCampaignPreferences } from "@/provider/features/creator-profile/creator-profile.slice";
-import { getOnboardingEmail } from "@/common/utils/users.util";
-import { useRouter } from "next/navigation";
+import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
+import {
+  clearCampaignPrefsDraft,
+  getOnboardingResumeStepFromReject,
+  mapCreatorProfileToCampaignPrefsForm,
+  readCampaignPrefsDraft,
+  writeCampaignPrefsDraft,
+} from "@/common/utils/onboarding-flow.util";
 import { Camera, DollarSign, Gift, Percent } from "lucide-react";
+import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
+import { CLEERCUT_USER_STORAGE_UPDATED } from "@/common/utils/creator-showcase.util";
 
 const ETHNICITY_OPTIONS = [
   "Asian",
@@ -57,12 +65,15 @@ const validationSchema = Yup.object().shape({
     .required("Shipping address is required"),
 });
 
-export default function useCampaignPreferences({ onNext }) {
-  const route = useRouter();
+export default function useCampaignPreferences({ onNext, onResumeStep }) {
   const dispatch = useDispatch();
   const email = getOnboardingEmail();
+  const hasHydratedRef = useRef(false);
 
   const { isLoading: authLoading } = useSelector((state) => state.auth || {});
+  const creatorProfile = useSelector(
+    (state) => state.onboarding?.onboardingStatus?.creatorProfile
+  );
 
   /**
    * Campaign types list (logic side)
@@ -102,7 +113,7 @@ export default function useCampaignPreferences({ onNext }) {
    */
   const {
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
     setValue,
     getValues,
     watch,
@@ -138,6 +149,7 @@ export default function useCampaignPreferences({ onNext }) {
   const selectedEthnicity = watch("ethnicity");
   const inPersonOpportunities = watch("inPersonOpportunities");
   const shippingAddress = watch("shippingAddress");
+  const watchedAll = watch();
 
   /**
    * Country/City select UI state (logic)
@@ -147,6 +159,29 @@ export default function useCampaignPreferences({ onNext }) {
   const [citySelection, setCitySelection] = useState(null);
 
   const countryCode = countrySelection?.countryCode || shippingAddress?.country_code || "";
+
+  useEffect(() => {
+    if (hasHydratedRef.current) return;
+    const draft = readCampaignPrefsDraft(email);
+    const mapped = draft || mapCreatorProfileToCampaignPrefsForm(creatorProfile);
+    if (!mapped) return;
+    hasHydratedRef.current = true;
+    resetForm(mapped);
+  }, [email, creatorProfile, resetForm]);
+
+  useEffect(() => {
+    if (!email || !isDirty) return;
+    writeCampaignPrefsDraft(email, {
+      campaignTypes: watchedAll?.campaignTypes || [],
+      languages: watchedAll?.languages || [],
+      ethnicity: watchedAll?.ethnicity || "",
+      inPersonOpportunities:
+        typeof watchedAll?.inPersonOpportunities === "boolean"
+          ? watchedAll.inPersonOpportunities
+          : null,
+      shippingAddress: watchedAll?.shippingAddress || {},
+    });
+  }, [email, isDirty, watchedAll]);
 
   /**
    * Sync local select objects from form values (for controlled selects)
@@ -400,11 +435,24 @@ export default function useCampaignPreferences({ onNext }) {
 
     const response = await dispatch(setupCreatorCampaignPreferences({ payload, email }));
     if (setupCreatorCampaignPreferences.fulfilled.match(response) && response.payload?.success) {
-      onNext?.();
-      resetForm();
+      const updatedUser = response.payload?.data;
+      if (typeof window !== "undefined") {
+        const existing = getUser() || {};
+        const nextUser = {
+          ...existing,
+          ...(updatedUser || {}),
+          onboarding_step: updatedUser?.onboarding_step ?? ONBOARDING_STEPS.COMPLETED,
+        };
+        localStorage.setItem("user", JSON.stringify(nextUser));
+        window.dispatchEvent(new Event(CLEERCUT_USER_STORAGE_UPDATED));
+      }
+      clearCampaignPrefsDraft(email);
       localStorage.removeItem("email");
-      route.push("/login");
+      onNext?.();
+      return;
     }
+    const resumeStep = getOnboardingResumeStepFromReject(response.payload);
+    if (resumeStep) onResumeStep?.(resumeStep);
   };
 
   return {
