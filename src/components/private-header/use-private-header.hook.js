@@ -6,6 +6,8 @@ import { Bell, HelpCircle, LayoutGrid, LogOut, Settings, Shield, User, UserRound
 
 import ROLES from "@/common/constants/role.constant";
 import { getUser, isCreatorMode, logout } from "@/common/utils/users.util";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
+import { useDispatch } from "react-redux";
 
 function navHrefMatchesPath(pathname, href) {
   return (
@@ -27,6 +29,7 @@ const FALLBACK_USER = {
 const usePrivateHeader = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [currentUser, setCurrentUser] = useState(FALLBACK_USER);
   const [isCreator, setIsCreator] = useState(false);
@@ -72,13 +75,14 @@ const usePrivateHeader = () => {
         icon: <LogOut size={16} />,
         label: "Sign Out",
         action: () => {
+          dispatch(resetOnboardingSession());
           logout();
           router.push("/login");
         },
         className: "text-red-600 hover:text-red-700 hover:bg-red-50",
       },
     ],
-    [router]
+    [dispatch, router]
   );
 
   const navLinks = useMemo(() => {
