@@ -181,7 +181,8 @@ const getSocialAccounts = async () => {
 };
 
 const disconnectSocialAccount = async (platform) => {
-  const response = await api().delete(`/auth/${platform}/disconnect`);
+  const slug = String(platform || "").toLowerCase();
+  const response = await api().delete(`/auth/${encodeURIComponent(slug)}/disconnect`);
   return response.data;
 };
 
