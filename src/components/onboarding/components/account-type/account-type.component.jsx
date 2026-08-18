@@ -8,7 +8,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext, onContinueWithEma
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-2.5 py-6 sm:px-4 sm:py-12">
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute w-64 h-64 rounded-full bg-indigo-100 blur-xl opacity-60"
           style={{
@@ -34,7 +34,7 @@ const AccountType = ({ selectedType, handleSelectMode, onNext, onContinueWithEma
           }}
         />
       </div>
-      <div className="w-full max-w-3xl space-y-4 rounded-2xl p-3 shadow-2xl sm:space-y-5 sm:rounded-3xl sm:p-10">
+      <div className="relative z-10 w-full max-w-3xl space-y-4 rounded-2xl p-3 shadow-2xl sm:space-y-5 sm:rounded-3xl sm:p-10">
         <div className="mb-4 text-center sm:mb-8">
           <h1 className="mb-1 text-sm font-semibold text-gray-900 sm:mb-2 sm:text-lg md:text-xl lg:text-3xl">
             Let's Get Started
