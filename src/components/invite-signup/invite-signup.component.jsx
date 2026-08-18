@@ -1,18 +1,16 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import Onboarding from "@/components/onboarding/onboarding.component";
-import invitesService from "@/provider/features/invites/invites.service";
 import AccessDenied from "@/app/components/access-denied.component";
 
 const InviteSignup = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams?.get("token");
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -33,14 +31,7 @@ const InviteSignup = () => {
   }, [token]);
 
   if (isValidating) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Validating invite...</p>
-        </div>
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (error || !isValid) {
