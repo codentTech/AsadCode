@@ -19,14 +19,24 @@ import {
   syncLocalOnboardingStep,
 } from "@/common/utils/onboarding-flow.util";
 import ROLES from "@/common/constants/role.constant";
-import { getOnboardingEmail, getResumeOnboardingStep, getUser, persistOnboardingEmail } from "@/common/utils/users.util";
+import { isLoginVerified } from "@/common/utils/access-token.util";
+import {
+  clearOnboardingClientStorage,
+  getOnboardingEmail,
+  getResumeOnboardingStep,
+  getUser,
+  persistOnboardingEmail,
+} from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import {
   resetValidateInviteToken,
   selectValidateInviteToken,
   validateInviteToken,
 } from "@/provider/features/invites/invites.slice";
-import { getOnboardingStatus } from "@/provider/features/onboarding/onboarding.slice";
+import {
+  getOnboardingStatus,
+  resetOnboardingSession,
+} from "@/provider/features/onboarding/onboarding.slice";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -270,8 +280,14 @@ export default function useOnboarding() {
       Boolean(onboardingStatus?.isCompleted) ||
       Number(onboardingStatus?.onboardingStep) >= ONBOARDING_STEPS.COMPLETED;
     if (!completed || !onboardingStatus?.user?.email) return;
+    if (!isLoginVerified()) {
+      clearOnboardingClientStorage();
+      dispatch(resetOnboardingSession());
+      setCurrentStep(ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION);
+      return;
+    }
     router.push("/campaign");
-  }, [onboardingStatus, onboardingStatusLoading, router]);
+  }, [dispatch, onboardingStatus, onboardingStatusLoading, router]);
 
   useEffect(() => {
     if (hasCreatedAccount(onboardingStatus) && inviteToken) {

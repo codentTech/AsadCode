@@ -16,6 +16,26 @@ export const getUser = (user) => {
   return undefined;
 };
 
+export const clearOnboardingClientStorage = () => {
+  if (typeof window !== "object") return;
+  try {
+    window.localStorage?.removeItem("email");
+    window.sessionStorage?.removeItem("onboarding_email");
+    const storage = window.sessionStorage;
+    if (!storage) return;
+    const keysToRemove = [];
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
+      if (key && key.startsWith("cleercut:onboarding:")) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // ignore quota / private mode
+  }
+};
+
 export const persistOnboardingEmail = (email) => {
   if (typeof window !== "object") return;
   const normalized = String(email || "").trim();
@@ -152,11 +172,7 @@ export const removeUser = () => {
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_token");
   }
-  try {
-    window.sessionStorage?.removeItem("onboarding_email");
-  } catch {
-    // ignore
-  }
+  clearOnboardingClientStorage();
 };
 
 /**
@@ -249,7 +265,8 @@ export const getEmailForURL = (email) => {
 };
 
 export const logout = () => {
-  localStorage.clear();
-  localStorage.removeItem("admin_user");
-  localStorage.removeItem("admin_token");
+  if (typeof window === "object" && window.localStorage) {
+    localStorage.clear();
+  }
+  clearOnboardingClientStorage();
 };
