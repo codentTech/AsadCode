@@ -563,6 +563,15 @@ export default function useOnboarding() {
       );
     }
 
+    if (showEmailRecovery) {
+      return (
+        <OnboardingEmailRecovery
+          onRecovered={handleEmailRecovered}
+          onBack={handleCloseEmailRecovery}
+        />
+      );
+    }
+
     if (!hasReadInviteFromUrl) {
       return <FullPageLoader />;
     }
@@ -584,15 +593,6 @@ export default function useOnboarding() {
       currentStep < ONBOARDING_STEPS.PROFILE_SETUP
     ) {
       return <FullPageLoader />;
-    }
-
-    if (showEmailRecovery) {
-      return (
-        <OnboardingEmailRecovery
-          onRecovered={handleEmailRecovered}
-          onBack={handleCloseEmailRecovery}
-        />
-      );
     }
 
     if (inviteToken && (isValidatingToken || !hasValidatedToken) && currentStep < ONBOARDING_STEPS.PROFILE_SETUP) {
