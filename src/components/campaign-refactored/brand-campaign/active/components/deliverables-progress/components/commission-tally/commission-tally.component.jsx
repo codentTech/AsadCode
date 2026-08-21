@@ -29,7 +29,7 @@ export default function CommissionTally({
         <p className="mb-2 text-[10px] text-gray-500 sm:text-xs">Tracking paused</p>
       ) : null}
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 rounded-md bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
+        <div className="flex items-center justify-between gap-2 rounded-md bg-gray-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
           <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">
             Attributed sales
           </span>
@@ -37,10 +37,8 @@ export default function CommissionTally({
             {formatMoney(tally?.salesTotal)}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-2 rounded-md bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
-          <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">
-            Commission
-          </span>
+        <div className="flex items-center justify-between gap-2 rounded-md bg-gray-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
+          <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">Commission</span>
           <span className="text-sm font-bold tabular-nums text-gray-900 sm:text-base md:text-lg">
             {formatMoney(tally?.commissionTotal)}
           </span>
