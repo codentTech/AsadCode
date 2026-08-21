@@ -10,16 +10,16 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 
-const categoryIcons = {
-  General: <HelpCircle className="w-6 h-6" />,
-  "Profiles & Media Kits": <Users className="w-6 h-6" />,
-  "Collaboration & Campaign Management": <MessageSquare className="w-6 h-6" />,
-  "Payments & Escrow": <CreditCard className="w-6 h-6" />,
-  "Legal & Contracts": <FileText className="w-6 h-6" />,
-  "Analytics & Reporting": <BarChart className="w-6 h-6" />,
-  "Safety & Verification": <Shield className="w-6 h-6" />,
-  "Platform Tools & Features": <MessageSquare className="w-6 h-6" />,
-  "Billing & Account Help": <CreditCard className="w-6 h-6" />,
+const CATEGORY_ICON_COMPONENTS = {
+  General: HelpCircle,
+  "Profiles & Media Kits": Users,
+  "Collaboration & Campaign Management": MessageSquare,
+  "Payments & Escrow": CreditCard,
+  "Legal & Contracts": FileText,
+  "Analytics & Reporting": BarChart,
+  "Safety & Verification": Shield,
+  "Platform Tools & Features": MessageSquare,
+  "Billing & Account Help": CreditCard,
 };
 
 function categorySectionId(category) {
@@ -84,7 +84,7 @@ function useFaqHook() {
     handleCategorySelect,
     handleSearch,
     faqData: FAQ_DATA,
-    categoryIcons,
+    categoryIconComponents: CATEGORY_ICON_COMPONENTS,
     categorySectionId,
   };
 }

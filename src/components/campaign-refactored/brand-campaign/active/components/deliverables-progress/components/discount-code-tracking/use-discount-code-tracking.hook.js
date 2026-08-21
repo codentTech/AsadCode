@@ -137,6 +137,11 @@ export default function useDiscountCodeTracking({
     [codes]
   );
 
+  const trackingPaused = useMemo(
+    () => codes.some((c) => c.trackingPaused || c.tracking_paused),
+    [codes]
+  );
+
   const handleCopyCode = useCallback(async () => {
     if (!liveCode?.code || isManageActionLoading) return;
     await navigator.clipboard.writeText(liveCode.code);
@@ -233,6 +238,7 @@ export default function useDiscountCodeTracking({
     liveCode,
     historyCodes,
     isCodeCopied,
+    trackingPaused,
     manageOpen,
     manageMenuRef,
     showRenameModal,

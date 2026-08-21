@@ -16,7 +16,7 @@ export default function FAQPage() {
     handleCategorySelect,
     handleSearch,
     faqData,
-    categoryIcons,
+    categoryIconComponents,
     categorySectionId,
   } = useFaqHook();
 
@@ -105,7 +105,9 @@ export default function FAQPage() {
             <>
               <div className="overflow-x-auto">
                 <div className="inline-flex min-w-full space-x-2 pb-2">
-                  {faqData.map((category) => (
+                  {faqData.map((category) => {
+                    const Icon = categoryIconComponents[category.category] || HelpCircle;
+                    return (
                     <button
                       key={category.category}
                       type="button"
@@ -116,10 +118,13 @@ export default function FAQPage() {
                           : "bg-white text-primary hover:bg-indigo-100"
                       }`}
                     >
-                      <span className="mr-2">{categoryIcons[category.category]}</span>
+                      <span className="mr-2">
+                        <Icon className="h-6 w-6" />
+                      </span>
                       {category.category}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               <div className="mt-2 flex justify-end text-sm text-primary">
