@@ -1,3 +1,5 @@
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import useBlogPostFaq from "./use-blog-post-faq.hook";
 

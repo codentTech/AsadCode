@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
+import { CREATOR_CARD_WIDTH_PX } from "@/common/constants/creator-card-layout.constant";
+
+const CARD_GAP_PX = 16;
 
 const NicheCategory = ({
   category,
@@ -16,29 +19,18 @@ const NicheCategory = ({
 
   useEffect(() => {
     const calculateVisibleCreators = () => {
-      // Creator card width is w-64 = 256px (16rem)
-      const cardWidth = 256;
-      // Gap between cards is space-x-4 = 1rem = 16px
-      const gap = 16;
-      // Get the actual container width
       const container = containerRef.current;
       if (!container) return;
 
       const containerWidth = container.clientWidth;
+      const visibleCount = Math.floor(
+        (containerWidth + CARD_GAP_PX) / (CREATOR_CARD_WIDTH_PX + CARD_GAP_PX)
+      );
 
-      // Calculate how many cards can fit
-      // Formula: (containerWidth + gap) / (cardWidth + gap)
-      const visibleCount = Math.floor((containerWidth + gap) / (cardWidth + gap));
-
-      // Show "See More" if there are more creators than can fit
-      // Also ensure at least 2 creators are needed to show "See More"
       setShouldShowSeeMore(category.creators.length > Math.max(visibleCount, 1));
     };
 
-    // Calculate after a small delay to ensure DOM is ready
     const timeoutId = setTimeout(calculateVisibleCreators, 100);
-
-    // Recalculate on window resize
     window.addEventListener("resize", calculateVisibleCreators);
 
     return () => {

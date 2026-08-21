@@ -83,7 +83,10 @@ const initialState = {
 export const login = createAsyncThunk("auth/login", async (payload, thunkAPI) => {
   try {
     const response = await authService.login(payload);
-    if (response.success) return response;
+    if (response.success) {
+      thunkAPI.dispatch(resetOnboardingSession());
+      return response;
+    }
     return thunkAPI.rejectWithValue(response);
   } catch (error) {
     return thunkAPI.rejectWithValue(getSerializableError(error));
@@ -261,6 +264,12 @@ export const authSlice = createSlice({
         state.login.isLoading = false;
         state.login.isSuccess = true;
         state.login.data = action.payload;
+        const role = action.payload?.data?.user?.role;
+        if (role === "CREATOR") {
+          state.isCreatorMode = true;
+        } else if (role === "BRAND") {
+          state.isCreatorMode = false;
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.login.message = action.payload?.message || "Login failed";

@@ -1,6 +1,10 @@
 import { SEO_FAQ_ITEMS } from "@/common/constants/seo-schema.constant";
 import CrawlableContent from "@/components/seo/crawlable-content.component";
 
+/**
+ * Compact server FAQ block. Keep this short — large hidden dumps get dropped by
+ * some AI fetch/extract tools. Answers must stay in plain text here.
+ */
 export default function FaqCrawlableContent() {
   return (
     <CrawlableContent>

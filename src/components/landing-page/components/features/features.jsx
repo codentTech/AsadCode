@@ -4,10 +4,10 @@ function Features({ isCreatorMode }) {
   const features = [
     {
       icon: "/assets/images/landing/9E2029F0-F0B3-49B1-8C80-2211136A9D2A.png",
-      title: "Smart Inbox",
+      title: "Automated Creator Pipeline",
       description: isCreatorMode
         ? "Track all messages, contracts, and campaign details by stage — from cold pitches to completed deals. No more cluttered email threads and lost DMs."
-        : "Track messages, deliverables, contracts, and payments by campaign — with filtered pitches and internal notes in one streamlined inbox",
+        : "Track messages, deliverables, contracts, and payments by campaign — with filtered pitches and internal notes in one streamlined pipeline",
       position: isCreatorMode ? 3 : 1,
       color: "bg-blue-100 text-blue-600",
     },

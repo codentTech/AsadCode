@@ -6,10 +6,10 @@ import useHero from "./use-hero";
 function Hero({ isCreatorMode }) {
   const { isOpen, setIsOpen, closeModal } = useHero();
   return (
-    <section className="relative pt-8 overflow-hidden bg-white">
+    <section className="relative pt-8 overflow-hidden">
       {/* Abstract background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-indigo-50 via-white to-indigo-50 opacity-70"></div>
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-indigo-50/60 via-transparent to-indigo-50/40"></div>
         {/* Animated blob shapes */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
         <div className="absolute top-1/3 -left-24 w-80 h-80 bg-indigo-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
@@ -61,119 +61,24 @@ function Hero({ isCreatorMode }) {
           {/* Image Area with Floating Elements */}
           <div className="w-full md:w-1/2 relative">
             <div className="relative z-10 perspective-1000">
-              {/* Main image with 3D hover effect */}
               <div className="relative group transform transition-all duration-700 hover:rotate-y-12">
-                {/* Image Frame */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-2xl transform -rotate-3 scale-105 blur-sm opacity-30 group-hover:opacity-40 transition-opacity duration-500"></div>
-                <div className="relative rounded-xl overflow-hidden shadow-2xl border border-indigo-100">
-                  {/* Image */}
-                  <img
-                    src={
-                      isCreatorMode
-                        ? "/assets/images/landing/hero-bg-2.jpeg"
-                        : "/assets/images/landing/hero-bg.jpeg"
-                    }
-                    alt="Brand collaboration"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900/30 to-transparent"></div>
-
-                  {/* Animated overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                </div>
-
-                {/* Floating UI elements with independent animations */}
                 <div
-                  className={`${isCreatorMode ? "w-52" : "w-36"} absolute top-[1rem] left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
-                >
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                    <div className="flex items-center">
-                      {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
-                      <div>
-                        <span className="text-[10px] text-black">
-                          {isCreatorMode
-                            ? "Meyers Nutrition has sent you an offer"
-                            : "Auto generating contract"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {isCreatorMode && (
-                  <div className="text-center w-40 text-white rounded-lg left-5 bg-primary absolute top-32 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative shadow-lg py-1 px-2">
-                      <div className="flex items-center">
-                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px] text-white">Campaign marked: Complete</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {!isCreatorMode && (
-                  <div
-                    className={`${isCreatorMode ? "w-28 top-52 lg:top-72" : "w-36 top-36"} absolute left-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
-                  >
-                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                      <div className="flex items-center space-x-2">
-                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px] text-black">
-                            {isCreatorMode
-                              ? "No revisions needed"
-                              : "1st draft received for review"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isCreatorMode && (
-                  <div className="w-44 absolute top-48 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative bg-white/90 backdrop-blur-sm rounded-lg py-1 px-2 shadow-lg">
-                      <div className="flex items-center">
-                        {/* <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px] text-black">$550 payment received</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isCreatorMode && (
-                  <div className="w-48 text-white rounded-lg bg-primary absolute top-24 right-5 transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500">
-                    <div className="relative py-1 px-2 shadow-lg">
-                      <div className="flex items-center">
-                        {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
-                        <div>
-                          <span className="text-[10px]">Content draft submitted for review</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
+                  className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-indigo-300/50 blur-3xl opacity-80 group-hover:opacity-95 transition-opacity duration-500"
+                  aria-hidden
+                />
                 <div
-                  className={`${isCreatorMode ? "top-60 right-16 lg:top-64 lg:right-56" : "top-30 lg:top-60 right-16"} w-44 text-white rounded-lg bg-primary absolute  transform rotate-6 translate-y-0 hover:translate-y-2 transition-all duration-500`}
-                >
-                  <div className="relative rounded-lg px-2 py-1 shadow-lg">
-                    <div className="flex items-center space-x-2">
-                      {/* <div className="h-3 w-3 bg-white rounded-full animate-pulse"></div> */}
-                      <div>
-                        <span className="text-[10px]">
-                          {isCreatorMode
-                            ? "You received a rating on your recent campaign ⭐️⭐️⭐️⭐️⭐"
-                            : "payment released to creator"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  className="pointer-events-none absolute -inset-3 rounded-3xl bg-indigo-200/45 blur-2xl"
+                  aria-hidden
+                />
+                <img
+                  src={
+                    isCreatorMode
+                      ? "/assets/images/landing/hero-bg-2.jpeg"
+                      : "/assets/images/landing/creator-hero.jpeg"
+                  }
+                  alt={isCreatorMode ? "Creator collaboration" : "Brand collaboration"}
+                  className="relative z-10 w-full h-auto rounded-xl object-contain shadow-[0_8px_40px_rgba(129,140,248,0.35)] group-hover:scale-105 transition-transform duration-500"
+                />
               </div>
             </div>
           </div>

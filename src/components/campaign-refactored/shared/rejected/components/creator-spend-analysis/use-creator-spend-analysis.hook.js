@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import { getAllShortlists } from "@/provider/features/shortlist/shortlist.slice";
-import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { BRAND_CAMPAIGN_TAB, COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { sortOptions, avatar } from "@/common/constants/auth.constant";
 import { formatCreatorLocation } from "@/common/utils/creator-location.util";
 import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-platforms.utils";
+import { buildCreateCampaignPath } from "@/common/utils/campaign.utils";
 import {
   setSelectedCampaign as setSelectedCampaignContext,
   setBrandCampaignMultiCreatorMode,
@@ -24,13 +26,13 @@ function useCreatorSpendAnalysis({
   const [originalCreatorToReinstate, setOriginalCreatorToReinstate] = useState(null);
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
-  const [open, setOpen] = useState(false);
   const hasAutoSelectedCampaignRef = useRef(false);
   const hasRestoredFromContext = useRef(false);
   const lastRestoredCampaignIdRef = useRef(null);
   const awaitingReinstateConfirmRef = useRef(false);
 
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const { selectedCampaignId } = useSelector((state) => state.campaignContext || {});
   const isMultiCreator = useSelector(
@@ -218,13 +220,14 @@ function useCreatorSpendAnalysis({
     }
   };
 
-  const handleOpenModal = () => {
-    setOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpen(false);
-  };
+  const handleNewCampaignClick = useCallback(() => {
+    router.push(
+      buildCreateCampaignPath({
+        returnTab: BRAND_CAMPAIGN_TAB.APPLICATIONS,
+        returnView: 2,
+      })
+    );
+  }, [router]);
 
   const handleCreatorPreview = (creator) => {
     if (onCreatorSelect) {
@@ -267,6 +270,7 @@ function useCreatorSpendAnalysis({
       platforms: connectedPlatforms.platformList,
       platformStats: connectedPlatforms.platformStats,
       hasConnectedSocialAccounts: connectedPlatforms.hasConnectedSocialAccounts,
+      mediaKitUrl: profile?.media_kit_url || null,
       appliedDate: appliedDate ? new Date(appliedDate).toLocaleDateString() : "",
       rejectedDate: rejectedDate ? new Date(rejectedDate).toLocaleDateString() : "N/A",
       originalData: data,
@@ -357,7 +361,6 @@ function useCreatorSpendAnalysis({
     creatorToSave,
     shortlists,
     shortlistsLoading,
-    open,
     isMultiCreator,
     sortOptions,
     handleToggleChange,
@@ -368,8 +371,7 @@ function useCreatorSpendAnalysis({
     handleSaveToShortlistClick,
     handleConfirmSaveToShortlist,
     handleCancelSaveToShortlist,
-    handleOpenModal,
-    handleCloseModal,
+    handleNewCampaignClick,
     handleCreatorPreview,
     mapCreatorForCard,
   };

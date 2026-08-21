@@ -192,11 +192,17 @@ export const REVISION_LIMIT_OPTIONS = [
 ];
 
 export const NEGOTIATION_TOGGLE_OPTIONS = [
-  { value: "negotiable", label: "Negotiable", activeClasses: "bg-indigo-100 text-indigo-700" },
+  {
+    value: "negotiable",
+    label: "Negotiable",
+    activeClasses: "bg-primary/10 text-primary",
+    inactiveClasses: "bg-gray-100 text-gray-600",
+  },
   {
     value: "non_negotiable",
     label: "Non Negotiable",
     activeClasses: "bg-orange-100 text-orange-700",
+    inactiveClasses: "bg-gray-100 text-gray-600",
   },
 ];
 
@@ -205,6 +211,7 @@ export const CREATOR_APPLICATION_STATUS_FILTER_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "DENIED", label: "Denied" },
   { value: "ONBOARDING_STARTED", label: "Onboarding Started" },
+  { value: "ONBOARDED", label: "Onboarded" },
   { value: "APPROVED", label: "Approved" },
 ];
 

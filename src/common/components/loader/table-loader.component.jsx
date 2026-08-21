@@ -5,7 +5,7 @@ export default function TableLoadar() {
     <div className="flex min-h-[60vh] items-center justify-center bg-white">
       <div className="circle-animation">
         <div className="circle"></div>
-        <img src="/assets/images/loadar-logo.svg" alt="logo" />
+        <img src="/assets/images/horizontal-logo.png" alt="CleerCut" />
       </div>
     </div>
   );

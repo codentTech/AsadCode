@@ -11,6 +11,10 @@ import {
   HIRE_USAGE_RIGHTS_OPTIONS,
   REVISION_LIMIT_OPTIONS,
 } from "@/common/constants/options.constant";
+import {
+  normalizeHireExclusivity,
+  normalizeHireUsageRights,
+} from "@/common/utils/contract-terms.util";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
@@ -288,10 +292,14 @@ export default function HireCreatorModal({
                 options={HIRE_EXCLUSIVITY_CLAUSE_OPTIONS}
                 value={exclusivityOption}
                 onChange={(option) =>
-                  setValue("exclusivityClause", option?.value || "none", {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
+                  setValue(
+                    "exclusivityClause",
+                    normalizeHireExclusivity(option?.value) || "none",
+                    {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    }
+                  )
                 }
                 errors={errors}
                 name="exclusivityClause"
@@ -303,10 +311,14 @@ export default function HireCreatorModal({
                 options={HIRE_USAGE_RIGHTS_OPTIONS}
                 value={usageRightsOption}
                 onChange={(option) =>
-                  setValue("usageRights", option?.value || "no_usage", {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
+                  setValue(
+                    "usageRights",
+                    normalizeHireUsageRights(option?.value) || "no_usage",
+                    {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    }
+                  )
                 }
                 errors={errors}
                 name="usageRights"

@@ -35,6 +35,7 @@ const initialState = {
   updateCampaign: { ...generalState },
   deleteCampaign: { ...generalState },
   closeCampaignListing: { ...generalState },
+  extendApplicationDeadline: { ...generalState },
   filterCampaigns: { ...generalState },
   getCampaignStats: { ...generalState },
   applyToCampaign: { ...generalState },
@@ -136,6 +137,24 @@ export const closeCampaignListing = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to close campaign listing")
+      );
+    }
+  }
+);
+
+export const extendApplicationDeadline = createAsyncThunk(
+  "campaigns/extendApplicationDeadline",
+  async ({ campaignId, applicationDeadline }, thunkAPI) => {
+    try {
+      const response = await campaignsService.extendApplicationDeadline(
+        campaignId,
+        applicationDeadline
+      );
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to extend application deadline")
       );
     }
   }
@@ -583,6 +602,37 @@ export const campaignsSlice = createSlice({
           action.payload?.message || "Failed to close campaign listing";
         state.closeCampaignListing.isLoading = false;
         state.closeCampaignListing.isError = true;
+      })
+      .addCase(extendApplicationDeadline.pending, (state) => {
+        state.extendApplicationDeadline.isLoading = true;
+        state.extendApplicationDeadline.message = "";
+        state.extendApplicationDeadline.isError = false;
+        state.extendApplicationDeadline.isSuccess = false;
+      })
+      .addCase(extendApplicationDeadline.fulfilled, (state, action) => {
+        state.extendApplicationDeadline.isLoading = false;
+        state.extendApplicationDeadline.isSuccess = true;
+        state.extendApplicationDeadline.data = action.payload;
+
+        const updatedCampaign = action.payload?.data;
+        const brandCampaigns = state.getAllBrandCampaigns.data?.data;
+        if (updatedCampaign?.id && Array.isArray(brandCampaigns)) {
+          state.getAllBrandCampaigns.data.data = brandCampaigns.map((campaign) =>
+            campaign.id === updatedCampaign.id
+              ? {
+                  ...campaign,
+                  application_deadline: updatedCampaign.application_deadline,
+                  accepting_applications: updatedCampaign.accepting_applications,
+                }
+              : campaign
+          );
+        }
+      })
+      .addCase(extendApplicationDeadline.rejected, (state, action) => {
+        state.extendApplicationDeadline.message =
+          action.payload?.message || "Failed to extend application deadline";
+        state.extendApplicationDeadline.isLoading = false;
+        state.extendApplicationDeadline.isError = true;
       })
       // filterCampaigns
       .addCase(filterCampaigns.pending, (state) => {

@@ -4,11 +4,27 @@ import CountrySelect from "@/common/components/dropdowns/country-select/country-
 import InstagramIcon from "@/common/icons/instagram";
 import TikTokIcon from "@/common/icons/tiktok";
 import YoutubeIcon from "@/common/icons/youtube";
-import { ArrowLeft, Calendar, CheckCircle, Globe, Hash, MapPin, UserCheck, X } from "lucide-react";
-import SetupProgress from "../../components/setup-progress/setup-progress.component";
+import {
+  Calendar,
+  Check,
+  Globe,
+  Hash,
+  MapPin,
+  Target,
+  Trash2,
+  UserCheck,
+} from "lucide-react";
+import OnboardingStepLayout from "../../components/onboarding-step-layout/onboarding-step-layout.component";
 import useIdealCreator from "./use-ideal-creator.hook";
 
-const IdealCreator = ({ onNext, onBack }) => {
+const selectTileClass = (isSelected) =>
+  `flex w-full items-center gap-2 rounded-md border px-2.5 py-2 text-left text-xs font-medium transition ${
+    isSelected
+      ? "border-primary bg-indigo-50 text-gray-900"
+      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+  }`;
+
+const IdealCreator = ({ onNext, onResumeStep, isActive = true }) => {
   const {
     register,
     handleSubmit,
@@ -18,7 +34,6 @@ const IdealCreator = ({ onNext, onBack }) => {
     isLoading,
     minFollowers,
     selectedGender,
-    selectedCountries,
     selectedCities,
     selectedAgeRanges,
     selectedPlatforms,
@@ -36,310 +51,264 @@ const IdealCreator = ({ onNext, onBack }) => {
     ageRanges,
     platforms,
     followerRanges,
-  } = useIdealCreator({ onNext });
+  } = useIdealCreator({ onNext, onResumeStep, isActive });
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-5 bg-primary p-4 rounded-lg">
-          <h1 className="text-xl lg:text-3xl font-bold text-white mb-1">
-            Who Are You Looking to Work With?
-          </h1>
-          <p className="text-sm lg:text-md text-white">
-            Help us find the perfect creators for your campaigns
-          </p>
-        </div>
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <button
-              onClick={onBack}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </button>
-            <span>Step 6 of 6</span>
-            <span>100% Complete</span>
+    <OnboardingStepLayout
+      as="form"
+      onSubmit={handleSubmit(onSubmit)}
+      footer={
+        <CustomButton
+          text="Complete Setup"
+          className="btn-primary w-full sm:ml-auto sm:w-auto"
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <section className="flex items-start gap-3 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+            <Target className="h-4 w-4" />
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full w-full transition-all duration-500"></div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold text-gray-900">Define your ideal creator</h3>
+            <p className="mt-0.5 text-[11px] leading-snug text-gray-600 sm:text-xs">
+              Set reach, audience, and platform filters so the right creators find your campaigns.
+            </p>
           </div>
+        </section>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                <Hash className="h-3.5 w-3.5" />
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Minimum followers <span className="text-red-500">*</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+              {followerRanges.map((range) => {
+                const isSelected = minFollowers === range.value;
+                return (
+                  <button
+                    key={range.value}
+                    type="button"
+                    onClick={() =>
+                      setValue("min_followers", range.value, { shouldValidate: true })
+                    }
+                    className={selectTileClass(isSelected)}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{range.label}</span>
+                    {isSelected ? (
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            {errors.min_followers ? (
+              <p className="mt-2 text-xs text-red-600">{errors.min_followers.message}</p>
+            ) : null}
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                <UserCheck className="h-3.5 w-3.5" />
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">Gender</h3>
+            </div>
+            <div className="grid gap-1.5 sm:grid-cols-1">
+              {genderOptions.map((gender) => {
+                const isSelected = selectedGender?.includes(gender.id);
+                return (
+                  <button
+                    key={gender.id}
+                    type="button"
+                    onClick={() => toggleSelection(gender.id, "gender")}
+                    className={selectTileClass(isSelected)}
+                  >
+                    <span className="min-w-0 flex-1">{gender.label}</span>
+                    {isSelected ? (
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            {errors.gender ? (
+              <p className="mt-2 text-xs text-red-600">{errors.gender.message}</p>
+            ) : null}
+          </section>
         </div>
 
-        <form>
-          <div className="space-y-4">
-            {/* Follower Count & Gender */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Minimum Followers */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Hash className="h-5 w-5 text-indigo-600 mr-2" />
-                  Minimum Followers <span className="text-red-500">*</span>
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {followerRanges.map((range) => (
-                    <button
-                      key={range.value}
-                      type="button"
-                      onClick={() =>
-                        setValue("min_followers", range.value, { shouldValidate: true })
-                      }
-                      className={`
-                        p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
-                        ${
-                          minFollowers === range.value
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                        }
-                      `}
+        <section className="rounded-lg border border-gray-200 bg-white p-3">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+              <MapPin className="h-3.5 w-3.5" />
+            </span>
+            <h3 className="text-sm font-semibold text-gray-900">Location</h3>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="rounded-md border border-gray-100 bg-gray-50/80 p-2.5">
+              <p className="mb-2 text-xs font-semibold text-gray-900">
+                Countries <span className="text-red-500">*</span>
+              </p>
+              <CountrySelect
+                label=""
+                name="countries_selector"
+                value={countrySelectValue}
+                onChange={handleCountrySelect}
+                isRequired={false}
+                errors={errors}
+              />
+              {selectedCountryDetails.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {selectedCountryDetails.map((country) => (
+                    <span
+                      key={country.code}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 sm:text-xs"
                     >
-                      {range.label}
-                    </button>
+                      {country.name}
+                      <Trash2
+                        className="h-3 w-3 shrink-0 cursor-pointer text-gray-400 hover:text-red-600"
+                        onClick={() => handleCountryRemove(country.code)}
+                        aria-label={`Remove ${country.name}`}
+                      />
+                    </span>
                   ))}
                 </div>
-                {errors.min_followers && (
-                  <p className="text-xs text-red-600 mt-2">{errors.min_followers.message}</p>
-                )}
-              </div>
-
-              {/* Gender */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <UserCheck className="h-5 w-5 text-indigo-600 mr-2" />
-                  Gender
-                </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {genderOptions.map((gender) => {
-                    const isSelected = selectedGender?.includes(gender.id);
-                    return (
-                      <button
-                        key={gender.id}
-                        type="button"
-                        onClick={() => toggleSelection(gender.id, "gender")}
-                        className={`
-                          flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
-                          ${
-                            isSelected
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                          }
-                        `}
-                      >
-                        {gender.label}
-                        {isSelected && <CheckCircle className="h-4 w-4 ml-auto text-indigo-500" />}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.gender && (
-                  <p className="text-xs text-red-600 mt-2">{errors.gender.message}</p>
-                )}
-              </div>
+              ) : null}
+              {errors.countries ? (
+                <p className="mt-2 text-xs text-red-600">{errors.countries.message}</p>
+              ) : null}
             </div>
 
-            {/* Location */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <MapPin className="h-5 w-5 text-indigo-600 mr-2" />
-                Location
-              </h3>
-
-              {/* Countries */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Select Countries</h4>
-                <CountrySelect
-                  label="Add country"
-                  name="countries_selector"
-                  value={countrySelectValue}
-                  onChange={handleCountrySelect}
-                  isRequired={false}
-                  errors={errors}
-                />
-                {selectedCountryDetails.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedCountryDetails.map((country) => (
-                      <span
-                        key={country.code}
-                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
-                      >
-                        {country.name}
-                        <button
-                          type="button"
-                          onClick={() => handleCountryRemove(country.code)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {errors.countries && (
-                  <p className="text-xs text-red-600 mt-2">{errors.countries.message}</p>
-                )}
-              </div>
-
-              {/* City Search */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Specific City (Optional)</h4>
-                <CitySelect
-                  label="Search for cities"
-                  name="city_selector"
-                  countryCode={citySelectValue?.countryCode || primaryCountryCode}
-                  countryCodes={allowedCountryCodes}
-                  value={citySelectValue}
-                  onChange={handleCitySelect}
-                  isRequired={false}
-                  errors={errors}
-                />
-                {selectedCities.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedCities.map((city) => (
-                      <span
-                        key={`${city.name}-${city.countryCode || ""}`}
-                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
-                      >
-                        {city.name}
-                        <button
-                          type="button"
-                          onClick={() => handleCityRemove(city)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Age Range & Platforms */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Age Range */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
-                  Age Range
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {ageRanges.map((age) => {
-                    const isSelected = selectedAgeRanges?.includes(age.id);
-                    return (
-                      <button
-                        key={age.id}
-                        type="button"
-                        onClick={() => toggleSelection(age.id, "age_ranges")}
-                        className={`
-                          p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200 text-center
-                          ${
-                            isSelected
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                          }
-                        `}
-                      >
-                        <div className="font-bold">{age.label}</div>
-                        <div className="text-xs text-gray-600">{age.desc}</div>
-                      </button>
-                    );
-                  })}
+            <div className="rounded-md border border-gray-100 bg-gray-50/80 p-2.5">
+              <p className="mb-2 text-xs font-semibold text-gray-900">Cities (optional)</p>
+              <CitySelect
+                label=""
+                name="city_selector"
+                countryCode={citySelectValue?.countryCode || primaryCountryCode}
+                countryCodes={allowedCountryCodes}
+                value={citySelectValue}
+                onChange={handleCitySelect}
+                isRequired={false}
+                errors={errors}
+              />
+              {selectedCities.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {selectedCities.map((city) => (
+                    <span
+                      key={`${city.name}-${city.countryCode || ""}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 sm:text-xs"
+                    >
+                      {city.name}
+                      <Trash2
+                        className="h-3 w-3 shrink-0 cursor-pointer text-gray-400 hover:text-red-600"
+                        onClick={() => handleCityRemove(city)}
+                        aria-label={`Remove ${city.name}`}
+                      />
+                    </span>
+                  ))}
                 </div>
-                {errors.age_ranges && (
-                  <p className="text-xs text-red-600 mt-2">{errors.age_ranges.message}</p>
-                )}
-              </div>
-
-              {/* Platforms */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Globe className="h-5 w-5 text-indigo-600 mr-2" />
-                  Primary Platforms
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {platforms.map((platform) => {
-                    const isSelected = selectedPlatforms?.includes(platform.id);
-                    return (
-                      <button
-                        key={platform.id}
-                        type="button"
-                        onClick={() => toggleSelection(platform.id, "platforms")}
-                        className={`
-                          flex items-center p-2 text-xs rounded-lg border-2 font-medium transition-all duration-200
-                          ${
-                            isSelected
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 text-gray-700 hover:border-indigo-200"
-                          }
-                        `}
-                      >
-                        <span className="text-lg mr-3">
-                          {platform.id === "instagram" && <InstagramIcon />}
-                          {platform.id === "tiktok" && <TikTokIcon />}
-                          {platform.id === "youtube" && <YoutubeIcon />}
-                        </span>
-                        <span className="text-xs">{platform.label}</span>
-                        {isSelected && <CheckCircle className="h-4 w-4 ml-auto text-indigo-500" />}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.platforms && (
-                  <p className="text-xs text-red-600 mt-2">{errors.platforms.message}</p>
-                )}
-              </div>
+              ) : null}
             </div>
-
-            {/* Completion Section */}
-            <SetupProgress
-              percent={
-                (minFollowers ? 20 : 0) +
-                (selectedGender?.length > 0 ? 20 : 0) +
-                (selectedCountries?.length > 0 ? 20 : 0) +
-                (selectedAgeRanges?.length > 0 ? 20 : 0) +
-                (selectedPlatforms?.length > 0 ? 20 : 0)
-              }
-              steps={[
-                {
-                  label: "Minimum Followers",
-                  status: minFollowers ? "complete" : "pending",
-                },
-                {
-                  label: "Gender",
-                  status: selectedGender?.length > 0 ? "count" : "pending",
-                  count: selectedGender?.length,
-                },
-                {
-                  label: "Countries",
-                  status: selectedCountries?.length > 0 ? "count" : "pending",
-                  count: selectedCountries?.length,
-                },
-                {
-                  label: "Age Ranges",
-                  status: selectedAgeRanges?.length > 0 ? "count" : "pending",
-                  count: selectedAgeRanges?.length,
-                },
-                {
-                  label: "Platforms",
-                  status: selectedPlatforms?.length > 0 ? "count" : "pending",
-                  count: selectedPlatforms?.length,
-                },
-              ]}
-            />
           </div>
-        </form>
-        <div className="flex justify-end mt-10">
-          <CustomButton
-            text="Complete Setup"
-            className="btn-primary"
-            onClick={handleSubmit(onSubmit)}
-            disabled={isLoading}
-            loading={isLoading}
-          />
+        </section>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                <Calendar className="h-3.5 w-3.5" />
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">Age range</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+              {ageRanges.map((age) => {
+                const isSelected = selectedAgeRanges?.includes(age.id);
+                return (
+                  <button
+                    key={age.id}
+                    type="button"
+                    onClick={() => toggleSelection(age.id, "age_ranges")}
+                    className={`flex w-full flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left text-xs transition ${
+                      isSelected
+                        ? "border-primary bg-indigo-50 text-gray-900"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="flex w-full items-center justify-between gap-1">
+                      <span className="font-semibold">{age.label}</span>
+                      {isSelected ? (
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                          <Check className="h-2.5 w-2.5" />
+                        </span>
+                      ) : null}
+                    </span>
+                    {age.desc ? (
+                      <span className="text-[10px] font-normal leading-snug text-gray-500">
+                        {age.desc}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            {errors.age_ranges ? (
+              <p className="mt-2 text-xs text-red-600">{errors.age_ranges.message}</p>
+            ) : null}
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-white p-3">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-primary">
+                <Globe className="h-3.5 w-3.5" />
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">Primary platforms</h3>
+            </div>
+            <div className="grid gap-1.5 sm:grid-cols-1">
+              {platforms.map((platform) => {
+                const isSelected = selectedPlatforms?.includes(platform.id);
+                return (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    onClick={() => toggleSelection(platform.id, "platforms")}
+                    className={selectTileClass(isSelected)}
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white text-base shadow-sm ring-1 ring-gray-200">
+                      {platform.id === "instagram" ? <InstagramIcon /> : null}
+                      {platform.id === "tiktok" ? <TikTokIcon /> : null}
+                      {platform.id === "youtube" ? <YoutubeIcon /> : null}
+                    </span>
+                    <span className="min-w-0 flex-1">{platform.label}</span>
+                    {isSelected ? (
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            {errors.platforms ? (
+              <p className="mt-2 text-xs text-red-600">{errors.platforms.message}</p>
+            ) : null}
+          </section>
         </div>
       </div>
-    </div>
+    </OnboardingStepLayout>
   );
 };
 

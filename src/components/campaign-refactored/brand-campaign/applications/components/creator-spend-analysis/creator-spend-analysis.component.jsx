@@ -1,21 +1,24 @@
 import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
 import CustomSwitch from "@/common/components/custom-switch/custom-switch.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications-subtab-toggle.component";
+import AppliedCreatorsSection from "../applied-creators-section/applied-creators-section.component";
 import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-section.component";
 import { Menu, MenuItem } from "@mui/material";
-import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
+import { EllipsisVertical, Filter, LayoutGrid, List, Search } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
+import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 
-const GRID_CLASS =
-  "mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]";
+const GRID_CLASS = `mb-8 ${CREATOR_CARD_GRID_CLASS}`;
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -66,6 +69,8 @@ const CreatorSpendAnalysis = ({
     handleSortChange,
     sortValue,
     sortOptions,
+    creatorNameSearch,
+    handleCreatorNameSearchChange,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,
@@ -91,6 +96,15 @@ const CreatorSpendAnalysis = ({
     handleRequestCloseListing,
     handleCancelCloseListing,
     handleConfirmCloseListing,
+    showExtendDeadlineModal,
+    campaignToExtendDeadline,
+    extendDeadlineValue,
+    extendDeadlineError,
+    isExtendingDeadline,
+    handleRequestExtendDeadline,
+    handleCancelExtendDeadline,
+    handleExtendDeadlineChange,
+    handleConfirmExtendDeadline,
   } = useCreatorSpendAnalysis({
     selectedCampaign,
     appliedCreatorsData,
@@ -172,21 +186,22 @@ const CreatorSpendAnalysis = ({
                   />
                 </div>
                 {showCloseListingMenu && selectedCampaign ? (
-                  isSelectedCampaignListingOpen ? (
+                  <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                    {!isSelectedCampaignListingOpen ? (
+                      <span className="rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
+                        Listing closed
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleMenuOpen}
-                      disabled={isClosingListing}
+                      disabled={isClosingListing || isExtendingDeadline}
                       className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Campaign options"
                     >
                       <EllipsisVertical className="h-4 w-4" />
                     </button>
-                  ) : (
-                    <span className="shrink-0 rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
-                      Listing closed
-                    </span>
-                  )
+                  </div>
                 ) : null}
               </div>
             ) : null}
@@ -202,6 +217,17 @@ const CreatorSpendAnalysis = ({
             ) : null}
 
             <div className="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2 lg:ml-0 lg:flex-1 lg:justify-end">
+              <div className="min-w-0 w-full sm:w-44 md:w-[200px] md:max-w-[240px]">
+                <CustomInput
+                  type="text"
+                  name="creatorNameSearch"
+                  placeholder="Search creators"
+                  value={creatorNameSearch}
+                  onChange={handleCreatorNameSearchChange}
+                  startIcon={<Search className="h-3.5 w-3.5 text-gray-400" aria-hidden />}
+                  className="h-8 min-h-8 text-xs"
+                />
+              </div>
               <div className="min-w-0 w-full sm:w-44 md:w-[180px] md:max-w-[230px]">
                 <SimpleSelect
                   placeHolder="Sort by"
@@ -243,10 +269,7 @@ const CreatorSpendAnalysis = ({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4 relative z-0">
         {leftContentLoading ? (
-          <SkeletonCardGrid
-            count={8}
-            gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-3 mb-8"
-          />
+          <SkeletonCardGrid count={8} gridClass={`mb-8 ${CREATOR_CARD_GRID_CLASS}`} />
         ) : selectedCampaign ? (
           <>
             {isIndividualCampaign ? (
@@ -265,33 +288,52 @@ const CreatorSpendAnalysis = ({
                     description="No individual collaborations found at this time. Invite creators to start collaborating."
                   />
                 </div>
+              ) : pinnedIndividualCreators.length === 0 &&
+                unpinnedIndividualCreators.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <NotFound
+                    title="No Creators Found"
+                    description="No creators match your search. Try a different name."
+                  />
+                </div>
               ) : (
                 <>
                   <PinnedInvitedSection
                     pinnedCreators={pinnedIndividualCreators}
                     renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
                   />
-                  {unpinnedIndividualCreators.length > 0 ? (
-                    <div className={GRID_CLASS}>
-                      {unpinnedIndividualCreators.map((invitation) =>
-                        renderCreatorCard(invitation)
-                      )}
-                    </div>
-                  ) : null}
+                  <AppliedCreatorsSection
+                    pinnedCreators={pinnedIndividualCreators}
+                    unpinnedCreators={unpinnedIndividualCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
                 </>
               )
             ) : sortedAppliedCreators.length > 0 ? (
-              <>
-                <PinnedInvitedSection
-                  pinnedCreators={pinnedAppliedCreators}
-                  renderCreatorCard={renderCreatorCard}
-                />
-                {unpinnedAppliedCreators.length > 0 ? (
-                  <div className={GRID_CLASS}>
-                    {unpinnedAppliedCreators.map((creator) => renderCreatorCard(creator))}
-                  </div>
-                ) : null}
-              </>
+              pinnedAppliedCreators.length === 0 && unpinnedAppliedCreators.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <NotFound
+                    title="No Creators Found"
+                    description="No creators match your search. Try a different name."
+                  />
+                </div>
+              ) : (
+                <>
+                  <PinnedInvitedSection
+                    pinnedCreators={pinnedAppliedCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
+                  <AppliedCreatorsSection
+                    pinnedCreators={pinnedAppliedCreators}
+                    unpinnedCreators={unpinnedAppliedCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
+                </>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <NotFound
@@ -378,6 +420,13 @@ const CreatorSpendAnalysis = ({
         }}
       >
         <MenuItem
+          onClick={handleRequestExtendDeadline}
+          disabled={isExtendingDeadline}
+          sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
+        >
+          Extend application deadline
+        </MenuItem>
+        <MenuItem
           onClick={handleRequestCloseListing}
           disabled={isClosingListing || !isSelectedCampaignListingOpen}
           sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
@@ -406,6 +455,53 @@ const CreatorSpendAnalysis = ({
         confirmLoading={isClosingListing}
         confirmLoadingText="Closing"
       />
+
+      <Modal
+        title="Extend application deadline"
+        show={showExtendDeadlineModal}
+        onClose={handleCancelExtendDeadline}
+      >
+        <div className="space-y-3">
+          <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+            {campaignToExtendDeadline?.campaign_title
+              ? `Update the deadline for ${campaignToExtendDeadline.campaign_title}. Choosing a future date reopens the listing to new applicants.`
+              : "Choose a new application deadline. A future date reopens the listing to new applicants."}
+          </p>
+          <p className="text-[10px] text-gray-500 sm:text-xs">
+            Current deadline: {formatDateOrNA(campaignToExtendDeadline?.application_deadline)}
+          </p>
+          <CustomInput
+            label="New application deadline"
+            type="date"
+            name="extend_application_deadline"
+            value={extendDeadlineValue}
+            onChange={handleExtendDeadlineChange}
+            inputProps={{ min: getTodayHtmlDateInputValue() }}
+            isRequired
+            errors={
+              extendDeadlineError
+                ? { extend_application_deadline: { message: extendDeadlineError } }
+                : null
+            }
+          />
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <CustomButton
+              text="Cancel"
+              onClick={handleCancelExtendDeadline}
+              className="btn-outline w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+            />
+            <CustomButton
+              text="Save deadline"
+              onClick={handleConfirmExtendDeadline}
+              className="btn-primary w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+              loading={isExtendingDeadline}
+              loadingText="Saving"
+            />
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         title="Save to Shortlist"

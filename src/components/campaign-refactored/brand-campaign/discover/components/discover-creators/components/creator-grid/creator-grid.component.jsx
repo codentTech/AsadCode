@@ -1,4 +1,5 @@
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 
 const CreatorGrid = ({
   creators,
@@ -9,7 +10,7 @@ const CreatorGrid = ({
   onInviteClick,
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 items-stretch gap-4">
+    <div className={`${CREATOR_CARD_GRID_CLASS} items-stretch`}>
       {creators.map((creator) => (
         <div key={creator.id} className="flex h-full min-h-0">
           <CreatorCard

@@ -2,22 +2,15 @@
 
 import { Suspense } from "react";
 import PropTypes from "prop-types";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import AUTH from "@/common/constants/auth.constant";
 import NAVBAR_TITLE from "@/common/constants/navbar-title.constant";
 import AuthMainRoutes from "./auth-main-routes.component";
 import Private from "./private.component";
 import SuperAdmin from "./super-admin.component";
 
-function AuthSuspenseFallback() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-600" />
-    </div>
-  );
-}
-
 function withSearchParamsSuspense(node) {
-  return <Suspense fallback={<AuthSuspenseFallback />}>{node}</Suspense>;
+  return <Suspense fallback={<FullPageLoader />}>{node}</Suspense>;
 }
 
 /**

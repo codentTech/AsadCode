@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { HelpCircle, LogOut, Settings, Shield, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { getUser } from "@/common/utils/users.util";
-import { logout } from "@/common/utils/users.util";
+import { getUser, logout } from "@/common/utils/users.util";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import {
   getMyNotifications,
   getUnreadCount,
@@ -96,8 +96,9 @@ const useHeader = () => {
       icon: <LogOut size={16} />,
       label: "Sign Out",
       action: () => {
-        router.push("/login");
+        dispatch(resetOnboardingSession());
         logout();
+        router.push("/login");
       },
       className: "text-red-600 hover:text-red-700 hover:bg-red-50",
     },

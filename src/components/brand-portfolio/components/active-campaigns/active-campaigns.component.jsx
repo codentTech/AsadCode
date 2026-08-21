@@ -5,9 +5,12 @@ import { Menu, MenuItem } from "@mui/material";
 import { EllipsisVertical, Loader2 } from "lucide-react";
 import ConfirmationModal from "@/common/components/confirmation-modal/confirmation-modal.component";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import CustomInput from "@/common/components/custom-input/custom-input.component";
+import Modal from "@/common/components/modal/modal.component";
 import { product as defaultProduct } from "@/common/constants/auth.constant";
 import { formatTimeAgo } from "@/common/utils/helper.utils";
 import { deriveCompensation } from "@/common/utils/campaign.utils";
+import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 import useActiveCampaigns from "./use-active-campaigns.hook";
 
 const ActiveCampaigns = ({ refreshKey }) => {
@@ -17,10 +20,15 @@ const ActiveCampaigns = ({ refreshKey }) => {
     isError,
     message,
     isClosingListing,
+    isExtendingDeadline,
     menuAnchorEl,
     menuCampaign,
     showCloseListingModal,
     campaignToClose,
+    showExtendDeadlineModal,
+    campaignToExtendDeadline,
+    extendDeadlineValue,
+    extendDeadlineError,
     isCampaignListingOpen,
     getCampaignTypeStyle,
     handleRefresh,
@@ -29,6 +37,10 @@ const ActiveCampaigns = ({ refreshKey }) => {
     handleRequestCloseListing,
     handleCancelCloseListing,
     handleConfirmCloseListing,
+    handleRequestExtendDeadline,
+    handleCancelExtendDeadline,
+    handleExtendDeadlineChange,
+    handleConfirmExtendDeadline,
   } = useActiveCampaigns(refreshKey);
 
   return (
@@ -113,21 +125,22 @@ const ActiveCampaigns = ({ refreshKey }) => {
                         >
                           {campaign.campaign_type || "SPONSORED_POST"}
                         </div>
-                        {listingOpen ? (
+                        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                          {!listingOpen ? (
+                            <span className="rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
+                              Listing closed
+                            </span>
+                          ) : null}
                           <button
                             type="button"
                             onClick={(event) => handleMenuOpen(event, campaign.id)}
-                            disabled={isClosingListing}
+                            disabled={isClosingListing || isExtendingDeadline}
                             className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 bg-gray-100 transition-colors hover:bg-gray-200 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
                             aria-label="Campaign options"
                           >
                             <EllipsisVertical className="h-4 w-4" />
                           </button>
-                        ) : (
-                          <span className="rounded-md bg-gray-200 px-1.5 py-1.5 text-[10px] font-semibold text-gray-600 sm:px-2 sm:py-1.5 sm:text-xs">
-                            Listing closed
-                          </span>
-                        )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 text-left text-[10px] font-semibold text-gray-900 sm:text-xs">
                         <div>{compensation.label}</div>
@@ -243,6 +256,13 @@ const ActiveCampaigns = ({ refreshKey }) => {
         }}
       >
         <MenuItem
+          onClick={handleRequestExtendDeadline}
+          disabled={isExtendingDeadline}
+          sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
+        >
+          Extend application deadline
+        </MenuItem>
+        <MenuItem
           onClick={handleRequestCloseListing}
           disabled={isClosingListing || !isCampaignListingOpen(menuCampaign)}
           sx={{ fontSize: "0.8125rem", py: 1.25, px: 2, whiteSpace: "normal" }}
@@ -271,6 +291,53 @@ const ActiveCampaigns = ({ refreshKey }) => {
         confirmLoading={isClosingListing}
         confirmLoadingText="Closing"
       />
+
+      <Modal
+        title="Extend application deadline"
+        show={showExtendDeadlineModal}
+        onClose={handleCancelExtendDeadline}
+      >
+        <div className="space-y-3">
+          <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
+            {campaignToExtendDeadline?.campaign_title
+              ? `Update the deadline for ${campaignToExtendDeadline.campaign_title}. Choosing a future date reopens the listing to new applicants.`
+              : "Choose a new application deadline. A future date reopens the listing to new applicants."}
+          </p>
+          <p className="text-[10px] text-gray-500 sm:text-xs">
+            Current deadline: {formatDateOrNA(campaignToExtendDeadline?.application_deadline)}
+          </p>
+          <CustomInput
+            label="New application deadline"
+            type="date"
+            name="extend_application_deadline"
+            value={extendDeadlineValue}
+            onChange={handleExtendDeadlineChange}
+            inputProps={{ min: getTodayHtmlDateInputValue() }}
+            isRequired
+            errors={
+              extendDeadlineError
+                ? { extend_application_deadline: { message: extendDeadlineError } }
+                : null
+            }
+          />
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <CustomButton
+              text="Cancel"
+              onClick={handleCancelExtendDeadline}
+              className="btn-outline w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+            />
+            <CustomButton
+              text="Save deadline"
+              onClick={handleConfirmExtendDeadline}
+              className="btn-primary w-full sm:w-auto"
+              disabled={isExtendingDeadline}
+              loading={isExtendingDeadline}
+              loadingText="Saving"
+            />
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 };

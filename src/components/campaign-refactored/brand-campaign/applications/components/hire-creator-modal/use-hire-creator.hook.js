@@ -87,9 +87,11 @@ const createValidationSchema = (isIndividual) => {
     }),
     customerDiscountPercent: Yup.mixed().nullable(),
     usageRights: Yup.string()
+      .transform((value) => normalizeHireUsageRights(value) ?? value)
       .required("Usage rights is required")
       .oneOf([...CONTRACT_USAGE_RIGHTS_VALUES], "Invalid usage rights"),
     exclusivityClause: Yup.string()
+      .transform((value) => normalizeHireExclusivity(value) ?? value)
       .required("Exclusivity clause is required")
       .oneOf([...CONTRACT_EXCLUSIVITY_VALUES], "Invalid exclusivity clause"),
     additionalClauseTitle: Yup.string()
@@ -223,19 +225,20 @@ export default function useHireCreator({
       setValue("customerDiscountPercent", "", validateOpts);
     }
 
-    const usageRights = normalizeHireUsageRights(
-      campaignData?.usage_rights || campaignData?.usageRights
+    setValue(
+      "usageRights",
+      normalizeHireUsageRights(campaignData?.usage_rights || campaignData?.usageRights) ||
+        "no_usage",
+      validateOpts
     );
-    if (usageRights) {
-      setValue("usageRights", usageRights, validateOpts);
-    }
 
-    const exclusivity = normalizeHireExclusivity(
-      campaignData?.exclusivity_clause || campaignData?.exclusivityClause
+    setValue(
+      "exclusivityClause",
+      normalizeHireExclusivity(
+        campaignData?.exclusivity_clause || campaignData?.exclusivityClause
+      ) || "none",
+      validateOpts
     );
-    if (exclusivity) {
-      setValue("exclusivityClause", exclusivity, validateOpts);
-    }
   }, [campaignData, setValue]);
 
   const initializeForm = useCallback(() => {
@@ -433,9 +436,25 @@ export default function useHireCreator({
   );
 
   const revisionsLimitValue = watchedValues?.revisionsLimit?.toString?.() || "";
-  const usageRightsValue = watchedValues?.usageRights || "no_usage";
-  const exclusivityValue = watchedValues?.exclusivityClause || "none";
+  const usageRightsValue =
+    normalizeHireUsageRights(watchedValues?.usageRights) || "no_usage";
+  const exclusivityValue =
+    normalizeHireExclusivity(watchedValues?.exclusivityClause) || "none";
   const campaignTypeValue = watchedValues?.campaignType || "";
+
+  useEffect(() => {
+    if (!show) return;
+    const rawUsage = watchedValues?.usageRights;
+    const normalizedUsage = normalizeHireUsageRights(rawUsage);
+    if (rawUsage && normalizedUsage && rawUsage !== normalizedUsage) {
+      setValue("usageRights", normalizedUsage, { shouldValidate: true });
+    }
+    const rawExclusivity = watchedValues?.exclusivityClause;
+    const normalizedExclusivity = normalizeHireExclusivity(rawExclusivity);
+    if (rawExclusivity && normalizedExclusivity && rawExclusivity !== normalizedExclusivity) {
+      setValue("exclusivityClause", normalizedExclusivity, { shouldValidate: true });
+    }
+  }, [show, watchedValues?.usageRights, watchedValues?.exclusivityClause, setValue]);
 
   const usageRightsOption =
     HIRE_USAGE_RIGHTS_OPTIONS.find((option) => option.value === usageRightsValue) ||

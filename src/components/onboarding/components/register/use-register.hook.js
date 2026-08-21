@@ -19,6 +19,8 @@ import {
   normalizeSelectedCity,
   toNullableNumber,
 } from "@/common/utils/register-form.util";
+import { readRegisterDraft, writeRegisterDraft } from "@/common/utils/onboarding-flow.util";
+import { persistOnboardingEmail } from "@/common/utils/users.util";
 
 export default function useRegister({ onNext, inviteToken }) {
   const dispatch = useDispatch();
@@ -37,18 +39,60 @@ export default function useRegister({ onNext, inviteToken }) {
   const [hasManualLocationOverride, setHasManualLocationOverride] =
     useState(false);
   const hasAutoDetectedLocation = useRef(false);
+  const hasHydratedRegisterRef = useRef(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
     setValue,
     getValues,
+    watch,
+    reset: resetForm,
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onChange",
     defaultValues: DEFAULT_FORM_VALUES,
   });
+
+  const watchedRegister = watch();
+
+  useEffect(() => {
+    if (hasHydratedRegisterRef.current) return;
+    const draft = readRegisterDraft();
+    if (!draft?.formValues) return;
+    hasHydratedRegisterRef.current = true;
+    resetForm({ ...DEFAULT_FORM_VALUES, ...draft.formValues });
+    if (draft.selectedAccountType) setSelectedAccountType(draft.selectedAccountType);
+    if (draft.selectedCountry) {
+      setSelectedCountry(draft.selectedCountry);
+      setHasManualLocationOverride(true);
+    }
+    if (draft.selectedState) setSelectedState(draft.selectedState);
+    if (draft.selectedCity) {
+      setSelectedCity(draft.selectedCity);
+      setHasManualLocationOverride(true);
+    }
+  }, [resetForm]);
+
+  useEffect(() => {
+    if (!hasHydratedRegisterRef.current && !isDirty) return;
+    const { password, confirm_password, ...safeValues } = watchedRegister || {};
+    writeRegisterDraft({
+      formValues: safeValues,
+      selectedAccountType,
+      selectedCountry,
+      selectedState,
+      selectedCity,
+    });
+  }, [
+    isDirty,
+    watchedRegister,
+    selectedAccountType,
+    selectedCountry,
+    selectedState,
+    selectedCity,
+  ]);
 
   useEffect(() => {
     if (selectedAccountType) {
@@ -253,7 +297,7 @@ export default function useRegister({ onNext, inviteToken }) {
     }
     const response = await dispatch(signUp(payload));
     if (response.payload.success) {
-      localStorage.setItem("email", values.email.toLowerCase().trim());
+      persistOnboardingEmail(values.email.toLowerCase().trim());
       localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
       onNext();
       dispatch(reset());
