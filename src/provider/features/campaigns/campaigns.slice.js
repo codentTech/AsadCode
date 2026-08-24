@@ -264,6 +264,10 @@ export const getAllBrandCampaigns = createAsyncThunk(
   "campaigns/getAllBrandCampaigns",
   async (_, thunkAPI) => {
     try {
+      const { isAuthRedirectInProgress } = await import("@/common/utils/api");
+      if (isAuthRedirectInProgress()) {
+        return thunkAPI.rejectWithValue({ message: "Unauthorized" });
+      }
       const response = await campaignsService.getAllBrandCampaigns();
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
@@ -682,6 +686,7 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.message =
           action.payload?.message || "Failed to fetch brand campaigns";
         state.getAllBrandCampaigns.isLoading = false;
+        state.getAllBrandCampaigns.isSuccess = false;
         state.getAllBrandCampaigns.isError = true;
         state.getAllBrandCampaigns.data = null;
       })

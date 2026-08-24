@@ -31,6 +31,7 @@ function useRejected() {
     data: campaignsData,
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const {
@@ -65,8 +66,9 @@ function useRejected() {
 
   // Fetch campaigns on mount
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || campaignsError) return;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   // Restore campaign from Redux context
   useEffect(() => {

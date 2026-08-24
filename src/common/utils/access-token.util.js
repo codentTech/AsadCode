@@ -22,8 +22,13 @@ export const getAccessToken = (data) => {
 export const isLoginVerified = () => {
   const token = getAccessToken();
   const user = getUser();
-  if (token && user) return true;
-  return false;
+  if (!token || !user) return false;
+  try {
+    if (isJwtExpired(token)) return false;
+  } catch {
+    return false;
+  }
+  return true;
 };
 
 /**

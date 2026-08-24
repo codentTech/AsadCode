@@ -6,6 +6,20 @@ import { getAccessToken } from "./access-token.util";
 import { delay } from "./generic.util";
 import { removeUser } from "./users.util";
 
+let isRedirectingToLogin = false;
+
+export const isAuthRedirectInProgress = () => isRedirectingToLogin;
+
+const redirectToLoginOnce = () => {
+  if (typeof window === "undefined" || isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+  removeUser();
+  const path = window.location.pathname || "";
+  if (!path.startsWith("/login")) {
+    window.location.replace("/login");
+  }
+};
+
 const api = (headers = null) => {
   const accessToken = getAccessToken();
 
@@ -21,6 +35,13 @@ const api = (headers = null) => {
   const apiInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_MAIN_URL || "http://localhost:5000",
     headers: combinedHeaders,
+  });
+
+  apiInstance.interceptors.request.use((config) => {
+    if (isRedirectingToLogin) {
+      return Promise.reject(new axios.Cancel("Auth redirect in progress"));
+    }
+    return config;
   });
 
   apiInstance.interceptors.response.use(
@@ -46,10 +67,13 @@ const api = (headers = null) => {
       return response;
     },
     (error) => {
-      // Network issues
+      if (axios.isCancel(error) || error?.message === "Auth redirect in progress") {
+        return Promise.reject(error);
+      }
+
       if (error.message === "Network Error") {
         enqueueSnackbar(error.message, { variant: "error" });
-        throw error;
+        return Promise.reject(error);
       }
 
       let message = error.response?.data?.message || error.message || error.toString();
@@ -58,11 +82,9 @@ const api = (headers = null) => {
       }
       const responseURL = error.request?.responseURL || "";
 
-      // Handle unauthorized
       if (error.response?.status === 401) {
-        removeUser();
-        window.location.href = "/login";
-        return;
+        redirectToLoginOnce();
+        return Promise.reject(error);
       }
 
       const path403 =
@@ -80,23 +102,20 @@ const api = (headers = null) => {
         }
       }
 
-      // Check if toast should be skipped for this request
       const skipToast =
         error.config?.headers?.["x-skip-toast"] ?? error.config?.headers?.["X-Skip-Toast"];
 
-      // Skip toast for payment method errors (they're shown in the component)
       const isPaymentMethodError =
         responseURL?.includes("/payment-methods/attach") ||
         responseURL?.includes("/payment-methods/setup-intent");
 
-      // Handle message display
       if (!skipToast && !isPaymentMethodError && !onboarding403Context) {
         if (message !== "Record Not Found") {
           enqueueSnackbar(message, { variant: "error" });
         }
       }
 
-      return Promise.reject(error); // Reject instead of returning raw response
+      return Promise.reject(error);
     }
   );
 

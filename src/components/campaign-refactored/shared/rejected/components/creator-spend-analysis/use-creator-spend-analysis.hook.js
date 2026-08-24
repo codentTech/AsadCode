@@ -44,9 +44,12 @@ function useCreatorSpendAnalysis({
     (state) => state.invitation.reinstateInvitation || {}
   );
 
-  const { data: allCampaignsData, isLoading: campaignsLoading } = useSelector(
-    (state) => state.campaigns.getAllBrandCampaigns
-  );
+  const {
+    data: allCampaignsData,
+    isLoading: campaignsLoading,
+    isSuccess: campaignsSuccess,
+    isError: campaignsError,
+  } = useSelector((state) => state.campaigns.getAllBrandCampaigns);
 
   // Filter out completed campaigns on frontend
   const campaignsData = useMemo(() => {
@@ -62,8 +65,9 @@ function useCreatorSpendAnalysis({
   );
 
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || campaignsError) return;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   useEffect(() => {
     dispatch(getAllShortlists());
