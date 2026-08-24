@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  downloadCompletedCampaignReportPdf,
   getCompletedCampaignReport,
   resetCompletedReport,
+  resetDownloadPdf,
   selectCompletedCampaignReport,
+  selectDownloadCampaignReportPdf,
 } from "@/provider/features/campaign-report/campaign-report.slice";
 
 export default function useCompletedCampaignReport(campaignId) {
@@ -11,18 +14,17 @@ export default function useCompletedCampaignReport(campaignId) {
   const { data, isLoading, isError, isSuccess, message } = useSelector(
     selectCompletedCampaignReport
   );
+  const { isLoading: isPdfLoading } = useSelector(selectDownloadCampaignReportPdf);
   const [activeTab, setActiveTab] = useState("overview");
-  const [pdfNotice, setPdfNotice] = useState(false);
   const [mobilePane, setMobilePane] = useState("center");
 
   useEffect(() => {
     if (!campaignId) return;
     dispatch(resetCompletedReport());
+    dispatch(resetDownloadPdf());
     dispatch(getCompletedCampaignReport(campaignId));
   }, [dispatch, campaignId]);
 
-  // Keep loader up from mount until success/error — avoids "Unable to load" flash
-  // before the thunk pending action lands.
   const showLoader = Boolean(campaignId) && (isLoading || (!isSuccess && !isError));
 
   const tabs = useMemo(() => {
@@ -49,12 +51,9 @@ export default function useCompletedCampaignReport(campaignId) {
   }, []);
 
   const handleDownloadPdf = useCallback(() => {
-    setPdfNotice(true);
-  }, []);
-
-  const dismissPdfNotice = useCallback(() => {
-    setPdfNotice(false);
-  }, []);
+    if (!campaignId || isPdfLoading) return;
+    dispatch(downloadCompletedCampaignReportPdf(campaignId));
+  }, [campaignId, dispatch, isPdfLoading]);
 
   const goToLeftPane = useCallback(() => setMobilePane("left"), []);
   const goToCenterPane = useCallback(() => setMobilePane("center"), []);
@@ -98,11 +97,10 @@ export default function useCompletedCampaignReport(campaignId) {
     message,
     activeTab,
     tabs,
-    pdfNotice,
+    isPdfLoading,
     mobilePane,
     handleTabChange,
     handleDownloadPdf,
-    dismissPdfNotice,
     goToLeftPane,
     goToCenterPane,
     goToRightPane,

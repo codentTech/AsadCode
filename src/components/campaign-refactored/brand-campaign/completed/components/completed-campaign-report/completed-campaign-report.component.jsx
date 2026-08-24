@@ -545,6 +545,7 @@ function ReportLeftPanel({
   headerPills,
   overview,
   onDownloadPdf,
+  isPdfLoading,
   formatCurrency,
   formatNumber,
   formatPercent,
@@ -575,6 +576,9 @@ function ReportLeftPanel({
             text="Download as PDF"
             className="btn-outline w-full"
             onClick={onDownloadPdf}
+            disabled={isPdfLoading}
+            loading={isPdfLoading}
+            loadingText="Generating PDF…"
           />
         </div>
       </div>
@@ -744,11 +748,10 @@ export default function CompletedCampaignReport({ campaignId }) {
     message,
     activeTab,
     tabs,
-    pdfNotice,
+    isPdfLoading,
     mobilePane,
     handleTabChange,
     handleDownloadPdf,
-    dismissPdfNotice,
     goToLeftPane,
     goToCenterPane,
     goToRightPane,
@@ -828,6 +831,7 @@ export default function CompletedCampaignReport({ campaignId }) {
             headerPills={headerPills}
             overview={overview}
             onDownloadPdf={handleDownloadPdf}
+            isPdfLoading={isPdfLoading}
             formatCurrency={formatCurrency}
             formatNumber={formatNumber}
             formatPercent={formatPercent}
@@ -851,19 +855,6 @@ export default function CompletedCampaignReport({ campaignId }) {
                   </h2>
                 </div>
               </div>
-
-              {pdfNotice ? (
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-indigo-300/40 bg-indigo-700/40 px-3 py-2 text-xs text-indigo-50">
-                  <span>PDF export is coming soon (Phase 2).</span>
-                  <button
-                    type="button"
-                    className="font-semibold text-white underline"
-                    onClick={dismissPdfNotice}
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              ) : null}
             </div>
 
             <div
