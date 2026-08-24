@@ -1,6 +1,7 @@
 "use client";
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import {
   Bar,
   BarChart,
@@ -758,14 +759,10 @@ export default function CompletedCampaignReport({ campaignId }) {
   } = useCompletedCampaignReport(campaignId);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
-  if (isError || !data) {
+  if (isError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
         <div className="max-w-md rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
@@ -774,6 +771,10 @@ export default function CompletedCampaignReport({ campaignId }) {
         </div>
       </div>
     );
+  }
+
+  if (!data) {
+    return <FullPageLoader />;
   }
 
   const { header, overview, salesAndRoi, creatorsAndContent, rehire } = data;

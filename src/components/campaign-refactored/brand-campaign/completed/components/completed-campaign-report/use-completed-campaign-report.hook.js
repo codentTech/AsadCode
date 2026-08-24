@@ -2,21 +2,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getCompletedCampaignReport,
+  resetCompletedReport,
   selectCompletedCampaignReport,
 } from "@/provider/features/campaign-report/campaign-report.slice";
 
 export default function useCompletedCampaignReport(campaignId) {
   const dispatch = useDispatch();
-  const { data, isLoading, isError, message } = useSelector(selectCompletedCampaignReport);
+  const { data, isLoading, isError, isSuccess, message } = useSelector(
+    selectCompletedCampaignReport
+  );
   const [activeTab, setActiveTab] = useState("overview");
   const [pdfNotice, setPdfNotice] = useState(false);
   const [mobilePane, setMobilePane] = useState("center");
 
   useEffect(() => {
-    if (campaignId) {
-      dispatch(getCompletedCampaignReport(campaignId));
-    }
+    if (!campaignId) return;
+    dispatch(resetCompletedReport());
+    dispatch(getCompletedCampaignReport(campaignId));
   }, [dispatch, campaignId]);
+
+  // Keep loader up from mount until success/error — avoids "Unable to load" flash
+  // before the thunk pending action lands.
+  const showLoader = Boolean(campaignId) && (isLoading || (!isSuccess && !isError));
 
   const tabs = useMemo(() => {
     const items = [{ id: "overview", label: "Overview", shortLabel: "Overview" }];
@@ -86,7 +93,7 @@ export default function useCompletedCampaignReport(campaignId) {
 
   return {
     data,
-    isLoading,
+    isLoading: showLoader,
     isError,
     message,
     activeTab,

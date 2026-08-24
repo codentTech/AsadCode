@@ -2,7 +2,7 @@
 
 import Auth from "@/auth/auth.component";
 import AUTH from "@/common/constants/auth.constant";
-import CompletedCampaignReport from "@/components/campaign-refactored/brand-campaign/completed-campaign-report/completed-campaign-report.component";
+import CompletedCampaignReport from "@/components/campaign-refactored/brand-campaign/completed/components/completed-campaign-report/completed-campaign-report.component";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";

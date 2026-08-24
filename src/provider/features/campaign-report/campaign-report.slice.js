@@ -30,6 +30,10 @@ export const getCompletedCampaignReport = createAsyncThunk(
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
+      if (thunkAPI.signal.aborted) {
+        // Let RTK mark this as aborted (do not surface as a user-facing error).
+        throw error;
+      }
       return thunkAPI.rejectWithValue(getSerializableError(error));
     }
   }
@@ -48,6 +52,9 @@ const campaignReportSlice = createSlice({
       .addCase(getCompletedCampaignReport.pending, (state) => {
         state.getCompletedReport.isLoading = true;
         state.getCompletedReport.isError = false;
+        state.getCompletedReport.isSuccess = false;
+        state.getCompletedReport.message = "";
+        state.getCompletedReport.data = null;
       })
       .addCase(getCompletedCampaignReport.fulfilled, (state, action) => {
         state.getCompletedReport = {
@@ -59,6 +66,9 @@ const campaignReportSlice = createSlice({
         };
       })
       .addCase(getCompletedCampaignReport.rejected, (state, action) => {
+        // Ignore aborted requests (React Strict Mode remount / navigation) so they
+        // cannot overwrite a newer in-flight or successful fetch.
+        if (action.meta?.aborted || action.meta?.condition) return;
         state.getCompletedReport = {
           isLoading: false,
           isSuccess: false,
