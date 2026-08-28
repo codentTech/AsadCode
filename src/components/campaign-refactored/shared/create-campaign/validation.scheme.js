@@ -132,6 +132,18 @@ export const validationSchema = Yup.object().shape({
       then: (schema) => schema.required("Sales tracking end date is required"),
       otherwise: (schema) => schema.nullable(),
     }),
+  usage_cap: Yup.number()
+    .transform(emptyToUndefined)
+    .nullable()
+    .when("campaign_type", {
+      is: (campaignType) => campaignType === CAMPAIGN_TYPE.AFFILIATE,
+      then: (schema) =>
+        schema
+          .typeError("Usage cap must be a valid number")
+          .integer("Usage cap must be a whole number")
+          .min(1, "Usage cap must be at least 1"),
+      otherwise: (schema) => schema.nullable(),
+    }),
   shopify_products: Yup.array()
     .nullable()
     .when("campaign_type", {

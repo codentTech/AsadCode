@@ -11,6 +11,10 @@ import {
   selectCampaignCombinedDemographics,
   selectCampaignPerformanceMetrics,
 } from "@/provider/features/phyllo/phyllo.slice";
+import {
+  getShopifyCompletedMetrics,
+  selectShopifyCompletedMetricsState,
+} from "@/provider/features/shopify/shopify.slice";
 import { formatFollowers } from "@/common/utils/format.utils";
 import {
   aggregateCombinedPublishedMetrics,
@@ -28,6 +32,24 @@ import {
 } from "@/common/utils/brand-campaign-context.utils";
 
 const campaignIdKey = (id) => (id == null || id === "" ? null : String(id));
+
+function csvEscape(value) {
+  const raw = value == null ? "" : String(value);
+  if (/[",\n\r]/.test(raw)) return `"${raw.replace(/"/g, '""')}"`;
+  return raw;
+}
+
+function downloadCsv(filename, lines) {
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
 
 export default function useCampaignOverviewCompleted(
   onCampaignSelect,
@@ -70,6 +92,18 @@ export default function useCampaignOverviewCompleted(
   const displayCampaign = isSelectedCampaignValid ? resolvedCampaign : null;
 
   const isUgc = displayCampaign?.campaign_type === CAMPAIGN_TYPE.UGC;
+  const isAffiliate = useMemo(() => {
+    const type = displayCampaign?.campaign_type || displayCampaign?.campaignType;
+    const compensation = displayCampaign?.compensation_type;
+    return type === CAMPAIGN_TYPE.AFFILIATE || compensation === "COMMISSION";
+  }, [displayCampaign]);
+
+  const completedMetricsState = useSelector(selectShopifyCompletedMetricsState);
+
+  useEffect(() => {
+    if (!isAffiliate || !displayCampaign?.id) return;
+    dispatch(getShopifyCompletedMetrics(displayCampaign.id));
+  }, [dispatch, isAffiliate, displayCampaign?.id]);
 
   const { data: campaignsApiData, isSuccess: campaignsSuccess } = useSelector(
     (state) => state.campaigns.getAllBrandCampaigns || {}
@@ -531,9 +565,83 @@ export default function useCampaignOverviewCompleted(
     }
   };
 
-  const handleExportData = () => {};
+  const handleExportData = useCallback(() => {
+    if (!displayCampaign?.id) return;
 
-  const handleViewAnalytics = () => {};
+    const asOf = completedMetricsState?.data?.asOf || new Date().toISOString();
+    const title = displayCampaign.campaign_title || "Campaign";
+    const safeTitle = String(title).replace(/[^\w\-]+/g, "_").slice(0, 48);
+    const lines = [];
+
+    lines.push(csvEscape(`CleerCut campaign export — ${title}`));
+    lines.push(csvEscape(`As of ${asOf}`));
+    if (isAffiliate) {
+      lines.push(
+        csvEscape(
+          completedMetricsState?.data?.costBasisNote ||
+            "Affiliate cost metrics use creator commission total as spend"
+        )
+      );
+    }
+    lines.push("");
+
+    if (isAffiliate) {
+      const creators = Array.isArray(completedMetricsState?.data?.creators)
+        ? completedMetricsState.data.creators
+        : [];
+      lines.push(
+        [
+          "Creator ID",
+          "Contract ID",
+          "Revenue",
+          "AOV",
+          "Orders",
+          "Units Sold",
+          "Commission Total",
+          "Currency",
+        ].join(",")
+      );
+      for (const row of creators) {
+        lines.push(
+          [
+            csvEscape(row.creatorId),
+            csvEscape(row.contractId),
+            csvEscape(row.revenue),
+            csvEscape(row.aov),
+            csvEscape(row.orders),
+            csvEscape(row.unitsSold),
+            csvEscape(row.commissionTotal),
+            csvEscape(row.currency),
+          ].join(",")
+        );
+      }
+      lines.push("");
+      lines.push(
+        [
+          "TOTAL",
+          "",
+          csvEscape(completedMetricsState?.data?.totalRevenue ?? 0),
+          "",
+          csvEscape(completedMetricsState?.data?.totalOrders ?? 0),
+          csvEscape(completedMetricsState?.data?.totalUnitsSold ?? 0),
+          csvEscape(completedMetricsState?.data?.totalCommission ?? 0),
+          "",
+        ].join(",")
+      );
+    } else {
+      lines.push(["Metric", "Value"].join(","));
+      lines.push(["Campaign ID", csvEscape(displayCampaign.id)].join(","));
+      lines.push(["Campaign Type", csvEscape(displayCampaign.campaign_type)].join(","));
+      lines.push(["Status", csvEscape(displayCampaign.status)].join(","));
+    }
+
+    downloadCsv(`CleerCut-${safeTitle}-export.csv`, lines);
+  }, [displayCampaign, isAffiliate, completedMetricsState?.data]);
+
+  const handleViewReport = useCallback(() => {
+    if (!displayCampaign?.id) return;
+    window.open(`/campaign/report/${displayCampaign.id}`, "_blank", "noopener,noreferrer");
+  }, [displayCampaign?.id]);
 
   const budgetStatsLoading = useMemo(
     () => showMultiCreatorUI && !!displayCampaign && !creatorsSuccess && !creatorsError,
@@ -590,7 +698,7 @@ export default function useCampaignOverviewCompleted(
     handleCampaignSelect,
     handleToggleChange,
     handleExportData,
-    handleViewAnalytics,
+    handleViewReport,
     individualContractsData,
     individualContractsSuccess,
     isUgc,

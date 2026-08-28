@@ -18,11 +18,13 @@ export const shopifyInitialState = {
   getFulfilment: { ...generalState },
   getCommissionTally: { ...generalState },
   getCommissionSettlements: { ...generalState },
+  getCompletedMetrics: { ...generalState },
   sendProduct: { ...generalState },
   renameDiscountCode: { ...generalState },
   deactivateDiscountCode: { ...generalState },
   reactivateDiscountCode: { ...generalState },
   killAndReissueDiscountCode: { ...generalState },
+  extendDiscountTracking: { ...generalState },
 };
 
 const initialState = shopifyInitialState;
@@ -61,8 +63,15 @@ export const selectShopifyCommissionSettlementsState = (state) =>
   state?.shopify?.getCommissionSettlements ??
   shopifyInitialState.getCommissionSettlements;
 
+export const selectShopifyCompletedMetricsState = (state) =>
+  state?.shopify?.getCompletedMetrics ?? shopifyInitialState.getCompletedMetrics;
+
 export const selectShopifySendProductState = (state) =>
   state?.shopify?.sendProduct ?? shopifyInitialState.sendProduct;
+
+export const selectShopifyExtendDiscountTrackingState = (state) =>
+  state?.shopify?.extendDiscountTracking ??
+  shopifyInitialState.extendDiscountTracking;
 
 export const getShopifyConnection = createAsyncThunk(
   "shopify/getConnection",
@@ -181,6 +190,19 @@ export const killAndReissueShopifyDiscountCode = createAsyncThunk(
   }
 );
 
+export const extendShopifyDiscountTracking = createAsyncThunk(
+  "shopify/extendDiscountTracking",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await shopifyService.extendDiscountTracking(payload);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const getShopifyFulfilment = createAsyncThunk(
   "shopify/getFulfilment",
   async (contractId, thunkAPI) => {
@@ -220,6 +242,19 @@ export const getShopifyCommissionSettlements = createAsyncThunk(
   }
 );
 
+export const getShopifyCompletedMetrics = createAsyncThunk(
+  "shopify/getCompletedMetrics",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await shopifyService.getCompletedMetrics(campaignId);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const sendShopifyProduct = createAsyncThunk(
   "shopify/sendProduct",
   async (payload, thunkAPI) => {
@@ -251,6 +286,9 @@ const shopifySlice = createSlice({
     },
     resetShopifyKillAndReissueDiscountCode: (state) => {
       state.killAndReissueDiscountCode = { ...generalState };
+    },
+    resetShopifyExtendDiscountTracking: (state) => {
+      state.extendDiscountTracking = { ...generalState };
     },
     resetShopifySendProduct: (state) => {
       state.sendProduct = { ...generalState };
@@ -551,6 +589,73 @@ const shopifySlice = createSlice({
           data: null,
         };
       })
+      .addCase(getShopifyCompletedMetrics.pending, (state) => {
+        state.getCompletedMetrics.isLoading = true;
+        state.getCompletedMetrics.isError = false;
+      })
+      .addCase(getShopifyCompletedMetrics.fulfilled, (state, action) => {
+        state.getCompletedMetrics = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyCompletedMetrics.rejected, (state, action) => {
+        state.getCompletedMetrics = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(extendShopifyDiscountTracking.pending, (state) => {
+        state.extendDiscountTracking.isLoading = true;
+        state.extendDiscountTracking.isError = false;
+        state.extendDiscountTracking.isSuccess = false;
+        state.extendDiscountTracking.message = "";
+      })
+      .addCase(extendShopifyDiscountTracking.fulfilled, (state, action) => {
+        state.extendDiscountTracking = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        const list = Array.isArray(state.getDiscountCodes.data)
+          ? state.getDiscountCodes.data
+          : [];
+        state.getDiscountCodes.data = list.map((item) =>
+          item.id === action.payload?.id
+            ? {
+                ...item,
+                ...action.payload,
+              }
+            : {
+                ...item,
+                trackingEndDate:
+                  item.contractId === action.payload?.contractId
+                    ? action.payload.trackingEndDate
+                    : item.trackingEndDate,
+                payoutDate:
+                  item.contractId === action.payload?.contractId
+                    ? action.payload.payoutDate
+                    : item.payoutDate,
+              }
+        );
+      })
+      .addCase(extendShopifyDiscountTracking.rejected, (state, action) => {
+        state.extendDiscountTracking = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
       .addCase(sendShopifyProduct.pending, (state) => {
         state.sendProduct.isLoading = true;
         state.sendProduct.isError = false;
@@ -591,6 +696,7 @@ export const {
   resetShopifyProducts,
   resetShopifyRenameDiscountCode,
   resetShopifyKillAndReissueDiscountCode,
+  resetShopifyExtendDiscountTracking,
   resetShopifySendProduct,
 } = shopifySlice.actions;
 export default shopifySlice.reducer;

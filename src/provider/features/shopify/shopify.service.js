@@ -48,6 +48,13 @@ const getCommissionSettlements = async (campaignId) => {
   return response.data;
 };
 
+const getCompletedMetrics = async (campaignId) => {
+  const response = await api().get("/shopify/commission/completed-metrics", {
+    params: { campaignId },
+  });
+  return response.data;
+};
+
 const sendProduct = async (payload) => {
   const response = await api().post("/shopify/fulfilment/send", payload);
   return response.data;
@@ -73,6 +80,13 @@ const killAndReissueDiscountCode = async (id) => {
   return response.data;
 };
 
+const extendDiscountTracking = async ({ id, trackingEndDate }) => {
+  const response = await api().post(`/shopify/discount-codes/${id}/extend-tracking`, {
+    trackingEndDate,
+  });
+  return response.data;
+};
+
 const shopifyService = {
   getConnection,
   getConnectUrl,
@@ -82,11 +96,13 @@ const shopifyService = {
   getFulfilment,
   getCommissionTally,
   getCommissionSettlements,
+  getCompletedMetrics,
   sendProduct,
   renameDiscountCode,
   deactivateDiscountCode,
   reactivateDiscountCode,
   killAndReissueDiscountCode,
+  extendDiscountTracking,
 };
 
 export default shopifyService;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatShopifySelectionLabel } from "@/common/utils/shopify-product-label.utils";
 
 function isVariantAvailable(variant) {
   if (!variant) return false;
@@ -95,12 +96,16 @@ export default function useSendProductModal({
 
   const variantOptions = useMemo(() => {
     const variants = selectedProduct?.variants || [];
+    const productTitle = selectedProduct?.label || selectedProduct?.title || "";
     return variants.map((variant) => {
       const available = isVariantAvailable(variant);
-      const title =
-        !variant.title || variant.title === "Default Title" ? "Default" : variant.title;
       return {
-        label: available ? title : `${title} (Out of stock)`,
+        label: formatShopifySelectionLabel({
+          productTitle,
+          variantTitle: variant.title,
+          sku: variant.sku,
+          available,
+        }),
         value: variant.id,
         disabled: !available,
       };
@@ -116,7 +121,7 @@ export default function useSendProductModal({
   }, [show, productId, variantOptions, variantId]);
 
   const productSelectOptions = useMemo(
-    () => productOptions.map((p) => ({ label: p.label, value: p.value })),
+    () => productOptions.map((p) => ({ label: p.label || p.title, value: p.value })),
     [productOptions]
   );
 

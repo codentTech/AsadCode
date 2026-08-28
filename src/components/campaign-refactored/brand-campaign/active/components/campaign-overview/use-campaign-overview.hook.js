@@ -63,6 +63,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   const {
     data: individualContractsData,
     isSuccess: individualContractsSuccess,
+    isError: individualContractsError,
     isLoading: individualContractsLoading,
     isCompleted: individualContractsIsCompleted,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
@@ -114,10 +115,17 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   // --- Brand: fetch campaigns on mount ---
   useEffect(() => {
-    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    if (
+      campaignsLoading ||
+      campaignsSuccess ||
+      campaignsError ||
+      hasRequestedBrandCampaignsRef.current
+    ) {
+      return;
+    }
     hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch, campaignsLoading, campaignsSuccess]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   // --- Brand: reset restoration flag when context id changes ---
   useEffect(() => {
@@ -372,6 +380,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const overviewLoading = useMemo(() => {
     if (!isMultiCreator) {
+      if (individualContractsError) return false;
       return individualContractsLoading || !activeIndividualContractsReady;
     }
     if (isSelectedCampaignValid && selectedCampaign) {
@@ -381,6 +390,7 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   }, [
     isMultiCreator,
     individualContractsLoading,
+    individualContractsError,
     activeIndividualContractsReady,
     isSelectedCampaignValid,
     selectedCampaign,
@@ -397,7 +407,10 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
     [showMultiCreatorUI, selectedCampaign, creatorsSuccess, creatorsError]
   );
 
-  const isLoadingIndividual = !isMultiCreator && (individualContractsLoading || !activeIndividualContractsReady);
+  const isLoadingIndividual =
+    !isMultiCreator &&
+    !individualContractsError &&
+    (individualContractsLoading || !activeIndividualContractsReady);
 
   useEffect(() => {
     if (isMultiCreator) return;
@@ -428,13 +441,20 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
   // --- Overview: fetch individual contracts when in individual mode ---
   useEffect(() => {
     if (isMultiCreator) return;
-    if (activeIndividualContractsReady || individualContractsLoading) return;
+    if (
+      activeIndividualContractsReady ||
+      individualContractsLoading ||
+      individualContractsError
+    ) {
+      return;
+    }
     dispatch(getIndividualCollaborationContracts(false));
   }, [
     isMultiCreator,
     dispatch,
     activeIndividualContractsReady,
     individualContractsLoading,
+    individualContractsError,
   ]);
 
   // --- Overview: auto-select first individual contract ---

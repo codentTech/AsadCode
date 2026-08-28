@@ -41,6 +41,7 @@ export default function useActive() {
   const {
     data: individualContractsData,
     isSuccess: individualContractsSuccess,
+    isError: individualContractsError,
     isLoading: individualContractsLoading,
     isCompleted: individualContractsIsCompleted,
   } = useSelector((state) => state.contracts.getIndividualCollaborationContracts || {});
@@ -87,9 +88,21 @@ export default function useActive() {
 
   useEffect(() => {
     if (isMultiCreator) return;
-    if (activeIndividualContractsReady || individualContractsLoading) return;
+    if (
+      activeIndividualContractsReady ||
+      individualContractsLoading ||
+      individualContractsError
+    ) {
+      return;
+    }
     dispatch(getIndividualCollaborationContracts(false));
-  }, [isMultiCreator, dispatch, activeIndividualContractsReady, individualContractsLoading]);
+  }, [
+    isMultiCreator,
+    dispatch,
+    activeIndividualContractsReady,
+    individualContractsLoading,
+    individualContractsError,
+  ]);
 
   useEffect(() => {
     if (isMultiCreator) return;

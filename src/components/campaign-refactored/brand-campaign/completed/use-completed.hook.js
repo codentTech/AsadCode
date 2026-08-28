@@ -91,17 +91,38 @@ export default function useCompleted(disableAutoSelect = false) {
   }, []);
 
   useEffect(() => {
-    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    if (
+      campaignsLoading ||
+      campaignsSuccess ||
+      campaignsError ||
+      hasRequestedBrandCampaignsRef.current
+    ) {
+      return;
+    }
     hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch, campaignsLoading, campaignsSuccess]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   useEffect(() => {
     if (disableAutoSelect) return;
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(true));
+    if (isMultiCreator) return;
+    if (
+      individualContractsLoading ||
+      individualContractsError ||
+      (individualContractsSuccess && individualContractsIsCompleted === true)
+    ) {
+      return;
     }
-  }, [dispatch, isMultiCreator, disableAutoSelect]);
+    dispatch(getIndividualCollaborationContracts(true));
+  }, [
+    dispatch,
+    isMultiCreator,
+    disableAutoSelect,
+    individualContractsLoading,
+    individualContractsError,
+    individualContractsSuccess,
+    individualContractsIsCompleted,
+  ]);
 
   useEffect(() => {
     if (isMultiCreator) return;
