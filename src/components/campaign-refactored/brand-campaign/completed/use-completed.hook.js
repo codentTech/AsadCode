@@ -98,10 +98,24 @@ export default function useCompleted(disableAutoSelect = false) {
 
   useEffect(() => {
     if (disableAutoSelect) return;
-    if (!isMultiCreator) {
-      dispatch(getIndividualCollaborationContracts(true));
+    if (isMultiCreator) return;
+    if (
+      individualContractsLoading ||
+      individualContractsError ||
+      (individualContractsSuccess && individualContractsIsCompleted === true)
+    ) {
+      return;
     }
-  }, [dispatch, isMultiCreator, disableAutoSelect]);
+    dispatch(getIndividualCollaborationContracts(true));
+  }, [
+    dispatch,
+    isMultiCreator,
+    disableAutoSelect,
+    individualContractsLoading,
+    individualContractsError,
+    individualContractsSuccess,
+    individualContractsIsCompleted,
+  ]);
 
   useEffect(() => {
     if (isMultiCreator) return;
