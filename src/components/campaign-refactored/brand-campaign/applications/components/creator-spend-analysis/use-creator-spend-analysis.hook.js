@@ -63,6 +63,7 @@ function useCreatorSpendAnalysis({
     data: campaignsApiData,
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const isMultiCreator = useSelector(
@@ -83,10 +84,17 @@ function useCreatorSpendAnalysis({
   }, [campaignsData?.data]);
 
   useEffect(() => {
-    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    if (
+      campaignsLoading ||
+      campaignsSuccess ||
+      campaignsError ||
+      hasRequestedBrandCampaignsRef.current
+    ) {
+      return;
+    }
     hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch, campaignsLoading, campaignsSuccess]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
     useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});

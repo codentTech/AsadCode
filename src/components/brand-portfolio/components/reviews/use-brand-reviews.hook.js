@@ -16,6 +16,7 @@ function useBrandReviews() {
     data: campaignsData,
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const campaigns = useMemo(() => {
@@ -24,9 +25,9 @@ function useBrandReviews() {
   }, [campaignsData]);
 
   useEffect(() => {
-    // Fetch all brand campaigns first
+    if (campaignsLoading || campaignsSuccess || campaignsError) return;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   useEffect(() => {
     // Once campaigns are loaded, fetch reviews for each campaign

@@ -4,8 +4,6 @@ import { Skeleton } from "@/common/components/loader/skeleton-loader.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { sortOptions } from "@/common/constants/auth.constant";
-import CalendarModal from "@/components/campaign-refactored/brand-campaign/active/components/calendar-modal/calendar-modal.component";
-import TaskManagerBrandModal from "@/components/campaign-refactored/brand-campaign/active/components/task-manager/brand/task-manager-brand.component";
 import { ExternalLink, LayoutGrid, MapPin, Star } from "lucide-react";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
 
@@ -15,10 +13,13 @@ function PairedMetricBox({ label, primary, secondaryLabel, secondary }) {
       <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">{label}</p>
       <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">{primary}</p>
       {secondaryLabel ? (
-        <p className="mt-0.5 text-[10px] leading-snug text-gray-500 sm:text-xs">
-          {secondaryLabel}:{" "}
-          <span className="font-semibold tabular-nums text-gray-800">{secondary}</span>
-        </p>
+        <>
+          <div className="my-1 border-t border-gray-300/80" />
+          <p className="text-[10px] leading-snug text-gray-500 sm:text-xs">
+            {secondaryLabel}:{" "}
+            <span className="font-semibold tabular-nums text-gray-800">{secondary}</span>
+          </p>
+        </>
       ) : null}
     </div>
   );
@@ -46,24 +47,21 @@ function EngagementMetricBoxes({ creatorMetrics, formatMetricValue }) {
         </p>
       </div>
       <div className="rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
-        <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">Cost Per</p>
-        <p className="text-[10px] leading-tight text-gray-900 sm:text-xs">
-          <span className="text-gray-500">View: </span>
-          <span className="font-bold tabular-nums">
-            {creatorMetrics.costPerView == null ||
-            !Number.isFinite(Number(creatorMetrics.costPerView))
-              ? "N/A"
-              : formatMetricValue(creatorMetrics.costPerView, "currency")}
-          </span>
+        <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">Cost/View</p>
+        <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
+          {creatorMetrics.costPerView == null ||
+          !Number.isFinite(Number(creatorMetrics.costPerView))
+            ? "N/A"
+            : formatMetricValue(creatorMetrics.costPerView, "currency")}
         </p>
-        <p className="text-[10px] leading-tight text-gray-900 sm:text-xs">
-          <span className="text-gray-500">Engagement: </span>
-          <span className="font-bold tabular-nums">
-            {creatorMetrics.costPerEngagement == null ||
-            !Number.isFinite(Number(creatorMetrics.costPerEngagement))
-              ? "N/A"
-              : formatMetricValue(creatorMetrics.costPerEngagement, "currency")}
-          </span>
+      </div>
+      <div className="rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
+        <p className="text-[10px] font-semibold text-gray-600 sm:text-xs">Cost/Engagement</p>
+        <p className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
+          {creatorMetrics.costPerEngagement == null ||
+          !Number.isFinite(Number(creatorMetrics.costPerEngagement))
+            ? "N/A"
+            : formatMetricValue(creatorMetrics.costPerEngagement, "currency")}
         </p>
       </div>
     </div>
@@ -71,6 +69,14 @@ function EngagementMetricBoxes({ creatorMetrics, formatMetricValue }) {
 }
 
 function AffiliateSalesMetricBoxes({ creatorMetrics, formatMetricValue }) {
+  const conversionIsUnits = creatorMetrics.conversionLabel !== "conversion";
+  const conversionSecondary = conversionIsUnits
+    ? formatMetricValue(
+        creatorMetrics.conversionValue ?? creatorMetrics.unitsSold,
+        "number"
+      )
+    : `${creatorMetrics.conversionValue ?? 0}%`;
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
       <PairedMetricBox
@@ -82,17 +88,20 @@ function AffiliateSalesMetricBoxes({ creatorMetrics, formatMetricValue }) {
       <PairedMetricBox
         label="Orders"
         primary={formatMetricValue(creatorMetrics.orders, "number")}
-        secondaryLabel="Units sold"
-        secondary={formatMetricValue(creatorMetrics.unitsSold, "number")}
+        secondaryLabel={conversionIsUnits ? "Units sold" : "Conversion"}
+        secondary={conversionSecondary}
       />
       <PairedMetricBox
         label="ROI"
         primary={
-          creatorMetrics.roi == null ? "N/A" : formatMetricValue(creatorMetrics.roi, "ratio")
+          creatorMetrics.roi == null || !Number.isFinite(Number(creatorMetrics.roi))
+            ? "N/A"
+            : formatMetricValue(creatorMetrics.roi, "ratio")
         }
         secondaryLabel="Cost/Sale"
         secondary={
-          creatorMetrics.costPerSale == null
+          creatorMetrics.costPerSale == null ||
+          !Number.isFinite(Number(creatorMetrics.costPerSale))
             ? "N/A"
             : formatMetricValue(creatorMetrics.costPerSale, "currency")
         }
@@ -100,7 +109,7 @@ function AffiliateSalesMetricBoxes({ creatorMetrics, formatMetricValue }) {
       <PairedMetricBox
         label="Views"
         primary={formatMetricValue(creatorMetrics.views, "views")}
-        secondaryLabel="CPV"
+        secondaryLabel="Cost/View"
         secondary={
           creatorMetrics.costPerView == null ||
           !Number.isFinite(Number(creatorMetrics.costPerView))
@@ -111,7 +120,7 @@ function AffiliateSalesMetricBoxes({ creatorMetrics, formatMetricValue }) {
       <PairedMetricBox
         label="Engagement Rate"
         primary={formatMetricValue(creatorMetrics.engagementRate, "rate")}
-        secondaryLabel="CPE"
+        secondaryLabel="Cost/Engagement"
         secondary={
           creatorMetrics.costPerEngagement == null ||
           !Number.isFinite(Number(creatorMetrics.costPerEngagement))
@@ -180,10 +189,6 @@ const CreatorSpendAnalysisCompleted = ({
     creatorsError,
     isMultiCreator,
     isIndividualMode,
-    showBrandCalendar,
-    setShowBrandCalendar,
-    showTaskManager,
-    setShowTaskManager,
     isUgc,
     getCreatorMetrics,
     handleSortChange,
@@ -231,24 +236,6 @@ const CreatorSpendAnalysisCompleted = ({
               )}
             </div>
             <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
-              <CustomButton
-                text="Calendar"
-                title="Calendar"
-                className="btn-primary min-w-0 flex-1 sm:flex-none sm:w-auto"
-                onClick={() => setShowBrandCalendar(true)}
-              />
-              <CustomButton
-                text="Tasks"
-                title="Task Manager"
-                className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
-                onClick={() => setShowTaskManager(true)}
-              />
-              <CustomButton
-                text="Task Manager"
-                title="Task Manager"
-                className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto"
-                onClick={() => setShowTaskManager(true)}
-              />
               {onOpenBoard ? (
                 <>
                   <CustomButton
@@ -510,17 +497,6 @@ const CreatorSpendAnalysisCompleted = ({
           )}
         </div>
       </div>
-
-      <CalendarModal
-        show={showBrandCalendar}
-        onClose={() => setShowBrandCalendar(false)}
-        selectedCampaign={selectedCampaign}
-      />
-      <TaskManagerBrandModal
-        show={showTaskManager}
-        onClose={() => setShowTaskManager(false)}
-        isMultiCreator={isMultiCreator}
-      />
     </div>
   );
 };
