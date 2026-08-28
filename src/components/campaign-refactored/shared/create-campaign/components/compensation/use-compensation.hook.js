@@ -218,6 +218,7 @@ export default function useCompensation({ campaignData, setValue }) {
       setValue("product_value", "", { shouldDirty: true });
       setValue("customer_discount_percent", "", { shouldDirty: true });
       setValue("tracking_end_date", "", { shouldDirty: true });
+      setValue("usage_cap", "", { shouldDirty: true });
       setValue("shopify_products", [], { shouldDirty: true });
       setValue("ships_physical_product", nextType === CAMPAIGN_TYPE.GIFTED, {
         shouldDirty: true,
