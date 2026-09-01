@@ -10,6 +10,31 @@ const getSerializableError = (error) => {
   };
 };
 
+const parseFilenameFromDisposition = (disposition) => {
+  if (!disposition) return null;
+  const utfMatch = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  if (utfMatch?.[1]) {
+    try {
+      return decodeURIComponent(utfMatch[1].trim());
+    } catch {
+      return utfMatch[1].trim();
+    }
+  }
+  const plainMatch = /filename="?([^";]+)"?/i.exec(disposition);
+  return plainMatch?.[1]?.trim() || null;
+};
+
+const triggerBlobDownload = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "CleerCut-campaign-report.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 const generalState = {
   data: null,
   isError: false,
@@ -20,6 +45,7 @@ const generalState = {
 
 const initialState = {
   getCompletedReport: { ...generalState },
+  downloadPdf: { ...generalState },
 };
 
 export const getCompletedCampaignReport = createAsyncThunk(
@@ -31,7 +57,41 @@ export const getCompletedCampaignReport = createAsyncThunk(
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
       if (thunkAPI.signal.aborted) {
-        // Let RTK mark this as aborted (do not surface as a user-facing error).
+        throw error;
+      }
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const downloadCompletedCampaignReportPdf = createAsyncThunk(
+  "campaignReport/downloadPdf",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response =
+        await campaignReportService.downloadCompletedCampaignReportPdf(campaignId);
+      const blob = response.data;
+      const contentType = String(response.headers?.["content-type"] || blob?.type || "");
+
+      if (contentType.includes("application/json")) {
+        const text = await blob.text();
+        let parsed = null;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          parsed = { message: "Failed to download PDF" };
+        }
+        return thunkAPI.rejectWithValue(parsed);
+      }
+
+      const filename =
+        parseFilenameFromDisposition(response.headers?.["content-disposition"]) ||
+        "CleerCut-campaign-report.pdf";
+
+      triggerBlobDownload(blob, filename);
+      return { filename };
+    } catch (error) {
+      if (thunkAPI.signal.aborted) {
         throw error;
       }
       return thunkAPI.rejectWithValue(getSerializableError(error));
@@ -45,6 +105,9 @@ const campaignReportSlice = createSlice({
   reducers: {
     resetCompletedReport: (state) => {
       state.getCompletedReport = { ...generalState };
+    },
+    resetDownloadPdf: (state) => {
+      state.downloadPdf = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -66,8 +129,6 @@ const campaignReportSlice = createSlice({
         };
       })
       .addCase(getCompletedCampaignReport.rejected, (state, action) => {
-        // Ignore aborted requests (React Strict Mode remount / navigation) so they
-        // cannot overwrite a newer in-flight or successful fetch.
         if (action.meta?.aborted || action.meta?.condition) return;
         state.getCompletedReport = {
           isLoading: false,
@@ -76,12 +137,40 @@ const campaignReportSlice = createSlice({
           message: action.payload?.message || "Failed to load report",
           data: null,
         };
+      })
+      .addCase(downloadCompletedCampaignReportPdf.pending, (state) => {
+        state.downloadPdf.isLoading = true;
+        state.downloadPdf.isError = false;
+        state.downloadPdf.isSuccess = false;
+        state.downloadPdf.message = "";
+        state.downloadPdf.data = null;
+      })
+      .addCase(downloadCompletedCampaignReportPdf.fulfilled, (state, action) => {
+        state.downloadPdf = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(downloadCompletedCampaignReportPdf.rejected, (state, action) => {
+        if (action.meta?.aborted || action.meta?.condition) return;
+        state.downloadPdf = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message || "Failed to download PDF",
+          data: null,
+        };
       });
   },
 });
 
-export const { resetCompletedReport } = campaignReportSlice.actions;
+export const { resetCompletedReport, resetDownloadPdf } = campaignReportSlice.actions;
 export const selectCompletedCampaignReport = (state) =>
   state.campaignReport?.getCompletedReport ?? generalState;
+export const selectDownloadCampaignReportPdf = (state) =>
+  state.campaignReport?.downloadPdf ?? generalState;
 
 export default campaignReportSlice.reducer;
