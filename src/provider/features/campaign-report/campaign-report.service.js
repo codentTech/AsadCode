@@ -5,8 +5,16 @@ const getCompletedCampaignReport = async (campaignId) => {
   return response.data;
 };
 
+const downloadCompletedCampaignReportPdf = async (campaignId) => {
+  const response = await api().get(`/campaigns/${campaignId}/completed-report/pdf`, {
+    responseType: "blob",
+  });
+  return response;
+};
+
 const campaignReportService = {
   getCompletedCampaignReport,
+  downloadCompletedCampaignReportPdf,
 };
 
 export default campaignReportService;
