@@ -16,7 +16,6 @@ export default function useCompletedCampaignReport(campaignId) {
   );
   const { isLoading: isPdfLoading } = useSelector(selectDownloadCampaignReportPdf);
   const [activeTab, setActiveTab] = useState("overview");
-  const [mobilePane, setMobilePane] = useState("center");
 
   useEffect(() => {
     if (!campaignId) return;
@@ -28,13 +27,13 @@ export default function useCompletedCampaignReport(campaignId) {
   const showLoader = Boolean(campaignId) && (isLoading || (!isSuccess && !isError));
 
   const tabs = useMemo(() => {
-    const items = [{ id: "overview", label: "Overview", shortLabel: "Overview" }];
+    const items = [{ id: "overview", label: "Overview" }];
     if (data?.meta?.trackingEnabled && data?.salesAndRoi) {
-      items.push({ id: "sales", label: "Sales & ROI", shortLabel: "Sales" });
+      items.push({ id: "sales", label: "Sales & ROI" });
     }
     items.push(
-      { id: "creators", label: "Creators & Content", shortLabel: "Creators" },
-      { id: "rehire", label: "Re-Hire Opportunities", shortLabel: "Re-Hire" }
+      { id: "creators", label: "Creators & Content" },
+      { id: "rehire", label: "Re-Hire Opportunities" }
     );
     return items;
   }, [data?.meta?.trackingEnabled, data?.salesAndRoi]);
@@ -47,17 +46,12 @@ export default function useCompletedCampaignReport(campaignId) {
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
-    setMobilePane("center");
   }, []);
 
   const handleDownloadPdf = useCallback(() => {
     if (!campaignId || isPdfLoading) return;
     dispatch(downloadCompletedCampaignReportPdf(campaignId));
   }, [campaignId, dispatch, isPdfLoading]);
-
-  const goToLeftPane = useCallback(() => setMobilePane("left"), []);
-  const goToCenterPane = useCallback(() => setMobilePane("center"), []);
-  const goToRightPane = useCallback(() => setMobilePane("right"), []);
 
   const formatCurrency = useCallback((value) => {
     if (value == null || !Number.isFinite(Number(value))) return "N/A";
@@ -78,7 +72,7 @@ export default function useCompletedCampaignReport(campaignId) {
   }, []);
 
   const formatDate = useCallback((iso) => {
-    if (!iso) return "—";
+    if (!iso) return "-";
     try {
       return new Date(iso).toLocaleDateString(undefined, {
         year: "numeric",
@@ -86,7 +80,7 @@ export default function useCompletedCampaignReport(campaignId) {
         day: "numeric",
       });
     } catch {
-      return "—";
+      return "-";
     }
   }, []);
 
@@ -98,12 +92,8 @@ export default function useCompletedCampaignReport(campaignId) {
     activeTab,
     tabs,
     isPdfLoading,
-    mobilePane,
     handleTabChange,
     handleDownloadPdf,
-    goToLeftPane,
-    goToCenterPane,
-    goToRightPane,
     formatCurrency,
     formatNumber,
     formatPercent,
