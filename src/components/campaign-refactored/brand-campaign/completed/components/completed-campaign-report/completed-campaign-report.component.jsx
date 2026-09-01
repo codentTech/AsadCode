@@ -729,7 +729,7 @@ export default function CompletedCampaignReport({ campaignId }) {
                 onClick={() => handleTabChange(tab.id)}
                 className={
                   active
-                    ? "rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white"
+                    ? "rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white"
                     : "py-0.5 text-sm font-medium text-[#8A8985] hover:text-[#16273F]"
                 }
               >
