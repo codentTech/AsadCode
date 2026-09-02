@@ -35,7 +35,6 @@ export default function CampaignOverviewCompleted({
     handleCampaignSelect,
     handleToggleChange,
     handleExportData,
-    handleViewReport,
     isUgc,
     individualCreatorLabel,
   } = useCampaignOverviewCompleted(
@@ -290,11 +289,6 @@ export default function CampaignOverviewCompleted({
             <hr className="border-gray-200" />
             {selectedCampaign?.id && (
               <div className="mt-1 flex flex-col gap-2">
-                <CustomButton
-                  text="View Report"
-                  onClick={handleViewReport}
-                  className="btn-primary min-h-10 w-full !text-xs sm:!text-sm"
-                />
                 <CustomButton
                   text="Export as CSV"
                   onClick={handleExportData}

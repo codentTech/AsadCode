@@ -324,6 +324,11 @@ export const useCreatorSpendAnalysisCompleted = ({
     return String(value);
   };
 
+  const handleViewReport = useCallback(() => {
+    if (!selectedCampaign?.id) return;
+    window.open(`/campaign/report/${selectedCampaign.id}`, "_blank", "noopener,noreferrer");
+  }, [selectedCampaign?.id]);
+
   return {
     ...hookData,
     getPlatformEntries,
@@ -333,6 +338,7 @@ export const useCreatorSpendAnalysisCompleted = ({
     getCreatorComparisons,
     campaignAverages,
     formatMetricValue,
+    handleViewReport,
     completedMetricsAsOf: completedMetricsState?.data?.asOf || null,
     completedMetrics: completedMetricsState?.data || null,
   };

@@ -638,11 +638,6 @@ export default function useCampaignOverviewCompleted(
     downloadCsv(`CleerCut-${safeTitle}-export.csv`, lines);
   }, [displayCampaign, isAffiliate, completedMetricsState?.data]);
 
-  const handleViewReport = useCallback(() => {
-    if (!displayCampaign?.id) return;
-    window.open(`/campaign/report/${displayCampaign.id}`, "_blank", "noopener,noreferrer");
-  }, [displayCampaign?.id]);
-
   const budgetStatsLoading = useMemo(
     () => showMultiCreatorUI && !!displayCampaign && !creatorsSuccess && !creatorsError,
     [showMultiCreatorUI, displayCampaign, creatorsSuccess, creatorsError]
@@ -698,7 +693,6 @@ export default function useCampaignOverviewCompleted(
     handleCampaignSelect,
     handleToggleChange,
     handleExportData,
-    handleViewReport,
     individualContractsData,
     individualContractsSuccess,
     isUgc,
