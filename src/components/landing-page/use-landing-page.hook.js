@@ -1,15 +1,24 @@
 import ROLES from "@/common/constants/role.constant";
 import { getUser } from "@/common/utils/users.util";
 import { setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-function useLandingPage() {
+function useLandingPage(audience) {
   const dispatch = useDispatch();
+  const router = useRouter();
   const landingCreatorMode = useSelector(({ auth }) => auth.isCreatorMode);
-  const [resolvedMode, setResolvedMode] = useState(null);
+  const routeMode = audience === "creator" ? true : audience === "brand" ? false : null;
+  const [resolvedMode, setResolvedMode] = useState(routeMode);
 
   useLayoutEffect(() => {
+    if (routeMode === true || routeMode === false) {
+      dispatch(setIsCreatorModeMode(routeMode));
+      setResolvedMode(routeMode);
+      return;
+    }
+
     const user = getUser();
     if (user?.role === ROLES.CREATOR) {
       dispatch(setIsCreatorModeMode(true));
@@ -24,7 +33,7 @@ function useLandingPage() {
     if (landingCreatorMode === true || landingCreatorMode === false) {
       setResolvedMode(landingCreatorMode);
     }
-  }, [dispatch, landingCreatorMode]);
+  }, [dispatch, landingCreatorMode, routeMode]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -42,14 +51,16 @@ function useLandingPage() {
     (mode) => {
       setResolvedMode(mode);
       dispatch(setIsCreatorModeMode(mode));
+      router.push(mode ? "/creators" : "/");
     },
-    [dispatch]
+    [dispatch, router]
   );
 
-  const hasSelectedMode = resolvedMode === true || resolvedMode === false;
+  const creatorMode = routeMode !== null ? routeMode : resolvedMode;
+  const hasSelectedMode = creatorMode === true || creatorMode === false;
 
   return {
-    creatorMode: resolvedMode,
+    creatorMode,
     hasSelectedMode,
     handleSelectMode,
   };

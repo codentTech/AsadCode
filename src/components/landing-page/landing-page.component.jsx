@@ -21,20 +21,18 @@ const SSR_ONLY_STYLE = {
   border: 0,
 };
 
-export default function LandingPage() {
-  const { creatorMode, handleSelectMode, hasSelectedMode } = useLandingPage();
-
-  // Brand marketing copy by default so SSR HTML includes real page content
-  // (e.g. "collaborate") even before the user picks a mode.
+export default function LandingPage({ audience }) {
+  const { creatorMode, handleSelectMode, hasSelectedMode } = useLandingPage(audience);
   const isCreatorMode = creatorMode === true;
+  const isRouteAudience = audience === "brand" || audience === "creator";
 
   return (
     <div className="relative min-h-screen bg-white text-gray-800 font-sans">
-      {!hasSelectedMode ? (
+      {!isRouteAudience && !hasSelectedMode ? (
         <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
       ) : null}
 
-      <div style={!hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
+      <div style={!isRouteAudience && !hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
         <HeaderFooterLayout>
           <Hero isCreatorMode={isCreatorMode} />
           <HowCleerCutWorks isCreatorMode={isCreatorMode} />
