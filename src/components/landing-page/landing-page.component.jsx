@@ -1,6 +1,7 @@
 "use client";
 
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
+import BrandLanding from "./components/brand-landing/brand-landing.component";
 import CallToAction from "./components/call-to-action/call-to-action";
 import CreatorBrandPrompt from "./components/creator-brand-prompt/prompt.component";
 import Features from "./components/features/features";
@@ -21,28 +22,32 @@ const SSR_ONLY_STYLE = {
   border: 0,
 };
 
-export default function LandingPage() {
-  const { creatorMode, handleSelectMode, hasSelectedMode } = useLandingPage();
-
-  // Brand marketing copy by default so SSR HTML includes real page content
-  // (e.g. "collaborate") even before the user picks a mode.
+export default function LandingPage({ audience }) {
+  const { creatorMode, handleSelectMode, hasSelectedMode } = useLandingPage(audience);
   const isCreatorMode = creatorMode === true;
+  const isRouteAudience = audience === "brand" || audience === "creator";
 
   return (
     <div className="relative min-h-screen bg-white text-gray-800 font-sans">
-      {!hasSelectedMode ? (
+      {!isRouteAudience && !hasSelectedMode ? (
         <CreatorBrandPrompt handleSelectMode={handleSelectMode} />
       ) : null}
 
-      <div style={!hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
+      <div style={!isRouteAudience && !hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
         <HeaderFooterLayout>
-          <Hero isCreatorMode={isCreatorMode} />
-          <HowCleerCutWorks isCreatorMode={isCreatorMode} />
-          <Features isCreatorMode={isCreatorMode} />
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-          <WhyChooseCleercut isCreatorMode={isCreatorMode} />
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-          <CallToAction />
+          {isCreatorMode ? (
+            <>
+              <Hero isCreatorMode={isCreatorMode} />
+              <HowCleerCutWorks isCreatorMode={isCreatorMode} />
+              <Features isCreatorMode={isCreatorMode} />
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5" />
+              <WhyChooseCleercut isCreatorMode={isCreatorMode} />
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5" />
+              <CallToAction />
+            </>
+          ) : (
+            <BrandLanding />
+          )}
         </HeaderFooterLayout>
       </div>
     </div>
