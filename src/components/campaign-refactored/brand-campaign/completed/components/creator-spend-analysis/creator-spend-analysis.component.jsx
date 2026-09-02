@@ -193,6 +193,7 @@ const CreatorSpendAnalysisCompleted = ({
     getCreatorMetrics,
     handleSortChange,
     formatMetricValue,
+    handleViewReport,
   } = useCreatorSpendAnalysisCompleted({
     selectedCampaign,
     selectedCreator,
@@ -236,6 +237,22 @@ const CreatorSpendAnalysisCompleted = ({
               )}
             </div>
             <div className="flex w-full flex-nowrap items-stretch gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
+              {selectedCampaign?.id ? (
+                <>
+                  <CustomButton
+                    text="Report"
+                    title="View Report"
+                    className="btn-primary min-w-0 flex-1 px-2 sm:hidden"
+                    onClick={handleViewReport}
+                  />
+                  <CustomButton
+                    text="View Report"
+                    title="View Report"
+                    className="btn-primary hidden min-w-0 sm:inline-flex sm:w-auto"
+                    onClick={handleViewReport}
+                  />
+                </>
+              ) : null}
               {onOpenBoard ? (
                 <>
                   <CustomButton

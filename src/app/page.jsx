@@ -45,7 +45,7 @@ export default function Home() {
         <HomeSeoArticle />
       </noscript>
       <HomeCrawlableContent />
-      <LandingPage />
+      <LandingPage audience="brand" />
     </>
   );
 }
