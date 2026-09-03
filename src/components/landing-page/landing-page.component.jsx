@@ -1,6 +1,7 @@
 "use client";
 
 import HeaderFooterLayout from "@/common/layouts/header-footer.layout";
+import BrandLanding from "./components/brand-landing/brand-landing.component";
 import CallToAction from "./components/call-to-action/call-to-action";
 import CreatorBrandPrompt from "./components/creator-brand-prompt/prompt.component";
 import Features from "./components/features/features";
@@ -34,13 +35,19 @@ export default function LandingPage({ audience }) {
 
       <div style={!isRouteAudience && !hasSelectedMode ? SSR_ONLY_STYLE : undefined}>
         <HeaderFooterLayout>
-          <Hero isCreatorMode={isCreatorMode} />
-          <HowCleerCutWorks isCreatorMode={isCreatorMode} />
-          <Features isCreatorMode={isCreatorMode} />
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-          <WhyChooseCleercut isCreatorMode={isCreatorMode} />
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5"></div>
-          <CallToAction />
+          {isCreatorMode ? (
+            <>
+              <Hero isCreatorMode={isCreatorMode} />
+              <HowCleerCutWorks isCreatorMode={isCreatorMode} />
+              <Features isCreatorMode={isCreatorMode} />
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5" />
+              <WhyChooseCleercut isCreatorMode={isCreatorMode} />
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 py-0.5" />
+              <CallToAction />
+            </>
+          ) : (
+            <BrandLanding />
+          )}
         </HeaderFooterLayout>
       </div>
     </div>
