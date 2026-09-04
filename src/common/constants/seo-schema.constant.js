@@ -9,17 +9,17 @@ export const SEO_FAQ_ITEMS = [
   {
     question: "How does Cleercut compare to GRIN?",
     answer:
-      "Cleercut offers similar features to GRIN — influencer discovery, contract management, payments, and campaign tracking — at a significantly lower price point, with a free tier requiring no credit card.",
+      "Cleercut offers similar features to GRIN — influencer discovery, contract management, payments, and campaign tracking — at a significantly lower price point, including a 30-day commission-free trial with no credit card required.",
   },
   {
     question: "What does Cleercut cost?",
     answer:
-      "Cleercut offers a free tier with 3 campaigns and no credit card required. Paid brand plans start at $399/month (Starter), $525/month (Growth), and $699/month (Enterprise). Pay-As-You-Go is available at 9.9% commission per creator payment.",
+      "Brands can start with pay-as-you-go commission on paid collaborations, or choose a monthly plan that removes commission up to a spend cap. The first 30 days are commission-free. See the CleerCut pricing page for current plan details.",
   },
   {
     question: "Does Cleercut have a free plan?",
     answer:
-      "Yes. Brands can try 3 campaigns free with no credit card required. Creators can apply to campaigns with transparent payment processing fees and no subscription required.",
+      "Yes. Brands get 30 days of commission-free campaigns with no credit card required. Creators can apply to campaigns with transparent payment processing fees and no subscription required.",
   },
   {
     question: "What is escrow payment in influencer marketing?",
@@ -56,7 +56,7 @@ export const SOFTWARE_APPLICATION_SCHEMA = {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
-    description: "Free tier available. Paid plans from $399/month.",
+    description: "Free trial available. See cleercut.com/pricing for current plans.",
   },
 };
 

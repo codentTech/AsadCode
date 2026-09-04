@@ -1,19 +1,17 @@
 import LandingPage from "@/components/landing-page/landing-page.component";
-import JsonLd from "@/components/seo/json-ld.component";
-import { SOFTWARE_APPLICATION_SCHEMA } from "@/common/constants/seo-schema.constant";
 import { SITE_NAME, SITE_URL } from "@/common/constants/site.constant";
 
 const CREATORS_DESCRIPTION =
-  "CleerCut for creators — showcase your value, quick-apply to collaborations, and get paid securely with 0% commission. Just the standard 3.2% payment processing fee.";
+  "CleerCut for creators — showcase your portfolio, quick-apply to brand campaigns, and get paid securely with escrow. 0% commission.";
 
 export const metadata = {
   title: {
-    absolute: `For Creators | ${SITE_NAME}`,
+    absolute: `${SITE_NAME} for Creators — Land More Brand Collaborations`,
   },
   description: CREATORS_DESCRIPTION,
   alternates: { canonical: `${SITE_URL}/creators` },
   openGraph: {
-    title: `For Creators | ${SITE_NAME}`,
+    title: `${SITE_NAME} for Creators — Land More Brand Collaborations`,
     description: CREATORS_DESCRIPTION,
     url: `${SITE_URL}/creators`,
     siteName: SITE_NAME,
@@ -22,7 +20,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `For Creators | ${SITE_NAME}`,
+    title: `${SITE_NAME} for Creators — Land More Brand Collaborations`,
     description: CREATORS_DESCRIPTION,
   },
   robots: {
@@ -35,11 +33,6 @@ export const metadata = {
   },
 };
 
-export default function CreatorsPage() {
-  return (
-    <>
-      <JsonLd data={SOFTWARE_APPLICATION_SCHEMA} />
-      <LandingPage isCreatorMode />
-    </>
-  );
+export default function CreatorsLandingPage() {
+  return <LandingPage audience="creator" />;
 }

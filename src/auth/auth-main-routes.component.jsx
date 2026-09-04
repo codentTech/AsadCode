@@ -15,15 +15,17 @@ import { useEffect } from "react";
  * Auth pages (login/onboarding). Logged-in users with completed onboarding go to app.
  * Incomplete onboarding may stay on /onboarding to finish phase two.
  * Creator phase-one handoff (`resumeOnboarding=1`) must stay on login so they can sign in.
+ *
+ * Do not put `getUser()` objects in effect deps — JSON.parse returns a new reference
+ * every render and can thrash redirects on mobile WebKit.
  */
 export default function AuthMainRoutes({ component }) {
   const router = useRouter();
   const pathname = usePathname() || "";
   const searchParams = useSearchParams();
-  const user = getUser();
+  const resumeOnboarding = searchParams?.get("resumeOnboarding") === "1";
 
   useEffect(() => {
-    const resumeOnboarding = searchParams?.get("resumeOnboarding") === "1";
     if (pathname.startsWith("/login") && resumeOnboarding) {
       if (isLoginVerified()) {
         clearAuthSessionForOnboardingLogin();
@@ -33,12 +35,15 @@ export default function AuthMainRoutes({ component }) {
 
     if (!isLoginVerified()) return;
 
+    const user = getUser();
+
     if (user?.role === ROLES.ADMIN) {
       router.push("/admin/dashboard");
       return;
     }
 
-    const onOnboarding = pathname.startsWith("/onboarding") || pathname.startsWith("/invite-signup");
+    const onOnboarding =
+      pathname.startsWith("/onboarding") || pathname.startsWith("/invite-signup");
     if (!isOnboardingCompleted(user) && onOnboarding) {
       return;
     }
@@ -49,7 +54,7 @@ export default function AuthMainRoutes({ component }) {
     }
 
     router.push("/campaign");
-  }, [router, pathname, user, searchParams]);
+  }, [router, pathname, resumeOnboarding]);
 
   return component;
 }
