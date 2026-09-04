@@ -41,18 +41,11 @@ function Header() {
             Home
           </Link>
           <Link
-            href="/#features"
+            href="/features"
             prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
             Features
-          </Link>
-          <Link
-            href="/solution"
-            prefetch={true}
-            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
-          >
-            Solutions
           </Link>
           <Link
             href="/pricing"
@@ -62,11 +55,11 @@ function Header() {
             Pricing
           </Link>
           <Link
-            href="/about-us"
+            href="/agency"
             prefetch={true}
             className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
           >
-            About
+            Agency
           </Link>
           <Link
             href="/blog"
@@ -160,17 +153,11 @@ function Header() {
             Home
           </Link>
           <Link
-            href="#features"
+            href="/features"
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
           >
             Features
           </Link>
-          <p
-            onClick={() => router.push("/solution")}
-            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
-          >
-            Solutions
-          </p>
           <p
             onClick={() => router.push("/pricing")}
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
@@ -178,10 +165,10 @@ function Header() {
             Pricing
           </p>
           <Link
-            href="/about-us"
+            href="/agency"
             className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
           >
-            About
+            Agency
           </Link>
           <Link
             href="/blog"
