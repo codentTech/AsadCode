@@ -9,7 +9,7 @@ export const SEO_FAQ_ITEMS = [
   {
     question: "How does Cleercut compare to GRIN?",
     answer:
-      "Cleercut offers similar features to GRIN — influencer discovery, contract management, payments, and campaign tracking — at a significantly lower price point, with a free tier requiring no credit card.",
+      "Cleercut offers similar features to GRIN — influencer discovery, contract management, payments, and campaign tracking — at a significantly lower price point, including a 30-day commission-free trial with no credit card required.",
   },
   {
     question: "What does Cleercut cost?",
