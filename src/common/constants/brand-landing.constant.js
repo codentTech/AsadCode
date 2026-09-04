@@ -136,12 +136,12 @@ export const BRAND_LANDING_FEATURE_CARDS = [
     copy: "Set your deliverables, budget, and requirements in minutes, then let applications arrive. No lists, no cold emails, no chasing replies.",
     image: "/assets/images/landing/brands/post-once.jpg",
   },
-  {
-    title: "$0 payment processing fees",
-    copy: "Competitors advertise low processing rates. We charge you nothing at all. Stripe's fee comes out of the creator's payout, not your bill.",
-    image: "/assets/images/landing/brands/zero-fees.png",
-    showFeeTable: true,
-  },
+  // {
+  //   title: "$0 payment processing fees",
+  //   copy: "Competitors advertise low processing rates. We charge you nothing at all. Stripe's fee comes out of the creator's payout, not your bill.",
+  //   image: "/assets/images/landing/brands/zero-fees.png",
+  //   showFeeTable: true,
+  // },
   {
     title: "Send products straight from Shopify",
     copy: "Pick products from your store inside CleerCut and we handle the order. No exporting lists or raising fulfilments by hand.",
