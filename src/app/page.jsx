@@ -9,12 +9,12 @@ const HOME_DESCRIPTION =
 
 export const metadata = {
   title: {
-    absolute: `${SITE_NAME} ΓÇö Influencer Marketing Platform`,
+    absolute: `${SITE_NAME} — Influencer Marketing Platform`,
   },
   description: HOME_DESCRIPTION,
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: `${SITE_NAME} ΓÇö Influencer Marketing Platform`,
+    title: `${SITE_NAME} — Influencer Marketing Platform`,
     description: HOME_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -23,7 +23,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} ΓÇö Influencer Marketing Platform`,
+    title: `${SITE_NAME} — Influencer Marketing Platform`,
     description: HOME_DESCRIPTION,
   },
   robots: {
