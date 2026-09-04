@@ -35,7 +35,7 @@ function Hero({ isCreatorMode }) {
 
               {!isCreatorMode && (
                 <p className="text-sm text-gray-600 mb-4">
-                  <span className="font-bold">Try 3 Campaigns Free</span> → No Fees → No Setup Calls
+                  <span className="font-bold">Try 30 Days Commission Free</span> → No Credit Card → No Setup Calls
                   → No Credit Card Required.
                 </p>
               )}
