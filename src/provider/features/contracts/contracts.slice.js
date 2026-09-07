@@ -229,20 +229,12 @@ export const contractsSlice = createSlice({
         if (!state.getIndividualCollaborationContracts) {
           state.getIndividualCollaborationContracts = { ...individualCollaborationContractsState };
         }
-        const scopeChanged =
-          state.getIndividualCollaborationContracts.isCompleted !== null &&
-          state.getIndividualCollaborationContracts.isCompleted !== isCompleted;
-        const hadData = Boolean(state.getIndividualCollaborationContracts.data);
         state.getIndividualCollaborationContracts.isLoading = true;
         state.getIndividualCollaborationContracts.isError = false;
         state.getIndividualCollaborationContracts.message = "";
-        if (scopeChanged || !hadData) {
-          state.getIndividualCollaborationContracts.isSuccess = false;
-          state.getIndividualCollaborationContracts.isCompleted = null;
-          if (scopeChanged) {
-            state.getIndividualCollaborationContracts.data = null;
-          }
-        }
+        state.getIndividualCollaborationContracts.isSuccess = false;
+        state.getIndividualCollaborationContracts.isCompleted = null;
+        state.getIndividualCollaborationContracts.data = null;
       })
       .addCase(getIndividualCollaborationContracts.fulfilled, (state, action) => {
         const { isCompleted } = resolveIndividualContractsArg(action.meta.arg);
