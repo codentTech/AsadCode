@@ -130,6 +130,11 @@ export const BRAND_LANDING_DEMO_BULLETS = [
   "Run as many campaigns as you want, on any plan",
 ];
 
+export const BRAND_LANDING_DEMO_VIDEO_URL =
+  "https://cleercut-media.s3.us-east-2.amazonaws.com/cleercut/development/brand/cleercut-43-secs_9e835d09-8d69-4e52-9c4c-21bebcce2304.mov";
+
+export const BRAND_LANDING_DEMO_POSTER_URL = "";
+
 export const BRAND_LANDING_FEATURE_CARDS = [
   {
     title: "Post once, and creators come to you",

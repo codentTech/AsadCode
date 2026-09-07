@@ -1,9 +1,18 @@
 "use client";
 
-import { CheckCircle, Play } from "lucide-react";
-import { BRAND_LANDING_DEMO_BULLETS } from "@/common/constants/brand-landing.constant";
+import { CheckCircle } from "lucide-react";
+import {
+  BRAND_LANDING_DEMO_BULLETS,
+  BRAND_LANDING_DEMO_POSTER_URL,
+  BRAND_LANDING_DEMO_VIDEO_URL,
+} from "@/common/constants/brand-landing.constant";
+import useBrandDemo from "./use-brand-demo.hook";
 
 export default function BrandDemo() {
+  const { containerRef, videoRef, shouldLoad, prefersReducedMotion } = useBrandDemo();
+  const poster = BRAND_LANDING_DEMO_POSTER_URL || undefined;
+  const showPosterOnly = prefersReducedMotion && Boolean(poster);
+
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
@@ -19,7 +28,10 @@ export default function BrandDemo() {
             </p>
             <ul className="space-y-3">
               {BRAND_LANDING_DEMO_BULLETS.map((bullet) => (
-                <li key={bullet} className="flex items-start gap-3 text-sm md:text-base text-gray-700">
+                <li
+                  key={bullet}
+                  className="flex items-start gap-3 text-sm md:text-base text-gray-700"
+                >
                   <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <span>{bullet}</span>
                 </li>
@@ -28,14 +40,40 @@ export default function BrandDemo() {
           </div>
 
           <div className="w-full lg:w-1/2">
-            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-indigo-100 to-indigo-200 border border-indigo-100 shadow-[0_8px_40px_rgba(129,140,248,0.25)] aspect-video flex items-center justify-center">
-              <div className="text-center px-6">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-primary shadow-md">
-                  <Play className="h-6 w-6 ml-0.5" fill="currentColor" />
-                </div>
-                <p className="text-sm font-semibold text-indigo-900">Demo video coming soon</p>
-                <p className="text-xs text-indigo-700 mt-1">Looped product walkthrough</p>
-              </div>
+            <div
+              ref={containerRef}
+              className="relative rounded-xl overflow-hidden bg-gradient-to-br from-indigo-100 to-indigo-200 border border-indigo-100 shadow-[0_8px_40px_rgba(129,140,248,0.25)] aspect-video"
+            >
+              {showPosterOnly ? (
+                <img
+                  src={poster}
+                  alt="CleerCut product demo"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : shouldLoad ? (
+                <video
+                  ref={videoRef}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  muted
+                  loop
+                  playsInline
+                  autoPlay={!prefersReducedMotion}
+                  preload={prefersReducedMotion ? "metadata" : "auto"}
+                  poster={poster}
+                  controls={false}
+                  aria-label="CleerCut product demo video"
+                >
+                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/quicktime" />
+                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/mp4" />
+                </video>
+              ) : poster ? (
+                <img
+                  src={poster}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  aria-hidden
+                />
+              ) : null}
             </div>
           </div>
         </div>
