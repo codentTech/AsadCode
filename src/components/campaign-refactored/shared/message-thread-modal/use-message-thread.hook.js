@@ -1,6 +1,10 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
+import {
   createOrGetConversation,
   getConversationMessages,
   sendMessage,
@@ -34,6 +38,7 @@ const useMessageThread = (
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [attachmentPreview, setAttachmentPreview] = useState(null);
+  const [isDemoThread, setIsDemoThread] = useState(false);
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -53,6 +58,11 @@ const useMessageThread = (
     getConversationMessages: messagesState,
     sendMessage: sendMessageState,
   } = useSelector((state) => state.chat);
+  const brandCampaigns =
+    useSelector((state) => state.campaigns?.getAllBrandCampaigns?.data?.data) || [];
+  const selectedCampaignIsDemo = isDemoCampaign(
+    brandCampaigns.find((campaign) => String(campaign.id) === String(campaignId)),
+  );
 
   const initialMessagePayloads = useMemo(
     () => normalizeThreadInitialMessagePayloads(applicationPitch),
@@ -67,6 +77,9 @@ const useMessageThread = (
 
   const viewer = getUser();
   const isBoundConversationForThread = useMemo(() => {
+    if (isDemoThread && conversationId) {
+      return true;
+    }
     if (!conversationId || conversationId !== boundConversationId) {
       return false;
     }
@@ -84,6 +97,7 @@ const useMessageThread = (
     }
     return true;
   }, [
+    isDemoThread,
     conversationId,
     boundConversationId,
     campaignId,
@@ -99,20 +113,23 @@ const useMessageThread = (
     if (!conversationId || !isBoundConversationForThread) {
       return [];
     }
+    if (isDemoThread) {
+      return [];
+    }
     return [...(allMessages[conversationId] || [])].sort((a, b) => {
       const dateA = new Date(a.created_at || a.createdAt || 0);
       const dateB = new Date(b.created_at || b.createdAt || 0);
       return dateA - dateB;
     });
-  }, [conversationId, isBoundConversationForThread, allMessages]);
+  }, [conversationId, isBoundConversationForThread, allMessages, isDemoThread]);
 
   const initialMessagesMatchThread =
     initialMessagePayloads.length > 0 &&
     initialMessagePayloads.every((payload) =>
       threadInitialPayloadMatchesContext(payload, { campaignId, creatorId })
     ) &&
-    conversationId === boundConversationId &&
-    isBoundConversationForThread;
+    (isDemoThread ||
+      (conversationId === boundConversationId && isBoundConversationForThread));
 
   const messages = useMemo(() => {
     if (!isBoundConversationForThread) {
@@ -205,12 +222,19 @@ const useMessageThread = (
       hasFetchedMessagesRef.current = false;
       setIsModalOpen(true);
       setError(null);
+      setIsDemoThread(false);
 
       if (currentUser.id === creatorId) {
         return;
       }
       if (!effectiveCampaignId) {
         setError("Campaign ID is required to start a conversation");
+        return;
+      }
+
+      if (selectedCampaignIsDemo) {
+        setIsDemoThread(true);
+        setConversationId(`demo-local-${effectiveCampaignId}-${creatorId}`);
         return;
       }
 
@@ -274,7 +298,7 @@ const useMessageThread = (
         setError(errorMessage);
       }
     },
-    [creatorId, campaignId, dispatch]
+    [creatorId, campaignId, dispatch, selectedCampaignIsDemo]
   );
 
   const closeMessageModal = useCallback(() => {
@@ -284,7 +308,7 @@ const useMessageThread = (
       pollingIntervalRef.current = null;
     }
 
-    if (conversationId) {
+    if (conversationId && !String(conversationId).startsWith("demo-local-")) {
       chatSocketService.leaveConversation(conversationId);
     }
 
@@ -292,6 +316,7 @@ const useMessageThread = (
     setConversationId(null);
     setNewMessage("");
     setError(null);
+    setIsDemoThread(false);
     setShowEmojiPicker(false);
     setShowTemplatesModal(false);
     hasFetchedMessagesRef.current = false;
@@ -308,6 +333,11 @@ const useMessageThread = (
       sendMessageState.isLoading ||
       sendingRef.current
     ) {
+      return;
+    }
+
+    if (isDemoThread || selectedCampaignIsDemo) {
+      setError(DEMO_MUTATION_MESSAGES.sendMessage);
       return;
     }
 
@@ -358,6 +388,8 @@ const useMessageThread = (
     onMessageSent,
     conversationState?.data,
     otherUserId,
+    isDemoThread,
+    selectedCampaignIsDemo,
   ]);
 
   const handleMessageChange = useCallback(
@@ -576,6 +608,11 @@ const useMessageThread = (
       return;
     }
 
+    if (isDemoThread || String(conversationId).startsWith("demo-local-")) {
+      hasFetchedMessagesRef.current = true;
+      return;
+    }
+
     // Ensure socket is connected
     if (!chatSocketService.isSocketConnected()) {
       chatSocketService.connect(dispatch);
@@ -628,7 +665,7 @@ const useMessageThread = (
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, isModalOpen, dispatch]);
+  }, [conversationId, isModalOpen, dispatch, isDemoThread]);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {

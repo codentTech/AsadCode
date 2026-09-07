@@ -8,6 +8,8 @@ import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
+import { isDemoCampaign } from "@/common/utils/demo-campaign.util";
+import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications-subtab-toggle.component";
@@ -16,7 +18,6 @@ import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-secti
 import { Menu, MenuItem } from "@mui/material";
 import { EllipsisVertical, Filter, LayoutGrid, List, Search } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
-import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 
 const GRID_CLASS = `mb-8 ${CREATOR_CARD_GRID_CLASS}`;
 
@@ -142,6 +143,7 @@ const CreatorSpendAnalysis = ({
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={() => {}}
           onInviteClick={() => {}}
+          inertSocialLinks={isDemoCampaign(selectedCampaign)}
         />
       </div>
     );

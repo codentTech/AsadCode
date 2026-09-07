@@ -13,11 +13,16 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser, isCreatorMode } from "@/common/utils/users.util";
+import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
 
 export default function useCalendarModal(show, selectedCampaign) {
   const dispatch = useDispatch();
   const creatorMode = isCreatorMode();
   const user = getUser();
+  const [demoActionMessage, setDemoActionMessage] = useState("");
 
   // Redux state
   const {
@@ -258,6 +263,10 @@ export default function useCalendarModal(show, selectedCampaign) {
 
   // Add task
   const addTask = async () => {
+    if (isDemoCampaign(selectedCampaign)) {
+      setDemoActionMessage(DEMO_MUTATION_MESSAGES.calendarSchedule);
+      return;
+    }
     if (newTaskText.trim() && selectedTag && selectedCampaign?.id) {
       // Create date string in YYYY-MM-DD format to avoid timezone issues
       const year = currentMonth.year;
@@ -295,11 +304,19 @@ export default function useCalendarModal(show, selectedCampaign) {
 
   // Toggle task completion
   const toggleTask = async (taskId) => {
+    if (isDemoCampaign(selectedCampaign)) {
+      setDemoActionMessage(DEMO_MUTATION_MESSAGES.calendarToggle);
+      return;
+    }
     await dispatch(toggleCalendarTaskStatus({ taskId })).unwrap();
   };
 
   // Add color tag
   const addColorTag = async () => {
+    if (isDemoCampaign(selectedCampaign)) {
+      setDemoActionMessage(DEMO_MUTATION_MESSAGES.calendarCategory);
+      return;
+    }
     if (newTagName.trim() && selectedCampaign?.id) {
       // Check for duplicates (both in default and custom categories)
       const isDuplicate = allCategories.some(
@@ -412,6 +429,7 @@ export default function useCalendarModal(show, selectedCampaign) {
     allCategories,
     monthNames,
     isHexColor,
+    demoActionMessage,
 
     // Redux states
     createTaskState,

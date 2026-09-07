@@ -4,6 +4,7 @@ import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getIndividualCollaborationContracts } from "@/provider/features/contracts/contracts.slice";
 import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
+import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
 import {
   individualContractsScopeMatches,
   individualContractsForPhase,
@@ -206,12 +207,17 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
       !hasAutoSelected.current &&
       !hasRestoredFromContext.current
     ) {
-      setSelectedCampaign(activeCampaigns[0]);
+      const defaultCampaign = pickDefaultBrandCampaign(
+        campaignsData?.data || [],
+        activeCampaigns,
+      );
+      if (!defaultCampaign) return;
+      setSelectedCampaign(defaultCampaign);
       hasAutoSelected.current = true;
       dispatch(
         setSelectedCampaignContext({
-          campaignId: activeCampaigns[0].id,
-          collaborationType: activeCampaigns[0].collaboration_type || null,
+          campaignId: defaultCampaign.id,
+          collaborationType: defaultCampaign.collaboration_type || null,
         })
       );
     }

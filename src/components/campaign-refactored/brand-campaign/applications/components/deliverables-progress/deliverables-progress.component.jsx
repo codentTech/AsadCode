@@ -18,6 +18,7 @@ const DeliverablesProgress = ({
   onClearCreator = null,
   showProfileClose = false,
   isIndividualCreator = false,
+  inertSocialLinks = false,
 }) => {
   const {
     creatorData,
@@ -124,6 +125,7 @@ const DeliverablesProgress = ({
                     {formatNumber(platform.followers)}
                   </div>
                   {(() => {
+                    if (inertSocialLinks) return null;
                     const url = getPlatformProfileUrl(
                       platform.name,
                       platform.username,
