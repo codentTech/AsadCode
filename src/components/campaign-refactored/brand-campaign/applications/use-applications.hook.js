@@ -15,6 +15,11 @@ import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/fe
 import useMessageThread from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import { avatar } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import {
+  creatorBelongsToApplicationsSubTab,
+  filterCampaignsOwnedByBrand,
+  splitCreatorsByApplicationsSubTab,
+} from "@/common/utils/campaign.utils";
 import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
@@ -25,10 +30,6 @@ import {
   persistApplicationsSort,
   APPLICATIONS_SUB_TAB_DEFAULT_SORT,
 } from "@/common/constants/applications-sort.constant";
-import {
-  splitCreatorsByApplicationsSubTab,
-  creatorBelongsToApplicationsSubTab,
-} from "@/common/utils/campaign.utils";
 import { applyLivePipelineUrgency } from "@/common/utils/creator-urgency.util";
 
 const APPLICATIONS_LIST_STATUSES = ["PENDING", "NEGOTIATIONS"];
@@ -133,7 +134,11 @@ function useBrandApplications() {
       selectedCampaignId &&
       !hasRestoredFromContext.current
     ) {
-      const campaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+      const brandUserId = getUser()?.id;
+      const campaigns = filterCampaignsOwnedByBrand(
+        Array.isArray(campaignsData.data) ? campaignsData.data : [],
+        brandUserId
+      );
       const restoredCampaign = campaigns.find((c) => c.id === selectedCampaignId);
       if (restoredCampaign) {
         setSelectedCampaign(restoredCampaign);
@@ -150,6 +155,11 @@ function useBrandApplications() {
             })
           );
         }
+      } else {
+        // Stale selectedCampaignId from another account — clear it.
+        hasRestoredFromContext.current = true;
+        lastRestoredCampaignIdRef.current = selectedCampaignId;
+        dispatch(setSelectedCampaignContext({ campaignId: null, collaborationType: null }));
       }
     } else if (!selectedCampaignId) {
       lastRestoredCampaignIdRef.current = null;

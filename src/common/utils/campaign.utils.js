@@ -829,3 +829,23 @@ export function creatorBelongsToApplicationsSubTab(creator, subTab) {
   }
   return column === "applications";
 }
+
+export function getCampaignOwnerId(campaign) {
+  if (!campaign) return null;
+  return (
+    campaign.created_by?.id ||
+    campaign.created_by_id ||
+    campaign.brand?.id ||
+    campaign.brand_id ||
+    null
+  );
+}
+
+/** Keep only campaigns owned by the signed-in brand (defense against stale Redux). */
+export function filterCampaignsOwnedByBrand(campaigns = [], brandUserId) {
+  if (!brandUserId) return [];
+  return (campaigns || []).filter((campaign) => {
+    const ownerId = getCampaignOwnerId(campaign);
+    return ownerId && String(ownerId) === String(brandUserId);
+  });
+}

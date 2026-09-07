@@ -8,6 +8,7 @@ import {
 } from "@/provider/features/campaigns/campaigns.slice";
 import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { getUser } from "@/common/utils/users.util";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
   getAllShortlists,
@@ -20,6 +21,7 @@ import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-p
 import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
 import { VISIBLE_APPLICATIONS_SORT_OPTIONS } from "@/common/constants/applications-sort.constant";
 import {
+  filterCampaignsOwnedByBrand,
   isInvitedCreatorRow,
   partitionPinnedInvitedCreators,
   sortApplicationsCreators,
@@ -68,10 +70,11 @@ function useCreatorSpendAnalysis({
     (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
   );
 
-  const campaignsData = useMemo(
-    () => ({ data: Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [] }),
-    [campaignsApiData?.data]
-  );
+  const campaignsData = useMemo(() => {
+    const raw = Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [];
+    const brandUserId = getUser()?.id;
+    return { data: filterCampaignsOwnedByBrand(raw, brandUserId) };
+  }, [campaignsApiData?.data]);
 
   const campaignOptions = useMemo(() => {
     const list = campaignsData?.data || [];
