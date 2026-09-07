@@ -5,6 +5,8 @@ import { getIndividualCollaborationContracts } from "@/provider/features/contrac
 import { getAllBrandCampaigns, getAppliedCreators } from "@/provider/features/campaigns/campaigns.slice";
 import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/features/campaign-context/campaign-context.slice";
 import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
+import { filterCampaignsOwnedByBrand } from "@/common/utils/campaign.utils";
+import { getUser } from "@/common/utils/users.util";
 import {
   individualContractsScopeMatches,
   individualContractsForPhase,
@@ -105,7 +107,10 @@ export default function useCampaignOverview(onCampaignSelect, onToggleChange) {
 
   const campaignOptions = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
-    const allCampaigns = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const allCampaigns = filterCampaignsOwnedByBrand(
+      Array.isArray(campaignsData.data) ? campaignsData.data : [],
+      getUser()?.id
+    );
     const activeCampaigns = allCampaigns.filter((campaign) => campaign.status !== "COMPLETE");
     return activeCampaigns.map((campaign) => ({
       value: campaign.id,

@@ -3,8 +3,9 @@
 import ROLES from "@/common/constants/role.constant";
 import { isOnboardingCompleted, persistOnboardingEmail } from "@/common/utils/users.util";
 import { login, setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
-import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import { getEmailPreferences } from "@/provider/features/email-preferences/email-preferences.slice";
+import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
+import { APP_RESET_ACTION } from "@/provider/store";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AES, enc } from "crypto-js";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -98,6 +99,8 @@ export default function useLogin() {
 
   const onSubmit = async (values) => {
     setLoading(true);
+    // Clear previous account's in-memory campaign/contract selection before login.
+    dispatch({ type: APP_RESET_ACTION });
     const response = await dispatch(login({ ...values, email: email.toLowerCase() }));
     if (response.payload && response.payload.success) {
       const user = response.payload?.data?.user;

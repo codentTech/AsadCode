@@ -721,11 +721,10 @@ export const campaignsSlice = createSlice({
         state.getAllBrandCampaigns.isLoading = true;
         state.getAllBrandCampaigns.message = "";
         state.getAllBrandCampaigns.isError = false;
-        const hadData = Boolean(state.getAllBrandCampaigns.data);
-        if (!hadData) {
-          state.getAllBrandCampaigns.isSuccess = false;
-          state.getAllBrandCampaigns.data = null;
-        }
+        // Always clear so a previous account's campaigns never remain visible
+        // while the next brand's list is loading.
+        state.getAllBrandCampaigns.isSuccess = false;
+        state.getAllBrandCampaigns.data = null;
       })
       .addCase(getAllBrandCampaigns.fulfilled, (state, action) => {
         state.getAllBrandCampaigns.isLoading = false;
