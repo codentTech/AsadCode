@@ -10,6 +10,7 @@ export const DEMO_MUTATION_MESSAGES = {
   calendarToggle: "Updating calendar events is disabled for the sample campaign.",
   calendarCategory: "Updating calendar categories is disabled for the sample campaign.",
   pdfExport: "PDF export is disabled for the sample campaign.",
+  discountManage: "Managing discount codes is disabled for the sample campaign.",
 };
 
 export function isDemoCampaign(campaign) {

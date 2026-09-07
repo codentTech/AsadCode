@@ -327,17 +327,16 @@ const useMessageThread = (
   }, [conversationId]);
 
   const sendMessageHandler = useCallback(async () => {
-    if (
-      (!newMessage.trim() && !attachmentPreview) ||
-      !conversationId ||
-      sendMessageState.isLoading ||
-      sendingRef.current
-    ) {
+    if ((!newMessage.trim() && !attachmentPreview) || sendMessageState.isLoading || sendingRef.current) {
       return;
     }
 
     if (isDemoThread || selectedCampaignIsDemo) {
       setError(DEMO_MUTATION_MESSAGES.sendMessage);
+      return;
+    }
+
+    if (!conversationId) {
       return;
     }
 
@@ -737,6 +736,7 @@ const useMessageThread = (
 
 export function pickMessageThreadModalProps(hook) {
   return {
+    errorMessage: hook.error || "",
     user: hook.user,
     actualShowEmojiPicker: hook.actualShowEmojiPicker,
     emojiPickerRef: hook.emojiPickerRef,

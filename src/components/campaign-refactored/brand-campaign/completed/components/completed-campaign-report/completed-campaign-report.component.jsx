@@ -689,18 +689,20 @@ export default function CompletedCampaignReport({ campaignId }) {
       <div className="mx-auto flex max-w-[960px] items-center justify-between gap-4 px-2 pb-3.5 pt-5">
         <span className="text-xs uppercase tracking-wider text-[#8A8985]">Report viewer</span>
         <div className="flex flex-col items-end gap-1">
+          {pdfDemoMessage ? (
+            <div className="mb-1 w-full max-w-sm rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {pdfDemoMessage}
+            </div>
+          ) : null}
           <CustomButton
             text="Export as PDF"
             className="btn-primary sm:min-w-[140px]"
             onClick={handleDownloadPdf}
-            disabled={isPdfLoading || isDemo}
+            disabled={isPdfLoading}
             loading={isPdfLoading}
             loadingText="Generating PDF…"
             startIcon={isPdfLoading ? null : <Download className="h-3.5 w-3.5" />}
           />
-          {pdfDemoMessage ? (
-            <p className="max-w-xs text-right text-[11px] text-red-600">{pdfDemoMessage}</p>
-          ) : null}
         </div>
       </div>
 
