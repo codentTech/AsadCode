@@ -2,6 +2,10 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { enqueueSnackbar } from "notistack";
 import { getUser } from "@/common/utils/users.util";
+import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
 import { createOrGetConversation, sendMessage } from "@/provider/features/chat/chat.slice";
 
 const resolveCreatorUserId = (creator) =>
@@ -169,6 +173,11 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
 
     if (!selectedCampaign?.id) {
       setMessageError("Campaign ID is required");
+      return;
+    }
+
+    if (isDemoCampaign(selectedCampaign)) {
+      setMessageError(DEMO_MUTATION_MESSAGES.bulkMessage);
       return;
     }
 

@@ -22,6 +22,7 @@ import {
 } from "@/common/utils/published-campaign-metrics.util";
 import usePrefetchCampaignCreatorTimelines from "@/common/hooks/use-prefetch-campaign-creator-timelines.hook";
 import { mapBrandAppliedCreatorRow } from "@/common/utils/map-brand-applied-creator-row.util";
+import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
 import {
   resolveEffectiveCollaborationType,
   isCampaignCompatibleWithOverviewToggle,
@@ -519,7 +520,17 @@ export default function useCampaignOverviewCompleted(
     const needInitialSelection =
       (parentHasNoCampaign || !isSelectedCampaignValid) && !hasAutoSelectedFiltered.current;
     if (!needInitialSelection) return;
-    const firstFilteredOption = filteredCampaignOptions[0];
+    const firstFilteredOption = (() => {
+      const candidates = filteredCampaignOptions
+        .map((option) => option.campaign)
+        .filter(Boolean);
+      const picked = pickDefaultBrandCampaign(
+        candidates,
+        candidates,
+      );
+      return filteredCampaignOptions.find((option) => option.campaign?.id === picked?.id)
+        || filteredCampaignOptions[0];
+    })();
     if (firstFilteredOption?.campaign) {
       internalHandleCampaignSelect(firstFilteredOption);
       if (onCampaignSelect) {

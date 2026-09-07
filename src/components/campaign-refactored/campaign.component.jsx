@@ -1,6 +1,10 @@
 "use client";
 
 import HeaderLayout from "@/common/layouts/header.layout";
+import DemoCampaignBanner from "@/common/components/demo-campaign-banner/demo-campaign-banner.component";
+import { isDemoCampaign } from "@/common/utils/demo-campaign.util";
+import { isCreatorMode } from "@/common/utils/users.util";
+import { useSelector } from "react-redux";
 import {
   CampaignTabBarMobileSlotProvider,
   useCampaignTabBarMobileSlot,
@@ -11,10 +15,21 @@ function CampaignShell() {
   const { activeTab, setActiveTab, mainTabs, ActiveComponent } = useCampaign();
   const tabBarSlotCtx = useCampaignTabBarMobileSlot();
   const mobileSlot = tabBarSlotCtx?.mobileSlot ?? null;
+  const selectedCampaignId = useSelector(
+    (state) => state.campaignContext?.selectedCampaignId,
+  );
+  const brandCampaigns =
+    useSelector((state) => state.campaigns?.getAllBrandCampaigns?.data?.data) || [];
+  const selectedCampaign = brandCampaigns.find((c) => c.id === selectedCampaignId);
+  const showDemoBanner =
+    !isCreatorMode() &&
+    [2, 3, 4].includes(Number(activeTab)) &&
+    isDemoCampaign(selectedCampaign);
 
   return (
     <div className="flex flex-col flex-1 min-h-0 border-b border-gray-200">
       <div className="fixed top-12 left-0 right-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+        {showDemoBanner ? <DemoCampaignBanner /> : null}
         <nav className="flex items-stretch gap-1 px-1.5 py-1.5 sm:gap-1.5 sm:px-2 sm:py-2 md:gap-2 md:px-3">
           {mobileSlot ? (
             <div className="flex shrink-0 items-stretch md:hidden">{mobileSlot}</div>
@@ -38,7 +53,13 @@ function CampaignShell() {
         </nav>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-[44px] sm:pt-[48px] md:pt-[56px]">
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
+          showDemoBanner
+            ? "pt-[76px] sm:pt-[80px] md:pt-[88px]"
+            : "pt-[44px] sm:pt-[48px] md:pt-[56px]"
+        }`}
+      >
         {ActiveComponent ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <ActiveComponent />

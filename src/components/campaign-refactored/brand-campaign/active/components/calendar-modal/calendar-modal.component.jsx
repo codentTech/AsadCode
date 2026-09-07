@@ -23,6 +23,7 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
     isHexColor,
     createTaskState,
     createCategoryState,
+    demoActionMessage,
     handleDateClick,
     navigateMonth,
     addTask,
@@ -55,7 +56,11 @@ const CalendarModal = ({ show, onClose, selectedCampaign }) => {
 
   return (
     <Modal show={show} title="Calendar" onClose={onClose} size="xl">
-      <div className="flex w-full min-w-0 flex-col gap-4 lg:grid lg:grid-cols-5 lg:items-start lg:gap-4">
+      {demoActionMessage ? (
+        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {demoActionMessage}
+        </div>
+      ) : null}      <div className="flex w-full min-w-0 flex-col gap-4 lg:grid lg:grid-cols-5 lg:items-start lg:gap-4">
         <div className="flex min-w-0 flex-col gap-3 lg:col-span-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="min-w-0 truncate text-base font-bold text-gray-900 sm:text-lg">

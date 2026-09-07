@@ -367,6 +367,11 @@ const useMessageThread = (
       return;
     }
 
+    if (isDemoThread || selectedCampaignIsDemo) {
+      setError(DEMO_MUTATION_MESSAGES.sendMessage);
+      return;
+    }
+
     sendingRef.current = true;
 
     const currentUser = getUser();

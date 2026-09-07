@@ -9,6 +9,7 @@ import {
 import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
+import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
   getAllShortlists,
@@ -285,8 +286,12 @@ function useCreatorSpendAnalysis({
         campaignsData?.data &&
         typeof onCampaignSelect === "function"
       ) {
-        const firstCampaign = campaignsData.data.find(
-          (c) => c.id === filteredCampaignOptions[0]?.value
+        const candidateCampaigns = filteredCampaignOptions
+          .map((option) => campaignsData.data.find((c) => c.id === option.value))
+          .filter(Boolean);
+        const firstCampaign = pickDefaultBrandCampaign(
+          campaignsData.data,
+          candidateCampaigns,
         );
         if (firstCampaign) {
           onCampaignSelect(firstCampaign);
