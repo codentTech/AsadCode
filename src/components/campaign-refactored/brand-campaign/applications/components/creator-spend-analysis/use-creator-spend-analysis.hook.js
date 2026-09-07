@@ -10,6 +10,7 @@ import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
 import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
+import { getUser } from "@/common/utils/users.util";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
   getAllShortlists,
