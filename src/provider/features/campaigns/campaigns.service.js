@@ -1,5 +1,7 @@
-import api from "@/common/utils/api";
+import { filterCampaignsOwnedByBrand } from "@/common/utils/campaign.utils";
 import { normalizeAppliedCreatorsFilters } from "@/common/utils/normalize-applied-creators-filters.util";
+import { getUser } from "@/common/utils/users.util";
+import api from "@/common/utils/api";
 
 // Create campaign
 const createCampaign = async (campaignData) => {
@@ -104,7 +106,15 @@ const getPipelineBoard = async (campaignId) => {
 // Get all brand campaigns (unified endpoint for Applications, Active, and Completed tabs)
 const getAllBrandCampaigns = async () => {
   const response = await api().get("/campaigns/brand");
-  return response.data;
+  const payload = response.data;
+  const brandUserId = getUser()?.id;
+  if (!brandUserId || !payload?.data || !Array.isArray(payload.data)) {
+    return payload;
+  }
+  return {
+    ...payload,
+    data: filterCampaignsOwnedByBrand(payload.data, brandUserId),
+  };
 };
 
 // Get creator applications
