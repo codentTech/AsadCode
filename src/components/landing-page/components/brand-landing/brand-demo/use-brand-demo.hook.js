@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { BRAND_LANDING_WATCH_DEMO_EVENT } from "@/common/constants/brand-landing.constant";
 
 function useBrandDemo() {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -37,22 +39,45 @@ function useBrandDemo() {
   }, []);
 
   useEffect(() => {
+    const onWatchDemo = () => {
+      setShouldLoad(true);
+      setShowControls(true);
+    };
+
+    window.addEventListener(BRAND_LANDING_WATCH_DEMO_EVENT, onWatchDemo);
+    return () => window.removeEventListener(BRAND_LANDING_WATCH_DEMO_EVENT, onWatchDemo);
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video || !shouldLoad) return;
+    if (!video || !shouldLoad || showControls) return;
 
     if (prefersReducedMotion) {
       video.pause();
       return;
     }
 
+    video.muted = true;
     video.play().catch(() => {});
-  }, [shouldLoad, prefersReducedMotion]);
+  }, [shouldLoad, prefersReducedMotion, showControls]);
+
+  useEffect(() => {
+    if (!showControls || !shouldLoad) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = false;
+    video.controls = true;
+    video.play().catch(() => {});
+  }, [showControls, shouldLoad]);
 
   return {
     containerRef,
     videoRef,
     shouldLoad,
     prefersReducedMotion,
+    showControls,
   };
 }
 
