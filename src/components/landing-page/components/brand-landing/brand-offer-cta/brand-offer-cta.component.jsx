@@ -1,10 +1,11 @@
 "use client";
 
+import { Play } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import useBrandOfferCta from "./use-brand-offer-cta.hook";
 
 export default function BrandOfferCta() {
-  const { handleSignUp, demoHref } = useBrandOfferCta();
+  const { handleSignUp, handleSeeHowItWorks, demoHref } = useBrandOfferCta();
 
   return (
     <section className="py-16 bg-gradient-to-r from-indigo-600 to-indigo-700">
@@ -22,6 +23,12 @@ export default function BrandOfferCta() {
             text="Sign Up for Free"
             className="btn bg-white text-primary hover:bg-indigo-50 border-0 flex-1 sm:flex-none sm:w-auto"
             onClick={handleSignUp}
+          />
+          <CustomButton
+            text="See how it works"
+            className="btn bg-white/15 text-white hover:bg-white/25 border border-white/40 flex-1 sm:flex-none sm:w-auto"
+            onClick={handleSeeHowItWorks}
+            startIcon={<Play className="h-3.5 w-3.5" fill="currentColor" />}
           />
           <CustomButton
             text="Book a Demo"
