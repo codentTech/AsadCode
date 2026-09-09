@@ -4,17 +4,27 @@ import { CheckCircle } from "lucide-react";
 import {
   BRAND_LANDING_DEMO_BULLETS,
   BRAND_LANDING_DEMO_POSTER_URL,
+  BRAND_LANDING_DEMO_SECTION_ID,
   BRAND_LANDING_DEMO_VIDEO_URL,
 } from "@/common/constants/brand-landing.constant";
 import useBrandDemo from "./use-brand-demo.hook";
 
 export default function BrandDemo() {
-  const { containerRef, videoRef, shouldLoad, prefersReducedMotion } = useBrandDemo();
+  const {
+    containerRef,
+    videoRef,
+    shouldLoad,
+    prefersReducedMotion,
+    showControls,
+  } = useBrandDemo();
   const poster = BRAND_LANDING_DEMO_POSTER_URL || undefined;
-  const showPosterOnly = prefersReducedMotion && Boolean(poster);
+  const showPosterOnly = prefersReducedMotion && Boolean(poster) && !showControls;
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section
+      id={BRAND_LANDING_DEMO_SECTION_ID}
+      className="scroll-mt-24 py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white"
+    >
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
           <div className="w-full lg:w-1/2">
@@ -54,13 +64,13 @@ export default function BrandDemo() {
                 <video
                   ref={videoRef}
                   className="absolute inset-0 h-full w-full object-cover"
-                  muted
-                  loop
+                  muted={!showControls}
+                  loop={!showControls}
                   playsInline
-                  autoPlay={!prefersReducedMotion}
+                  autoPlay={!prefersReducedMotion && !showControls}
                   preload={prefersReducedMotion ? "metadata" : "auto"}
                   poster={poster}
-                  controls={false}
+                  controls={showControls}
                   aria-label="CleerCut product demo video"
                 >
                   <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/quicktime" />
