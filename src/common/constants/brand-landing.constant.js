@@ -131,7 +131,7 @@ export const BRAND_LANDING_DEMO_BULLETS = [
 ];
 
 export const BRAND_LANDING_DEMO_VIDEO_URL =
-  "https://cleercut-media.s3.us-east-2.amazonaws.com/cleercut/development/brand/cleercut-43-secs_9e835d09-8d69-4e52-9c4c-21bebcce2304.mov";
+  "https://cleercut-media.s3.us-east-2.amazonaws.com/cleercut/development/brand/full-video-1-13_1744c8f9-f6e0-42b4-9cb9-63b0ec7a7a18.mov";
 
 export const BRAND_LANDING_DEMO_POSTER_URL = "";
 
