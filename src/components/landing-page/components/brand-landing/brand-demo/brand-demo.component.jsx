@@ -1,10 +1,10 @@
 "use client";
 
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Play, X } from "lucide-react";
+import CustomButton from "@/common/components/custom-button/custom-button.component";
 import {
   BRAND_LANDING_DEMO_BULLETS,
   BRAND_LANDING_DEMO_POSTER_URL,
-  BRAND_LANDING_DEMO_SECTION_ID,
   BRAND_LANDING_DEMO_VIDEO_URL,
 } from "@/common/constants/brand-landing.constant";
 import useBrandDemo from "./use-brand-demo.hook";
@@ -15,16 +15,15 @@ export default function BrandDemo() {
     videoRef,
     shouldLoad,
     prefersReducedMotion,
-    showControls,
+    isVideoModalOpen,
+    openVideoModal,
+    closeVideoModal,
   } = useBrandDemo();
   const poster = BRAND_LANDING_DEMO_POSTER_URL || undefined;
-  const showPosterOnly = prefersReducedMotion && Boolean(poster) && !showControls;
+  const showPosterOnly = prefersReducedMotion && Boolean(poster);
 
   return (
-    <section
-      id={BRAND_LANDING_DEMO_SECTION_ID}
-      className="scroll-mt-24 py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white"
-    >
+    <section className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
           <div className="w-full lg:w-1/2">
@@ -36,7 +35,7 @@ export default function BrandDemo() {
               platforms are built around a public database of scraped creator profiles with email
               integrations and API pulls, which forces them to limit what you can do at each tier.
             </p>
-            <ul className="space-y-3">
+            <ul className="mb-6 space-y-3">
               {BRAND_LANDING_DEMO_BULLETS.map((bullet) => (
                 <li
                   key={bullet}
@@ -47,6 +46,12 @@ export default function BrandDemo() {
                 </li>
               ))}
             </ul>
+            <CustomButton
+              text="See how it works"
+              className="btn-primary"
+              onClick={openVideoModal}
+              startIcon={<Play className="h-3.5 w-3.5" fill="currentColor" />}
+            />
           </div>
 
           <div className="w-full lg:w-1/2">
@@ -64,13 +69,13 @@ export default function BrandDemo() {
                 <video
                   ref={videoRef}
                   className="absolute inset-0 h-full w-full object-cover"
-                  muted={!showControls}
-                  loop={!showControls}
+                  muted
+                  loop
                   playsInline
-                  autoPlay={!prefersReducedMotion && !showControls}
+                  autoPlay={!prefersReducedMotion}
                   preload={prefersReducedMotion ? "metadata" : "auto"}
                   poster={poster}
-                  controls={showControls}
+                  controls={false}
                   aria-label="CleerCut product demo video"
                 >
                   <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/quicktime" />
@@ -88,6 +93,48 @@ export default function BrandDemo() {
           </div>
         </div>
       </div>
+
+      {isVideoModalOpen ? (
+        <div
+          className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="See how it works"
+          onClick={closeVideoModal}
+        >
+          <div
+            className="relative w-full max-w-5xl rounded-xl bg-black shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 rounded-t-xl bg-primary px-3 py-2.5 sm:px-4">
+              <h3 className="min-w-0 truncate text-sm font-semibold text-white sm:text-base">
+                See how it works
+              </h3>
+              <button
+                type="button"
+                onClick={closeVideoModal}
+                className="shrink-0 rounded-full p-1.5 text-white transition-colors hover:bg-white/15"
+                aria-label="Close video"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <video
+              key="brand-landing-demo-modal-video"
+              className="block max-h-[min(75vh,720px)] w-full rounded-b-xl bg-black"
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
+              poster={poster}
+              controlsList="nodownload"
+              aria-label="CleerCut product demo video"
+            >
+              <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
