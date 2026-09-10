@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import { BRAND_LANDING_WATCH_DEMO_EVENT } from "@/common/constants/brand-landing.constant";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function useBrandDemo() {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [showControls, setShowControls] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -39,45 +38,53 @@ function useBrandDemo() {
   }, []);
 
   useEffect(() => {
-    const onWatchDemo = () => {
-      setShouldLoad(true);
-      setShowControls(true);
-    };
-
-    window.addEventListener(BRAND_LANDING_WATCH_DEMO_EVENT, onWatchDemo);
-    return () => window.removeEventListener(BRAND_LANDING_WATCH_DEMO_EVENT, onWatchDemo);
-  }, []);
-
-  useEffect(() => {
     const video = videoRef.current;
-    if (!video || !shouldLoad || showControls) return;
+    if (!video || !shouldLoad) return;
 
-    if (prefersReducedMotion) {
+    if (prefersReducedMotion || isVideoModalOpen) {
       video.pause();
       return;
     }
 
     video.muted = true;
     video.play().catch(() => {});
-  }, [shouldLoad, prefersReducedMotion, showControls]);
+  }, [shouldLoad, prefersReducedMotion, isVideoModalOpen]);
 
   useEffect(() => {
-    if (!showControls || !shouldLoad) return;
+    if (!isVideoModalOpen) return undefined;
 
-    const video = videoRef.current;
-    if (!video) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    video.muted = false;
-    video.controls = true;
-    video.play().catch(() => {});
-  }, [showControls, shouldLoad]);
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsVideoModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isVideoModalOpen]);
+
+  const openVideoModal = useCallback(() => {
+    setIsVideoModalOpen(true);
+  }, []);
+
+  const closeVideoModal = useCallback(() => {
+    setIsVideoModalOpen(false);
+  }, []);
 
   return {
     containerRef,
     videoRef,
     shouldLoad,
     prefersReducedMotion,
-    showControls,
+    isVideoModalOpen,
+    openVideoModal,
+    closeVideoModal,
   };
 }
 
