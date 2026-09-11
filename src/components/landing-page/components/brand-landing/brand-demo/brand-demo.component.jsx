@@ -27,6 +27,9 @@ export default function BrandDemo() {
   const poster = BRAND_LANDING_DEMO_POSTER_URL || undefined;
   const showPosterOnly = prefersReducedMotion && Boolean(poster);
   const showInlinePreview = shouldLoad && !isVideoModalOpen;
+  const demoSourceProps = demoVideoMime
+    ? { src: BRAND_LANDING_DEMO_VIDEO_URL, type: demoVideoMime }
+    : { src: BRAND_LANDING_DEMO_VIDEO_URL };
 
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
@@ -84,7 +87,7 @@ export default function BrandDemo() {
                   controls={false}
                   aria-label="CleerCut product demo video"
                 >
-                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type={demoVideoMime} />
+                  <source {...demoSourceProps} />
                 </video>
               ) : poster ? (
                 <img
@@ -151,7 +154,7 @@ export default function BrandDemo() {
                       controlsList="nodownload"
                       aria-label="CleerCut product demo video"
                     >
-                      <source src={BRAND_LANDING_DEMO_VIDEO_URL} type={demoVideoMime} />
+                      <source {...demoSourceProps} />
                     </video>
                   )}
                 </div>
