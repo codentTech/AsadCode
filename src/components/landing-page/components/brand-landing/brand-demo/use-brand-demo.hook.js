@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BRAND_LANDING_DEMO_VIDEO_URL } from "@/common/constants/brand-landing.constant";
 
+/**
+ * Chromium returns canPlayType("video/quicktime") === "" and skips that source.
+ * For .mov, omit type so the browser sniffs the bitstream.
+ */
 export function getBrandDemoVideoMime(url = BRAND_LANDING_DEMO_VIDEO_URL) {
   const lower = String(url || "").toLowerCase().split("?")[0];
   if (lower.endsWith(".webm")) return "video/webm";
   if (lower.endsWith(".mp4")) return "video/mp4";
-  if (lower.endsWith(".mov")) return "video/quicktime";
   return undefined;
 }
 
