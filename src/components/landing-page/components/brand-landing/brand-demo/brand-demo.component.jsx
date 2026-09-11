@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { CheckCircle, Play, X } from "lucide-react";
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import {
@@ -13,14 +14,19 @@ export default function BrandDemo() {
   const {
     containerRef,
     videoRef,
+    modalVideoRef,
     shouldLoad,
     prefersReducedMotion,
     isVideoModalOpen,
+    isModalVideoLoading,
+    modalVideoError,
     openVideoModal,
     closeVideoModal,
+    demoVideoMime,
   } = useBrandDemo();
   const poster = BRAND_LANDING_DEMO_POSTER_URL || undefined;
   const showPosterOnly = prefersReducedMotion && Boolean(poster);
+  const showInlinePreview = shouldLoad && !isVideoModalOpen;
 
   return (
     <section className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white">
@@ -65,7 +71,7 @@ export default function BrandDemo() {
                   alt="CleerCut product demo"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
-              ) : shouldLoad ? (
+              ) : showInlinePreview ? (
                 <video
                   ref={videoRef}
                   className="absolute inset-0 h-full w-full object-cover"
@@ -78,8 +84,7 @@ export default function BrandDemo() {
                   controls={false}
                   aria-label="CleerCut product demo video"
                 >
-                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/quicktime" />
-                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/mp4" />
+                  <source src={BRAND_LANDING_DEMO_VIDEO_URL} type={demoVideoMime} />
                 </video>
               ) : poster ? (
                 <img
@@ -88,53 +93,73 @@ export default function BrandDemo() {
                   className="absolute inset-0 h-full w-full object-cover"
                   aria-hidden
                 />
-              ) : null}
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-indigo-200" />
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {isVideoModalOpen ? (
-        <div
-          className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label="See how it works"
-          onClick={closeVideoModal}
-        >
-          <div
-            className="relative w-full max-w-5xl rounded-xl bg-black shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-3 rounded-t-xl bg-primary px-3 py-2.5 sm:px-4">
-              <h3 className="min-w-0 truncate text-sm font-semibold text-white sm:text-base">
-                See how it works
-              </h3>
-              <button
-                type="button"
-                onClick={closeVideoModal}
-                className="shrink-0 rounded-full p-1.5 text-white transition-colors hover:bg-white/15"
-                aria-label="Close video"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <video
-              key="brand-landing-demo-modal-video"
-              className="block max-h-[min(75vh,720px)] w-full rounded-b-xl bg-black"
-              controls
-              autoPlay
-              playsInline
-              preload="metadata"
-              poster={poster}
-              controlsList="nodownload"
-              aria-label="CleerCut product demo video"
+      {typeof document !== "undefined" && isVideoModalOpen
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[4000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
+              role="dialog"
+              aria-modal="true"
+              aria-label="See how it works"
+              onClick={closeVideoModal}
             >
-              <source src={BRAND_LANDING_DEMO_VIDEO_URL} type="video/mp4" />
-            </video>
-          </div>
-        </div>
-      ) : null}
+              <div
+                className="relative w-full max-w-5xl overflow-hidden rounded-xl bg-black shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-center justify-between gap-3 bg-primary px-3 py-2.5 sm:px-4">
+                  <h3 className="min-w-0 truncate text-sm font-semibold text-white sm:text-base">
+                    See how it works
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={closeVideoModal}
+                    className="shrink-0 rounded-full p-1.5 text-white transition-colors hover:bg-white/15"
+                    aria-label="Close video"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="relative bg-black">
+                  {isModalVideoLoading ? (
+                    <div className="absolute inset-0 z-[1] flex items-center justify-center bg-black/60">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    </div>
+                  ) : null}
+
+                  {modalVideoError ? (
+                    <div className="flex min-h-[200px] items-center justify-center px-4 py-10 text-center">
+                      <p className="max-w-md text-sm text-white/90">{modalVideoError}</p>
+                    </div>
+                  ) : (
+                    <video
+                      ref={modalVideoRef}
+                      key={BRAND_LANDING_DEMO_VIDEO_URL}
+                      className="block max-h-[min(75vh,720px)] w-full bg-black"
+                      controls
+                      playsInline
+                      preload="auto"
+                      poster={poster}
+                      controlsList="nodownload"
+                      aria-label="CleerCut product demo video"
+                    >
+                      <source src={BRAND_LANDING_DEMO_VIDEO_URL} type={demoVideoMime} />
+                    </video>
+                  )}
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }
