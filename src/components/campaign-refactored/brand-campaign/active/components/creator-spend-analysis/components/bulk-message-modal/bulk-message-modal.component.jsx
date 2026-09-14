@@ -17,6 +17,7 @@ const BulkMessageModal = ({ isOpen, onClose, creators, selectedCampaign }) => {
     setMessageText,
     selectionError,
     messageError,
+    demoActionMessage,
     isSending,
     sendResults,
     showResults,
@@ -54,6 +55,12 @@ const BulkMessageModal = ({ isOpen, onClose, creators, selectedCampaign }) => {
       size="lg"
     >
       <div className="relative flex min-h-0 flex-col gap-4 p-1 sm:gap-5 sm:p-0">
+        {demoActionMessage ? (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {demoActionMessage}
+          </div>
+        ) : null}
+
         <p className="text-[11px] leading-snug text-gray-600 sm:text-sm">
           This message will be sent as a direct message to each selected creator separately.
         </p>

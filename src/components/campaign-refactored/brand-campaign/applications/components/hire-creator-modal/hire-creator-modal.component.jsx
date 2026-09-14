@@ -26,6 +26,7 @@ export default function HireCreatorModal({
   campaignData,
   onSendOffer,
   isLoading = false,
+  demoBlockedMessage = "",
 }) {
   const {
     register,
@@ -66,6 +67,11 @@ export default function HireCreatorModal({
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
+      {demoBlockedMessage ? (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:text-sm">
+          {demoBlockedMessage}
+        </div>
+      ) : null}
       {/* Payment Method Warning — paid offers need Connect; Affiliate needs card on file */}
       {((isAffiliateOffer && !hasPaymentMethod) ||
         (!isAffiliateOffer && isPaymentRequired() && !canFundCollaborations)) && (
