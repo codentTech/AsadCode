@@ -34,6 +34,7 @@ const initialState = {
 
   // Payment history
   getBrandPayments: makeRequestState(),
+  getBrandBillingHistory: makeRequestState(),
   getCreatorPayments: makeRequestState(),
 
   // Creator Stripe Connect (payout method)
@@ -194,6 +195,21 @@ export const getBrandPayments = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to get brand payments")
+      );
+    }
+  }
+);
+
+export const getBrandBillingHistory = createAsyncThunk(
+  "collaborationPayment/getBrandBillingHistory",
+  async (_, thunkAPI) => {
+    try {
+      const response = await collaborationPaymentService.getBrandBillingHistory();
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to get billing history")
       );
     }
   }
@@ -406,6 +422,9 @@ const collaborationPaymentSlice = createSlice({
     resetGetBrandPayments: (state) => {
       state.getBrandPayments = makeRequestState();
     },
+    resetGetBrandBillingHistory: (state) => {
+      state.getBrandBillingHistory = makeRequestState();
+    },
     resetGetCreatorPayments: (state) => {
       state.getCreatorPayments = makeRequestState();
     },
@@ -520,6 +539,21 @@ const collaborationPaymentSlice = createSlice({
       );
 
     builder
+      .addCase(getBrandBillingHistory.pending, (state) =>
+        setPending(state.getBrandBillingHistory)
+      )
+      .addCase(getBrandBillingHistory.fulfilled, (state, action) =>
+        setFulfilled(state.getBrandBillingHistory, action)
+      )
+      .addCase(getBrandBillingHistory.rejected, (state, action) =>
+        setRejected(
+          state.getBrandBillingHistory,
+          action,
+          "Failed to get billing history"
+        )
+      );
+
+    builder
       .addCase(getCreatorPayments.pending, (state) => setPending(state.getCreatorPayments))
       .addCase(getCreatorPayments.fulfilled, (state, action) =>
         setFulfilled(state.getCreatorPayments, action)
@@ -631,6 +665,7 @@ export const {
   resetRetryFunding,
   resetGetPaymentByCollaboration,
   resetGetBrandPayments,
+  resetGetBrandBillingHistory,
   resetGetCreatorPayments,
   resetCreateCreatorOnboardingLink,
   resetGetCreatorAccountStatus,
@@ -639,5 +674,8 @@ export const {
   resetGetAdminPayments,
   resetGetAdminPaymentById,
 } = collaborationPaymentSlice.actions;
+
+export const selectBrandBillingHistory = (state) =>
+  state.collaborationPayment?.getBrandBillingHistory || {};
 
 export default collaborationPaymentSlice.reducer;
