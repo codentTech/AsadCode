@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
+import {
   deactivateShopifyDiscountCode,
   extendShopifyDiscountTracking,
   getShopifyDiscountCodes,
@@ -16,6 +20,8 @@ import {
 } from "@/provider/features/shopify/shopify.slice";
 
 const LIVE_STATUSES = new Set(["active", "pending", "deactivated"]);
+const PENDING_POLL_MS = 3000;
+const PENDING_POLL_MAX = 8;
 
 function toDateInputValue(value) {
   if (!value) return "";
@@ -84,6 +90,8 @@ export default function useDiscountCodeTracking({
       selectedCampaign?.compensation_type;
     return type === CAMPAIGN_TYPE.AFFILIATE || compensation === "COMMISSION";
   }, [selectedCampaign, selectedContract]);
+
+  const isDemo = useMemo(() => isDemoCampaign(selectedCampaign), [selectedCampaign]);
 
   const isCampaignComplete = useMemo(() => {
     const status = selectedCampaign?.status || selectedCampaign?.campaign_status;
@@ -172,15 +180,20 @@ export default function useDiscountCodeTracking({
   }, [codes]);
 
   useEffect(() => {
-    if (!isAffiliate || !contractId) return;
+    if (!isAffiliate || !contractId || isDemo) return;
     if (liveCode?.status !== "pending") return;
 
+    let polls = 0;
     const intervalId = setInterval(() => {
+      polls += 1;
       dispatch(getShopifyDiscountCodes(contractId));
-    }, 3000);
+      if (polls >= PENDING_POLL_MAX) {
+        clearInterval(intervalId);
+      }
+    }, PENDING_POLL_MS);
 
     return () => clearInterval(intervalId);
-  }, [dispatch, isAffiliate, contractId, liveCode?.status]);
+  }, [dispatch, isAffiliate, contractId, isDemo, liveCode?.status]);
 
   const historyCodes = useMemo(
     () => codes.filter((c) => c.status === "replaced"),
@@ -222,10 +235,11 @@ export default function useDiscountCodeTracking({
   const canExtendTracking =
     isManageEnabled &&
     isAffiliate &&
+    !isDemo &&
     !isCampaignComplete &&
     trackingWindowOpen &&
     Boolean(liveCode?.id) &&
-    liveCode.status !== "replaced";
+    liveCode?.status !== "replaced";
 
   const previewPayoutDate = useMemo(() => {
     if (!extendDateValue) return null;
@@ -250,13 +264,13 @@ export default function useDiscountCodeTracking({
   }, [isManageActionLoading]);
 
   const handleOpenRename = useCallback(() => {
-    if (isManageActionLoading) return;
+    if (isDemo || isManageActionLoading) return;
     setManageOpen(false);
     renameRequestedRef.current = false;
     dispatch(resetShopifyRenameDiscountCode());
     setRenameValue(liveCode?.code || "");
     setShowRenameModal(true);
-  }, [dispatch, liveCode?.code, isManageActionLoading]);
+  }, [dispatch, liveCode?.code, isDemo, isManageActionLoading]);
 
   const handleCloseRename = useCallback(() => {
     if (isRenameLoading) return;
@@ -267,7 +281,7 @@ export default function useDiscountCodeTracking({
   }, [dispatch, isRenameLoading]);
 
   const handleConfirmRename = useCallback(() => {
-    if (!liveCode?.id || !renameValue.trim() || isRenameLoading) return;
+    if (isDemo || !liveCode?.id || !renameValue.trim() || isRenameLoading) return;
     renameRequestedRef.current = true;
     dispatch(
       renameShopifyDiscountCode({
@@ -275,27 +289,27 @@ export default function useDiscountCodeTracking({
         code: renameValue.trim(),
       })
     );
-  }, [dispatch, liveCode?.id, renameValue, isRenameLoading]);
+  }, [dispatch, isDemo, liveCode?.id, renameValue, isRenameLoading]);
 
   const handleTurnOff = useCallback(() => {
-    if (!liveCode?.id || isManageActionLoading) return;
+    if (isDemo || !liveCode?.id || isManageActionLoading) return;
     setManageOpen(false);
     dispatch(deactivateShopifyDiscountCode(liveCode.id));
-  }, [dispatch, liveCode?.id, isManageActionLoading]);
+  }, [dispatch, isDemo, liveCode?.id, isManageActionLoading]);
 
   const handleTurnOn = useCallback(() => {
-    if (!liveCode?.id || isManageActionLoading) return;
+    if (isDemo || !liveCode?.id || isManageActionLoading) return;
     setManageOpen(false);
     dispatch(reactivateShopifyDiscountCode(liveCode.id));
-  }, [dispatch, liveCode?.id, isManageActionLoading]);
+  }, [dispatch, isDemo, liveCode?.id, isManageActionLoading]);
 
   const handleOpenKillConfirm = useCallback(() => {
-    if (isManageActionLoading) return;
+    if (isDemo || isManageActionLoading) return;
     setManageOpen(false);
     killRequestedRef.current = false;
     dispatch(resetShopifyKillAndReissueDiscountCode());
     setShowKillConfirm(true);
-  }, [dispatch, isManageActionLoading]);
+  }, [dispatch, isDemo, isManageActionLoading]);
 
   const handleCloseKillConfirm = useCallback(
     (open) => {
@@ -310,13 +324,13 @@ export default function useDiscountCodeTracking({
   );
 
   const handleConfirmKill = useCallback(() => {
-    if (!liveCode?.id || isKillLoading) return;
+    if (isDemo || !liveCode?.id || isKillLoading) return;
     killRequestedRef.current = true;
     dispatch(killAndReissueShopifyDiscountCode(liveCode.id));
-  }, [dispatch, liveCode?.id, isKillLoading]);
+  }, [dispatch, isDemo, liveCode?.id, isKillLoading]);
 
   const handleOpenExtend = useCallback(() => {
-    if (!canExtendTracking || isManageActionLoading) return;
+    if (isDemo || !canExtendTracking || isManageActionLoading) return;
     extendRequestedRef.current = false;
     dispatch(resetShopifyExtendDiscountTracking());
     const minNextDay = trackingEndDate
@@ -328,7 +342,7 @@ export default function useDiscountCodeTracking({
       : "";
     setExtendDateValue(minNextDay);
     setShowExtendModal(true);
-  }, [canExtendTracking, dispatch, isManageActionLoading, trackingEndDate]);
+  }, [canExtendTracking, dispatch, isDemo, isManageActionLoading, trackingEndDate]);
 
   const handleCloseExtend = useCallback(() => {
     if (isExtendLoading) return;
@@ -339,7 +353,7 @@ export default function useDiscountCodeTracking({
   }, [dispatch, isExtendLoading]);
 
   const handleConfirmExtend = useCallback(() => {
-    if (!liveCode?.id || !extendDateValue || isExtendLoading) return;
+    if (isDemo || !liveCode?.id || !extendDateValue || isExtendLoading) return;
     extendRequestedRef.current = true;
     dispatch(
       extendShopifyDiscountTracking({
@@ -347,10 +361,11 @@ export default function useDiscountCodeTracking({
         trackingEndDate: new Date(`${extendDateValue}T23:59:59.999Z`).toISOString(),
       })
     );
-  }, [dispatch, liveCode?.id, extendDateValue, isExtendLoading]);
+  }, [dispatch, isDemo, liveCode?.id, extendDateValue, isExtendLoading]);
 
   const canRename =
     isManageEnabled &&
+    !isDemo &&
     liveCode &&
     !liveCode.hasAttributedSales &&
     LIVE_STATUSES.has(liveCode.status) &&
@@ -365,6 +380,8 @@ export default function useDiscountCodeTracking({
 
   return {
     isAffiliate,
+    isDemo,
+    demoManageMessage: DEMO_MUTATION_MESSAGES.discountManage,
     isLoading,
     liveCode,
     historyCodes,

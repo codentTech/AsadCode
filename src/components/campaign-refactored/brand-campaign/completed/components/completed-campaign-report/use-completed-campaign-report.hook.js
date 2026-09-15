@@ -8,6 +8,10 @@ import {
   selectCompletedCampaignReport,
   selectDownloadCampaignReportPdf,
 } from "@/provider/features/campaign-report/campaign-report.slice";
+import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
 
 export default function useCompletedCampaignReport(campaignId) {
   const dispatch = useDispatch();
@@ -16,12 +20,26 @@ export default function useCompletedCampaignReport(campaignId) {
   );
   const { isLoading: isPdfLoading } = useSelector(selectDownloadCampaignReportPdf);
   const [activeTab, setActiveTab] = useState("overview");
+  const [pdfDemoMessage, setPdfDemoMessage] = useState("");
+  const brandCampaigns =
+    useSelector((state) => state.campaigns?.getAllBrandCampaigns?.data?.data) || [];
+  const matchedBrandCampaign = brandCampaigns.find(
+    (campaign) => String(campaign.id) === String(campaignId),
+  );
+  const isDemo =
+    isDemoCampaign(matchedBrandCampaign) ||
+    Boolean(data?.meta?.isDemo) ||
+    isDemoCampaign({
+      campaign_title: data?.header?.campaignTitle,
+      is_demo: data?.meta?.isDemo,
+    });
 
   useEffect(() => {
     if (!campaignId) return;
     dispatch(resetCompletedReport());
     dispatch(resetDownloadPdf());
     dispatch(getCompletedCampaignReport(campaignId));
+    setPdfDemoMessage("");
   }, [dispatch, campaignId]);
 
   const showLoader = Boolean(campaignId) && (isLoading || (!isSuccess && !isError));
@@ -50,8 +68,12 @@ export default function useCompletedCampaignReport(campaignId) {
 
   const handleDownloadPdf = useCallback(() => {
     if (!campaignId || isPdfLoading) return;
+    if (isDemo || data?.meta?.pdfExportAvailable === false) {
+      setPdfDemoMessage(DEMO_MUTATION_MESSAGES.pdfExport);
+      return;
+    }
     dispatch(downloadCompletedCampaignReportPdf(campaignId));
-  }, [campaignId, dispatch, isPdfLoading]);
+  }, [campaignId, dispatch, isPdfLoading, isDemo, data?.meta?.pdfExportAvailable]);
 
   const formatCurrency = useCallback((value) => {
     if (value == null || !Number.isFinite(Number(value))) return "N/A";
@@ -92,6 +114,8 @@ export default function useCompletedCampaignReport(campaignId) {
     activeTab,
     tabs,
     isPdfLoading,
+    pdfDemoMessage,
+    isDemo,
     handleTabChange,
     handleDownloadPdf,
     formatCurrency,

@@ -2,10 +2,10 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { enqueueSnackbar } from "notistack";
 import { getUser } from "@/common/utils/users.util";
+import { DEMO_MUTATION_MESSAGES, isDemoCampaign } from "@/common/utils/demo-campaign.util";
 import { createOrGetConversation, sendMessage } from "@/provider/features/chat/chat.slice";
 
-const resolveCreatorUserId = (creator) =>
-  creator?.creatorUserId || creator?.creator?.id || null;
+const resolveCreatorUserId = (creator) => creator?.creatorUserId || creator?.creator?.id || null;
 
 export { resolveCreatorUserId };
 
@@ -17,6 +17,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
   const [messageText, setMessageText] = useState("");
   const [selectionError, setSelectionError] = useState("");
   const [messageError, setMessageError] = useState("");
+  const [demoActionMessage, setDemoActionMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendResults, setSendResults] = useState({ success: [], failed: [] });
   const [showResults, setShowResults] = useState(false);
@@ -42,9 +43,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
   );
 
   const buildAllSelectedIds = useCallback(() => {
-    return new Set(
-      activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean)
-    );
+    return new Set(activeCreators.map((creator) => resolveCreatorUserId(creator)).filter(Boolean));
   }, [activeCreators]);
 
   useEffect(() => {
@@ -63,6 +62,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
       setMessageText("");
       setSelectionError("");
       setMessageError("");
+      setDemoActionMessage("");
       setSendResults({ success: [], failed: [] });
       setShowResults(false);
       setResultSummary("");
@@ -81,6 +81,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
     setMessageText("");
     setSelectionError("");
     setMessageError("");
+    setDemoActionMessage("");
     setSendResults({ success: [], failed: [] });
     setShowResults(false);
     setResultSummary("");
@@ -101,19 +102,22 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
     setMessageError("");
   }, []);
 
-  const handleCreatorToggle = useCallback((creatorId) => {
-    if (isSending) return;
-    setSelectionError("");
-    setSelectedCreatorIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(creatorId)) {
-        next.delete(creatorId);
-      } else {
-        next.add(creatorId);
-      }
-      return next;
-    });
-  }, [isSending]);
+  const handleCreatorToggle = useCallback(
+    (creatorId) => {
+      if (isSending) return;
+      setSelectionError("");
+      setSelectedCreatorIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(creatorId)) {
+          next.delete(creatorId);
+        } else {
+          next.add(creatorId);
+        }
+        return next;
+      });
+    },
+    [isSending]
+  );
 
   const handleSelectAll = useCallback(() => {
     if (isSending) return;
@@ -149,8 +153,11 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
       setSelectionError("");
     }
 
-    if (!messageText.trim() || messageText.trim().length < 5) {
+    if (!messageText.trim()) {
       setMessageError("Please enter a message before sending.");
+      isValid = false;
+    } else if (messageText.trim().length < 5) {
+      setMessageError("Message must be at least 5 characters.");
       isValid = false;
     } else if (messageText.length > MAX_MESSAGE_LENGTH) {
       setMessageError(`Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
@@ -172,6 +179,12 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
       return;
     }
 
+    if (isDemoCampaign(selectedCampaign)) {
+      setDemoActionMessage(DEMO_MUTATION_MESSAGES.bulkMessage);
+      setMessageError("");
+      return;
+    }
+
     const currentUser = getUser();
     if (!currentUser?.id) {
       setMessageError("User not authenticated");
@@ -184,6 +197,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
     setIsSending(true);
     setSelectionError("");
     setMessageError("");
+    setDemoActionMessage("");
     setSendResults({ success: [], failed: [] });
     setShowResults(false);
     setResultSummary("");
@@ -302,6 +316,7 @@ const useBulkMessageModal = (creators, selectedCampaign, isOpen) => {
     setMessageText: updateMessageText,
     selectionError,
     messageError,
+    demoActionMessage,
     isSending,
     sendResults,
     showResults,

@@ -24,10 +24,14 @@ const CreatorCard = ({
   urgencyLabel,
   urgencyTier,
   isInvited = false,
+  inertSocialLinks = false,
 }) => {
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
   const isApplicationsTab = tab === "applications";
+  const disableSocialLinks =
+    inertSocialLinks ||
+    Boolean(creator?.is_demo || creator?.creator?.is_demo);
   const showRating = !HIDE_CREATOR_RATING_UI;
   const ratingValue =
     creator?.rating ??
@@ -240,7 +244,7 @@ const CreatorCard = ({
                     );
                     return (
                       <div key={platform} className="flex items-center">
-                        {profileUrl ? (
+                        {profileUrl && !disableSocialLinks ? (
                           <a
                             href={profileUrl}
                             target="_blank"
@@ -259,7 +263,7 @@ const CreatorCard = ({
                     );
                   })}
                 </div>
-              ) : showMediaKitOnCard ? (
+              ) : showMediaKitOnCard && !disableSocialLinks ? (
                 <a
                   href={mediaKitHref}
                   target="_blank"
@@ -269,6 +273,11 @@ const CreatorCard = ({
                   <MediaKitIcon size="discovery" />
                   <span className="mt-1 text-xs text-gray-500">Media Kit</span>
                 </a>
+              ) : showMediaKitOnCard && disableSocialLinks ? (
+                <div className="flex flex-col items-center px-3">
+                  <MediaKitIcon size="discovery" />
+                  <span className="mt-1 text-xs text-gray-500">Media Kit</span>
+                </div>
               ) : (
                 <p className="px-2 text-center text-[10px] leading-snug text-gray-400">
                   No social accounts connected

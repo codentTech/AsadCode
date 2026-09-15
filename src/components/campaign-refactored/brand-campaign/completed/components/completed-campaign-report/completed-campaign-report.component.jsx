@@ -1,6 +1,7 @@
 "use client";
 
 import CustomButton from "@/common/components/custom-button/custom-button.component";
+import DemoCampaignBanner from "@/common/components/demo-campaign-banner/demo-campaign-banner.component";
 import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import { Download } from "lucide-react";
 import {
@@ -647,6 +648,8 @@ export default function CompletedCampaignReport({ campaignId }) {
     activeTab,
     tabs,
     isPdfLoading,
+    pdfDemoMessage,
+    isDemo,
     handleTabChange,
     handleDownloadPdf,
     formatCurrency,
@@ -682,17 +685,25 @@ export default function CompletedCampaignReport({ campaignId }) {
 
   return (
     <div className="min-h-screen bg-[#EDEDEA] text-[#5A5955]">
+      {isDemo ? <DemoCampaignBanner className="sticky top-0 z-20" /> : null}
       <div className="mx-auto flex max-w-[960px] items-center justify-between gap-4 px-2 pb-3.5 pt-5">
         <span className="text-xs uppercase tracking-wider text-[#8A8985]">Report viewer</span>
-        <CustomButton
-          text="Export as PDF"
-          className="btn-primary sm:min-w-[140px]"
-          onClick={handleDownloadPdf}
-          disabled={isPdfLoading}
-          loading={isPdfLoading}
-          loadingText="Generating PDF…"
-          startIcon={isPdfLoading ? null : <Download className="h-3.5 w-3.5" />}
-        />
+        <div className="flex flex-col items-end gap-1">
+          {pdfDemoMessage ? (
+            <div className="mb-1 w-full max-w-sm rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {pdfDemoMessage}
+            </div>
+          ) : null}
+          <CustomButton
+            text="Export as PDF"
+            className="btn-primary sm:min-w-[140px]"
+            onClick={handleDownloadPdf}
+            disabled={isPdfLoading}
+            loading={isPdfLoading}
+            loadingText="Generating PDF…"
+            startIcon={isPdfLoading ? null : <Download className="h-3.5 w-3.5" />}
+          />
+        </div>
       </div>
 
       <div className="mx-auto mb-12 max-w-[960px] border border-[#EDECE7] bg-white px-5 py-7 shadow-[0_8px_28px_rgba(22,39,63,0.10)] sm:px-10 sm:py-11">

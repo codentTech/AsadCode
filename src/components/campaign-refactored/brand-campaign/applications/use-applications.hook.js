@@ -16,6 +16,10 @@ import useMessageThread from "@/components/campaign-refactored/shared/message-th
 import { avatar } from "@/common/constants/auth.constant";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
+import {
   creatorBelongsToApplicationsSubTab,
   filterCampaignsOwnedByBrand,
   splitCreatorsByApplicationsSubTab,
@@ -103,9 +107,11 @@ function useBrandApplications() {
   const autoSelectedForCampaignRef = useRef(null);
   const refreshTimeoutRef = useRef(null);
   const [hireModalOpen, setHireModalOpen] = useState(false);
+  const [hireDemoMessage, setHireDemoMessage] = useState("");
   const [hireCreatorData, setHireCreatorData] = useState(null);
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
+  const [rejectDemoMessage, setRejectDemoMessage] = useState("");
   const [applicationsSubTab, setApplicationsSubTab] = useState("applications");
   const [viewMode, setViewMode] = useState("standard");
   const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
@@ -300,10 +306,16 @@ function useBrandApplications() {
     if (!selectedCreator || !selectedCampaign) return;
     setHireCreatorData(selectedCreator);
     setSelectedCampaignForHire(selectedCampaign);
+    setHireDemoMessage("");
     setHireModalOpen(true);
   };
 
   const handleSendOffer = async (contractData) => {
+    if (isDemoCampaign(selectedCampaign) || isDemoCampaign(selectedCampaignForHire)) {
+      setHireDemoMessage(DEMO_MUTATION_MESSAGES.sendOffer);
+      return { demoBlocked: true, message: DEMO_MUTATION_MESSAGES.sendOffer };
+    }
+
     const isIndividual =
       selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
       (!selectedCampaign && selectedCreator?.campaign_id);
@@ -368,11 +380,19 @@ function useBrandApplications() {
     }
   };
 
-  const handleRejectClick = () => setShowRejectConfirmation(true);
+  const handleRejectClick = () => {
+    setRejectDemoMessage("");
+    setShowRejectConfirmation(true);
+  };
 
   const handleConfirmReject = async () => {
     if (!selectedCampaign || !selectedCreator) {
       setShowRejectConfirmation(false);
+      return;
+    }
+
+    if (isDemoCampaign(selectedCampaign)) {
+      setRejectDemoMessage(DEMO_MUTATION_MESSAGES.reject);
       return;
     }
 
@@ -930,10 +950,12 @@ function useBrandApplications() {
     handleApplicationsSubTabChange,
     hireModalOpen,
     setHireModalOpen,
+    hireDemoMessage,
     hireCreatorData,
     selectedCampaignForHire,
     showRejectConfirmation,
     setShowRejectConfirmation,
+    rejectDemoMessage,
     createContractLoading,
     sendContractLoading,
     createContractSuccess,
