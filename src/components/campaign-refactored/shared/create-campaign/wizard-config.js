@@ -130,6 +130,7 @@ export const STEP_FIELDS = {
     "commission_percentage",
     "customer_discount_percent",
     "tracking_end_date",
+    "usage_cap",
     "shopify_products",
     "ships_physical_product",
   ],
