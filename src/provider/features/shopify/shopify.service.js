@@ -27,6 +27,18 @@ const getDiscountCodes = async (contractId) => {
   return response.data;
 };
 
+const getFulfilment = async (contractId) => {
+  const response = await api().get("/shopify/fulfilment", {
+    params: { contractId },
+  });
+  return response.data;
+};
+
+const sendProduct = async (payload) => {
+  const response = await api().post("/shopify/fulfilment/send", payload);
+  return response.data;
+};
+
 const renameDiscountCode = async ({ id, code }) => {
   const response = await api().patch(`/shopify/discount-codes/${id}/rename`, { code });
   return response.data;
@@ -53,6 +65,8 @@ const shopifyService = {
   disconnect,
   getProducts,
   getDiscountCodes,
+  getFulfilment,
+  sendProduct,
   renameDiscountCode,
   deactivateDiscountCode,
   reactivateDiscountCode,

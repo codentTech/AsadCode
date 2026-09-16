@@ -113,9 +113,16 @@ export default function SimpleSelect({
               getOptions().map((option) => (
                 <div
                   key={option.value}
-                  onClick={() => onItemClick(option)}
-                  className={`cursor-pointer px-3 py-2 text-sm hover:bg-secondary-light-blue ${
-                    isSelected(option) ? "bg-secondary-light-blue font-medium" : ""
+                  onClick={() => {
+                    if (option.disabled) return;
+                    onItemClick(option);
+                  }}
+                  className={`px-3 py-2 text-sm ${
+                    option.disabled
+                      ? "cursor-not-allowed text-gray-400"
+                      : `cursor-pointer hover:bg-secondary-light-blue ${
+                          isSelected(option) ? "bg-secondary-light-blue font-medium" : ""
+                        }`
                   }`}
                 >
                   {option.label}
