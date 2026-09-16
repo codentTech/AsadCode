@@ -67,9 +67,8 @@ export default function CustomButton({
       {loading ? (
         <span className="inline-flex items-center justify-center gap-2 min-w-0">
           <CircularProgress className={loadingSpinnerClass} size={16} />
-          {loadingText ? (
-            <span className="text-sm font-medium truncate max-w-[220px]">{loadingText}</span>
-          ) : null}
+
+          <span className="text-sm font-medium truncate max-w-[220px]">{loadingText || text}</span>
         </span>
       ) : (
         text

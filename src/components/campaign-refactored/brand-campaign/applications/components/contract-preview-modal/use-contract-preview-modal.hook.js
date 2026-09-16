@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { formatDate } from "@/common/utils/date.utils";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForBrandUser } from "@/common/utils/brand-display.util";
@@ -6,6 +7,10 @@ import {
   formatExclusivityForDisplay,
   formatUsageRightsForDisplay,
 } from "@/common/utils/contract-terms.util";
+import {
+  getShopifyDiscountCodes,
+  selectShopifyDiscountCodesState,
+} from "@/provider/features/shopify/shopify.slice";
 
 export default function useContractPreviewModal({
   contractData = {},
@@ -13,8 +18,26 @@ export default function useContractPreviewModal({
   campaignData,
   contractId,
 }) {
+  const dispatch = useDispatch();
+  const discountCodesState = useSelector(selectShopifyDiscountCodesState);
   const [signatureTimestamp] = useState(() => new Date().toISOString());
   const [dateSigned] = useState(() => new Date().toLocaleDateString());
+
+  const isAffiliate =
+    (contractData.compensationType || "").toUpperCase() === COMPENSATION_TYPE.COMMISSION;
+
+  useEffect(() => {
+    if (!isAffiliate || !contractId) return;
+    dispatch(getShopifyDiscountCodes(contractId));
+  }, [dispatch, isAffiliate, contractId]);
+
+  const liveDiscountCode = useMemo(() => {
+    if (contractData.discountCode) return contractData.discountCode;
+    const list = Array.isArray(discountCodesState?.data) ? discountCodesState.data : [];
+    const active = list.find((c) => c.status === "active");
+    const pending = list.find((c) => c.status === "pending");
+    return active?.code || pending?.code || null;
+  }, [contractData.discountCode, discountCodesState?.data]);
 
   const getDeliverables = () => {
     if (contractData.contentFormat) return contractData.contentFormat;
@@ -60,6 +83,11 @@ export default function useContractPreviewModal({
         compensationText += `• Discount for the shopper: ${
           shopperDiscount != null ? `${shopperDiscount}%` : "[enter discount]"
         }\n`;
+        if (liveDiscountCode) {
+          compensationText += `• Creator discount code: ${liveDiscountCode}\n`;
+        } else if (contractData.discountCode) {
+          compensationText += `• Creator discount code: ${contractData.discountCode}\n`;
+        }
         compensationText +=
           `• Note: Commission is calculated on the shopper's discounted order total for campaign products (shipping and tax excluded).\n\n`;
         break;
@@ -218,6 +246,7 @@ Timestamp Recorded: ${signatureTimestamp}`;
     contractId,
     dateSigned,
     signatureTimestamp,
+    liveDiscountCode,
   ]);
 
   return {

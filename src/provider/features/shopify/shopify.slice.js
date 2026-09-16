@@ -14,6 +14,11 @@ export const shopifyInitialState = {
   getConnectUrl: { ...generalState },
   disconnect: { ...generalState },
   getProducts: { ...generalState },
+  getDiscountCodes: { ...generalState },
+  renameDiscountCode: { ...generalState },
+  deactivateDiscountCode: { ...generalState },
+  reactivateDiscountCode: { ...generalState },
+  killAndReissueDiscountCode: { ...generalState },
 };
 
 const initialState = shopifyInitialState;
@@ -38,6 +43,9 @@ export const selectShopifyDisconnectState = (state) =>
 
 export const selectShopifyProductsState = (state) =>
   state?.shopify?.getProducts ?? shopifyInitialState.getProducts;
+
+export const selectShopifyDiscountCodesState = (state) =>
+  state?.shopify?.getDiscountCodes ?? shopifyInitialState.getDiscountCodes;
 
 export const getShopifyConnection = createAsyncThunk(
   "shopify/getConnection",
@@ -91,6 +99,71 @@ export const getShopifyProducts = createAsyncThunk(
   }
 );
 
+export const getShopifyDiscountCodes = createAsyncThunk(
+  "shopify/getDiscountCodes",
+  async (contractId, thunkAPI) => {
+    try {
+      const response = await shopifyService.getDiscountCodes(contractId);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const renameShopifyDiscountCode = createAsyncThunk(
+  "shopify/renameDiscountCode",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await shopifyService.renameDiscountCode(payload);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const deactivateShopifyDiscountCode = createAsyncThunk(
+  "shopify/deactivateDiscountCode",
+  async (id, thunkAPI) => {
+    try {
+      const response = await shopifyService.deactivateDiscountCode(id);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const reactivateShopifyDiscountCode = createAsyncThunk(
+  "shopify/reactivateDiscountCode",
+  async (id, thunkAPI) => {
+    try {
+      const response = await shopifyService.reactivateDiscountCode(id);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const killAndReissueShopifyDiscountCode = createAsyncThunk(
+  "shopify/killAndReissueDiscountCode",
+  async (id, thunkAPI) => {
+    try {
+      const response = await shopifyService.killAndReissueDiscountCode(id);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 const shopifySlice = createSlice({
   name: "shopify",
   initialState,
@@ -103,6 +176,12 @@ const shopifySlice = createSlice({
     },
     resetShopifyProducts: (state) => {
       state.getProducts = { ...generalState };
+    },
+    resetShopifyRenameDiscountCode: (state) => {
+      state.renameDiscountCode = { ...generalState };
+    },
+    resetShopifyKillAndReissueDiscountCode: (state) => {
+      state.killAndReissueDiscountCode = { ...generalState };
     },
   },
   extraReducers: (builder) => {
@@ -200,10 +279,146 @@ const shopifySlice = createSlice({
           message: action.payload?.message || "Unable to load products from Shopify",
           data: state.getProducts.data,
         };
+      })
+      .addCase(getShopifyDiscountCodes.pending, (state) => {
+        state.getDiscountCodes.isLoading = true;
+        state.getDiscountCodes.isError = false;
+      })
+      .addCase(getShopifyDiscountCodes.fulfilled, (state, action) => {
+        state.getDiscountCodes = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyDiscountCodes.rejected, (state, action) => {
+        state.getDiscountCodes = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(renameShopifyDiscountCode.pending, (state) => {
+        state.renameDiscountCode.isLoading = true;
+        state.renameDiscountCode.isError = false;
+        state.renameDiscountCode.isSuccess = false;
+        state.renameDiscountCode.message = "";
+      })
+      .addCase(renameShopifyDiscountCode.fulfilled, (state, action) => {
+        state.renameDiscountCode = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        const list = Array.isArray(state.getDiscountCodes.data)
+          ? state.getDiscountCodes.data
+          : [];
+        state.getDiscountCodes.data = list.map((item) =>
+          item.id === action.payload?.id ? action.payload : item
+        );
+      })
+      .addCase(renameShopifyDiscountCode.rejected, (state, action) => {
+        state.renameDiscountCode = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(deactivateShopifyDiscountCode.pending, (state) => {
+        state.deactivateDiscountCode.isLoading = true;
+      })
+      .addCase(deactivateShopifyDiscountCode.fulfilled, (state, action) => {
+        state.deactivateDiscountCode = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        const list = Array.isArray(state.getDiscountCodes.data)
+          ? state.getDiscountCodes.data
+          : [];
+        state.getDiscountCodes.data = list.map((item) =>
+          item.id === action.payload?.id ? action.payload : item
+        );
+      })
+      .addCase(deactivateShopifyDiscountCode.rejected, (state, action) => {
+        state.deactivateDiscountCode = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(reactivateShopifyDiscountCode.pending, (state) => {
+        state.reactivateDiscountCode.isLoading = true;
+      })
+      .addCase(reactivateShopifyDiscountCode.fulfilled, (state, action) => {
+        state.reactivateDiscountCode = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        const list = Array.isArray(state.getDiscountCodes.data)
+          ? state.getDiscountCodes.data
+          : [];
+        state.getDiscountCodes.data = list.map((item) =>
+          item.id === action.payload?.id ? action.payload : item
+        );
+      })
+      .addCase(reactivateShopifyDiscountCode.rejected, (state, action) => {
+        state.reactivateDiscountCode = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
+      .addCase(killAndReissueShopifyDiscountCode.pending, (state) => {
+        state.killAndReissueDiscountCode.isLoading = true;
+        state.killAndReissueDiscountCode.isError = false;
+        state.killAndReissueDiscountCode.isSuccess = false;
+        state.killAndReissueDiscountCode.message = "";
+      })
+      .addCase(killAndReissueShopifyDiscountCode.fulfilled, (state, action) => {
+        state.killAndReissueDiscountCode = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+        state.getDiscountCodes.data = action.payload;
+      })
+      .addCase(killAndReissueShopifyDiscountCode.rejected, (state, action) => {
+        state.killAndReissueDiscountCode = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
       });
   },
 });
 
-export const { resetShopifyConnectUrl, resetShopifyDisconnect, resetShopifyProducts } =
-  shopifySlice.actions;
+export const {
+  resetShopifyConnectUrl,
+  resetShopifyDisconnect,
+  resetShopifyProducts,
+  resetShopifyRenameDiscountCode,
+  resetShopifyKillAndReissueDiscountCode,
+} = shopifySlice.actions;
 export default shopifySlice.reducer;

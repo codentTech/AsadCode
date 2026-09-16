@@ -13,6 +13,7 @@ import ContractPreviewModal from "../../../applications/components/contract-prev
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
+import DiscountCodeTracking from "./components/discount-code-tracking/discount-code-tracking.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -429,6 +430,14 @@ const DeliverablesProgress = ({
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4">
             {renderQuickActions()}
             {renderContractDetails()}
+            {selectedContract ? (
+              <DiscountCodeTracking
+                selectedCampaign={selectedCampaign}
+                selectedContract={selectedContract}
+                isManageEnabled
+                title="Discount code"
+              />
+            ) : null}
             {renderTimeline()}
             {renderNotes()}
           </div>
@@ -551,6 +560,10 @@ const DeliverablesProgress = ({
                   selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
                 additionalClauseTitle: selectedContract.additionalClauseTitle,
                 additionalClauseBody: selectedContract.additionalClauseBody,
+                customerDiscountPercent:
+                  selectedContract.customerDiscountPercent ||
+                  selectedContract.customer_discount_percent ||
+                  selectedCampaign?.customer_discount_percent,
               }}
               creatorData={creator}
               campaignData={selectedCampaign}
