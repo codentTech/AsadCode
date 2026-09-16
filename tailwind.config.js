@@ -117,6 +117,9 @@ module.exports = {
       animation: {
         "spin-slow": "spin 3s linear infinite",
       },
+      gridTemplateColumns: {
+        "creator-card": "repeat(auto-fill, 18rem)",
+      },
     },
   },
   plugins: [],
