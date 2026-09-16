@@ -1,25 +1,32 @@
 import { createCampaign, resetCreateCampaign } from "@/provider/features/campaigns/campaigns.slice";
+import { selectShopifyConnectionState } from "@/provider/features/shopify/shopify.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 
-import { validationSchema } from "./validation.scheme";
+import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
+import {
+  SHOPIFY_SOFT_CONFIRM_COMMISSION_PERCENT,
+  SHOPIFY_SOFT_CONFIRM_DISCOUNT_PERCENT,
+} from "@/common/constants/shopify.constant";
 import { transformDataForAPI, getDefaultValues } from "@/common/utils/campaign.utils";
+import { validationSchema } from "./validation.scheme";
 import { STEP_NAMES, STEP_FIELDS, STEP_COMPONENTS } from "./wizard-config";
 
 export default function useCreateCampaign(close) {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // ===== STATES =====
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSoftConfirm, setShowSoftConfirm] = useState(false);
 
   const { isLoading, isSuccess, isError, message } = useSelector(
     (state) => state.campaigns?.createCampaign || {}
   );
+  const { data: shopifyConnection } = useSelector(selectShopifyConnectionState);
 
   const {
     register,
@@ -38,7 +45,11 @@ export default function useCreateCampaign(close) {
 
   const campaignData = watch();
 
-  // ===== LIFECYCLE METHODS =====
+  const isAffiliateWithoutShopify =
+    currentStep === 2 &&
+    campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE &&
+    !shopifyConnection?.connected;
+
   useEffect(() => {
     return () => {
       dispatch(resetCreateCampaign());
@@ -52,7 +63,6 @@ export default function useCreateCampaign(close) {
     }
   }, [isSuccess, router, dispatch, reset]);
 
-  // ===== COMMON FUNCTIONS =====
   const getWatchedValue = useCallback((fieldName) => watch(fieldName), [watch]);
 
   const handleChange = useCallback(
@@ -116,14 +126,55 @@ export default function useCreateCampaign(close) {
     }
   };
 
+  const advanceStep = useCallback(() => {
+    setCurrentStep(Math.min(currentStep + 1, STEP_NAMES.length - 1));
+  }, [currentStep]);
+
+  const needsSoftConfirm = useCallback(() => {
+    if (currentStep !== 2 || campaignData.campaign_type !== CAMPAIGN_TYPE.AFFILIATE) {
+      return false;
+    }
+    const discount = Number(campaignData.customer_discount_percent);
+    const commission = Number(campaignData.commission_percentage);
+    return (
+      discount >= SHOPIFY_SOFT_CONFIRM_DISCOUNT_PERCENT ||
+      commission >= SHOPIFY_SOFT_CONFIRM_COMMISSION_PERCENT
+    );
+  }, [
+    currentStep,
+    campaignData.campaign_type,
+    campaignData.customer_discount_percent,
+    campaignData.commission_percentage,
+  ]);
+
   const handleNextStep = async () => {
+    if (isAffiliateWithoutShopify) {
+      return;
+    }
+
     const currentStepFields = STEP_FIELDS[currentStep] || [];
     const isStepValid = await trigger(currentStepFields);
 
-    if (isStepValid) {
-      setCurrentStep(Math.min(currentStep + 1, STEP_NAMES.length - 1));
+    if (!isStepValid) {
+      return;
     }
+
+    if (needsSoftConfirm()) {
+      setShowSoftConfirm(true);
+      return;
+    }
+
+    advanceStep();
   };
+
+  const handleConfirmSoftRates = useCallback(() => {
+    setShowSoftConfirm(false);
+    advanceStep();
+  }, [advanceStep]);
+
+  const handleCloseSoftConfirm = useCallback(() => {
+    setShowSoftConfirm(false);
+  }, []);
 
   const handlePrevStep = () => {
     setCurrentStep(Math.max(currentStep - 1, 0));
@@ -189,5 +240,9 @@ export default function useCreateCampaign(close) {
     isSuccess,
     isError,
     message,
+    isAffiliateWithoutShopify,
+    showSoftConfirm,
+    handleConfirmSoftRates,
+    handleCloseSoftConfirm,
   };
 }

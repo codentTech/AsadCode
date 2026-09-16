@@ -1,29 +1,43 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { formatDate } from "@/common/utils/date.utils";
 import { COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import { getBrandDisplayNameForBrandUser } from "@/common/utils/brand-display.util";
+import {
+  formatExclusivityForDisplay,
+  formatUsageRightsForDisplay,
+} from "@/common/utils/contract-terms.util";
 
 export default function useContractPreviewModal({
-  contractData,
+  contractData = {},
   creatorData,
   campaignData,
   contractId,
 }) {
-  // ============================================
-  // 3. LOCAL STATE
-  // ============================================
   const [signatureTimestamp] = useState(() => new Date().toISOString());
   const [dateSigned] = useState(() => new Date().toLocaleDateString());
 
-  // ============================================
-  // 6. COMPUTED VALUES & HELPER FUNCTIONS
-  // ============================================
   const getDeliverables = () => {
     if (contractData.contentFormat) return contractData.contentFormat;
     if (campaignData?.deliverables && Array.isArray(campaignData.deliverables)) {
       return campaignData.deliverables.join(", ");
     }
     return "[enter deliverables]";
+  };
+
+  const getShopperDiscount = () => {
+    const candidates = [
+      contractData.customerDiscountPercent,
+      contractData.customer_discount_percent,
+      campaignData?.customer_discount_percent,
+      campaignData?.customerDiscountPercent,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate !== undefined && candidate !== null && candidate !== "") {
+        return candidate;
+      }
+    }
+    return null;
   };
 
   const getCompensationSection = () => {
@@ -39,21 +53,21 @@ export default function useContractPreviewModal({
         compensationText += `• Amount: $${contractData.totalCompensation || "[enter amount]"}\n\n`;
         break;
 
-      case COMPENSATION_TYPE.COMMISSION:
-        const productPrice = parseFloat(contractData.productPrice) || 0;
-        const commissionRate = parseFloat(contractData.totalCompensation) || 0;
-        const payoutPerSale =
-          productPrice && commissionRate ? ((productPrice * commissionRate) / 100).toFixed(2) : "0";
-
-        compensationText += `• Compensation Type: Commission-Based\n`;
-        compensationText += `• Commission Rate: ${contractData.totalCompensation || "[enter rate]"}% per sale\n`;
-        compensationText += `• Product Price: $${contractData.productPrice || "[enter price]"}\n`;
-        compensationText += `• Creator Payout Per Sale: $${payoutPerSale}\n\n`;
+      case COMPENSATION_TYPE.COMMISSION: {
+        const shopperDiscount = getShopperDiscount();
+        compensationText += `• Compensation Type: Affiliate\n`;
+        compensationText += `• Commission rate: ${contractData.totalCompensation || "[enter rate]"}% per sale\n`;
+        compensationText += `• Discount for the shopper: ${
+          shopperDiscount != null ? `${shopperDiscount}%` : "[enter discount]"
+        }\n`;
+        compensationText +=
+          `• Note: Commission is calculated on the shopper's discounted order total for campaign products (shipping and tax excluded).\n\n`;
         break;
+      }
 
       case COMPENSATION_TYPE.GIFTED_PRODUCT:
         compensationText += `• Compensation Type: Gifted Product\n`;
-        compensationText += `• Product Value: $${contractData.totalCompensation || campaignData?.product_value || "[enter value]"}\n`;
+        compensationText += `• Your cost per unit: $${contractData.totalCompensation || campaignData?.product_value || "[enter value]"}\n`;
         compensationText += `• Note: No monetary compensation will be provided\n\n`;
         break;
 
@@ -108,7 +122,7 @@ export default function useContractPreviewModal({
       : "• No specific eligibility requirements";
   };
 
-  const generateContractText = () => {
+  const contractText = useMemo(() => {
     const brandName = contractData.brand
       ? getBrandDisplayNameForBrandUser(contractData.brand)
       : contractData.brandName || campaignData?.brand_name || "[Client Name]";
@@ -126,19 +140,12 @@ export default function useContractPreviewModal({
     const compensationSection = getCompensationSection();
     const eligibilitySection = getEligibilitySection();
 
-    const usageRights =
-      contractData.usageRights === "no_usage"
-        ? "No usage rights"
-        : contractData.usageRights === "permanent"
-          ? "Permanent usage rights"
-          : `${contractData.usageRights} months usage rights`;
-
-    const exclusivity =
-      contractData.exclusivityClause === "none"
-        ? "None"
-        : `${contractData.exclusivityClause} months`;
+    const usageRights = formatUsageRightsForDisplay(contractData.usageRights);
+    const exclusivity = formatExclusivityForDisplay(contractData.exclusivityClause);
 
     const contractIdText = contractId || contractData.contractId || "DRAFT";
+    const hasAdditionalClause =
+      Boolean(contractData.additionalClauseTitle) && Boolean(contractData.additionalClauseBody);
 
     return `CleerCut Collaboration Agreement
 
@@ -193,11 +200,9 @@ This Agreement may be cancelled by either party prior to the start of deliverabl
 
 Any disputes arising under this Agreement will be resolved by CleerCut's mediation team within 48 hours of receipt. Funds held in escrow will be refunded to the Client if no deliverables are completed.
 
-${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `8. ${contractData.additionalClauseTitle}\n` : ""}
-  ${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `${contractData.additionalClauseBody}\n\n` : ""}
-
-${contractData.additionalClauseTitle && contractData.additionalClauseBody ? `9. Agreement and Signatures\n` : `8. Agreement and Signatures\n`}
-
+${hasAdditionalClause ? `8. ${contractData.additionalClauseTitle}\n` : ""}
+${hasAdditionalClause ? `${contractData.additionalClauseBody}\n\n` : ""}
+${hasAdditionalClause ? `9. Agreement and Signatures\n` : `8. Agreement and Signatures\n`}
 
 By clicking "Agree & Accept Contract," both parties acknowledge and agree to the terms herein. This action constitutes a valid e-signature under the E-SIGN Act, UETA, and applicable electronic transaction laws.
 
@@ -206,14 +211,18 @@ Signed by Client: ${brandName}
 Signed by Creator: ${creatorName}
 Date Signed: ${dateSigned}
 Timestamp Recorded: ${signatureTimestamp}`;
-  };
+  }, [
+    contractData,
+    creatorData,
+    campaignData,
+    contractId,
+    dateSigned,
+    signatureTimestamp,
+  ]);
 
-  // ============================================
-  // 7. RETURN OBJECT
-  // ============================================
   return {
     signatureTimestamp,
     dateSigned,
-    contractText: generateContractText(),
+    contractText,
   };
 }

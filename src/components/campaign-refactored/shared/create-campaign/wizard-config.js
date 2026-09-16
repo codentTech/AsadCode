@@ -29,7 +29,10 @@ export const STEP_FIELDS = {
     "creator_fixed_price",
     "product_value",
     "commission_percentage",
-    "product_price",
+    "customer_discount_percent",
+    "tracking_end_date",
+    "shopify_products",
+    "ships_physical_product",
   ],
   3: [
     "creator_countries",

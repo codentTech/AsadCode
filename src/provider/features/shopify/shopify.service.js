@@ -15,10 +15,16 @@ const disconnect = async (payload) => {
   return response.data;
 };
 
+const getProducts = async () => {
+  const response = await api().get("/shopify/products");
+  return response.data;
+};
+
 const shopifyService = {
   getConnection,
   getConnectUrl,
   disconnect,
+  getProducts,
 };
 
 export default shopifyService;

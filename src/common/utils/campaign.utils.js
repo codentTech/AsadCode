@@ -69,7 +69,7 @@ export const getCompensationTypeLabel = (type) => {
     case COMPENSATION_TYPE.GIFTED_PRODUCT:
       return "Gifted Product";
     case COMPENSATION_TYPE.COMMISSION:
-      return "Commission";
+      return "Affiliate";
     default:
       return type || "—";
   }
@@ -405,7 +405,7 @@ const calculateCreatorFee = (data) => {
   }
 
   if (data.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
-    return commissionPayment || 0;
+    return data.commission_percentage || 0;
   }
 
   return 0;
@@ -536,6 +536,10 @@ export const transformDataForAPI = (data) => {
     product_value: toNumber(data.product_value),
     commission_percentage: toNumber(data.commission_percentage),
     product_price: toNumber(data.product_price),
+    customer_discount_percent: toNumber(data.customer_discount_percent),
+    tracking_end_date: data.tracking_end_date || null,
+    ships_physical_product: Boolean(data.ships_physical_product),
+    shopify_products: Array.isArray(data.shopify_products) ? data.shopify_products : [],
 
     location_options: data.locationOptions || "",
     creator_countries: data.creator_countries || [],
@@ -595,6 +599,10 @@ export const getDefaultValues = () => ({
   product_value: null,
   commission_percentage: null,
   product_price: null,
+  customer_discount_percent: null,
+  tracking_end_date: "",
+  ships_physical_product: false,
+  shopify_products: [],
 
   locationOptions: ["remote"],
   creator_countries: [],
@@ -691,6 +699,15 @@ export const resolveBrandMarkedCompleteAt = ({
 };
 
 export const resolveCampaignFeeForOffer = (campaign) => {
+  if (
+    campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE ||
+    campaign?.compensation_type === COMPENSATION_TYPE.COMMISSION
+  ) {
+    const rate = campaign?.commission_percentage;
+    if (rate === undefined || rate === null || rate === "") return "";
+    return String(rate);
+  }
+
   const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
   if (fee === undefined || fee === null || fee === "") return "";
   return String(fee);

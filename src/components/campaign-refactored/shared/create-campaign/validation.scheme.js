@@ -96,9 +96,9 @@ export const validationSchema = Yup.object().shape({
       is: (campaignType) => campaignType === CAMPAIGN_TYPE.GIFTED,
       then: (schema) =>
         schema
-          .typeError("Product value must be a valid number")
-          .positive("Product value must be a positive number")
-          .required("Product value is required for gifted campaigns"),
+          .typeError("Your cost per unit must be a valid number")
+          .positive("Your cost per unit must be a positive number")
+          .required("Your cost per unit is required for gifted campaigns"),
       otherwise: (schema) => schema.nullable(),
     }),
   commission_percentage: Yup.number()
@@ -110,20 +110,42 @@ export const validationSchema = Yup.object().shape({
           .typeError("Commission percentage must be a valid number")
           .positive("Commission percentage must be a positive number")
           .max(100, "Commission percentage cannot exceed 100%")
-          .required("Commission percentage is required for affiliate campaigns"),
+          .required("Commission the creator earns (%) is required"),
       otherwise: (schema) => schema.nullable(),
     }),
-  product_price: Yup.number()
+  customer_discount_percent: Yup.number()
     .transform(emptyToUndefined)
     .when("campaign_type", {
       is: (campaignType) => campaignType === CAMPAIGN_TYPE.AFFILIATE,
       then: (schema) =>
         schema
-          .typeError("Product price must be a valid number")
-          .positive("Product price must be a positive number")
-          .required("Product price is required for affiliate campaigns"),
+          .typeError("Shopper discount must be a valid number")
+          .min(0, "Shopper discount cannot be negative")
+          .max(100, "Shopper discount cannot exceed 100%")
+          .required("Discount for the shopper (%) is required"),
       otherwise: (schema) => schema.nullable(),
     }),
+  tracking_end_date: Yup.string()
+    .nullable()
+    .when("campaign_type", {
+      is: (campaignType) => campaignType === CAMPAIGN_TYPE.AFFILIATE,
+      then: (schema) => schema.required("Sales tracking end date is required"),
+      otherwise: (schema) => schema.nullable(),
+    }),
+  shopify_products: Yup.array()
+    .nullable()
+    .when("campaign_type", {
+      is: (campaignType) => campaignType === CAMPAIGN_TYPE.AFFILIATE,
+      then: (schema) =>
+        schema
+          .min(1, "Select at least one Shopify product")
+          .required("Select at least one Shopify product"),
+      otherwise: (schema) => schema.nullable(),
+    }),
+  ships_physical_product: Yup.boolean().nullable(),
+  product_price: Yup.number()
+    .transform(emptyToUndefined)
+    .nullable(),
 
   creator_countries: Yup.array()
     .of(
