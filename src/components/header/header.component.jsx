@@ -79,6 +79,11 @@ function Header() {
           {!isAuthenticated ? (
             <div className="flex items-center space-x-3 ml-4">
               <CustomButton
+                text={audienceSwitch.text}
+                onClick={handleAudienceSwitch}
+                className="btn-primary"
+              />
+              <CustomButton
                 text="Login"
                 onClick={() => router.push("/login")}
                 className="btn-outline"
@@ -91,6 +96,11 @@ function Header() {
             </div>
           ) : (
             <div className="flex items-center space-x-3 ml-4">
+              <CustomButton
+                text={audienceSwitch.text}
+                onClick={handleAudienceSwitch}
+                className="btn-primary"
+              />
               <CustomButton
                 text="Campaigns"
                 onClick={() => router.push("/campaign")}
@@ -185,6 +195,11 @@ function Header() {
             {!isAuthenticated ? (
               <div className="flex flex-col space-y-3">
                 <CustomButton
+                  text={audienceSwitch.text}
+                  onClick={handleAudienceSwitch}
+                  className="btn-primary w-full"
+                />
+                <CustomButton
                   text="Login"
                   onClick={() => router.push("/login")}
                   className="btn-outline w-full"
@@ -197,6 +212,11 @@ function Header() {
               </div>
             ) : (
               <div className="flex flex-col space-y-3">
+                <CustomButton
+                  text={audienceSwitch.text}
+                  onClick={handleAudienceSwitch}
+                  className="btn-primary w-full"
+                />
                 <CustomButton
                   text="Campaigns"
                   onClick={() => router.push("/campaign")}

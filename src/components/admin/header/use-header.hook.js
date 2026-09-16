@@ -98,6 +98,7 @@ const useHeader = () => {
       action: () => {
         dispatch(resetOnboardingSession());
         logout();
+        router.push("/login");
       },
       className: "text-red-600 hover:text-red-700 hover:bg-red-50",
     },

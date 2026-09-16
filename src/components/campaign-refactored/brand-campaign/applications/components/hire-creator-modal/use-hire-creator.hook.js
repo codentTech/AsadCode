@@ -87,9 +87,11 @@ const createValidationSchema = (isIndividual) => {
     }),
     customerDiscountPercent: Yup.mixed().nullable(),
     usageRights: Yup.string()
+      .transform((value) => normalizeHireUsageRights(value) ?? value)
       .required("Usage rights is required")
       .oneOf([...CONTRACT_USAGE_RIGHTS_VALUES], "Invalid usage rights"),
     exclusivityClause: Yup.string()
+      .transform((value) => normalizeHireExclusivity(value) ?? value)
       .required("Exclusivity clause is required")
       .oneOf([...CONTRACT_EXCLUSIVITY_VALUES], "Invalid exclusivity clause"),
     additionalClauseTitle: Yup.string()
@@ -223,19 +225,20 @@ export default function useHireCreator({
       setValue("customerDiscountPercent", "", validateOpts);
     }
 
-    const usageRights = normalizeHireUsageRights(
-      campaignData?.usage_rights || campaignData?.usageRights
+    setValue(
+      "usageRights",
+      normalizeHireUsageRights(campaignData?.usage_rights || campaignData?.usageRights) ||
+        "no_usage",
+      validateOpts
     );
-    if (usageRights) {
-      setValue("usageRights", usageRights, validateOpts);
-    }
 
-    const exclusivity = normalizeHireExclusivity(
-      campaignData?.exclusivity_clause || campaignData?.exclusivityClause
+    setValue(
+      "exclusivityClause",
+      normalizeHireExclusivity(
+        campaignData?.exclusivity_clause || campaignData?.exclusivityClause
+      ) || "none",
+      validateOpts
     );
-    if (exclusivity) {
-      setValue("exclusivityClause", exclusivity, validateOpts);
-    }
   }, [campaignData, setValue]);
 
   const initializeForm = useCallback(() => {
@@ -342,6 +345,32 @@ export default function useHireCreator({
     [campaignData, creatorData, isIndividual]
   );
 
+  // Payment required for paid offers and Affiliate (card on file for commission settlement)
+  const isPaymentRequired = useCallback(() => {
+    const compType = (watchedValues?.compensationType || "").toUpperCase();
+    const campType = (
+      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
+    )?.toUpperCase?.();
+    if (compType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      return false;
+    }
+    if (campType === CAMPAIGN_TYPE.GIFTED) {
+      return false;
+    }
+    if (
+      compType === COMPENSATION_TYPE.COMMISSION ||
+      campType === CAMPAIGN_TYPE.AFFILIATE
+    ) {
+      return true;
+    }
+    return true;
+  }, [
+    watchedValues?.compensationType,
+    watchedValues?.campaignType,
+    isIndividual,
+    campaignData?.campaign_type,
+  ]);
+
   const onSubmit = async (values) => {
     // Trigger validation for all fields to ensure errors are shown
     const isValid = await trigger();
@@ -349,8 +378,22 @@ export default function useHireCreator({
       return;
     }
 
+    const affiliateOffer =
+      (isIndividual
+        ? values.campaignType === CAMPAIGN_TYPE.AFFILIATE
+        : campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) ||
+      values.compensationType === COMPENSATION_TYPE.COMMISSION;
+
+    if (affiliateOffer && !hasPaymentMethod) {
+      enqueueSnackbar(
+        "Add a card in Settings → Payments → Payment Methods before sending an Affiliate offer.",
+        { variant: "error" }
+      );
+      return;
+    }
+
     // CRITICAL: Validate payment method exists before submission (only for paid offers)
-    if (isPaymentRequired() && !canFundCollaborations) {
+    if (!affiliateOffer && isPaymentRequired() && !canFundCollaborations) {
       const errorMessage = !hasPaymentMethod
         ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
         : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
@@ -393,9 +436,25 @@ export default function useHireCreator({
   );
 
   const revisionsLimitValue = watchedValues?.revisionsLimit?.toString?.() || "";
-  const usageRightsValue = watchedValues?.usageRights || "no_usage";
-  const exclusivityValue = watchedValues?.exclusivityClause || "none";
+  const usageRightsValue =
+    normalizeHireUsageRights(watchedValues?.usageRights) || "no_usage";
+  const exclusivityValue =
+    normalizeHireExclusivity(watchedValues?.exclusivityClause) || "none";
   const campaignTypeValue = watchedValues?.campaignType || "";
+
+  useEffect(() => {
+    if (!show) return;
+    const rawUsage = watchedValues?.usageRights;
+    const normalizedUsage = normalizeHireUsageRights(rawUsage);
+    if (rawUsage && normalizedUsage && rawUsage !== normalizedUsage) {
+      setValue("usageRights", normalizedUsage, { shouldValidate: true });
+    }
+    const rawExclusivity = watchedValues?.exclusivityClause;
+    const normalizedExclusivity = normalizeHireExclusivity(rawExclusivity);
+    if (rawExclusivity && normalizedExclusivity && rawExclusivity !== normalizedExclusivity) {
+      setValue("exclusivityClause", normalizedExclusivity, { shouldValidate: true });
+    }
+  }, [show, watchedValues?.usageRights, watchedValues?.exclusivityClause, setValue]);
 
   const usageRightsOption =
     HIRE_USAGE_RIGHTS_OPTIONS.find((option) => option.value === usageRightsValue) ||
@@ -403,29 +462,6 @@ export default function useHireCreator({
   const exclusivityOption =
     HIRE_EXCLUSIVITY_CLAUSE_OPTIONS.find((option) => option.value === exclusivityValue) ||
     HIRE_EXCLUSIVITY_CLAUSE_OPTIONS[0];
-
-  // Payment not required for gifted/affiliate (campaign type) or gifted product/commission (compensation type)
-  const isPaymentRequired = useCallback(() => {
-    const compType = (watchedValues?.compensationType || "").toUpperCase();
-    const campType = (
-      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
-    )?.toUpperCase?.();
-    if (
-      compType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
-      compType === COMPENSATION_TYPE.COMMISSION
-    ) {
-      return false;
-    }
-    if (campType === CAMPAIGN_TYPE.GIFTED || campType === CAMPAIGN_TYPE.AFFILIATE) {
-      return false;
-    }
-    return true;
-  }, [
-    watchedValues?.compensationType,
-    watchedValues?.campaignType,
-    isIndividual,
-    campaignData?.campaign_type,
-  ]);
 
   return {
     register,

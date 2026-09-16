@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { PLATFORM_OPTIONS } from "@/common/constants/options.constant";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { formatDate } from "@/common/utils/formate-date";
 import { formatCurrency, formatNumber, extractFileName } from "@/common/utils/format.utils";
 import {
@@ -25,8 +27,12 @@ import {
 } from "./preview-builders";
 import { buildQuickFields } from "./quick-field-definitions";
 
+const getPlatformLabel = (value) =>
+  PLATFORM_OPTIONS.find((option) => option.value === value)?.label || value;
+
 export default function usePreview(campaignData = {}) {
   const [imageSrc, setImageSrc] = useState("");
+  const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
   useEffect(() => {
     if (!campaignData?.campaignImage) {
@@ -66,13 +72,26 @@ export default function usePreview(campaignData = {}) {
   );
 
   const requiredPlatforms = useMemo(
-    () => createTagArray(campaignData.required_platforms, "platform"),
-    [campaignData.required_platforms]
+    () =>
+      createTagArray(campaignData.required_platforms, "platform").map((platform) => ({
+        ...platform,
+        label: getPlatformLabel(platform.label),
+        value: platform.label,
+        icon: getPlatformIcon(platform.label),
+        colorClasses: getPlatformColor(platform.label),
+      })),
+    [campaignData.required_platforms, getPlatformIcon, getPlatformColor]
   );
 
   const platformMinimums = useMemo(
-    () => createPlatformMinimums(campaignData.platformMinimums, formatNumber),
-    [campaignData.platformMinimums]
+    () =>
+      createPlatformMinimums(campaignData.platformMinimums, formatNumber).map((minimum) => ({
+        ...minimum,
+        label: getPlatformLabel(minimum.platform),
+        icon: getPlatformIcon(minimum.platform),
+        colorClasses: getPlatformColor(minimum.platform),
+      })),
+    [campaignData.platformMinimums, getPlatformIcon, getPlatformColor]
   );
 
   const trimmedQuestions = useMemo(

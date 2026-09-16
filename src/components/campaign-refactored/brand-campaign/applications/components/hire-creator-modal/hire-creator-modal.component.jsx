@@ -11,6 +11,10 @@ import {
   HIRE_USAGE_RIGHTS_OPTIONS,
   REVISION_LIMIT_OPTIONS,
 } from "@/common/constants/options.constant";
+import {
+  normalizeHireExclusivity,
+  normalizeHireUsageRights,
+} from "@/common/utils/contract-terms.util";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import ContractPreviewModal from "../contract-preview-modal/contract-preview-modal.component";
 import useHireCreator from "./use-hire-creator.hook";
@@ -62,21 +66,24 @@ export default function HireCreatorModal({
 
   return (
     <Modal title="Review & Send Offer" show={show} onClose={onClose} size="lg">
-      {/* Payment Method Warning — only for paid offers (gifted/affiliate bypass) */}
-      {isPaymentRequired() && !canFundCollaborations && (
+      {/* Payment Method Warning — paid offers need Connect; Affiliate needs card on file */}
+      {((isAffiliateOffer && !hasPaymentMethod) ||
+        (!isAffiliateOffer && isPaymentRequired() && !canFundCollaborations)) && (
         <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 sm:p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5 animate-ping" />
             <div className="flex-1">
               <p className="mb-1 text-xs font-medium text-yellow-900 sm:text-sm">
-                {!hasPaymentMethod
+                {isAffiliateOffer || !hasPaymentMethod
                   ? "Payment method required"
                   : "Stripe business connection required"}
               </p>
               <p className="text-[10px] text-yellow-700 sm:text-xs">
-                {!hasPaymentMethod
-                  ? "Add a card before sending paid offers. No charge occurs when sending an offer — your card is charged when the creator accepts."
-                  : "Complete Stripe business onboarding under Payment Methods so escrow funding can run when a creator accepts."}
+                {isAffiliateOffer
+                  ? "Add a card in Settings → Payments → Payment Methods before sending an Affiliate offer. Commission is charged later when sales settle."
+                  : !hasPaymentMethod
+                    ? "Add a card before sending paid offers. No charge occurs when sending an offer — your card is charged when the creator accepts."
+                    : "Complete Stripe business onboarding under Payment Methods so escrow funding can run when a creator accepts."}
               </p>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
@@ -285,10 +292,14 @@ export default function HireCreatorModal({
                 options={HIRE_EXCLUSIVITY_CLAUSE_OPTIONS}
                 value={exclusivityOption}
                 onChange={(option) =>
-                  setValue("exclusivityClause", option?.value || "none", {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
+                  setValue(
+                    "exclusivityClause",
+                    normalizeHireExclusivity(option?.value) || "none",
+                    {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    }
+                  )
                 }
                 errors={errors}
                 name="exclusivityClause"
@@ -300,10 +311,14 @@ export default function HireCreatorModal({
                 options={HIRE_USAGE_RIGHTS_OPTIONS}
                 value={usageRightsOption}
                 onChange={(option) =>
-                  setValue("usageRights", option?.value || "no_usage", {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
+                  setValue(
+                    "usageRights",
+                    normalizeHireUsageRights(option?.value) || "no_usage",
+                    {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    }
+                  )
                 }
                 errors={errors}
                 name="usageRights"
@@ -361,7 +376,9 @@ export default function HireCreatorModal({
             loading={isSubmitting}
             disabled={
               isSubmitting ||
-              (isPaymentRequired() && !canFundCollaborations) ||
+              (isAffiliateOffer
+                ? !hasPaymentMethod
+                : isPaymentRequired() && !canFundCollaborations) ||
               isCheckingPaymentMethod
             }
           />

@@ -7,17 +7,18 @@ import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.com
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications-subtab-toggle.component";
+import AppliedCreatorsSection from "../applied-creators-section/applied-creators-section.component";
 import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-section.component";
 import { Menu, MenuItem } from "@mui/material";
-import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
+import { EllipsisVertical, Filter, LayoutGrid, List, Search } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 
-const GRID_CLASS =
-  "mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:[grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]";
+const GRID_CLASS = `mb-8 ${CREATOR_CARD_GRID_CLASS}`;
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -68,6 +69,8 @@ const CreatorSpendAnalysis = ({
     handleSortChange,
     sortValue,
     sortOptions,
+    creatorNameSearch,
+    handleCreatorNameSearchChange,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,
@@ -214,6 +217,17 @@ const CreatorSpendAnalysis = ({
             ) : null}
 
             <div className="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2 lg:ml-0 lg:flex-1 lg:justify-end">
+              <div className="min-w-0 w-full sm:w-44 md:w-[200px] md:max-w-[240px]">
+                <CustomInput
+                  type="text"
+                  name="creatorNameSearch"
+                  placeholder="Search creators"
+                  value={creatorNameSearch}
+                  onChange={handleCreatorNameSearchChange}
+                  startIcon={<Search className="h-3.5 w-3.5 text-gray-400" aria-hidden />}
+                  className="h-8 min-h-8 text-xs"
+                />
+              </div>
               <div className="min-w-0 w-full sm:w-44 md:w-[180px] md:max-w-[230px]">
                 <SimpleSelect
                   placeHolder="Sort by"
@@ -255,10 +269,7 @@ const CreatorSpendAnalysis = ({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4 relative z-0">
         {leftContentLoading ? (
-          <SkeletonCardGrid
-            count={8}
-            gridClass="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-3 mb-8"
-          />
+          <SkeletonCardGrid count={8} gridClass={`mb-8 ${CREATOR_CARD_GRID_CLASS}`} />
         ) : selectedCampaign ? (
           <>
             {isIndividualCampaign ? (
@@ -277,33 +288,52 @@ const CreatorSpendAnalysis = ({
                     description="No individual collaborations found at this time. Invite creators to start collaborating."
                   />
                 </div>
+              ) : pinnedIndividualCreators.length === 0 &&
+                unpinnedIndividualCreators.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <NotFound
+                    title="No Creators Found"
+                    description="No creators match your search. Try a different name."
+                  />
+                </div>
               ) : (
                 <>
                   <PinnedInvitedSection
                     pinnedCreators={pinnedIndividualCreators}
                     renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
                   />
-                  {unpinnedIndividualCreators.length > 0 ? (
-                    <div className={GRID_CLASS}>
-                      {unpinnedIndividualCreators.map((invitation) =>
-                        renderCreatorCard(invitation)
-                      )}
-                    </div>
-                  ) : null}
+                  <AppliedCreatorsSection
+                    pinnedCreators={pinnedIndividualCreators}
+                    unpinnedCreators={unpinnedIndividualCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
                 </>
               )
             ) : sortedAppliedCreators.length > 0 ? (
-              <>
-                <PinnedInvitedSection
-                  pinnedCreators={pinnedAppliedCreators}
-                  renderCreatorCard={renderCreatorCard}
-                />
-                {unpinnedAppliedCreators.length > 0 ? (
-                  <div className={GRID_CLASS}>
-                    {unpinnedAppliedCreators.map((creator) => renderCreatorCard(creator))}
-                  </div>
-                ) : null}
-              </>
+              pinnedAppliedCreators.length === 0 && unpinnedAppliedCreators.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <NotFound
+                    title="No Creators Found"
+                    description="No creators match your search. Try a different name."
+                  />
+                </div>
+              ) : (
+                <>
+                  <PinnedInvitedSection
+                    pinnedCreators={pinnedAppliedCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
+                  <AppliedCreatorsSection
+                    pinnedCreators={pinnedAppliedCreators}
+                    unpinnedCreators={unpinnedAppliedCreators}
+                    renderCreatorCard={renderCreatorCard}
+                    gridClass={GRID_CLASS}
+                  />
+                </>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <NotFound

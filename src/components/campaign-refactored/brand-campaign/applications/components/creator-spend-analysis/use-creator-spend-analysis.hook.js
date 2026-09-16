@@ -22,6 +22,7 @@ import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
 import { VISIBLE_APPLICATIONS_SORT_OPTIONS } from "@/common/constants/applications-sort.constant";
 import {
   filterCampaignsOwnedByBrand,
+  filterCreatorsByName,
   isInvitedCreatorRow,
   partitionPinnedInvitedCreators,
   sortApplicationsCreators,
@@ -111,6 +112,7 @@ function useCreatorSpendAnalysis({
   const [extendDeadlineValue, setExtendDeadlineValue] = useState("");
   const [extendDeadlineError, setExtendDeadlineError] = useState("");
   const extendDeadlineSubmittedRef = useRef(false);
+  const [creatorNameSearch, setCreatorNameSearch] = useState("");
 
   const { isLoading: isClosingListing, isSuccess: isCloseListingSuccess } = useSelector(
     (state) => state.campaigns.closeCampaignListing || {}
@@ -118,6 +120,10 @@ function useCreatorSpendAnalysis({
   const { isLoading: isExtendingDeadline, isSuccess: isExtendDeadlineSuccess } = useSelector(
     (state) => state.campaigns.extendApplicationDeadline || {}
   );
+
+  useEffect(() => {
+    setCreatorNameSearch("");
+  }, [selectedCampaign?.id, applicationsSubTab]);
 
   // Fetch shortlists once unless already loaded
   useEffect(() => {
@@ -146,20 +152,26 @@ function useCreatorSpendAnalysis({
   }, [displayCreators, filters?.sort, urgencyTick]);
 
   const { pinnedAppliedCreators, unpinnedAppliedCreators } = useMemo(() => {
-    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedAppliedCreators);
+    const filtered = filterCreatorsByName(sortedAppliedCreators, creatorNameSearch);
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(filtered);
     return {
       pinnedAppliedCreators: pinned,
       unpinnedAppliedCreators: unpinned,
     };
-  }, [sortedAppliedCreators]);
+  }, [sortedAppliedCreators, creatorNameSearch]);
 
   const { pinnedIndividualCreators, unpinnedIndividualCreators } = useMemo(() => {
-    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedIndividualCollaborations);
+    const filtered = filterCreatorsByName(sortedIndividualCollaborations, creatorNameSearch);
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(filtered);
     return {
       pinnedIndividualCreators: pinned,
       unpinnedIndividualCreators: unpinned,
     };
-  }, [sortedIndividualCollaborations]);
+  }, [sortedIndividualCollaborations, creatorNameSearch]);
+
+  const handleCreatorNameSearchChange = useCallback((event) => {
+    setCreatorNameSearch(event?.target?.value ?? "");
+  }, []);
 
   const filteredCampaignOptions = useMemo(() => {
     return campaignOptions.filter((option) => {
@@ -694,6 +706,8 @@ function useCreatorSpendAnalysis({
     unpinnedAppliedCreators,
     pinnedIndividualCreators,
     unpinnedIndividualCreators,
+    creatorNameSearch,
+    handleCreatorNameSearchChange,
     applicationsSubTab,
     individualCollaborationsLoading,
     campaignsData,

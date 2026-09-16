@@ -1,21 +1,52 @@
 import CustomInput from "@/common/components/custom-input/custom-input.component";
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
+import FieldLabel from "@/common/components/field-label/field-label.component";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
 import {
   EXCLUSIVITY_CLAUSE_OPTIONS,
-  NEGOTIATION_TOGGLE_OPTIONS,
   USAGE_RIGHTS_OPTIONS,
 } from "@/common/constants/options.constant";
+import { RIGHTS_TOGGLE_OPTIONS } from "../../requirement-toggle.options";
 import QuantityDeliverableInput from "../quantity-deliverable-input/quantity-deliverable-input.component";
 import SearchableNicheInput from "../searchable-niche-input/searchable-niche-input.component";
 import useCampaignTitle from "./use-campaign-title.hook";
 
-/**
- * Campaign Type & Niche Selection Component
- *
- * Handles campaign title input, niche selection, and deliverable management.
- * First step in the campaign creation wizard.
- */
+function RightsField({
+  label,
+  name,
+  options,
+  defaultValue,
+  error,
+  requirementValue,
+  onSelectChange,
+  onRequirementChange,
+}) {
+  return (
+    <div className="min-w-0">
+      <FieldLabel label={label} />
+      <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div className="min-w-0 flex-1">
+          <SimpleSelect
+            placeHolder={`Select ${label.toLowerCase()}`}
+            options={options}
+            defaultValue={defaultValue}
+            onChange={onSelectChange}
+            errors={error ? { [name]: { message: error } } : null}
+            name={name}
+          />
+        </div>
+        <RequirementToggle
+          prefix="Requirement:"
+          className="!mt-0 shrink-0 sm:justify-end"
+          value={requirementValue}
+          options={RIGHTS_TOGGLE_OPTIONS}
+          onChange={onRequirementChange}
+        />
+      </div>
+    </div>
+  );
+}
+
 function CampaignTitle({ register, errors = {}, watch, setValue }) {
   const {
     selectedNiches,
@@ -30,11 +61,9 @@ function CampaignTitle({ register, errors = {}, watch, setValue }) {
   } = useCampaignTitle({ watch, setValue });
 
   return (
-    <div className="space-y-4">
-      {/* Campaign Title and Niche Selection - Same Line */}
-      <div className="flex gap-4">
-        {/* Campaign Title */}
-        <div className="flex-1">
+    <div className="flex flex-col gap-3">
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div className="flex flex-col gap-2.5">
           <CustomInput
             label="Campaign Title"
             name="campaign_title"
@@ -44,75 +73,59 @@ function CampaignTitle({ register, errors = {}, watch, setValue }) {
             isRequired={true}
             className="w-full"
           />
+          <SearchableNicheInput
+            selectedNiches={selectedNiches}
+            onNichesChange={handleNicheChange}
+            placeholder="Type to search niches..."
+            handleNicheRemove={handleNicheRemove}
+          />
         </div>
-      </div>
+      </section>
 
-      {/* Niche Selection */}
-      <div className="flex-1">
-        <SearchableNicheInput
-          selectedNiches={selectedNiches}
-          onNichesChange={handleNicheChange}
-          placeholder="Type to search niches..."
-          handleNicheRemove={handleNicheRemove}
-        />
-      </div>
-
-      {/* Deliverables */}
-      <div className="space-y-4">
+      <section className="rounded-lg border border-gray-200 p-3">
         <QuantityDeliverableInput
           deliverables={selectedDeliverables}
           onDeliverablesChange={handleDeliverableChange}
           error={errors.deliverables?.message}
         />
+      </section>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SimpleSelect
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div className="flex flex-col gap-3">
+          <RightsField
             label="Usage Rights"
-            placeHolder="Select usage rights"
+            name="usageRights"
             options={USAGE_RIGHTS_OPTIONS}
             defaultValue={usageRightsValue}
-            onChange={(option) =>
+            error={errors.usageRights?.message}
+            requirementValue={usageRightsRequirement}
+            onSelectChange={(option) =>
               setValue("usageRights", option.value, {
                 shouldDirty: true,
                 shouldValidate: true,
               })
             }
-            error={errors.usageRights?.message}
-            name="usageRights"
-          />
-          <RequirementToggle
-            prefix="Requirement:"
-            value={usageRightsRequirement}
-            options={NEGOTIATION_TOGGLE_OPTIONS}
-            onChange={(status) =>
+            onRequirementChange={(status) =>
               setValue("usageRightsRequirement", status, {
                 shouldDirty: true,
                 shouldValidate: true,
               })
             }
           />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SimpleSelect
+          <RightsField
             label="Exclusivity Clause"
-            placeHolder="Select exclusivity period"
+            name="exclusivityClause"
             options={EXCLUSIVITY_CLAUSE_OPTIONS}
             defaultValue={exclusivityValue}
-            onChange={(option) =>
+            error={errors.exclusivityClause?.message}
+            requirementValue={exclusivityRequirement}
+            onSelectChange={(option) =>
               setValue("exclusivityClause", option.value, {
                 shouldDirty: true,
                 shouldValidate: true,
               })
             }
-            error={errors.exclusivityClause?.message}
-            name="exclusivityClause"
-          />
-          <RequirementToggle
-            prefix="Requirement:"
-            value={exclusivityRequirement}
-            options={NEGOTIATION_TOGGLE_OPTIONS}
-            onChange={(status) =>
+            onRequirementChange={(status) =>
               setValue("exclusivityClauseRequirement", status, {
                 shouldDirty: true,
                 shouldValidate: true,
@@ -120,7 +133,7 @@ function CampaignTitle({ register, errors = {}, watch, setValue }) {
             }
           />
         </div>
-      </div>
+      </section>
     </div>
   );
 }

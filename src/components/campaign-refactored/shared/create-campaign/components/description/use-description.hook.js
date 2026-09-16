@@ -6,7 +6,7 @@ import {
 } from "@/common/constants/file.constant";
 import { getUploadedFileUrl, sanitizeGuidelineList } from "@/common/utils/common.utils";
 import { uploadSingleFile } from "@/provider/features/upload-file/upload-file.slice";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 
 export default function useDescription({ campaignData, setValue }) {
@@ -14,13 +14,39 @@ export default function useDescription({ campaignData, setValue }) {
 
   const [imagePreview, setImagePreview] = useState(campaignData?.campaignImage || "");
   const [styleGuideFileName, setStyleGuideFileName] = useState("");
+  const [styleGuidePreview, setStyleGuidePreview] = useState(campaignData?.styleGuideFile || "");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingStyleGuide, setIsUploadingStyleGuide] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [questionDraft, setQuestionDraft] = useState("");
+  const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
+  const [questions, setQuestions] = useState(() => {
+    if (!Array.isArray(campaignData?.questions)) return [];
+    return campaignData.questions.filter((question) => String(question || "").trim());
+  });
 
-  const questions = useMemo(() => {
-    const list = campaignData?.questions?.length ? campaignData.questions : [""];
-    return [...list];
+  useEffect(() => {
+    const nextImage =
+      typeof campaignData?.campaignImage === "string" ? campaignData.campaignImage : "";
+    setImagePreview((prev) => (prev === nextImage ? prev : nextImage));
+  }, [campaignData?.campaignImage]);
+
+  useEffect(() => {
+    const nextStyleGuide =
+      typeof campaignData?.styleGuideFile === "string" ? campaignData.styleGuideFile : "";
+    setStyleGuidePreview((prev) => (prev === nextStyleGuide ? prev : nextStyleGuide));
+  }, [campaignData?.styleGuideFile]);
+
+  useEffect(() => {
+    const nextQuestions = Array.isArray(campaignData?.questions)
+      ? campaignData.questions.filter((question) => String(question || "").trim())
+      : [];
+    setQuestions((prev) => {
+      if (prev.length === nextQuestions.length && prev.every((q, i) => q === nextQuestions[i])) {
+        return prev;
+      }
+      return nextQuestions;
+    });
   }, [campaignData?.questions]);
 
   const doGuidelines = useMemo(
@@ -33,27 +59,59 @@ export default function useDescription({ campaignData, setValue }) {
     [campaignData?.nonNegotiablesDont]
   );
 
+  const handleQuestionDraftChange = useCallback((event) => {
+    setQuestionDraft(event?.target?.value ?? "");
+  }, []);
+
   const handleAddQuestion = useCallback(() => {
-    const updated = [...questions, ""];
-    setValue("questions", updated, { shouldDirty: true });
-  }, [questions, setValue]);
+    const nextQuestion = questionDraft.trim();
+    if (!nextQuestion) return;
+
+    let updated;
+    if (editingQuestionIndex !== null) {
+      updated = questions.map((question, index) =>
+        index === editingQuestionIndex ? nextQuestion : question
+      );
+    } else {
+      updated = [...questions, nextQuestion];
+    }
+
+    setQuestions(updated);
+    setValue("questions", updated, { shouldDirty: true, shouldValidate: false });
+    setQuestionDraft("");
+    setEditingQuestionIndex(null);
+  }, [editingQuestionIndex, questionDraft, questions, setValue]);
+
+  const handleQuestionKeyDown = useCallback(
+    (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      handleAddQuestion();
+    },
+    [handleAddQuestion]
+  );
+
+  const handleEditQuestion = useCallback(
+    (index) => {
+      setQuestionDraft(questions[index] || "");
+      setEditingQuestionIndex(index);
+    },
+    [questions]
+  );
 
   const handleRemoveQuestion = useCallback(
     (index) => {
-      if (questions.length <= 1) return;
       const updated = questions.filter((_, i) => i !== index);
-      setValue("questions", updated, { shouldDirty: true });
+      setQuestions(updated);
+      setValue("questions", updated, { shouldDirty: true, shouldValidate: false });
+      if (editingQuestionIndex === index) {
+        setQuestionDraft("");
+        setEditingQuestionIndex(null);
+      } else if (editingQuestionIndex !== null && editingQuestionIndex > index) {
+        setEditingQuestionIndex(editingQuestionIndex - 1);
+      }
     },
-    [questions, setValue]
-  );
-
-  const handleQuestionChange = useCallback(
-    (index, value) => {
-      const updated = [...questions];
-      updated[index] = value;
-      setValue("questions", updated, { shouldDirty: true });
-    },
-    [questions, setValue]
+    [editingQuestionIndex, questions, setValue]
   );
 
   const handleRemoveDoGuideline = useCallback(
@@ -208,6 +266,7 @@ export default function useDescription({ campaignData, setValue }) {
         const uploadedUrl = getUploadedFileUrl(result.payload);
         if (uploadedUrl) {
           setStyleGuideFileName(file.name);
+          setStyleGuidePreview(uploadedUrl);
           setValue("styleGuideFile", uploadedUrl, { shouldDirty: true });
         } else {
           setUploadError("Upload succeeded but no URL was returned.");
@@ -216,19 +275,42 @@ export default function useDescription({ campaignData, setValue }) {
         setUploadError(result.payload?.message || "Failed to upload style guide.");
       }
       setIsUploadingStyleGuide(false);
+      event.target.value = "";
     },
     [dispatch, setValue]
   );
 
+  const handleClearImage = useCallback(() => {
+    setImagePreview("");
+    setValue("campaignImage", "", {
+      shouldDirty: true,
+      shouldValidate: false,
+      shouldTouch: false,
+    });
+  }, [setValue]);
+
+  const handleClearStyleGuide = useCallback(() => {
+    setStyleGuideFileName("");
+    setStyleGuidePreview("");
+    setValue("styleGuideFile", "", { shouldDirty: true });
+  }, [setValue]);
+
   return {
     questions,
+    questionDraft,
+    editingQuestionIndex,
+    handleQuestionDraftChange,
     handleAddQuestion,
+    handleQuestionKeyDown,
+    handleEditQuestion,
     handleRemoveQuestion,
-    handleQuestionChange,
     imagePreview,
     styleGuideFileName,
+    styleGuidePreview,
     handleImageUpload,
+    handleClearImage,
     handleStyleGuideUpload,
+    handleClearStyleGuide,
     isUploadingImage,
     isUploadingStyleGuide,
     uploadError,

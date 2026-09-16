@@ -15,6 +15,7 @@ import { pickMessageThreadModalProps } from "@/components/campaign-refactored/sh
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
 import DiscountCodeTracking from "./components/discount-code-tracking/discount-code-tracking.component";
 import FulfilmentSection from "./components/fulfilment-section/fulfilment-section.component";
+import CommissionTally from "./components/commission-tally/commission-tally.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -399,6 +400,13 @@ const DeliverablesProgress = ({
                 selectedContract={selectedContract}
                 isManageEnabled
                 title="Discount code"
+              />
+            ) : null}
+            {selectedContract ? (
+              <CommissionTally
+                selectedCampaign={selectedCampaign}
+                selectedContract={selectedContract}
+                title="Commission tally"
               />
             ) : null}
             {selectedContract ? (

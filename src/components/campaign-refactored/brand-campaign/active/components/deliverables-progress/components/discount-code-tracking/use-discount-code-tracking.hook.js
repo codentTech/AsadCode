@@ -105,7 +105,10 @@ export default function useDiscountCodeTracking({
     if (!killRequestedRef.current) return;
     if (!killState?.isError || isKillLoading) return;
     killRequestedRef.current = false;
-  }, [killState?.isError, isKillLoading]);
+    if (contractId) {
+      dispatch(getShopifyDiscountCodes(contractId));
+    }
+  }, [dispatch, contractId, killState?.isError, isKillLoading]);
 
   const codes = useMemo(() => (Array.isArray(data) ? data : []), [data]);
 
@@ -118,8 +121,24 @@ export default function useDiscountCodeTracking({
     return null;
   }, [codes]);
 
+  useEffect(() => {
+    if (!isAffiliate || !contractId) return;
+    if (liveCode?.status !== "pending") return;
+
+    const intervalId = setInterval(() => {
+      dispatch(getShopifyDiscountCodes(contractId));
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, isAffiliate, contractId, liveCode?.status]);
+
   const historyCodes = useMemo(
     () => codes.filter((c) => c.status === "replaced"),
+    [codes]
+  );
+
+  const trackingPaused = useMemo(
+    () => codes.some((c) => c.trackingPaused || c.tracking_paused),
     [codes]
   );
 
@@ -219,6 +238,7 @@ export default function useDiscountCodeTracking({
     liveCode,
     historyCodes,
     isCodeCopied,
+    trackingPaused,
     manageOpen,
     manageMenuRef,
     showRenameModal,

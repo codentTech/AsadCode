@@ -1,12 +1,31 @@
 /**
  * Normalize campaign or UI duration values into hire-form contract values.
  * Campaign wizard stores "3 months"; hire form / API mapper use "3" → "3_months".
+ * Also accepts hire labels ("12 Months Usage") and API enums ("12_months").
  */
+function canonicalizeTerm(raw) {
+  if (raw == null || raw === "") return "";
+  return String(raw)
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\busage\s*rights?\b/g, "")
+    .replace(/\busage\b/g, "")
+    .replace(/\bmonths?\b/g, "months")
+    .trim();
+}
+
 export function normalizeHireUsageRights(raw) {
   if (raw == null || raw === "") return null;
-  const value = String(raw).trim().toLowerCase().replace(/\s+/g, " ");
+  const value = canonicalizeTerm(raw);
 
-  if (value === "no_usage" || value === "no usage" || value === "no usage rights") {
+  if (
+    value === "no" ||
+    value === "no usage" ||
+    value === "no_usage" ||
+    value === "none"
+  ) {
     return "no_usage";
   }
   if (value === "permanent" || value === "permanent usage") {
@@ -26,9 +45,9 @@ export function normalizeHireUsageRights(raw) {
 
 export function normalizeHireExclusivity(raw) {
   if (raw == null || raw === "") return null;
-  const value = String(raw).trim().toLowerCase().replace(/\s+/g, " ");
+  const value = canonicalizeTerm(raw);
 
-  if (value === "none") {
+  if (value === "none" || value === "no" || value === "") {
     return "none";
   }
   if (value === "3" || value === "3 months" || value === "3_months") {

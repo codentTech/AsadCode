@@ -34,6 +34,20 @@ const getFulfilment = async (contractId) => {
   return response.data;
 };
 
+const getCommissionTally = async (contractId) => {
+  const response = await api().get("/shopify/commission/tally", {
+    params: { contractId },
+  });
+  return response.data;
+};
+
+const getCommissionSettlements = async (campaignId) => {
+  const response = await api().get("/shopify/commission/settlements", {
+    params: campaignId ? { campaignId } : {},
+  });
+  return response.data;
+};
+
 const sendProduct = async (payload) => {
   const response = await api().post("/shopify/fulfilment/send", payload);
   return response.data;
@@ -66,6 +80,8 @@ const shopifyService = {
   getProducts,
   getDiscountCodes,
   getFulfilment,
+  getCommissionTally,
+  getCommissionSettlements,
   sendProduct,
   renameDiscountCode,
   deactivateDiscountCode,
