@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { PLATFORM_OPTIONS } from "@/common/constants/options.constant";
+import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { formatDate } from "@/common/utils/formate-date";
 import { formatCurrency, formatNumber, extractFileName } from "@/common/utils/format.utils";
 import {
@@ -25,8 +27,12 @@ import {
 } from "./preview-builders";
 import { buildQuickFields } from "./quick-field-definitions";
 
+const getPlatformLabel = (value) =>
+  PLATFORM_OPTIONS.find((option) => option.value === value)?.label || value;
+
 export default function usePreview(campaignData = {}) {
   const [imageSrc, setImageSrc] = useState("");
+  const { getPlatformIcon, getPlatformColor } = useGetplatform();
 
   useEffect(() => {
     if (!campaignData?.campaignImage) {
@@ -50,6 +56,9 @@ export default function usePreview(campaignData = {}) {
   const applicationDeadline = formatDate(campaignData.application_deadline);
   const applicationDeadlineLabel =
     applicationDeadline === "—" ? "No deadline set" : applicationDeadline;
+  const trackingEndDate = formatDate(campaignData.tracking_end_date);
+  const trackingEndDateLabel =
+    trackingEndDate === "—" ? null : trackingEndDate;
   const compensationTypeLabel = getCompensationTypeLabel(campaignData.compensation_type);
 
   const nicheTags = useMemo(
@@ -63,13 +72,26 @@ export default function usePreview(campaignData = {}) {
   );
 
   const requiredPlatforms = useMemo(
-    () => createTagArray(campaignData.required_platforms, "platform"),
-    [campaignData.required_platforms]
+    () =>
+      createTagArray(campaignData.required_platforms, "platform").map((platform) => ({
+        ...platform,
+        label: getPlatformLabel(platform.label),
+        value: platform.label,
+        icon: getPlatformIcon(platform.label),
+        colorClasses: getPlatformColor(platform.label),
+      })),
+    [campaignData.required_platforms, getPlatformIcon, getPlatformColor]
   );
 
   const platformMinimums = useMemo(
-    () => createPlatformMinimums(campaignData.platformMinimums, formatNumber),
-    [campaignData.platformMinimums]
+    () =>
+      createPlatformMinimums(campaignData.platformMinimums, formatNumber).map((minimum) => ({
+        ...minimum,
+        label: getPlatformLabel(minimum.platform),
+        icon: getPlatformIcon(minimum.platform),
+        colorClasses: getPlatformColor(minimum.platform),
+      })),
+    [campaignData.platformMinimums, getPlatformIcon, getPlatformColor]
   );
 
   const trimmedQuestions = useMemo(
@@ -102,16 +124,30 @@ export default function usePreview(campaignData = {}) {
         deliverableTags,
         requiredPlatforms
       ),
-    [campaignData.budget, campaignData.min_combined_followers, deliverableTags, requiredPlatforms]
+    [
+      campaignData,
+      campaignData.budget,
+      campaignData.min_combined_followers,
+      campaignData.commission_percentage,
+      campaignData.customer_discount_percent,
+      campaignData.product_value,
+      campaignData.shopify_products,
+      campaignData.campaign_type,
+      deliverableTags,
+      requiredPlatforms,
+    ]
   );
 
   const compensationItems = useMemo(
     () => buildCompensationItems(campaignData, formatCurrency, commissionPerSale),
     [
+      campaignData,
       campaignData.budget,
       campaignData.campaign_type,
       campaignData.product_value,
       campaignData.commission_percentage,
+      campaignData.customer_discount_percent,
+      campaignData.shopify_products,
       campaignData.suggested_min,
       campaignData.suggested_max,
       campaignData.creator_fixed_price,
@@ -171,6 +207,7 @@ export default function usePreview(campaignData = {}) {
         commissionPerSale,
         formatCurrency,
         applicationDeadlineLabel,
+        trackingEndDateLabel,
         workMode,
         countriesDisplay,
         ageRangeSummary,
@@ -184,6 +221,7 @@ export default function usePreview(campaignData = {}) {
       compensationTypeLabel,
       commissionPerSale,
       applicationDeadlineLabel,
+      trackingEndDateLabel,
       workMode,
       countriesDisplay,
       ageRangeSummary,

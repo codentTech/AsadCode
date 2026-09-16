@@ -129,7 +129,7 @@ export const COUNTRY_OPTIONS = [
 export const COMPENSATION_TYPE_OPTIONS = [
   { value: "PAID", label: "Paid" },
   { value: "GIFTED_PRODUCT", label: "Gifted Product" },
-  { value: "COMMISSION", label: "Commission" },
+  { value: "COMMISSION", label: "Affiliate" },
 ];
 
 // Campaign type options
@@ -166,6 +166,22 @@ export const EXCLUSIVITY_CLAUSE_OPTIONS = [
   { value: "12 months", label: "12 Months" },
 ];
 
+/** Hire/contract form values match API mapping (`3` → `3_months`). */
+export const HIRE_USAGE_RIGHTS_OPTIONS = [
+  { value: "no_usage", label: "No Usage Rights" },
+  { value: "3", label: "3 Months Usage" },
+  { value: "6", label: "6 Months Usage" },
+  { value: "12", label: "12 Months Usage" },
+  { value: "permanent", label: "Permanent Usage" },
+];
+
+export const HIRE_EXCLUSIVITY_CLAUSE_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "3", label: "3 Months" },
+  { value: "6", label: "6 Months" },
+  { value: "12", label: "12 Months" },
+];
+
 export const REVISION_LIMIT_OPTIONS = [
   { value: "0", label: "0 Revisions" },
   { value: "1", label: "1 Revision" },
@@ -176,11 +192,17 @@ export const REVISION_LIMIT_OPTIONS = [
 ];
 
 export const NEGOTIATION_TOGGLE_OPTIONS = [
-  { value: "negotiable", label: "Negotiable", activeClasses: "bg-indigo-100 text-indigo-700" },
+  {
+    value: "negotiable",
+    label: "Negotiable",
+    activeClasses: "bg-primary/10 text-primary",
+    inactiveClasses: "bg-gray-100 text-gray-600",
+  },
   {
     value: "non_negotiable",
     label: "Non Negotiable",
     activeClasses: "bg-orange-100 text-orange-700",
+    inactiveClasses: "bg-gray-100 text-gray-600",
   },
 ];
 

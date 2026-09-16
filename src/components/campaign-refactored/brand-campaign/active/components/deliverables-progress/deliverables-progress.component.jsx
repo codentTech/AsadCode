@@ -7,12 +7,15 @@ import TextArea from "@/common/components/text-area/text-area.component";
 import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.constant";
 import { formatDate } from "@/common/utils/formate-date";
 import { Avatar } from "@mui/material";
-import { Check, Copy, Edit2, MapPin, Star, Trash2, X } from "lucide-react";
+import { Edit2, Star, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 import ContractPreviewModal from "../../../applications/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
+import DiscountCodeTracking from "./components/discount-code-tracking/discount-code-tracking.component";
+import FulfilmentSection from "./components/fulfilment-section/fulfilment-section.component";
+import CommissionTally from "./components/commission-tally/commission-tally.component";
 import useDeliverablesProgress from "./use-deliverables-progress.hook";
 
 const DeliverablesProgress = ({
@@ -31,9 +34,6 @@ const DeliverablesProgress = ({
     handleMessageClick,
     creator,
     creatorUserId,
-    formatShippingAddress,
-    onCopyShippingAddress,
-    isAddressCopied,
     privateNotes,
     editingNote,
     newNoteText,
@@ -132,41 +132,6 @@ const DeliverablesProgress = ({
         <span aria-hidden>•</span>
         <span>{creator.location}</span>
       </p>
-      {/* Shipping Address Section - Replaces Bio on Active Campaign Screen */}
-      {creator?.shippingAddress ? (
-        <div className="mt-3 w-full">
-          <div className="rounded border border-gray-200 bg-white p-3 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <h4 className="text-sm font-semibold text-gray-800">Shipping Address</h4>
-            </div>
-            <div className="mb-4 space-y-1.5">
-              {formatShippingAddress(creator.shippingAddress)?.map((line, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-                  <p className="text-sm leading-relaxed text-gray-700">{line}</p>
-                </div>
-              ))}
-            </div>
-            <CustomButton
-              text={isAddressCopied ? "Copied!" : "Copy Shipping Address"}
-              className={`w-full text-xs ${
-                isAddressCopied
-                  ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
-                  : "btn-secondary"
-              }`}
-              onClick={() => onCopyShippingAddress(creator.shippingAddress)}
-              icon={isAddressCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              disabled={isAddressCopied}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="mt-3 w-full">
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="text-sm italic text-gray-500">Shipping address not provided</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -429,6 +394,28 @@ const DeliverablesProgress = ({
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4">
             {renderQuickActions()}
             {renderContractDetails()}
+            {selectedContract ? (
+              <DiscountCodeTracking
+                selectedCampaign={selectedCampaign}
+                selectedContract={selectedContract}
+                isManageEnabled
+                title="Discount code"
+              />
+            ) : null}
+            {selectedContract ? (
+              <CommissionTally
+                selectedCampaign={selectedCampaign}
+                selectedContract={selectedContract}
+                title="Commission tally"
+              />
+            ) : null}
+            {selectedContract ? (
+              <FulfilmentSection
+                selectedCampaign={selectedCampaign}
+                selectedContract={selectedContract}
+                creator={creator}
+              />
+            ) : null}
             {renderTimeline()}
             {renderNotes()}
           </div>
@@ -551,6 +538,10 @@ const DeliverablesProgress = ({
                   selectedContract.exclusivityClause || selectedContract.exclusivity_clause,
                 additionalClauseTitle: selectedContract.additionalClauseTitle,
                 additionalClauseBody: selectedContract.additionalClauseBody,
+                customerDiscountPercent:
+                  selectedContract.customerDiscountPercent ||
+                  selectedContract.customer_discount_percent ||
+                  selectedCampaign?.customer_discount_percent,
               }}
               creatorData={creator}
               campaignData={selectedCampaign}

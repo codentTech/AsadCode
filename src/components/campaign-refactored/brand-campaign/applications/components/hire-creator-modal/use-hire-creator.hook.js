@@ -15,6 +15,14 @@ import { getBrandDisplayNameForContract } from "@/common/utils/brand-display.uti
 import { deliverablesToContentFormatString } from "@/common/utils/deliverables-to-content-format.util";
 import { getTodayHtmlDateInputValue, toHtmlDateInputValue, isValidHtmlDateInputValue, isHtmlDateInputOnOrAfterToday, isHtmlDateInputAfter } from "@/common/utils/date.utils";
 import { resolveCampaignFeeForOffer } from "@/common/utils/campaign.utils";
+import {
+  normalizeHireExclusivity,
+  normalizeHireUsageRights,
+} from "@/common/utils/contract-terms.util";
+import {
+  HIRE_EXCLUSIVITY_CLAUSE_OPTIONS,
+  HIRE_USAGE_RIGHTS_OPTIONS,
+} from "@/common/constants/options.constant";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
 const createValidationSchema = (isIndividual) => {
@@ -69,18 +77,21 @@ const createValidationSchema = (isIndividual) => {
       is: COMPENSATION_TYPE.COMMISSION,
       then: (schema) =>
         schema
-          .required("Product price is required")
+          .nullable()
           .test("is-number", "Product price must be a valid number", function (value) {
-            if (value === "" || value === null || value === undefined) return false;
+            if (value === "" || value === null || value === undefined) return true;
             const num = parseFloat(value);
             return !isNaN(num) && num >= 0;
           }),
       otherwise: (schema) => schema.notRequired(),
     }),
+    customerDiscountPercent: Yup.mixed().nullable(),
     usageRights: Yup.string()
+      .transform((value) => normalizeHireUsageRights(value) ?? value)
       .required("Usage rights is required")
       .oneOf([...CONTRACT_USAGE_RIGHTS_VALUES], "Invalid usage rights"),
     exclusivityClause: Yup.string()
+      .transform((value) => normalizeHireExclusivity(value) ?? value)
       .required("Exclusivity clause is required")
       .oneOf([...CONTRACT_EXCLUSIVITY_VALUES], "Invalid exclusivity clause"),
     additionalClauseTitle: Yup.string()
@@ -178,6 +189,7 @@ export default function useHireCreator({
       contentFormat: "",
       totalCompensation: "",
       productPrice: "",
+      customerDiscountPercent: "",
       additionalClauseTitle: "",
       additionalClauseBody: "",
       ...(isIndividual ? { campaignType: "", contentGuidelines: "" } : {}),
@@ -185,6 +197,15 @@ export default function useHireCreator({
   });
 
   const watchedValues = watch();
+
+  const isAffiliateOffer =
+    (isIndividual
+      ? watchedValues.campaignType === CAMPAIGN_TYPE.AFFILIATE
+      : campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) ||
+    watchedValues.compensationType === COMPENSATION_TYPE.COMMISSION;
+
+  const isCompensationTypeLocked =
+    !isIndividual && campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE;
 
   const applySharedOfferDefaults = useCallback(() => {
     const validateOpts = { shouldValidate: true };
@@ -197,15 +218,27 @@ export default function useHireCreator({
     );
     setValue("totalCompensation", resolveCampaignFeeForOffer(campaignData), validateOpts);
 
-    const usageRights = campaignData?.usage_rights;
-    if (usageRights && CONTRACT_USAGE_RIGHTS_VALUES.includes(usageRights)) {
-      setValue("usageRights", usageRights, validateOpts);
+    const discount = campaignData?.customer_discount_percent;
+    if (discount !== undefined && discount !== null && discount !== "") {
+      setValue("customerDiscountPercent", String(discount), validateOpts);
+    } else {
+      setValue("customerDiscountPercent", "", validateOpts);
     }
 
-    const exclusivity = campaignData?.exclusivity_clause;
-    if (exclusivity && CONTRACT_EXCLUSIVITY_VALUES.includes(exclusivity)) {
-      setValue("exclusivityClause", exclusivity, validateOpts);
-    }
+    setValue(
+      "usageRights",
+      normalizeHireUsageRights(campaignData?.usage_rights || campaignData?.usageRights) ||
+        "no_usage",
+      validateOpts
+    );
+
+    setValue(
+      "exclusivityClause",
+      normalizeHireExclusivity(
+        campaignData?.exclusivity_clause || campaignData?.exclusivityClause
+      ) || "none",
+      validateOpts
+    );
   }, [campaignData, setValue]);
 
   const initializeForm = useCallback(() => {
@@ -258,18 +291,39 @@ export default function useHireCreator({
     }
   }, [show, reset]);
 
+  useEffect(() => {
+    if (!isIndividual) return;
+    const campaignType = watchedValues.campaignType;
+    if (campaignType === CAMPAIGN_TYPE.AFFILIATE) {
+      if (watchedValues.compensationType !== COMPENSATION_TYPE.COMMISSION) {
+        setValue("compensationType", COMPENSATION_TYPE.COMMISSION, { shouldValidate: true });
+      }
+    } else if (watchedValues.compensationType === COMPENSATION_TYPE.COMMISSION) {
+      setValue("campaignType", CAMPAIGN_TYPE.AFFILIATE, { shouldValidate: true });
+    }
+  }, [
+    isIndividual,
+    watchedValues.campaignType,
+    watchedValues.compensationType,
+    setValue,
+  ]);
+
   // Function to create enriched contract data for preview/submission
   const createEnrichedContractData = useCallback(
     (values) => {
       return {
         ...values,
         contentFormat: deliverablesToContentFormatString(values.contentFormat),
-        // Convert string numbers to actual numbers for API
         totalCompensation: values.totalCompensation
           ? parseFloat(values.totalCompensation)
           : undefined,
         productPrice: values.productPrice ? parseFloat(values.productPrice) : undefined,
-        // Add campaign and creator metadata
+        customerDiscountPercent:
+          values.customerDiscountPercent !== "" && values.customerDiscountPercent != null
+            ? parseFloat(values.customerDiscountPercent)
+            : campaignData?.customer_discount_percent != null
+              ? Number(campaignData.customer_discount_percent)
+              : undefined,
         campaignTitle: isIndividual
           ? "Individual Collaboration"
           : campaignData?.campaign_title || "",
@@ -277,7 +331,7 @@ export default function useHireCreator({
         creatorName:
           `${creatorData?.creator?.first_name || ""} ${creatorData?.creator?.last_name || ""}`.trim() ||
           "[Creator Name]",
-        contractId: "DRAFT", // Will be replaced with backend ID after creation
+        contractId: "DRAFT",
         partiesInvolved: getBrandDisplayNameForContract(campaignData),
         campaignDescription: isIndividual
           ? values.contentGuidelines || ""
@@ -291,6 +345,32 @@ export default function useHireCreator({
     [campaignData, creatorData, isIndividual]
   );
 
+  // Payment required for paid offers and Affiliate (card on file for commission settlement)
+  const isPaymentRequired = useCallback(() => {
+    const compType = (watchedValues?.compensationType || "").toUpperCase();
+    const campType = (
+      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
+    )?.toUpperCase?.();
+    if (compType === COMPENSATION_TYPE.GIFTED_PRODUCT) {
+      return false;
+    }
+    if (campType === CAMPAIGN_TYPE.GIFTED) {
+      return false;
+    }
+    if (
+      compType === COMPENSATION_TYPE.COMMISSION ||
+      campType === CAMPAIGN_TYPE.AFFILIATE
+    ) {
+      return true;
+    }
+    return true;
+  }, [
+    watchedValues?.compensationType,
+    watchedValues?.campaignType,
+    isIndividual,
+    campaignData?.campaign_type,
+  ]);
+
   const onSubmit = async (values) => {
     // Trigger validation for all fields to ensure errors are shown
     const isValid = await trigger();
@@ -298,8 +378,22 @@ export default function useHireCreator({
       return;
     }
 
+    const affiliateOffer =
+      (isIndividual
+        ? values.campaignType === CAMPAIGN_TYPE.AFFILIATE
+        : campaignData?.campaign_type === CAMPAIGN_TYPE.AFFILIATE) ||
+      values.compensationType === COMPENSATION_TYPE.COMMISSION;
+
+    if (affiliateOffer && !hasPaymentMethod) {
+      enqueueSnackbar(
+        "Add a card in Settings → Payments → Payment Methods before sending an Affiliate offer.",
+        { variant: "error" }
+      );
+      return;
+    }
+
     // CRITICAL: Validate payment method exists before submission (only for paid offers)
-    if (isPaymentRequired() && !canFundCollaborations) {
+    if (!affiliateOffer && isPaymentRequired() && !canFundCollaborations) {
       const errorMessage = !hasPaymentMethod
         ? "Payment method is required to send offers. Please add a card in Settings → Payments → Payment Methods."
         : "Complete Stripe business connection in Settings → Payments → Payment Methods before sending paid offers.";
@@ -317,9 +411,9 @@ export default function useHireCreator({
       case COMPENSATION_TYPE.PAID:
         return "Total Compensation ($)";
       case COMPENSATION_TYPE.COMMISSION:
-        return "Commission Rate (%)";
+        return "Commission rate (%)";
       case COMPENSATION_TYPE.GIFTED_PRODUCT:
-        return "Product Value ($)";
+        return "Your cost per unit ($)";
       default:
         return "Compensation";
     }
@@ -342,32 +436,32 @@ export default function useHireCreator({
   );
 
   const revisionsLimitValue = watchedValues?.revisionsLimit?.toString?.() || "";
-  const usageRightsValue = watchedValues?.usageRights || "no_usage";
-  const exclusivityValue = watchedValues?.exclusivityClause || "none";
+  const usageRightsValue =
+    normalizeHireUsageRights(watchedValues?.usageRights) || "no_usage";
+  const exclusivityValue =
+    normalizeHireExclusivity(watchedValues?.exclusivityClause) || "none";
   const campaignTypeValue = watchedValues?.campaignType || "";
 
-  // Payment not required for gifted/affiliate (campaign type) or gifted product/commission (compensation type)
-  const isPaymentRequired = useCallback(() => {
-    const compType = (watchedValues?.compensationType || "").toUpperCase();
-    const campType = (
-      isIndividual ? watchedValues?.campaignType : campaignData?.campaign_type
-    )?.toUpperCase?.();
-    if (
-      compType === COMPENSATION_TYPE.GIFTED_PRODUCT ||
-      compType === COMPENSATION_TYPE.COMMISSION
-    ) {
-      return false;
+  useEffect(() => {
+    if (!show) return;
+    const rawUsage = watchedValues?.usageRights;
+    const normalizedUsage = normalizeHireUsageRights(rawUsage);
+    if (rawUsage && normalizedUsage && rawUsage !== normalizedUsage) {
+      setValue("usageRights", normalizedUsage, { shouldValidate: true });
     }
-    if (campType === CAMPAIGN_TYPE.GIFTED || campType === CAMPAIGN_TYPE.AFFILIATE) {
-      return false;
+    const rawExclusivity = watchedValues?.exclusivityClause;
+    const normalizedExclusivity = normalizeHireExclusivity(rawExclusivity);
+    if (rawExclusivity && normalizedExclusivity && rawExclusivity !== normalizedExclusivity) {
+      setValue("exclusivityClause", normalizedExclusivity, { shouldValidate: true });
     }
-    return true;
-  }, [
-    watchedValues?.compensationType,
-    watchedValues?.campaignType,
-    isIndividual,
-    campaignData?.campaign_type,
-  ]);
+  }, [show, watchedValues?.usageRights, watchedValues?.exclusivityClause, setValue]);
+
+  const usageRightsOption =
+    HIRE_USAGE_RIGHTS_OPTIONS.find((option) => option.value === usageRightsValue) ||
+    HIRE_USAGE_RIGHTS_OPTIONS[0];
+  const exclusivityOption =
+    HIRE_EXCLUSIVITY_CLAUSE_OPTIONS.find((option) => option.value === exclusivityValue) ||
+    HIRE_EXCLUSIVITY_CLAUSE_OPTIONS[0];
 
   return {
     register,
@@ -394,9 +488,13 @@ export default function useHireCreator({
     revisionsLimitValue,
     usageRightsValue,
     exclusivityValue,
+    usageRightsOption,
+    exclusivityOption,
     campaignTypeValue,
     isIndividualCollaboration: isIndividual,
     isPaymentRequired,
     refreshPaymentStatus,
+    isAffiliateOffer,
+    isCompensationTypeLocked,
   };
 }

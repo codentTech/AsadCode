@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { discoverCreators } from "@/provider/features/users/users.slice";
 import ROLES from "@/common/constants/role.constant";
+import { BRAND_CAMPAIGN_TAB } from "@/common/constants/campaign.constant";
 import {
   DISCOVER_MIN_SEARCH_LENGTH,
   DISCOVER_PAGE_LIMIT,
@@ -12,12 +14,14 @@ import {
   groupCreatorsByNiche,
   mapUserToCreator,
 } from "@/common/utils/discover-creators.util";
+import { buildCreateCampaignPath } from "@/common/utils/campaign.utils";
 
 export default function useDiscoverCreators() {
   const scrollRefs = useRef({});
   const discoverFetchCompletedOnceRef = useRef(false);
   const discoverHadPendingRef = useRef(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const discoverCreatorsState = useSelector((state) => state.users?.discoverCreators);
 
   const [creators, setCreators] = useState([]);
@@ -52,7 +56,6 @@ export default function useDiscoverCreators() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filteredCreators, setFilteredCreators] = useState([]);
 
-  const [open, setOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -404,6 +407,10 @@ export default function useDiscoverCreators() {
     fetchCreators,
   ]);
 
+  const handleNewCampaignClick = useCallback(() => {
+    router.push(buildCreateCampaignPath({ returnTab: BRAND_CAMPAIGN_TAB.DISCOVER }));
+  }, [router]);
+
   return {
     scrollRefs,
     creators,
@@ -423,8 +430,6 @@ export default function useDiscoverCreators() {
     setSelectedSort,
     selectedCategory,
     filteredCreators,
-    open,
-    setOpen,
     showInviteModal,
     setShowInviteModal,
     selectedCreator,
@@ -433,6 +438,7 @@ export default function useDiscoverCreators() {
     filterType,
     setFilterType,
     hasActiveFilters,
+    handleNewCampaignClick,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerRangeChange,

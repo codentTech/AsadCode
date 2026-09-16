@@ -104,6 +104,11 @@ export default function OffersModal({ show, onClose, onContractAction }) {
           totalCompensation: contractPreviewData.totalCompensation?.toString(),
           productPrice: contractPreviewData.productPrice?.toString(),
           productValue: campaign?.product_value?.toString(),
+          customerDiscountPercent:
+            contractPreviewData.customerDiscountPercent ??
+            contractPreviewData.customer_discount_percent ??
+            campaign?.customer_discount_percent ??
+            "",
           usageRights: contractPreviewData.usageRights,
           exclusivityClause: contractPreviewData.exclusivityClause,
           hashtags: contractPreviewData.hashtags,

@@ -11,6 +11,11 @@ import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
 import { getCreatorFirstName } from "@/common/utils/creator-name.util";
 import ROLES from "@/common/constants/role.constant";
+import {
+  messageContentAlreadyInThread,
+  normalizeThreadInitialMessagePayloads,
+  threadInitialPayloadMatchesContext,
+} from "@/common/utils/message-thread-initial-messages.util";
 
 const useMessageThread = (
   creatorId,
@@ -49,22 +54,10 @@ const useMessageThread = (
     sendMessage: sendMessageState,
   } = useSelector((state) => state.chat);
 
-  const initialMessagePayload = useMemo(() => {
-    if (!applicationPitch) return null;
-    if (typeof applicationPitch === "string") {
-      return { content: applicationPitch, senderRole: ROLES.CREATOR, campaignId: null };
-    }
-    if (typeof applicationPitch === "object" && applicationPitch?.content) {
-      return {
-        content: String(applicationPitch.content),
-        senderRole: (applicationPitch.senderRole || ROLES.CREATOR).toUpperCase(),
-        campaignId: applicationPitch.campaignId ?? null,
-        creatorId: applicationPitch.creatorId ?? null,
-        brandId: applicationPitch.brandId ?? null,
-      };
-    }
-    return null;
-  }, [applicationPitch]);
+  const initialMessagePayloads = useMemo(
+    () => normalizeThreadInitialMessagePayloads(applicationPitch),
+    [applicationPitch]
+  );
 
   const boundConversationId = conversationState?.data?.id ?? null;
   const boundCampaignId =
@@ -113,17 +106,11 @@ const useMessageThread = (
     });
   }, [conversationId, isBoundConversationForThread, allMessages]);
 
-  const pitchMatchesThread =
-    initialMessagePayload?.content &&
-    (!initialMessagePayload.campaignId ||
-      !campaignId ||
-      String(initialMessagePayload.campaignId) === String(campaignId)) &&
-    (!initialMessagePayload.creatorId ||
-      !creatorId ||
-      String(initialMessagePayload.creatorId) === String(creatorId)) &&
-    (!initialMessagePayload.brandId ||
-      !creatorId ||
-      String(initialMessagePayload.brandId) === String(creatorId)) &&
+  const initialMessagesMatchThread =
+    initialMessagePayloads.length > 0 &&
+    initialMessagePayloads.every((payload) =>
+      threadInitialPayloadMatchesContext(payload, { campaignId, creatorId })
+    ) &&
     conversationId === boundConversationId &&
     isBoundConversationForThread;
 
@@ -131,21 +118,8 @@ const useMessageThread = (
     if (!isBoundConversationForThread) {
       return [];
     }
-    if (!initialMessagePayload?.content || !conversationId || !pitchMatchesThread) {
+    if (!initialMessagePayloads.length || !conversationId || !initialMessagesMatchThread) {
       return actualMessages;
-    }
-
-    if (actualMessages.length > 0) {
-      const hasPitchAsMessage = actualMessages.some((msg) => {
-        const contentMatches = msg.content?.trim() === initialMessagePayload.content.trim();
-        const isCreatorMessage = msg.sender?.role === ROLES.CREATOR;
-        const isBrandMessage = msg.sender?.role === ROLES.BRAND;
-        return contentMatches && (isCreatorMessage || isBrandMessage);
-      });
-
-      if (hasPitchAsMessage) {
-        return actualMessages;
-      }
     }
 
     const currentUser = getUser();
@@ -155,32 +129,39 @@ const useMessageThread = (
         : conversationState?.data?.creator?.id || creatorId;
     const brandUserId =
       currentUser?.role === ROLES.BRAND ? currentUser?.id : conversationState?.data?.brand?.id;
-    const initialSenderIsBrand = initialMessagePayload.senderRole === ROLES.BRAND;
 
-    const pitchMessage = {
-      id: `pitch-${conversationId}`,
-      content: initialMessagePayload.content,
-      sender: {
-        id: initialSenderIsBrand ? brandUserId : creatorUserId,
-        role: initialSenderIsBrand ? ROLES.BRAND : ROLES.CREATOR,
-      },
-      created_at: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      message_type: "TEXT",
-      isPitch: true,
-    };
-    return [pitchMessage, ...actualMessages];
+    const syntheticMessages = initialMessagePayloads
+      .filter((payload) => !messageContentAlreadyInThread(actualMessages, payload))
+      .map((payload, index) => {
+        const initialSenderIsBrand = payload.senderRole === ROLES.BRAND;
+        return {
+          id: `pitch-${conversationId}-${index}`,
+          content: payload.content,
+          sender: {
+            id: initialSenderIsBrand ? brandUserId : creatorUserId,
+            role: initialSenderIsBrand ? ROLES.BRAND : ROLES.CREATOR,
+          },
+          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          message_type: "TEXT",
+          isPitch: true,
+        };
+      });
+
+    if (!syntheticMessages.length) {
+      return actualMessages;
+    }
+
+    return [...syntheticMessages, ...actualMessages];
   }, [
     actualMessages,
-    initialMessagePayload,
+    initialMessagePayloads,
     conversationId,
     creatorId,
     conversationState?.data?.creator?.id,
     conversationState?.data?.brand?.id,
-    pitchMatchesThread,
+    initialMessagesMatchThread,
     isBoundConversationForThread,
-    boundConversationId,
-    boundCampaignId,
   ]);
 
   const currentUser = getUser();

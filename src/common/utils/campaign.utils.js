@@ -69,7 +69,7 @@ export const getCompensationTypeLabel = (type) => {
     case COMPENSATION_TYPE.GIFTED_PRODUCT:
       return "Gifted Product";
     case COMPENSATION_TYPE.COMMISSION:
-      return "Commission";
+      return "Affiliate";
     default:
       return type || "—";
   }
@@ -405,7 +405,7 @@ const calculateCreatorFee = (data) => {
   }
 
   if (data.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
-    return commissionPayment || 0;
+    return data.commission_percentage || 0;
   }
 
   return 0;
@@ -536,6 +536,14 @@ export const transformDataForAPI = (data) => {
     product_value: toNumber(data.product_value),
     commission_percentage: toNumber(data.commission_percentage),
     product_price: toNumber(data.product_price),
+    customer_discount_percent: toNumber(data.customer_discount_percent),
+    tracking_end_date: data.tracking_end_date || null,
+    usage_cap:
+      data.usage_cap === "" || data.usage_cap == null
+        ? null
+        : toInteger(data.usage_cap),
+    ships_physical_product: Boolean(data.ships_physical_product),
+    shopify_products: Array.isArray(data.shopify_products) ? data.shopify_products : [],
 
     location_options: data.locationOptions || "",
     creator_countries: data.creator_countries || [],
@@ -569,7 +577,7 @@ export const transformDataForAPI = (data) => {
 
 export const getDefaultValues = () => ({
   campaign_title: "",
-  campaign_type: "",
+  campaign_type: CAMPAIGN_TYPE.SPONSORED_POST,
   niches: [],
   deliverables: [],
   usageRights: "no_usage",
@@ -587,7 +595,7 @@ export const getDefaultValues = () => ({
   },
   required_platforms: [],
 
-  compensation_type: "PAID",
+  compensation_type: COMPENSATION_TYPE.PAID,
   budget: null,
   suggested_min: null,
   suggested_max: null,
@@ -595,6 +603,11 @@ export const getDefaultValues = () => ({
   product_value: null,
   commission_percentage: null,
   product_price: null,
+  customer_discount_percent: null,
+  tracking_end_date: "",
+  usage_cap: "",
+  ships_physical_product: false,
+  shopify_products: [],
 
   locationOptions: ["remote"],
   creator_countries: [],
@@ -691,6 +704,15 @@ export const resolveBrandMarkedCompleteAt = ({
 };
 
 export const resolveCampaignFeeForOffer = (campaign) => {
+  if (
+    campaign?.campaign_type === CAMPAIGN_TYPE.AFFILIATE ||
+    campaign?.compensation_type === COMPENSATION_TYPE.COMMISSION
+  ) {
+    const rate = campaign?.commission_percentage;
+    if (rate === undefined || rate === null || rate === "") return "";
+    return String(rate);
+  }
+
   const fee = campaign?.creator_fee ?? campaign?.creator_fixed_price;
   if (fee === undefined || fee === null || fee === "") return "";
   return String(fee);
@@ -767,6 +789,33 @@ export function partitionPinnedInvitedCreators(creators) {
   return { pinned, unpinned };
 }
 
+export function getCreatorDisplayName(creator) {
+  if (!creator) return "";
+  if (typeof creator.name === "string" && creator.name.trim()) {
+    return creator.name.trim();
+  }
+  const first =
+    creator.first_name ||
+    creator.creator?.first_name ||
+    "";
+  const last =
+    creator.last_name ||
+    creator.creator?.last_name ||
+    "";
+  return `${first} ${last}`.trim();
+}
+
+export function filterCreatorsByName(creators, searchQuery) {
+  const rows = Array.isArray(creators) ? creators : [];
+  const query = typeof searchQuery === "string" ? searchQuery.trim().toLowerCase() : "";
+  if (!query) return rows;
+
+  return rows.filter((creator) => {
+    const name = getCreatorDisplayName(creator).toLowerCase();
+    return name.includes(query);
+  });
+}
+
 function sortCreatorsClientSide(creators, sortKey) {
   if (!Array.isArray(creators) || creators.length === 0) return [];
 
@@ -828,4 +877,42 @@ export function creatorBelongsToApplicationsSubTab(creator, subTab) {
     return column === "negotiations";
   }
   return column === "applications";
+}
+
+export function getCampaignOwnerId(campaign) {
+  if (!campaign) return null;
+  return (
+    campaign.created_by?.id ||
+    campaign.created_by_id ||
+    campaign.brand?.id ||
+    campaign.brand_id ||
+    null
+  );
+}
+
+/** Keep only campaigns owned by the signed-in brand (defense against stale Redux). */
+export function filterCampaignsOwnedByBrand(campaigns = [], brandUserId) {
+  if (!brandUserId) return [];
+  return (campaigns || []).filter((campaign) => {
+    const ownerId = getCampaignOwnerId(campaign);
+    return ownerId && String(ownerId) === String(brandUserId);
+  });
+}
+
+export function buildCreateCampaignPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("returnTab", String(returnTab));
+  if (returnView != null && returnView !== "") {
+    params.set("returnView", String(returnView));
+  }
+  return `/campaign/create?${params.toString()}`;
+}
+
+export function buildCampaignReturnPath({ returnTab = 1, returnView } = {}) {
+  const params = new URLSearchParams();
+  params.set("tab", String(returnTab || 1));
+  if (returnView != null && returnView !== "") {
+    params.set("view", String(returnView));
+  }
+  return `/campaign?${params.toString()}`;
 }

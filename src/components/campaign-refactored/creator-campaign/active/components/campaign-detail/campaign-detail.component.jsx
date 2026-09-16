@@ -7,6 +7,9 @@ import { pickMessageThreadModalProps } from "@/components/campaign-refactored/sh
 import { Calendar, CheckCircle, ChevronDown, ChevronUp, ExternalLink, File, X } from "lucide-react";
 import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline.component";
+import DiscountCodeTracking from "@/components/campaign-refactored/brand-campaign/active/components/deliverables-progress/components/discount-code-tracking/discount-code-tracking.component";
+import CommissionTally from "@/components/campaign-refactored/brand-campaign/active/components/deliverables-progress/components/commission-tally/commission-tally.component";
+import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import useCampaignDetail from "./use-campaign-detail.hook";
 
 const CampaignDetail = ({ selectedCampaign, isLoading }) => {
@@ -361,6 +364,24 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
               onClick={handleOpenContentBrief}
             />
           </div>
+
+          {selectedContract &&
+          ((campaign?.campaign?.campaign_type || campaign?.campaign_type) === CAMPAIGN_TYPE.AFFILIATE ||
+            resolvedCompensationType === COMPENSATION_TYPE.COMMISSION) ? (
+            <>
+              <DiscountCodeTracking
+                selectedCampaign={campaign?.campaign || campaign}
+                selectedContract={selectedContract}
+                isManageEnabled={false}
+                title="Your shopper code"
+              />
+              <CommissionTally
+                selectedCampaign={campaign?.campaign || campaign}
+                selectedContract={selectedContract}
+                title="Your commission"
+              />
+            </>
+          ) : null}
 
           {/* Campaign Progress - Only for CleerCut campaigns */}
           {isCleerCutCampaign && (

@@ -1,17 +1,21 @@
-import CustomCheckboxGroup from "@/common/components/custom-checkbox/custom-checkbox.component";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import FieldError from "@/common/components/field-error/field-error.component";
+import FieldLabel from "@/common/components/field-label/field-label.component";
 import { PLATFORM_OPTIONS } from "@/common/constants/options.constant";
+import { Check } from "lucide-react";
+import useAudienceRequirements from "./use-audience-requirements.hook";
 
 function AudienceRequirementsExperience({ errors = {}, register, setValue, watch }) {
+  const { platformCards, handlePlatformToggle, getPlatformIcon, getPlatformColor } =
+    useAudienceRequirements({ setValue, watch });
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h4 className="text-sm font-bold text-gray-800">Follower Requirements</h4>
-        <div className="w-full max-w-xs sm:max-w-[200px]">
+    <div className="flex flex-col gap-3">
+      <section className="rounded-lg border border-gray-200 p-3">
+        <div className="mt-1.5 w-full sm:max-w-xs">
           <CustomInput
-            label="Minimum Combined Followers"
             type="number"
-            isRequired={true}
+            label="Min. Combined Followers"
             name="min_combined_followers"
             placeholder="e.g., 2000"
             errors={errors}
@@ -19,41 +23,72 @@ function AudienceRequirementsExperience({ errors = {}, register, setValue, watch
             className="w-full"
           />
         </div>
-      </div>
+        <p className="mt-1 text-[10px] leading-snug text-gray-500">
+          Across all required platforms.
+        </p>
+      </section>
 
-      <div className="space-y-3">
-        <h4 className="text-sm font-bold text-gray-800">
-          Platform-Specific Minimums
-          <span className="text-xs text-gray-500 font-normal ml-1">(Optional)</span>
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PLATFORM_OPTIONS.map((platform) => (
-            <CustomInput
+      <section className="rounded-lg border border-gray-200 p-3">
+        <FieldLabel label="Required Platforms" isRequired />
+        <p className="mt-1 text-[10px] leading-snug text-gray-500">
+          Creators must be active on at least one selected platform.
+        </p>
+        <div className="mt-1.5 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+          {platformCards.map((platform) => (
+            <button
               key={platform.value}
-              label={platform.label}
-              type="number"
-              name={`platformMinimums.${platform.value}`}
-              register={register}
-              errors={errors}
-              placeholder="e.g., 1000"
-            />
+              type="button"
+              onClick={() => handlePlatformToggle(platform.value)}
+              className={`relative flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors ${
+                platform.isSelected
+                  ? "border-primary bg-primary/5"
+                  : "border-gray-200 bg-gray-100 hover:border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              <span className={`rounded-md p-1 ${platform.colorClasses}`}>{platform.icon}</span>
+              <span className="min-w-0 flex-1 text-xs font-semibold text-black">
+                {platform.label}
+              </span>
+              {platform.isSelected ? (
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                  <Check className="h-2.5 w-2.5" />
+                </span>
+              ) : (
+                <span className="h-4 w-4 shrink-0 rounded-full border border-gray-300" />
+              )}
+            </button>
           ))}
         </div>
-      </div>
+        {errors?.required_platforms ? (
+          <FieldError className="mt-1.5" error={errors.required_platforms.message} />
+        ) : null}
+      </section>
 
-      <div className="space-y-2">
-        <div className="border rounded-lg p-4">
-          <CustomCheckboxGroup
-            label="Required Platforms"
-            options={PLATFORM_OPTIONS}
-            name="required_platforms"
-            setValue={setValue}
-            watch={watch}
-            errors={errors}
-            isRequired={true}
-          />
+      <section className="rounded-lg border border-gray-200 p-3">
+        <FieldLabel label="Platform-Specific Minimums" />
+        <p className="mt-1 text-[10px] leading-snug text-gray-500">
+          Optional. Set a floor for each platform if needed.
+        </p>
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+          {PLATFORM_OPTIONS.map((platform) => (
+            <div key={platform.value} className="min-w-0">
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className={`rounded-md p-1 ${getPlatformColor(platform.value)}`}>
+                  {getPlatformIcon(platform.value)}
+                </span>
+                <span className="text-xs font-medium text-gray-700">{platform.label}</span>
+              </div>
+              <CustomInput
+                type="number"
+                name={`platformMinimums.${platform.value}`}
+                register={register}
+                errors={errors}
+                placeholder="e.g., 1000"
+              />
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

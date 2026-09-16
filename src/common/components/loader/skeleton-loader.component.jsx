@@ -1,4 +1,5 @@
 import React from "react";
+import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 
 const BASE_CLASSES = "bg-gray-200 animate-pulse";
 
@@ -43,7 +44,9 @@ export function SkeletonText({ lines = 3, className = "" }) {
  */
 export function SkeletonCard({ hasImage = true, hasAvatar = true, className = "" }) {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white overflow-hidden ${className}`.trim()}>
+    <div
+      className={`w-full max-w-[18rem] rounded-lg border border-gray-200 bg-white overflow-hidden ${className}`.trim()}
+    >
       {hasImage && <Skeleton className="h-32 w-full rounded-none" />}
       <div className="relative px-4 pb-4 space-y-3">
         {hasAvatar && (
@@ -118,11 +121,11 @@ export function SkeletonProfile({ className = "" }) {
 }
 
 /**
- * Grid of card skeletons (e.g. discover grid).
+ * Grid of card skeletons (e.g. discover / applications creator grids).
  * @param {number} [count=6] - Number of cards
- * @param {string} [gridClass] - Grid classes (e.g. "grid grid-cols-2 md:grid-cols-3 gap-4")
+ * @param {string} [gridClass] - Grid classes; defaults to packed creator-card layout
  */
-export function SkeletonCardGrid({ count = 6, gridClass = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4" }) {
+export function SkeletonCardGrid({ count = 6, gridClass = CREATOR_CARD_GRID_CLASS }) {
   return (
     <div className={gridClass}>
       {Array.from({ length: count }).map((_, i) => (

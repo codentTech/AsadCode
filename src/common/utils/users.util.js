@@ -265,8 +265,34 @@ export const getEmailForURL = (email) => {
 };
 
 export const logout = () => {
-  if (typeof window === "object" && window.localStorage) {
-    localStorage.clear();
-  }
   clearOnboardingClientStorage();
+
+  if (typeof window !== "object") return;
+
+  // Drop in-memory Redux + persisted root so the next account never sees
+  // another brand's campaigns, contracts, or selected campaign context.
+  try {
+    // Lazy import avoids circular init with provider/store.
+    const { store, persistor, APP_RESET_ACTION } = require("@/provider/store");
+    store.dispatch({ type: APP_RESET_ACTION });
+    persistor.pause();
+    Promise.resolve(persistor.purge()).finally(() => {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        // ignore quota / private mode
+      }
+      window.location.assign("/login");
+    });
+    return;
+  } catch {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {
+      // ignore
+    }
+    window.location.assign("/login");
+  }
 };

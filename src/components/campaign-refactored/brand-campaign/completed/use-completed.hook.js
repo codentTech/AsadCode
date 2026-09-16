@@ -13,6 +13,8 @@ import {
   isCampaignCompatibleWithOverviewToggle,
   isCompletedAppliedCreatorsFiltersKey,
 } from "@/common/utils/brand-campaign-context.utils";
+import { filterCampaignsOwnedByBrand } from "@/common/utils/campaign.utils";
+import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import {
   resetCampaignDemographics,
@@ -643,7 +645,10 @@ export default function useCompleted(disableAutoSelect = false) {
 
   const allCampaigns = useMemo(() => {
     if (!campaignsSuccess || !campaignsData?.data) return [];
-    const list = Array.isArray(campaignsData.data) ? campaignsData.data : [];
+    const list = filterCampaignsOwnedByBrand(
+      Array.isArray(campaignsData.data) ? campaignsData.data : [],
+      getUser()?.id
+    );
     return list.filter(
       (c) =>
         c.status === "COMPLETE" ||

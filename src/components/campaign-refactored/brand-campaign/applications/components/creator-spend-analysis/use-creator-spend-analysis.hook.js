@@ -8,6 +8,7 @@ import {
 } from "@/provider/features/campaigns/campaigns.slice";
 import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
+import { getUser } from "@/common/utils/users.util";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
   getAllShortlists,
@@ -20,6 +21,8 @@ import { buildConnectedPlatformsFromCreatorUser } from "@/common/utils/creator-p
 import useUrgencyTick from "@/common/hooks/use-urgency-tick.hook";
 import { VISIBLE_APPLICATIONS_SORT_OPTIONS } from "@/common/constants/applications-sort.constant";
 import {
+  filterCampaignsOwnedByBrand,
+  filterCreatorsByName,
   isInvitedCreatorRow,
   partitionPinnedInvitedCreators,
   sortApplicationsCreators,
@@ -68,10 +71,11 @@ function useCreatorSpendAnalysis({
     (state) => state.campaignContext?.isBrandCampaignMultiCreatorMode ?? true
   );
 
-  const campaignsData = useMemo(
-    () => ({ data: Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [] }),
-    [campaignsApiData?.data]
-  );
+  const campaignsData = useMemo(() => {
+    const raw = Array.isArray(campaignsApiData?.data) ? campaignsApiData.data : [];
+    const brandUserId = getUser()?.id;
+    return { data: filterCampaignsOwnedByBrand(raw, brandUserId) };
+  }, [campaignsApiData?.data]);
 
   const campaignOptions = useMemo(() => {
     const list = campaignsData?.data || [];
@@ -108,6 +112,7 @@ function useCreatorSpendAnalysis({
   const [extendDeadlineValue, setExtendDeadlineValue] = useState("");
   const [extendDeadlineError, setExtendDeadlineError] = useState("");
   const extendDeadlineSubmittedRef = useRef(false);
+  const [creatorNameSearch, setCreatorNameSearch] = useState("");
 
   const { isLoading: isClosingListing, isSuccess: isCloseListingSuccess } = useSelector(
     (state) => state.campaigns.closeCampaignListing || {}
@@ -115,6 +120,10 @@ function useCreatorSpendAnalysis({
   const { isLoading: isExtendingDeadline, isSuccess: isExtendDeadlineSuccess } = useSelector(
     (state) => state.campaigns.extendApplicationDeadline || {}
   );
+
+  useEffect(() => {
+    setCreatorNameSearch("");
+  }, [selectedCampaign?.id, applicationsSubTab]);
 
   // Fetch shortlists once unless already loaded
   useEffect(() => {
@@ -143,20 +152,26 @@ function useCreatorSpendAnalysis({
   }, [displayCreators, filters?.sort, urgencyTick]);
 
   const { pinnedAppliedCreators, unpinnedAppliedCreators } = useMemo(() => {
-    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedAppliedCreators);
+    const filtered = filterCreatorsByName(sortedAppliedCreators, creatorNameSearch);
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(filtered);
     return {
       pinnedAppliedCreators: pinned,
       unpinnedAppliedCreators: unpinned,
     };
-  }, [sortedAppliedCreators]);
+  }, [sortedAppliedCreators, creatorNameSearch]);
 
   const { pinnedIndividualCreators, unpinnedIndividualCreators } = useMemo(() => {
-    const { pinned, unpinned } = partitionPinnedInvitedCreators(sortedIndividualCollaborations);
+    const filtered = filterCreatorsByName(sortedIndividualCollaborations, creatorNameSearch);
+    const { pinned, unpinned } = partitionPinnedInvitedCreators(filtered);
     return {
       pinnedIndividualCreators: pinned,
       unpinnedIndividualCreators: unpinned,
     };
-  }, [sortedIndividualCollaborations]);
+  }, [sortedIndividualCollaborations, creatorNameSearch]);
+
+  const handleCreatorNameSearchChange = useCallback((event) => {
+    setCreatorNameSearch(event?.target?.value ?? "");
+  }, []);
 
   const filteredCampaignOptions = useMemo(() => {
     return campaignOptions.filter((option) => {
@@ -691,6 +706,8 @@ function useCreatorSpendAnalysis({
     unpinnedAppliedCreators,
     pinnedIndividualCreators,
     unpinnedIndividualCreators,
+    creatorNameSearch,
+    handleCreatorNameSearchChange,
     applicationsSubTab,
     individualCollaborationsLoading,
     campaignsData,

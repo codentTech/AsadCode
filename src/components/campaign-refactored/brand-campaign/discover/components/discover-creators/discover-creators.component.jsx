@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import InvitationModal from "@/components/campaign-refactored/shared/invitation-modal/invitation-modal.component";
-import CampaignCreationWizard from "@/components/campaign-refactored/shared/create-campaign/create-campaign.component";
 import FilterModal from "./components/filter-modal/filter-modal.component";
 import CategoryView from "./components/category-view/category-view.component";
 import DiscoverView from "./components/discover-view/discover-view.component";
@@ -36,8 +35,6 @@ function DiscoverCreators({
     setSelectedSort,
     selectedCategory,
     filteredCreators,
-    open,
-    setOpen,
     showInviteModal,
     setShowInviteModal,
     selectedCreator,
@@ -47,6 +44,7 @@ function DiscoverCreators({
     setFilterType,
     hasActiveFilters,
     hasMoreCreators,
+    handleNewCampaignClick,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerRangeChange,
@@ -119,7 +117,7 @@ function DiscoverCreators({
           hasMoreCreators={hasMoreCreators}
           totalCreatorsCount={totalCreatorsCount}
           onFilterClick={() => setShowFilterModal(true)}
-          onNewCampaignClick={() => setOpen(true)}
+          onNewCampaignClick={handleNewCampaignClick}
           onNicheToggle={handleNicheToggle}
           onPlatformToggle={handlePlatformToggle}
           onFollowerRangeChange={handleFollowerRangeChange}
@@ -172,8 +170,6 @@ function DiscoverCreators({
         isCampaignsLoading={isCampaignsLoading}
         onInviteSent={handleInviteToApply}
       />
-
-      <CampaignCreationWizard open={open} close={() => setOpen(false)} />
     </div>
   );
 }

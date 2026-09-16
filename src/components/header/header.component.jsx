@@ -68,6 +68,13 @@ function Header() {
           >
             Blog
           </Link>
+          <button
+            type="button"
+            onClick={handleAudienceSwitch}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition cursor-pointer"
+          >
+            {audienceSwitch.text}
+          </button>
           {/* Authentication Buttons */}
           {!isAuthenticated ? (
             <div className="flex items-center space-x-3 ml-4">
@@ -176,6 +183,13 @@ function Header() {
           >
             Blog
           </Link>
+          <button
+            type="button"
+            onClick={handleAudienceSwitch}
+            className="text-gray-600 hover:text-indigo-600 font-medium transition text-left cursor-pointer"
+          >
+            {audienceSwitch.text}
+          </button>
           {/* Mobile Authentication Buttons */}
           <div className="border-t border-gray-200 pt-4">
             {!isAuthenticated ? (

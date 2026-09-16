@@ -35,6 +35,7 @@ import blogReducer from "./features/blog/blog.slice";
 import placesReducer from "./features/places/places.slice";
 import emailPreferencesReducer from "./features/email-preferences/email-preferences.slice";
 import messageTemplatesReducer from "./features/message-templates/message-templates.slice";
+import shopifyReducer from "./features/shopify/shopify.slice";
 
 const defaultAdminDashboardSummary = {
   data: null,
@@ -48,15 +49,23 @@ const migratePersistedState = (state) => {
   if (!state || typeof state !== "object") {
     return Promise.resolve(state);
   }
-  const dashboard = state.dashboard;
+
+  // Drop previously persisted per-user campaign/contract slices (v2).
+  const {
+    campaignContext: _ignoredCampaignContext,
+    contracts: _ignoredContracts,
+    ...withoutUserCampaignState
+  } = state;
+
+  const dashboard = withoutUserCampaignState.dashboard;
   if (!dashboard || typeof dashboard !== "object") {
-    return Promise.resolve(state);
+    return Promise.resolve(withoutUserCampaignState);
   }
   if (dashboard.adminDashboardSummary != null) {
-    return Promise.resolve(state);
+    return Promise.resolve(withoutUserCampaignState);
   }
   return Promise.resolve({
-    ...state,
+    ...withoutUserCampaignState,
     dashboard: {
       ...dashboard,
       adminDashboardSummary: { ...defaultAdminDashboardSummary },
@@ -66,22 +75,14 @@ const migratePersistedState = (state) => {
 
 const persistConfig = {
   key: "root",
-  version: 1,
+  version: 2,
   migrate: migratePersistedState,
   storage,
-  whitelist: [
-    "auth",
-    "dashboard",
-    "users",
-    "brandProfile",
-    "shortlist",
-    "contracts",
-    "phyllo",
-    "campaignContext",
-  ],
+  // Never persist per-user campaign/contract selection — it leaks across account switches.
+  whitelist: ["auth", "dashboard", "users", "brandProfile", "shortlist", "phyllo"],
 };
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   auth: authReducer,
   dashboard: dashboardReducer,
   onboarding: onboardingReducer,
@@ -115,7 +116,17 @@ const rootReducer = combineReducers({
   places: placesReducer,
   emailPreferences: emailPreferencesReducer,
   messageTemplates: messageTemplatesReducer,
+  shopify: shopifyReducer,
 });
+
+export const APP_RESET_ACTION = "app/reset";
+
+const rootReducer = (state, action) => {
+  if (action.type === APP_RESET_ACTION) {
+    return appReducer(undefined, action);
+  }
+  return appReducer(state, action);
+};
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

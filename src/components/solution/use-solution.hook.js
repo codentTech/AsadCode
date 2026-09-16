@@ -41,7 +41,7 @@ function useSolution() {
     {
       title: "3. Keep Every Conversation Organized — Without the Chaos",
       description:
-        "CleerCut's Smart Inbox is built for campaign communication — not email clutter. Every message is clearly categorized and separated by type, so nothing gets lost:",
+        "CleerCut's Automated Creator Pipeline is built for campaign communication — not email clutter. Every message is clearly categorized and separated by type, so nothing gets lost:",
       points: [
         "Applications — Creators applying to your campaign",
         "Active collaborations — Ongoing projects in progress",
@@ -132,7 +132,7 @@ function useSolution() {
     {
       title: "4. Keep Every Conversation in One Place",
       description:
-        "Stay organized with CleerCut's Smart Inbox, built for creators managing multiple opportunities. Track:",
+        "Stay organized with CleerCut's Automated Creator Pipeline, built for creators managing multiple opportunities. Track:",
       points: ["Cold outreach", "Campaign applications", "Active brand communication"],
       icon: <MessageSquare className="text-indigo-600" size={24} />,
     },

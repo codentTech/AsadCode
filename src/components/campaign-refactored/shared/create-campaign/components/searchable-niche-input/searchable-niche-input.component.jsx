@@ -1,7 +1,7 @@
 import React from "react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
+import SelectedTagList from "../selected-tag-list/selected-tag-list.component";
 import useSearchableNicheInput from "./use-searchable-input.hook";
 
 export default function SearchableNicheInput(props) {
@@ -22,9 +22,14 @@ export default function SearchableNicheInput(props) {
     handleKeyPress,
   } = useSearchableNicheInput(props);
 
+  const selectedItems = selectedNiches.map((niche) => ({
+    id: niche,
+    label: niche,
+    value: niche,
+  }));
+
   return (
     <div className="space-y-2">
-      {/* Search Input */}
       <div className="relative">
         <CustomInput
           label="Select Niche(s) *"
@@ -35,12 +40,11 @@ export default function SearchableNicheInput(props) {
           onFocus={handleInputFocus}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
-          startIcon={<Search className="w-4 h-4 text-gray-400" />}
+          startIcon={<Search className="h-4 w-4 text-gray-400" />}
         />
 
-        {/* Suggestions Dropdown */}
         {showSuggestions && filteredNiches.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
             {filteredNiches.map((niche, index) => (
               <button
                 key={index}
@@ -50,7 +54,7 @@ export default function SearchableNicheInput(props) {
                   e.stopPropagation();
                   handleNicheSelect(niche.value);
                 }}
-                className="w-full text-left text-xs px-4 py-2 text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors"
+                className="w-full cursor-pointer px-4 py-2 text-left text-xs text-gray-600 transition-colors hover:bg-gray-50"
               >
                 {niche.value}
               </button>
@@ -58,38 +62,17 @@ export default function SearchableNicheInput(props) {
           </div>
         )}
 
-        {/* No suggestions message */}
         {showSuggestions && filteredNiches.length === 0 && searchTerm.trim() !== "" && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-            <p className="text-sm text-gray-500 text-center">No niches found for "{searchTerm}"</p>
+          <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+            <p className="text-center text-sm text-gray-500">No niches found for &quot;{searchTerm}&quot;</p>
           </div>
         )}
       </div>
 
-      {/* Selected Niches */}
-      {selectedNiches.length > 0 && (
-        <div className="space-y-1">
-          <h5 className="text-xs font-semibold text-gray-600">Selected:</h5>
-          <div className="flex flex-wrap gap-1">
-            {selectedNiches.map((niche, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-2 bg-gray-100 text-gray-600 text-xs rounded-lg border border-primary"
-              >
-                {niche}
-                {handleNicheRemove && (
-                  <CustomButton
-                    text=""
-                    onClick={() => handleNicheRemove(niche)}
-                    className="hover:bg-white hover:bg-opacity-20 rounded-lg p-0.5 transition-colors bg-transparent shadow-none min-w-0"
-                    startIcon={<X className="text-black w-3 h-3 ml-4" />}
-                  />
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      <SelectedTagList
+        items={selectedItems}
+        onRemove={(item) => handleNicheRemove?.(item.value)}
+      />
     </div>
   );
 }
