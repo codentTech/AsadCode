@@ -10,9 +10,9 @@ const CreatorGrid = ({
   onInviteClick,
 }) => {
   return (
-    <div className={`${CREATOR_CARD_GRID_CLASS} items-stretch`}>
+    <div className={`${CREATOR_CARD_GRID_CLASS} w-full items-stretch`}>
       {creators.map((creator) => (
-        <div key={creator.id} className="flex h-full min-h-0">
+        <div key={creator.id} className="flex h-full min-h-0 w-[18rem] max-w-full">
           <CreatorCard
             creator={creator}
             creatorType={creator.creator_profile?.creator_type}

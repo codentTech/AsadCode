@@ -7,7 +7,7 @@ import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.com
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
+import { CREATOR_CARD_GRID_GAP_CLASS } from "@/common/constants/creator-card-layout.constant";
 import { isDemoCampaign } from "@/common/utils/demo-campaign.util";
 import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
@@ -16,10 +16,10 @@ import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications
 import AppliedCreatorsSection from "../applied-creators-section/applied-creators-section.component";
 import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-section.component";
 import { Menu, MenuItem } from "@mui/material";
-import { EllipsisVertical, Filter, LayoutGrid, List, Search } from "lucide-react";
+import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
-const GRID_CLASS = `mb-8 ${CREATOR_CARD_GRID_CLASS}`;
+const GRID_CLASS = `mb-8 grid grid-cols-1 justify-items-stretch ${CREATOR_CARD_GRID_GAP_CLASS} sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -70,8 +70,6 @@ const CreatorSpendAnalysis = ({
     handleSortChange,
     sortValue,
     sortOptions,
-    creatorNameSearch,
-    handleCreatorNameSearchChange,
     handleNicheToggle,
     handlePlatformToggle,
     handleFollowerSelect,
@@ -219,17 +217,6 @@ const CreatorSpendAnalysis = ({
             ) : null}
 
             <div className="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2 lg:ml-0 lg:flex-1 lg:justify-end">
-              <div className="min-w-0 w-full sm:w-44 md:w-[200px] md:max-w-[240px]">
-                <CustomInput
-                  type="text"
-                  name="creatorNameSearch"
-                  placeholder="Search creators"
-                  value={creatorNameSearch}
-                  onChange={handleCreatorNameSearchChange}
-                  startIcon={<Search className="h-3.5 w-3.5 text-gray-400" aria-hidden />}
-                  className="h-8 min-h-8 text-xs"
-                />
-              </div>
               <div className="min-w-0 w-full sm:w-44 md:w-[180px] md:max-w-[230px]">
                 <SimpleSelect
                   placeHolder="Sort by"
@@ -238,7 +225,7 @@ const CreatorSpendAnalysis = ({
                   onChange={handleSortChange}
                 />
               </div>
-              <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap">
+              <div className="flex w-full flex-nowrap items-center gap-2 sm:w-auto">
                 <CustomButton
                   text="Filters"
                   onClick={() => setShowFilterModal(true)}
@@ -250,14 +237,14 @@ const CreatorSpendAnalysis = ({
                     <CustomButton
                       text="Board"
                       title="Campaign Board"
-                      className="btn-outline min-w-0 flex-1 px-2 sm:hidden"
+                      className="btn-outline min-w-0 shrink-0 px-2 sm:hidden"
                       startIcon={<LayoutGrid className="h-3.5 w-3.5 shrink-0" />}
                       onClick={onOpenBoard}
                     />
                     <CustomButton
                       text="Campaign Board"
                       title="Campaign Board"
-                      className="btn-outline hidden min-w-0 sm:inline-flex sm:w-auto md:min-w-[106px]"
+                      className="btn-outline hidden shrink-0 whitespace-nowrap sm:inline-flex sm:w-auto md:min-w-[148px]"
                       startIcon={<LayoutGrid className="h-4 w-4 shrink-0" />}
                       onClick={onOpenBoard}
                     />
@@ -271,7 +258,7 @@ const CreatorSpendAnalysis = ({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4 relative z-0">
         {leftContentLoading ? (
-          <SkeletonCardGrid count={8} gridClass={`mb-8 ${CREATOR_CARD_GRID_CLASS}`} />
+          <SkeletonCardGrid count={8} gridClass={GRID_CLASS} />
         ) : selectedCampaign ? (
           <>
             {isIndividualCampaign ? (
