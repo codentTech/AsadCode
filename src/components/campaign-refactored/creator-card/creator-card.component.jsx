@@ -80,7 +80,7 @@ const CreatorCard = ({
   return (
     <div
       className={`relative flex h-full min-h-0 flex-shrink-0 flex-col self-stretch snap-start ${
-        isShortlist ? "w-full" : "w-[18rem]"
+        isShortlist || isApplicationsTab ? "w-full" : "w-[18rem]"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
         onCreatorPreview ? "cursor-pointer" : "cursor-default"
       } bg-white border border-gray-200 overflow-hidden`}
