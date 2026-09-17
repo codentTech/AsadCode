@@ -59,10 +59,13 @@ const NicheCategory = ({
           containerRef.current = el;
           if (scrollRef) scrollRef(el);
         }}
-        className="flex items-stretch overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
+        className="flex flex-row flex-nowrap items-stretch overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
       >
         {category.creators.map((creator) => (
-          <div key={creator.id} className="flex h-full min-h-0 shrink-0 self-stretch">
+          <div
+            key={creator.id}
+            className="flex h-full min-h-0 w-[18rem] shrink-0 self-stretch"
+          >
             <CreatorCard
               creator={creator}
               onCreatorPreview={onCreatorPreview}
