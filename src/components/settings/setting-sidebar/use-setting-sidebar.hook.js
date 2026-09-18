@@ -90,7 +90,7 @@ const brandNavItems = [
         icon: CreditCard,
       },
       {
-        label: "Transaction History",
+        label: "Billing & Payment History",
         href: "/settings/payments/payment-history",
         icon: History,
       },

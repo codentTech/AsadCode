@@ -62,6 +62,11 @@ const getBrandPayments = async () => {
   return response.data;
 };
 
+const getBrandBillingHistory = async () => {
+  const response = await api().get("/collaboration-payments/brand/billing-history");
+  return response.data;
+};
+
 const getCreatorPayments = async () => {
   const response = await api().get("/collaboration-payments/creator/payments");
   return response.data;
@@ -135,6 +140,7 @@ const collaborationPaymentService = {
 
   // Payment history
   getBrandPayments,
+  getBrandBillingHistory,
   getCreatorPayments,
 
   // Creator payouts
