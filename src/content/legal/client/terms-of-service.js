@@ -1,11 +1,11 @@
 export default {
   title: "Terms of Service",
-  lastUpdated: "June 4, 2026",
+  lastUpdated: "September 18, 2026",
   sections: [
     {
       heading: "1. Introduction",
       paragraphs: [
-        "Welcome to CleerCut. These Terms of Service govern your access to and use of CleerCut's website, applications, and services (collectively, the Platform). By registering for or using the Platform as a Client, you agree to these Terms. If you do not agree, you must discontinue use immediately.",
+        'Welcome to CleerCut. These Terms of Service govern your access to and use of CleerCut\'s website, applications, and services (collectively, the Platform). By registering for or using the Platform as a Client, you agree to these Terms. If you do not agree, you must discontinue use immediately. In these Terms, "Client" means the brand or agency using CleerCut.',
       ],
     },
     {
@@ -80,7 +80,17 @@ export default {
       ],
     },
     {
-      heading: "11. Indemnification",
+      heading: "11. Connected Integrations and Data Processing",
+      paragraphs: [
+        "Connecting a store. CleerCut allows a Client to connect a third party commerce store, such as Shopify, to attribute creator-driven sales, measure campaign performance, and fulfil products to creators. Connections use the provider's standard authorization process. By connecting a store, the Client authorizes CleerCut to access the store data described in CleerCut's Privacy Policy and to process it for those purposes.",
+        "The Client's responsibility. The Client represents that it has the authority to connect the store and to authorize CleerCut's access to the data it makes available, including any customer data contained in order records. Where the Client is an agency acting for an underlying client, the Client is responsible for having that authority on its behalf.",
+        "Data processing terms. CleerCut's processing of personal data made available through a connected store is governed by CleerCut's Data Processing Agreement, which is available on request and, where executed, forms part of these Terms. In the event of a conflict between these Terms and the Data Processing Agreement regarding the processing of personal data, the Data Processing Agreement controls.",
+        "Disconnection. A Client may disconnect a connected store at any time, and may also uninstall the CleerCut app from their Shopify Admin to revoke authorization directly within Shopify. Disconnection immediately ends CleerCut's access to new data from that store. Historical campaign and attribution records already created in CleerCut are not automatically deleted on disconnection; a Client may request their removal from CleerCut's live database. Data handling, retention, and deletion, including how backups are treated, are described in CleerCut's Privacy Policy and Data Processing Agreement.",
+        "Third party terms. The Client's use of a connected store remains subject to that provider's own terms. CleerCut is not responsible for the provider's availability, accuracy, or changes, as further described in the API and Data Disclaimer above.",
+      ],
+    },
+    {
+      heading: "12. Indemnification",
       paragraphs: [
         "You agree to indemnify and hold harmless CleerCut and its affiliates from claims, damages, liabilities, and legal expenses arising from:",
         "• Intellectual property infringement",
@@ -92,13 +102,13 @@ export default {
       ],
     },
     {
-      heading: "12. Limitation of Liability",
+      heading: "13. Limitation of Liability",
       paragraphs: [
         "The Platform is provided as is and as available. CleerCut makes no guarantees regarding uptime, campaign performance, earnings, or results. CleerCut's total liability to any user is limited to fees paid by that user to CleerCut in the six months preceding the claim. CleerCut is not liable for indirect, incidental, consequential, or reputational damages.",
       ],
     },
     {
-      heading: "13. Force Majeure",
+      heading: "14. Force Majeure",
       paragraphs: [
         "CleerCut is not liable for delays or failure of performance due to causes beyond reasonable control, including:",
         "• Third party API disruptions",
@@ -110,25 +120,25 @@ export default {
       ],
     },
     {
-      heading: "14. Termination",
+      heading: "15. Termination",
       paragraphs: [
         "CleerCut may suspend or restrict accounts for violations of these Terms. CleerCut will not terminate a user with active campaigns. Restricted users may be prevented from participating in new campaigns. Once all active campaigns conclude, CleerCut may terminate the account. CleerCut may determine escrow distribution prior to termination.",
       ],
     },
     {
-      heading: "15. Assignment",
+      heading: "16. Assignment",
       paragraphs: [
         "CleerCut may assign or transfer these Terms in connection with a merger, acquisition, restructuring, or sale of assets without user consent. Users may not assign their rights without written permission.",
       ],
     },
     {
-      heading: "16. Arbitration and Governing Law",
+      heading: "17. Arbitration and Governing Law",
       paragraphs: [
         "These Terms are governed by the laws of the State of California. All disputes shall be resolved through binding arbitration in Los Angeles under AAA rules. Users waive participation in class actions.",
       ],
     },
     {
-      heading: "17. Modifications",
+      heading: "18. Modifications",
       paragraphs: [
         "CleerCut may update these Terms at any time. Updated Terms will be posted with a revised effective date. Continued use of the Platform constitutes acceptance.",
       ],
