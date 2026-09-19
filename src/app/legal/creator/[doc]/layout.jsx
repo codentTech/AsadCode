@@ -1,5 +1,5 @@
 import { SITE_NAME, SITE_URL } from "@/common/constants/site.constant";
-import { getLegalDocument } from "@/content/legal/legal-docs.config";
+import { loadLegalDocument } from "@/content/legal/legal-docs.loader";
 
 function firstParagraph(document) {
   const section = document?.sections?.[0];
@@ -10,7 +10,7 @@ function firstParagraph(document) {
 
 export async function generateMetadata({ params }) {
   const { doc } = await params;
-  const document = getLegalDocument("creator", doc);
+  const document = await loadLegalDocument("creator", doc);
 
   if (!document) {
     return { title: `Not Found | ${SITE_NAME}` };
