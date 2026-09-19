@@ -1,3 +1,4 @@
+import FullPageLoader from "@/common/components/loader/full-page-loader.component";
 import LegalPageShell from "@/components/legal/legal-page-shell/legal-page-shell.component";
 import LegalDocHeader from "@/components/legal/legal-doc-header/legal-doc-header.component";
 import LegalSidebar, {
@@ -9,11 +10,22 @@ import { LEGAL_CONTENT_PANEL, LEGAL_TWO_PANEL_ROW } from "@/common/utils/legal-c
 import useLegalDocument from "./use-legal-document.hook";
 
 export default function LegalDocumentPage({ audience, doc }) {
-  const { document, formattedSections, isValid, backHref, audienceLabel, audienceDescription } =
-    useLegalDocument({
-      audience,
-      doc,
-    });
+  const {
+    document,
+    formattedSections,
+    isLoading,
+    isValid,
+    backHref,
+    audienceLabel,
+    audienceDescription,
+  } = useLegalDocument({
+    audience,
+    doc,
+  });
+
+  if (isLoading) {
+    return <FullPageLoader />;
+  }
 
   if (!isValid || !document) {
     return null;
@@ -47,7 +59,7 @@ export default function LegalDocumentPage({ audience, doc }) {
                 <section
                   key={section.id}
                   id={section.id}
-                  className="scroll-mt-28 border-b border-gray-100 pb-5 last:border-b-0 last:pb-0"
+                  className="scroll-mt-28 border-b border-gray-300 pb-5 last:border-b-0 last:pb-0"
                 >
                   <h2 className="text-sm font-semibold text-gray-900 sm:text-base">
                     {section.heading}
