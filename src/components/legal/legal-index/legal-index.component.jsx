@@ -50,7 +50,7 @@ export default function LegalIndexPage({ audience }) {
           <div className={`${LEGAL_CONTENT_PANEL} space-y-5`}>
             {groups.map((group) => (
               <section key={group.id} id={group.id} className="scroll-mt-28">
-                <div className="mb-2 border-b border-gray-100 pb-2">
+                <div className="mb-2 border-b border-gray-300 pb-2">
                   <h2 className="text-sm font-semibold text-gray-900 sm:text-base">{group.title}</h2>
                   <p className="mt-0.5 text-[10px] leading-snug text-gray-500 sm:text-xs">
                     {group.description}
