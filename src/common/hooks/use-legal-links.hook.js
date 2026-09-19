@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { getUser } from "@/common/utils/users.util";
 import {
@@ -7,12 +8,13 @@ import {
 } from "@/common/utils/legal.utils";
 
 export default function useLegalLinks(overrideAudience) {
+  const pathname = usePathname();
   const landingCreatorMode = useSelector((state) => state.auth.isCreatorMode);
 
   return useMemo(() => {
     const user = getUser();
     const audience =
-      overrideAudience ?? resolveLegalAudience({ landingCreatorMode, user });
+      overrideAudience ?? resolveLegalAudience({ landingCreatorMode, user, pathname });
     const links = getLegalLinksForAudience(audience);
 
     return {
@@ -21,5 +23,5 @@ export default function useLegalLinks(overrideAudience) {
       privacyHref: links.privacy,
       cookieHref: links.cookie,
     };
-  }, [landingCreatorMode, overrideAudience]);
+  }, [landingCreatorMode, overrideAudience, pathname]);
 }
