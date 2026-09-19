@@ -1,40 +1,3 @@
-import creatorAgreement from "./creator/creator-agreement";
-import creatorPrivacyPolicy from "./creator/privacy-policy";
-import creatorCookiePolicy from "./creator/cookie-policy";
-import creatorCommunityGuidelines from "./creator/community-guidelines";
-import creatorUserVerificationPolicy from "./creator/user-verification-policy";
-import creatorEscrowAndPaymentTerms from "./creator/escrow-and-payment-terms";
-import creatorRefundPolicy from "./creator/refund-policy";
-import creatorCopyrightDmcaPolicy from "./creator/copyright-dmca-policy";
-import creatorAgeEligibilityPolicy from "./creator/age-eligibility-policy";
-import creatorAccessibilityStatement from "./creator/accessibility-statement";
-import creatorDataRetentionPolicy from "./creator/data-retention-policy";
-import creatorSecurityPolicy from "./creator/security-policy";
-import creatorNonDiscriminationStatement from "./creator/non-discrimination-statement";
-import creatorUsStatePrivacyNotice from "./creator/us-state-privacy-notice";
-import creatorGlobalDataProcessingAgreement from "./creator/global-data-processing-agreement";
-import clientAgreement from "./client/client-agreement";
-import clientTermsOfService from "./client/terms-of-service";
-import clientPrivacyPolicy from "./client/privacy-policy";
-import clientCookiePolicy from "./client/cookie-policy";
-import clientCommunityGuidelines from "./client/community-guidelines";
-import clientUserVerificationPolicy from "./client/user-verification-policy";
-import clientPlatformFeesAndPricing from "./client/platform-fees-and-pricing";
-import clientEscrowAndPaymentTerms from "./client/escrow-and-payment-terms";
-import clientRefundPolicy from "./client/refund-policy";
-import clientTermsOfSale from "./client/terms-of-sale";
-import clientFeeAndPaymentAuthorizationAgreement from "./client/fee-and-payment-authorization-agreement";
-import clientCopyrightDmcaPolicy from "./client/copyright-dmca-policy";
-import clientProprietaryRightsInfringementReporting from "./client/proprietary-rights-infringement-reporting";
-import clientUseOfCleercutMarks from "./client/use-of-cleercut-marks";
-import clientAgeEligibilityPolicy from "./client/age-eligibility-policy";
-import clientAccessibilityStatement from "./client/accessibility-statement";
-import clientDataRetentionPolicy from "./client/data-retention-policy";
-import clientSecurityPolicy from "./client/security-policy";
-import clientNonDiscriminationStatement from "./client/non-discrimination-statement";
-import clientUsStatePrivacyNotice from "./client/us-state-privacy-notice";
-import clientGlobalDataProcessingAgreement from "./client/global-data-processing-agreement";
-
 export const LEGAL_DOC_INDEX = {
   creator: [
     { slug: "creator-agreement", label: "Creator Agreement" },
@@ -77,7 +40,10 @@ export const LEGAL_DOC_INDEX = {
     { slug: "age-eligibility-policy", label: "Age Eligibility Policy" },
     { slug: "accessibility-statement", label: "Accessibility Statement" },
     { slug: "data-retention-policy", label: "Data Retention Policy" },
-    { slug: "security-policy", label: "Security Policy" },
+    {
+      slug: "security-policy",
+      label: "Security and Incident Response Policy",
+    },
     { slug: "non-discrimination-statement", label: "Non-Discrimination Statement" },
     { slug: "us-state-privacy-notice", label: "U.S. State Privacy Notice" },
     { slug: "global-data-processing-agreement", label: "Global Data Processing Agreement" },
@@ -192,49 +158,6 @@ export function getLegalDocGroups(audience) {
     .filter((group) => group.documents.length > 0);
 }
 
-export const LEGAL_DOCS = {
-  creator: {
-    "creator-agreement": creatorAgreement,
-    "privacy-policy": creatorPrivacyPolicy,
-    "cookie-policy": creatorCookiePolicy,
-    "community-guidelines": creatorCommunityGuidelines,
-    "user-verification-policy": creatorUserVerificationPolicy,
-    "escrow-and-payment-terms": creatorEscrowAndPaymentTerms,
-    "refund-policy": creatorRefundPolicy,
-    "copyright-dmca-policy": creatorCopyrightDmcaPolicy,
-    "age-eligibility-policy": creatorAgeEligibilityPolicy,
-    "accessibility-statement": creatorAccessibilityStatement,
-    "data-retention-policy": creatorDataRetentionPolicy,
-    "security-policy": creatorSecurityPolicy,
-    "non-discrimination-statement": creatorNonDiscriminationStatement,
-    "us-state-privacy-notice": creatorUsStatePrivacyNotice,
-    "global-data-processing-agreement": creatorGlobalDataProcessingAgreement,
-  },
-  client: {
-    "client-agreement": clientAgreement,
-    "terms-of-service": clientTermsOfService,
-    "privacy-policy": clientPrivacyPolicy,
-    "cookie-policy": clientCookiePolicy,
-    "community-guidelines": clientCommunityGuidelines,
-    "user-verification-policy": clientUserVerificationPolicy,
-    "platform-fees-and-pricing": clientPlatformFeesAndPricing,
-    "escrow-and-payment-terms": clientEscrowAndPaymentTerms,
-    "refund-policy": clientRefundPolicy,
-    "terms-of-sale": clientTermsOfSale,
-    "fee-and-payment-authorization-agreement": clientFeeAndPaymentAuthorizationAgreement,
-    "copyright-dmca-policy": clientCopyrightDmcaPolicy,
-    "proprietary-rights-infringement-reporting": clientProprietaryRightsInfringementReporting,
-    "use-of-cleercut-marks": clientUseOfCleercutMarks,
-    "age-eligibility-policy": clientAgeEligibilityPolicy,
-    "accessibility-statement": clientAccessibilityStatement,
-    "data-retention-policy": clientDataRetentionPolicy,
-    "security-policy": clientSecurityPolicy,
-    "non-discrimination-statement": clientNonDiscriminationStatement,
-    "us-state-privacy-notice": clientUsStatePrivacyNotice,
-    "global-data-processing-agreement": clientGlobalDataProcessingAgreement,
-  },
-};
-
-export function getLegalDocument(audience, slug) {
-  return LEGAL_DOCS[audience]?.[slug] ?? null;
+export function isValidLegalDocSlug(audience, slug) {
+  return (LEGAL_DOC_INDEX[audience] ?? []).some((item) => item.slug === slug);
 }
