@@ -1,13 +1,25 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
 import Modal from "@/common/components/modal/modal.component";
+import { LEGAL_AUDIENCE } from "@/common/utils/legal.utils";
 import JoinCleerCut from "@/components/landing-page/components/join-cleercut/join-cleercut";
 import { Instagram, LinkedIn } from "@mui/icons-material";
 import Link from "next/link";
 import useFooter from "./use-footer.hook";
 
 const Footer = () => {
-  const { isOpen, setIsOpen, closeModal, termsHref, privacyHref, cookieHref, currentYear } =
-    useFooter();
+  const {
+    isOpen,
+    setIsOpen,
+    closeModal,
+    termsHref,
+    privacyHref,
+    cookieHref,
+    currentYear,
+    audience,
+  } = useFooter();
+
+  const termsLabel =
+    audience === LEGAL_AUDIENCE.CREATOR ? "Creator Agreement" : "Terms of Service";
 
   return (
     <footer className="bg-white -indigo-200 py-12 border-t">
@@ -82,7 +94,7 @@ const Footer = () => {
                     href={termsHref}
                     className="hover:text-primary text-sm text-gray-600 transition-colors"
                   >
-                    Terms of Service
+                    {termsLabel}
                   </Link>
                 </li>
                 <li>
