@@ -22,6 +22,31 @@ export function groupLegalParagraphs(paragraphs = []) {
   return blocks;
 }
 
+const LEGAL_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+
+export function parseLegalInlineContent(text = "") {
+  const parts = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(LEGAL_LINK_PATTERN)) {
+    const [fullMatch, label, href] = match;
+    const start = match.index ?? 0;
+
+    if (start > lastIndex) {
+      parts.push({ type: "text", value: text.slice(lastIndex, start) });
+    }
+
+    parts.push({ type: "link", value: label, href });
+    lastIndex = start + fullMatch.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ type: "text", value: text.slice(lastIndex) });
+  }
+
+  return parts.length > 0 ? parts : [{ type: "text", value: text }];
+}
+
 export function slugifyLegalGroup(title) {
   return title
     .toLowerCase()
