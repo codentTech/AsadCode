@@ -70,7 +70,8 @@ export default {
         "• Post unlawful, infringing, or harmful content",
         "• Harass or discriminate against other users",
         "• Manipulate reviews or ratings",
-        "CleerCut may suspend or restrict accounts for violations.",
+        "Users, affiliates, contractors, partners, and other third parties may not advertise or promote CleerCut, [cleercut.com](https://cleercut.com), or any CleerCut-owned domain through spam, phishing, deceptive communications, or unsolicited bulk messages.",
+        "CleerCut may suspend or terminate accounts and business relationships associated with violations.",
       ],
     },
     {
