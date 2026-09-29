@@ -7,7 +7,15 @@ const getAllUsers = async (payload) => {
 };
 
 const discoverCreators = async (payload) => {
-  const response = await api().get("/user", { params: payload });
+  const { page: _page, role: _role, ...params } = payload || {};
+  const response = await api().get("/discover/creators", { params });
+  return response.data;
+};
+
+const discoverNicheCreators = async ({ niche, ...params }) => {
+  const response = await api().get(`/discover/niches/${encodeURIComponent(niche)}/creators`, {
+    params,
+  });
   return response.data;
 };
 
@@ -209,6 +217,7 @@ const adminDeleteUser = async (userId) => {
 const usersService = {
   getAllUsers,
   discoverCreators,
+  discoverNicheCreators,
   updateUser,
   requestEmailChange,
   verifyEmailChange,

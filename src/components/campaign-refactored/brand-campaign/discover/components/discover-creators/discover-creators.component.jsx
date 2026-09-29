@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import InvitationModal from "@/components/campaign-refactored/shared/invitation-modal/invitation-modal.component";
 import FilterModal from "./components/filter-modal/filter-modal.component";
 import CategoryView from "./components/category-view/category-view.component";
@@ -18,6 +18,7 @@ function DiscoverCreators({
   isCampaignsLoading = false,
   userCampaigns = [],
 }) {
+  const [scrollParent, setScrollParent] = useState(null);
   const {
     scrollRefs,
     creators,
@@ -61,9 +62,8 @@ function DiscoverCreators({
     handleSearchChange,
     handleApplyFilters,
     handleLoadMore,
+    handleGridRangeChanged,
   } = useDiscoverCreators();
-
-  const discoverScrollRef = useRef(null);
 
   const handleBackClick = () => {
     handleBackToDiscover(setSelectedShortlist);
@@ -71,7 +71,7 @@ function DiscoverCreators({
 
   return (
     <div
-      ref={discoverScrollRef}
+      ref={setScrollParent}
       className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 p-2 sm:p-4"
     >
       {selectedShortlist && (
@@ -95,12 +95,14 @@ function DiscoverCreators({
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
+          onEndReached={handleLoadMore}
+          onRangeChanged={handleGridRangeChanged}
+          scrollParent={scrollParent}
         />
       )}
 
       {!selectedShortlist && !selectedCategory && (
         <DiscoverView
-          scrollContainerRef={discoverScrollRef}
           isDiscoverInitialLoading={isDiscoverInitialLoading}
           isDiscoverRefetching={isDiscoverRefetching}
           searchKeyword={searchKeyword}
@@ -136,6 +138,8 @@ function DiscoverCreators({
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
           onLoadMore={handleLoadMore}
+          onRangeChanged={handleGridRangeChanged}
+          scrollParent={scrollParent}
         />
       )}
 

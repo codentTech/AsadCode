@@ -24,10 +24,14 @@ const CreatorCard = ({
   urgencyLabel,
   urgencyTier,
   isInvited = false,
+  inertSocialLinks = false,
 }) => {
   const type = creatorType || creator?.creator_profile?.creator_type;
   const tagMeta = type ? getCreatorTagMeta(type) : null;
   const isApplicationsTab = tab === "applications";
+  const disableSocialLinks =
+    inertSocialLinks ||
+    Boolean(creator?.is_demo || creator?.creator?.is_demo);
   const showRating = !HIDE_CREATOR_RATING_UI;
   const ratingValue =
     creator?.rating ??
@@ -75,8 +79,10 @@ const CreatorCard = ({
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-shrink-0 flex-col self-stretch snap-start ${
-        isShortlist ? "w-full" : "w-[18rem]"
+      className={`relative flex flex-shrink-0 flex-col snap-start ${
+        isShortlist || isApplicationsTab
+          ? "h-full min-h-0 w-full self-stretch"
+          : "w-[18rem]"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
         onCreatorPreview ? "cursor-pointer" : "cursor-default"
       } bg-white border border-gray-200 overflow-hidden`}
@@ -96,7 +102,7 @@ const CreatorCard = ({
                       src={image}
                       alt={`Portfolio ${index + 1}`}
                       placeholderClassName="bg-primary/15"
-                      rootMargin={index === 0 ? "420px 0px" : "280px 0px"}
+                      rootMargin="800px 0px"
                       priority={index === 0}
                     />
                   ) : (
@@ -132,7 +138,11 @@ const CreatorCard = ({
         ) : null}
       </div>
 
-      <div className="relative flex min-h-0 flex-1 flex-col px-4 pb-4">
+      <div
+        className={`relative flex flex-col px-4 pb-4 ${
+          isShortlist || isApplicationsTab ? "min-h-0 flex-1" : ""
+        }`}
+      >
         <div className="absolute top-[-55px] left-1/2 -translate-x-1/2">
           <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary">
             {creator.profileImage ? (
@@ -144,7 +154,7 @@ const CreatorCard = ({
                   src={creator.profileImage}
                   alt={creator.name}
                   placeholderClassName="bg-transparent"
-                  rootMargin="360px 0px"
+                  rootMargin="800px 0px"
                   priority
                   className="relative z-[1]"
                 />
@@ -240,7 +250,7 @@ const CreatorCard = ({
                     );
                     return (
                       <div key={platform} className="flex items-center">
-                        {profileUrl ? (
+                        {profileUrl && !disableSocialLinks ? (
                           <a
                             href={profileUrl}
                             target="_blank"
@@ -259,7 +269,7 @@ const CreatorCard = ({
                     );
                   })}
                 </div>
-              ) : showMediaKitOnCard ? (
+              ) : showMediaKitOnCard && !disableSocialLinks ? (
                 <a
                   href={mediaKitHref}
                   target="_blank"
@@ -269,6 +279,11 @@ const CreatorCard = ({
                   <MediaKitIcon size="discovery" />
                   <span className="mt-1 text-xs text-gray-500">Media Kit</span>
                 </a>
+              ) : showMediaKitOnCard && disableSocialLinks ? (
+                <div className="flex flex-col items-center px-3">
+                  <MediaKitIcon size="discovery" />
+                  <span className="mt-1 text-xs text-gray-500">Media Kit</span>
+                </div>
               ) : (
                 <p className="px-2 text-center text-[10px] leading-snug text-gray-400">
                   No social accounts connected

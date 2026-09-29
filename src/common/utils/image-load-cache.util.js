@@ -1,4 +1,4 @@
-const MAX_CONCURRENT_IMAGE_LOADS = 10;
+const MAX_CONCURRENT_IMAGE_LOADS = 24;
 
 const loadedImageUrls = new Set();
 let activeLoads = 0;

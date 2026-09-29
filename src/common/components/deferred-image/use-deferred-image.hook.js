@@ -5,7 +5,7 @@ import {
   requestImageLoadSlot,
 } from "@/common/utils/image-load-cache.util";
 
-const DEFAULT_ROOT_MARGIN = "400px 0px";
+const DEFAULT_ROOT_MARGIN = "600px 0px";
 
 function getScrollParent(node) {
   if (!node || typeof window === "undefined") return null;
@@ -44,19 +44,13 @@ function isNodeNearScrollRoot(node, rootMargin = DEFAULT_ROOT_MARGIN) {
   return rect.bottom >= -margin && rect.top <= viewportHeight + margin;
 }
 
-function isImageReady(img) {
-  return Boolean(img && img.naturalWidth > 0);
-}
-
 function useDeferredImage({ src, rootMargin = DEFAULT_ROOT_MARGIN, priority = false }) {
   const containerRef = useRef(null);
-  const imgNodeRef = useRef(null);
   const releaseSlotRef = useRef(null);
   const cancelRequestRef = useRef(null);
   const cachedInitially = Boolean(src && isImageUrlCached(src));
-  const [isNear, setIsNear] = useState(() => cachedInitially);
-  const [hasSlot, setHasSlot] = useState(() => cachedInitially);
-  const [isVisible, setIsVisible] = useState(() => cachedInitially);
+  const [shouldLoad, setShouldLoad] = useState(() => cachedInitially || priority);
+  const [hasSlot, setHasSlot] = useState(() => cachedInitially || priority);
   const [hasError, setHasError] = useState(false);
 
   const releaseSlot = useCallback(() => {
@@ -70,92 +64,63 @@ function useDeferredImage({ src, rootMargin = DEFAULT_ROOT_MARGIN, priority = fa
     }
   }, []);
 
-  const markVisible = useCallback(() => {
-    if (src) {
-      markImageUrlCached(src);
-    }
-    setIsVisible(true);
-    releaseSlot();
-  }, [src, releaseSlot]);
-
   useEffect(() => {
     if (!src) {
-      setIsNear(false);
+      setShouldLoad(false);
       setHasSlot(false);
-      setIsVisible(false);
       setHasError(false);
       releaseSlot();
       return undefined;
     }
 
-    if (isImageUrlCached(src)) {
-      setIsNear(true);
+    if (isImageUrlCached(src) || priority) {
+      setShouldLoad(true);
       setHasSlot(true);
-      setIsVisible(true);
       setHasError(false);
       releaseSlot();
       return undefined;
     }
 
-    setIsNear(false);
-    setHasSlot(false);
-    setIsVisible(false);
     setHasError(false);
-    releaseSlot();
     return undefined;
-  }, [src, releaseSlot]);
+  }, [src, priority, releaseSlot]);
 
   useEffect(() => {
-    if (!src || hasError) return undefined;
-    if (isImageUrlCached(src)) {
-      setIsNear(true);
-      return undefined;
-    }
+    if (!src || hasError || shouldLoad) return undefined;
 
     const node = containerRef.current;
     if (!node) return undefined;
 
     if (isNodeNearScrollRoot(node, rootMargin)) {
-      setIsNear(true);
+      setShouldLoad(true);
+      return undefined;
     }
 
     if (typeof IntersectionObserver === "undefined") {
-      setIsNear(true);
+      setShouldLoad(true);
       return undefined;
     }
 
     const scrollRoot = getScrollParent(node);
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        if (!entry) return;
-        setIsNear(entry.isIntersecting);
+        if (!entries[0]?.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
       },
       { root: scrollRoot, rootMargin, threshold: 0 }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [src, hasError, rootMargin]);
+  }, [src, hasError, shouldLoad, rootMargin]);
 
   useEffect(() => {
-    if (!src || hasError) return undefined;
-
+    if (!src || hasError || !shouldLoad || hasSlot) return undefined;
     if (isImageUrlCached(src)) {
       setHasSlot(true);
-      setIsVisible(true);
       return undefined;
     }
-
-    if (!isNear) {
-      if (!isVisible) {
-        releaseSlot();
-        setHasSlot(false);
-      }
-      return undefined;
-    }
-
-    if (hasSlot || isVisible) return undefined;
 
     const { promise, cancel } = requestImageLoadSlot(src, { priority });
     cancelRequestRef.current = cancel;
@@ -176,45 +141,14 @@ function useDeferredImage({ src, rootMargin = DEFAULT_ROOT_MARGIN, priority = fa
       cancel();
       cancelRequestRef.current = null;
     };
-  }, [src, isNear, hasSlot, hasError, isVisible, priority, releaseSlot]);
+  }, [src, hasError, shouldLoad, hasSlot, priority]);
 
   useEffect(() => () => releaseSlot(), [releaseSlot]);
 
-  useEffect(() => {
-    if (!hasSlot || !src || isVisible || hasError) return undefined;
-
-    let cancelled = false;
-    let rafId = 0;
-
-    const checkReady = () => {
-      if (cancelled) return;
-      if (isImageReady(imgNodeRef.current)) {
-        markVisible();
-        return;
-      }
-      rafId = window.requestAnimationFrame(checkReady);
-    };
-
-    rafId = window.requestAnimationFrame(checkReady);
-
-    // Free the concurrency slot even if a huge asset is still decoding,
-    // so neighboring cards are not starved.
-    const slotTimeoutId = window.setTimeout(() => {
-      if (!cancelled) {
-        releaseSlot();
-      }
-    }, 800);
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(rafId);
-      window.clearTimeout(slotTimeoutId);
-    };
-  }, [hasSlot, src, isVisible, hasError, markVisible, releaseSlot]);
-
   const handleLoad = useCallback(() => {
-    markVisible();
-  }, [markVisible]);
+    if (src) markImageUrlCached(src);
+    releaseSlot();
+  }, [src, releaseSlot]);
 
   const handleError = useCallback(() => {
     setHasError(true);
@@ -223,28 +157,26 @@ function useDeferredImage({ src, rootMargin = DEFAULT_ROOT_MARGIN, priority = fa
 
   const imageRef = useCallback(
     (img) => {
-      imgNodeRef.current = img;
-      if (isImageReady(img)) {
-        markVisible();
+      if (img && img.naturalWidth > 0 && src) {
+        markImageUrlCached(src);
+        releaseSlot();
       }
     },
-    [markVisible]
+    [src, releaseSlot]
   );
 
-  const keepRendered = isVisible || isImageUrlCached(src);
-  const shouldRenderImage = Boolean(
-    src && !hasError && (keepRendered || (isNear && hasSlot))
-  );
+  const shouldRenderImage = Boolean(src && !hasError && hasSlot);
 
   return {
     containerRef,
     imageRef,
     imageSrc: shouldRenderImage ? src : undefined,
-    isVisible,
+    isVisible: shouldRenderImage,
+    isCached: Boolean(src && isImageUrlCached(src)),
     hasError,
     handleLoad,
     handleError,
-    showPlaceholder: Boolean(src && !hasError && !isVisible),
+    showPlaceholder: Boolean(src && !hasError && !shouldRenderImage),
   };
 }
 
