@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { discoverCreators } from "@/provider/features/users/users.slice";
-import ROLES from "@/common/constants/role.constant";
+import {
+  discoverCreators,
+} from "@/provider/features/users/users.slice";
 import { BRAND_CAMPAIGN_TAB } from "@/common/constants/campaign.constant";
 import {
   DISCOVER_MIN_SEARCH_LENGTH,
   DISCOVER_PAGE_LIMIT,
+  DISCOVER_PREFETCH_ROWS,
   DISCOVER_SEARCH_DEBOUNCE_MS,
 } from "@/common/constants/discover.constant";
-import { DISCOVER_CREATORS_DEFAULT_SORT_BY } from "@/common/constants/options.constant";
+import {
+  DISCOVER_CREATORS_DEFAULT_SORT_BY,
+} from "@/common/constants/options.constant";
 import {
   groupCreatorsByNiche,
-  mapUserToCreator,
+  mapDiscoverCardToCreator,
 } from "@/common/utils/discover-creators.util";
 import { buildCreateCampaignPath } from "@/common/utils/campaign.utils";
 
@@ -20,6 +24,7 @@ export default function useDiscoverCreators() {
   const scrollRefs = useRef({});
   const discoverFetchCompletedOnceRef = useRef(false);
   const discoverHadPendingRef = useRef(false);
+  const prefetchGuardRef = useRef(false);
   const dispatch = useDispatch();
   const router = useRouter();
   const discoverCreatorsState = useSelector((state) => state.users?.discoverCreators);
@@ -64,6 +69,7 @@ export default function useDiscoverCreators() {
   const [hasMoreCreators, setHasMoreCreators] = useState(false);
   const [totalCreatorsCount, setTotalCreatorsCount] = useState(0);
   const queryParamsRef = useRef({});
+  const nextCursorRef = useRef(null);
   const currentPageRef = useRef(1);
 
   const loading = discoverCreatorsState?.isLoading || false;
@@ -78,7 +84,7 @@ export default function useDiscoverCreators() {
   }, [loading]);
 
   const isDiscoverInitialLoading = loading && !discoverFetchCompletedOnceRef.current;
-  const isDiscoverRefetching = loading && discoverFetchCompletedOnceRef.current;
+  const isDiscoverRefetching = loading && discoverFetchCompletedOnceRef.current && !isLoadingMore;
 
   const hasActiveFilters = useCallback(() => {
     return (
@@ -132,8 +138,10 @@ export default function useDiscoverCreators() {
     if (audienceFilters.audienceCountries.length > 0)
       params.audienceCountries = audienceFilters.audienceCountries.join(",");
     if (audienceFilters.audienceCity) params.audienceCity = audienceFilters.audienceCity;
-    if (selectedCategory?.name) {
-      const categoryNiche = selectedCategory.name.toLowerCase().replace("top in ", "").trim();
+    if (selectedCategory?.nicheKey || selectedCategory?.name) {
+      const categoryNiche =
+        selectedCategory.nicheKey ||
+        selectedCategory.name.toLowerCase().replace("top in ", "").trim();
       params.niches = categoryNiche;
     }
 
@@ -142,24 +150,50 @@ export default function useDiscoverCreators() {
 
   const fetchCreators = useCallback(
     async (params = {}, options = {}) => {
-      const { append = false } = options;
+      const { append = false, cursor = null } = options;
       const requestedPage = Number(params.page) > 0 ? Number(params.page) : 1;
       const creatorParams = {
         ...params,
         page: requestedPage,
         limit: DISCOVER_PAGE_LIMIT,
-        role: ROLES.CREATOR,
+        ...(cursor ? { cursor } : {}),
       };
       const result = await dispatch(discoverCreators(creatorParams));
       if (!discoverCreators.fulfilled.match(result)) return;
 
-      const users = Array.isArray(result.payload?.users) ? result.payload.users : [];
-      const mappedCreators = users.map(mapUserToCreator);
-      const totalCount = Number(result.payload?.total) || 0;
-      setTotalCreatorsCount(totalCount);
+      const payload = result.payload || {};
+      const items = Array.isArray(payload.items)
+        ? payload.items
+        : Array.isArray(payload.users)
+          ? payload.users
+          : [];
+      const mappedCreators = items.map((item) =>
+        item?.mini_profile_pictures || item?.platforms
+          ? mapDiscoverCardToCreator(item)
+          : mapDiscoverCardToCreator({
+              ...item,
+              mini_profile_pictures: item?.creator_profile?.mini_profile_pictures,
+              categories: item?.creator_profile?.categories,
+              profile_photo_url: item?.creator_profile?.profile_photo_url,
+              bio: item?.creator_profile?.bio,
+              creator_type: item?.creator_profile?.creator_type,
+              media_kit_url: item?.creator_profile?.media_kit_url,
+              total_followers: item?.creator_profile?.total_followers,
+              rating: item?.creator_profile?.rating,
+              platforms: [],
+            })
+      );
+
+      const nextCursor = payload.nextCursor ?? null;
+      nextCursorRef.current = nextCursor;
+      const totalHint = Number(payload.totalHint ?? payload.total);
+      if (Number.isFinite(totalHint) && totalHint > 0) {
+        setTotalCreatorsCount(totalHint);
+      }
 
       queryParamsRef.current = { ...params, page: undefined };
       currentPageRef.current = requestedPage;
+      prefetchGuardRef.current = false;
 
       setCreators((prevCreators) => {
         const nextCreators = append
@@ -167,8 +201,20 @@ export default function useDiscoverCreators() {
               (creator, index, arr) => index === arr.findIndex((item) => item.id === creator.id)
             )
           : mappedCreators;
-        setHasMoreCreators(nextCreators.length < totalCount);
+        const resolvedTotal =
+          Number.isFinite(totalHint) && totalHint > 0
+            ? totalHint
+            : Math.max(
+                nextCreators.length + (nextCursor || mappedCreators.length >= DISCOVER_PAGE_LIMIT ? DISCOVER_PAGE_LIMIT : 0),
+                nextCreators.length
+              );
+        setHasMoreCreators(
+          Boolean(nextCursor) || nextCreators.length < resolvedTotal
+        );
         setNicheCategories(groupCreatorsByNiche(nextCreators));
+        if (!Number.isFinite(totalHint) || totalHint <= 0) {
+          setTotalCreatorsCount(resolvedTotal);
+        }
         return nextCreators;
       });
     },
@@ -276,10 +322,11 @@ export default function useDiscoverCreators() {
   }, []);
 
   const handleSeeMoreClick = useCallback((category) => {
-    const categoryNiche = category.name.toLowerCase().replace("top in ", "").trim();
-    const creatorsInThisCategory = category.creators || [];
-    setSelectedCategory(category);
-    setFilteredCreators(creatorsInThisCategory);
+    const categoryNiche =
+      category.nicheKey || category.name.toLowerCase().replace("top in ", "").trim();
+    setSelectedCategory({ ...category, nicheKey: categoryNiche });
+    setFilteredCreators(category.creators || []);
+    nextCursorRef.current = null;
   }, []);
 
   const handleBackToDiscover = useCallback((setSelectedShortlist) => {
@@ -345,67 +392,49 @@ export default function useDiscoverCreators() {
     if (loading || isLoadingMore || !hasMoreCreators) return;
     setIsLoadingMore(true);
     await fetchCreators(
-      { ...queryParamsRef.current, page: currentPageRef.current + 1 },
-      { append: true }
+      {
+        ...queryParamsRef.current,
+        page: currentPageRef.current + 1,
+      },
+      { append: true, cursor: nextCursorRef.current || undefined }
     );
     setIsLoadingMore(false);
   }, [loading, isLoadingMore, hasMoreCreators, fetchCreators]);
 
-  useEffect(() => {
-    if (!isReduxReady) return;
-    if (debouncedSearchKeyword) return;
-    if (hasActiveFilters()) return;
-    if (selectedSort) return;
-    fetchCreators({});
-  }, [isReduxReady, debouncedSearchKeyword, hasActiveFilters, selectedSort, fetchCreators]);
+  const handleGridRangeChanged = useCallback(
+    (range, totalCount) => {
+      if (!hasMoreCreators || isLoadingMore || loading || prefetchGuardRef.current) return;
+      const remaining = totalCount - (range?.endIndex ?? 0);
+      if (remaining <= DISCOVER_PREFETCH_ROWS) {
+        prefetchGuardRef.current = true;
+        handleLoadMore();
+      }
+    },
+    [hasMoreCreators, isLoadingMore, loading, handleLoadMore]
+  );
 
   useEffect(() => {
     if (!isReduxReady || showFilterModal) return;
 
-    if (hasActiveFilters() && !debouncedSearchKeyword) {
-      const filterParams = buildQueryParams();
-      fetchCreators(filterParams);
-    }
+    nextCursorRef.current = null;
+    currentPageRef.current = 1;
+    fetchCreators({ ...buildQueryParams(), page: 1 });
   }, [
     isReduxReady,
     showFilterModal,
     filters,
     audienceFilters,
     debouncedSearchKeyword,
-    fetchCreators,
-    buildQueryParams,
-    hasActiveFilters,
-  ]);
-
-  useEffect(() => {
-    if (!isReduxReady || showFilterModal || debouncedSearchKeyword) return;
-
-    if (selectedSort) {
-      fetchCreators(buildQueryParams());
-    }
-  }, [
-    isReduxReady,
-    showFilterModal,
     selectedSort,
-    debouncedSearchKeyword,
+    selectedCategory,
     fetchCreators,
     buildQueryParams,
   ]);
 
   useEffect(() => {
-    if (!isReduxReady || showFilterModal) return;
-    const q = debouncedSearchKeyword.trim();
-    if (q.length < DISCOVER_MIN_SEARCH_LENGTH) return;
-    const params = { search: q };
-    if (selectedSort) params.sortBy = selectedSort;
-    fetchCreators(params);
-  }, [
-    isReduxReady,
-    showFilterModal,
-    debouncedSearchKeyword,
-    selectedSort,
-    fetchCreators,
-  ]);
+    if (!selectedCategory) return;
+    setFilteredCreators(creators);
+  }, [creators, selectedCategory]);
 
   const handleNewCampaignClick = useCallback(() => {
     router.push(buildCreateCampaignPath({ returnTab: BRAND_CAMPAIGN_TAB.DISCOVER }));
@@ -455,5 +484,7 @@ export default function useDiscoverCreators() {
     handleSearchChange,
     handleApplyFilters,
     handleLoadMore,
+    handleGridRangeChanged,
+    resetSearch,
   };
 }

@@ -79,8 +79,10 @@ const CreatorCard = ({
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-shrink-0 flex-col self-stretch snap-start ${
-        isShortlist || isApplicationsTab ? "w-full" : "w-[18rem]"
+      className={`relative flex flex-shrink-0 flex-col snap-start ${
+        isShortlist || isApplicationsTab
+          ? "h-full min-h-0 w-full self-stretch"
+          : "w-[18rem]"
       } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
         onCreatorPreview ? "cursor-pointer" : "cursor-default"
       } bg-white border border-gray-200 overflow-hidden`}
@@ -100,7 +102,7 @@ const CreatorCard = ({
                       src={image}
                       alt={`Portfolio ${index + 1}`}
                       placeholderClassName="bg-primary/15"
-                      rootMargin={index === 0 ? "420px 0px" : "280px 0px"}
+                      rootMargin="800px 0px"
                       priority={index === 0}
                     />
                   ) : (
@@ -136,7 +138,11 @@ const CreatorCard = ({
         ) : null}
       </div>
 
-      <div className="relative flex min-h-0 flex-1 flex-col px-4 pb-4">
+      <div
+        className={`relative flex flex-col px-4 pb-4 ${
+          isShortlist || isApplicationsTab ? "min-h-0 flex-1" : ""
+        }`}
+      >
         <div className="absolute top-[-55px] left-1/2 -translate-x-1/2">
           <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary">
             {creator.profileImage ? (
@@ -148,7 +154,7 @@ const CreatorCard = ({
                   src={creator.profileImage}
                   alt={creator.name}
                   placeholderClassName="bg-transparent"
-                  rootMargin="360px 0px"
+                  rootMargin="800px 0px"
                   priority
                   className="relative z-[1]"
                 />

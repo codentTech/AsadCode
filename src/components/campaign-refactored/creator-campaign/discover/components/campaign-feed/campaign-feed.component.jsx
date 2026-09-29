@@ -4,9 +4,8 @@ import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { campaignTitle, formatCreatorFeeForDisplay } from "@/common/utils/campaign.utils";
-import { formatTimeAgo } from "@/common/utils/helper.utils";
 import Niche from "@/components/niche/niche";
-import { DollarSign, Filter, Gift, Globe, RotateCcw, Users, Zap } from "lucide-react";
+import { DollarSign, Filter, Gift, RotateCcw, Users, Zap } from "lucide-react";
 import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
 import CampaignCardSkeleton from "./campaign-card-skeleton.component";
 import { useRouter } from "next/navigation";
@@ -186,10 +185,6 @@ function CampaignFeed({
                         <h4 className="text-xs sm:text-sm text-gray-700 line-clamp-1 font-medium">
                           {campaign.title}
                         </h4>
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                          <Globe className="h-3 w-3" />
-                          <span>{formatTimeAgo(campaign.postedDate)}</span>
-                        </div>
                       </div>
                     </div>
 

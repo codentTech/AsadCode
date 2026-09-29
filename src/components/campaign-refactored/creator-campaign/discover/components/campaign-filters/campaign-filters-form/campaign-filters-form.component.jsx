@@ -126,7 +126,7 @@ function CampaignFiltersForm({ filters, setFilters, expandedFilters, toggleFilte
           <div className="mt-2">
             <div
               className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
-              title="Filters campaigns to only show those you qualify for based on your country, city, follower count, connected platforms, and gender."
+              title="Discover already shows all campaigns for your country. Follower count and connected accounts do not hide campaigns."
             >
               <button
                 type="button"

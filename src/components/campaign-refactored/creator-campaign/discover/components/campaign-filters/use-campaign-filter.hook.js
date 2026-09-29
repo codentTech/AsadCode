@@ -25,7 +25,6 @@ export function buildCampaignFilterApiParams(sourceFilters) {
   const apiFilters = {
     compensation_type:
       sourceFilters.compensationType?.value || sourceFilters.compensationType || undefined,
-    min_followers: "",
     platforms: sourceFilters.platforms?.length > 0 ? sourceFilters.platforms : undefined,
     country:
       sourceFilters.location &&
