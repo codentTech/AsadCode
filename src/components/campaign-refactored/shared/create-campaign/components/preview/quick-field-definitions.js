@@ -4,6 +4,7 @@ import {
   EXCLUSIVITY_CLAUSE_OPTIONS,
 } from "@/common/constants/options.constant";
 import { capitalizeFirstLetter } from "@/common/utils/common.utils";
+import { formatShopifySelectionLabel } from "@/common/utils/shopify-product-label.utils";
 
 /**
  * Quick field definitions for the campaign preview summary.
@@ -67,7 +68,13 @@ const getShopifyProductNames = (campaignData) => {
   const products = campaignData?.shopify_products;
   if (!Array.isArray(products) || products.length === 0) return null;
   return products
-    .map((product) => product?.title)
+    .map((product) =>
+      formatShopifySelectionLabel({
+        productTitle: product?.title,
+        variantTitle: product?.variantTitle,
+        sku: product?.sku,
+      })
+    )
     .filter(Boolean)
     .join(", ");
 };
