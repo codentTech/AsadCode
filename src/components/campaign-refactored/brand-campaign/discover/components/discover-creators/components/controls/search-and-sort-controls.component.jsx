@@ -27,7 +27,7 @@ const SearchAndSortControls = ({
         />
       </div>
 
-      <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:ml-3 lg:w-auto lg:flex-nowrap lg:justify-end">
+      <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:ml-3 lg:w-auto lg:justify-end">
         <div className="min-w-0 flex-1 basis-full sm:basis-auto sm:min-w-[170px] lg:w-[180px] lg:flex-none">
           <SimpleSelect
             placeHolder="Sort by"
@@ -46,7 +46,12 @@ const SearchAndSortControls = ({
           />
         </div>
 
-        <CustomButton text="Start a new campaign" onClick={onNewCampaignClick} />
+        <CustomButton
+          text="Start a new campaign"
+          onClick={onNewCampaignClick}
+          title="Start a new campaign"
+          className="btn-primary min-w-0 max-w-full"
+        />
       </div>
     </div>
   );

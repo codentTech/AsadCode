@@ -134,7 +134,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:h-full md:max-w-none md:flex-[0_1_73%] lg:max-w-none">
           <MiddlePaneSkeleton variant="applications" />
         </div>
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white md:h-full md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white md:h-full md:max-w-sm md:flex-[0_1_27%] lg:max-w-md lg:flex-[0_1_27%] xl:max-w-lg">
           <RightPaneSkeleton layout="fluid" />
         </div>
       </div>
@@ -160,7 +160,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
       {rightPaneState.type === "loading" ? (
         <RightPaneSkeleton layout="fluid" />
       ) : rightPaneState.type === "notFound" ? (
-        <div className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 text-center md:h-full md:max-w-md md:flex-[0_1_27%] lg:flex-[0_1_27%]">
+        <div className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center border-l border-gray-100 bg-gradient-to-b from-gray-50/80 to-white px-4 text-center md:h-full md:max-w-sm md:flex-[0_1_27%] lg:max-w-md lg:flex-[0_1_27%] xl:max-w-lg">
           <NotFound
             title="No Data Available"
             description="Please select a campaign and creator."
@@ -280,7 +280,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
       <div
         className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-gray-200/80 bg-white shadow-[0_0_24px_-8px_rgba(79,70,229,0.12)] md:h-full md:shadow-none ${
           mobilePane === "list"
-            ? "hidden md:flex md:max-w-md md:flex-[0_1_27%] lg:max-w-lg lg:flex-[0_1_27%]"
+            ? "hidden md:flex md:max-w-sm md:flex-[0_1_27%] lg:max-w-md lg:flex-[0_1_27%] xl:max-w-lg"
             : "flex"
         }`}
       >

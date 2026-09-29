@@ -76,7 +76,7 @@ export default function BrandDiscover() {
       ) : null}
 
       <div
-        className={`z-[101] flex shrink-0 flex-col overflow-hidden border-gray-200 bg-gradient-to-b from-gray-50 to-white transition-transform duration-300 ease-out md:relative md:z-0 md:h-auto md:w-72 md:translate-x-0 md:border-r max-md:fixed max-md:left-0 max-md:top-0 max-md:h-full max-md:w-[min(88vw,20rem)] max-md:max-w-[288px] max-md:border-r max-md:shadow-xl ${
+        className={`z-[101] flex shrink-0 flex-col overflow-hidden border-gray-200 bg-gradient-to-b from-gray-50 to-white transition-transform duration-300 ease-out md:relative md:z-0 md:h-auto md:w-72 md:translate-x-0 md:border-r max-md:fixed max-md:left-16 max-md:top-0 max-md:h-full max-md:w-[min(88vw,20rem)] max-md:max-w-[288px] max-md:border-r max-md:shadow-xl ${
           shortlistMenuOpen ? "max-md:translate-x-0" : "max-md:pointer-events-none max-md:-translate-x-full"
         }`}
       >
