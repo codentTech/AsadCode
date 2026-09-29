@@ -4,11 +4,18 @@
  */
 import { CAMPAIGN_TYPE } from "@/common/constants/campaign.constant";
 import { formatGenderForDisplay } from "@/common/utils/campaign.utils";
+import { formatShopifySelectionLabel } from "@/common/utils/shopify-product-label.utils";
 
 function formatShopifyProductNames(products) {
   if (!Array.isArray(products) || products.length === 0) return null;
   return products
-    .map((product) => product?.title)
+    .map((product) =>
+      formatShopifySelectionLabel({
+        productTitle: product?.title,
+        variantTitle: product?.variantTitle,
+        sku: product?.sku,
+      })
+    )
     .filter(Boolean)
     .join(", ");
 }

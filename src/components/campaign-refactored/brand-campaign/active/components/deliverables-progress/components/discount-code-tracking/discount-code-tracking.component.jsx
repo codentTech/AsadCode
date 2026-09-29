@@ -129,14 +129,26 @@ export default function DiscountCodeTracking({
 
     if (liveCode.status === "pending") {
       return (
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <CircularProgress size={14} className="shrink-0 text-primary" />
-            <span className="text-xs font-semibold text-gray-900 sm:text-sm">Creating</span>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              {liveCode.code ? (
+                <p className="truncate text-xs font-semibold text-gray-900 sm:text-sm">
+                  {liveCode.code}
+                </p>
+              ) : (
+                <span className="text-xs font-semibold text-gray-900 sm:text-sm">
+                  Creating
+                </span>
+              )}
+            </div>
+            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 sm:text-xs">
+              Pending
+            </span>
           </div>
-          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 sm:text-xs">
-            Pending
-          </span>
+          <p className="text-[10px] leading-snug text-gray-500 sm:text-xs">
+            Connect Shopify to activate this code in your store.
+          </p>
         </div>
       );
     }

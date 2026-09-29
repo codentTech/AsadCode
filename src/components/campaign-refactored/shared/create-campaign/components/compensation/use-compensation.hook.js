@@ -6,6 +6,7 @@ import {
   CAMPAIGN_TYPE_OPTIONS,
 } from "@/common/constants/options.constant";
 import { calculateCommissionPayment } from "@/common/utils/campaign.utils";
+import { formatShopifyProductOptionLabel } from "@/common/utils/shopify-product-label.utils";
 import {
   getShopifyConnection,
   getShopifyConnectUrl,
@@ -102,7 +103,7 @@ export default function useCompensation({ campaignData, setValue }) {
 
   const productOptions = useMemo(() => {
     return shopifyProducts.map((product) => ({
-      label: product.title,
+      label: formatShopifyProductOptionLabel(product),
       value: product.id,
       product,
     }));
@@ -191,6 +192,7 @@ export default function useCompensation({ campaignData, setValue }) {
       imageUrl: product.imageUrl || null,
       variantId: variant?.id || null,
       variantTitle: variant?.title || null,
+      sku: variant?.sku || null,
       price: variant?.price ?? null,
       cost: variant?.cost ?? null,
     };

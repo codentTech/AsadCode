@@ -16,6 +16,8 @@ import {
 } from "@/provider/features/shopify/shopify.slice";
 
 const LIVE_STATUSES = new Set(["active", "pending", "deactivated"]);
+const PENDING_POLL_MS = 3000;
+const PENDING_POLL_MAX = 8;
 
 function toDateInputValue(value) {
   if (!value) return "";
@@ -84,6 +86,7 @@ export default function useDiscountCodeTracking({
       selectedCampaign?.compensation_type;
     return type === CAMPAIGN_TYPE.AFFILIATE || compensation === "COMMISSION";
   }, [selectedCampaign, selectedContract]);
+
 
   const isCampaignComplete = useMemo(() => {
     const status = selectedCampaign?.status || selectedCampaign?.campaign_status;
@@ -175,9 +178,14 @@ export default function useDiscountCodeTracking({
     if (!isAffiliate || !contractId) return;
     if (liveCode?.status !== "pending") return;
 
+    let polls = 0;
     const intervalId = setInterval(() => {
+      polls += 1;
       dispatch(getShopifyDiscountCodes(contractId));
-    }, 3000);
+      if (polls >= PENDING_POLL_MAX) {
+        clearInterval(intervalId);
+      }
+    }, PENDING_POLL_MS);
 
     return () => clearInterval(intervalId);
   }, [dispatch, isAffiliate, contractId, liveCode?.status]);
@@ -225,7 +233,7 @@ export default function useDiscountCodeTracking({
     !isCampaignComplete &&
     trackingWindowOpen &&
     Boolean(liveCode?.id) &&
-    liveCode.status !== "replaced";
+    liveCode?.status !== "replaced";
 
   const previewPayoutDate = useMemo(() => {
     if (!extendDateValue) return null;
