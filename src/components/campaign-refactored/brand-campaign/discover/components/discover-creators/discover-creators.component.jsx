@@ -1,3 +1,4 @@
+import { useState } from "react";
 import InvitationModal from "@/components/campaign-refactored/shared/invitation-modal/invitation-modal.component";
 import FilterModal from "./components/filter-modal/filter-modal.component";
 import CategoryView from "./components/category-view/category-view.component";
@@ -17,6 +18,7 @@ function DiscoverCreators({
   isCampaignsLoading = false,
   userCampaigns = [],
 }) {
+  const [scrollParent, setScrollParent] = useState(null);
   const {
     scrollRefs,
     creators,
@@ -60,6 +62,7 @@ function DiscoverCreators({
     handleSearchChange,
     handleApplyFilters,
     handleLoadMore,
+    handleGridRangeChanged,
   } = useDiscoverCreators();
 
   const handleBackClick = () => {
@@ -67,7 +70,10 @@ function DiscoverCreators({
   };
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 p-2 sm:p-4">
+    <div
+      ref={setScrollParent}
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-gray-100 p-2 sm:p-4"
+    >
       {selectedShortlist && (
         <ShortlistView
           selectedShortlist={selectedShortlist}
@@ -89,6 +95,9 @@ function DiscoverCreators({
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
+          onEndReached={handleLoadMore}
+          onRangeChanged={handleGridRangeChanged}
+          scrollParent={scrollParent}
         />
       )}
 
@@ -129,6 +138,8 @@ function DiscoverCreators({
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
           onLoadMore={handleLoadMore}
+          onRangeChanged={handleGridRangeChanged}
+          scrollParent={scrollParent}
         />
       )}
 

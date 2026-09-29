@@ -10,7 +10,6 @@ function CampaignCardSkeleton() {
             <div className="min-w-0 flex-1 space-y-2">
               <Skeleton className="h-3.5 w-24" />
               <Skeleton className="h-3.5 w-40" />
-              <Skeleton className="h-3 w-16" />
             </div>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
