@@ -10,6 +10,9 @@ const CategoryView = ({
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
+  onEndReached,
+  onRangeChanged,
+  scrollParent,
 }) => {
   return (
     <div className="space-y-4">
@@ -31,6 +34,9 @@ const CategoryView = ({
           onSaveToShortlist={onSaveToShortlist}
           onRemoveFromShortlist={onRemoveFromShortlist}
           onInviteClick={onInviteClick}
+          onEndReached={onEndReached}
+          onRangeChanged={onRangeChanged}
+          scrollParent={scrollParent}
         />
       )}
     </div>

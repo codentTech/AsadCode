@@ -12,7 +12,6 @@ function DeferredImage({
     containerRef,
     imageRef,
     imageSrc,
-    isVisible,
     handleLoad,
     handleError,
     showPlaceholder,
@@ -29,10 +28,11 @@ function DeferredImage({
           src={imageSrc}
           alt={alt}
           decoding="async"
+          loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
           onLoad={handleLoad}
           onError={handleError}
-          className={`h-full w-full object-cover ${isVisible ? "opacity-100" : "opacity-0"}`}
+          className="relative z-[1] h-full w-full object-cover"
         />
       ) : null}
     </div>

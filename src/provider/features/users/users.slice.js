@@ -12,6 +12,7 @@ const generalState = {
 const initialState = {
   getAllUsers: { ...generalState },
   discoverCreators: { ...generalState },
+  discoverNicheCreators: { ...generalState },
   updateUser: { ...generalState },
   getUserById: { ...generalState },
   updateCreatorPreferences: { ...generalState },
@@ -53,6 +54,21 @@ export const discoverCreators = createAsyncThunk(
   async (payload, thunkAPI) => {
     try {
       const response = await usersService.discoverCreators(payload);
+      if (response.success) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue(response.message || "Request failed");
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message || "An error occurred");
+    }
+  }
+);
+
+export const discoverNicheCreators = createAsyncThunk(
+  "users/discoverNicheCreators",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await usersService.discoverNicheCreators(payload);
       if (response.success) {
         return response.data;
       }
@@ -311,6 +327,7 @@ export const usersSlice = createSlice({
     reset: (state) => {
       state.getAllUsers = { ...generalState };
       state.discoverCreators = { ...generalState };
+      state.discoverNicheCreators = { ...generalState };
       state.updateUser = { ...generalState };
       state.getUserById = { ...generalState };
       state.updateCreatorPreferences = { ...generalState };
@@ -356,6 +373,19 @@ export const usersSlice = createSlice({
         state.discoverCreators.isLoading = false;
         state.discoverCreators.isError = true;
         state.discoverCreators.message = action.payload;
+      })
+      .addCase(discoverNicheCreators.pending, (state) => {
+        state.discoverNicheCreators.isLoading = true;
+      })
+      .addCase(discoverNicheCreators.fulfilled, (state, action) => {
+        state.discoverNicheCreators.isLoading = false;
+        state.discoverNicheCreators.isSuccess = true;
+        state.discoverNicheCreators.data = action.payload;
+      })
+      .addCase(discoverNicheCreators.rejected, (state, action) => {
+        state.discoverNicheCreators.isLoading = false;
+        state.discoverNicheCreators.isError = true;
+        state.discoverNicheCreators.message = action.payload;
       })
       // updateUser
       .addCase(updateUser.pending, (state) => {

@@ -46,6 +46,8 @@ const DiscoverView = ({
   onRemoveFromShortlist,
   onInviteClick,
   onLoadMore,
+  onRangeChanged,
+  scrollParent,
 }) => {
   const { loadMoreAnchorRef, showLoadMoreBar, shownCreatorsCount, totalCount, progressValue } =
     useDiscoverView({
@@ -104,15 +106,15 @@ const DiscoverView = ({
         />
       )}
 
-      {hasActiveFilters() || searchKeyword || selectedSort ? (
+      {hasActiveFilters() || searchKeyword ? (
         <div className="space-y-4 relative min-h-[280px]">
           {isDiscoverRefetching ? (
             <div
-              className="absolute inset-0 z-10 flex items-start justify-center bg-white/70 pt-16 pointer-events-none"
+              className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-white/90 p-2 shadow-sm"
               aria-busy="true"
               aria-label="Loading creators"
             >
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : null}
           {isDiscoverInitialLoading && creators.length === 0 ? (
@@ -130,6 +132,9 @@ const DiscoverView = ({
                 onSaveToShortlist={onSaveToShortlist}
                 onRemoveFromShortlist={onRemoveFromShortlist}
                 onInviteClick={onInviteClick}
+                onEndReached={onLoadMore}
+                onRangeChanged={onRangeChanged}
+                scrollParent={scrollParent}
               />
               {loadMoreEndSentinel}
               {loadMoreBlock}
@@ -140,20 +145,34 @@ const DiscoverView = ({
         <div className="space-y-6 relative min-h-[320px]">
           {isDiscoverRefetching ? (
             <div
-              className="absolute inset-0 z-10 flex items-start justify-center bg-white/70 pt-24 pointer-events-none"
+              className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-white/90 p-2 shadow-sm"
               aria-busy="true"
               aria-label="Loading creators"
             >
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : null}
-          {isDiscoverInitialLoading && nicheCategories.length === 0 ? (
+          {isDiscoverInitialLoading && nicheCategories.length === 0 && creators.length === 0 ? (
             <SkeletonCardGrid count={8} gridClass={CREATOR_CARD_GRID_CLASS} />
-          ) : nicheCategories.length === 0 ? (
+          ) : nicheCategories.length === 0 && creators.length === 0 ? (
             <NotFound
               title="No Creators Found"
               description="No creators found. Try adjusting your search or filters."
             />
+          ) : nicheCategories.length === 0 ? (
+            <div className="space-y-4">
+              <CreatorGrid
+                creators={creators}
+                onCreatorPreview={onCreatorPreview}
+                onSaveToShortlist={onSaveToShortlist}
+                onRemoveFromShortlist={onRemoveFromShortlist}
+                onInviteClick={onInviteClick}
+                onEndReached={onLoadMore}
+                onRangeChanged={onRangeChanged}
+                scrollParent={scrollParent}
+              />
+              {loadMoreSection}
+            </div>
           ) : (
             <div className="space-y-6">
               {nicheCategories.map((category) => (

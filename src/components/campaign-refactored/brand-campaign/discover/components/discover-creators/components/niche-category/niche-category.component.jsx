@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import { CREATOR_CARD_WIDTH_PX } from "@/common/constants/creator-card-layout.constant";
@@ -59,10 +59,13 @@ const NicheCategory = ({
           containerRef.current = el;
           if (scrollRef) scrollRef(el);
         }}
-        className="flex items-stretch overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
+        className="flex flex-row flex-nowrap items-start overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth snap-x"
       >
         {category.creators.map((creator) => (
-          <div key={creator.id} className="flex h-full min-h-0 shrink-0 self-stretch">
+          <div
+            key={creator.id}
+            className="w-[18rem] shrink-0"
+          >
             <CreatorCard
               creator={creator}
               onCreatorPreview={onCreatorPreview}
