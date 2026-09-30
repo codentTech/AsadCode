@@ -90,13 +90,13 @@ const CreatorCard = ({
         if (onCreatorPreview) handleCardClick();
       }}
     >
-      <div className="relative h-32 shrink-0 bg-gray-100 overflow-hidden">
+      <div className="relative z-0 h-32 shrink-0 overflow-hidden bg-gray-100">
         {Array.isArray(creator.portfolioImages) && creator.portfolioImages.some(Boolean) ? (
           <div className="flex h-full">
             {[0, 1, 2].map((index) => {
               const image = creator.portfolioImages[index];
               return (
-                <div key={index} className="flex-1 relative">
+                <div key={index} className="relative flex-1">
                   {image ? (
                     <DeferredImage
                       src={image}
@@ -106,15 +106,15 @@ const CreatorCard = ({
                       priority={index === 0}
                     />
                   ) : (
-                    <div className="w-full h-full bg-primary" />
+                    <div className="h-full w-full bg-primary" />
                   )}
-                  {index < 2 && <div className="absolute right-0 top-0 w-px h-full bg-white/30" />}
+                  {index < 2 && <div className="absolute right-0 top-0 h-full w-px bg-white/30" />}
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="w-full h-full bg-primary" />
+          <div className="h-full w-full bg-primary" />
         )}
 
         {isApplicationsTab && isInvited ? (
@@ -139,12 +139,12 @@ const CreatorCard = ({
       </div>
 
       <div
-        className={`relative flex flex-col px-4 pb-4 ${
+        className={`relative z-[1] flex flex-col px-4 pb-4 ${
           isShortlist || isApplicationsTab ? "min-h-0 flex-1" : ""
         }`}
       >
-        <div className="absolute top-[-55px] left-1/2 -translate-x-1/2">
-          <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary">
+        <div className="absolute left-1/2 top-[-55px] z-[1] -translate-x-1/2">
+          <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary shadow-sm">
             {creator.profileImage ? (
               <>
                 <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-white">

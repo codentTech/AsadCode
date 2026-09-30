@@ -29,7 +29,7 @@ const InvitationModal = ({
     handleCampaignSelect,
     handleSubmit,
     resetForm,
-  } = useInvitationModal();
+  } = useInvitationModal({ isOpen, onRefreshCampaigns });
 
   const handleTypeChange = (type) => {
     setInvitationType(type);

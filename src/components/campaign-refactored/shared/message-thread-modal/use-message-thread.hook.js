@@ -14,6 +14,8 @@ import chatSocketService from "@/provider/features/chat/chat-socket.service";
 import chatService from "@/provider/features/chat/chat.service";
 import { getUser } from "@/common/utils/users.util";
 import { getCreatorFirstName } from "@/common/utils/creator-name.util";
+import { getBrandDisplayNameForBrandUser } from "@/common/utils/brand-display.util";
+import { resolveTemplatePlaceholders } from "@/common/utils/message-template.util";
 import ROLES from "@/common/constants/role.constant";
 import {
   messageContentAlreadyInThread,
@@ -191,7 +193,32 @@ const useMessageThread = (
     );
   }, [threadParticipant, conversationState?.data?.creator]);
 
-  const showTemplatesButton = currentUser?.role === ROLES.BRAND;
+  const templateRecipientName = useMemo(() => {
+    if (currentUser?.role === ROLES.CREATOR) {
+      const brand = threadParticipant || conversationState?.data?.brand || null;
+      const brandDisplay = getBrandDisplayNameForBrandUser(brand);
+      if (brandDisplay && brandDisplay !== "Brand") {
+        return brandDisplay;
+      }
+      return getCreatorFirstName(brand) || "there";
+    }
+
+    return (
+      creatorFirstName ||
+      getCreatorFirstName(threadParticipant) ||
+      getCreatorFirstName(conversationState?.data?.creator) ||
+      "there"
+    );
+  }, [
+    currentUser?.role,
+    threadParticipant,
+    conversationState?.data?.brand,
+    conversationState?.data?.creator,
+    creatorFirstName,
+  ]);
+
+  const showTemplatesButton =
+    currentUser?.role === ROLES.BRAND || currentUser?.role === ROLES.CREATOR;
 
   const otherUserId =
     conversationState?.data?.brand?.id === currentUser?.id
@@ -579,21 +606,14 @@ const useMessageThread = (
 
   const handleTemplateSelect = useCallback(
     (templateText) => {
-      const resolvedName =
-        creatorFirstName ||
-        getCreatorFirstName(threadParticipant) ||
-        getCreatorFirstName(conversationState?.data?.creator) ||
-        "there";
-      const finalMessage = templateText.replace(/\{\{creator_name\}\}/gi, resolvedName);
+      const finalMessage = resolveTemplatePlaceholders(
+        templateText,
+        templateRecipientName || "there"
+      );
       handleMessageChange(finalMessage);
       setShowTemplatesModal(false);
     },
-    [
-      creatorFirstName,
-      threadParticipant,
-      conversationState?.data?.creator,
-      handleMessageChange,
-    ]
+    [templateRecipientName, handleMessageChange]
   );
 
   // Single useEffect to handle socket connection and message fetching
@@ -729,7 +749,7 @@ const useMessageThread = (
     openTemplatesModal,
     closeTemplatesModal,
     handleTemplateSelect,
-    creatorFirstName,
+    creatorFirstName: templateRecipientName,
     showTemplatesButton,
   };
 };

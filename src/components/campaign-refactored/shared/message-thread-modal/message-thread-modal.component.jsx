@@ -12,11 +12,12 @@ import {
   Video,
   X,
 } from "lucide-react";
+import TextArea from "@/common/components/text-area/text-area.component";
+import { getCreatorFirstName } from "@/common/utils/creator-name.util";
 import MessageTemplatesModal from "../message-templates-modal/message-templates-modal.component";
 import MessageThreadMessagesList from "./components/message-thread-messages-list.component";
 import MessageThreadMessagesSkeleton from "./components/message-thread-messages-skeleton.component";
 import MessageThreadModalAvatar from "./components/message-thread-modal-avatar/message-thread-modal-avatar.component";
-import { getCreatorFirstName } from "@/common/utils/creator-name.util";
 
 const MessageThreadModal = ({
   isOpen,
@@ -225,7 +226,7 @@ const MessageThreadModal = ({
             </div>
           ) : null}
 
-          <div className="flex min-h-10 items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 sm:min-h-11">
+          <div className="flex flex-col overflow-hidden rounded-lg border border-solid border-gray-300 bg-white">
             {fileInputRef ? (
               <input
                 ref={fileInputRef}
@@ -236,73 +237,88 @@ const MessageThreadModal = ({
               />
             ) : null}
 
-            <div className="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                onClick={() => openFilePicker?.()}
-                disabled={isUploading || typeof openFilePicker !== "function"}
-                title="Attach file"
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-200 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8"
-              >
-                {isUploading ? (
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent sm:h-4 sm:w-4" />
-                ) : (
-                  <AttachFileIcon sx={{ fontSize: 17 }} />
-                )}
-              </button>
-              <button
-                ref={emojiButtonRef}
-                type="button"
-                onClick={handleToggleEmojiClick}
-                title="Emoji"
-                className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors sm:h-8 sm:w-8 ${
-                  actualShowEmojiPicker
-                    ? "border-primary/30 bg-primary/10 text-primary"
-                    : "border-gray-200 bg-gray-100 text-gray-600 hover:border-gray-300 hover:bg-gray-200 hover:text-primary"
-                }`}
-              >
-                <Smile className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.75} />
-              </button>
-              {showTemplatesButton ? (
-                <button
-                  type="button"
-                  onClick={openTemplatesModal}
-                  title="Templates"
-                  className="flex h-7 items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-1.5 text-primary transition-colors hover:border-primary/30 hover:bg-primary/15 sm:h-8 sm:px-2"
-                >
-                  <LayoutTemplate className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={1.75} />
-                  <span className="text-[10px] font-semibold leading-none sm:text-xs">Templates</span>
-                </button>
-              ) : null}
-            </div>
-            <input
-              type="text"
-              placeholder="Type your message..."
-              className="min-w-0 flex-1 bg-transparent px-1.5 py-2 text-sm leading-snug focus:outline-none sm:px-2 sm:py-2.5 sm:text-base"
+            <TextArea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress ?? undefined}
+              onKeyDown={handleKeyPress ?? undefined}
+              placeholder="Type your message..."
               disabled={isSending || isUploading}
+              minRows={2}
+              maxRows={8}
+              className="!rounded-none !border-0 !bg-transparent !px-2.5 !py-2 !shadow-none hover:!border-0 normal-case focus:!border-0 focus:!border-transparent focus:!outline-none focus:!ring-0 focus-visible:!outline-none focus-visible:!ring-0 sm:!px-3 sm:!py-2.5"
             />
-            <div className="shrink-0 pr-0.5">
-              <button
-                type="button"
-                className={`flex h-7 w-7 items-center justify-center rounded-full sm:h-8 sm:w-8 ${
-                  (newMessage.trim() || attachmentPreview) && !isSending && !isUploading
-                    ? "bg-primary text-white shadow-sm"
-                    : "bg-gray-200 text-gray-400"
-                }`}
-                onClick={sendMessage}
-                disabled={(!newMessage.trim() && !attachmentPreview) || isSending || isUploading}
-              >
-                {isSending ? (
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent sm:h-4 sm:w-4" />
-                ) : (
-                  <SendIcon fontSize="small" className="h-4 w-4" />
-                )}
-              </button>
+
+            <div className="flex items-center justify-between gap-2 border-t border-solid border-gray-300 px-1.5 pb-1.5 pt-1.5 sm:px-2 sm:pb-2 sm:pt-2">
+              <div className="flex min-w-0 shrink items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => openFilePicker?.()}
+                  disabled={isUploading || typeof openFilePicker !== "function"}
+                  title="Attach file"
+                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-200 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8"
+                >
+                  {isUploading ? (
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent sm:h-4 sm:w-4" />
+                  ) : (
+                    <AttachFileIcon sx={{ fontSize: 17 }} />
+                  )}
+                </button>
+                <button
+                  ref={emojiButtonRef}
+                  type="button"
+                  onClick={handleToggleEmojiClick}
+                  title="Emoji"
+                  className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors sm:h-8 sm:w-8 ${
+                    actualShowEmojiPicker
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-gray-200 bg-gray-100 text-gray-600 hover:border-gray-300 hover:bg-gray-200 hover:text-primary"
+                  }`}
+                >
+                  <Smile className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.75} />
+                </button>
+                {showTemplatesButton ? (
+                  <button
+                    type="button"
+                    onClick={openTemplatesModal}
+                    title="Templates"
+                    className="flex h-7 items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-1.5 text-primary transition-colors hover:border-primary/30 hover:bg-primary/15 sm:h-8 sm:px-2"
+                  >
+                    <LayoutTemplate
+                      className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4"
+                      strokeWidth={1.75}
+                    />
+                    <span className="text-[10px] font-semibold leading-none sm:text-xs">
+                      Templates
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+              <div className="flex min-w-0 shrink-0 items-center gap-2">
+                <p className="hidden text-[10px] leading-snug text-gray-400 sm:block sm:text-xs">
+                  Enter to send · Shift+Enter for new line
+                </p>
+                <button
+                  type="button"
+                  className={`flex h-7 w-7 items-center justify-center rounded-full sm:h-8 sm:w-8 ${
+                    (newMessage.trim() || attachmentPreview) && !isSending && !isUploading
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-gray-200 text-gray-400"
+                  }`}
+                  onClick={sendMessage}
+                  disabled={(!newMessage.trim() && !attachmentPreview) || isSending || isUploading}
+                >
+                  {isSending ? (
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent sm:h-4 sm:w-4" />
+                  ) : (
+                    <SendIcon fontSize="small" className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
+          <p className="mt-1 text-[10px] leading-snug text-gray-400 sm:hidden">
+            Enter to send · Shift+Enter for new line
+          </p>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ export default function DiscountCodeTracking({
     isDemo,
     demoManageMessage,
     isLoading,
+    isRefreshing,
     liveCode,
     historyCodes,
     isCodeCopied,
@@ -67,7 +68,6 @@ export default function DiscountCodeTracking({
 
   if (!isAffiliate) return null;
 
-  const showCreatorRefresh = !isManageEnabled;
   const trackingEndLabel = formatDisplayDate(trackingEndDate);
   const payoutLabel = formatDisplayDate(payoutDate);
   const previewPayoutLabel = formatDisplayDate(previewPayoutDate);
@@ -92,11 +92,11 @@ export default function DiscountCodeTracking({
     <button
       type="button"
       className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-      aria-label="Refresh shopper code"
+      aria-label="Refresh shopper code, commission, and product status"
       onClick={handleRefreshCodes}
-      disabled={isLoading}
+      disabled={isRefreshing}
     >
-      {isLoading ? (
+      {isRefreshing ? (
         <CircularProgress size={14} className="text-primary" />
       ) : (
         <RefreshCw className="h-4 w-4" />
@@ -139,9 +139,7 @@ export default function DiscountCodeTracking({
                   {liveCode.code}
                 </p>
               ) : (
-                <span className="text-xs font-semibold text-gray-900 sm:text-sm">
-                  Creating
-                </span>
+                <span className="text-xs font-semibold text-gray-900 sm:text-sm">Creating</span>
               )}
             </div>
             <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 sm:text-xs">
@@ -202,7 +200,7 @@ export default function DiscountCodeTracking({
     return (
       <div className="space-y-2">
         <div className="flex flex-nowrap items-center justify-between gap-2">
-          <p className="min-w-0 truncate bg-gray-200 p-2 rounded-lg text-xs font-semibold text-gray-900 sm:text-sm">
+          <p className="min-w-0 truncate bg-primary p-2 rounded-lg text-xs font-semibold text-white">
             {liveCode.code}
           </p>
           <div className="relative flex shrink-0 items-center gap-0.5" ref={manageMenuRef}>
@@ -266,7 +264,7 @@ export default function DiscountCodeTracking({
     <div className="rounded border border-gray-200 bg-white p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="min-w-0 text-sm font-semibold text-gray-800">{title}</h4>
-        {showCreatorRefresh ? renderRefreshButton() : null}
+        {renderRefreshButton()}
       </div>
       {trackingPaused ? (
         <p className="mb-2 text-[10px] text-gray-500 sm:text-xs">Tracking paused</p>
@@ -278,27 +276,27 @@ export default function DiscountCodeTracking({
         </div>
       ) : null}
       {hasUsageCap ? (
-        <p className="mt-2 text-[10px] text-gray-600 sm:text-xs">
+        <p className="flex justify-end mt-2 text-[10px] text-gray-600 sm:text-xs">
           {Number(usageCount) || 0} of {Number(usageCap)} used
         </p>
       ) : null}
       {isManageEnabled && trackingEndLabel ? (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-gray-100 px-2.5 py-2">
           <div className="min-w-0">
-            <p className="text-[10px] text-gray-600 sm:text-xs">
-              Tracking ends {trackingEndLabel}
-            </p>
+            <p className="text-[10px] text-gray-600 sm:text-xs">Tracking ends {trackingEndLabel}</p>
             {payoutLabel ? (
               <p className="text-[10px] text-gray-500 sm:text-xs">Payout {payoutLabel}</p>
             ) : null}
           </div>
           {canExtendTracking ? (
-            <CustomButton
-              text="Extend"
-              className="btn-outline"
+            <button
+              type="button"
+              className="shrink-0 rounded px-2 py-1 text-[10px] font-semibold text-primary hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 sm:text-xs"
               onClick={handleOpenExtend}
               disabled={isManageActionLoading}
-            />
+            >
+              Extend
+            </button>
           ) : null}
         </div>
       ) : null}
@@ -370,12 +368,7 @@ export default function DiscountCodeTracking({
         </div>
       </Modal>
 
-      <Modal
-        show={showExtendModal}
-        onClose={handleCloseExtend}
-        title="Extend tracking"
-        size="sm"
-      >
+      <Modal show={showExtendModal} onClose={handleCloseExtend} title="Extend tracking" size="sm">
         <div className="space-y-3">
           <CustomInput
             label="New tracking end date"
