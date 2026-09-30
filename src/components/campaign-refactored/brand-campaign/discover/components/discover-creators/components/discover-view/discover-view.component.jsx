@@ -1,12 +1,14 @@
 import { Loader2 } from "lucide-react";
 import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.component";
-import CustomButton from "@/common/components/custom-button/custom-button.component";
 import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
 import PageHeader from "../page-header/page-header.component";
 import ActiveFilters from "../active-filters/active-filters.component";
 import CreatorGrid from "../creator-grid/creator-grid.component";
 import NicheCategory from "../niche-category/niche-category.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+
+const paginationBtnClass =
+  "inline-flex h-7 items-center justify-center gap-1.5 px-2.5 text-xs font-medium font-dm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
 const DiscoverView = ({
   isDiscoverInitialLoading = false,
@@ -50,33 +52,30 @@ const DiscoverView = ({
   const shownCreatorsCount = creators.length;
   const totalCount = totalCreatorsCount || shownCreatorsCount;
   const progressValue = totalCount > 0 ? Math.min((shownCreatorsCount / totalCount) * 100, 100) : 0;
+  const showLoadMore = hasMoreCreators && shownCreatorsCount < totalCount;
+  const paginationBusy = isLoadingMore || isDiscoverRefetching;
 
-  const loadMoreSection = hasMoreCreators ? (
-    <div className="sticky bottom-2 z-[5] rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">
-            Showing {shownCreatorsCount} of {totalCount} creators
-          </p>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600 sm:text-xs">
-            {Math.round(progressValue)}%
-          </span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressValue}%` }}
-            aria-hidden
-          />
-        </div>
-        <CustomButton
-          text="Load More"
-          onClick={onLoadMore}
-          loading={isLoadingMore}
-          disabled={isDiscoverRefetching}
-          className="btn-primary w-full sm:w-auto sm:min-w-[132px] sm:self-end"
+  const loadMoreSection = showLoadMore ? (
+    <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 border-t border-gray-100 pt-3">
+      <p className="text-xs text-gray-500">
+        {shownCreatorsCount} of {totalCount}
+      </p>
+      <div className="h-1 w-20 overflow-hidden rounded-full bg-gray-200 sm:w-28">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-300"
+          style={{ width: `${progressValue}%` }}
+          aria-hidden
         />
       </div>
+      <button
+        type="button"
+        onClick={onLoadMore}
+        disabled={paginationBusy}
+        className={`${paginationBtnClass} rounded-md bg-primary`}
+      >
+        {isLoadingMore ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden /> : null}
+        Load More
+      </button>
     </div>
   ) : null;
 

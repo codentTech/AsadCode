@@ -139,11 +139,11 @@ const CreatorCard = ({
       </div>
 
       <div
-        className={`relative z-10 flex flex-col px-4 pb-4 ${
+        className={`relative z-[1] flex flex-col px-4 pb-4 ${
           isShortlist || isApplicationsTab ? "min-h-0 flex-1" : ""
         }`}
       >
-        <div className="absolute left-1/2 top-[-55px] z-10 -translate-x-1/2">
+        <div className="absolute left-1/2 top-[-55px] z-[1] -translate-x-1/2">
           <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-white bg-primary shadow-sm">
             {creator.profileImage ? (
               <>
