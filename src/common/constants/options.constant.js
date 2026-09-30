@@ -74,7 +74,7 @@ export const NICHE_OPTIONS = [
 export const DISCOVER_CREATORS_DEFAULT_SORT_BY = "followers";
 
 export const SORT_BY_OPTIONS = [
-  { value: "followers", label: "Followers" },
+  { value: "followers", label: "Most Followers" },
   { value: "rating", label: "Rating" },
   { value: "engagement", label: "Engagement Rate" },
 ];
