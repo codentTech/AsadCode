@@ -1,5 +1,8 @@
 import { FileText } from "lucide-react";
 
+const messageTextClassName =
+  "whitespace-pre-wrap break-words text-[11px] leading-relaxed sm:text-sm";
+
 const MessageThreadMessageBody = ({ message }) => {
   if (message.message_type === "IMAGE" && message.attachment_url) {
     return (
@@ -10,7 +13,9 @@ const MessageThreadMessageBody = ({ message }) => {
           className="max-w-[220px] cursor-pointer rounded-lg transition-opacity hover:opacity-90 sm:max-w-xs"
           onClick={() => window.open(message.attachment_url, "_blank")}
         />
-        {message.content ? <p className="text-[11px] sm:text-sm">{message.content}</p> : null}
+        {message.content ? (
+          <div className={messageTextClassName}>{message.content}</div>
+        ) : null}
       </div>
     );
   }
@@ -31,7 +36,7 @@ const MessageThreadMessageBody = ({ message }) => {
     );
   }
 
-  return <p className="text-[11px] leading-relaxed sm:text-sm">{message.content}</p>;
+  return <div className={messageTextClassName}>{message.content}</div>;
 };
 
 export default MessageThreadMessageBody;
