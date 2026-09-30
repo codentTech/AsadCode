@@ -9,6 +9,7 @@ import CampaignBriefModal from "../../../applications/components/campaign-brief-
 import CreatorTimelineSteps from "../creator-timeline/creator-timeline.component";
 import DiscountCodeTracking from "@/components/campaign-refactored/brand-campaign/active/components/deliverables-progress/components/discount-code-tracking/discount-code-tracking.component";
 import CommissionTally from "@/components/campaign-refactored/brand-campaign/active/components/deliverables-progress/components/commission-tally/commission-tally.component";
+import CreatorFulfilmentStatus from "./components/creator-fulfilment-status/creator-fulfilment-status.component";
 import { CAMPAIGN_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 import useCampaignDetail from "./use-campaign-detail.hook";
 
@@ -381,6 +382,13 @@ const CampaignDetail = ({ selectedCampaign, isLoading }) => {
                 title="Your commission"
               />
             </>
+          ) : null}
+
+          {selectedContract ? (
+            <CreatorFulfilmentStatus
+              selectedCampaign={campaign?.campaign || campaign}
+              selectedContract={selectedContract}
+            />
           ) : null}
 
           {/* Campaign Progress - Only for CleerCut campaigns */}

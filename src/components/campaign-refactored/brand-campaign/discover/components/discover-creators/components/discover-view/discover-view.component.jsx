@@ -106,7 +106,7 @@ const DiscoverView = ({
         />
       )}
 
-      {hasActiveFilters() || searchKeyword ? (
+      {hasActiveFilters() || searchKeyword || selectedSort ? (
         <div className="space-y-4 relative min-h-[280px]">
           {isDiscoverRefetching ? (
             <div

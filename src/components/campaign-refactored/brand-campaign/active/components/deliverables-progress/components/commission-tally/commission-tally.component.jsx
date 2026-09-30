@@ -33,13 +33,13 @@ export default function CommissionTally({
           <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">
             Attributed sales
           </span>
-          <span className="text-sm font-bold tabular-nums text-gray-900 sm:text-base md:text-lg">
+          <span className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
             {formatMoney(tally?.salesTotal)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2 rounded-md bg-gray-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
           <span className="text-[10px] font-semibold text-gray-600 sm:text-xs">Commission</span>
-          <span className="text-sm font-bold tabular-nums text-gray-900 sm:text-base md:text-lg">
+          <span className="text-sm font-bold tabular-nums text-gray-900 sm:text-base">
             {formatMoney(tally?.commissionTotal)}
           </span>
         </div>

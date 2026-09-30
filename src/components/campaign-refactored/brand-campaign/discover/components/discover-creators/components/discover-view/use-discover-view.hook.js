@@ -22,7 +22,7 @@ function useDiscoverView({
   );
 
   useEffect(() => {
-    if (!hasMoreCreators) {
+    if (!hasMoreCreators || shownCreatorsCount >= totalCount) {
       setShowLoadMoreAtEnd(false);
       return undefined;
     }
@@ -43,11 +43,15 @@ function useDiscoverView({
     hasMoreCreators,
     scrollContainerRef,
     creators.length,
+    shownCreatorsCount,
+    totalCount,
     (nicheCategories ?? []).length,
     isDiscoverInitialLoading,
   ]);
 
-  const showLoadMoreBar = Boolean(hasMoreCreators && showLoadMoreAtEnd);
+  const showLoadMoreBar = Boolean(
+    hasMoreCreators && shownCreatorsCount < totalCount && showLoadMoreAtEnd
+  );
 
   return {
     loadMoreAnchorRef,

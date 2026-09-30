@@ -203,18 +203,26 @@ export default function useDiscoverCreators() {
           : mappedCreators;
         const resolvedTotal =
           Number.isFinite(totalHint) && totalHint > 0
-            ? totalHint
+            ? Math.max(totalHint, nextCreators.length)
             : Math.max(
-                nextCreators.length + (nextCursor || mappedCreators.length >= DISCOVER_PAGE_LIMIT ? DISCOVER_PAGE_LIMIT : 0),
+                nextCreators.length +
+                  (nextCursor || mappedCreators.length >= DISCOVER_PAGE_LIMIT
+                    ? DISCOVER_PAGE_LIMIT
+                    : 0),
                 nextCreators.length
               );
-        setHasMoreCreators(
-          Boolean(nextCursor) || nextCreators.length < resolvedTotal
-        );
+        // Trust cursor from API; lock total when the last page arrives.
+        const hasMore = Boolean(nextCursor);
+        setHasMoreCreators(hasMore);
         setNicheCategories(groupCreatorsByNiche(nextCreators));
-        if (!Number.isFinite(totalHint) || totalHint <= 0) {
+        if (!nextCursor) {
+          setTotalCreatorsCount(nextCreators.length);
+        } else if (Number.isFinite(totalHint) && totalHint > 0) {
+          setTotalCreatorsCount(Math.max(totalHint, nextCreators.length));
+        } else {
           setTotalCreatorsCount(resolvedTotal);
         }
+
         return nextCreators;
       });
     },
