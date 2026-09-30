@@ -5,10 +5,13 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import TextArea from "@/common/components/text-area/text-area.component";
 import { campaignTitle, formatCreatorFeeForDisplay } from "@/common/utils/campaign.utils";
 import Niche from "@/components/niche/niche";
-import { DollarSign, Filter, Gift, RotateCcw, Users, Zap } from "lucide-react";
+import { DollarSign, Filter, Gift, Loader2, RotateCcw, Users, Zap } from "lucide-react";
 import CampaignBriefModal from "../../../applications/components/campaign-brief-modal/campaign-brief-modal.component";
 import CampaignCardSkeleton from "./campaign-card-skeleton.component";
 import { useRouter } from "next/navigation";
+
+const paginationBtnClass =
+  "inline-flex h-7 items-center justify-center gap-1.5 px-2.5 text-xs font-medium font-dm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
 function CampaignFeed({
   sortBy,
@@ -47,6 +50,7 @@ function CampaignFeed({
   const totalCount = totalCampaigns || shownCampaignsCount;
   const progressValue =
     totalCount > 0 ? Math.min((shownCampaignsCount / totalCount) * 100, 100) : 0;
+  const showLoadMore = hasMoreCampaigns && shownCampaignsCount < totalCount;
 
   const sortOptions = [
     { value: "latest", label: "Latest" },
@@ -273,32 +277,29 @@ function CampaignFeed({
           })
         )}
 
-        {!isLoading && sortedCampaigns.length > 0 && hasMoreCampaigns && (
-          <div className="sticky bottom-2 z-[5] col-span-1 rounded-xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:bottom-3 sm:p-4 lg:col-span-2">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold text-gray-800 sm:text-xs">
-                  Showing {shownCampaignsCount} of {totalCount} campaigns
-                </p>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600 sm:text-xs">
-                  {Math.round(progressValue)}%
-                </span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
-                  style={{ width: `${progressValue}%` }}
-                  aria-hidden
-                />
-              </div>
-              <CustomButton
-                text="Load More"
-                className="btn-primary w-full sm:w-auto sm:min-w-[132px] sm:self-end"
-                onClick={handleLoadMore}
-                loading={isLoadingMore}
-                disabled={isLoadingMore}
+        {!isLoading && sortedCampaigns.length > 0 && showLoadMore && (
+          <div className="col-span-1 mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 border-t border-gray-100 pt-3 lg:col-span-2">
+            <p className="text-xs text-gray-500">
+              {shownCampaignsCount} of {totalCount}
+            </p>
+            <div className="h-1 w-20 overflow-hidden rounded-full bg-gray-200 sm:w-28">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${progressValue}%` }}
+                aria-hidden
               />
             </div>
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className={`${paginationBtnClass} rounded-md bg-primary`}
+            >
+              {isLoadingMore ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+              ) : null}
+              Load More
+            </button>
           </div>
         )}
       </div>
