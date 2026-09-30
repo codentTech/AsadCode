@@ -8,15 +8,19 @@ import {
 import {
   deactivateShopifyDiscountCode,
   extendShopifyDiscountTracking,
+  getShopifyCommissionTally,
   getShopifyDiscountCodes,
+  getShopifyFulfilment,
   killAndReissueShopifyDiscountCode,
   reactivateShopifyDiscountCode,
   renameShopifyDiscountCode,
   resetShopifyExtendDiscountTracking,
   resetShopifyKillAndReissueDiscountCode,
   resetShopifyRenameDiscountCode,
+  selectShopifyCommissionTallyState,
   selectShopifyDiscountCodesState,
   selectShopifyExtendDiscountTrackingState,
+  selectShopifyFulfilmentState,
 } from "@/provider/features/shopify/shopify.slice";
 
 const LIVE_STATUSES = new Set(["active", "pending", "deactivated"]);
@@ -51,6 +55,8 @@ export default function useDiscountCodeTracking({
 }) {
   const dispatch = useDispatch();
   const discountCodesState = useSelector(selectShopifyDiscountCodesState);
+  const commissionTallyState = useSelector(selectShopifyCommissionTallyState);
+  const fulfilmentState = useSelector(selectShopifyFulfilmentState);
   const renameState = useSelector((state) => state.shopify?.renameDiscountCode);
   const deactivateState = useSelector((state) => state.shopify?.deactivateDiscountCode);
   const reactivateState = useSelector((state) => state.shopify?.reactivateDiscountCode);
@@ -71,6 +77,11 @@ export default function useDiscountCodeTracking({
 
   const data = discountCodesState?.data;
   const isLoading = Boolean(discountCodesState?.isLoading);
+  const isRefreshing = Boolean(
+    discountCodesState?.isLoading ||
+      commissionTallyState?.isLoading ||
+      fulfilmentState?.isLoading
+  );
   const isRenameLoading = Boolean(renameState?.isLoading);
   const isDeactivateLoading = Boolean(deactivateState?.isLoading);
   const isReactivateLoading = Boolean(reactivateState?.isLoading);
@@ -254,9 +265,11 @@ export default function useDiscountCodeTracking({
   }, [liveCode?.code, isManageActionLoading]);
 
   const handleRefreshCodes = useCallback(() => {
-    if (!contractId || isLoading) return;
+    if (!contractId || isRefreshing) return;
     dispatch(getShopifyDiscountCodes(contractId));
-  }, [dispatch, contractId, isLoading]);
+    dispatch(getShopifyCommissionTally(contractId));
+    dispatch(getShopifyFulfilment(contractId));
+  }, [dispatch, contractId, isRefreshing]);
 
   const handleToggleManage = useCallback(() => {
     if (isManageActionLoading) return;
@@ -383,6 +396,7 @@ export default function useDiscountCodeTracking({
     isDemo,
     demoManageMessage: DEMO_MUTATION_MESSAGES.discountManage,
     isLoading,
+    isRefreshing,
     liveCode,
     historyCodes,
     isCodeCopied,
