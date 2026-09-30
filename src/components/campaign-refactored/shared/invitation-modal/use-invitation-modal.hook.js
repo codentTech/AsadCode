@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,11 +11,17 @@ const invitationSchema = yup.object({
   customMessage: yup.string().max(2000, "Message cannot exceed 2,000 characters"),
 });
 
-const useInvitationModal = () => {
+const useInvitationModal = ({ isOpen, onRefreshCampaigns } = {}) => {
   const dispatch = useDispatch();
   const { isLoading: isSending } = useSelector((state) => state.invitation?.sendInvitation || {});
 
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+
+  useEffect(() => {
+    if (isOpen && onRefreshCampaigns) {
+      onRefreshCampaigns();
+    }
+  }, [isOpen, onRefreshCampaigns]);
 
   const {
     register,
