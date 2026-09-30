@@ -2,6 +2,7 @@ import {
   DEFAULT_MESSAGE_TEMPLATE_CATEGORY,
   MESSAGE_TEMPLATE_CATEGORY_CONFIG,
   MESSAGE_TEMPLATE_CATEGORIES,
+  MESSAGE_TEMPLATE_LOCKED_GREETING,
 } from "@/common/constants/message-template.constant";
 
 export function normalizeTemplateCategory(category) {
@@ -32,7 +33,28 @@ export function getCategoryLabel(category) {
   );
 }
 
+export function resolveTemplatePlaceholders(message, creatorName) {
+  const resolvedName = creatorName?.trim() || "there";
+  return String(message || "")
+    .replace(/\{\{Name\}\}/gi, resolvedName)
+    .replace(/\{\{creator_name\}\}/gi, resolvedName);
+}
+
+const GREETING_PREFIX_PATTERN =
+  /^hey\s+(\{\{name\}\}|\{\{creator_name\}\}|[^\s,]+)\s*,\s*/i;
+
+export function stripLockedTemplateGreeting(body = "") {
+  return String(body || "").replace(GREETING_PREFIX_PATTERN, "").replace(/^\s+/, "");
+}
+
+export function composeTemplateBody(editableBody = "") {
+  const rest = stripLockedTemplateGreeting(editableBody).replace(/\s+$/, "");
+  return rest
+    ? `${MESSAGE_TEMPLATE_LOCKED_GREETING} ${rest}`
+    : MESSAGE_TEMPLATE_LOCKED_GREETING;
+}
+
 export function buildTemplateMessage(template, creatorName) {
-  const greeting = `Hey ${creatorName || "{{creator_name}}"},`;
-  return `${greeting} ${template.body}`;
+  const composed = composeTemplateBody(template?.body || "");
+  return resolveTemplatePlaceholders(composed, creatorName);
 }
