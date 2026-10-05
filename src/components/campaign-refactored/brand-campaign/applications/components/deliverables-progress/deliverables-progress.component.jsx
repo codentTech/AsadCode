@@ -102,26 +102,26 @@ const DeliverablesProgress = ({
                   key={platform.name}
                   type="button"
                   onClick={() => setSelectedPlatform(platform.name)}
-                  className={`relative flex items-center justify-between rounded-lg p-2 pr-3 transition-all w-full cursor-pointer hover:shadow-md
+                  className={`relative flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg p-2 pr-7 transition-all hover:shadow-md
                     ${isSelected ? "bg-indigo-50 border-2 border-indigo-600 shadow-md" : "bg-gray-100 border-2 border-transparent hover:border-gray-300"}
                   `}
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className={`${getPlatformColor(platform.name)} p-1 rounded-md`}>
+                  <div className="flex min-w-0 flex-1 items-center space-x-2">
+                    <span className={`${getPlatformColor(platform.name)} shrink-0 rounded-md p-1`}>
                       {getPlatformIcon(platform.name)}
                     </span>
-                    <div className="flex flex-col items-start">
-                      <span className="text-xs capitalize font-semibold text-primary">
+                    <div className="flex min-w-0 flex-col items-start">
+                      <span className="text-xs font-semibold capitalize text-primary">
                         {capitalizeFirstLetter(platform.name)}
                       </span>
                       {platform.username && (
-                        <span className="text-[10px] text-gray-500">
+                        <span className="max-w-full truncate text-[10px] text-gray-500">
                           @{platform.username}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className="shrink-0 text-sm font-bold tabular-nums text-gray-900">
                     {formatNumber(platform.followers)}
                   </div>
                   {(() => {
@@ -137,9 +137,9 @@ const DeliverablesProgress = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute right-1 top-3 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-primary"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : null;
                   })()}
