@@ -28,7 +28,7 @@ function CampaignShell() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 border-b border-gray-200">
-      <div className="fixed top-12 left-0 right-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+      <div className="fixed top-0 left-16 right-0 z-40 border-b border-gray-200 bg-white shadow-sm">
         {showDemoBanner ? <DemoCampaignBanner /> : null}
         <nav className="flex items-stretch gap-1 px-1.5 py-1.5 sm:gap-1.5 sm:px-2 sm:py-2 md:gap-2 md:px-3">
           {mobileSlot ? (
