@@ -37,6 +37,7 @@ import emailPreferencesReducer from "./features/email-preferences/email-preferen
 import messageTemplatesReducer from "./features/message-templates/message-templates.slice";
 import shopifyReducer from "./features/shopify/shopify.slice";
 import campaignReportReducer from "./features/campaign-report/campaign-report.slice";
+import contentLibraryReducer from "./features/content-library/content-library.slice";
 
 const defaultAdminDashboardSummary = {
   data: null,
@@ -119,6 +120,7 @@ const appReducer = combineReducers({
   messageTemplates: messageTemplatesReducer,
   shopify: shopifyReducer,
   campaignReport: campaignReportReducer,
+  contentLibrary: contentLibraryReducer,
 });
 
 export const APP_RESET_ACTION = "app/reset";
