@@ -37,9 +37,11 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
           isRequired
         />
         <p className="-mt-3 text-[10px] leading-snug text-gray-500 sm:text-xs">
-          Paste a link to a post from your connected account. We pull the caption, metrics, and
-          (when available) top comments from the network. Instagram often blocks copying the video
-          file to CleerCut; use Upload File for a hosted copy and transcription.
+          Paste a link to a post from your connected account. YouTube Shorts and
+          regular videos both work (shorts or watch links). We pull the caption,
+          metrics, and (when available) media. Instagram often blocks copying the
+          video file to CleerCut; use Upload File for a hosted copy and
+          transcription.
         </p>
 
         {nicheOptions.length > 0 && (
@@ -60,11 +62,9 @@ export default function ImportPostModal({ show, onClose, niches = [] }) {
             text="Import Post"
             type="submit"
             loading={isLoading}
-            loadingText="Importing your post..."
+            loadingText="Importing your post"
             disabled={
-              isLoading ||
-              !formData.post_url?.trim() ||
-              (requiresNiche && !formData.niche_id)
+              isLoading || !formData.post_url?.trim() || (requiresNiche && !formData.niche_id)
             }
           />
         </div>

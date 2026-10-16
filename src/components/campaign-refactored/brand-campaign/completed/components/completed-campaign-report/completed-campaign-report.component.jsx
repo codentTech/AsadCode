@@ -17,6 +17,7 @@ import {
   YAxis,
 } from "recharts";
 import useCompletedCampaignReport from "./use-completed-campaign-report.hook";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 
 const AGE_COLORS = ["#16273F", "#3D5878", "#6C87A3", "#A9BDD0"];
 const FEMALE = "#E9B9C7";
@@ -551,71 +552,75 @@ function RehireSection({ rehire, formatCurrency }) {
   if (!rehire) return null;
   const suppressScore = Boolean(rehire.suppressNumericScore);
 
+  const columns = [
+    {
+      key: "creatorName",
+      label: "Creator",
+      render: (r) => <CreatorCell name={r.creatorName} avatarUrl={r.avatarUrl} />,
+    },
+    { key: "paymentLabel", label: "Payment" },
+    {
+      key: "score",
+      label: "Score",
+      align: "right",
+      render: (r) => {
+        if (suppressScore) {
+          return <span className="italic text-[#8A8985]">Not ranked</span>;
+        }
+        if (r.insufficientData) {
+          return <span className="italic text-[#8A8985]">Insufficient data</span>;
+        }
+        return r.score;
+      },
+    },
+    {
+      key: "cost",
+      label: "Cost/view",
+      align: "right",
+      render: (r) => (
+        <span>
+          {formatCurrency(r.costPerView)}
+          <span className="block text-[10px] text-[#8A8985]">
+            Cost/eng. {formatCurrency(r.costPerEngagement)}
+          </span>
+        </span>
+      ),
+    },
+    { key: "onTimeLabel", label: "On-time" },
+    {
+      key: "revisions",
+      label: "Revisions",
+      align: "right",
+      render: (r) => (r.revisions == null ? "-" : r.revisions),
+    },
+    {
+      key: "avgResponseHours",
+      label: "Avg response",
+      align: "right",
+      render: (r) => (r.avgResponseHours == null ? "-" : `${r.avgResponseHours}h`),
+    },
+  ];
+
+  if (!HIDE_CREATOR_RATING_UI) {
+    columns.push({
+      key: "rating",
+      label: "Rating*",
+      align: "right",
+      render: (r) => (r.rating == null ? "-" : r.rating),
+    });
+  }
+
   return (
     <div className="space-y-5">
       <p className="rounded-lg bg-[#F5F5F4] px-3 py-2 text-[11.5px] leading-snug text-[#5A5955]">
         {rehire.scoreNote}
       </p>
-      <ReportTable
-        columns={[
-          {
-            key: "creatorName",
-            label: "Creator",
-            render: (r) => <CreatorCell name={r.creatorName} avatarUrl={r.avatarUrl} />,
-          },
-          { key: "paymentLabel", label: "Payment" },
-          {
-            key: "score",
-            label: "Score",
-            align: "right",
-            render: (r) => {
-              if (suppressScore) {
-                return <span className="italic text-[#8A8985]">Not ranked</span>;
-              }
-              if (r.insufficientData) {
-                return <span className="italic text-[#8A8985]">Insufficient data</span>;
-              }
-              return r.score;
-            },
-          },
-          {
-            key: "cost",
-            label: "Cost/view",
-            align: "right",
-            render: (r) => (
-              <span>
-                {formatCurrency(r.costPerView)}
-                <span className="block text-[10px] text-[#8A8985]">
-                  Cost/eng. {formatCurrency(r.costPerEngagement)}
-                </span>
-              </span>
-            ),
-          },
-          { key: "onTimeLabel", label: "On-time" },
-          {
-            key: "revisions",
-            label: "Revisions",
-            align: "right",
-            render: (r) => (r.revisions == null ? "-" : r.revisions),
-          },
-          {
-            key: "avgResponseHours",
-            label: "Avg response",
-            align: "right",
-            render: (r) => (r.avgResponseHours == null ? "-" : `${r.avgResponseHours}h`),
-          },
-          {
-            key: "rating",
-            label: "Rating*",
-            align: "right",
-            render: (r) => (r.rating == null ? "-" : r.rating),
-          },
-        ]}
-        rows={rehire.scorecard || []}
-      />
-      <p className="text-[11.5px] italic leading-relaxed text-[#8A8985]">
-        *{rehire.ratingFootnote}
-      </p>
+      <ReportTable columns={columns} rows={rehire.scorecard || []} />
+      {!HIDE_CREATOR_RATING_UI ? (
+        <p className="text-[11.5px] italic leading-relaxed text-[#8A8985]">
+          *{rehire.ratingFootnote}
+        </p>
+      ) : null}
 
       {rehire.internalNotes?.length ? (
         <div>

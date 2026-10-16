@@ -5,6 +5,7 @@ import NotFound from "@/common/components/not-found/not-found.component";
 import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { sortOptions } from "@/common/constants/auth.constant";
 import { ExternalLink, LayoutGrid, MapPin, Star } from "lucide-react";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import { useCreatorSpendAnalysisCompleted } from "./use-creator-spend-analysis.hook";
 
 function PairedMetricBox({ label, primary, secondaryLabel, secondary }) {
@@ -369,24 +370,26 @@ const CreatorSpendAnalysisCompleted = ({
                                   ) : null}
                                 </div>
                                 <div className="flex flex-wrap items-center justify-between gap-2">
-                                  <div className="flex items-center gap-2 text-[10px] text-gray-600 sm:text-xs">
-                                    <span className="inline-flex items-center">
-                                      {[...Array(5)].map((_, i) => (
-                                        <Star
-                                          key={i}
-                                          className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                                            i < Math.floor(creator.rating || 0)
-                                              ? "fill-current text-yellow-400"
-                                              : "text-gray-300"
-                                          }`}
-                                        />
-                                      ))}
-                                    </span>
-                                    <span>{(creator.rating || 0).toFixed(1)}</span>
-                                    <span className="text-gray-500">
-                                      ({creator.reviewCount ?? 0} reviews)
-                                    </span>
-                                  </div>
+                                  {!HIDE_CREATOR_RATING_UI ? (
+                                    <div className="flex items-center gap-2 text-[10px] text-gray-600 sm:text-xs">
+                                      <span className="inline-flex items-center">
+                                        {[...Array(5)].map((_, i) => (
+                                          <Star
+                                            key={i}
+                                            className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                                              i < Math.floor(creator.rating || 0)
+                                                ? "fill-current text-yellow-400"
+                                                : "text-gray-300"
+                                            }`}
+                                          />
+                                        ))}
+                                      </span>
+                                      <span>{(creator.rating || 0).toFixed(1)}</span>
+                                      <span className="text-gray-500">
+                                        ({creator.reviewCount ?? 0} reviews)
+                                      </span>
+                                    </div>
+                                  ) : null}
                                   {showMetrics && creatorMetrics?.publishedUrl ? (
                                     <a
                                       href={creatorMetrics.publishedUrl}
@@ -460,26 +463,30 @@ const CreatorSpendAnalysisCompleted = ({
                               </div>
 
                               <div className="mb-3 flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <div className="flex items-center text-xs">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className={`h-4 w-4 ${
-                                          i < Math.floor(creator.rating || 0)
-                                            ? "fill-current text-yellow-400"
-                                            : "text-gray-300"
-                                        }`}
-                                      />
-                                    ))}
+                                {!HIDE_CREATOR_RATING_UI ? (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex items-center text-xs">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          className={`h-4 w-4 ${
+                                            i < Math.floor(creator.rating || 0)
+                                              ? "fill-current text-yellow-400"
+                                              : "text-gray-300"
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                    <span className="text-xs text-gray-600">
+                                      {(creator.rating || 0).toFixed(1)}
+                                    </span>
+                                    <span className="text-xs text-gray-600">
+                                      ({creator.reviewCount ?? 0} reviews)
+                                    </span>
                                   </div>
-                                  <span className="text-xs text-gray-600">
-                                    {(creator.rating || 0).toFixed(1)}
-                                  </span>
-                                  <span className="text-xs text-gray-600">
-                                    ({creator.reviewCount ?? 0} reviews)
-                                  </span>
-                                </div>
+                                ) : (
+                                  <div />
+                                )}
                                 <div className="pr-4">
                                   {showMetrics && creatorMetrics?.publishedUrl ? (
                                     <a

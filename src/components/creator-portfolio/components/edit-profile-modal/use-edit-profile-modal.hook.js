@@ -31,6 +31,7 @@ const INITIAL_PROFILE_STATE = {
   handle: "",
   location: "",
   bio: "",
+  longBio: "",
   profilePic: null,
   profilePicLoading: false,
   miniCards: [null, null, null],
@@ -62,6 +63,11 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
       handle: creator.handle || "",
       location: creator.location || "",
       bio: creator.bio || "",
+      longBio:
+        creator.longBio ||
+        creator.long_bio ||
+        creator?.user?.creator_profile?.long_bio ||
+        "",
       profilePic: creator.profilePic || null,
       profilePicLoading: false,
       miniCards: (() => {
@@ -160,6 +166,7 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
       profilePhotoUrl: profileData.profilePic,
       miniProfilePictures: profileData.miniCards.filter((card) => card !== null),
       bio: profileData.bio,
+      longBio: profileData.longBio?.trim() || "",
       socialPlatforms: creator?.user?.creator_profile?.social_platforms || [],
       categories: profileData.niches,
       keywordTags: creator?.user?.creator_profile?.keyword_tags || [],
@@ -189,6 +196,7 @@ const useEditProfileModal = ({ creator, onClose, onSave, isOpen, focusShowcaseSe
         );
         currentUser.creator_profile.profile_photo_url = profileData.profilePic;
         currentUser.creator_profile.bio = profileData.bio;
+        currentUser.creator_profile.long_bio = profileData.longBio?.trim() || null;
         currentUser.creator_profile.categories = profileData.niches;
         currentUser.creator_profile.media_kit_url = profileData.mediaKitUrl?.trim() || null;
         currentUser.miniProfilePictures = profileData.miniCards.filter((card) => card !== null);

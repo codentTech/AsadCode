@@ -274,12 +274,38 @@ export const campaignHasGeographyRequirement = (campaign = {}) => {
   return hasCountries || hasLegacyCountry || hasCity;
 };
 
+export const formatDeliverableLabel = (deliverable) => {
+  if (deliverable == null) return "";
+  if (typeof deliverable === "string") return deliverable.trim();
+  if (typeof deliverable !== "object") return String(deliverable).trim();
+
+  if (deliverable.displayText) return String(deliverable.displayText).trim();
+  if (deliverable.deliverable) return String(deliverable.deliverable).trim();
+  if (deliverable.label) return String(deliverable.label).trim();
+  if (deliverable.text) {
+    const quantity = deliverable.quantity != null && deliverable.quantity !== ""
+      ? `${deliverable.quantity} `
+      : "";
+    return `${quantity}${deliverable.text}`.trim();
+  }
+
+  return "";
+};
+
 export const createTagArray = (items = [], prefix = "item") =>
-  items.map((item, index) => ({
-    id: `${prefix}-${index}`,
+  (Array.isArray(items) ? items : [])
+    .map((item, index) => ({
+      id: `${prefix}-${index}`,
     label:
-      typeof item === "string" ? item : item?.displayText || item?.text || JSON.stringify(item),
-  }));
+      typeof item === "string"
+        ? item.trim()
+        : formatDeliverableLabel(item) ||
+          item?.displayText ||
+          item?.text ||
+          item?.label ||
+          "",
+  }))
+    .filter((item) => Boolean(item.label));
 
 export const createPlatformMinimums = (platformMinimums = {}, formatNumber) =>
   Object.entries(platformMinimums)
@@ -382,30 +408,29 @@ const calculateCreatorFee = (data) => {
     data?.campaign_type === CAMPAIGN_TYPE.UGC
   ) {
     if (data.compensation_type === COMPENSATION_TYPE.PAID) {
-      if (data.creator_fixed_price != null && data.creator_fixed_price > 0) {
-        return data.creator_fixed_price;
+      const fixedPrice = toNumber(data.creator_fixed_price);
+      if (fixedPrice != null && fixedPrice > 0) {
+        return fixedPrice;
       }
-      if (data.suggested_min != null || data.suggested_max != null) {
-        const min = data.suggested_min ?? data.suggested_max ?? 0;
-        const max = data.suggested_max ?? data.suggested_min ?? 0;
-        return `${min}-${max}`;
+
+      // Suggested range is stored on suggested_min / suggested_max.
+      // creator_fee must stay a single number for the API (decimal column + @IsNumber).
+      const suggestedMin = toNumber(data.suggested_min);
+      const suggestedMax = toNumber(data.suggested_max);
+      if (suggestedMin != null || suggestedMax != null) {
+        return suggestedMax ?? suggestedMin ?? 0;
       }
       return 0;
-    }
-    if (data.suggested_min != null || data.suggested_max != null) {
-      const min = data.suggested_min ?? data.suggested_max ?? 0;
-      const max = data.suggested_max ?? data.suggested_min ?? 0;
-      return `${min}-${max}`;
     }
     return 0;
   }
 
   if (data.campaign_type === CAMPAIGN_TYPE.GIFTED) {
-    return data.product_value || 0;
+    return toNumber(data.product_value) || 0;
   }
 
   if (data.campaign_type === CAMPAIGN_TYPE.AFFILIATE) {
-    return data.commission_percentage || 0;
+    return toNumber(data.commission_percentage) || commissionPayment || 0;
   }
 
   return 0;
@@ -569,8 +594,8 @@ export const transformDataForAPI = (data) => {
     questions: sanitizeStrings(data.questions),
 
     creator_fee: (() => {
-      const fee = calculateCreatorFee(data);
-      return typeof fee === "string" ? fee : Number(fee);
+      const fee = Number(calculateCreatorFee(data));
+      return Number.isFinite(fee) ? fee : 0;
     })(),
   };
 };

@@ -63,7 +63,6 @@ export default function useCreateCampaign() {
     defaultValues: getDefaultValues(),
     mode: "onChange",
   });
-
   const campaignData = watch();
 
   useEffect(() => {
@@ -109,10 +108,7 @@ export default function useCreateCampaign() {
     campaignData.campaign_type === CAMPAIGN_TYPE.AFFILIATE &&
     !shopifyConnection?.connected;
 
-  const currentStepMeta = useMemo(
-    () => STEP_META[currentStep] || STEP_META[0],
-    [currentStep]
-  );
+  const currentStepMeta = useMemo(() => STEP_META[currentStep] || STEP_META[0], [currentStep]);
 
   const progressPercent = useMemo(
     () => Math.round(((currentStep + 1) / STEP_NAMES.length) * 100),
@@ -179,9 +175,20 @@ export default function useCreateCampaign() {
     (field, value) => {
       const requirementField = `${field}Requirement`;
       const newValue = campaignData[requirementField] === value ? "none" : value;
-      setValue(requirementField, newValue);
+      setValue(requirementField, newValue, { shouldDirty: true, shouldValidate: true });
+
+      const relatedFields = {
+        gender: ["creator_gender"],
+        age: ["min_age", "max_age"],
+        language: ["creator_language"],
+        city: ["creator_city"],
+      }[field];
+
+      if (relatedFields?.length) {
+        void trigger(relatedFields);
+      }
     },
-    [campaignData, setValue]
+    [campaignData, setValue, trigger]
   );
 
   const addDeliverable = useCallback(
@@ -311,8 +318,7 @@ export default function useCreateCampaign() {
   };
 
   const canProceed =
-    !isAffiliateWithoutShopify &&
-    (currentStep < STEP_NAMES.length - 1 || campaignData.termsAgreed);
+    !isAffiliateWithoutShopify && (currentStep < STEP_NAMES.length - 1 || campaignData.termsAgreed);
 
   return {
     currentStep,

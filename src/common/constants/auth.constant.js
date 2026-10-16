@@ -16,7 +16,7 @@ export const sortOptions = [
   { value: "most-expensive", label: "Most Expensive" },
   { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
-  { value: "rating", label: "Highest Rated" },
+  // { value: "rating", label: "Highest Rated" },
   { value: "followers", label: "Most Followers" },
 ];
 

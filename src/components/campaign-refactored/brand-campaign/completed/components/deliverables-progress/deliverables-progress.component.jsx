@@ -8,6 +8,7 @@ import { COMPENSATION_TYPE, SOURCE_PLATFORM } from "@/common/constants/campaign.
 import { Avatar } from "@mui/material";
 import { Edit2, Star, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
 import BrandTimelineSteps from "../brand-timeline/brand-timeline.component";
@@ -115,10 +116,14 @@ const DeliverablesProgressCompleted = ({
         >
           {creator?.name}
         </button>
-        <span className="ml-1 text-base text-gray-500 sm:text-lg">{creator?.rating}</span>
-        <span className="ml-1 text-base text-gray-500 sm:text-lg">
-          ({creator?.reviewCount || 0})
-        </span>
+        {!HIDE_CREATOR_RATING_UI ? (
+          <>
+            <span className="ml-1 text-base text-gray-500 sm:text-lg">{creator?.rating}</span>
+            <span className="ml-1 text-base text-gray-500 sm:text-lg">
+              ({creator?.reviewCount || 0})
+            </span>
+          </>
+        ) : null}
       </h3>
       <p className="-mt-1 flex flex-wrap items-center justify-center gap-x-1 text-xs text-gray-500 sm:text-sm">
         <span>{creator?.age}</span>
@@ -286,6 +291,10 @@ const DeliverablesProgressCompleted = ({
   };
 
   const renderReviews = () => {
+    if (HIDE_CREATOR_RATING_UI) {
+      return null;
+    }
+
     if (isReviewsLoading) {
       return (
         <div className="bg-white rounded border p-3">

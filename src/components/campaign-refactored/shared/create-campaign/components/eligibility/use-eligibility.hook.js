@@ -44,7 +44,7 @@ export default function useEligibility({ campaignData, setValue }) {
       const languageValue = Array.isArray(languages) && languages.length > 0 
         ? languages[0] 
         : "";
-      setValue("creator_language", languageValue, { shouldDirty: true });
+      setValue("creator_language", languageValue, { shouldDirty: true, shouldValidate: true });
     },
     [setValue]
   );

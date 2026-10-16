@@ -55,11 +55,31 @@ export default function CustomInput({
 }) {
   const {
     inputChangeHandler,
+    handleFocus,
+    handleBlur,
+    registerRef,
+    restRegistered,
+    resolvedValue,
+    resolvedDefaultValue,
     showPassword,
     getInputEndAdornment,
     borderErrorStyle,
     borderSuccessStyle,
-  } = useCustomInput(onChange, type, endIcon);
+    hasRegister,
+    hasCustomOnChange,
+  } = useCustomInput({
+    onChange,
+    type,
+    endIcon,
+    value,
+    defaultValue,
+    onFocus,
+    onBlur,
+    register,
+    name,
+    readOnly,
+    disabled,
+  });
 
   return (
     <div
@@ -73,12 +93,13 @@ export default function CustomInput({
 
       <div className={`relative w-full ${disabled ? "bg-[#BBBBBB26]" : ""}`}>
         <Input
-          {...(register && register(`${name}`))}
+          {...(hasRegister ? restRegistered : {})}
           {...(onClick && { onClick })}
           {...(onKeyPress && { onKeyPress })}
           {...(onKeyDown && { onKeyDown })}
           name={name}
-          onFocus={onFocus}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           autoFocus={autoFocus}
           type={showPassword ? "text" : type}
           placeholder={placeholder}
@@ -89,12 +110,13 @@ export default function CustomInput({
             ${errors && errors[name] ? "error-field" : ""} 
             ${className} ${!disabled ? "" : "disabled-input"} px-[16px] 
             ${type === "date" && !disabled ? "!pr-0" : "!pr-2"}`}
-          {...(defaultValue !== null &&
-            defaultValue !== undefined && {
-              defaultValue,
+          {...(resolvedDefaultValue !== null &&
+            resolvedDefaultValue !== undefined && {
+              defaultValue: resolvedDefaultValue,
             })}
-          {...(value !== null && value !== undefined && { value })}
-          {...(customRef && { inputRef: customRef })}
+          {...(resolvedValue !== null &&
+            resolvedValue !== undefined && { value: resolvedValue })}
+          inputRef={customRef || registerRef}
           disabled={disabled}
           variant="outlined"
           startAdornment={
@@ -105,9 +127,8 @@ export default function CustomInput({
               <InputAdornment position="end">{getInputEndAdornment()}</InputAdornment>
             ) : null
           }
-          {...(onChange && { onChange: inputChangeHandler })}
+          {...((hasCustomOnChange || hasRegister) && { onChange: inputChangeHandler })}
           readOnly={readOnly}
-          {...(onBlur && { onBlur })}
           {...(onPaste && { onPaste })}
           {...(inputProps && { inputProps })}
           style={errors && errors[name] ? borderErrorStyle : borderSuccessStyle}

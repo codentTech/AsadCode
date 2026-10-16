@@ -6,6 +6,7 @@ import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-sel
 import TextArea from "@/common/components/text-area/text-area.component";
 import { MESSAGE_TEMPLATE_CATEGORY_CONFIG } from "@/common/constants/message-template.constant";
 import { getCategoryLabel } from "@/common/utils/message-template.util";
+import { Lock } from "lucide-react";
 import MessageTemplatesCategoryList from "./components/message-templates-category-list/message-templates-category-list.component";
 import useMessageTemplatesModal from "./use-message-templates-modal.hook";
 
@@ -29,6 +30,7 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
     handleCancel,
     handleSelectTemplate,
     deleteTemplateId,
+    lockedGreeting,
   } = useMessageTemplatesModal(isOpen, onSelectTemplate, creatorName);
 
   const handleClose = () => {
@@ -45,15 +47,19 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
     value: category.value,
   }));
 
+  const lockedGreetingChip = (
+    <span
+      className="inline-flex items-center gap-1 rounded-lg bg-indigo-100 px-2 py-1 text-[11px] font-medium normal-case text-indigo-700 sm:text-xs"
+      aria-label="Locked greeting"
+    >
+      <Lock className="h-3 w-3 shrink-0 text-indigo-500" aria-hidden />
+      {lockedGreeting}
+    </span>
+  );
+
   return (
     <>
-      <Modal
-        show={isOpen}
-        title="Message templates"
-        onClose={handleClose}
-        size="md"
-        zIndex={2100}
-      >
+      <Modal show={isOpen} title="Message templates" onClose={handleClose} size="md" zIndex={2100}>
         {showForm ? (
           <div className="space-y-4">
             <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
@@ -61,15 +67,14 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
               <span className="font-semibold text-gray-900">
                 {getCategoryLabel(formData.category)}
               </span>
-              . The greeting &quot;Hey {creatorName || "{{creator_name}}"},&quot; is added
-              automatically when you send.
+              . The locked greeting stays in the message body—type after it. {"{{Name}}"} becomes
+              the recipient&apos;s name when you send.
             </p>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Category <span className="text-red-500">*</span>
-              </label>
               <SimpleSelect
+                label="Category"
+                isRequired
                 options={categorySelectOptions}
                 value={formData.category}
                 onChange={(value) => setFormData({ ...formData, category: value })}
@@ -78,31 +83,29 @@ const MessageTemplatesModal = ({ isOpen, onClose, onSelectTemplate, creatorName 
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Template Name <span className="text-red-500">*</span>
-              </label>
               <CustomInput
                 type="text"
                 name="name"
+                label="Template Name"
+                isRequired
                 placeholder="e.g., Initial Outreach – Paid"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 disabled={isSubmitting}
-                required
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Message Body <span className="text-red-500">*</span>
-              </label>
               <TextArea
                 name="body"
-                placeholder="Enter your message here"
+                label="Message Body"
+                isRequired
+                placeholder="start typing here"
                 value={formData.body}
                 onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                 disabled={isSubmitting}
                 minRows={6}
+                leadingContent={lockedGreetingChip}
               />
             </div>
 

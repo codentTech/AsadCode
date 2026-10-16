@@ -268,7 +268,7 @@ export default function HireCreatorModal({
                 register={register}
                 name="productPrice"
                 errors={errors}
-                placeholder="0"
+                placeholder="e.g. 200"
               />
             )}
           </div>

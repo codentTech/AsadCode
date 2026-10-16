@@ -232,14 +232,18 @@ function CampaignFeed({
                       <div className="mt-2">
                         <h5 className="text-xs font-semibold text-gray-900 mb-2">Deliverables</h5>
                         <div className="flex flex-wrap gap-1">
-                          {campaign.deliverables.map((item) => (
-                            <span
-                              key={item}
-                              className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
-                            >
-                              {item}
-                            </span>
-                          ))}
+                          {campaign.deliverables?.length ? (
+                            campaign.deliverables.map((item, index) => (
+                              <span
+                                key={`${item}-${index}`}
+                                className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs"
+                              >
+                                {item}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No deliverables listed</span>
+                          )}
                         </div>
                       </div>
 

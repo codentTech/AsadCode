@@ -10,6 +10,7 @@ import { LayoutGrid, ExternalLink, MapPin, Star, MessageSquare } from "lucide-re
 import { useMemo, useState } from "react";
 import { getConnectedPlatformEntries } from "@/common/utils/creator-platforms.utils";
 import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import BulkMessageModal from "./components/bulk-message-modal/bulk-message-modal.component";
 import { useCreatorSpendAnalysis } from "./use-creator-spend-analysis.hook";
 
@@ -268,24 +269,26 @@ const CreatorSpendAnalysis = ({
                                   <span className="text-gray-500">({creator.age} yrs)</span>
                                 ) : null}
                               </div>
-                              <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-gray-600 sm:gap-3 sm:text-xs">
-                                <span className="inline-flex items-center gap-0.5">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                                        i < Math.floor(creator.rating || 0)
-                                          ? "fill-current text-yellow-400"
-                                          : "text-gray-300"
-                                      }`}
-                                    />
-                                  ))}
-                                </span>
-                                <span>{(creator.rating || 0).toFixed(1)}</span>
-                                <span className="text-gray-500">
-                                  ({creator.reviewCount ?? 0} reviews)
-                                </span>
-                              </div>
+                              {!HIDE_CREATOR_RATING_UI ? (
+                                <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-gray-600 sm:gap-3 sm:text-xs">
+                                  <span className="inline-flex items-center gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                                          i < Math.floor(creator.rating || 0)
+                                            ? "fill-current text-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </span>
+                                  <span>{(creator.rating || 0).toFixed(1)}</span>
+                                  <span className="text-gray-500">
+                                    ({creator.reviewCount ?? 0} reviews)
+                                  </span>
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                           <div className="w-full border-t border-gray-100 pt-3 sm:pt-3">
@@ -389,26 +392,28 @@ const CreatorSpendAnalysis = ({
                               </div>
                             </div>
 
-                            <div className="mb-3 flex items-center space-x-2">
-                              <div className="flex items-center text-xs">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < Math.floor(creator.rating || 0)
-                                        ? "fill-current text-yellow-400"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
+                            {!HIDE_CREATOR_RATING_UI ? (
+                              <div className="mb-3 flex items-center space-x-2">
+                                <div className="flex items-center text-xs">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-4 w-4 ${
+                                        i < Math.floor(creator.rating || 0)
+                                          ? "fill-current text-yellow-400"
+                                          : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-xs text-gray-600">
+                                  {(creator.rating || 0).toFixed(1)}
+                                </span>
+                                <span className="text-xs text-gray-600">
+                                  ({creator.reviewCount ?? 0} reviews)
+                                </span>
                               </div>
-                              <span className="text-xs text-gray-600">
-                                {(creator.rating || 0).toFixed(1)}
-                              </span>
-                              <span className="text-xs text-gray-600">
-                                ({creator.reviewCount ?? 0} reviews)
-                              </span>
-                            </div>
+                            ) : null}
 
                             <div className="flex items-center space-x-4 text-xs"></div>
                             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
