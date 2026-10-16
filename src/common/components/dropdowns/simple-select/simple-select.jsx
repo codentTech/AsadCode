@@ -76,12 +76,14 @@ export default function SimpleSelect({
       <div ref={inputRef} className="relative w-full">
         <div
           onClick={handleClick}
-          className={`flex min-h-9 sm:min-h-10 items-center justify-between rounded-md border px-2.5 sm:px-3 py-1.5 sm:py-2 ${
+          className={`flex min-h-9 sm:min-h-10 items-center justify-between gap-2 rounded-md border px-2.5 sm:px-3 py-1.5 sm:py-2 ${
             errors && errors[name] ? "border-red-500" : "border-[#7e7d7d]"
           } ${isDisabled ? "cursor-not-allowed bg-gray-100 text-gray-400" : "cursor-pointer bg-white text-gray-700"} text-xs sm:text-sm shadow-sm transition-colors`}
         >
-          <div className="truncate">{getDisplay()}</div>
-          <Icon isOpen={showMenu && !isDisabled} />
+          <div className="min-w-0 flex-1 truncate">{getDisplay()}</div>
+          <span className="shrink-0">
+            <Icon isOpen={showMenu && !isDisabled} />
+          </span>
         </div>
 
         {showMenu && !isDisabled && (
