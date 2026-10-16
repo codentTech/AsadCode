@@ -11,7 +11,33 @@ import {
   getCompensationValue,
   formatCampaignGeographySummary,
   campaignHasGeographyRequirement,
+  formatDeliverableLabel,
 } from "@/common/utils/campaign.utils";
+
+const resolveCampaignDescription = (campaign = {}) => {
+  const candidates = [
+    campaign.short_description,
+    campaign.long_description,
+    campaign.description,
+    campaign.content_guidelines,
+    campaign.contentGuidelines,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed) return trimmed;
+  }
+
+  return "No description available";
+};
+
+const resolveCampaignDeliverables = (deliverables) => {
+  if (!Array.isArray(deliverables)) return [];
+  return deliverables
+    .map((item) => formatDeliverableLabel(item))
+    .filter(Boolean);
+};
 
 export function useCampaignFeed({ getAdvancedFilters } = {}) {
   const dispatch = useDispatch();
@@ -118,7 +144,7 @@ export function useCampaignFeed({ getAdvancedFilters } = {}) {
       compensation: getCompensationType(campaign),
       compensationAmount: getCompensationAmount(campaign),
       compensationValue: getCompensationValue(campaign),
-      deliverables: campaign.deliverables || [],
+      deliverables: resolveCampaignDeliverables(campaign.deliverables),
       niche: campaign.niches,
       location: formatCampaignGeographySummary(campaign),
       locationMandatory: campaignHasGeographyRequirement(campaign),
@@ -126,9 +152,14 @@ export function useCampaignFeed({ getAdvancedFilters } = {}) {
       productImage: campaign.campaign_image,
       language: campaign.creator_language,
       followerMin: `${campaign.min_combined_followers || 0} Combined`,
-      description:
-        campaign.short_description || campaign.long_description || "No description available",
-      brief: campaign.long_description || campaign.short_description || "No brief available",
+      description: resolveCampaignDescription(campaign),
+      brief: (() => {
+        const longDescription =
+          typeof campaign.long_description === "string" ? campaign.long_description.trim() : "";
+        const shortDescription =
+          typeof campaign.short_description === "string" ? campaign.short_description.trim() : "";
+        return longDescription || shortDescription || "No brief available";
+      })(),
       postedDate: campaign.created_at ? new Date(campaign.created_at) : new Date(),
       campaign_type: campaign.campaign_type,
       required_platforms: campaign.required_platforms || [],

@@ -2,6 +2,7 @@ import CustomButton from "@/common/components/custom-button/custom-button.compon
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import useGetplatform from "@/common/hooks/use-social-platform.hook";
 import { formatNumber } from "@/common/utils/format.utils";
+import GalleryItemMedia from "@/common/components/gallery-item-media/gallery-item-media.component";
 import {
   getGalleryVideoEmbedSrc,
   getGalleryVideoPlaybackSrc,
@@ -124,62 +125,22 @@ const GalleryTab = ({ activeTab, creatorCategories = [] }) => {
                             <Trash2 className="w-3 h-3" />
                           </button>
 
-                          <div className="relative aspect-[4/3] w-full bg-black rounded-t-lg overflow-hidden">
-                            {item.media_type === "video" && videoEmbedSrc ? (
-                              <iframe
-                                key={videoEmbedSrc}
-                                src={videoEmbedSrc}
-                                className="absolute inset-0 h-full w-full border-0 bg-black"
-                                title={item.caption_text || item.title || "Video"}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                allowFullScreen
-                                loading="lazy"
-                              />
-                            ) : item.media_type === "video" && videoPlaybackSrc ? (
-                              <video
-                                key={videoPlaybackSrc}
-                                src={videoPlaybackSrc}
-                                className="absolute inset-0 h-full w-full object-contain bg-black"
-                                preload="metadata"
-                                controls
-                                playsInline
-                                poster={item.thumbnail_url || undefined}
-                              />
-                            ) : item.media_type === "video" &&
-                              item.source_type === "post_link" &&
-                              !videoEmbedSrc &&
-                              !videoPlaybackSrc ? (
-                              <>
-                                <img
-                                  src={item.thumbnail_url || undefined}
-                                  alt={item.caption_text || item.title || "Video preview"}
-                                  className="absolute inset-0 h-full w-full object-cover"
-                                  loading="lazy"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                                  <span className="text-white text-[10px] font-medium px-2 py-1 rounded-full bg-black/60 text-center max-w-[95%]">
-                                    Preparing hosted preview… updates automatically.
-                                  </span>
-                                </div>
-                              </>
-                            ) : (
-                              <img
-                                src={item.thumbnail_url || item.file_url}
-                                alt={item.caption_text || item.title}
-                                className="absolute inset-0 h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            )}
+                          <div className="relative rounded-t-lg overflow-hidden">
+                            <GalleryItemMedia
+                              item={item}
+                              aspectClassName="aspect-[4/3]"
+                              preparingLabel="Preparing hosted preview… updates automatically."
+                            />
 
                             {item.source_type === "file_upload" && (
-                              <div className="pointer-events-none absolute top-1.5 left-1.5 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-lg font-medium">
+                              <div className="pointer-events-none absolute top-1.5 left-1.5 z-[1] bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-lg font-medium">
                                 UGC
                               </div>
                             )}
 
                             {item.source_type === "post_link" && item.platform && (
                               <div
-                                className={`pointer-events-none absolute top-1.5 left-1.5 ${getPlatformColor(item.platform)} p-1 rounded-full`}
+                                className={`pointer-events-none absolute top-1.5 left-1.5 z-[1] ${getPlatformColor(item.platform)} p-1 rounded-full`}
                               >
                                 {getPlatformIcon(item.platform)}
                               </div>

@@ -66,7 +66,9 @@ const MessageTemplatesCategoryList = ({
                                 {template.name}
                               </h4>
                             </div>
-                            <p className="line-clamp-2 text-xs text-gray-600">{template.body}</p>
+                            <p className="line-clamp-2 whitespace-pre-wrap text-xs text-gray-600">
+                              {template.body}
+                            </p>
                           </div>
 
                           <div className="relative z-10 ml-1 flex shrink-0 items-center gap-1.5">

@@ -105,7 +105,9 @@ function Inbox({ selectedChatId }) {
             className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => window.open(message.attachment_url, "_blank")}
           />
-          {message.content && <p className="text-sm">{message.content}</p>}
+          {message.content && (
+            <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
+          )}
         </div>
       );
     }
@@ -126,7 +128,9 @@ function Inbox({ selectedChatId }) {
       );
     }
 
-    return <p className="text-sm leading-relaxed">{message.content}</p>;
+    return (
+      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.content}</p>
+    );
   };
 
   // Show loading or empty state

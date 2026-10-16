@@ -51,6 +51,7 @@ export default function useProfileOverview(creatorId = null, refreshKey = 0) {
         reviewCount: data.creator_profile?.review_count || 0,
         profilePic: data.creator_profile?.profile_photo_url || null,
         bio: data.creator_profile?.bio || "",
+        longBio: data.creator_profile?.long_bio || "",
         categories: data.creator_profile?.categories || [],
         contentRates: data.creator_profile?.content_rates || [],
         gallery: data.creator_profile?.gallery || [],

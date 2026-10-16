@@ -15,6 +15,7 @@ import {
   getGalleryVideoEmbedSrc,
   getGalleryVideoPlaybackSrc,
 } from "@/common/utils/gallery-media.util";
+import GalleryItemMedia from "@/common/components/gallery-item-media/gallery-item-media.component";
 import { isCreatorMode } from "@/common/utils/users.util";
 
 const Gallary = ({ refreshKey, creatorId = null }) => {
@@ -127,70 +128,18 @@ const Gallary = ({ refreshKey, creatorId = null }) => {
                 key={item.id}
                 className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-white border border-gray-100"
               >
-                {/* Thumbnail */}
-                <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                  {item.media_type === "video" && videoEmbedSrc ? (
-                    <iframe
-                      key={videoEmbedSrc}
-                      src={videoEmbedSrc}
-                      className="absolute inset-0 h-full w-full border-0 bg-black"
-                      title={item.caption_text || item.title || "Video"}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : item.media_type === "video" && videoPlaybackSrc ? (
-                    <video
-                      key={videoPlaybackSrc}
-                      src={videoPlaybackSrc}
-                      className="absolute inset-0 h-full w-full object-contain bg-black"
-                      preload="metadata"
-                      controls
-                      playsInline
-                      poster={item.thumbnail_url || undefined}
-                    />
-                  ) : item.media_type === "video" &&
-                    item.source_type === "post_link" &&
-                    !videoEmbedSrc &&
-                    !videoPlaybackSrc ? (
-                    <>
-                      <img
-                        src={item.thumbnail_url || undefined}
-                        alt={item.caption_text || item.title || "Video preview"}
-                        className="absolute inset-0 h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                        <span className="text-white text-xs font-medium px-3 py-1.5 rounded-full bg-black/60 text-center max-w-[90%]">
-                          Preparing hosted preview… this updates automatically (or use refresh).
-                        </span>
-                      </div>
-                    </>
-                  ) : item.media_type === "video" && !videoEmbedSrc ? (
-                    <img
-                      src={item.thumbnail_url || item.file_url || ""}
-                      alt={item.caption_text || item.title || ""}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <img
-                      src={item.thumbnail_url || item.file_url}
-                      alt={item.caption_text || item.title}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  )}
+                <div className="relative">
+                  <GalleryItemMedia item={item} aspectClassName="aspect-[9/16]" />
 
                   {item.source_type === "file_upload" && (
-                    <div className="pointer-events-none absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
+                    <div className="pointer-events-none absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-lg font-medium z-[1]">
                       Unpublished Sample
                     </div>
                   )}
 
                   {item.source_type === "post_link" && item.platform && (
                     <div
-                      className={`pointer-events-none absolute top-2 left-2 ${getPlatformColor(item.platform)} p-1.5 rounded-full`}
+                      className={`pointer-events-none absolute top-2 left-2 z-[1] ${getPlatformColor(item.platform)} p-1.5 rounded-full`}
                     >
                       {getPlatformIcon(item.platform)}
                     </div>

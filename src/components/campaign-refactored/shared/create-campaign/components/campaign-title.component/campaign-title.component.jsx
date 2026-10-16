@@ -78,6 +78,7 @@ function CampaignTitle({ register, errors = {}, watch, setValue }) {
             onNichesChange={handleNicheChange}
             placeholder="Type to search niches..."
             handleNicheRemove={handleNicheRemove}
+            error={errors?.niches?.message}
           />
         </div>
       </section>

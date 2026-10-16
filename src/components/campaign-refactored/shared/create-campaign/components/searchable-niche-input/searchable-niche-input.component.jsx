@@ -1,6 +1,7 @@
 import React from "react";
 import { Search } from "lucide-react";
 import CustomInput from "@/common/components/custom-input/custom-input.component";
+import FieldError from "@/common/components/field-error/field-error.component";
 import SelectedTagList from "../selected-tag-list/selected-tag-list.component";
 import useSearchableNicheInput from "./use-searchable-input.hook";
 
@@ -68,6 +69,8 @@ export default function SearchableNicheInput(props) {
           </div>
         )}
       </div>
+
+      {props.error ? <FieldError className="mt-1" error={props.error} /> : null}
 
       <SelectedTagList
         items={selectedItems}

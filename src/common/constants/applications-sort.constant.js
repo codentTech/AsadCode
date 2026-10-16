@@ -4,7 +4,7 @@ export const APPLICATIONS_SORT_OPTIONS = [
   { value: "urgency", label: "Urgency" },
   { value: "followers", label: "Most Followers" },
   { value: "engagement", label: "Highest Engagement Rate" },
-  { value: "rating", label: "Highest Rated" },
+  // { value: "rating", label: "Highest Rated" },
 ];
 
 export const VISIBLE_APPLICATIONS_SORT_OPTIONS = APPLICATIONS_SORT_OPTIONS.filter(

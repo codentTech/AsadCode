@@ -2,6 +2,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import CitySelect from "@/common/components/dropdowns/city-select/city-select.component";
 import CountrySelect from "@/common/components/dropdowns/country-select/country-select.component";
 import LanguageSelect from "@/common/components/dropdowns/language-select/language-select.component";
+import FieldError from "@/common/components/field-error/field-error.component";
 import FieldLabel from "@/common/components/field-label/field-label.component";
 import RequirementToggle from "@/common/components/requirement-toggle/requirement-toggle.component";
 import TextArea from "@/common/components/text-area/text-area.component";
@@ -47,6 +48,7 @@ function FieldBlock({
   onRequirementChange,
   children,
   afterRequirement = null,
+  error = "",
 }) {
   return (
     <div className="min-w-0">
@@ -54,6 +56,7 @@ function FieldBlock({
         <FieldLabel label={label} isRequired={isRequired} />
       </div>
       {children}
+      {error ? <FieldError className="mt-1.5" error={error} /> : null}
       {onRequirementChange ? (
         <div className="mt-1.5 flex justify-end">
           <RequirementToggle
@@ -165,6 +168,7 @@ function Eligibility({
             label="Gender"
             requirement={getRequirement("gender")}
             onRequirementChange={(status) => handleRequirementToggle("gender", status)}
+            error={errors?.creator_gender?.message}
           >
             <div className="grid grid-cols-2 gap-2">
               {GENDER_CARDS.map((option) => (
@@ -327,6 +331,7 @@ function Eligibility({
               isRequired={getRequirement("city") === REQUIREMENT_LEVEL.MANDATORY}
               requirement={getRequirement("city")}
               onRequirementChange={(status) => handleRequirementToggle("city", status)}
+              error={errors?.creator_city?.message}
             >
               <CitySelect
                 label=""
@@ -335,7 +340,7 @@ function Eligibility({
                 value={citySelectValue}
                 onChange={handleCitySelect}
                 isRequired={getRequirement("city") === REQUIREMENT_LEVEL.MANDATORY}
-                errors={errors}
+                errors={{}}
                 disabled={isCityDisabled}
               />
             </FieldBlock>
@@ -348,6 +353,7 @@ function Eligibility({
           label="Language"
           requirement={getRequirement("language")}
           onRequirementChange={(status) => handleRequirementToggle("language", status)}
+          error={errors?.creator_language?.message}
           afterRequirement={
             selectedLanguages.length > 0 ? (
               <div className="mt-1.5 flex flex-wrap gap-2">
@@ -376,7 +382,7 @@ function Eligibility({
             value={selectedLanguages}
             onChange={handleLanguageChange}
             maxSelections={1}
-            errors={errors}
+            errors={{}}
             hideSelectedTags
           />
         </FieldBlock>

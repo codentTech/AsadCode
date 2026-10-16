@@ -9,6 +9,7 @@ import { formatDate } from "@/common/utils/formate-date";
 import { Avatar } from "@mui/material";
 import { Edit2, Star, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import ContractPreviewModal from "../../../applications/components/contract-preview-modal/contract-preview-modal.component";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
 import { pickMessageThreadModalProps } from "@/components/campaign-refactored/shared/message-thread-modal/use-message-thread.hook";
@@ -122,10 +123,16 @@ const DeliverablesProgress = ({
           onClick={handleViewCreatorPortfolio}
           className="text-sm font-semibold transition-colors hover:text-primary sm:text-lg"
         >
-          {creator.name} -
+          {HIDE_CREATOR_RATING_UI ? creator.name : `${creator.name} -`}
         </button>
-        <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator?.rating}</span>
-        <span className="ml-1 text-sm text-gray-500 sm:text-lg">({creator?.reviewCount || 0})</span>
+        {!HIDE_CREATOR_RATING_UI ? (
+          <>
+            <span className="ml-1 text-sm text-gray-500 sm:text-lg">{creator?.rating}</span>
+            <span className="ml-1 text-sm text-gray-500 sm:text-lg">
+              ({creator?.reviewCount || 0})
+            </span>
+          </>
+        ) : null}
       </h3>
       <p className="-mt-1 flex w-full items-center justify-center gap-x-1 text-[10px] text-gray-500 sm:justify-center sm:text-sm">
         <span>{creator.age}</span>

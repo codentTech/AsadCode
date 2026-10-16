@@ -44,23 +44,56 @@ function extractTiktokVideoIdFromUrl(raw) {
   return null;
 }
 
+function isLikelyYoutubeVideoId(id) {
+  return typeof id === "string" && /^[A-Za-z0-9_-]{11}$/.test(id.trim());
+}
+
+function isLikelyTiktokVideoId(id) {
+  return typeof id === "string" && /^\d{8,24}$/.test(id.trim());
+}
+
+function firstHttpUrl(...candidates) {
+  for (const c of candidates) {
+    if (typeof c === "string" && /^https?:\/\//i.test(c.trim())) {
+      return c.trim();
+    }
+  }
+  return null;
+}
+
+export function resolveYoutubeVideoId(item) {
+  const fromUrl = extractYoutubeVideoIdFromUrl(item?.post_url);
+  if (isLikelyYoutubeVideoId(fromUrl)) return fromUrl.trim();
+
+  const fromApi = String(item?.external_post_id || "").trim();
+  if (isLikelyYoutubeVideoId(fromApi)) return fromApi;
+
+  return null;
+}
+
+export function resolveTiktokVideoId(item) {
+  const fromApi = String(item?.external_post_id || "").trim();
+  if (isLikelyTiktokVideoId(fromApi)) return fromApi;
+
+  const fromUrl = extractTiktokVideoIdFromUrl(item?.post_url);
+  if (isLikelyTiktokVideoId(fromUrl)) return fromUrl;
+
+  return null;
+}
+
 export function getGalleryVideoEmbedSrc(item) {
   if (!item || item.media_type !== "video" || item.source_type !== "post_link") {
     return null;
   }
   const pl = String(item.platform || "").toLowerCase();
   if (pl === "youtube") {
-    const fromApi = item.external_post_id && String(item.external_post_id).trim();
-    const id = fromApi || extractYoutubeVideoIdFromUrl(item.post_url);
-    if (!id || !/^[A-Za-z0-9_-]{6,128}$/.test(id)) return null;
+    const id = resolveYoutubeVideoId(item);
+    if (!id) return null;
     return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
   }
   if (pl === "tiktok") {
-    let id = item.external_post_id && String(item.external_post_id).trim();
-    if (!id || !/^\d{8,24}$/.test(id)) {
-      id = extractTiktokVideoIdFromUrl(item.post_url);
-    }
-    if (!id || !/^\d{8,24}$/.test(id)) return null;
+    const id = resolveTiktokVideoId(item);
+    if (!id) return null;
     return `https://www.tiktok.com/player/v1/${id}?controls=1`;
   }
   return null;
@@ -69,7 +102,41 @@ export function getGalleryVideoEmbedSrc(item) {
 export function getGalleryVideoPlaybackSrc(item) {
   if (!item || item.media_type !== "video") return null;
   if (getGalleryVideoEmbedSrc(item)) return null;
-  const src = item.file_url || item.phyllo_preview_url;
-  if (typeof src === "string" && src.trim()) return src.trim();
+  return firstHttpUrl(item.file_url, item.phyllo_preview_url);
+}
+
+export function getGalleryThumbnailSrc(item) {
+  if (!item) return null;
+
+  const direct = firstHttpUrl(item.thumbnail_url);
+  if (direct) return direct;
+
+  const pl = String(item.platform || "").toLowerCase();
+  if (item.media_type === "video" && pl === "youtube") {
+    const id = resolveYoutubeVideoId(item);
+    if (id) return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  }
+
+  if (item.media_type === "image") {
+    return firstHttpUrl(item.file_url);
+  }
+
   return null;
+}
+
+export function getGalleryMediaPresentation(item) {
+  const embedSrc = item?.media_type === "video" ? getGalleryVideoEmbedSrc(item) : null;
+  const playbackSrc = item?.media_type === "video" ? getGalleryVideoPlaybackSrc(item) : null;
+  const thumbnailSrc = getGalleryThumbnailSrc(item);
+  const isPostLinkVideo = item?.media_type === "video" && item?.source_type === "post_link";
+  const isPreparingHosted =
+    isPostLinkVideo && !embedSrc && !playbackSrc && Boolean(thumbnailSrc);
+
+  return {
+    embedSrc,
+    playbackSrc,
+    thumbnailSrc,
+    isPreparingHosted,
+    hasVisual: Boolean(embedSrc || playbackSrc || thumbnailSrc),
+  };
 }

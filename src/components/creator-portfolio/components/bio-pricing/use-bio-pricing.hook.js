@@ -43,11 +43,12 @@ function useBioPricing(creatorId = null, refreshKey = 0) {
 
   useEffect(() => {
     if (!isLoading && creatorData) {
-      const bio = creatorData?.creator_profile?.bio || "";
+      const longBio = creatorData?.creator_profile?.long_bio || "";
+      const tagline = creatorData?.creator_profile?.bio || "";
       const pricing = creatorData?.creator_profile?.content_rates || [];
 
       setCreator({
-        bio,
+        bio: longBio || tagline,
         pricing: pricing.map((rate) => ({
           type: rate.contentType,
           price: `$${rate.price || 0}`,

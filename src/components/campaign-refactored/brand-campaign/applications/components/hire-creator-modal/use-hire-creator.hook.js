@@ -25,6 +25,13 @@ import {
 } from "@/common/constants/options.constant";
 import { checkHasPaymentMethod } from "@/provider/features/collaboration-payment/collaboration-payment.slice";
 
+const toEmptyableNumberInputValue = (raw) => {
+  if (raw === "" || raw === null || raw === undefined) return "";
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num === 0) return "";
+  return String(num);
+};
+
 const createValidationSchema = (isIndividual) => {
   const baseSchema = {
     startDate: Yup.string()
@@ -257,7 +264,12 @@ export default function useHireCreator({
         "compensationType",
         campaignData.compensation_type?.toUpperCase() || COMPENSATION_TYPE.PAID
       );
-      setValue("productPrice", campaignData.product_value || campaignData.product_price || "");
+      setValue(
+        "productPrice",
+        toEmptyableNumberInputValue(
+          campaignData.product_value ?? campaignData.product_price
+        )
+      );
       setValue("hashtags", campaignData.hashtags || "");
       setValue("mentions", campaignData.do_donts || "");
       setValue("inPersonRequired", campaignData.in_person_required || false);

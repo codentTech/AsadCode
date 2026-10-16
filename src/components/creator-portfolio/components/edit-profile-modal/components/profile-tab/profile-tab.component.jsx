@@ -127,22 +127,47 @@ const ProfileTab = ({ profileData, setProfileData }) => {
         </p>
       </div>
 
-      {/* Bio */}
+      {/* Tagline */}
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
-        <h3 className="text-xs font-semibold text-gray-900 mb-3">Bio</h3>
-        <TextArea
-          label="Tell us about yourself"
+        <h3 className="text-xs font-semibold text-gray-900 mb-3">
+          Tagline <span className="text-red-500">*</span>
+        </h3>
+        <CustomInput
+          label="Tagline"
           name="bio"
           value={profileData.bio}
           onChange={(e) => {
             const value = e.target.value;
-            if (value.length <= 100) handleProfileFieldChange("bio", value);
+            if (value.length <= 75) handleProfileFieldChange("bio", value);
           }}
-          placeholder="Share your story, passion, and what makes you unique..."
-          rows={4}
-          maxLength={100}
+          placeholder="This will appear on your creator card in Discover."
+          maxLength={75}
         />
-        <p className="text-xs text-gray-600 mt-2">{profileData.bio?.length || 0}/100 characters</p>
+        <p className="text-xs text-gray-600 mt-2 text-right">
+          {profileData.bio?.length || 0}/75 characters
+        </p>
+      </div>
+
+      {/* Long Bio */}
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
+        <h3 className="text-xs font-semibold text-gray-900 mb-3">
+          Long Bio <span className="text-gray-500 font-normal">(Optional)</span>
+        </h3>
+        <TextArea
+          label="Long Bio"
+          name="longBio"
+          value={profileData.longBio}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value.length <= 500) handleProfileFieldChange("longBio", value);
+          }}
+          placeholder="This will appear on your full profile only."
+          rows={4}
+          maxLength={500}
+        />
+        <p className="text-xs text-gray-600 mt-2 text-right">
+          {profileData.longBio?.length || 0}/500 characters
+        </p>
       </div>
 
       {/* Basic Information */}

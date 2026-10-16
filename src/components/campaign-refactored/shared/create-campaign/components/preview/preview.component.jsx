@@ -1,3 +1,4 @@
+import FieldError from "@/common/components/field-error/field-error.component";
 import FieldLabel from "@/common/components/field-label/field-label.component";
 import { Check, CircleAlert, Eye, FileText } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +31,7 @@ function MetaCard({ label, value, icon = null, colorClasses = "" }) {
   );
 }
 
-function Preview({ campaignData, handleChange }) {
+function Preview({ campaignData, handleChange, errors = {} }) {
   const {
     title,
     imageSrc,
@@ -306,7 +307,9 @@ function Preview({ campaignData, handleChange }) {
             .
           </span>
         </label>
-        {!termsAgreed ? (
+        {errors?.termsAgreed?.message ? (
+          <FieldError className="mt-2" error={errors.termsAgreed.message} />
+        ) : !termsAgreed ? (
           <p className="mt-2 rounded-md bg-gray-100 px-2.5 py-2 text-[10px] font-medium text-gray-800 sm:text-xs">
             Accept the terms to publish your campaign.
           </p>

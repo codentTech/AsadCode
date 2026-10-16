@@ -1,5 +1,6 @@
 import Loading from "@/common/components/loader/loading.component";
 import { formatDate } from "@/common/utils/formate-date";
+import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
 import { Star } from "lucide-react";
 import useCreatorCollaborationHistory from "./use-creator-collaboration-history.hook";
 
@@ -57,7 +58,7 @@ const CollaborationHistory = ({ creatorProfileId }) => {
                       </p>
                     </div>
                   </div>
-                  {item.brandReview && (
+                  {!HIDE_CREATOR_RATING_UI && item.brandReview && (
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-1 mb-1">
                         {[...Array(5)].map((_, i) => (
