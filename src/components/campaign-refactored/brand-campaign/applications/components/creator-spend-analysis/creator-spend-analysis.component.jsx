@@ -7,7 +7,7 @@ import { SkeletonCardGrid } from "@/common/components/loader/skeleton-loader.com
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
-import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.constant";
+import { CREATOR_CARD_GRID_GAP_CLASS } from "@/common/constants/creator-card-layout.constant";
 import FilterModal from "@/components/campaign-refactored/brand-campaign/discover/components/discover-creators/components/filter-modal/filter-modal.component";
 import CreatorCard from "@/components/campaign-refactored/creator-card/creator-card.component";
 import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications-subtab-toggle.component";
@@ -18,7 +18,7 @@ import { EllipsisVertical, Filter, LayoutGrid, List, Search } from "lucide-react
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 import { formatDateOrNA, getTodayHtmlDateInputValue } from "@/common/utils/date.utils";
 
-const GRID_CLASS = `mb-8 ${CREATOR_CARD_GRID_CLASS}`;
+const GRID_CLASS = `mb-8 grid grid-cols-1 justify-items-stretch ${CREATOR_CARD_GRID_GAP_CLASS} sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
 
 const CreatorSpendAnalysis = ({
   selectedCampaign,
@@ -269,7 +269,7 @@ const CreatorSpendAnalysis = ({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-4 relative z-0">
         {leftContentLoading ? (
-          <SkeletonCardGrid count={8} gridClass={`mb-8 ${CREATOR_CARD_GRID_CLASS}`} />
+          <SkeletonCardGrid count={8} gridClass={GRID_CLASS} />
         ) : selectedCampaign ? (
           <>
             {isIndividualCampaign ? (
