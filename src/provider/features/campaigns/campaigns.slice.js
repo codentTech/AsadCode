@@ -45,6 +45,7 @@ const initialState = {
   getAppliedCreatorsForBudget: { ...generalState }, // No status filter; used for budget calculation on completed tab
   getHiredCreators: { ...campaignScopedCreatorsState },
   getPipelineBoard: { ...campaignScopedCreatorsState },
+  getApplicantSummary: { ...generalState },
   getRejectedCreators: { ...generalState },
   getCreatorApplications: { ...generalState },
   rejectCreator: { ...generalState },
@@ -273,6 +274,21 @@ export const getPipelineBoard = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to fetch pipeline board"),
+      );
+    }
+  },
+);
+
+export const getApplicantSummary = createAsyncThunk(
+  "campaigns/getApplicantSummary",
+  async (campaignId, thunkAPI) => {
+    try {
+      const response = await campaignsService.getApplicantSummary(campaignId);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to fetch applicant summary"),
       );
     }
   },
@@ -860,6 +876,31 @@ export const campaignsSlice = createSlice({
         state.getPipelineBoard.isError = true;
         state.getPipelineBoard.data = null;
         state.getPipelineBoard.campaignId = null;
+      })
+      .addCase(getApplicantSummary.pending, (state) => {
+        state.getApplicantSummary.isLoading = true;
+        state.getApplicantSummary.message = "";
+        state.getApplicantSummary.isError = false;
+        state.getApplicantSummary.isSuccess = false;
+        state.getApplicantSummary.data = null;
+      })
+      .addCase(getApplicantSummary.fulfilled, (state, action) => {
+        state.getApplicantSummary = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload?.data ?? action.payload,
+        };
+      })
+      .addCase(getApplicantSummary.rejected, (state, action) => {
+        state.getApplicantSummary = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message || "Failed to fetch applicant summary",
+          data: null,
+        };
       })
       // getRejectedCreators
       .addCase(getRejectedCreators.pending, (state) => {

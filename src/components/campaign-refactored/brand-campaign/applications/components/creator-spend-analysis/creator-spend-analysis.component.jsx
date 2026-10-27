@@ -164,13 +164,28 @@ const CreatorSpendAnalysis = ({
                 parentDivClassName="justify-between"
               />
             </div>
-            {onSwitchToRejected && (
+            <div className="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-2">
               <CustomButton
-                text="Rejected"
-                onClick={onSwitchToRejected}
-                className="btn-outline w-full shrink-0 sm:w-auto"
+                text="Applicant Summary"
+                onClick={() => {
+                  if (!selectedCampaign?.id) return;
+                  window.open(
+                    `/campaign/applicant-summary?campaignId=${selectedCampaign.id}`,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+                disabled={!selectedCampaign?.id}
+                className="btn-primary w-full shrink-0 sm:w-auto"
               />
-            )}
+              {onSwitchToRejected ? (
+                <CustomButton
+                  text="Rejected"
+                  onClick={onSwitchToRejected}
+                  className="btn-outline w-full shrink-0 sm:w-auto"
+                />
+              ) : null}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">

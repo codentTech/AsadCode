@@ -879,6 +879,22 @@ function sortCreatorsClientSide(creators, sortKey) {
         const bRate = parseFloat(b.creator?.creator_profile?.engagement_rate) || 0;
         return bRate - aRate;
       });
+    case "name_az":
+      return rows.sort((a, b) => {
+        const aFirst = (
+          a.first_name ||
+          a.creator?.first_name ||
+          getCreatorDisplayName(a).split(/\s+/)[0] ||
+          ""
+        ).toLowerCase();
+        const bFirst = (
+          b.first_name ||
+          b.creator?.first_name ||
+          getCreatorDisplayName(b).split(/\s+/)[0] ||
+          ""
+        ).toLowerCase();
+        return aFirst.localeCompare(bFirst);
+      });
     default:
       return rows;
   }

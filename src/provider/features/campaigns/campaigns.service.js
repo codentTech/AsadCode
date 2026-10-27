@@ -103,6 +103,11 @@ const getPipelineBoard = async (campaignId) => {
   return response.data;
 };
 
+const getApplicantSummary = async (campaignId) => {
+  const response = await api().get(`/campaigns/${campaignId}/applicant-summary`);
+  return response.data;
+};
+
 // Get all brand campaigns (unified endpoint for Applications, Active, and Completed tabs)
 const getAllBrandCampaigns = async () => {
   const response = await api().get("/campaigns/brand");
@@ -170,6 +175,7 @@ const campaignsService = {
   getAllBrandCampaigns,
   getAppliedCreators,
   getPipelineBoard,
+  getApplicantSummary,
   getCreatorApplications,
   rejectCreator,
   reinstateCreator,
