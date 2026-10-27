@@ -4,6 +4,7 @@ export const APPLICATIONS_SORT_OPTIONS = [
   { value: "urgency", label: "Urgency" },
   { value: "followers", label: "Most Followers" },
   { value: "engagement", label: "Highest Engagement Rate" },
+  { value: "name_az", label: "A–Z" },
   // { value: "rating", label: "Highest Rated" },
 ];
 

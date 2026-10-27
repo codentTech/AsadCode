@@ -943,6 +943,7 @@ function useBrandApplications() {
     appliedCreatorsLoading,
     individualCollaborationsLoading,
     isLoading: campaignsLoading,
+    campaignsError,
     selectedCampaign,
     selectedCreator,
     applicationsSubTab,
