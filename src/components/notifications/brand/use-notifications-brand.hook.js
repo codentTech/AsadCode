@@ -32,6 +32,7 @@ function useNotificationsBrand() {
   const {
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
     data: campaignsData,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
@@ -97,8 +98,9 @@ function useNotificationsBrand() {
 
   // Fetch campaigns
   useEffect(() => {
+    if (campaignsLoading || campaignsSuccess || campaignsError) return;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   // Fetch notifications
   const fetchNotifications = useCallback(
