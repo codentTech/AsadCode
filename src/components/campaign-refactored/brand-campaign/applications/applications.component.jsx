@@ -1,6 +1,7 @@
 import ConfirmationDialog from "@/common/components/custom-dialog-confirmation/ConfirmationDialog";
 import MiddlePaneSkeleton from "@/common/components/brand-campaign-panes-skeleton/middle-pane-skeleton.component";
 import NotFound from "@/common/components/not-found/not-found.component";
+import { isDemoCampaign } from "@/common/utils/demo-campaign.util";
 import { isCreatorMode } from "@/common/utils/users.util";
 import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
 import MessageThreadModal from "@/components/campaign-refactored/shared/message-thread-modal/message-thread-modal.component";
@@ -25,10 +26,12 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
     selectedCreator,
     hireModalOpen,
     setHireModalOpen,
+    hireDemoMessage,
     hireCreatorData,
     selectedCampaignForHire,
     showRejectConfirmation,
     setShowRejectConfirmation,
+    rejectDemoMessage,
     createContractLoading,
     sendContractLoading,
     createContractSuccess,
@@ -148,6 +151,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
         onClearCreator={handleClearCreator}
         showProfileClose={viewMode === "board"}
         isIndividualCreator={rightPaneState.isIndividualCreator}
+        inertSocialLinks={isDemoCampaign(selectedCampaign)}
       />
     ) : null;
 
@@ -180,6 +184,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
         isLoading={createContractLoading || sendContractLoading}
         isSuccess={createContractSuccess && sendContractSuccess}
         isError={createContractError || sendContractError}
+        demoBlockedMessage={hireDemoMessage}
       />
 
       <MessageThreadModal
@@ -196,6 +201,7 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
         isCreatorTyping={messageThreadHook.isCreatorTyping}
         messagesEndRef={messageThreadHook.messagesEndRef}
         messagesContainerRef={messageThreadHook.messagesContainerRef}
+        errorMessage={messageThreadHook.error}
         {...pickMessageThreadModalProps(messageThreadHook)}
       />
 
@@ -212,6 +218,11 @@ function BrandApplicationsContent({ onSwitchToRejected }) {
             <p className="text-sm text-gray-500">
               This action will move the application to the rejected list.
             </p>
+            {rejectDemoMessage ? (
+              <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {rejectDemoMessage}
+              </p>
+            ) : null}
           </div>
         }
       />

@@ -9,6 +9,8 @@ import {
 import { isCampaignListingOpen } from "@/common/utils/campaign-listing.util";
 import { COLLABORATION_TYPE } from "@/common/constants/campaign.constant";
 import { getUser } from "@/common/utils/users.util";
+import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
+import { getUser } from "@/common/utils/users.util";
 import { getBrandIndividualCollaborations } from "@/provider/features/invitation/invitation.slice";
 import {
   getAllShortlists,
@@ -65,6 +67,7 @@ function useCreatorSpendAnalysis({
     data: campaignsApiData,
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const isMultiCreator = useSelector(
@@ -86,10 +89,17 @@ function useCreatorSpendAnalysis({
   }, [campaignsData?.data]);
 
   useEffect(() => {
-    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    if (
+      campaignsLoading ||
+      campaignsSuccess ||
+      campaignsError ||
+      hasRequestedBrandCampaignsRef.current
+    ) {
+      return;
+    }
     hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch, campaignsLoading, campaignsSuccess]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   const { data: individualCollaborationsData, isLoading: individualCollaborationsLoading } =
     useSelector((state) => state.invitation.getBrandIndividualCollaborations || {});
@@ -277,8 +287,12 @@ function useCreatorSpendAnalysis({
         campaignsData?.data &&
         typeof onCampaignSelect === "function"
       ) {
-        const firstCampaign = campaignsData.data.find(
-          (c) => c.id === filteredCampaignOptions[0]?.value
+        const candidateCampaigns = filteredCampaignOptions
+          .map((option) => campaignsData.data.find((c) => c.id === option.value))
+          .filter(Boolean);
+        const firstCampaign = pickDefaultBrandCampaign(
+          campaignsData.data,
+          candidateCampaigns,
         );
         if (firstCampaign) {
           onCampaignSelect(firstCampaign);

@@ -20,6 +20,15 @@ import {
   filterCampaignsOwnedByBrand,
   splitCreatorsByApplicationsSubTab,
 } from "@/common/utils/campaign.utils";
+import {
+  DEMO_MUTATION_MESSAGES,
+  isDemoCampaign,
+} from "@/common/utils/demo-campaign.util";
+import {
+  creatorBelongsToApplicationsSubTab,
+  filterCampaignsOwnedByBrand,
+  splitCreatorsByApplicationsSubTab,
+} from "@/common/utils/campaign.utils";
 import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
@@ -66,6 +75,7 @@ function useBrandApplications() {
     data: campaignsData,
     isLoading: campaignsLoading,
     isSuccess: campaignsSuccess,
+    isError: campaignsError,
   } = useSelector((state) => state.campaigns.getAllBrandCampaigns || {});
 
   const {
@@ -102,9 +112,11 @@ function useBrandApplications() {
   const autoSelectedForCampaignRef = useRef(null);
   const refreshTimeoutRef = useRef(null);
   const [hireModalOpen, setHireModalOpen] = useState(false);
+  const [hireDemoMessage, setHireDemoMessage] = useState("");
   const [hireCreatorData, setHireCreatorData] = useState(null);
   const [selectedCampaignForHire, setSelectedCampaignForHire] = useState(null);
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false);
+  const [rejectDemoMessage, setRejectDemoMessage] = useState("");
   const [applicationsSubTab, setApplicationsSubTab] = useState("applications");
   const [viewMode, setViewMode] = useState("standard");
   const [pipelineRefreshToken, setPipelineRefreshToken] = useState(0);
@@ -134,10 +146,17 @@ function useBrandApplications() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (campaignsLoading || campaignsSuccess || hasRequestedBrandCampaignsRef.current) return;
+    if (
+      campaignsLoading ||
+      campaignsSuccess ||
+      campaignsError ||
+      hasRequestedBrandCampaignsRef.current
+    ) {
+      return;
+    }
     hasRequestedBrandCampaignsRef.current = true;
     dispatch(getAllBrandCampaigns());
-  }, [dispatch, campaignsLoading, campaignsSuccess]);
+  }, [dispatch, campaignsLoading, campaignsSuccess, campaignsError]);
 
   useEffect(() => {
     if (selectedCampaignId !== lastRestoredCampaignIdRef.current) {
@@ -292,10 +311,16 @@ function useBrandApplications() {
     if (!selectedCreator || !selectedCampaign) return;
     setHireCreatorData(selectedCreator);
     setSelectedCampaignForHire(selectedCampaign);
+    setHireDemoMessage("");
     setHireModalOpen(true);
   };
 
   const handleSendOffer = async (contractData) => {
+    if (isDemoCampaign(selectedCampaign) || isDemoCampaign(selectedCampaignForHire)) {
+      setHireDemoMessage(DEMO_MUTATION_MESSAGES.sendOffer);
+      return { demoBlocked: true, message: DEMO_MUTATION_MESSAGES.sendOffer };
+    }
+
     const isIndividual =
       selectedCampaign?.collaboration_type === COLLABORATION_TYPE.INDIVIDUAL_CREATOR ||
       (!selectedCampaign && selectedCreator?.campaign_id);
@@ -360,11 +385,19 @@ function useBrandApplications() {
     }
   };
 
-  const handleRejectClick = () => setShowRejectConfirmation(true);
+  const handleRejectClick = () => {
+    setRejectDemoMessage("");
+    setShowRejectConfirmation(true);
+  };
 
   const handleConfirmReject = async () => {
     if (!selectedCampaign || !selectedCreator) {
       setShowRejectConfirmation(false);
+      return;
+    }
+
+    if (isDemoCampaign(selectedCampaign)) {
+      setRejectDemoMessage(DEMO_MUTATION_MESSAGES.reject);
       return;
     }
 
@@ -922,10 +955,12 @@ function useBrandApplications() {
     handleApplicationsSubTabChange,
     hireModalOpen,
     setHireModalOpen,
+    hireDemoMessage,
     hireCreatorData,
     selectedCampaignForHire,
     showRejectConfirmation,
     setShowRejectConfirmation,
+    rejectDemoMessage,
     createContractLoading,
     sendContractLoading,
     createContractSuccess,
