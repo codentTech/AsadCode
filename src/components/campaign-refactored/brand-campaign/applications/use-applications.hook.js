@@ -24,11 +24,6 @@ import {
   DEMO_MUTATION_MESSAGES,
   isDemoCampaign,
 } from "@/common/utils/demo-campaign.util";
-import {
-  creatorBelongsToApplicationsSubTab,
-  filterCampaignsOwnedByBrand,
-  splitCreatorsByApplicationsSubTab,
-} from "@/common/utils/campaign.utils";
 import { getUser } from "@/common/utils/users.util";
 import { isMobileViewport } from "@/common/utils/viewport.utils";
 import { ensureAppliedCreatorsUiFilters } from "@/common/utils/normalize-applied-creators-filters.util";
