@@ -200,6 +200,22 @@ export const useCreatorSpendAnalysisCompleted = ({
       const views = base?.views ?? null;
       const totalEngagement = base?.totalEngagement ?? null;
       const engagementRate = base?.engagementRate ?? null;
+      const costBasis =
+        sales?.costBasis != null && Number(sales.costBasis) > 0
+          ? Number(sales.costBasis)
+          : null;
+      const roi =
+        sales?.roi != null
+          ? sales.roi
+          : costBasis != null && costBasis > 0
+            ? Number((revenue / costBasis).toFixed(2))
+            : null;
+      const costPerSale =
+        sales?.costPerSale != null
+          ? sales.costPerSale
+          : costBasis != null && orders > 0
+            ? Number((costBasis / orders).toFixed(2))
+            : null;
 
       return {
         ...(base || {}),
@@ -210,13 +226,21 @@ export const useCreatorSpendAnalysisCompleted = ({
         orders,
         unitsSold,
         commissionTotal: commission,
-        roi: commission > 0 ? Number((revenue / commission).toFixed(2)) : null,
-        costPerSale: orders > 0 ? Number((commission / orders).toFixed(2)) : null,
+        flatFee: Number(sales?.flatFee) || 0,
+        productCost: Number(sales?.productCost) || 0,
+        costBasis,
+        roi,
+        costPerSale,
+        conversionLabel: sales?.conversionLabel || "units_sold",
+        conversionValue:
+          sales?.conversionValue != null ? sales.conversionValue : unitsSold,
         costPerView:
-          views != null && views > 0 ? Number((commission / views).toFixed(4)) : null,
+          costBasis != null && views != null && views > 0
+            ? Number((costBasis / views).toFixed(4))
+            : null,
         costPerEngagement:
-          totalEngagement != null && totalEngagement > 0
-            ? Number((commission / totalEngagement).toFixed(4))
+          costBasis != null && totalEngagement != null && totalEngagement > 0
+            ? Number((costBasis / totalEngagement).toFixed(4))
             : null,
         views,
         totalEngagement,

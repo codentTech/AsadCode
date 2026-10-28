@@ -31,8 +31,10 @@ function useDiscover() {
 
   useEffect(() => {
     dispatch(getAllShortlists());
-    dispatch(getAllBrandCampaigns());
-  }, [dispatch]);
+    if (!campaignsState?.isSuccess && !campaignsState?.isLoading && !campaignsState?.isError) {
+      dispatch(getAllBrandCampaigns());
+    }
+  }, [dispatch, campaignsState?.isSuccess, campaignsState?.isLoading, campaignsState?.isError]);
 
   useEffect(() => {
     if (campaignsState?.data?.data && Array.isArray(campaignsState.data.data)) {
