@@ -7,8 +7,6 @@ import { setSelectedCampaign as setSelectedCampaignContext } from "@/provider/fe
 import { filterCampaignsOwnedByBrand } from "@/common/utils/campaign.utils";
 import { getUser } from "@/common/utils/users.util";
 import { pickDefaultBrandCampaign } from "@/common/utils/demo-campaign.util";
-import { filterCampaignsOwnedByBrand } from "@/common/utils/campaign.utils";
-import { getUser } from "@/common/utils/users.util";
 import {
   individualContractsScopeMatches,
   individualContractsForPhase,
