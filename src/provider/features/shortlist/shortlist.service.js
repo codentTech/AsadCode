@@ -31,16 +31,39 @@ const deleteShortlist = async (shortlistId) => {
 };
 
 // Add a user to a shortlist
-const addUserToShortlist = async (shortlistId, userId) => {
-  const response = await api().post(`/shortlist/${shortlistId}/users`, {
-    user_id: userId,
-  });
+const addUserToShortlist = async (shortlistId, userId, { skipToast = false } = {}) => {
+  const response = await api().post(
+    `/shortlist/${shortlistId}/users`,
+    { user_id: userId },
+    skipToast ? { headers: { "x-skip-toast": "true" } } : undefined
+  );
+  return response.data;
+};
+
+const addUsersToShortlistBulk = async (shortlistId, userIds, { skipToast = false } = {}) => {
+  const response = await api().post(
+    `/shortlist/${shortlistId}/users/bulk`,
+    { user_ids: userIds },
+    skipToast ? { headers: { "x-skip-toast": "true" } } : undefined
+  );
   return response.data;
 };
 
 // Remove a user from a shortlist
 const removeUserFromShortlist = async (shortlistId, userId) => {
   const response = await api().delete(`/shortlist/${shortlistId}/users/${userId}`);
+  return response.data;
+};
+
+const removeUsersFromShortlistBulk = async (
+  shortlistId,
+  userIds,
+  { skipToast = false } = {}
+) => {
+  const response = await api().delete(`/shortlist/${shortlistId}/users/bulk`, {
+    data: { user_ids: userIds },
+    ...(skipToast ? { headers: { "x-skip-toast": "true" } } : {}),
+  });
   return response.data;
 };
 
@@ -51,7 +74,9 @@ const shortlistService = {
   updateShortlist,
   deleteShortlist,
   addUserToShortlist,
+  addUsersToShortlistBulk,
   removeUserFromShortlist,
+  removeUsersFromShortlistBulk,
 };
 
 export default shortlistService;

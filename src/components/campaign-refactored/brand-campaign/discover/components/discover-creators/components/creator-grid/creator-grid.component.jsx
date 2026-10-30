@@ -5,7 +5,10 @@ import { CREATOR_CARD_GRID_CLASS } from "@/common/constants/creator-card-layout.
 const CreatorGrid = ({
   creators,
   isShortlist = false,
+  isBulkMode = false,
+  selectedCreatorIds,
   onCreatorPreview,
+  onCreatorToggle,
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
@@ -44,7 +47,10 @@ const CreatorGrid = ({
               creator={creator}
               creatorType={creator.creator_profile?.creator_type}
               isShortlist={isShortlist}
+              isBulkMode={isBulkMode}
+              isSelected={Boolean(selectedCreatorIds?.has?.(creator.id))}
               onCreatorPreview={onCreatorPreview}
+              onCreatorToggle={onCreatorToggle}
               onSaveToShortlist={onSaveToShortlist}
               onRemoveFromShortlist={onRemoveFromShortlist}
               onInviteClick={onInviteClick}

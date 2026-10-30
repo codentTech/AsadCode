@@ -12,12 +12,14 @@ const InvitationModal = ({
   isOpen,
   onClose,
   selectedCreator,
+  selectedCreators = null,
   userCampaigns = [],
   isCampaignsLoading = false,
   onRefreshCampaigns,
   onInviteSent,
 }) => {
   const [invitationType, setInvitationType] = useState(COLLABORATION_TYPE.MULTI_CREATOR);
+  const isBulkInvite = Array.isArray(selectedCreators) && selectedCreators.length > 0;
 
   const {
     customMessage,
@@ -28,6 +30,7 @@ const InvitationModal = ({
     selectedCampaign,
     handleCampaignSelect,
     handleSubmit,
+    handleBulkSubmit,
     resetForm,
   } = useInvitationModal({ isOpen, onRefreshCampaigns });
 
@@ -61,30 +64,49 @@ const InvitationModal = ({
   return (
     <Modal show={isOpen} title="Invite to Apply" onClose={handleModalClose} size="lg">
       <div className="space-y-3 sm:space-y-4">
-        <div className="flex items-center space-x-2.5 rounded-lg bg-gray-50 p-2 sm:space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-            {selectedCreator?.profileImage ? (
-              <img
-                src={selectedCreator.profileImage}
-                alt="Creator"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5 text-white" />
-            )}
-          </div>
+        {!isBulkInvite && selectedCreator && (
+          <div className="flex items-center space-x-2.5 rounded-lg bg-gray-50 p-2 sm:space-x-3">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+              {selectedCreator?.profileImage ? (
+                <img
+                  src={selectedCreator.profileImage}
+                  alt="Creator"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-5 h-5 text-white" />
+              )}
+            </div>
 
-          <div className="flex-1 min-w-0">
-            <h3 className="text-xs font-medium text-gray-900 sm:text-sm">
-              {selectedCreator?.first_name && selectedCreator?.last_name
-                ? `${selectedCreator.first_name} ${selectedCreator.last_name}`
-                : selectedCreator?.name || "Creator"}
-            </h3>
-            <p className="text-[10px] text-gray-500 sm:text-xs">
-              {selectedCreator?.niches?.map((niche) => niche).join(", ") || "N/A"}
-            </p>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xs font-medium text-gray-900 sm:text-sm">
+                {selectedCreator?.first_name && selectedCreator?.last_name
+                  ? `${selectedCreator.first_name} ${selectedCreator.last_name}`
+                  : selectedCreator?.name || "Creator"}
+              </h3>
+              <p className="text-[10px] text-gray-500 sm:text-xs">
+                {selectedCreator?.niches?.map((niche) => niche).join(", ") || "N/A"}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {isBulkInvite && (
+          <div className="flex items-center space-x-2.5 rounded-lg bg-gray-50 p-2 sm:space-x-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary">
+              <Users className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs font-medium text-gray-900 sm:text-sm">
+                {selectedCreators.length} Creator
+                {selectedCreators.length !== 1 ? "s" : ""} Selected
+              </h3>
+              <p className="text-[10px] text-gray-500 sm:text-xs">
+                Send invitation to all selected creators
+              </p>
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="mb-2 block text-xs font-medium text-gray-700">
@@ -296,10 +318,23 @@ const InvitationModal = ({
           />
 
           <CustomButton
-            text="Send Invitation"
+            text={
+              isBulkInvite
+                ? `Send Invitations (${selectedCreators.length})`
+                : "Send Invitation"
+            }
             className="btn-primary w-full sm:w-auto"
             loading={isSending}
             onClick={async () => {
+              if (isBulkInvite) {
+                await handleBulkSubmit(
+                  selectedCreators,
+                  onInviteSent,
+                  handleModalClose,
+                  invitationType
+                );
+                return;
+              }
               await handleSubmit(selectedCreator, onInviteSent, handleModalClose, invitationType);
             }}
             disabled={isSending || !canSubmit()}

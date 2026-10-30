@@ -4,7 +4,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-import { sendInvitation } from "@/provider/features/invitation/invitation.slice";
+import {
+  sendBulkInvitations,
+  sendInvitation,
+} from "@/provider/features/invitation/invitation.slice";
 import { COLLABORATION_TYPE, COMPENSATION_TYPE } from "@/common/constants/campaign.constant";
 
 const invitationSchema = yup.object({
@@ -13,7 +16,13 @@ const invitationSchema = yup.object({
 
 const useInvitationModal = ({ isOpen, onRefreshCampaigns } = {}) => {
   const dispatch = useDispatch();
-  const { isLoading: isSending } = useSelector((state) => state.invitation?.sendInvitation || {});
+  const { isLoading: isSendingSingle } = useSelector(
+    (state) => state.invitation?.sendInvitation || {}
+  );
+  const { isLoading: isBulkSending } = useSelector(
+    (state) => state.invitation?.sendBulkInvitations || {}
+  );
+  const isSending = Boolean(isSendingSingle || isBulkSending);
 
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
@@ -170,6 +179,46 @@ const useInvitationModal = ({ isOpen, onRefreshCampaigns } = {}) => {
     }
   };
 
+  const handleBulkSubmit = async (
+    selectedCreators,
+    onInviteSent,
+    onClose,
+    collaborationType
+  ) => {
+    if (!Array.isArray(selectedCreators) || selectedCreators.length === 0) return;
+
+    const isValid = await trigger("customMessage");
+    if (!isValid) return;
+
+    if (collaborationType === COLLABORATION_TYPE.MULTI_CREATOR && !selectedCampaign) {
+      return;
+    }
+
+    if (collaborationType === COLLABORATION_TYPE.INDIVIDUAL_CREATOR && !customMessage.trim()) {
+      return;
+    }
+
+    const bulkInvitationData = {
+      creator_ids: selectedCreators.map((creator) => creator.id),
+      collaboration_type: collaborationType,
+      campaign_id:
+        collaborationType === COLLABORATION_TYPE.MULTI_CREATOR ? selectedCampaign.id : null,
+      custom_message: customMessage.trim() || null,
+    };
+
+    const result = await dispatch(sendBulkInvitations(bulkInvitationData));
+    if (!sendBulkInvitations.fulfilled.match(result)) return;
+
+    if (onInviteSent) {
+      onInviteSent(selectedCreators, selectedCampaign);
+    }
+
+    resetForm();
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return {
     customMessage,
     setCustomMessage,
@@ -183,6 +232,7 @@ const useInvitationModal = ({ isOpen, onRefreshCampaigns } = {}) => {
     resetForm,
     handleClose,
     handleSubmit,
+    handleBulkSubmit,
     formatCompensation,
   };
 };

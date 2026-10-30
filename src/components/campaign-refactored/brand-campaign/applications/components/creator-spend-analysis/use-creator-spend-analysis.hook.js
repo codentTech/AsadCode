@@ -112,6 +112,7 @@ function useCreatorSpendAnalysis({
 
   const [showSaveToShortlistModal, setShowSaveToShortlistModal] = useState(false);
   const [creatorToSave, setCreatorToSave] = useState(null);
+  const [savingShortlistId, setSavingShortlistId] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [showCloseListingModal, setShowCloseListingModal] = useState(false);
   const [confirmCloseCampaignId, setConfirmCloseCampaignId] = useState(null);
@@ -332,21 +333,26 @@ function useCreatorSpendAnalysis({
   };
 
   const confirmSaveToShortlist = async (shortlistId) => {
-    if (creatorToSave) {
-      const creatorId = creatorToSave.id || creatorToSave.creator?.id;
-      if (creatorId) {
-        await dispatch(
-          addUserToShortlist({
-            shortlistId,
-            userId: creatorId,
-          })
-        );
-        // Refetch shortlists to get updated counts
-        await dispatch(getAllShortlists());
-      }
+    if (!creatorToSave || savingShortlistId) return;
+
+    const creatorId = creatorToSave.id || creatorToSave.creator?.id;
+    if (!creatorId) return;
+
+    setSavingShortlistId(shortlistId);
+    const result = await dispatch(
+      addUserToShortlist({
+        shortlistId,
+        userId: creatorId,
+      })
+    );
+
+    if (addUserToShortlist.fulfilled.match(result)) {
+      await dispatch(getAllShortlists());
+      setShowSaveToShortlistModal(false);
+      setCreatorToSave(null);
     }
-    setShowSaveToShortlistModal(false);
-    setCreatorToSave(null);
+
+    setSavingShortlistId(null);
   };
 
   const mapCreatorForCard = (data) => {
@@ -731,6 +737,7 @@ function useCreatorSpendAnalysis({
     handleCreatorPreview,
     handleSaveToShortlist,
     confirmSaveToShortlist,
+    savingShortlistId,
     showSaveToShortlistModal,
     setShowSaveToShortlistModal,
     shortlists: shortlistState.getAllShortlists?.data || [],

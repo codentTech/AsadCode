@@ -2,13 +2,15 @@ import { CAMPAIGN_STATUS, COLLABORATION_TYPE } from "@/common/constants/campaign
 import { getAllBrandCampaigns } from "@/provider/features/campaigns/campaigns.slice";
 import {
   addUserToShortlist,
+  addUsersToShortlistBulk,
   createShortlist,
   deleteShortlist,
   getAllShortlists,
   removeUserFromShortlist,
+  removeUsersFromShortlistBulk,
   updateShortlist,
 } from "@/provider/features/shortlist/shortlist.slice";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { mapUserToCreator } from "@/common/utils/discover-creators.util";
 
@@ -17,6 +19,7 @@ function useDiscover() {
   const shortlistState = useSelector((state) => state.shortlist);
   const campaignsState = useSelector((state) => state.campaigns?.getAllBrandCampaigns);
   const isCampaignsLoading = Boolean(campaignsState?.isLoading);
+  const saveSuccessCallbackRef = useRef(null);
 
   const [selectedShortlist, setSelectedShortlist] = useState(null);
   const [isNewShortlistDialogOpen, setIsNewShortlistDialogOpen] = useState(false);
@@ -25,7 +28,9 @@ function useDiscover() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [sortOption, setSortOption] = useState("followers");
   const [saveToShortlistDialogOpen, setSaveToShortlistDialogOpen] = useState(false);
-  const [creatorToSave, setCreatorToSave] = useState(null);
+  const [creatorsToSave, setCreatorsToSave] = useState([]);
+  const [savingShortlistId, setSavingShortlistId] = useState(null);
+  const [saveToShortlistResult, setSaveToShortlistResult] = useState(null);
   const [userCampaigns, setUserCampaigns] = useState([]);
   const [shortlistMenuOpen, setShortlistMenuOpen] = useState(false);
 
@@ -98,38 +103,119 @@ function useDiscover() {
     setIsPreviewOpen(true);
   };
 
-  // Handle adding creator to shortlist
-  const handleSaveToShortlist = (creator) => {
-    setCreatorToSave(creator);
+  const getCreatorDisplayName = (creator) =>
+    creator?.name ||
+    [creator?.first_name, creator?.last_name].filter(Boolean).join(" ").trim() ||
+    "Unknown creator";
+
+  // Handle adding creator(s) to shortlist
+  const handleSaveToShortlist = (creatorOrCreators, onSuccess) => {
+    const creators = Array.isArray(creatorOrCreators)
+      ? creatorOrCreators
+      : creatorOrCreators
+        ? [creatorOrCreators]
+        : [];
+    if (creators.length === 0) return;
+
+    saveSuccessCallbackRef.current = onSuccess || null;
+    setSaveToShortlistResult(null);
+    setCreatorsToSave(creators);
     setSaveToShortlistDialogOpen(true);
   };
 
-  // Confirm adding creator to selected shortlist
+  const handleCloseSaveToShortlist = () => {
+    if (savingShortlistId) return;
+    saveSuccessCallbackRef.current = null;
+    setCreatorsToSave([]);
+    setSaveToShortlistResult(null);
+    setSaveToShortlistDialogOpen(false);
+  };
+
+  const resolveCreatorNameById = (creatorId) => {
+    const creator = creatorsToSave.find((item) => item.id === creatorId);
+    return creator ? getCreatorDisplayName(creator) : creatorId;
+  };
+
+  // Confirm adding creator(s) to selected shortlist
   const confirmSaveToShortlist = async (shortlistId) => {
-    if (creatorToSave) {
+    if (!creatorsToSave.length || savingShortlistId) return;
+
+    setSavingShortlistId(shortlistId);
+    setSaveToShortlistResult(null);
+
+    const shortlistName =
+      (shortlistState.getAllShortlists.data || []).find((shortlist) => shortlist.id === shortlistId)
+        ?.name || "this shortlist";
+
+    let added = [];
+    let alreadyIn = [];
+    let failed = [];
+
+    if (creatorsToSave.length === 1) {
+      const creator = creatorsToSave[0];
+      const displayName = getCreatorDisplayName(creator);
       const result = await dispatch(
         addUserToShortlist({
           shortlistId,
-          userId: creatorToSave.id,
+          userId: creator.id,
+          skipToast: true,
         })
       );
 
-      // Refetch shortlists to get updated counts from backend
-      if (result.type === addUserToShortlist.fulfilled.type) {
-        const refetchResult = await dispatch(getAllShortlists());
+      if (addUserToShortlist.fulfilled.match(result)) {
+        added = [displayName];
+      } else {
+        const errorMessage = String(result.payload?.message || "");
+        if (/already in the shortlist/i.test(errorMessage)) {
+          alreadyIn = [displayName];
+        } else {
+          failed = [displayName];
+        }
+      }
+    } else {
+      const result = await dispatch(
+        addUsersToShortlistBulk({
+          shortlistId,
+          userIds: creatorsToSave.map((creator) => creator.id),
+          skipToast: true,
+        })
+      );
 
-        // Update selected shortlist if it matches
-        if (selectedShortlist && selectedShortlist.id === shortlistId) {
-          if (refetchResult.type === getAllShortlists.fulfilled.type && refetchResult.payload) {
-            const updatedShortlist = refetchResult.payload.find((s) => s.id === shortlistId);
-            if (updatedShortlist) {
-              setSelectedShortlist(updatedShortlist);
-            }
+      if (!addUsersToShortlistBulk.fulfilled.match(result)) {
+        failed = creatorsToSave.map(getCreatorDisplayName);
+      } else {
+        const payload = result.payload || {};
+        added = (payload.added || []).map(resolveCreatorNameById);
+        alreadyIn = (payload.already_in || []).map(resolveCreatorNameById);
+        failed = (payload.not_found || []).map(resolveCreatorNameById);
+      }
+    }
+
+    if (added.length > 0) {
+      const refetchResult = await dispatch(getAllShortlists());
+
+      if (selectedShortlist && selectedShortlist.id === shortlistId) {
+        if (refetchResult.type === getAllShortlists.fulfilled.type && refetchResult.payload) {
+          const updatedShortlist = refetchResult.payload.find((s) => s.id === shortlistId);
+          if (updatedShortlist) {
+            setSelectedShortlist(updatedShortlist);
           }
         }
       }
     }
-    setSaveToShortlistDialogOpen(false);
+
+    if (alreadyIn.length === 0 && failed.length === 0) {
+      const onSuccess = saveSuccessCallbackRef.current;
+      saveSuccessCallbackRef.current = null;
+      onSuccess?.();
+      setSaveToShortlistDialogOpen(false);
+      setCreatorsToSave([]);
+      setSavingShortlistId(null);
+      return;
+    }
+
+    setSaveToShortlistResult({ shortlistName, added, alreadyIn, failed });
+    setSavingShortlistId(null);
   };
 
   // Handle removing creator from shortlist
@@ -159,6 +245,35 @@ function useDiscover() {
         }
       }
     }
+  };
+
+  const handleBulkRemoveFromShortlist = async (creatorIds = []) => {
+    if (!selectedShortlist || !creatorIds.length) return false;
+
+    const shortlistId = selectedShortlist.id;
+    const result = await dispatch(
+      removeUsersFromShortlistBulk({
+        shortlistId,
+        userIds: creatorIds,
+        skipToast: false,
+      })
+    );
+
+    if (!removeUsersFromShortlistBulk.fulfilled.match(result)) {
+      return false;
+    }
+
+    const refetchResult = await dispatch(getAllShortlists());
+    if (refetchResult.type === getAllShortlists.fulfilled.type && refetchResult.payload) {
+      const updatedShortlist = refetchResult.payload.find((s) => s.id === shortlistId);
+      if (updatedShortlist) {
+        setSelectedShortlist(updatedShortlist);
+      } else {
+        setSelectedShortlist(null);
+      }
+    }
+
+    return true;
   };
 
   // Handle editing shortlist name
@@ -234,6 +349,11 @@ function useDiscover() {
     setIsPreviewOpen,
     saveToShortlistDialogOpen,
     setSaveToShortlistDialogOpen,
+    creatorsToSave,
+    savingShortlistId,
+    saveToShortlistResult,
+    saveToShortlistError: "",
+    handleCloseSaveToShortlist,
     handleShortlistSelect,
     handleCreateShortlist,
     handleCreatorPreview,
@@ -241,6 +361,7 @@ function useDiscover() {
     confirmSaveToShortlist,
     getSortedCreators,
     handleRemoveFromShortlist,
+    handleBulkRemoveFromShortlist,
     handleEditShortlist,
     handleDeleteShortlist,
     handleInviteToApply,

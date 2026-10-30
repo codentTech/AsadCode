@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
+import { enqueueSnackbar } from "notistack";
 import { exitImpersonation } from "@/provider/features/auth/auth.slice";
 import { getUser } from "@/common/utils/users.util";
 
@@ -70,16 +71,24 @@ function useImpersonationBanner() {
       return;
     }
     setIsExiting(true);
-    dispatch(exitImpersonation()).then((result) => {
-      setIsExiting(false);
-      if (exitImpersonation.fulfilled.match(result)) {
-        setIsImpersonating(false);
-        setAdminUser(null);
-        setCurrentUser(result?.payload?.data?.user ?? getUser() ?? null);
-        router.push("/admin/users");
-        router.refresh();
-      }
-    });
+    dispatch(exitImpersonation())
+      .then((result) => {
+        if (exitImpersonation.fulfilled.match(result)) {
+          setIsImpersonating(false);
+          setAdminUser(null);
+          setCurrentUser(result?.payload?.data?.user ?? getUser() ?? null);
+          router.push("/admin/users");
+          router.refresh();
+          return;
+        }
+        syncImpersonationState({ setCurrentUser, setAdminUser, setIsImpersonating });
+        const message =
+          result?.payload?.message || "Failed to exit impersonation. Please try again.";
+        enqueueSnackbar(message, { variant: "error" });
+      })
+      .finally(() => {
+        setIsExiting(false);
+      });
   }, [dispatch, isExiting, router]);
 
   const toggleCollapsed = useCallback(() => {

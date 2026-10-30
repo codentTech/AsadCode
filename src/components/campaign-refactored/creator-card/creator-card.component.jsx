@@ -5,13 +5,16 @@ import MediaKitIcon from "@/common/components/media-kit-icon/media-kit-icon.comp
 import UrgencyPill from "@/common/components/urgency-pill/urgency-pill.component";
 import { getCreatorTagMeta } from "@/common/constants/creator-tag.constant";
 import { HIDE_CREATOR_RATING_UI } from "@/common/utils/campaign.utils";
-import { Bookmark, Star, User } from "lucide-react";
+import { Bookmark, Check, Star, User } from "lucide-react";
 import { useCreatorCard } from "./use-creator-card.hook";
 
 const CreatorCard = ({
   creator,
   isShortlist = false,
+  isBulkMode = false,
+  isSelected = false,
   onCreatorPreview,
+  onCreatorToggle,
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
@@ -54,6 +57,7 @@ const CreatorCard = ({
     getPlatformIcon,
     getPlatformProfileUrlFor,
     handleCardClick,
+    handleSelectionToggle,
     handleSaveClick,
     handleInviteClickInternal,
     handleReinstateClickInternal,
@@ -69,7 +73,9 @@ const CreatorCard = ({
   } = useCreatorCard({
     creator,
     isShortlist,
+    isBulkMode,
     onCreatorPreview,
+    onCreatorToggle,
     onSaveToShortlist,
     onRemoveFromShortlist,
     onInviteClick,
@@ -83,13 +89,34 @@ const CreatorCard = ({
         isShortlist || isApplicationsTab
           ? "h-full min-h-0 w-full self-stretch"
           : "w-[18rem]"
-      } rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 ${
-        onCreatorPreview ? "cursor-pointer" : "cursor-default"
-      } bg-white border border-gray-200 overflow-hidden`}
+      } rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${
+        isBulkMode || onCreatorPreview ? "cursor-pointer" : "cursor-default"
+      } overflow-hidden border-2 bg-white ${
+        isBulkMode && isSelected
+          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+          : "border-gray-200"
+      }`}
       onClick={() => {
-        if (onCreatorPreview) handleCardClick();
+        if (isBulkMode || onCreatorPreview) handleCardClick();
       }}
     >
+      {isBulkMode && (
+        <div className="absolute right-2 top-2 z-20">
+          <button
+            type="button"
+            aria-label={isSelected ? "Deselect creator" : "Select creator"}
+            className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${
+              isSelected
+                ? "border-primary bg-primary text-white"
+                : "border-gray-300 bg-white text-transparent"
+            }`}
+            onClick={handleSelectionToggle}
+          >
+            <Check className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="relative z-0 h-32 shrink-0 overflow-hidden bg-gray-100">
         {Array.isArray(creator.portfolioImages) && creator.portfolioImages.some(Boolean) ? (
           <div className="flex h-full">
@@ -129,7 +156,7 @@ const CreatorCard = ({
           </div>
         ) : null}
 
-        {!isApplicationsTab && tagMeta ? (
+        {!isApplicationsTab && !isBulkMode && tagMeta ? (
           <div
             className={`absolute top-1 right-1 max-w-[9rem] truncate px-2 py-1 text-[10px] font-semibold rounded-lg shadow-sm ${tagMeta.pillClass}`}
           >

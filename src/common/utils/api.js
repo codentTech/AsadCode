@@ -85,6 +85,10 @@ const api = (headers = null) => {
       const responseURL = error.request?.responseURL || "";
 
       if (error.response?.status === 401) {
+        const reqUrl401 = String(error.config?.url || "");
+        if (reqUrl401.includes("/auth/impersonate/exit")) {
+          return Promise.reject(error);
+        }
         redirectToLoginOnce();
         return Promise.reject(error);
       }

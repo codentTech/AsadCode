@@ -13,6 +13,7 @@ function DiscoverCreators({
   handleSaveToShortlist,
   getSortedCreators,
   handleRemoveFromShortlist,
+  handleBulkRemoveFromShortlist,
   handleInviteToApply,
   onRefreshCampaigns,
   isCampaignsLoading = false,
@@ -37,8 +38,8 @@ function DiscoverCreators({
     selectedCategory,
     filteredCreators,
     showInviteModal,
-    setShowInviteModal,
     selectedCreator,
+    selectedCreators,
     showFilterModal,
     setShowFilterModal,
     filterType,
@@ -59,11 +60,14 @@ function DiscoverCreators({
     handleBackToDiscover,
     clearAllFilters,
     handleInviteClick,
+    handleBulkInvite,
+    handleCloseInviteModal,
+    handleInviteSent,
     handleSearchChange,
     handleApplyFilters,
     handleLoadMore,
     handleGridRangeChanged,
-  } = useDiscoverCreators();
+  } = useDiscoverCreators({ onInviteSent: handleInviteToApply });
 
   const handleBackClick = () => {
     handleBackToDiscover(setSelectedShortlist);
@@ -82,7 +86,9 @@ function DiscoverCreators({
           onCreatorPreview={handleCreatorPreview}
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
+          onBulkRemoveFromShortlist={handleBulkRemoveFromShortlist}
           onInviteClick={handleInviteClick}
+          onBulkInvite={handleBulkInvite}
         />
       )}
 
@@ -137,6 +143,8 @@ function DiscoverCreators({
           onSaveToShortlist={handleSaveToShortlist}
           onRemoveFromShortlist={handleRemoveFromShortlist}
           onInviteClick={handleInviteClick}
+          onBulkInvite={handleBulkInvite}
+          onBulkSaveToShortlist={handleSaveToShortlist}
           onLoadMore={handleLoadMore}
           onRangeChanged={handleGridRangeChanged}
           scrollParent={scrollParent}
@@ -167,12 +175,13 @@ function DiscoverCreators({
 
       <InvitationModal
         isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
+        onClose={handleCloseInviteModal}
         selectedCreator={selectedCreator}
+        selectedCreators={selectedCreators}
         userCampaigns={userCampaigns}
         onRefreshCampaigns={onRefreshCampaigns}
         isCampaignsLoading={isCampaignsLoading}
-        onInviteSent={handleInviteToApply}
+        onInviteSent={handleInviteSent}
       />
     </div>
   );
