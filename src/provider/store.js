@@ -47,6 +47,14 @@ const defaultAdminDashboardSummary = {
   message: "",
 };
 
+const defaultShortlistActionState = {
+  data: null,
+  isError: false,
+  isSuccess: false,
+  isLoading: false,
+  message: "",
+};
+
 const migratePersistedState = (state) => {
   if (!state || typeof state !== "object") {
     return Promise.resolve(state);
@@ -59,25 +67,40 @@ const migratePersistedState = (state) => {
     ...withoutUserCampaignState
   } = state;
 
-  const dashboard = withoutUserCampaignState.dashboard;
-  if (!dashboard || typeof dashboard !== "object") {
-    return Promise.resolve(withoutUserCampaignState);
+  let nextState = withoutUserCampaignState;
+
+  const dashboard = nextState.dashboard;
+  if (dashboard && typeof dashboard === "object" && dashboard.adminDashboardSummary == null) {
+    nextState = {
+      ...nextState,
+      dashboard: {
+        ...dashboard,
+        adminDashboardSummary: { ...defaultAdminDashboardSummary },
+      },
+    };
   }
-  if (dashboard.adminDashboardSummary != null) {
-    return Promise.resolve(withoutUserCampaignState);
+
+  // v3: ensure new shortlist bulk action keys exist on rehydrate
+  const shortlist = nextState.shortlist;
+  if (shortlist && typeof shortlist === "object") {
+    nextState = {
+      ...nextState,
+      shortlist: {
+        ...shortlist,
+        addUsersToShortlistBulk:
+          shortlist.addUsersToShortlistBulk || { ...defaultShortlistActionState },
+        removeUsersFromShortlistBulk:
+          shortlist.removeUsersFromShortlistBulk || { ...defaultShortlistActionState },
+      },
+    };
   }
-  return Promise.resolve({
-    ...withoutUserCampaignState,
-    dashboard: {
-      ...dashboard,
-      adminDashboardSummary: { ...defaultAdminDashboardSummary },
-    },
-  });
+
+  return Promise.resolve(nextState);
 };
 
 const persistConfig = {
   key: "root",
-  version: 2,
+  version: 3,
   migrate: migratePersistedState,
   storage,
   // Never persist per-user campaign/contract selection — it leaks across account switches.

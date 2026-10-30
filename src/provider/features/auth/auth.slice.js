@@ -196,25 +196,82 @@ export const impersonateUser = createAsyncThunk(
   }
 );
 
+const restoreAdminSessionFromStorage = () => {
+  if (typeof window !== "object" || !window?.localStorage) {
+    return null;
+  }
+  const adminToken = localStorage.getItem("admin_token");
+  const adminUserRaw = localStorage.getItem("admin_user");
+  if (!adminToken || !adminUserRaw) {
+    return null;
+  }
+  let adminUser = null;
+  try {
+    adminUser = JSON.parse(adminUserRaw);
+  } catch {
+    return null;
+  }
+  if (!adminUser) {
+    return null;
+  }
+  localStorage.setItem("token", adminToken);
+  localStorage.setItem("user", JSON.stringify(adminUser));
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  return { user: adminUser, token: adminToken };
+};
+
+const applyAdminSession = (payload) => {
+  if (
+    !payload?.token ||
+    !payload?.user ||
+    typeof window !== "object" ||
+    !window?.localStorage
+  ) {
+    return false;
+  }
+  localStorage.setItem("token", payload.token);
+  localStorage.setItem("user", JSON.stringify(payload.user));
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  return true;
+};
+
 export const exitImpersonation = createAsyncThunk(
   "auth/exitImpersonation",
   async (_, thunkAPI) => {
     try {
       const response = await authService.exitImpersonation();
-      if (!response?.success) {
-        return thunkAPI.rejectWithValue(response);
+      if (response?.success && applyAdminSession(response?.data)) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return response;
       }
 
-      const payload = response?.data;
-      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
-        localStorage.setItem("token", payload.token);
-        localStorage.setItem("user", JSON.stringify(payload.user));
-        localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_user");
+      const restored = restoreAdminSessionFromStorage();
+      if (restored) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return {
+          success: true,
+          message: "Impersonation ended successfully",
+          data: restored,
+        };
       }
 
-      return response;
+      return thunkAPI.rejectWithValue(
+        response?.message
+          ? { message: normalizeAuthMessage(response.message) }
+          : { message: "Failed to exit impersonation" }
+      );
     } catch (error) {
+      const restored = restoreAdminSessionFromStorage();
+      if (restored) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return {
+          success: true,
+          message: "Impersonation ended successfully",
+          data: restored,
+        };
+      }
       return thunkAPI.rejectWithValue(getSerializableError(error));
     }
   }

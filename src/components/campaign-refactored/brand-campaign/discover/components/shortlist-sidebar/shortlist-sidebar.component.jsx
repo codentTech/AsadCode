@@ -47,10 +47,12 @@ function ShortlistSidebar({
   });
 
   return (
-    <div className="flex h-full min-h-0 w-full shrink-0 flex-col overflow-hidden border-b border-gray-200 bg-gradient-to-b from-gray-50 to-white md:border-b-0 md:border-r">
-      <div className="border-b border-gray-100 bg-white p-3 shadow-sm sm:p-4">
+    <div className="flex h-full min-h-0 w-full shrink-0 flex-col overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+      <div className="shrink-0 border-b border-gray-100 bg-white p-3 shadow-sm sm:p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-base font-bold text-gray-800 sm:text-lg">Shortlists</h2>
+          <h2 className="min-w-0 truncate text-base font-bold text-gray-800 sm:text-lg">
+            Shortlists
+          </h2>
           <div className="flex shrink-0 items-center gap-2">
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
               {shortlists.length}

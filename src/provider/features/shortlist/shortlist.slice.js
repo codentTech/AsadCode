@@ -15,6 +15,13 @@ const generalState = {
   message: "",
 };
 
+const ensureActionState = (state, key) => {
+  if (!state[key]) {
+    state[key] = { ...generalState };
+  }
+  return state[key];
+};
+
 const initialState = {
   createShortlist: { ...generalState },
   getAllShortlists: { ...generalState },
@@ -22,7 +29,9 @@ const initialState = {
   updateShortlist: { ...generalState },
   deleteShortlist: { ...generalState },
   addUserToShortlist: { ...generalState },
+  addUsersToShortlistBulk: { ...generalState },
   removeUserFromShortlist: { ...generalState },
+  removeUsersFromShortlistBulk: { ...generalState },
 };
 
 // Create shortlist
@@ -108,9 +117,11 @@ export const deleteShortlist = createAsyncThunk(
 // Add user to shortlist
 export const addUserToShortlist = createAsyncThunk(
   "shortlist/addUserToShortlist",
-  async ({ shortlistId, userId }, thunkAPI) => {
+  async ({ shortlistId, userId, skipToast = false }, thunkAPI) => {
     try {
-      const response = await shortlistService.addUserToShortlist(shortlistId, userId);
+      const response = await shortlistService.addUserToShortlist(shortlistId, userId, {
+        skipToast,
+      });
       if (response.success) {
         return { shortlistId, userId, message: response.message };
       }
@@ -118,6 +129,25 @@ export const addUserToShortlist = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         getSerializableError(error, "Failed to add user to shortlist")
+      );
+    }
+  }
+);
+
+export const addUsersToShortlistBulk = createAsyncThunk(
+  "shortlist/addUsersToShortlistBulk",
+  async ({ shortlistId, userIds, skipToast = false }, thunkAPI) => {
+    try {
+      const response = await shortlistService.addUsersToShortlistBulk(shortlistId, userIds, {
+        skipToast,
+      });
+      if (response.success) {
+        return { shortlistId, ...(response.data || {}), message: response.message };
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to add users to shortlist")
       );
     }
   }
@@ -141,6 +171,27 @@ export const removeUserFromShortlist = createAsyncThunk(
   }
 );
 
+export const removeUsersFromShortlistBulk = createAsyncThunk(
+  "shortlist/removeUsersFromShortlistBulk",
+  async ({ shortlistId, userIds, skipToast = false }, thunkAPI) => {
+    try {
+      const response = await shortlistService.removeUsersFromShortlistBulk(
+        shortlistId,
+        userIds,
+        { skipToast }
+      );
+      if (response.success) {
+        return { shortlistId, ...(response.data || {}), message: response.message };
+      }
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        getSerializableError(error, "Failed to remove users from shortlist")
+      );
+    }
+  }
+);
+
 export const shortlistSlice = createSlice({
   name: "shortlist",
   initialState,
@@ -152,7 +203,9 @@ export const shortlistSlice = createSlice({
       state.updateShortlist = { ...generalState };
       state.deleteShortlist = { ...generalState };
       state.addUserToShortlist = { ...generalState };
+      state.addUsersToShortlistBulk = { ...generalState };
       state.removeUserFromShortlist = { ...generalState };
+      state.removeUsersFromShortlistBulk = { ...generalState };
     },
     // Optimistic updates for better UX
     optimisticAddUserToShortlist: (state, action) => {
@@ -200,8 +253,7 @@ export const shortlistSlice = createSlice({
       // Get all shortlists
       .addCase(getAllShortlists.pending, (state) => {
         state.getAllShortlists.isLoading = true;
-        state.getAllShortlists.isSuccess = false;
-        state.getAllShortlists.data = null;
+        state.getAllShortlists.isError = false;
       })
       .addCase(getAllShortlists.fulfilled, (state, action) => {
         state.getAllShortlists.isLoading = false;
@@ -292,6 +344,24 @@ export const shortlistSlice = createSlice({
         state.addUserToShortlist.message =
           action.payload?.message || "Failed to add user to shortlist";
       })
+      .addCase(addUsersToShortlistBulk.pending, (state) => {
+        const actionState = ensureActionState(state, "addUsersToShortlistBulk");
+        actionState.isLoading = true;
+        actionState.isSuccess = false;
+        actionState.isError = false;
+      })
+      .addCase(addUsersToShortlistBulk.fulfilled, (state, action) => {
+        const actionState = ensureActionState(state, "addUsersToShortlistBulk");
+        actionState.isLoading = false;
+        actionState.isSuccess = true;
+        actionState.data = action.payload;
+      })
+      .addCase(addUsersToShortlistBulk.rejected, (state, action) => {
+        const actionState = ensureActionState(state, "addUsersToShortlistBulk");
+        actionState.isLoading = false;
+        actionState.isError = true;
+        actionState.message = action.payload?.message || "Failed to add users to shortlist";
+      })
       // Remove user from shortlist
       .addCase(removeUserFromShortlist.pending, (state) => {
         state.removeUserFromShortlist.isLoading = true;
@@ -307,6 +377,25 @@ export const shortlistSlice = createSlice({
         state.removeUserFromShortlist.isError = true;
         state.removeUserFromShortlist.message =
           action.payload?.message || "Failed to remove user from shortlist";
+      })
+      .addCase(removeUsersFromShortlistBulk.pending, (state) => {
+        const actionState = ensureActionState(state, "removeUsersFromShortlistBulk");
+        actionState.isLoading = true;
+        actionState.isSuccess = false;
+        actionState.isError = false;
+      })
+      .addCase(removeUsersFromShortlistBulk.fulfilled, (state, action) => {
+        const actionState = ensureActionState(state, "removeUsersFromShortlistBulk");
+        actionState.isLoading = false;
+        actionState.isSuccess = true;
+        actionState.data = action.payload;
+      })
+      .addCase(removeUsersFromShortlistBulk.rejected, (state, action) => {
+        const actionState = ensureActionState(state, "removeUsersFromShortlistBulk");
+        actionState.isLoading = false;
+        actionState.isError = true;
+        actionState.message =
+          action.payload?.message || "Failed to remove users from shortlist";
       });
   },
 });

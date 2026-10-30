@@ -10,6 +10,9 @@ const PageHeader = ({
   onSortChange,
   onFilterClick,
   onNewCampaignClick,
+  onBulkSelectClick,
+  isBulkMode = false,
+  showBulkSelect = false,
 }) => {
   return (
     <div className="bg-white border-b p-3 rounded-lg">
@@ -28,6 +31,9 @@ const PageHeader = ({
             onSortChange={onSortChange}
             onFilterClick={onFilterClick}
             onNewCampaignClick={onNewCampaignClick}
+            onBulkSelectClick={onBulkSelectClick}
+            isBulkMode={isBulkMode}
+            showBulkSelect={showBulkSelect}
           />
         )}
       </div>

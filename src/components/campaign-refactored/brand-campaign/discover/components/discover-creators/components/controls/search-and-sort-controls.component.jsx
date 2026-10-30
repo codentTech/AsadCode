@@ -3,7 +3,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import SimpleSelect from "@/common/components/dropdowns/simple-select/simple-select";
 import SearchIcon from "@/common/icons/search-icon";
 import { SORT_BY_OPTIONS } from "@/common/constants/options.constant";
-import { Filter } from "lucide-react";
+import { CheckSquare, Filter } from "lucide-react";
 
 const SearchAndSortControls = ({
   searchKeyword,
@@ -12,6 +12,9 @@ const SearchAndSortControls = ({
   onSortChange,
   onFilterClick,
   onNewCampaignClick,
+  onBulkSelectClick,
+  isBulkMode = false,
+  showBulkSelect = false,
   className = "",
 }) => {
   return (
@@ -46,12 +49,25 @@ const SearchAndSortControls = ({
           />
         </div>
 
-        <CustomButton
-          text="Start a new campaign"
-          onClick={onNewCampaignClick}
-          title="Start a new campaign"
-          className="btn-primary min-w-0 max-w-full"
-        />
+        {showBulkSelect && (
+          <div className="relative flex-1 sm:flex-none lg:flex-none">
+            <CustomButton
+              text={isBulkMode ? "Exit Bulk Select" : "Bulk Select"}
+              onClick={onBulkSelectClick}
+              startIcon={<CheckSquare className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />}
+              className="btn-outline w-full sm:w-auto sm:min-w-[106px]"
+            />
+          </div>
+        )}
+
+        <div className="w-full basis-full sm:w-auto sm:basis-auto sm:flex-none">
+          <CustomButton
+            text="Start a new campaign"
+            onClick={onNewCampaignClick}
+            title="Start a new campaign"
+            className="btn-primary w-full min-w-0 max-w-full sm:w-auto"
+          />
+        </div>
       </div>
     </div>
   );

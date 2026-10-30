@@ -6,7 +6,9 @@ import { getPlatformProfileUrl } from "@/common/utils/platform.utils";
 export const useCreatorCard = ({
   creator,
   isShortlist,
+  isBulkMode = false,
   onCreatorPreview,
+  onCreatorToggle,
   onSaveToShortlist,
   onRemoveFromShortlist,
   onInviteClick,
@@ -16,7 +18,16 @@ export const useCreatorCard = ({
   const { getPlatformIcon } = useGetplatform();
 
   const handleCardClick = () => {
-    onCreatorPreview(creator);
+    if (isBulkMode) {
+      onCreatorToggle?.(creator.id);
+      return;
+    }
+    onCreatorPreview?.(creator);
+  };
+
+  const handleSelectionToggle = (e) => {
+    e.stopPropagation();
+    onCreatorToggle?.(creator.id);
   };
 
   const handleSaveClick = (e) => {
@@ -126,6 +137,7 @@ export const useCreatorCard = ({
     getPlatformIcon,
     getPlatformProfileUrlFor,
     handleCardClick,
+    handleSelectionToggle,
     handleSaveClick,
     handleInviteClickInternal,
     handleReinstateClickInternal,

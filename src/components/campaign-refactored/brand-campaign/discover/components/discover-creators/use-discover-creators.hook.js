@@ -20,7 +20,7 @@ import {
 } from "@/common/utils/discover-creators.util";
 import { buildCreateCampaignPath } from "@/common/utils/campaign.utils";
 
-export default function useDiscoverCreators() {
+export default function useDiscoverCreators({ onInviteSent } = {}) {
   const scrollRefs = useRef({});
   const discoverFetchCompletedOnceRef = useRef(false);
   const discoverHadPendingRef = useRef(false);
@@ -63,6 +63,8 @@ export default function useDiscoverCreators() {
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
+  const [selectedCreators, setSelectedCreators] = useState(null);
+  const bulkInviteSuccessCallbackRef = useRef(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterType, setFilterType] = useState("creator");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -373,10 +375,40 @@ export default function useDiscoverCreators() {
   }, []);
 
   const handleInviteClick = useCallback((creator, e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
+    bulkInviteSuccessCallbackRef.current = null;
+    setSelectedCreators(null);
     setSelectedCreator(creator);
     setShowInviteModal(true);
   }, []);
+
+  const handleBulkInvite = useCallback((creators, onSuccess) => {
+    if (!Array.isArray(creators) || creators.length === 0) return;
+    bulkInviteSuccessCallbackRef.current = onSuccess || null;
+    setSelectedCreator(null);
+    setSelectedCreators(creators);
+    setShowInviteModal(true);
+  }, []);
+
+  const handleCloseInviteModal = useCallback(() => {
+    setShowInviteModal(false);
+    setSelectedCreator(null);
+    setSelectedCreators(null);
+    bulkInviteSuccessCallbackRef.current = null;
+  }, []);
+
+  const handleInviteSent = useCallback(
+    (creatorOrCreators, campaign) => {
+      if (Array.isArray(creatorOrCreators)) {
+        const onSuccess = bulkInviteSuccessCallbackRef.current;
+        bulkInviteSuccessCallbackRef.current = null;
+        onSuccess?.();
+        return;
+      }
+      onInviteSent?.(creatorOrCreators, campaign);
+    },
+    [onInviteSent]
+  );
 
   const handleSearchChange = useCallback((e) => {
     setSearchInput(e.target.value);
@@ -470,6 +502,7 @@ export default function useDiscoverCreators() {
     showInviteModal,
     setShowInviteModal,
     selectedCreator,
+    selectedCreators,
     showFilterModal,
     setShowFilterModal,
     filterType,
@@ -489,6 +522,9 @@ export default function useDiscoverCreators() {
     handleBackToDiscover,
     clearAllFilters,
     handleInviteClick,
+    handleBulkInvite,
+    handleCloseInviteModal,
+    handleInviteSent,
     handleSearchChange,
     handleApplyFilters,
     handleLoadMore,

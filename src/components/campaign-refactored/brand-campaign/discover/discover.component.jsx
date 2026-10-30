@@ -3,7 +3,7 @@ import CustomInput from "@/common/components/custom-input/custom-input.component
 import Modal from "@/common/components/modal/modal.component";
 import NotFound from "@/common/components/not-found/not-found.component";
 import { useCampaignTabBarMobileSlot } from "@/components/campaign-refactored/campaign-tab-bar-mobile-slot.context";
-import { List } from "lucide-react";
+import { List, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import CreatorPreview from "./components/creator-preview/creator-preview.component";
 import DiscoverCreators from "./components/discover-creators/discover-creators.component";
@@ -23,7 +23,10 @@ export default function BrandDiscover() {
     isPreviewOpen,
     setIsPreviewOpen,
     saveToShortlistDialogOpen,
-    setSaveToShortlistDialogOpen,
+    creatorsToSave,
+    savingShortlistId,
+    saveToShortlistResult,
+    handleCloseSaveToShortlist,
     handleShortlistSelect,
     handleCreateShortlist,
     handleCreatorPreview,
@@ -31,6 +34,7 @@ export default function BrandDiscover() {
     confirmSaveToShortlist,
     getSortedCreators,
     handleRemoveFromShortlist,
+    handleBulkRemoveFromShortlist,
     handleEditShortlist,
     handleDeleteShortlist,
     handleInviteToApply,
@@ -76,8 +80,10 @@ export default function BrandDiscover() {
       ) : null}
 
       <div
-        className={`z-[101] flex shrink-0 flex-col overflow-hidden border-gray-200 bg-gradient-to-b from-gray-50 to-white transition-transform duration-300 ease-out md:relative md:z-0 md:h-auto md:w-72 md:translate-x-0 md:border-r max-md:fixed max-md:left-16 max-md:top-0 max-md:h-full max-md:w-[min(88vw,20rem)] max-md:max-w-[288px] max-md:border-r max-md:shadow-xl ${
-          shortlistMenuOpen ? "max-md:translate-x-0" : "max-md:pointer-events-none max-md:-translate-x-full"
+        className={`flex shrink-0 flex-col overflow-hidden border-gray-200 bg-gradient-to-b from-gray-50 to-white transition-transform duration-300 ease-out md:relative md:z-0 md:h-auto md:w-72 md:translate-x-0 md:border-r max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-[110] max-md:h-dvh max-md:w-[min(100vw,20rem)] max-md:max-w-sm max-md:border-r max-md:shadow-2xl ${
+          shortlistMenuOpen
+            ? "max-md:translate-x-0"
+            : "max-md:pointer-events-none max-md:-translate-x-full"
         }`}
       >
         <ShortlistSidebar
@@ -102,6 +108,7 @@ export default function BrandDiscover() {
           handleSaveToShortlist={handleSaveToShortlist}
           getSortedCreators={getSortedCreators}
           handleRemoveFromShortlist={handleRemoveFromShortlist}
+          handleBulkRemoveFromShortlist={handleBulkRemoveFromShortlist}
           handleInviteToApply={handleInviteToApply}
           onRefreshCampaigns={handleRefreshCampaigns}
           isCampaignsLoading={isCampaignsLoading}
@@ -146,11 +153,73 @@ export default function BrandDiscover() {
       <Modal
         title="Save to Shortlist"
         show={saveToShortlistDialogOpen}
-        onClose={() => setSaveToShortlistDialogOpen(false)}
+        onClose={handleCloseSaveToShortlist}
       >
         <div>
-          <h5 className="mb-2 text-sm font-bold text-primary sm:text-base">Click the shortlist to save</h5>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h5 className="min-w-0 text-sm font-bold text-primary sm:text-base">
+              Click the shortlist to save
+            </h5>
+            {creatorsToSave?.length > 0 && (
+              <span className="shrink-0 text-xs text-gray-600 sm:text-sm">
+                {creatorsToSave.length} selected
+              </span>
+            )}
+          </div>
           <hr className="border border-primary" />
+          {saveToShortlistResult ? (
+            <div className="mt-3 space-y-2">
+              {saveToShortlistResult.added?.length > 0 && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 sm:text-sm">
+                  <p className="mb-2 font-semibold">
+                    Added to {saveToShortlistResult.shortlistName}:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {saveToShortlistResult.added.map((name, index) => (
+                      <span
+                        key={`added-${index}-${name}`}
+                        className="rounded-md border border-emerald-300 bg-white px-2 py-1 text-[11px] font-medium text-emerald-800 sm:text-xs"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {saveToShortlistResult.alreadyIn?.length > 0 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 sm:text-sm">
+                  <p className="mb-2 font-semibold">
+                    Already in {saveToShortlistResult.shortlistName}:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {saveToShortlistResult.alreadyIn.map((name, index) => (
+                      <span
+                        key={`already-${index}-${name}`}
+                        className="rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] font-medium text-amber-800 sm:text-xs"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {saveToShortlistResult.failed?.length > 0 && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:text-sm">
+                  <p className="mb-2 font-semibold">Could not add:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {saveToShortlistResult.failed.map((name, index) => (
+                      <span
+                        key={`failed-${index}-${name}`}
+                        className="rounded-md border border-red-300 bg-white px-2 py-1 text-[11px] font-medium text-red-700 sm:text-xs"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
           {shortlists.length === 0 ? (
             <NotFound
               title="No Shortlists Found"
@@ -161,16 +230,29 @@ export default function BrandDiscover() {
             />
           ) : (
             <ul className="mt-4 space-y-2">
-              {shortlists.map((shortlist) => (
-                <li key={shortlist.id}>
-                  <div
-                    className="flex w-full cursor-pointer items-center rounded-lg border border-gray-200 p-2 text-xs transition-all hover:border-primary hover:bg-indigo-50 sm:text-sm"
-                    onClick={() => confirmSaveToShortlist(shortlist.id)}
-                  >
-                    {shortlist.name}
-                  </div>
-                </li>
-              ))}
+              {shortlists.map((shortlist) => {
+                const isSaving = savingShortlistId === shortlist.id;
+                return (
+                  <li key={shortlist.id}>
+                    <div
+                      className={`flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 p-2 text-xs transition-all sm:text-sm ${
+                        savingShortlistId && !isSaving
+                          ? "cursor-not-allowed opacity-60"
+                          : "cursor-pointer hover:border-primary hover:bg-indigo-50"
+                      }`}
+                      onClick={() => {
+                        if (savingShortlistId) return;
+                        confirmSaveToShortlist(shortlist.id);
+                      }}
+                    >
+                      <span className="min-w-0 truncate">{shortlist.name}</span>
+                      {isSaving && (
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

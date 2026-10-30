@@ -16,7 +16,7 @@ import ApplicationsSubtabToggle from "../applications-subtab-toggle/applications
 import AppliedCreatorsSection from "../applied-creators-section/applied-creators-section.component";
 import PinnedInvitedSection from "../pinned-invited-section/pinned-invited-section.component";
 import { Menu, MenuItem } from "@mui/material";
-import { EllipsisVertical, Filter, LayoutGrid, List } from "lucide-react";
+import { EllipsisVertical, Filter, LayoutGrid, List, Loader2 } from "lucide-react";
 import useCreatorSpendAnalysis from "./use-creator-spend-analysis.hook";
 
 const GRID_CLASS = `mb-8 grid grid-cols-1 justify-items-stretch ${CREATOR_CARD_GRID_GAP_CLASS} sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
@@ -62,6 +62,7 @@ const CreatorSpendAnalysis = ({
     handleCreatorPreview,
     handleSaveToShortlist,
     confirmSaveToShortlist,
+    savingShortlistId,
     showSaveToShortlistModal,
     setShowSaveToShortlistModal,
     shortlists,
@@ -510,10 +511,13 @@ const CreatorSpendAnalysis = ({
       <Modal
         title="Save to Shortlist"
         show={showSaveToShortlistModal}
-        onClose={() => setShowSaveToShortlistModal(false)}
+        onClose={() => {
+          if (savingShortlistId) return;
+          setShowSaveToShortlistModal(false);
+        }}
       >
         <div>
-          <h5 className="text-primary font-bold mb-2">Click the shortlist to save</h5>
+          <h5 className="mb-2 font-bold text-primary">Click the shortlist to save</h5>
           <hr className="border border-primary" />
           {shortlists.length === 0 ? (
             <NotFound
@@ -524,17 +528,30 @@ const CreatorSpendAnalysis = ({
               className="py-8"
             />
           ) : (
-            <ul className="space-y-2 mt-4">
-              {shortlists.map((shortlist) => (
-                <li key={shortlist.id}>
-                  <div
-                    className="w-full text-sm p-2 border border-gray-200 hover:border-primary hover:bg-indigo-50 rounded-lg cursor-pointer transition-all flex items-center"
-                    onClick={() => confirmSaveToShortlist(shortlist.id)}
-                  >
-                    {shortlist.name}
-                  </div>
-                </li>
-              ))}
+            <ul className="mt-4 space-y-2">
+              {shortlists.map((shortlist) => {
+                const isSaving = savingShortlistId === shortlist.id;
+                return (
+                  <li key={shortlist.id}>
+                    <div
+                      className={`flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 p-2 text-sm transition-all ${
+                        savingShortlistId && !isSaving
+                          ? "cursor-not-allowed opacity-60"
+                          : "cursor-pointer hover:border-primary hover:bg-indigo-50"
+                      }`}
+                      onClick={() => {
+                        if (savingShortlistId) return;
+                        confirmSaveToShortlist(shortlist.id);
+                      }}
+                    >
+                      <span className="min-w-0 truncate">{shortlist.name}</span>
+                      {isSaving && (
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

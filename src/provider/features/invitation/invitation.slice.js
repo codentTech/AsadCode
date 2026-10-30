@@ -8,6 +8,12 @@ const initialState = {
     isSuccess: false,
     isError: false,
   },
+  sendBulkInvitations: {
+    data: null,
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+  },
   getBrandIndividualCollaborations: {
     data: null,
     isLoading: false,
@@ -44,6 +50,21 @@ export const sendInvitation = createAsyncThunk(
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error?.response?.data || { message: "Failed to send invitation" }
+      );
+    }
+  }
+);
+
+export const sendBulkInvitations = createAsyncThunk(
+  "invitation/sendBulkInvitations",
+  async (bulkInvitationData, thunkAPI) => {
+    try {
+      const response = await invitationService.sendBulkInvitations(bulkInvitationData);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data || { message: "Failed to send bulk invitations" }
       );
     }
   }
@@ -129,6 +150,45 @@ const invitationSlice = createSlice({
         state.sendInvitation.isLoading = false;
         state.sendInvitation.isError = true;
         state.sendInvitation.data = action.payload;
+      })
+      .addCase(sendBulkInvitations.pending, (state) => {
+        if (!state.sendBulkInvitations) {
+          state.sendBulkInvitations = {
+            data: null,
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+          };
+        }
+        state.sendBulkInvitations.isLoading = true;
+        state.sendBulkInvitations.isSuccess = false;
+        state.sendBulkInvitations.isError = false;
+      })
+      .addCase(sendBulkInvitations.fulfilled, (state, action) => {
+        if (!state.sendBulkInvitations) {
+          state.sendBulkInvitations = {
+            data: null,
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+          };
+        }
+        state.sendBulkInvitations.isLoading = false;
+        state.sendBulkInvitations.isSuccess = true;
+        state.sendBulkInvitations.data = action.payload;
+      })
+      .addCase(sendBulkInvitations.rejected, (state, action) => {
+        if (!state.sendBulkInvitations) {
+          state.sendBulkInvitations = {
+            data: null,
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+          };
+        }
+        state.sendBulkInvitations.isLoading = false;
+        state.sendBulkInvitations.isError = true;
+        state.sendBulkInvitations.data = action.payload;
       })
       .addCase(getBrandIndividualCollaborations.pending, (state, action) => {
         if (action.meta.arg?.silent) return;

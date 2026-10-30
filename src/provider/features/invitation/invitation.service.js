@@ -5,6 +5,11 @@ const sendInvitation = async (invitationData) => {
   return response.data;
 };
 
+const sendBulkInvitations = async (bulkInvitationData) => {
+  const response = await api().post("/invitations/bulk", bulkInvitationData);
+  return response.data;
+};
+
 const getCreatorInvitations = async () => {
   const response = await api().get("/invitations/creator");
   return response.data;
@@ -32,6 +37,7 @@ const reinstateInvitation = async (invitationId) => {
 
 const invitationService = {
   sendInvitation,
+  sendBulkInvitations,
   getCreatorInvitations,
   getBrandIndividualCollaborations,
   getBrandRejectedIndividualCollaborations,
