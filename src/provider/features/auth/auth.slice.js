@@ -72,6 +72,7 @@ const initialState = {
   resendEmail: generalState,
   passwordResetRequest: generalState,
   passwordResetSubmit: generalState,
+  changePassword: generalState,
   impersonateUser: generalState,
   exitImpersonation: generalState,
   logout: generalState,
@@ -164,6 +165,19 @@ export const resetPasswordWithToken = createAsyncThunk(
   }
 );
 
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.changePassword(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
 export const impersonateUser = createAsyncThunk(
   "auth/impersonateUser",
   async (userId, thunkAPI) => {
@@ -196,25 +210,82 @@ export const impersonateUser = createAsyncThunk(
   }
 );
 
+const restoreAdminSessionFromStorage = () => {
+  if (typeof window !== "object" || !window?.localStorage) {
+    return null;
+  }
+  const adminToken = localStorage.getItem("admin_token");
+  const adminUserRaw = localStorage.getItem("admin_user");
+  if (!adminToken || !adminUserRaw) {
+    return null;
+  }
+  let adminUser = null;
+  try {
+    adminUser = JSON.parse(adminUserRaw);
+  } catch {
+    return null;
+  }
+  if (!adminUser) {
+    return null;
+  }
+  localStorage.setItem("token", adminToken);
+  localStorage.setItem("user", JSON.stringify(adminUser));
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  return { user: adminUser, token: adminToken };
+};
+
+const applyAdminSession = (payload) => {
+  if (
+    !payload?.token ||
+    !payload?.user ||
+    typeof window !== "object" ||
+    !window?.localStorage
+  ) {
+    return false;
+  }
+  localStorage.setItem("token", payload.token);
+  localStorage.setItem("user", JSON.stringify(payload.user));
+  localStorage.removeItem("admin_token");
+  localStorage.removeItem("admin_user");
+  return true;
+};
+
 export const exitImpersonation = createAsyncThunk(
   "auth/exitImpersonation",
   async (_, thunkAPI) => {
     try {
       const response = await authService.exitImpersonation();
-      if (!response?.success) {
-        return thunkAPI.rejectWithValue(response);
+      if (response?.success && applyAdminSession(response?.data)) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return response;
       }
 
-      const payload = response?.data;
-      if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
-        localStorage.setItem("token", payload.token);
-        localStorage.setItem("user", JSON.stringify(payload.user));
-        localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_user");
+      const restored = restoreAdminSessionFromStorage();
+      if (restored) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return {
+          success: true,
+          message: "Impersonation ended successfully",
+          data: restored,
+        };
       }
 
-      return response;
+      return thunkAPI.rejectWithValue(
+        response?.message
+          ? { message: normalizeAuthMessage(response.message) }
+          : { message: "Failed to exit impersonation" }
+      );
     } catch (error) {
+      const restored = restoreAdminSessionFromStorage();
+      if (restored) {
+        thunkAPI.dispatch(resetOnboardingSession());
+        return {
+          success: true,
+          message: "Impersonation ended successfully",
+          data: restored,
+        };
+      }
       return thunkAPI.rejectWithValue(getSerializableError(error));
     }
   }
@@ -245,6 +316,7 @@ export const authSlice = createSlice({
       state.resendEmail = generalState;
       state.passwordResetRequest = generalState;
       state.passwordResetSubmit = generalState;
+      state.changePassword = generalState;
       state.impersonateUser = generalState;
       state.exitImpersonation = generalState;
       state.loginAndSignUpWithOAuth = generalState;
@@ -396,6 +468,29 @@ export const authSlice = createSlice({
         state.passwordResetSubmit.isLoading = false;
         state.passwordResetSubmit.isError = true;
         state.passwordResetSubmit.data = null;
+      })
+      .addCase(changePassword.pending, (state) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.isLoading = true;
+        state.changePassword.message = "";
+        state.changePassword.isError = false;
+        state.changePassword.isSuccess = false;
+        state.changePassword.data = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.isLoading = false;
+        state.changePassword.isSuccess = true;
+        state.changePassword.data = action.payload;
+        state.changePassword.message = action.payload?.message || "";
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.message =
+          action.payload?.message || "Failed to update password";
+        state.changePassword.isLoading = false;
+        state.changePassword.isError = true;
+        state.changePassword.data = null;
       })
       .addCase(impersonateUser.pending, (state) => {
         ensureImpersonateUser(state);

@@ -1,6 +1,7 @@
 "use client";
 
 import ROLES from "@/common/constants/role.constant";
+import { sanitizeReturnTo } from "@/common/utils/return-to.util";
 import { isOnboardingCompleted, persistOnboardingEmail } from "@/common/utils/users.util";
 import { login, setIsCreatorModeMode } from "@/provider/features/auth/auth.slice";
 import { getEmailPreferences } from "@/provider/features/email-preferences/email-preferences.slice";
@@ -87,15 +88,17 @@ export default function useLogin() {
         router.push("/onboarding");
         return;
       }
-      router.push("/campaign");
+      const returnTo = sanitizeReturnTo(searchParams?.get("returnTo"));
+      router.push(returnTo || "/campaign");
     },
-    [dispatch, router]
+    [dispatch, router, searchParams]
   );
 
   const handleReengagementComplete = useCallback(() => {
     setShowReengagementModal(false);
-    router.push("/campaign");
-  }, [router]);
+    const returnTo = sanitizeReturnTo(searchParams?.get("returnTo"));
+    router.push(returnTo || "/campaign");
+  }, [router, searchParams]);
 
   const onSubmit = async (values) => {
     setLoading(true);

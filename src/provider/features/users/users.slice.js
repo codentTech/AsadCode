@@ -1,4 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { withExistingCreatorPhotos } from "@/common/utils/creator-profile-payload.util";
+import { getOnboardingEmail, getUser } from "@/common/utils/users.util";
+import { setupCreatorProfile } from "@/provider/features/creator-profile/creator-profile.slice";
 import usersService from "./users.service";
 
 const generalState = {
@@ -122,11 +125,30 @@ export const updateCampaignDefaults = createAsyncThunk(
   "users/updateCampaignDefaults",
   async (defaults, thunkAPI) => {
     try {
-      const response = await usersService.updateCampaignDefaults(defaults);
-      if (response.success) {
-        return response;
+      const user = getUser();
+      const email = user?.email || getOnboardingEmail();
+      const payload = withExistingCreatorPhotos(defaults, user?.creator_profile || {});
+      const result = await thunkAPI.dispatch(setupCreatorProfile({ payload, email }));
+      if (!setupCreatorProfile.fulfilled.match(result) || !result.payload?.success) {
+        return thunkAPI.rejectWithValue(result.payload || result);
       }
-      return thunkAPI.rejectWithValue(response);
+
+      const apiUser = result.payload.data;
+      if (apiUser) {
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const updatedUser = {
+          ...currentUser,
+          ...apiUser,
+          creator_profile: {
+            ...(currentUser.creator_profile || {}),
+            ...(apiUser.creator_profile || {}),
+          },
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        getUser(updatedUser);
+      }
+
+      return result.payload;
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -279,9 +301,7 @@ export const adminDeleteUser = createAsyncThunk(
       }
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        getSerializableErrorMessage(error, "Failed to delete user")
-      );
+      return thunkAPI.rejectWithValue(getSerializableErrorMessage(error, "Failed to delete user"));
     }
   }
 );

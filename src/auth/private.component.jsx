@@ -6,6 +6,7 @@ import {
   creatorNeedsProfileMedia,
   isShowcaseUploadAllowedPath,
 } from "@/common/utils/creator-showcase.util";
+import { buildLoginUrl, buildReturnTo } from "@/common/utils/return-to.util";
 import { getUser, isOnboardingCompleted } from "@/common/utils/users.util";
 import { usePathname, useRouter } from "next/navigation";
 import PropTypes from "prop-types";
@@ -26,7 +27,10 @@ export default function Private({ component }) {
   useEffect(() => {
     const checkAuth = () => {
       if (!isLoginVerified()) {
-        router.push("/login");
+        const search =
+          typeof window !== "undefined" ? window.location.search || "" : "";
+        const returnTo = buildReturnTo(pathname, search);
+        router.push(buildLoginUrl(returnTo));
         return;
       }
       const user = getUser();
@@ -38,7 +42,7 @@ export default function Private({ component }) {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, pathname]);
 
   useEffect(() => {
     const bump = () => setGateCheck((k) => k + 1);

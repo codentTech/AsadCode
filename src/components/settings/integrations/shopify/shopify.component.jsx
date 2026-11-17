@@ -1,5 +1,4 @@
 import CustomButton from "@/common/components/custom-button/custom-button.component";
-import CustomInput from "@/common/components/custom-input/custom-input.component";
 import DeleteConfirmationModal from "@/common/components/delete-confirmation-modal/delete-confirmation-modal.component";
 import { AlertTriangle, CheckCircle2, ExternalLink, Store } from "lucide-react";
 import useShopifyIntegration from "./use-shopify.hook";
@@ -7,9 +6,8 @@ import useShopifyIntegration from "./use-shopify.hook";
 export default function ShopifyIntegration() {
   const {
     hasMounted,
-    shopInput,
-    handleShopInputChange,
-    handleConnect,
+    handleReconnect,
+    handleInstallFromShopify,
     handleDisconnectClick,
     handleConfirmDisconnect,
     handleCloseDisconnectConfirm,
@@ -18,10 +16,12 @@ export default function ShopifyIntegration() {
     disconnectConfirmSubText,
     isConnected,
     isAccessLost,
+    previousShopDomain,
     statusConfig,
     connection,
     connectionLoading,
     connectLoading,
+    installLoading,
     disconnectLoading,
   } = useShopifyIntegration();
 
@@ -50,13 +50,19 @@ export default function ShopifyIntegration() {
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="mb-1 text-xs font-semibold text-amber-900 sm:text-sm">
                   Sales tracking is paused
                 </h3>
                 <p className="text-xs text-amber-900 sm:text-sm">
-                  We have lost connection to your Shopify. Reconnect the same store to resume
-                  tracking. Existing codes are not reminted.
+                  We have lost connection to your Shopify
+                  {connection?.shopDomain ? (
+                    <>
+                      {" "}
+                      (<span className="font-semibold">{connection.shopDomain}</span>)
+                    </>
+                  ) : null}
+                  . Reconnect the same store to resume tracking. Existing codes are not reminted.
                 </p>
               </div>
             </div>
@@ -102,29 +108,38 @@ export default function ShopifyIntegration() {
 
               {!isConnected && (
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
-                  <p className="mb-3 text-xs text-gray-700 sm:text-sm">
-                    Enter your Shopify store domain to connect. Use{" "}
-                    <span className="font-medium">mystore</span> or{" "}
-                    <span className="font-medium">mystore.myshopify.com</span>.
-                  </p>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <div className="min-w-0 flex-1">
-                      <CustomInput
-                        label="Store domain"
-                        placeholder="mystore.myshopify.com"
-                        value={shopInput}
-                        onChange={handleShopInputChange}
+                  {isAccessLost && previousShopDomain ? (
+                    <>
+                      <p className="mb-3 text-xs text-gray-700 sm:text-sm">
+                        Reconnect{" "}
+                        <span className="font-medium">{previousShopDomain}</span> through Shopify
+                        to resume tracking. Existing codes are not reminted.
+                      </p>
+                      <CustomButton
+                        text="Reconnect Shopify"
+                        className="btn-primary w-full sm:w-auto"
+                        onClick={handleReconnect}
+                        startIcon={<ExternalLink size={16} />}
+                        loading={connectLoading}
+                        disabled={connectLoading || connectionLoading}
                       />
-                    </div>
-                    <CustomButton
-                      text="Connect Shopify"
-                      className="btn-primary w-full sm:w-auto"
-                      onClick={handleConnect}
-                      startIcon={<ExternalLink size={16} />}
-                      loading={connectLoading}
-                      disabled={connectLoading || !shopInput.trim()}
-                    />
-                  </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-3 text-xs text-gray-700 sm:text-sm">
+                        Install CleerCut from Shopify, approve access, then return here. CleerCut
+                        links the store to your brand account automatically.
+                      </p>
+                      <CustomButton
+                        text="Install from Shopify"
+                        className="btn-primary w-full sm:w-auto"
+                        onClick={handleInstallFromShopify}
+                        startIcon={<ExternalLink size={16} />}
+                        loading={installLoading || connectLoading}
+                        disabled={installLoading || connectLoading || connectionLoading}
+                      />
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -141,11 +156,11 @@ export default function ShopifyIntegration() {
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
                 <div>
                   <p className="text-xs font-medium text-gray-900 sm:text-sm">
-                    Connect your store once
+                    Install from Shopify
                   </p>
                   <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
-                    Enter your Shopify domain and approve access. CleerCut links to that store for
-                    your brand only — one store per brand.
+                    Start the install from Shopify (or use Install from Shopify here), approve
+                    access, and CleerCut links that store to your brand — one store per brand.
                   </p>
                 </div>
               </li>
@@ -192,13 +207,12 @@ export default function ShopifyIntegration() {
               <div className="space-y-3">
                 <div>
                   <h4 className="mb-1 text-xs font-medium text-gray-800 sm:text-sm">
-                    What domain should I enter?
+                    How do I connect my store?
                   </h4>
                   <p className="text-[10px] leading-snug text-gray-600 sm:text-xs">
-                    Use your <span className="font-medium">.myshopify.com</span> domain (e.g.{" "}
-                    <span className="font-medium">mystore.myshopify.com</span>) or just the store
-                    handle (<span className="font-medium">mystore</span>). Custom domains alone
-                    usually will not work for connect.
+                    Use <span className="font-medium">Install from Shopify</span> (or Test app in
+                    the Dev Dashboard / App Store). Log in to CleerCut if asked — we resume the
+                    install and show Connected when OAuth finishes.
                   </p>
                 </div>
                 <div>
@@ -232,6 +246,7 @@ export default function ShopifyIntegration() {
           if (open) setShowDisconnectConfirm(true);
           else handleCloseDisconnectConfirm();
         }}
+        title="Disconnect confirmation"
         mainText="Disconnect Shopify?"
         subText={disconnectConfirmSubText}
         confirmText="Disconnect"

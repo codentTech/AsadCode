@@ -85,49 +85,6 @@ const updateCreatorPreferences = async (preferences) => {
   return response.data;
 };
 
-const updateCampaignDefaults = async (defaults) => {
-  try {
-    const user = getUser();
-    const response = await api().post(
-      `/auth/onboarding/creator/profile-setup?email=${encodeURIComponent(user.email)}`,
-      defaults
-    );
-
-    // Check if response and response.data exist
-    if (response && response.data) {
-      if (response.data.success && response.data.data) {
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        const apiUser = response.data.data;
-        const updatedUser = {
-          ...currentUser,
-          ...apiUser,
-          creator_profile: {
-            ...(currentUser.creator_profile || {}),
-            ...(apiUser.creator_profile || {}),
-          },
-        };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        getUser(updatedUser);
-      }
-      return response.data;
-    } else {
-      // Return a safe default response if response structure is unexpected
-      return {
-        success: false,
-        message: "Invalid response structure from server",
-        data: null,
-      };
-    }
-  } catch (error) {
-    // Return a safe error response
-    return {
-      success: false,
-      message: error.message || "Failed to update campaign defaults",
-      data: null,
-    };
-  }
-};
-
 const toggleBlockUser = async (data) => {
   const response = await api().post("/user/toggle-block", data);
   return response.data;
@@ -223,7 +180,6 @@ const usersService = {
   verifyEmailChange,
   getUserById,
   updateCreatorPreferences,
-  updateCampaignDefaults,
   toggleBlockUser,
   adminToggleBlockUser,
   getBlockedUsers,

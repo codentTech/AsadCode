@@ -10,16 +10,18 @@ import { formatShopifyProductOptionLabel } from "@/common/utils/shopify-product-
 import {
   getShopifyConnection,
   getShopifyConnectUrl,
+  getShopifyInstallUrl,
   getShopifyProducts,
   resetShopifyConnectUrl,
+  resetShopifyInstallUrl,
   selectShopifyConnectionState,
   selectShopifyConnectUrlState,
+  selectShopifyInstallUrlState,
   selectShopifyProductsState,
 } from "@/provider/features/shopify/shopify.slice";
 
 export default function useCompensation({ campaignData, setValue }) {
   const dispatch = useDispatch();
-  const [shopInput, setShopInput] = useState("");
   const [productValueFromShopify, setProductValueFromShopify] = useState(false);
 
   const { data: connection, isLoading: connectionLoading } = useSelector(
@@ -31,6 +33,11 @@ export default function useCompensation({ campaignData, setValue }) {
     isSuccess: connectSuccess,
   } = useSelector(selectShopifyConnectUrlState);
   const {
+    data: installUrlData,
+    isLoading: installLoading,
+    isSuccess: installSuccess,
+  } = useSelector(selectShopifyInstallUrlState);
+  const {
     data: productsData,
     isLoading: productsLoading,
     isError: productsError,
@@ -38,6 +45,9 @@ export default function useCompensation({ campaignData, setValue }) {
   } = useSelector(selectShopifyProductsState);
 
   const isShopifyConnected = connection?.connected === true;
+  const isShopifyAccessLost = connection?.status === "access_lost";
+  const previousShopifyShop =
+    connection?.shopDomain || connection?.shopName || "";
   const shopifyProducts = productsData?.products || [];
   const hasLoadedProducts = Boolean(productsData);
 
@@ -179,6 +189,13 @@ export default function useCompensation({ campaignData, setValue }) {
   }, [connectSuccess, connectUrlData, dispatch]);
 
   useEffect(() => {
+    if (installSuccess && installUrlData?.installUrl) {
+      window.location.href = installUrlData.installUrl;
+      dispatch(resetShopifyInstallUrl());
+    }
+  }, [installSuccess, installUrlData, dispatch]);
+
+  useEffect(() => {
     if (isGiftedCampaign) {
       setValue("creator_fee", 0, { shouldDirty: true });
     }
@@ -263,15 +280,15 @@ export default function useCompensation({ campaignData, setValue }) {
     [setValue]
   );
 
-  const handleShopInputChange = useCallback((event) => {
-    setShopInput(event?.target?.value ?? "");
-  }, []);
-
-  const handleInlineConnect = useCallback(() => {
-    const shop = shopInput.trim();
+  const handleInlineReconnect = useCallback(() => {
+    const shop = previousShopifyShop?.trim();
     if (!shop) return;
     dispatch(getShopifyConnectUrl({ shop }));
-  }, [dispatch, shopInput]);
+  }, [dispatch, previousShopifyShop]);
+
+  const handleInstallFromShopify = useCallback(() => {
+    dispatch(getShopifyInstallUrl());
+  }, [dispatch]);
 
   const handleAffiliateProductsChange = useCallback(
     (options) => {
@@ -338,11 +355,13 @@ export default function useCompensation({ campaignData, setValue }) {
     selectedCampaignTypeOption,
     creatorFee,
     isShopifyConnected,
+    isShopifyAccessLost,
+    previousShopifyShop,
     connectionLoading,
     connectLoading,
-    shopInput,
-    handleShopInputChange,
-    handleInlineConnect,
+    installLoading,
+    handleInlineReconnect,
+    handleInstallFromShopify,
     shopName: connection?.shopName || connection?.shopDomain || "",
     productOptions,
     selectedProductOptions,

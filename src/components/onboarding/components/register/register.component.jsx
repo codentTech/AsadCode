@@ -8,7 +8,7 @@ import { Calendar, Lock, Mail, User, UserPlus } from "lucide-react";
 import OnboardingStepLayout from "../onboarding-step-layout/onboarding-step-layout.component";
 import useRegister from "./use-register.hook";
 
-const Register = ({ onNext, inviteToken }) => {
+const Register = ({ onNext, inviteToken, inviteEmail = null }) => {
   const {
     register,
     handleSubmit,
@@ -27,7 +27,7 @@ const Register = ({ onNext, inviteToken }) => {
     handleCitySelect,
     termsHref,
     privacyHref,
-  } = useRegister({ onNext, inviteToken });
+  } = useRegister({ onNext, inviteToken, inviteEmail });
 
   return (
     <OnboardingStepLayout

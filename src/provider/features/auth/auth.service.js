@@ -54,6 +54,11 @@ const resetPasswordWithToken = async (payload) => {
   return response.data;
 };
 
+const changePassword = async (payload) => {
+  const response = await api().post("/auth/change-password", payload);
+  return response.data;
+};
+
 const impersonate = async (userId) => {
   const { data } = await api({ "x-skip-toast": "true" }).post("/auth/impersonate", {
     user_id: userId,
@@ -97,6 +102,7 @@ const authService = {
   resendEmail,
   requestPasswordReset,
   resetPasswordWithToken,
+  changePassword,
   impersonate,
   exitImpersonation,
   loginAndSignUpWithOAuth,

@@ -12,6 +12,7 @@ const generalState = {
 export const shopifyInitialState = {
   getConnection: { ...generalState },
   getConnectUrl: { ...generalState },
+  getInstallUrl: { ...generalState },
   disconnect: { ...generalState },
   getProducts: { ...generalState },
   getDiscountCodes: { ...generalState },
@@ -43,6 +44,9 @@ export const selectShopifyConnectionState = (state) =>
 
 export const selectShopifyConnectUrlState = (state) =>
   state?.shopify?.getConnectUrl ?? shopifyInitialState.getConnectUrl;
+
+export const selectShopifyInstallUrlState = (state) =>
+  state?.shopify?.getInstallUrl ?? shopifyInitialState.getInstallUrl;
 
 export const selectShopifyDisconnectState = (state) =>
   state?.shopify?.disconnect ?? shopifyInitialState.disconnect;
@@ -91,6 +95,19 @@ export const getShopifyConnectUrl = createAsyncThunk(
   async (payload, thunkAPI) => {
     try {
       const response = await shopifyService.getConnectUrl(payload);
+      if (response.success) return response.data;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const getShopifyInstallUrl = createAsyncThunk(
+  "shopify/getInstallUrl",
+  async (_, thunkAPI) => {
+    try {
+      const response = await shopifyService.getInstallUrl();
       if (response.success) return response.data;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -275,6 +292,9 @@ const shopifySlice = createSlice({
     resetShopifyConnectUrl: (state) => {
       state.getConnectUrl = { ...generalState };
     },
+    resetShopifyInstallUrl: (state) => {
+      state.getInstallUrl = { ...generalState };
+    },
     resetShopifyDisconnect: (state) => {
       state.disconnect = { ...generalState };
     },
@@ -338,6 +358,27 @@ const shopifySlice = createSlice({
           data: null,
         };
       })
+      .addCase(getShopifyInstallUrl.pending, (state) => {
+        state.getInstallUrl.isLoading = true;
+      })
+      .addCase(getShopifyInstallUrl.fulfilled, (state, action) => {
+        state.getInstallUrl = {
+          isLoading: false,
+          isSuccess: true,
+          isError: false,
+          message: "",
+          data: action.payload,
+        };
+      })
+      .addCase(getShopifyInstallUrl.rejected, (state, action) => {
+        state.getInstallUrl = {
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          message: action.payload?.message,
+          data: null,
+        };
+      })
       .addCase(disconnectShopify.pending, (state) => {
         state.disconnect.isLoading = true;
       })
@@ -354,6 +395,9 @@ const shopifySlice = createSlice({
             ...(state.getConnection.data || {}),
             connected: false,
             status: "disconnected",
+            shopDomain: null,
+            shopName: null,
+            connectedAt: null,
           };
         }
       })
@@ -692,6 +736,7 @@ const shopifySlice = createSlice({
 
 export const {
   resetShopifyConnectUrl,
+  resetShopifyInstallUrl,
   resetShopifyDisconnect,
   resetShopifyProducts,
   resetShopifyRenameDiscountCode,

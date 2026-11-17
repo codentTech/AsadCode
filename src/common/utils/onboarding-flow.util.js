@@ -24,6 +24,39 @@ export const getInviteResumeEmail = (validateTokenState) => {
   return null;
 };
 
+/**
+ * Invite links must ignore leftover browser email/user. Until the token validates,
+ * return null so stale localStorage cannot drive step/status.
+ */
+export const resolveOnboardingEmail = ({
+  inviteTokenPresent,
+  inviteResumeEmail,
+  loggedInUserEmail,
+  storedEmail,
+} = {}) => {
+  if (inviteTokenPresent) {
+    return inviteResumeEmail || null;
+  }
+  return loggedInUserEmail || storedEmail || null;
+};
+
+export const emailsMatch = (a, b) => {
+  const left = String(a || "").trim().toLowerCase();
+  const right = String(b || "").trim().toLowerCase();
+  return Boolean(left && right && left === right);
+};
+
+/** Strip invite token only after the invite email has a real account. */
+export const shouldStripInviteTokenAfterAccount = ({
+  inviteToken,
+  inviteEmail,
+  onboardingStatus,
+} = {}) => {
+  if (!inviteToken || !inviteEmail) return false;
+  if (!hasCreatedAccount(onboardingStatus)) return false;
+  return emailsMatch(onboardingStatus?.user?.email, inviteEmail);
+};
+
 export const getServerStep = (step, inviteTokenPresent) => {
   const n = Number(step) || 1;
   return inviteTokenPresent ? Math.max(n, 2) : n;
@@ -32,7 +65,11 @@ export const getServerStep = (step, inviteTokenPresent) => {
 export const getStatusResumeStep = (onboardingStatus, inviteTokenPresent) => {
   const step = Number(onboardingStatus?.onboardingStep);
   if (!Number.isFinite(step) || step <= 0) return null;
-  return getServerStep(step, inviteTokenPresent && !hasCreatedAccount(onboardingStatus));
+  // Fresh invite (no account yet): always Create account, never stale verify step.
+  if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
+    return ONBOARDING_STEPS.REGISTRATION;
+  }
+  return getServerStep(step, false);
 };
 
 export const getOnboardingResumeStepFromReject = (payload) => {
@@ -91,16 +128,16 @@ export const shouldBlockOnInvalidInvite = ({
 export const shouldShowCreatorApplication = ({
   isCreatorMode,
   inviteToken,
-  isTokenValid,
+  isTokenValid: _isTokenValid,
   isResumeInvite,
   currentStep,
   showApplicationConfirmation,
 }) =>
   Boolean(
     isCreatorMode &&
+      !inviteToken &&
       !isResumeInvite &&
-      (!inviteToken || !isTokenValid) &&
-      currentStep === 2 &&
+      currentStep === ONBOARDING_STEPS.REGISTRATION &&
       !showApplicationConfirmation,
   );
 
