@@ -246,6 +246,7 @@ export default function ShopifyIntegration() {
           if (open) setShowDisconnectConfirm(true);
           else handleCloseDisconnectConfirm();
         }}
+        title="Disconnect confirmation"
         mainText="Disconnect Shopify?"
         subText={disconnectConfirmSubText}
         confirmText="Disconnect"

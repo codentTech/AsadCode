@@ -31,6 +31,7 @@ export default function useShopifyIntegration() {
     data: connectUrlData,
     isLoading: connectLoading,
     isSuccess: connectSuccess,
+    isError: connectError,
   } = useSelector(selectShopifyConnectUrlState);
   const {
     data: installUrlData,
@@ -85,6 +86,11 @@ export default function useShopifyIntegration() {
   }, [connectSuccess, connectUrlData, dispatch]);
 
   useEffect(() => {
+    if (!connectError) return;
+    autoConnectStarted.current = false;
+  }, [connectError]);
+
+  useEffect(() => {
     if (installSuccess && installUrlData?.installUrl) {
       window.location.href = installUrlData.installUrl;
       dispatch(resetShopifyInstallUrl());
@@ -95,6 +101,7 @@ export default function useShopifyIntegration() {
     if (!disconnectData) return;
 
     if (disconnectData.disconnected) {
+      autoConnectStarted.current = false;
       setShowDisconnectConfirm(false);
       dispatch(getShopifyConnection());
       dispatch(resetShopifyDisconnect());

@@ -9,6 +9,7 @@ function DeleteConfirmationModal({
   confirmationRef,
   openConfirmationPopup,
   setOpenConfirmationPopup,
+  title = "Delete Confirmation",
   mainText,
   mainStyling,
   subText,
@@ -50,7 +51,7 @@ function DeleteConfirmationModal({
             <div className="w-6 h-6 bg-red-50 rounded-full flex items-center justify-center">
               <AlertTriangle className="w-3 h-3 text-red-600" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">Delete Confirmation</h3>
+            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           </div>
           <button
             type="button"
@@ -110,6 +111,7 @@ DeleteConfirmationModal.propTypes = {
   ]),
   openConfirmationPopup: PropTypes.bool.isRequired,
   setOpenConfirmationPopup: PropTypes.func.isRequired,
+  title: PropTypes.string,
   mainText: PropTypes.string.isRequired,
   mainStyling: PropTypes.string,
   subText: PropTypes.string,

@@ -395,6 +395,9 @@ const shopifySlice = createSlice({
             ...(state.getConnection.data || {}),
             connected: false,
             status: "disconnected",
+            shopDomain: null,
+            shopName: null,
+            connectedAt: null,
           };
         }
       })
