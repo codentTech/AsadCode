@@ -1,6 +1,7 @@
 "use client";
 
 import { reset, signUp } from "@/provider/features/auth/auth.slice";
+import { getOnboardingStatus } from "@/provider/features/onboarding/onboarding.slice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,9 +21,9 @@ import {
   toNullableNumber,
 } from "@/common/utils/register-form.util";
 import { readRegisterDraft, writeRegisterDraft } from "@/common/utils/onboarding-flow.util";
-import { persistOnboardingEmail } from "@/common/utils/users.util";
+import { getOnboardingEmail, persistOnboardingEmail } from "@/common/utils/users.util";
 
-export default function useRegister({ onNext, inviteToken }) {
+export default function useRegister({ onNext, inviteToken, inviteEmail = null }) {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const { isCreatorMode, isLoading } = useSelector((state) => state.auth);
@@ -59,6 +60,11 @@ export default function useRegister({ onNext, inviteToken }) {
 
   useEffect(() => {
     if (hasHydratedRegisterRef.current) return;
+    // Invite signup must not reuse a leftover register draft email/name.
+    if (token) {
+      hasHydratedRegisterRef.current = true;
+      return;
+    }
     const draft = readRegisterDraft();
     if (!draft?.formValues) return;
     hasHydratedRegisterRef.current = true;
@@ -73,9 +79,10 @@ export default function useRegister({ onNext, inviteToken }) {
       setSelectedCity(draft.selectedCity);
       setHasManualLocationOverride(true);
     }
-  }, [resetForm]);
+  }, [resetForm, token]);
 
   useEffect(() => {
+    if (token) return;
     if (!hasHydratedRegisterRef.current && !isDirty) return;
     const { password, confirm_password, ...safeValues } = watchedRegister || {};
     writeRegisterDraft({
@@ -86,6 +93,7 @@ export default function useRegister({ onNext, inviteToken }) {
       selectedCity,
     });
   }, [
+    token,
     isDirty,
     watchedRegister,
     selectedAccountType,
@@ -99,6 +107,14 @@ export default function useRegister({ onNext, inviteToken }) {
       setValue("account_type", selectedAccountType);
     }
   }, [selectedAccountType, setValue]);
+
+  useEffect(() => {
+    if (!token) return;
+    const email =
+      (inviteEmail && String(inviteEmail).trim()) || getOnboardingEmail() || "";
+    if (!email) return;
+    setValue("email", email.toLowerCase(), { shouldValidate: true });
+  }, [token, inviteEmail, setValue]);
 
   useEffect(() => {
     let isMounted = true;
@@ -297,8 +313,10 @@ export default function useRegister({ onNext, inviteToken }) {
     }
     const response = await dispatch(signUp(payload));
     if (response.payload.success) {
-      persistOnboardingEmail(values.email.toLowerCase().trim());
+      const email = values.email.toLowerCase().trim();
+      persistOnboardingEmail(email);
       localStorage.setItem("name", `${values.first_name} ${values.last_name}`);
+      dispatch(getOnboardingStatus(email));
       onNext();
       dispatch(reset());
     }

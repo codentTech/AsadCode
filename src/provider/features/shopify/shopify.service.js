@@ -10,6 +10,11 @@ const getConnectUrl = async (payload) => {
   return response.data;
 };
 
+const getInstallUrl = async () => {
+  const response = await api().get("/shopify/install-url");
+  return response.data;
+};
+
 const disconnect = async (payload) => {
   const response = await api().post("/shopify/disconnect", payload || {});
   return response.data;
@@ -90,6 +95,7 @@ const extendDiscountTracking = async ({ id, trackingEndDate }) => {
 const shopifyService = {
   getConnection,
   getConnectUrl,
+  getInstallUrl,
   disconnect,
   getProducts,
   getDiscountCodes,

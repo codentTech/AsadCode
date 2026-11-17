@@ -4,6 +4,7 @@ import axios from "axios";
 import { enqueueSnackbar } from "notistack";
 import { getAccessToken } from "./access-token.util";
 import { delay } from "./generic.util";
+import { buildLoginUrl, buildReturnTo } from "./return-to.util";
 import { removeUser } from "./users.util";
 
 let isRedirectingToLogin = false;
@@ -16,7 +17,8 @@ const redirectToLoginOnce = () => {
   removeUser();
   const path = window.location.pathname || "";
   if (!path.startsWith("/login")) {
-    window.location.replace("/login");
+    const returnTo = buildReturnTo(path, window.location.search || "");
+    window.location.replace(buildLoginUrl(returnTo));
   }
 };
 

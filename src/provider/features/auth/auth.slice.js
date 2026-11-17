@@ -72,6 +72,7 @@ const initialState = {
   resendEmail: generalState,
   passwordResetRequest: generalState,
   passwordResetSubmit: generalState,
+  changePassword: generalState,
   impersonateUser: generalState,
   exitImpersonation: generalState,
   logout: generalState,
@@ -156,6 +157,19 @@ export const resetPasswordWithToken = createAsyncThunk(
   async (payload, thunkAPI) => {
     try {
       const response = await authService.resetPasswordWithToken(payload);
+      if (response.success) return response;
+      return thunkAPI.rejectWithValue(response);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getSerializableError(error));
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (payload, thunkAPI) => {
+    try {
+      const response = await authService.changePassword(payload);
       if (response.success) return response;
       return thunkAPI.rejectWithValue(response);
     } catch (error) {
@@ -302,6 +316,7 @@ export const authSlice = createSlice({
       state.resendEmail = generalState;
       state.passwordResetRequest = generalState;
       state.passwordResetSubmit = generalState;
+      state.changePassword = generalState;
       state.impersonateUser = generalState;
       state.exitImpersonation = generalState;
       state.loginAndSignUpWithOAuth = generalState;
@@ -453,6 +468,29 @@ export const authSlice = createSlice({
         state.passwordResetSubmit.isLoading = false;
         state.passwordResetSubmit.isError = true;
         state.passwordResetSubmit.data = null;
+      })
+      .addCase(changePassword.pending, (state) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.isLoading = true;
+        state.changePassword.message = "";
+        state.changePassword.isError = false;
+        state.changePassword.isSuccess = false;
+        state.changePassword.data = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.isLoading = false;
+        state.changePassword.isSuccess = true;
+        state.changePassword.data = action.payload;
+        state.changePassword.message = action.payload?.message || "";
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        if (!state.changePassword) state.changePassword = { ...generalState };
+        state.changePassword.message =
+          action.payload?.message || "Failed to update password";
+        state.changePassword.isLoading = false;
+        state.changePassword.isError = true;
+        state.changePassword.data = null;
       })
       .addCase(impersonateUser.pending, (state) => {
         ensureImpersonateUser(state);

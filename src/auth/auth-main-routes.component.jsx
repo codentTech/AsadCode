@@ -1,6 +1,7 @@
 "use client";
 
 import { isLoginVerified } from "@/common/utils/access-token.util";
+import { sanitizeReturnTo } from "@/common/utils/return-to.util";
 import {
   clearAuthSessionForOnboardingLogin,
   isOnboardingCompleted,
@@ -49,12 +50,19 @@ export default function AuthMainRoutes({ component }) {
     }
 
     if (!isOnboardingCompleted(user)) {
-      router.push("/onboarding");
+      const token = searchParams?.get("token");
+      router.push(token ? `/onboarding?token=${encodeURIComponent(token)}` : "/onboarding");
+      return;
+    }
+
+    if (pathname.startsWith("/login")) {
+      const returnTo = sanitizeReturnTo(searchParams?.get("returnTo"));
+      router.push(returnTo || "/campaign");
       return;
     }
 
     router.push("/campaign");
-  }, [router, pathname, resumeOnboarding]);
+  }, [router, pathname, resumeOnboarding, searchParams]);
 
   return component;
 }

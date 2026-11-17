@@ -62,11 +62,13 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
     showPhysicalProductToggle,
     creatorFee,
     isShopifyConnected,
+    isShopifyAccessLost,
+    previousShopifyShop,
     connectionLoading,
     connectLoading,
-    shopInput,
-    handleShopInputChange,
-    handleInlineConnect,
+    installLoading,
+    handleInlineReconnect,
+    handleInstallFromShopify,
     shopName,
     productOptions,
     selectedProductOptions,
@@ -282,35 +284,68 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
       {isAffiliateCampaign ? (
         <section className="rounded-lg border border-gray-200 p-3">
           {!isShopifyConnected ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-100 p-3">
+            <div
+              className={`rounded-lg border p-3 ${
+                isShopifyAccessLost
+                  ? "border-amber-200 bg-amber-50"
+                  : "border-gray-200 bg-gray-100"
+              }`}
+            >
               <div className="mb-3 flex items-start gap-2">
-                <Store className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <Store
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${
+                    isShopifyAccessLost ? "text-amber-700" : "text-primary"
+                  }`}
+                />
                 <div>
                   <p className="text-xs font-semibold text-black sm:text-sm">
-                    Connect Shopify to continue
+                    {isShopifyAccessLost
+                      ? "Shopify access was lost — reconnect to continue"
+                      : "Connect Shopify to continue"}
                   </p>
                   <p className="mt-1 text-[10px] leading-snug text-gray-600 sm:text-xs">
-                    Affiliate campaigns need your Shopify store so CleerCut can pick products and
-                    track sales.
+                    {isShopifyAccessLost ? (
+                      <>
+                        CleerCut can no longer reach
+                        {previousShopifyShop ? (
+                          <>
+                            {" "}
+                            <span className="font-semibold text-black">{previousShopifyShop}</span>
+                          </>
+                        ) : (
+                          " your Shopify store"
+                        )}
+                        . Products and sales tracking stay paused until you reconnect the same
+                        store (approve CleerCut again in Shopify).
+                      </>
+                    ) : (
+                      <>
+                        Affiliate campaigns need your Shopify store so CleerCut can pick products
+                        and track sales. Install from Shopify to connect.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
-                <CustomInput
-                  label="Store domain"
-                  placeholder="mystore.myshopify.com"
-                  value={shopInput}
-                  onChange={handleShopInputChange}
-                />
+              {isShopifyAccessLost && previousShopifyShop ? (
                 <CustomButton
-                  text="Connect Shopify"
+                  text="Reconnect Shopify"
                   className="btn-primary w-full sm:w-auto"
-                  onClick={handleInlineConnect}
+                  onClick={handleInlineReconnect}
                   startIcon={<ExternalLink size={16} />}
                   loading={connectLoading || connectionLoading}
-                  disabled={connectLoading || !shopInput.trim()}
+                  disabled={connectLoading || connectionLoading}
                 />
-              </div>
+              ) : (
+                <CustomButton
+                  text="Install from Shopify"
+                  className="btn-primary w-full sm:w-auto"
+                  onClick={handleInstallFromShopify}
+                  startIcon={<ExternalLink size={16} />}
+                  loading={installLoading || connectLoading || connectionLoading}
+                  disabled={installLoading || connectLoading || connectionLoading}
+                />
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -426,6 +461,37 @@ function Compensation({ campaignData, errors = {}, register, setValue }) {
 
       {isGiftedCampaign ? (
         <section className="rounded-lg border border-gray-200 p-3">
+          {isShopifyAccessLost && !isAffiliateCampaign ? (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <p className="text-xs font-semibold text-black sm:text-sm">
+                Shopify access was lost
+              </p>
+              <p className="mt-1 text-[10px] leading-snug text-gray-600 sm:text-xs">
+                Reconnect
+                {previousShopifyShop ? (
+                  <>
+                    {" "}
+                    <span className="font-semibold text-black">{previousShopifyShop}</span>
+                  </>
+                ) : (
+                  " your Shopify store"
+                )}{" "}
+                to load gift products from your catalog again.
+              </p>
+              <div className="mt-3">
+                <CustomButton
+                  text="Reconnect Shopify"
+                  className="btn-primary w-full sm:w-auto"
+                  onClick={handleInlineReconnect}
+                  startIcon={<ExternalLink size={16} />}
+                  loading={connectLoading || connectionLoading}
+                  disabled={
+                    connectLoading || connectionLoading || !previousShopifyShop
+                  }
+                />
+              </div>
+            </div>
+          ) : null}
           {isShopifyConnected ? (
             <div className="mb-4 space-y-3">
               <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">

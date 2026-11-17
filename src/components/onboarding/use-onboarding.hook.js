@@ -13,8 +13,10 @@ import {
   normalizeCreatorType,
   readCreatorTypeDraft,
   readInviteTokenFromWindow,
+  resolveOnboardingEmail,
   shouldBlockOnInvalidInvite,
   shouldShowCreatorApplication,
+  shouldStripInviteTokenAfterAccount,
   stripInviteTokenFromUrl,
   syncLocalOnboardingStep,
 } from "@/common/utils/onboarding-flow.util";
@@ -100,11 +102,20 @@ export default function useOnboarding() {
   );
 
   const loggedInUser = getUser();
-  const resolvedEmail =
-    loggedInUser?.email || inviteResumeEmail || getOnboardingEmail() || null;
+  const resolvedEmail = useMemo(
+    () =>
+      resolveOnboardingEmail({
+        inviteTokenPresent,
+        inviteResumeEmail,
+        loggedInUserEmail: loggedInUser?.email || null,
+        storedEmail: getOnboardingEmail() || null,
+      }),
+    [inviteTokenPresent, inviteResumeEmail, loggedInUser?.email]
+  );
 
   const hasUserNavigatedRef = useRef(false);
   const hasShownUnfinishedModalRef = useRef(false);
+  const inviteBootstrapDoneRef = useRef(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [preparingRedirect, setPreparingRedirect] = useState(null);
@@ -135,6 +146,17 @@ export default function useOnboarding() {
     setInviteToken(t);
     setHasReadInviteFromUrl(true);
 
+    // Invite link wins over leftover browser resume state.
+    if (t) {
+      inviteBootstrapDoneRef.current = true;
+      dispatch(resetOnboardingSession());
+      dispatch(setIsCreatorModeMode(true));
+      setCurrentStep(ONBOARDING_STEPS.REGISTRATION);
+      setShowCreatorApplication(false);
+      clearOnboardingClientStorage();
+      return;
+    }
+
     const user = getUser();
     const resumeStep = getResumeOnboardingStep(user);
     if (user?.role === ROLES.CREATOR) {
@@ -142,10 +164,7 @@ export default function useOnboarding() {
     } else if (user?.role === ROLES.BRAND) {
       dispatch(setIsCreatorModeMode(false));
     }
-    if (
-      resumeStep != null &&
-      !hasUserNavigatedRef.current
-    ) {
+    if (resumeStep != null && !hasUserNavigatedRef.current) {
       setCurrentStep(resumeStep);
     }
     if (user?.email) {
@@ -163,11 +182,18 @@ export default function useOnboarding() {
   useEffect(() => {
     const fromParams = searchParams?.get("token");
     const normalized = normalizeInviteToken(fromParams);
-    if (normalized != null) {
-      setInviteToken(normalized);
-      setHasReadInviteFromUrl(true);
+    if (normalized == null) return;
+    setInviteToken(normalized);
+    setHasReadInviteFromUrl(true);
+    if (!inviteBootstrapDoneRef.current) {
+      inviteBootstrapDoneRef.current = true;
+      dispatch(resetOnboardingSession());
+      dispatch(setIsCreatorModeMode(true));
+      setCurrentStep(ONBOARDING_STEPS.REGISTRATION);
+      setShowCreatorApplication(false);
+      clearOnboardingClientStorage();
     }
-  }, [searchParams]);
+  }, [searchParams, dispatch]);
 
   useEffect(() => {
     if (!hasReadInviteFromUrl) return;
@@ -188,34 +214,43 @@ export default function useOnboarding() {
   }, [validateTokenState?.isSuccess, validateTokenState?.data?.email]);
 
   useLayoutEffect(() => {
-    if (resolvedEmail) {
-      persistOnboardingEmail(resolvedEmail);
-      dispatch(getOnboardingStatus(resolvedEmail));
-    }
+    if (!resolvedEmail) return;
+    persistOnboardingEmail(resolvedEmail);
+    dispatch(getOnboardingStatus(resolvedEmail));
   }, [dispatch, resolvedEmail]);
 
   useLayoutEffect(() => {
-    if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
+    if (!inviteTokenPresent) return;
+    dispatch(setIsCreatorModeMode(true));
+    if (!hasCreatedAccount(onboardingStatus)) {
       setCurrentStep((prev) =>
-        prev >= ONBOARDING_STEPS.PROFILE_SETUP ? prev : 2
+        prev >= ONBOARDING_STEPS.PROFILE_SETUP ? prev : ONBOARDING_STEPS.REGISTRATION
       );
-      dispatch(setIsCreatorModeMode(true));
+      setShowCreatorApplication(false);
     }
   }, [inviteTokenPresent, onboardingStatus, dispatch]);
 
   useLayoutEffect(() => {
+    if (inviteTokenPresent) return;
     const role = onboardingStatus?.user?.role || getUser()?.role;
     if (role === ROLES.CREATOR) {
       dispatch(setIsCreatorModeMode(true));
     } else if (role === ROLES.BRAND) {
       dispatch(setIsCreatorModeMode(false));
     }
-  }, [onboardingStatus?.user?.role, dispatch]);
+  }, [onboardingStatus?.user?.role, inviteTokenPresent, dispatch]);
 
   useLayoutEffect(() => {
     if (hasUserNavigatedRef.current) return;
 
     const storedStep = getResumeOnboardingStep();
+
+    if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
+      if (!onboardingStatusLoading) {
+        setCurrentStep(ONBOARDING_STEPS.REGISTRATION);
+      }
+      return;
+    }
 
     if (!resolvedEmail) {
       if (!inviteTokenPresent && storedStep == null) {
@@ -230,6 +265,10 @@ export default function useOnboarding() {
 
     const statusEmail = onboardingStatus?.user?.email;
     if (!statusEmail) {
+      if (inviteTokenPresent) {
+        setCurrentStep(ONBOARDING_STEPS.REGISTRATION);
+        return;
+      }
       if (storedStep != null && storedStep < ONBOARDING_STEPS.PROFILE_SETUP) {
         setCurrentStep(storedStep);
       }
@@ -251,6 +290,7 @@ export default function useOnboarding() {
       setCurrentStep(resumeStep);
       if (
         !hasShownUnfinishedModalRef.current &&
+        !inviteTokenPresent &&
         resumeStep >= ONBOARDING_STEPS.EMAIL_VERIFICATION &&
         resumeStep < ONBOARDING_STEPS.COMPLETED
       ) {
@@ -290,12 +330,20 @@ export default function useOnboarding() {
   }, [dispatch, onboardingStatus, onboardingStatusLoading, router]);
 
   useEffect(() => {
-    if (hasCreatedAccount(onboardingStatus) && inviteToken) {
-      stripInviteTokenFromUrl();
-      setInviteToken(null);
-      dispatch(resetValidateInviteToken());
+    const inviteEmail = validateTokenState?.data?.email;
+    if (
+      !shouldStripInviteTokenAfterAccount({
+        inviteToken,
+        inviteEmail,
+        onboardingStatus,
+      })
+    ) {
+      return;
     }
-  }, [onboardingStatus, inviteToken, dispatch]);
+    stripInviteTokenFromUrl();
+    setInviteToken(null);
+    dispatch(resetValidateInviteToken());
+  }, [onboardingStatus, inviteToken, validateTokenState?.data?.email, dispatch]);
 
   useEffect(() => {
     if (
@@ -324,20 +372,23 @@ export default function useOnboarding() {
   ]);
 
   const getMinOnboardingStep = useCallback(() => {
+    if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
+      return ONBOARDING_STEPS.REGISTRATION;
+    }
+
     const loggedInStep = Number(getUser()?.onboarding_step);
     const emailVerified = onboardingStatus?.checklist?.emailVerified === true;
 
     if (
       hasCreatedAccount(onboardingStatus) ||
-      (Number.isFinite(loggedInStep) && loggedInStep >= ONBOARDING_STEPS.EMAIL_VERIFICATION)
+      (!inviteTokenPresent &&
+        Number.isFinite(loggedInStep) &&
+        loggedInStep >= ONBOARDING_STEPS.EMAIL_VERIFICATION)
     ) {
       if (!emailVerified) {
         return ONBOARDING_STEPS.EMAIL_VERIFICATION;
       }
       return ONBOARDING_STEPS.PROFILE_SETUP;
-    }
-    if (inviteTokenPresent && !hasCreatedAccount(onboardingStatus)) {
-      return ONBOARDING_STEPS.REGISTRATION;
     }
     return ONBOARDING_STEPS.ACCOUNT_TYPE_SELECTION;
   }, [onboardingStatus, inviteTokenPresent]);
@@ -623,7 +674,7 @@ export default function useOnboarding() {
 
     if (
       inviteToken &&
-      isTokenValid &&
+      (isTokenValid || isResumeInvite) &&
       inviteResumeEmail &&
       onboardingStatusLoading &&
       currentStep < ONBOARDING_STEPS.PROFILE_SETUP
@@ -692,6 +743,7 @@ export default function useOnboarding() {
                 onNext={nextStep}
                 onBack={prevStep}
                 inviteToken={isTokenValid ? inviteToken : null}
+                inviteEmail={isTokenValid ? inviteResumeEmail : null}
               />
             </div>
           )}
