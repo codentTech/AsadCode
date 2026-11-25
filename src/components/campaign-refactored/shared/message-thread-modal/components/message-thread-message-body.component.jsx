@@ -1,17 +1,20 @@
 import { FileText } from "lucide-react";
+import { getSafeMediaUrl } from "@/common/utils/url.util";
 
 const messageTextClassName =
   "whitespace-pre-wrap break-words text-[11px] leading-relaxed sm:text-sm";
 
 const MessageThreadMessageBody = ({ message }) => {
-  if (message.message_type === "IMAGE" && message.attachment_url) {
+  const safeAttachmentUrl = getSafeMediaUrl(message.attachment_url);
+
+  if (message.message_type === "IMAGE" && safeAttachmentUrl) {
     return (
       <div className="space-y-2">
         <img
-          src={message.attachment_url}
+          src={safeAttachmentUrl}
           alt="Attachment"
           className="max-w-[220px] cursor-pointer rounded-lg transition-opacity hover:opacity-90 sm:max-w-xs"
-          onClick={() => window.open(message.attachment_url, "_blank")}
+          onClick={() => window.open(safeAttachmentUrl, "_blank")}
         />
         {message.content ? (
           <div className={messageTextClassName}>{message.content}</div>
@@ -20,11 +23,11 @@ const MessageThreadMessageBody = ({ message }) => {
     );
   }
 
-  if (message.message_type === "FILE" && message.attachment_url) {
+  if (message.message_type === "FILE" && safeAttachmentUrl) {
     return (
       <div className="space-y-2">
         <a
-          href={message.attachment_url}
+          href={safeAttachmentUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center space-x-2 rounded-lg bg-gray-100 p-3 transition-colors hover:bg-gray-200"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Modal from "@/common/components/modal/modal.component";
 import { formatBlogDate } from "@/common/utils/blog.utils";
+import { sanitizeBlogHtmlClient } from "@/common/utils/blog-content.util";
 import { ExternalLink } from "lucide-react";
 
 function DetailRow({ label, value, className = "" }) {
@@ -68,7 +69,9 @@ export default function BlogPostDetailModal({ post, onClose }) {
             </p>
             <div
               className="blog-post-body max-h-64 overflow-y-auto text-left text-xs leading-relaxed text-gray-700 sm:text-sm"
-              dangerouslySetInnerHTML={{ __html: post.body }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeBlogHtmlClient(post.body),
+              }}
             />
           </div>
         </div>

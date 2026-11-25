@@ -8,7 +8,6 @@ import { getEmailPreferences } from "@/provider/features/email-preferences/email
 import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
 import { APP_RESET_ACTION } from "@/provider/store";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { AES, enc } from "crypto-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -49,21 +48,13 @@ export default function useLogin() {
       setValue("email", resumeEmail);
       return;
     }
-    if (typeof window === "object") {
-      if (
-        localStorage &&
-        localStorage.getItem("rememberedUsername") &&
-        localStorage.getItem("rememberedPassword")
-      ) {
-        const storedUsername = localStorage.getItem("rememberedUsername");
-        const storedEncryptedPassword = localStorage.getItem("rememberedPassword");
-        const bytes = AES.decrypt(
-          storedEncryptedPassword,
-          process.env.NEXT_PUBLIC_MAIN_URL_SECRET_KEY
-        );
-        const decryptedPassword = bytes.toString(enc.Utf8);
+    if (typeof window === "object" && localStorage) {
+      // Never restore passwords from localStorage (secret was client-visible).
+      localStorage.removeItem("rememberedPassword");
+      const storedUsername = localStorage.getItem("rememberedUsername");
+      if (storedUsername) {
         setValue("email", storedUsername);
-        setValue("password", decryptedPassword);
+        setIsChecked(true);
       }
     }
   }, [searchParams, setValue]);
@@ -125,19 +116,13 @@ export default function useLogin() {
       }
     }
     setLoading(false);
-    if (typeof window === "object" && isChecked) {
-      if (localStorage) {
-        const encryptedPassword = AES.encrypt(
-          values.password,
-          process.env.NEXT_PUBLIC_MAIN_URL_SECRET_KEY
-        ).toString();
-        localStorage.setItem("rememberedUsername", values.email);
-        localStorage.setItem("rememberedPassword", encryptedPassword);
-      }
-    }
-    if (isChecked === false) {
-      localStorage.removeItem("rememberedUsername");
+    if (typeof window === "object" && localStorage) {
       localStorage.removeItem("rememberedPassword");
+      if (isChecked) {
+        localStorage.setItem("rememberedUsername", values.email);
+      } else {
+        localStorage.removeItem("rememberedUsername");
+      }
     }
   };
 

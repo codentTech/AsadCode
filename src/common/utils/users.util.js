@@ -1,6 +1,10 @@
 "use client";
 
 import ONBOARDING_STEPS from "@/common/constants/onboarding-steps.constant";
+import {
+  clearAdminSession,
+  hasAdminSession,
+} from "@/common/utils/admin-session.util";
 import ROLES from "../constants/role.constant";
 
 /**
@@ -169,9 +173,8 @@ export const removeUser = () => {
     localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    localStorage.removeItem("admin_user");
-    localStorage.removeItem("admin_token");
   }
+  clearAdminSession();
   clearOnboardingClientStorage();
 };
 
@@ -191,8 +194,7 @@ export const clearAuthSessionForOnboardingLogin = () => {
   const name = localStorage.getItem("name");
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  localStorage.removeItem("admin_token");
-  localStorage.removeItem("admin_user");
+  clearAdminSession();
   if (email && email !== "undefined") {
     persistOnboardingEmail(email);
   }
@@ -252,8 +254,8 @@ export const isSuperAdmin = (data) => {
 };
 
 export const isImpersonating = () => {
-  if (typeof window === "object" && window?.localStorage) {
-    return Boolean(localStorage.getItem("admin_token"));
+  if (typeof window === "object") {
+    return hasAdminSession();
   }
   return false;
 };

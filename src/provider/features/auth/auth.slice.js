@@ -1,3 +1,8 @@
+import {
+  clearAdminSession,
+  getAdminSession,
+  setAdminSession,
+} from "@/common/utils/admin-session.util";
 import { getUser } from "@/common/utils/users.util";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { resetOnboardingSession } from "@/provider/features/onboarding/onboarding.slice";
@@ -191,11 +196,9 @@ export const impersonateUser = createAsyncThunk(
       if (payload?.token && payload?.user && typeof window === "object" && window?.localStorage) {
         const activeToken = localStorage.getItem("token");
         const activeUser = localStorage.getItem("user");
-        if (!localStorage.getItem("admin_token") && activeToken) {
-          localStorage.setItem("admin_token", activeToken);
-        }
-        if (!localStorage.getItem("admin_user") && activeUser) {
-          localStorage.setItem("admin_user", activeUser);
+        const existingAdmin = getAdminSession();
+        if (!existingAdmin.token && activeToken && activeUser) {
+          setAdminSession(activeToken, activeUser);
         }
         localStorage.setItem("token", payload.token);
         localStorage.setItem("user", JSON.stringify(payload.user));
@@ -214,8 +217,7 @@ const restoreAdminSessionFromStorage = () => {
   if (typeof window !== "object" || !window?.localStorage) {
     return null;
   }
-  const adminToken = localStorage.getItem("admin_token");
-  const adminUserRaw = localStorage.getItem("admin_user");
+  const { token: adminToken, userJson: adminUserRaw } = getAdminSession();
   if (!adminToken || !adminUserRaw) {
     return null;
   }
@@ -230,8 +232,7 @@ const restoreAdminSessionFromStorage = () => {
   }
   localStorage.setItem("token", adminToken);
   localStorage.setItem("user", JSON.stringify(adminUser));
-  localStorage.removeItem("admin_token");
-  localStorage.removeItem("admin_user");
+  clearAdminSession();
   return { user: adminUser, token: adminToken };
 };
 
@@ -246,8 +247,7 @@ const applyAdminSession = (payload) => {
   }
   localStorage.setItem("token", payload.token);
   localStorage.setItem("user", JSON.stringify(payload.user));
-  localStorage.removeItem("admin_token");
-  localStorage.removeItem("admin_user");
+  clearAdminSession();
   return true;
 };
 

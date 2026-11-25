@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { enqueueSnackbar } from "notistack";
 import { exitImpersonation } from "@/provider/features/auth/auth.slice";
+import { getAdminSession } from "@/common/utils/admin-session.util";
 import { getUser } from "@/common/utils/users.util";
 
 const syncImpersonationState = ({ setCurrentUser, setAdminUser, setIsImpersonating }) => {
@@ -12,8 +13,7 @@ const syncImpersonationState = ({ setCurrentUser, setAdminUser, setIsImpersonati
     return;
   }
   const activeUser = getUser();
-  const storedAdminUser = localStorage.getItem("admin_user");
-  const storedAdminToken = localStorage.getItem("admin_token");
+  const { token: storedAdminToken, userJson: storedAdminUser } = getAdminSession();
 
   let parsedAdminUser = null;
   if (storedAdminUser) {

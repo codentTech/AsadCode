@@ -1,10 +1,74 @@
 const WORDS_PER_MINUTE = 220;
 
+const DANGEROUS_TAGS = new Set([
+  "SCRIPT",
+  "IFRAME",
+  "OBJECT",
+  "EMBED",
+  "LINK",
+  "META",
+  "BASE",
+  "FORM",
+]);
+
 export const BLOG_DEFAULT_AUTHOR = {
   name: "CleerCut Team",
   role: "Author",
   avatarUrl: null,
 };
+
+function isSafeHref(value) {
+  const trimmed = String(value || "").trim().toLowerCase();
+  return (
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("mailto:") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("/")
+  );
+}
+
+function isSafeSrc(value) {
+  const trimmed = String(value || "").trim().toLowerCase();
+  return trimmed.startsWith("https://") || trimmed.startsWith("http://");
+}
+
+export function sanitizeBlogHtmlClient(html) {
+  if (!html || typeof window === "undefined") {
+    return html || "";
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html), "text/html");
+
+  doc.body.querySelectorAll("*").forEach((node) => {
+    if (DANGEROUS_TAGS.has(node.tagName)) {
+      node.remove();
+      return;
+    }
+
+    [...node.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on") || name === "srcdoc") {
+        node.removeAttribute(attr.name);
+        return;
+      }
+      if (name === "href" && !isSafeHref(attr.value)) {
+        node.removeAttribute(attr.name);
+        return;
+      }
+      if (name === "src" && !isSafeSrc(attr.value)) {
+        node.removeAttribute(attr.name);
+      }
+    });
+
+    if (node.tagName === "A") {
+      node.setAttribute("rel", "noopener noreferrer nofollow");
+    }
+  });
+
+  return doc.body.innerHTML;
+}
 
 export function slugifyHeading(text) {
   return String(text || "")
@@ -54,7 +118,7 @@ export function processBlogPostHtml(html) {
   }
 
   const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+  const doc = parser.parseFromString(sanitizeBlogHtmlClient(html), "text/html");
   const children = Array.from(doc.body.children);
 
   const tocEntries = [];

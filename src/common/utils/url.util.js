@@ -21,3 +21,29 @@ export function parseHttpUrlInput(raw) {
   }
   return { ok: true, href: parsed.href };
 }
+
+function isCleercutS3Hostname(hostname) {
+  const host = String(hostname || "").toLowerCase();
+  return (
+    /^[a-z0-9.-]+\.s3\.[a-z0-9-]+\.amazonaws\.com$/.test(host) ||
+    /^[a-z0-9.-]+\.s3\.amazonaws\.com$/.test(host)
+  );
+}
+
+export function isAllowedMediaUrl(raw) {
+  if (!raw || typeof raw !== "string") return false;
+  try {
+    const parsed = new URL(raw.trim());
+    if (parsed.protocol !== "https:") return false;
+    if (parsed.username || parsed.password) return false;
+    if (!isCleercutS3Hostname(parsed.hostname)) return false;
+    const path = decodeURIComponent(parsed.pathname || "");
+    return path.includes("/cleercut/");
+  } catch {
+    return false;
+  }
+}
+
+export function getSafeMediaUrl(raw) {
+  return isAllowedMediaUrl(raw) ? raw.trim() : null;
+}

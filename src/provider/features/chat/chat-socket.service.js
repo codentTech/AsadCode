@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { getAccessToken } from "@/common/utils/access-token.util";
 import { getUser } from "@/common/utils/users.util";
 
 class ChatSocketService {
@@ -15,14 +16,15 @@ class ChatSocketService {
     }
 
     const user = getUser();
-    if (!user || !user.id) {
+    const token = getAccessToken();
+    if (!user || !user.id || !token) {
       return;
     }
 
     const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000/chat";
 
     this.socket = io(SOCKET_URL, {
-      query: { userId: user.id },
+      auth: { token },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
